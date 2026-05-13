@@ -39,7 +39,7 @@ description: >
 ### ✅ 서비스의 본질 — 반드시 기억할 것
 
 ```
-월크48 = 팬이 좋아하는 Candidate를 투표하는 서비스
+월크48 = 팬이 좋아하는 Contestant를 투표하는 서비스
 
 투표의 의미:
   "나는 이 후보가 더 좋다" (팬의 선호 표현)
@@ -102,59 +102,58 @@ const isTournamentHost = (user: User, tournament: Tournament) =>
 
 ## PART 3 — 대진(Tournament) 구조 완전 이해
 
-### 핵심 용어 정의 (CONTEXT.md Glossary 기준)
+### 핵심 용어 정의 (LANGUAGE.md v1.2 기준)
 
 ```
 Tournament (대진):
-  - 48명의 Candidate가 참여하는 하나의 완전한 이상형 월드컵 이벤트
-  - Tournament Host가 생성하고 Round Deadline을 설정
+  - 48명의 Contestant이 참여하는 하나의 완전한 이상형 월드컵 이벤트
+  - Tournament Host가 생성하고 Tournament Deadline을 설정
 
 Round (라운드):
   - Tournament의 진행 단계: 48강 → 24강 → 12강 → 6강 → Final
-  - 라운드별 지속 기간 없음 — Round Deadline이 유일한 시간 제한
-  - 라운드 전환: 현재 Round 마감 → Tournament Host가 다음 Round 시작
+  - Round에는 Deadline이 없음 — Voter 투표 흐름에 따라 시스템이 자동 전환
+  - 라운드 전환: Voter가 해당 Round 마지막 Match 완료 → advanceRound() 자동 실행
 
 Match (매치):
-  - 두 Candidate의 1:1 투표 배틀
-  - 라운드 내 모든 Match는 동시에 진행됨
-  - 48강 = 24 Matches, 24강 = 12 Matches ... 동시 진행
+  - 두 Contestant의 1:1 투표
+  - Voter에게 순서대로 하나씩 제시됨 (동시 진행 아님)
+  - 48강 = 24 Matches, 24강 = 12 Matches
 
 Vote (투표):
-  - 한 Match에서 두 Candidate 중 하나를 선택하는 행위
-  - 계정당 동일 Tournament에서 1일 5 Match 참여 가능
+  - 한 Match에서 두 Contestant 중 하나를 선택하는 행위
+  - 계정당 동일 Tournament에서 1일 1회만 투표 가능
 ```
 
-### Round Deadline 원칙
+### Tournament Deadline 원칙 (★ v1.5 개정)
 
 ```
-✅ Round Deadline 설정 권한 = Tournament Host
-✅ 각 Round의 기간은 Tournament Host가 자유롭게 설정
+✅ Tournament Deadline 설정 권한 = Tournament Host
+✅ Tournament Deadline: 해당 Tournament 전체의 투표 마감일시
 ✅ 시스템에 하드코딩된 라운드 기간 없음
-✅ Round Deadline 도달 → 투표 자동 마감
-✅ 다음 Round 시작 = Tournament Host가 직접 Advance Round 실행
+✅ Round에는 Deadline이 없음 — Voter 투표 흐름에 따라 자동 전환
 
 ❌ "48강은 24시간" 같은 자동 기간 로직 코딩 금지
+❌ Round별 Deadline 설정 불가 (존재하지 않는 개념)
 ❌ 외부 일정(FIFA 등)에 맞춰 Round를 자동 전환하는 로직 금지
+❌ Host가 라운드를 수동 전환하는 기능 없음 (시스템이 자동 처리)
 ```
 
 ### Tournament 생명주기
 
 ```
 1. Tournament Host가 Tournament 생성
-   └── 주제 입력 + 48명 Candidate 설정 (AI Fill or 수동)
+   └── 주제 입력 + 48명 Contestant 설정 (AI Fill or 수동)
+   └── Tournament Deadline 설정 (전체 투표 마감일시)
 
-2. 48강 시작
-   └── 24 Matches 동시 진행
-   └── Tournament Host가 Round Deadline 설정
+2. 48강 시작 → Voter가 순서대로 1:1 Match 투표 시작
+   └── Voter가 24번째(마지막) Match 완료 → 시스템이 자동으로 라운드 전환
+   └── "맨 어브 더 월드컵 24강" 화면 표시 (Round Transition)
 
-3. Round Deadline 도달 → Tournament Host가 결과 확인
-   └── 각 Match 득표 상위 Candidate 자동 선발
-   └── Tournament Host가 다음 Round Deadline 설정 후 시작
+3. 24강 시작 → Voter가 순서대로 1:1 Match 투표 계속
+   └── Voter가 12번째(마지막) Match 완료 → 시스템이 자동으로 라운드 전환
+   └── 이후 동일 방식으로 12강 → 6강 → 결승 자동 진행
 
-4. 이후 동일하게 반복
-   └── 12강 → 6강 → Final
-
-5. Champion 확정
+4. Champion 확정
    └── Crown Card 자동 생성 + SNS 공유
 ```
 
@@ -165,11 +164,11 @@ Vote (투표):
 ### 핵심 규칙
 
 ```
-계정당 동일 Tournament에서 1일 최대 5 Match 참여
-(같은 Match는 하루 1번만 — 자정 KST 기준 리셋)
+계정당 동일 Tournament에서 1일 1회만 투표 가능
+(하루에 하나의 Match만 투표 가능 — 자정 KST 기준 리셋)
 
 복수 Tournament:
-  각 Tournament별 별도 5회 카운트 (독립 적용)
+  각 Tournament별 별도 1회 카운트 (독립 적용)
 
 계정 신뢰성:
   Google / Apple 소셜 로그인 필수 (익명 계정 없음)
@@ -251,41 +250,57 @@ fraud:       "fingerprintjs + ip-api.com"
 not_used:    "Flutter Web"
 ```
 
-### 디자인 토큰 (절대 변경 금지)
+### 디자인 토큰 — 듀얼 테마 팔레트 (★ v1.5 개정)
 
 ```css
---color-bg:      #05070A;  /* 메인 배경 */
---color-gold:    #FFD700;  /* 브랜드 골드 */
---color-text:    #F8FAFC;  /* 기본 텍스트 */
---color-surface: #0D1117;  /* 카드/패널 배경 */
---color-border:  #30363D;  /* 테두리 */
---color-muted:   #8B949E;  /* 보조 텍스트 */
+/* ── 다크 테마 (Domain 0, 1, 2, 3) ── */
+--color-bg-deep:    #05070A;   /* 가장 깊은 배경 */
+--color-bg-default: #0A0D12;   /* 기본 다크 배경 */
+--color-bg-soft:    #0E1217;   /* 카드/패널 배경 */
+--color-gold:       #FFD700;   /* 브랜드 골드 (양쪽 공통) */
+--color-text:       #F8FAFC;   /* 다크 기본 텍스트 */
+--color-border:     #30363D;   /* 다크 테두리 */
+--color-muted:      #8B949E;   /* 다크 보조 텍스트 */
+
+/* ── 라이트 테마 (Domain 4, 5, 6) ── */
+--color-bg-light:      #FAFBFC;   /* 라이트 배경 */
+--color-surface-light:  #FFFFFF;   /* 라이트 카드 배경 */
+--color-text-light:     #1A1A2E;   /* 라이트 기본 텍스트 */
+--color-border-light:   #E2E8F0;   /* 라이트 테두리 */
+--color-muted-light:    #64748B;   /* 라이트 보조 텍스트 */
 ```
+
+> 다크 배경은 #05070A 단일 고정이 아닙니다.
+> 도메인 성격에 따라 deep/default/soft 범위 내에서 유연하게 적용합니다.
+> --color-gold: #FFD700만 양쪽 테마에서 공통 필수입니다.
 
 ---
 
 ## PART 6 — 도메인 및 권한 구조
 
-### 5개 도메인 (MVP 1 기준)
+### 7개 도메인 (MVP 1 기준, ★ v1.5 테마 추가)
 
 ```
-THE PITCH   (/)
+THE PITCH   (/)                          🌑 다크
   모든 사용자 접근 가능
   "대진 만들기" 버튼: Tournament Host만 활성화, Voter는 disabled
 
-THE LAB     (/lab)
+THE LAB     (/admin/lab)                 🌑 다크
   Tournament Host 전용 — MVP 기간 Voter 완전 비공개
   Next.js 미들웨어에서 isTournamentHost() 검증 필수
 
-THE ARENA   (/arena/[id])
+THE ARENA   (/arena/[id])                🌑 다크
   로그인 Voter 투표 가능
   비로그인: 투표 시도 시 로그인 유도
 
-THE LOCKER ROOM (/profile)
-  MVP 2 오픈
+THE LOCKER ROOM (/profile)               ☀️ 라이트 (MVP 2부터)
+  유저 프로필, 투표 기록 (MVP 2)
 
-POLICY HUB  (/policy)
+POLICY HUB  (/policies)                  ☀️ 라이트
   모든 사용자 접근 가능 — MVP 1 필수
+
+ADMIN DASHBOARD (/admin)                 ☀️ 라이트
+  System Admin 전용, 통합 관리 콘트롤
 ```
 
 ---
@@ -323,11 +338,13 @@ Node 상태:
 
 [필수 참조 원칙]
 - 월크48은 팬 투표 서비스입니다. 예측 게임/내기가 아닙니다.
-- Round Deadline은 Tournament Host가 직접 설정합니다.
-  시스템에 라운드 기간을 하드코딩하지 마세요.
+- Tournament Deadline은 Tournament Host가 직접 설정합니다.
+  Round Deadline은 존재하지 않습니다 (v0.2 폐지).
+  시스템이 Voter 투표 흐름에 따라 자동으로 라운드를 전환합니다.
 - Flutter를 사용하지 마세요. Next.js 14 + TypeScript입니다.
 - Vote Count(절대 수치)를 UI에 노출하지 마세요.
   Vote Rate(%)만 표시합니다.
+- Candidate는 Contestant입니다. Battle은 Match입니다 (v1.2 용어 통일).
 
 역할 및 권한:
   - 담당 모듈: [모듈명]
@@ -338,7 +355,9 @@ Node 상태:
   - 프론트엔드: Next.js 14 (App Router) + TypeScript
   - UI: Tailwind CSS + Shadcn/UI + Framer Motion
   - 백엔드: Firebase (Firestore / Realtime DB / Cloud Functions)
-  - 디자인 토큰: #05070A(배경) #FFD700(골드) #F8FAFC(텍스트)
+  - 디자인 토큰:
+    * 다크 테마: #05070A(배경) #FFD700(골드) #F8FAFC(텍스트)
+    * 라이트 테마: #FAFBFC(배경) #FFD700(골드) #1A1A2E(텍스트)
 
 지금 구현할 기능:
   1. [구체적 기능 1]
@@ -356,19 +375,19 @@ Node 상태:
 ## PART 9 — FAQ
 
 **Q: Tournament는 실제 FIFA 2026 일정을 따라야 하나요?**
-A: 아닙니다. Tournament Host가 설정한 Round Deadline만 유효합니다.
+A: 아닙니다. Tournament Host가 설정한 Tournament Deadline만 유효합니다.
 
-**Q: 라운드 기간을 자동으로 설정하는 로직이 필요하지 않나요?**
-A: 불필요합니다. Round Deadline은 Tournament Host가 직접 설정합니다.
+**Q: Round별 기간을 설정하는 로직이 필요하지 않나요?**
+A: 불필요합니다. Round에는 Deadline이 없습니다. Voter의 투표 흐름에 따라 시스템이 자동으로 라운드를 전환합니다.
 
 **Q: Voter가 Tournament를 만들 수 있나요?**
-A: MVP 기간에는 불가합니다. System Admin만 /lab에서 생성 가능. MVP 이후 검토 예정입니다.
+A: MVP 기간에는 불가합니다. System Admin만 /admin/lab에서 생성 가능. MVP 이후 검토 예정입니다.
 
 **Q: 비로그인 상태에서 투표할 수 있나요?**
-A: 불가합니다. 투표 시 Google/Apple 로그인이 필요합니다.
+A: 불가합니다. 투표 시 Google/Apple 로그인이 필수입니다.
 
-**Q: 하루 5회 제한은 전체 합산인가요, Tournament별인가요?**
-A: Tournament별 5회 (각 Tournament마다 독립 카운트).
+**Q: 하루 투표 제한은 전체 합산인가요, Tournament별인가요?**
+A: Tournament별 1회 (각 Tournament마다 독립 카운트, 1일 1 Match만 가능).
 
 **Q: 투표 결과로 예측 정확도를 보여주는 기능이 필요하지 않나요?**
 A: 전혀 필요 없습니다. 팬 선호 투표 서비스이지 예측 서비스가 아닙니다.
@@ -460,10 +479,11 @@ Claude가 파일을 만들면 대화창에 아래처럼 표시됩니다:
 실제 경로: /Users/jinii/Projects/worldcrown48/
 
 ~/Projects/worldcrown48/
-├── CLAUDE.md                    ← Claude Code 설정 (수정 금지)
-├── CONTEXT.md                   ← 프로젝트 컨텍스트 (v1.3)
-├── LANGUAGE.md                  ← 공식 한/영 용어 정의서
-├── WorldCrown48_Stitch_Design_Spec_v3.0.md
+├── CLAUDE.md                           ← Claude 에이전트 진입점 (v1.1)
+├── CONTEXT.md                          ← 프로젝트 컨텍스트 (v0.3)
+├── LANGUAGE.md                         ← 공식 한/영 용어 정의서 (v1.2)
+├── WorldCrown48_ProjectSkill.md        ← 마스터 스킬 (v1.5)
+├── WorldCrown48_Stitch_Design_Spec_v2.0.docx
 ├── docs/
 └── graphify-out/
 ```
@@ -518,19 +538,28 @@ Claude.ai → 프로젝트 선택 → 설정(⚙️) → 프로젝트 지식 →
 
 | 버전 | 날짜 | 주요 내용 |
 |------|------|-----------|
-| v1.0 | 2026-05 | 최초 작성 |
-| v1.1 | 2026-05 | Flutter → Next.js 전환 기록 |
-| v1.2 | 2026-05 | 투표 정책 v4.2 (Layer 1 제거) |
+| **v1.5** | **2026-05-13** | **CLAUDE.md v1.1 · CONTEXT.md v0.3 정책 변경 반영** |
+| | | ★ "Candidate" → "Contestant" 용어 전체 통일 (LANGUAGE.md v1.2) |
+| | | ★ "Round Deadline" 폐지 → "Tournament Deadline"만 존재 |
+| | | ★ Round 자동 전환 원칙 재정의: Host 수동 전환 → Voter 투표 흐름 자동 |
+| | | ★ 일일 투표 제한: 5회 → 1회로 강화 |
+| | | ★ 디자인 토큰: 단일 다크 → 듀얼 테마 팔레트 (다크 + 라이트) |
+| | | ★ 도메인 구조에 테마 표시 추가 (🌑 다크 / ☀️ 라이트) |
+| | | ★ 에이전트 임무 템플릿에 듀얼 테마 디자인 토큰 반영 |
+| | | 로컬 경로 및 파일 버전 정보 최신화 |
+| v1.4 | 2026-05 | PART 10 신규 추가: Claude 협업 운영 가이드 |
+| | | Claude 접근 범위 명확화 (로컬 vs 프로젝트 지식) |
+| | | 로컬 파일 작업 표준 절차 6단계 수립 |
+| | | 다운로드 버튼 안내, Mac 실제 경로 기록 |
+| | | 자주 발생하는 문제 & 해결책 표 추가 |
+| | | 전체 역할 용어 수정 (관리자 → Tournament Host) |
 | v1.3 | 2026-05 | 서비스 정체성 명문화, 라운드 기간 고정 제거 |
-|      |          | Tournament Host 역할 신규 정의 |
-|      |          | Round Deadline = Tournament Host 권한 확립 |
-| **v1.4** | **2026-05** | **PART 10 신규 추가: Claude 협업 운영 가이드** |
-|      |          | Claude 접근 범위 명확화 (로컬 vs 프로젝트 지식) |
-|      |          | 로컬 파일 작업 표준 절차 6단계 수립 |
-|      |          | 다운로드 버튼 안내, Mac 실제 경로 기록 |
-|      |          | 자주 발생하는 문제 & 해결책 표 추가 |
-|      |          | 전체 역할 용어 수정 (관리자 → Tournament Host) |
+| | | Tournament Host 역할 신규 정의 |
+| | | Round Deadline = Tournament Host 권한 확립 |
+| v1.2 | 2026-05 | 투표 정책 v4.2 (Layer 1 제거) |
+| v1.1 | 2026-05 | Flutter → Next.js 전환 기록 |
+| v1.0 | 2026-05 | 최초 작성 |
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | ProjectSkill v1.4 | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | ProjectSkill v1.5 | CONFIDENTIAL*
