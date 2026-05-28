@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 사업계획서 v4.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ── 기본 설정 ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:       #FCD006;
+  --gold-dark:  #B8860B;
+  --bg-deep:    #00003A;
+  --bg-default: #0E0944;
+  --bg-soft:    #241754;
+  --bg-card:    #141820;
+  --text:       #F2F2F5;
+  --muted:      #484B67;
+  --border:     #2D1C5A;
+  --light-bg:   #F2F2F5;
+  --light-card: #FFFFFF;
+  --light-text: #241754;
+  --light-border:#E2E8F0;
+  --light-muted: #64748B;
+  --blue:       #1A56AE;
+  --blue-light: #EFF6FF;
+  --green-light:#F0FFF4;
+  --amber-light:#FFFBEB;
+}
+
+html { font-size: 10pt; }
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  color: var(--light-text);
+  background: #fff;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* ── 인쇄 최적화 ────────────────────────────────── */
+@media print {
+  html { font-size: 9.5pt; }
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .page-break { page-break-before: always; break-before: page; }
+  .no-break { page-break-inside: avoid; break-inside: avoid; }
+  a { text-decoration: none; color: inherit; }
+  .cover { background: var(--bg-default) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .highlight-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ── 레이아웃 ───────────────────────────────────── */
+.container { max-width: 800px; margin: 0 auto; padding: 32px 40px; }
+@media print { .container { max-width: 100%; padding: 0; } }
+
+/* ── 인쇄 안내 배너 ─────────────────────────────── */
+.print-guide {
+  background: linear-gradient(135deg, #1A1A40, #2A2A60);
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: 10px;
+  margin-bottom: 32px;
+  border-left: 5px solid var(--gold);
+}
+.print-guide h3 { font-size: 14pt; color: var(--gold); margin-bottom: 8px; }
+.print-guide p { font-size: 10pt; color: #ccc; line-height: 1.6; margin: 2px 0; }
+.print-guide strong { color: #fff; }
+
+/* ── 표지 ───────────────────────────────────────── */
+.cover {
+  background: var(--bg-default);
+  color: var(--text);
+  padding: 60px 48px;
+  border-radius: 12px;
+  margin-bottom: 0;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cover-brand {
+  font-size: 28pt;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.cover-sub {
+  font-size: 11pt;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.cover-title {
+  font-size: 38pt;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.cover-version {
+  font-size: 10.5pt;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+.cover-meta-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 6px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.cover-meta-key {
+  font-size: 9pt;
+  color: var(--gold);
+  font-weight: 700;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.cover-meta-val {
+  font-size: 9pt;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.cover-meta-key:last-of-type,
+.cover-meta-val:last-of-type { border-bottom: none; }
+.cover-confidential {
+  margin-top: 28px;
+  font-size: 8.5pt;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* ── 목차 ───────────────────────────────────────── */
+.toc-section { padding: 48px 0 32px; }
+.toc-title {
+  font-size: 18pt;
+  font-weight: 900;
+  color: var(--light-text);
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.toc-divider {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin-bottom: 28px;
+}
+.toc-grid { display: flex; flex-direction: column; gap: 6px; }
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+.toc-item:hover { background: var(--blue-light); border-left-color: var(--gold); }
+.toc-num {
+  font-size: 10pt;
+  font-weight: 900;
+  color: var(--gold);
+  min-width: 30px;
+}
+.toc-text {
+  font-size: 10.5pt;
+  color: var(--light-text);
+  font-weight: 500;
+}
+.toc-new {
+  background: var(--gold);
+  color: var(--bg-default);
+  font-size: 7.5pt;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+/* ── 섹션 공통 ──────────────────────────────────── */
+.section { padding: 40px 0 20px; }
+
+.section-title {
+  background: var(--bg-default);
+  color: var(--text);
+  padding: 14px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-num {
+  font-size: 10pt;
+  font-weight: 900;
+  color: var(--gold);
+  background: rgba(252,208,6,0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(252,208,6,0.3);
+}
+.section-name {
+  font-size: 14pt;
+  font-weight: 900;
+  color: #fff;
+}
+.section-sub {
+  font-size: 9pt;
+  color: var(--muted);
+  padding-left: 4px;
+}
+
+/* ── 본문 텍스트 ─────────────────────────────────── */
+.body-text {
+  font-size: 10pt;
+  color: var(--light-text);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+/* ── 소제목 ─────────────────────────────────────── */
+.sub-heading {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--blue);
+  margin: 24px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--light-border);
+}
+
+/* ── 테이블 ─────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 9.5pt;
+}
+th {
+  background: var(--bg-default);
+  color: var(--gold);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 9pt;
+  border: 1px solid var(--border);
+}
+td {
+  padding: 9px 12px;
+  border: 1px solid var(--light-border);
+  color: var(--light-text);
+  vertical-align: top;
+  line-height: 1.6;
+}
+tr:nth-child(even) td { background: #F8F9FA; }
+tr:nth-child(odd) td { background: #fff; }
+
+/* ── KV 테이블 (키-값 2열) ──────────────────────── */
+.kv-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.kv-table th {
+  background: var(--bg-soft);
+  color: var(--gold);
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 9pt;
+  font-weight: 700;
+  width: 30%;
+  border: 1px solid var(--border);
+}
+.kv-table td {
+  padding: 9px 12px;
+  font-size: 9.5pt;
+  color: var(--light-text);
+  border: 1px solid var(--light-border);
+}
+.kv-table tr:nth-child(odd) td  { background: #F2F2F5; }
+.kv-table tr:nth-child(even) td { background: #F0F4F8; }
+
+/* ── 강조 박스 ──────────────────────────────────── */
+.highlight-box {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border-left: 4px solid var(--gold);
+}
+.highlight-box.blue  { background: var(--blue-light);  border-left-color: var(--blue); }
+.highlight-box.amber { background: var(--amber-light); border-left-color: #D97706; }
+.highlight-box.green { background: var(--green-light); border-left-color: #059669; }
+.highlight-box.pink  { background: #FFF0F5;            border-left-color: #9B1D5E; }
+.highlight-box.red   { background: #FFF0F0;            border-left-color: #9B1D1D; }
+.highlight-box.orange{ background: #FFF8F0;            border-left-color: #C05200; }
+.highlight-box h4 {
+  font-size: 10.5pt;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--light-text);
+}
+.highlight-box p, .highlight-box li {
+  font-size: 9.5pt;
+  color: #444;
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+.highlight-box ul { list-style: none; padding: 0; }
+.highlight-box ul li::before { content: ''; }
+
+/* ── 스텝 박스 ──────────────────────────────────── */
+.step-box {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  background: var(--blue-light);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.step-num {
+  background: var(--gold);
+  color: var(--bg-default);
+  font-weight: 900;
+  font-size: 9pt;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-text { font-size: 9.5pt; color: var(--light-text); line-height: 1.5; }
+
+/* ── 뱃지 ───────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 8pt;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge-gold  { background: var(--gold); color: var(--bg-default); }
+.badge-dark  { background: var(--bg-default); color: var(--gold); border: 1px solid var(--gold); }
+.badge-new   { background: #EF4444; color: #fff; }
+.badge-mvp   { background: #6366F1; color: #fff; }
+
+/* ── 구분선 ─────────────────────────────────────── */
+.divider {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin: 32px 0;
+  border: none;
+}
+
+/* ── 푸터 ───────────────────────────────────────── */
+.footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 2px solid var(--gold);
+  text-align: center;
+  color: var(--light-muted);
+  font-size: 8.5pt;
+  line-height: 1.8;
+}
+
+/* ── 반응형 ─────────────────────────────────────── */
+@media (max-width: 600px) {
+  .container { padding: 20px; }
+  .cover { padding: 40px 24px; }
+  .cover-title { font-size: 26pt; }
+  .cover-meta-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- 인쇄 안내 (화면에서만 표시) -->
+<div class="print-guide no-print">
+  <h3>📄 PDF로 저장하는 방법</h3>
+  <p>① 브라우저에서 이 파일을 열면 Google Fonts로 한국어가 자동 로딩됩니다.</p>
+  <p>② <strong>Chrome/Edge</strong>: Ctrl+P (Mac: Cmd+P) → 대상: <strong>PDF로 저장</strong> → 여백: 없음 → 저장</p>
+  <p>③ <strong>Safari</strong>: File → Print → PDF 버튼 → PDF로 저장</p>
+  <p>④ 인쇄 설정: 용지 A4 · 세로 방향 · 배경 그래픽 체크 ✓</p>
+</div>
+
+<div class="container">
+
+<!-- ████ 표지 ████ -->
+<div class="cover no-break">
+  <div class="cover-brand">👑 WorldCrown48</div>
+  <div class="cover-sub">2026 FIFA 월드컵 글로벌 팬 투표 플랫폼</div>
+  <div class="cover-title">사업계획서</div>
+  <div class="cover-version">Version 4.0 &nbsp;|&nbsp; 2026. 05. 23</div>
+
+  <div class="cover-meta-grid">
+    <div class="cover-meta-key">서비스명</div>
+    <div class="cover-meta-val">WorldCrown48 (월드크라운 48)</div>
+    <div class="cover-meta-key">도메인</div>
+    <div class="cover-meta-val">worldcrown48.com</div>
+    <div class="cover-meta-key">서비스 유형</div>
+    <div class="cover-meta-val">글로벌 팬 투표 & AI 뉴스 플랫폼 (웹 전용)</div>
+    <div class="cover-meta-key">개발 방식</div>
+    <div class="cover-meta-val">Vibe Coding — Claude AI 파트너십 1인 개발</div>
+    <div class="cover-meta-key">런칭 목표</div>
+    <div class="cover-meta-val">2026 FIFA 북중미 월드컵 개막(6월 11일) 전</div>
+    <div class="cover-meta-key">v4.0 신규</div>
+    <div class="cover-meta-val">Fan Intelligence AI 뉴스 전략 + 데이터 기반 뉴스 뷰 추가</div>
+  </div>
+  <div class="cover-confidential">🔒 CONFIDENTIAL — 대외비 문서</div>
+</div>
+
+<!-- ████ 목차 ████ -->
+<div class="toc-section page-break">
+  <div class="toc-title">목  차</div>
+  <div class="toc-divider"></div>
+  <div class="toc-grid">
+    <div class="toc-item"><span class="toc-num">01</span><span class="toc-text">서비스 개요 (Executive Summary)</span></div>
+    <div class="toc-item"><span class="toc-num">02</span><span class="toc-text">시장 분석 & 기회</span></div>
+    <div class="toc-item"><span class="toc-num">03</span><span class="toc-text">서비스 구조 — 7개 도메인</span></div>
+    <div class="toc-item"><span class="toc-num">04</span><span class="toc-text">핵심 차별점 & 경쟁 우위</span></div>
+    <div class="toc-item"><span class="toc-num">05</span><span class="toc-text">Fan Intelligence — AI 뉴스 전략 <span class="toc-new">신규</span></span></div>
+    <div class="toc-item"><span class="toc-num">06</span><span class="toc-text">데이터 기반 뉴스 뷰 <span class="toc-new">신규</span></span></div>
+    <div class="toc-item"><span class="toc-num">07</span><span class="toc-text">MVP 로드맵 & 타임라인</span></div>
+    <div class="toc-item"><span class="toc-num">08</span><span class="toc-text">기술 스택 & 아키텍처</span></div>
+    <div class="toc-item"><span class="toc-num">09</span><span class="toc-text">글로벌 다국어 전략 (i18n)</span></div>
+    <div class="toc-item"><span class="toc-num">10</span><span class="toc-text">수익 모델 & BEP</span></div>
+    <div class="toc-item"><span class="toc-num">11</span><span class="toc-text">KPI 지표 & 성과 목표</span></div>
+    <div class="toc-item"><span class="toc-num">12</span><span class="toc-text">리스크 관리 & 대응 전략</span></div>
+  </div>
+</div>
+
+<!-- ████ 01 서비스 개요 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row">
+      <span class="section-num">01</span>
+      <span class="section-name">서비스 개요</span>
+    </div>
+    <div class="section-sub">Executive Summary</div>
+  </div>
+
+  <p class="body-text">
+    WorldCrown48은 2026 FIFA 북중미 월드컵을 겨냥한 <strong>글로벌 팬 투표 플랫폼</strong>입니다.
+    팬들이 48개국 국가대표팀(Contestant) 중 가장 좋아하는 팀을 1:1 토너먼트 방식으로 투표하고,
+    그 결과를 AI가 분석해 뉴스 콘텐츠로 자동 생성하는 독창적인 서비스입니다.
+  </p>
+
+  <div class="highlight-box blue no-break">
+    <h4>🎯 핵심 가치 제안</h4>
+    <ul>
+      <li>• 이상형 월드컵 방식의 직관적 팬 투표 경험 (48강 → 24강 → … → Champion)</li>
+      <li>• 실제 팬 투표 데이터 기반 AI 뉴스 생성 — <strong>Fan Intelligence</strong> (독점 콘텐츠)</li>
+      <li>• <strong>Crown Card</strong>: 팬 개인화 결과 이미지 → SNS 바이럴 확산 엔진</li>
+      <li>• 글로벌 다국어 지원 (ko / en / es) + Cloudflare CDN 전 세계 빠른 접속</li>
+    </ul>
+  </div>
+
+  <table class="no-break">
+    <colgroup><col style="width:28%"><col style="width:72%"></colgroup>
+    <thead><tr><th>항목</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--gold-dark)">서비스 컨셉</strong></td><td>팬이 투표하고 AI가 보도하는 글로벌 축구 팬덤 허브</td></tr>
+      <tr><td><strong style="color:var(--gold-dark)">타깃 시장</strong></td><td>전 세계 축구 팬 (1차: 한국·영어권, 2차: 스페인어권 남미)</td></tr>
+      <tr><td><strong style="color:var(--gold-dark)">핵심 차별점</strong></td><td>실시간 팬 투표 데이터 기반 AI-Report — 누구도 복제 불가한 독점 데이터</td></tr>
+      <tr><td><strong style="color:var(--gold-dark)">개발 체계</strong></td><td>1인 기획·개발 (Vibe Coding × Claude AI) — 빠른 실행·낮은 고정비</td></tr>
+      <tr><td><strong style="color:var(--gold-dark)">기술 기반</strong></td><td>Next.js 14 + Firebase + Claude API (claude-sonnet-4-20250514)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ████ 02 시장 분석 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">02</span><span class="section-name">시장 분석 & 기회</span></div>
+    <div class="section-sub">Market Analysis</div>
+  </div>
+
+  <p class="body-text">2026 FIFA 북중미 월드컵은 사상 최초 <strong>48팀 체제</strong>로 진행되는 역대 최대 규모 대회입니다.
+  이 구조는 WorldCrown48의 48개 Contestant 설계와 완벽하게 일치하는 전략적 기회입니다.</p>
+
+  <div class="sub-heading">▶ 시장 규모</div>
+  <table class="no-break">
+    <thead><tr><th>지표</th><th>수치</th><th>출처/비고</th></tr></thead>
+    <tbody>
+      <tr><td>2026 FIFA 월드컵 예상 시청자</td><td><strong>50억 명+</strong></td><td>FIFA 공식 추산</td></tr>
+      <tr><td>글로벌 축구 팬 인구</td><td><strong>40억 명+</strong></td><td>Nielsen Sports 2025</td></tr>
+      <tr><td>스포츠 팬 투표·참여 시장</td><td><strong>$12B+</strong> (2026년)</td><td>Statista 2025</td></tr>
+      <tr><td>소셜 미디어 축구 관련 게시물 (월드컵 기간)</td><td><strong>10억 건+ / 일</strong></td><td>Meta / Twitter 데이터</td></tr>
+      <tr><td>스페인어권 축구 팬 (라틴 아메리카)</td><td><strong>8억 명+</strong></td><td>FIFA 지역 통계</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ 경쟁 환경 분석</div>
+  <table class="no-break">
+    <thead><tr><th>경쟁자</th><th>강점</th><th>취약점 (WC48 기회)</th></tr></thead>
+    <tbody>
+      <tr><td>FIFA 공식 앱</td><td>공식 브랜드 신뢰도</td><td>AI 뉴스 없음, 팬 투표 미흡</td></tr>
+      <tr><td>SofaScore / OneFootball</td><td>실시간 경기 데이터</td><td>이상형 월드컵·팬 참여 없음</td></tr>
+      <tr><td>국내 포털 (네이버 스포츠)</td><td>한국어 사용자 기반</td><td>글로벌 서비스 불가</td></tr>
+      <tr><td>Ranker.com</td><td>랭킹·투표 UX</td><td>축구 특화 없음, AI 뉴스 없음</td></tr>
+      <tr><td>Twitter 팬 투표</td><td>즉시 참여 가능</td><td>데이터 소유권 없음, 분석 불가</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box amber no-break">
+    <h4>💡 시장 진입 전략</h4>
+    <ul>
+      <li>• 월드컵 개막(6월 11일) 직전 런치 뉴스 배포로 미디어 버즈 선점</li>
+      <li>• "Fan Intelligence" 독점 AI 뉴스 콘텐츠로 타 서비스 대비 명확한 차별화</li>
+      <li>• Crown Card SNS 공유를 통한 바이럴 루프 — 광고비 최소화</li>
+      <li>• 스페인어 MVP 2 출시로 남미 8억 팬덤 시장 공략 (경쟁자 부재)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 03 서비스 구조 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">03</span><span class="section-name">서비스 구조 — 7개 도메인</span></div>
+    <div class="section-sub">Service Architecture</div>
+  </div>
+
+  <p class="body-text">WorldCrown48은 7개 도메인으로 구성됩니다.
+  핵심 서비스 화면(D0~3)은 <strong>다크 테마</strong>, 유틸리티 화면(D4~6)은 <strong>라이트 테마</strong>를 적용합니다.</p>
+
+  <table class="no-break">
+    <thead><tr><th>도메인</th><th>역할</th><th>테마 / MVP</th></tr></thead>
+    <tbody>
+      <tr><td><strong>D0: Launch Pad</strong></td><td>사전 랜딩·웨이트리스트 모집</td><td>🌑 다크 / MVP 1</td></tr>
+      <tr><td><strong>D1: The Pitch</strong></td><td>메인 홈·트렌딩 토너먼트</td><td>🌑 다크 / MVP 1</td></tr>
+      <tr><td><strong>D2: The Lab</strong></td><td>대진 생성 (관리자 전용)</td><td>🌑 다크 / MVP 1</td></tr>
+      <tr><td><strong>D3: The Arena</strong></td><td>투표·Crown Card·뉴스룸</td><td>🌑 다크 / MVP 1</td></tr>
+      <tr><td><strong>D4: Locker Room</strong></td><td>유저 프로필·히스토리</td><td>☀️ 라이트 / MVP 2</td></tr>
+      <tr><td><strong>D5: Policy Hub</strong></td><td>이용약관·개인정보·쿠키 정책</td><td>☀️ 라이트 / MVP 1</td></tr>
+      <tr><td><strong>D6: Admin Dashboard</strong></td><td>관리자 대시보드·Fan Intelligence 생성</td><td>☀️ 라이트 / MVP 1~</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ Voter(팬) 투표 흐름</div>
+  <div class="highlight-box green no-break">
+    <h4>48강 Tournament 진행 방식</h4>
+    <p>① 48강 (24 Match) → ② 24강 (12 Match) → ③ 12강 (6 Match)</p>
+    <p>④ 6강 (3 Match) &nbsp;&nbsp;→ ⑤ 결승 (1 Match) &nbsp;→ ⑥ Champion 확정</p>
+    <br>
+    <ul>
+      <li>• Match는 Voter에게 순서대로 1:1로 제시 (동시 진행 아님)</li>
+      <li>• 라운드 전환: Voter가 마지막 Match 완료 시 <code>advanceRound()</code> 자동 실행</li>
+      <li>• Tournament Deadline만 존재 — Round Deadline 없음</li>
+      <li>• Champion 확정 → Crown Card 자동 생성 → SNS 공유 유도</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 04 핵심 차별점 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">04</span><span class="section-name">핵심 차별점 & 경쟁 우위</span></div>
+    <div class="section-sub">Key Differentiators</div>
+  </div>
+
+  <p class="body-text">WorldCrown48의 3대 핵심 차별점은 Fan Intelligence, Crown Card, 그리고 독점 팬 데이터입니다.</p>
+
+  <div class="highlight-box amber no-break">
+    <h4>🏆 차별점 1 — Fan Intelligence (AI 뉴스)</h4>
+    <ul>
+      <li>• 전 세계 어느 미디어도 보유하지 못한 "실시간 팬 투표 데이터" 기반 AI 뉴스</li>
+      <li>• "AI가 썼다"가 아니라 "팬 데이터가 근거다" — 검증 가능한 팩트 기반 신뢰</li>
+      <li>• EU AI Act Art.50 준수 AI-Report 표기 + 관리자 검수 이중 안전장치</li>
+    </ul>
+  </div>
+
+  <div class="highlight-box pink no-break">
+    <h4>👑 차별점 2 — Crown Card 바이럴 엔진</h4>
+    <ul>
+      <li>• Champion 결정 후 개인화된 결과 이미지(Crown Card) 자동 생성</li>
+      <li>• "내가 직접 뽑은 우승자" 스토리텔링 → SNS 자발적 공유 유도</li>
+      <li>• 외부 광고 없이 사용자 자신이 홍보 채널이 됨 (바이럴 CAC ≈ 0)</li>
+    </ul>
+  </div>
+
+  <div class="highlight-box blue no-break">
+    <h4>📊 차별점 3 — 독점 팬 데이터 자산</h4>
+    <ul>
+      <li>• 축적되는 팬 투표 데이터 = 누구도 복제 불가한 독점 자산</li>
+      <li>• 데이터 → Fan Intelligence → 미디어 파트너십 → B2B SaaS (MVP 3)</li>
+      <li>• 경쟁자가 늦게 따라올수록 데이터 격차는 더 벌어짐</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 05 Fan Intelligence ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row">
+      <span class="section-num">05</span>
+      <span class="section-name">★ Fan Intelligence — AI 뉴스 전략</span>
+      <span class="badge badge-new">신규</span>
+    </div>
+    <div class="section-sub">실시간 팬 투표 데이터 기반 AI 뉴스 생성 시스템</div>
+  </div>
+
+  <p class="body-text">
+    Fan Intelligence는 WorldCrown48 플랫폼에서 수집된 실제 팬 투표 데이터를 기반으로
+    AI(Claude API)가 작성하고 관리자가 검토·승인한 뉴스 보도 포맷입니다.
+    <em>"AI가 썼다"는 사실보다 "팬 데이터가 근거"라는 사실이 앞섭니다. 데이터가 주인공, AI는 도구.</em>
+  </p>
+
+  <div class="sub-heading">▶ 일반 AI 뉴스 vs Fan Intelligence 비교</div>
+  <table class="no-break">
+    <thead><tr><th>구분</th><th>일반 AI 뉴스</th><th>Fan Intelligence</th></tr></thead>
+    <tbody>
+      <tr><td><strong>데이터 근거</strong></td><td>인터넷 학습 데이터</td><td><strong style="color:#007A3D">WC48 실시간 팬 투표 데이터</strong></td></tr>
+      <tr><td><strong>신뢰 기반</strong></td><td>AI 브랜드 신뢰</td><td><strong style="color:#007A3D">투표 수치 (검증 가능한 팩트)</strong></td></tr>
+      <tr><td><strong>독점성</strong></td><td>누구나 생성 가능</td><td><strong style="color:#007A3D">WC48만 보유한 독점 데이터</strong></td></tr>
+      <tr><td><strong>사용자 인식</strong></td><td>"AI가 지어낸 이야기?"</td><td><strong style="color:#007A3D">"내가 직접 투표한 결과 분석!"</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ AI-Report 표기 규칙 (확정)</div>
+  <table class="no-break">
+    <colgroup><col style="width:28%"><col></colgroup>
+    <thead><tr><th>위치</th><th>표기 내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>카드 목록 뷰</strong></td><td>● AI-Report 배지 (바이라인 행, 11px, <span style="color:var(--gold-dark);font-weight:700">골드 컬러</span>)</td></tr>
+      <tr><td><strong>기사 본문 뷰</strong></td><td>✦ AI-Report 인라인 블록 (본문 하단, 12px, 골드 배경 블록)</td></tr>
+      <tr><td><strong>HTML 메타태그</strong></td><td>&lt;meta name="content-type" content="ai-report" /&gt; (EU AI Act 기계 판독용)</td></tr>
+      <tr><td style="color:#DC2626"><strong>❌ 폐기 표기</strong></td><td style="color:#DC2626">"AI GENERATED" — 경고 라벨 느낌, 신뢰 저하 유발. 완전 폐기.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ MVP별 Fan Intelligence 생성 방식</div>
+  <table class="no-break">
+    <thead><tr><th>단계</th><th>방식</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>MVP 1.5</strong><br><span style="font-size:8.5pt;color:var(--light-muted)">6월 10일</span></td>
+        <td>관리자 수동 1회성 생성</td>
+        <td>관리자 대시보드 → [Fan Intelligence 생성] 버튼 → ranking_cache 읽기 → Claude API 호출 → 초안 생성 → 검토·승인 → 뉴스룸 게시<br><span style="font-size:8.5pt;color:#059669">개발 시간: 약 1~2일</span></td>
+      </tr>
+      <tr>
+        <td><strong>MVP 2</strong><br><span style="font-size:8.5pt;color:var(--light-muted)">7월</span></td>
+        <td>AI 뉴스 팩토리 자동화 (M7)</td>
+        <td>Champion 확정 이벤트 자동 트리거<br>+ 특이점 탐지 4종 (독주·격차·급증·역전)<br>→ Claude API 생성 → AI 자동 검수 → 관리자 승인 대기</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 3</strong><br><span style="font-size:8.5pt;color:var(--light-muted)">하반기</span></td>
+        <td>PR 자동 배포</td>
+        <td>승인된 Fan Intelligence → RedPress / EIN / PR Newswire 자동 송출<br>바이라인: "WorldCrown48 Fan Intelligence | AI-Report"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ AI 자동 검수 6항목</div>
+  <table class="no-break">
+    <colgroup><col style="width:28%"><col></colgroup>
+    <thead><tr><th>검수 항목</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>① AI-Report 표기</strong></td><td>EU AI Act Art.50 필수 — 표기 존재 여부 자동 확인</td></tr>
+      <tr><td><strong>② 데이터 수치 일치</strong></td><td>팩트체크 — ranking_cache 실제 데이터와 기사 수치 비교</td></tr>
+      <tr><td><strong>③ 명예훼손 검사</strong></td><td>특정 선수/인물 비방·명예훼손 표현 없음 확인</td></tr>
+      <tr><td><strong>④ 저작권 검사</strong></td><td>외부 저작물 무단 인용 없음 확인</td></tr>
+      <tr><td><strong>⑤ 데이터 출처 명시</strong></td><td>"Based on WorldCrown48 fan voting data" 포함 여부</td></tr>
+      <tr><td><strong>⑥ 분량·언어 적합성</strong></td><td>200자 이상 2,000자 이하, 적절한 언어 사용</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box green no-break">
+    <h4>⚖️ 법적 준수 현황</h4>
+    <ul>
+      <li>• <strong>미국 FTC</strong>: 기만적 AI 콘텐츠 금지 → 카드 + 본문 이중 표기로 충족 ✅</li>
+      <li>• <strong>EU AI Act Art.50</strong>: 기계 판독 가능 표시 → HTML 메타태그 삽입으로 충족 ✅</li>
+      <li>• <strong>EU AI Act Art.50</strong>: 공익 텍스트 공개 의무 → 본문 내 12px 블록으로 충족 ✅</li>
+      <li>• <strong>한국 언론중재법</strong>: AI 표기 권고 → 카드 배지로 초과 충족 ✅</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 06 데이터 기반 뉴스 뷰 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row">
+      <span class="section-num">06</span>
+      <span class="section-name">★ 데이터 기반 뉴스 뷰</span>
+      <span class="badge badge-new">신규</span>
+    </div>
+    <div class="section-sub">The Arena 뉴스룸 — Fan Intelligence 기사 표시 UX</div>
+  </div>
+
+  <p class="body-text">
+    Domain 3 "The Arena" 뉴스룸은 Fan Intelligence 기사를 팬 데이터와 함께 시각화하는 전용 뷰입니다.
+    투표 수치를 그래프·배지·차트로 제공해 <strong>"읽는 뉴스"가 아닌 "데이터를 보는 뉴스"</strong> 경험을 제공합니다.
+  </p>
+
+  <div class="sub-heading">▶ 카드 목록 뷰 — 바이라인 구성 (확정)</div>
+  <table class="no-break">
+    <colgroup><col style="width:15%"><col></colgroup>
+    <thead><tr><th>행</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1행</strong></td><td>[WC48 브랜드] · [Fan Intelligence] · [날짜]</td></tr>
+      <tr><td><strong>2행</strong></td><td>[● AI-Report 배지] — 골드, 11px</td></tr>
+      <tr><td><strong>3행</strong></td><td>[기사 제목]</td></tr>
+      <tr><td><strong>4행</strong></td><td>[📊 투표 수 배지] [태그들]</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ 기사 본문 뷰 — 데이터 시각화 컴포넌트</div>
+  <table class="no-break">
+    <thead><tr><th>컴포넌트</th><th>역할</th><th>데이터 소스</th></tr></thead>
+    <tbody>
+      <tr><td><strong>투표 현황 요약 카드</strong></td><td>totalVotes · countryCount · Top5 표시</td><td>ranking_cache (Firestore)</td></tr>
+      <tr><td><strong>Top5 득표율 바 차트</strong></td><td>1~5위 Contestant 득표율 시각화</td><td>voteData.top5[]</td></tr>
+      <tr><td><strong>지역별 참여 히트맵</strong></td><td>국가별 투표 참여도 세계지도 시각화</td><td>voteData.countryCount</td></tr>
+      <tr><td><strong>투표 추이 라인 차트</strong></td><td>시간별 투표량 변화 (특이점 발생 지점 강조)</td><td>vote_history 컬렉션</td></tr>
+      <tr><td><strong>AI-Report 표기 블록</strong></td><td>✦ AI-Report 인라인 골드 블록 (본문 하단)</td><td>기사 메타데이터</td></tr>
+      <tr><td><strong>Crown Card 미리보기</strong></td><td>Tournament Champion Crown Card 링크</td><td>ai_news.content.coverImage</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ Firestore ai_news 컬렉션 핵심 스키마</div>
+  <table class="no-break">
+    <colgroup><col style="width:28%"><col></colgroup>
+    <thead><tr><th>필드</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>ai_news_{timestamp} — 기사 고유 ID</td></tr>
+      <tr><td><code>type</code></td><td>"launch_news" | "champion" | "anomaly" — 뉴스 종류</td></tr>
+      <tr><td><code>trigger</code></td><td>"manual" | "T-1" | "T-2" | "T-3" | "T-4" | "champion"</td></tr>
+      <tr><td><code>content</code></td><td>titleKo / titleEn / bodyKo / bodyEn / coverImage (Crown Card URL)</td></tr>
+      <tr><td><code>aiDisclosure</code></td><td>label: "AI-Report" + model + dataSource + dataTimestamp</td></tr>
+      <tr><td><code>voteData</code></td><td>totalVotes / countryCount / top5[contestantName, voteRate, country]</td></tr>
+      <tr><td><code>status</code></td><td>"draft" → "auto_review" → "pending_admin" → "published" | "rejected"</td></tr>
+      <tr><td><code>adminApproval</code></td><td>editorId + approvedAt + note (EU 편집 책임 증명 감사 로그)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box orange no-break">
+    <h4>🔍 이상 징후(Anomaly) 탐지 트리거 4종</h4>
+    <ul>
+      <li>• <strong>T-1</strong>: 1위 득표율 ≥ 60% — 독주 감지 → "OO팀 압도적 독주!" 기사 자동 생성</li>
+      <li>• <strong>T-2</strong>: 1위-2위 격차 ≥ 30%p — 대격차 감지 → 비교 분석 기사 생성</li>
+      <li>• <strong>T-3</strong>: 24시간 투표 증가율 ≥ 200% — 급증 감지 → "팬덤 폭발!" 기사 생성</li>
+      <li>• <strong>T-4</strong>: 3위 이내 순위 역전 발생 → "충격 반전!" 실시간 뉴스 생성</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 07 MVP 로드맵 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">07</span><span class="section-name">MVP 로드맵 & 타임라인</span></div>
+    <div class="section-sub">Roadmap</div>
+  </div>
+
+  <table class="no-break">
+    <thead><tr><th>단계</th><th>목표 시기</th><th>주요 기능</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>MVP 1</strong></td>
+        <td><strong>2026년 5월 31일</strong></td>
+        <td>• Domain 0~3 + 5~6 구현<br>• 투표 엔진 (48→24→12→6→결승)<br>• Crown Card 자동 생성<br>• GNews API 뉴스룸<br>• 웨이트리스트 모집<br>• 언어: 한국어 + 영어</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 1.5</strong> <span class="badge badge-new" style="font-size:7pt">신규</span></td>
+        <td><strong>2026년 6월 10일</strong><br><small>(월드컵 개막 1일 전)</small></td>
+        <td>• 관리자 수동 Fan Intelligence 생성 버튼<br>• Operation Launch News 실행<br>&nbsp;&nbsp;- 런치 뉴스 배포 (개막 전 1~6일)<br>&nbsp;&nbsp;- 최소 1,000표 목표<br>&nbsp;&nbsp;- SNS 집중 홍보</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 2</strong></td>
+        <td><strong>2026년 7월</strong></td>
+        <td>• AI 뉴스 팩토리 M7 자동화<br>• Champion 확정 이벤트 트리거<br>• 특이점 탐지 4종<br>• D4 Locker Room<br>• 스페인어(es) 추가<br>• K-POP 토너먼트 확장</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 3</strong></td>
+        <td><strong>2026년 하반기</strong></td>
+        <td>• PR 자동 배포 (RedPress / EIN)<br>• B2B SaaS 플랫폼<br>• 다국어 확장 (pt-BR / ja 후보)<br>• 수익 모델 본격화</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ Operation Launch News 상세 타임라인</div>
+  <table class="no-break">
+    <colgroup><col style="width:28%"><col></colgroup>
+    <thead><tr><th>기간</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>5월 17~31일</strong></td><td>MVP 1 + MVP 1.5 개발 완료</td></tr>
+      <tr><td><strong>6월 1~3일</strong></td><td>월드컵 Tournament 대진 구성 + 공개 (웨이트리스트 유저 초대)</td></tr>
+      <tr><td><strong>6월 4~8일</strong></td><td>투표 집계 기간 (SNS 홍보 집중 — 최소 1,000표 목표)</td></tr>
+      <tr><td><strong>6월 9~10일</strong></td><td>Fan Intelligence 수동 생성 → 검토 → 승인 → 배포</td></tr>
+      <tr><td><strong>6월 11일 🏟️</strong></td><td><strong>2026 FIFA 월드컵 개막</strong> → 투표 계속 진행</td></tr>
+      <tr><td><strong>7월</strong></td><td>MVP 2 오픈 — AI 뉴스 팩토리 자동화 가동</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ████ 08 기술 스택 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">08</span><span class="section-name">기술 스택 & 아키텍처</span></div>
+    <div class="section-sub">Tech Stack & Architecture</div>
+  </div>
+
+  <table class="no-break">
+    <thead><tr><th>영역</th><th>기술</th><th>선택 이유</th></tr></thead>
+    <tbody>
+      <tr><td><strong>프론트엔드</strong></td><td>Next.js 14 (App Router) + TypeScript</td><td>SSR·SEO 최적화, 글로벌 접근성</td></tr>
+      <tr><td><strong>UI/UX</strong></td><td>Tailwind CSS 3.4 + Shadcn/UI + Framer Motion</td><td>빠른 개발, 일관된 디자인</td></tr>
+      <tr><td><strong>상태 관리</strong></td><td>Zustand</td><td>경량, 복잡성 최소화</td></tr>
+      <tr><td><strong>백엔드/DB</strong></td><td>Firebase (Firestore + Realtime DB + Auth + Functions)</td><td>NoSQL 실시간 DB, 서버리스</td></tr>
+      <tr><td><strong>AI 엔진</strong></td><td>Claude API (claude-sonnet-4-20250514)</td><td>Fan Intelligence 기사 생성</td></tr>
+      <tr><td><strong>호스팅</strong></td><td>Vercel (프론트) + Firebase (백엔드)</td><td>자동 배포, 글로벌 CDN</td></tr>
+      <tr><td><strong>보안/CDN</strong></td><td>Cloudflare</td><td>DDoS 방어, 전 세계 빠른 응답</td></tr>
+      <tr><td><strong>도메인</strong></td><td>worldcrown48.com</td><td>브랜드 도메인</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ 디자인 시스템 — Twilight Stadium v2.1</div>
+  <table class="no-break">
+    <colgroup><col style="width:38%"><col></colgroup>
+    <thead><tr><th>토큰</th><th>값 & 용도</th></tr></thead>
+    <tbody>
+      <tr><td><code>--color-bg-deep</code></td><td>#00003A — 가장 깊은 배경 (Arena Hero)</td></tr>
+      <tr><td><code>--color-bg-default</code></td><td>#0E0944 — 기본 다크 배경</td></tr>
+      <tr><td><code>--color-bg-soft</code></td><td>#241754 — 카드·패널 배경</td></tr>
+      <tr><td><code style="color:var(--gold-dark);font-weight:700">--color-gold</code></td><td><strong>#FCD006</strong> — 브랜드 골드 (양쪽 테마 공통 필수)</td></tr>
+      <tr><td><code>--color-text</code></td><td>#F2F2F5 — 다크 테마 기본 텍스트</td></tr>
+      <tr><td><code>--color-bg-light</code></td><td>#F2F2F5 — 라이트 배경 (D4~6)</td></tr>
+      <tr><td><code>--color-text-light</code></td><td>#241754 — 라이트 기본 텍스트</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box red no-break">
+    <h4>🛡️ 불변 기술 원칙</h4>
+    <ul>
+      <li>• <strong>스택 고정</strong>: Next.js 14 + Firebase — 변경 시 ADR(아키텍처 결정 기록) 필수</li>
+      <li>• <strong>웹 전용</strong>: 모바일 앱 없음, Flutter 전환 계획 없음 (반응형 웹으로 모바일 대응)</li>
+      <li>• <strong>FIFA 상표권 준수</strong>: "FIFA", "Official" 표기 금지 — 팬 투표 플랫폼 포지셔닝</li>
+      <li>• <strong>Pure Gold만</strong>: 포인트 컬러 #FCD006 단일 — 형광 노랑/그린 절대 금지</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 09 다국어 전략 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">09</span><span class="section-name">글로벌 다국어 전략</span></div>
+    <div class="section-sub">i18n Strategy</div>
+  </div>
+
+  <p class="body-text">월드컵은 글로벌 이벤트입니다. WorldCrown48은 단계별 다국어 확장으로 최대 팬덤 시장을 공략합니다.</p>
+
+  <table class="no-break">
+    <thead><tr><th>단계</th><th>지원 언어</th><th>전략</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>MVP 1</strong><br><small>5월 31일</small></td>
+        <td>🇰🇷 ko (한국어)<br>🇺🇸 en (영어)</td>
+        <td>한국 팬 + 글로벌 영어권 동시 공략</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 2</strong><br><small>7월</small></td>
+        <td>+ 🌎 es (스페인어)</td>
+        <td>남미 8억 팬덤 공략<br>아르헨티나·멕시코·콜롬비아 등<br>2026 월드컵 열기 최고조 시점</td>
+      </tr>
+      <tr>
+        <td><strong>MVP 3</strong><br><small>하반기</small></td>
+        <td>+ 추가 미정</td>
+        <td>MVP 2 트래픽 데이터 기반 결정<br>후보: 🇧🇷 pt-BR / 🇯🇵 ja / 🇸🇦 ar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box blue no-break">
+    <h4>🌍 URL 구조 (Next.js i18n 라우팅)</h4>
+    <ul>
+      <li>• <code>worldcrown48.com/ko/</code> — 한국어</li>
+      <li>• <code>worldcrown48.com/en/</code> — 영어 (기본)</li>
+      <li>• <code>worldcrown48.com/es/</code> — 스페인어 (MVP 2)</li>
+      <li>• 불변 원칙: 모든 언어에서 글로벌 MZ Sporty 럭셔리 톤앤매너 유지. 한국적 요소 금지.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 10 수익 모델 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">10</span><span class="section-name">수익 모델 & BEP</span></div>
+    <div class="section-sub">Revenue Model</div>
+  </div>
+
+  <p class="body-text">MVP 1~2는 사용자 확보 우선, MVP 3부터 본격 수익화합니다.</p>
+
+  <table class="no-break">
+    <thead><tr><th>수익원</th><th>단계</th><th>모델 설명</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Crown Card 프리미엄</strong></td><td>MVP 2</td><td>개인화 Crown Card 고화질 다운로드·프린트 유료화<br>예상 단가: $1.99~4.99 / 건</td></tr>
+      <tr><td><strong>Fan Intelligence 구독</strong></td><td>MVP 2</td><td>미디어·기업 대상 Fan Intelligence 리포트 구독<br>예상 단가: $29~99 / 월</td></tr>
+      <tr><td><strong>Tournament 호스팅</strong></td><td>MVP 2</td><td>Host가 자체 토너먼트 생성·운영 유료화<br>예상 단가: $9.99~49 / 토너먼트</td></tr>
+      <tr><td><strong>B2B SaaS 플랫폼</strong></td><td>MVP 3</td><td>스포츠 브랜드·미디어 파트너십 맞춤형 솔루션<br>예상 단가: 월 $500~5,000 / 기업</td></tr>
+      <tr><td><strong>광고·스폰서십</strong></td><td>MVP 3</td><td>팬 데이터 기반 타겟 광고 (자체 집행)</td></tr>
+      <tr><td><strong>PR 자동 배포 서비스</strong></td><td>MVP 3</td><td>Fan Intelligence → PR Wire 배포 유료 서비스</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-heading">▶ 비용 구조 (MVP 1 기준 월간 추정)</div>
+  <table class="no-break">
+    <colgroup><col style="width:40%"><col></colgroup>
+    <thead><tr><th>항목</th><th>비용</th></tr></thead>
+    <tbody>
+      <tr><td>Firebase (Spark→Blaze)</td><td>무료~$50/월 (트래픽 따라 종량제)</td></tr>
+      <tr><td>Vercel Pro</td><td>$20/월</td></tr>
+      <tr><td>Cloudflare Pro</td><td>$20/월</td></tr>
+      <tr><td>Claude API</td><td>Fan Intelligence 기사 건당 약 $0.01~0.05</td></tr>
+      <tr><td>도메인·SSL</td><td>$15/년</td></tr>
+      <tr><td><strong>합계 (런치 초기)</strong></td><td><strong>약 $50~100/월 — 1인 운영 최소 비용</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ████ 11 KPI ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">11</span><span class="section-name">KPI 지표 & 성과 목표</span></div>
+    <div class="section-sub">Key Performance Indicators</div>
+  </div>
+
+  <table class="no-break">
+    <thead><tr><th>지표</th><th>MVP 1 목표<br><small>(5월 31일~6월 10일)</small></th><th>MVP 2 목표<br><small>(7월)</small></th></tr></thead>
+    <tbody>
+      <tr><td><strong>웨이트리스트 가입자</strong></td><td>500명+</td><td>2,000명+</td></tr>
+      <tr><td><strong>런치 뉴스 전 투표 수</strong></td><td>1,000표+</td><td>—</td></tr>
+      <tr><td><strong>Fan Intelligence 기사</strong></td><td>1건 (런치 뉴스)</td><td>자동 생성 5건+</td></tr>
+      <tr><td><strong>SNS 공유 (Crown Card)</strong></td><td>100회+</td><td>500회+</td></tr>
+      <tr><td><strong>일평균 방문자 (DAU)</strong></td><td>100명+</td><td>1,000명+</td></tr>
+      <tr><td><strong>Fan Intelligence CTR</strong></td><td>측정 시작</td><td>30%+</td></tr>
+      <tr><td><strong>월간 활성 사용자 (MAU)</strong></td><td>—</td><td>5,000명+</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box blue no-break">
+    <h4>📈 성과 측정 방법</h4>
+    <ul>
+      <li>• Vercel Analytics + Firebase Analytics 이중 트래킹</li>
+      <li>• Fan Intelligence 기사별 CTR·체류시간·공유수 트래킹</li>
+      <li>• Crown Card 생성 수 → SNS 태그 언급 수 → 신규 유입 연결 분석</li>
+      <li>• 주간 KPI 리뷰: 매주 월요일 지표 검토 → 전략 조정</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 12 리스크 관리 ████ -->
+<div class="section page-break">
+  <div class="section-title no-break">
+    <div class="section-title-row"><span class="section-num">12</span><span class="section-name">리스크 관리 & 대응 전략</span></div>
+    <div class="section-sub">Risk Management</div>
+  </div>
+
+  <table>
+    <thead><tr><th>리스크</th><th>등급</th><th>대응 전략</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>FIFA 상표권 침해</strong></td>
+        <td><strong style="color:#DC2626">🔴 높음</strong></td>
+        <td>"FIFA" "Official" 표기 금지 규칙 엄수<br>팬 투표 플랫폼으로 포지셔닝 — 공식 제휴 없음 명시</td>
+      </tr>
+      <tr>
+        <td><strong>AI 생성 콘텐츠 허위 정보</strong></td>
+        <td><strong style="color:#DC2626">🔴 높음</strong></td>
+        <td>AI 자동 검수 6항목 + 관리자 수동 검토 이중 안전장치<br>팬 데이터 근거 명시 — 실제 경기 예측 절대 금지</td>
+      </tr>
+      <tr>
+        <td><strong>초상권·DMCA 침해</strong></td>
+        <td><strong style="color:#DC2626">🔴 높음</strong></td>
+        <td>3단계 이미지 소싱 정책<br>(Level 1 자동 허용 / Level 2 승인 / Level 3 금지)<br>24시간 내 테이크다운 프로세스</td>
+      </tr>
+      <tr>
+        <td><strong>Firebase 비용 급증</strong></td>
+        <td><strong style="color:#D97706">🟡 중간</strong></td>
+        <td>Blaze 플랜 예산 알림 설정<br>ranking_cache 정책으로 불필요한 실시간 쿼리 최소화</td>
+      </tr>
+      <tr>
+        <td><strong>Claude API 다운타임</strong></td>
+        <td><strong style="color:#D97706">🟡 중간</strong></td>
+        <td>Fan Intelligence 생성 실패 시 재시도 큐(Queue)<br>관리자 수동 생성 폴백(Fallback) 유지</td>
+      </tr>
+      <tr>
+        <td><strong>경쟁 서비스 모방</strong></td>
+        <td><strong style="color:#059669">🟢 낮음</strong></td>
+        <td>누적 팬 투표 데이터 자체가 진입 장벽<br>런칭 속도·데이터 선점이 핵심 방어선</td>
+      </tr>
+      <tr>
+        <td><strong>1인 개발 병목</strong></td>
+        <td><strong style="color:#D97706">🟡 중간</strong></td>
+        <td>Vibe Coding으로 개발 속도 최대화<br>MVP 범위 엄격히 제한 (필요 기능만 구현)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box green no-break">
+    <h4>✅ 핵심 리스크 완화 원칙</h4>
+    <ul>
+      <li>① <strong>법적 리스크</strong>: 상표권·저작권·AI 표기 규정 사전 준수 — 사후 수정 비용 제로화</li>
+      <li>② <strong>기술 리스크</strong>: Firebase + Vercel 서버리스 아키텍처 — 트래픽 스파이크 자동 대응</li>
+      <li>③ <strong>콘텐츠 리스크</strong>: Fan Intelligence 이중 검수 체계 — AI 오류 관리자 최종 승인</li>
+      <li>④ <strong>속도 리스크</strong>: 월드컵 개막 전 MVP 1.5 완성 — 최초 런치 뉴스로 시장 선점</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ████ 푸터 ████ -->
+<div class="footer">
+  <div style="width:100%;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin-bottom:16px;"></div>
+  © 2026 WorldCrown48 &nbsp;|&nbsp; 사업계획서 v4.0 &nbsp;|&nbsp; 2026-05-23 &nbsp;|&nbsp; CONFIDENTIAL<br>
+  이 문서는 WorldCrown48 프로젝트의 대외비 사업계획서입니다. 무단 복제·배포를 금합니다.
+</div>
+
+</div><!-- /container -->
+</body>
+</html>

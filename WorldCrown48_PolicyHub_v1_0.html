@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 — Policy Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400&display=swap');
+
+  :root {
+    --bg:       #00003A;
+    --surface:  #241754;
+    --surface2: #161C23;
+    --gold:     #FCD006;
+    --gold-dim: rgba(252,208,6,0.15);
+    --text:     #F2F2F5;
+    --muted:    #94A3B8;
+    --border:   rgba(252,208,6,0.2);
+    --radius:   8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo span { font-size: 1.5rem; }
+  .header-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Language Switcher ── */
+  .lang-switcher {
+    display: flex;
+    gap: 6px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .lang-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .lang-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* ── Main Layout ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Doc Tabs ── */
+  .doc-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .doc-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+  }
+  .doc-tab:hover { color: var(--text); }
+  .doc-tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  /* ── Policy Document ── */
+  .policy-doc { display: none; }
+  .policy-doc.active { display: block; }
+
+  .policy-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .policy-badge {
+    display: inline-block;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .policy-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .policy-meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .policy-meta strong { color: var(--gold); }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .toc-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .toc ol {
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .toc ol li { margin-bottom: 5px; }
+  .toc ol li a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .toc ol li a:hover { color: var(--gold); }
+
+  /* ── Article Sections ── */
+  .article {
+    margin-bottom: 40px;
+    scroll-margin-top: 90px;
+  }
+  .article h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    color: var(--gold);
+    border-left: 3px solid var(--gold);
+    padding-left: 14px;
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  .article h3 {
+    font-size: 0.95rem;
+    color: var(--text);
+    margin: 20px 0 10px;
+    font-weight: 600;
+  }
+  .article p {
+    color: #CBD5E1;
+    margin-bottom: 12px;
+    font-size: 0.93rem;
+  }
+  .article ul, .article ol {
+    padding-left: 22px;
+    color: #CBD5E1;
+    font-size: 0.93rem;
+    margin-bottom: 12px;
+  }
+  .article ul li, .article ol li { margin-bottom: 6px; }
+
+  /* ── Special Blocks ── */
+  .notice-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 0.9rem;
+    color: #CBD5E1;
+  }
+  .notice-box.warning {
+    border-left-color: #F59E0B;
+    background: rgba(245,158,11,0.06);
+  }
+  .notice-box.danger {
+    border-left-color: #EF4444;
+    background: rgba(239,68,68,0.06);
+  }
+  .notice-box strong { color: var(--gold); display: block; margin-bottom: 6px; }
+  .notice-box.warning strong { color: #F59E0B; }
+  .notice-box.danger strong { color: #EF4444; }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--gold);
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  td {
+    padding: 9px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #CBD5E1;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 2;
+  }
+  footer .logo-sm {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
+  /* ── Lang Visibility ── */
+  [data-lang] { display: none; }
+  body[data-active-lang="ko"] [data-lang="ko"] { display: block; }
+  body[data-active-lang="en"] [data-lang="en"] { display: block; }
+  body[data-active-lang="es"] [data-lang="es"] { display: block; }
+
+  /* inline lang spans */
+  span[data-lang] { display: none; }
+  body[data-active-lang="ko"] span[data-lang="ko"] { display: inline; }
+  body[data-active-lang="en"] span[data-lang="en"] { display: inline; }
+  body[data-active-lang="es"] span[data-lang="es"] { display: inline; }
+
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; flex-wrap: wrap; gap: 12px; }
+    main { padding: 24px 16px 60px; }
+    .policy-title { font-size: 1.4rem; }
+    .doc-tab { padding: 10px 14px; font-size: 0.85rem; }
+  }
+
+  @media print {
+    header, footer, .lang-switcher, .doc-tabs, .toc { display: none; }
+    body { background: #fff; color: #000; }
+    .policy-doc { display: block !important; page-break-after: always; }
+    .article h2 { color: #333; border-color: #333; }
+  }
+</style>
+</head>
+<body data-active-lang="ko">
+
+<!-- ════ HEADER ════ -->
+<header>
+  <a class="logo" href="https://worldcrown48.com">
+    <span>👑</span> WorldCrown48
+    <span class="header-sub" style="font-family:'Noto Sans KR',sans-serif; margin-left:10px;">Policy Hub</span>
+  </a>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('es')">Español</button>
+  </div>
+</header>
+
+<!-- ════ MAIN ════ -->
+<main>
+
+  <!-- DOC TYPE TABS -->
+  <div class="doc-tabs">
+    <button class="doc-tab active" onclick="setDoc('terms')">
+      <span data-lang="ko">이용약관</span>
+      <span data-lang="en">Terms of Service</span>
+      <span data-lang="es">Términos de Servicio</span>
+    </button>
+    <button class="doc-tab" onclick="setDoc('privacy')">
+      <span data-lang="ko">개인정보처리방침</span>
+      <span data-lang="en">Privacy Policy</span>
+      <span data-lang="es">Política de Privacidad</span>
+    </button>
+    <button class="doc-tab" onclick="setDoc('cookies')">
+      <span data-lang="ko">쿠키 정책</span>
+      <span data-lang="en">Cookie Policy</span>
+      <span data-lang="es">Política de Cookies</span>
+    </button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════
+       DOCUMENT 1: TERMS OF SERVICE
+  ════════════════════════════════════════════════ -->
+  <div class="policy-doc active" id="doc-terms">
+
+    <!-- ── KOREAN ── -->
+    <div data-lang="ko">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">이용약관</h1>
+        <p class="policy-meta">최초 작성: 2026년 5월 &nbsp;|&nbsp; 버전: <strong>v1.0</strong> &nbsp;|&nbsp; 적용: 서비스 오픈 즉시</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">목차</div>
+        <ol>
+          <li><a href="#ko-t1">제1조 목적</a></li>
+          <li><a href="#ko-t2">제2조 정의</a></li>
+          <li><a href="#ko-t3">제3조 서비스 이용 계약</a></li>
+          <li><a href="#ko-t4">제4조 서비스의 범위</a></li>
+          <li><a href="#ko-t5">제5조 투표 공정성 및 부정 행위 금지</a></li>
+          <li><a href="#ko-t6">제6조 금지 행위</a></li>
+          <li><a href="#ko-t7">제7조 지적재산권</a></li>
+          <li><a href="#ko-t8">제8조 AI 생성 콘텐츠 정책</a></li>
+          <li><a href="#ko-t9">제9조 서비스의 변경 및 중단</a></li>
+          <li><a href="#ko-t10">제10조 면책 조항</a></li>
+          <li><a href="#ko-t11">제11조 준거법 및 분쟁 해결</a></li>
+          <li><a href="#ko-t12">제12조 약관의 변경</a></li>
+        </ol>
+      </div>
+
+      <div class="notice-box">
+        <strong>📌 서비스 정체성 공지</strong>
+        WorldCrown48(이하 '월크48')은 전 세계 팬들이 참여하는 <strong>팬 투표 엔터테인먼트 서비스</strong>입니다. 본 서비스의 결과는 스포츠 경기 예측, 베팅, 실제 경기 결과와 어떠한 연관도 없습니다. 모든 투표는 팬의 주관적 의견을 반영합니다.
+      </div>
+
+      <div class="article" id="ko-t1">
+        <h2>제1조 (목적)</h2>
+        <p>이 약관은 WorldCrown48(이하 "회사")이 운영하는 월크48 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 이용자 간의 권리·의무 및 책임 사항 등을 규정함을 목적으로 합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t2">
+        <h2>제2조 (정의)</h2>
+        <ol>
+          <li><strong>"서비스"</strong>: worldcrown48.com에서 제공되는 팬 투표, 랭킹, 뉴스 등 모든 디지털 콘텐츠 및 기능</li>
+          <li><strong>"회원"</strong>: 소셜 로그인을 통해 서비스에 가입하여 이용 계약을 체결한 자</li>
+          <li><strong>"Tournament(대진)"</strong>: 관리자가 생성하는 48강 토너먼트 형식의 투표 단위</li>
+          <li><strong>"Match(매치)"</strong>: 대진 내 1:1 대결 단위</li>
+          <li><strong>"Crown Card"</strong>: 투표 결과를 시각화한 공유 가능한 카드</li>
+          <li><strong>"AI 생성 뉴스"</strong>: 인공지능이 자동으로 작성한 콘텐츠로, 반드시 'AI GENERATED' 표시</li>
+        </ol>
+      </div>
+
+      <div class="article" id="ko-t3">
+        <h2>제3조 (서비스 이용 계약)</h2>
+        <p>① 이용 계약은 회원이 본 약관에 동의하고 소셜 로그인(Google, Apple 등)을 통해 가입을 완료하면 성립합니다.</p>
+        <p>② 만 14세 미만의 아동은 회원으로 가입할 수 없습니다. 단, 유럽 경제 지역(EEA) 거주자의 경우 GDPR에 따라 만 16세 미만은 보호자의 동의가 필요합니다.</p>
+        <p>③ 회원은 1인 1계정 원칙을 준수해야 합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t4">
+        <h2>제4조 (서비스의 범위)</h2>
+        <p>회사는 다음 서비스를 제공합니다.</p>
+        <ul>
+          <li>48강 토너먼트 팬 투표 서비스</li>
+          <li>실시간 및 캐시 기반 랭킹 제공</li>
+          <li>Crown Card 생성 및 SNS 공유</li>
+          <li>뉴스 제공 (외부 뉴스 연동 및 AI 생성 뉴스)</li>
+          <li>회원 프로필 및 투표 기록 관리</li>
+        </ul>
+        <div class="notice-box warning">
+          <strong>⚠️ 면책 공지</strong>
+          본 서비스의 투표 결과는 실제 FIFA 월드컵 경기 결과, 선수 성적, 또는 기타 공식 기록과 무관합니다. 스포츠 베팅이나 도박 목적으로 사용할 수 없습니다.
+        </div>
+      </div>
+
+      <div class="article" id="ko-t5">
+        <h2>제5조 (투표 공정성 및 부정 행위 금지) ★</h2>
+        <div class="notice-box">
+          <strong>📋 v4.5 정책 — 투표 공정성 핵심 조항</strong>
+          본 조항은 서비스 공정성 보장을 위한 핵심 규정입니다.
+        </div>
+        <p>① 회원은 공정한 투표 참여를 위해 계정 1개당 동일 Tournament(대진)에서 하루 최대 5개 Match(매치)에 투표할 수 있습니다.</p>
+        <p>② 다음 행위는 부정 투표로 간주되며 엄격히 금지합니다.</p>
+        <ul>
+          <li>다중 계정을 이용한 중복 투표</li>
+          <li>자동화 스크립트·봇(Bot)·매크로 프로그램을 이용한 투표</li>
+          <li>VPN·프록시 서버 등을 이용한 IP 우회 중복 투표</li>
+          <li>타인의 계정을 이용한 투표</li>
+          <li>투표 결과에 부당한 영향을 미치기 위한 조직적 행위</li>
+        </ul>
+        <p>③ 회사는 위 금지 행위를 탐지한 경우, 사전 통보 없이 해당 계정의 투표 기능을 일시 정지 또는 영구 차단할 수 있습니다.</p>
+        <p>④ 부정 투표로 발생한 투표 결과는 무효 처리될 수 있으며, 이로 인한 이의 제기에 대해 회사는 책임을 지지 않습니다.</p>
+        <p>⑤ 부정 행위의 정도가 심각한 경우, 회사는 관련 법령에 따라 민·형사상 법적 조치를 취할 수 있습니다.</p>
+      </div>
+
+      <div class="article" id="ko-t6">
+        <h2>제6조 (금지 행위)</h2>
+        <p>회원은 서비스 이용 시 다음 행위를 해서는 안 됩니다.</p>
+        <ul>
+          <li>타인의 개인정보 도용 또는 허위 정보 등록</li>
+          <li>서비스의 정상적인 운영을 방해하는 행위 (DDoS 공격 등)</li>
+          <li>다른 회원에 대한 비방, 협박, 괴롭힘</li>
+          <li>저작권, 상표권 등 타인의 지적재산권 침해</li>
+          <li>스팸, 피싱, 광고 등 영리 목적의 무단 행위</li>
+          <li>회사의 사전 허락 없이 서비스 데이터를 수집·복제·배포하는 행위</li>
+          <li>불법적이거나 공서양속에 반하는 콘텐츠 게시</li>
+        </ul>
+      </div>
+
+      <div class="article" id="ko-t7">
+        <h2>제7조 (지적재산권)</h2>
+        <p>① 서비스 내 회사가 제작한 콘텐츠(디자인, 텍스트, 로고 등)에 대한 지적재산권은 회사에 귀속됩니다.</p>
+        <p>② 회원이 생성한 Crown Card는 개인 SNS 공유 목적으로 사용 가능하나, 상업적 이용은 금지됩니다.</p>
+        <p>③ 외부 뉴스 콘텐츠의 저작권은 각 원 저작권자에게 있으며, 월크48은 링크 제공 방식으로만 활용합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t8">
+        <h2>제8조 (AI 생성 콘텐츠 정책)</h2>
+        <p>① 서비스 내 AI가 생성한 모든 뉴스·기사에는 'AI GENERATED' 배지가 표시됩니다.</p>
+        <p>② AI 생성 콘텐츠의 정확성을 위해 투표 통계와 기사 내용의 일치 여부를 검증합니다.</p>
+        <p>③ AI 생성 콘텐츠는 팬 투표 데이터를 기반으로 하며, 실제 선수·연예인에 대한 주관적 판단이나 사생활 정보를 포함하지 않습니다.</p>
+        <p>④ 오보 발견 시 24시간 이내 정정 기사를 발행합니다.</p>
+        <p>⑤ 본 서비스의 AI 생성 콘텐츠는 EU AI Act, 한국 AI 기본법 등 관련 법규를 준수합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t9">
+        <h2>제9조 (서비스의 변경 및 중단)</h2>
+        <p>① 회사는 서비스 개선, 점검, 운영상 필요에 따라 서비스의 전부 또는 일부를 변경하거나 일시 중단할 수 있습니다.</p>
+        <p>② 서비스 중단 시 회사는 가능한 경우 사전에 공지합니다. 단, 긴급 상황의 경우 사후 통보로 갈음합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t10">
+        <h2>제10조 (면책 조항)</h2>
+        <p>① 회사는 천재지변, 전쟁, 해킹 등 불가항력으로 인한 서비스 중단에 대해 책임을 지지 않습니다.</p>
+        <p>② 서비스 내 팬 투표 결과는 순수히 팬들의 의견이며, 특정 선수·연예인의 실제 능력이나 가치를 나타내지 않습니다.</p>
+        <p>③ 회사는 회원이 서비스를 이용하여 기대하는 수익 또는 이익에 대해 보증하지 않습니다.</p>
+      </div>
+
+      <div class="article" id="ko-t11">
+        <h2>제11조 (준거법 및 분쟁 해결)</h2>
+        <p>① 이 약관은 대한민국 법률을 준거법으로 합니다.</p>
+        <p>② 서비스 이용과 관련한 분쟁이 발생한 경우, 회사 소재지 관할 법원을 제1심 법원으로 합니다.</p>
+        <p>③ 유럽연합(EU) 회원국 거주자는 GDPR에 따라 관할 감독 기관에 민원을 제기할 권리가 있습니다.</p>
+        <p>④ 캘리포니아 거주자는 CCPA(캘리포니아 소비자 개인정보 보호법)에 따른 추가적인 권리를 보유합니다.</p>
+      </div>
+
+      <div class="article" id="ko-t12">
+        <h2>제12조 (약관의 변경)</h2>
+        <p>① 회사는 관련 법령의 변경이나 서비스 정책 변경 시 약관을 개정할 수 있습니다.</p>
+        <p>② 약관이 변경되는 경우 적용일 7일 전부터 서비스 내 공지사항을 통해 고지합니다.</p>
+        <p>③ 변경된 약관에 동의하지 않는 회원은 서비스 이용을 중단하고 탈퇴할 수 있습니다.</p>
+        <p>④ 약관 변경 공지 후 서비스를 계속 이용하는 경우 변경 약관에 동의한 것으로 간주합니다.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 시행일: 서비스 오픈일 &nbsp;|&nbsp; 최종 수정일: 2026년 5월</p>
+      </div>
+    </div><!-- /ko -->
+
+
+    <!-- ── ENGLISH ── -->
+    <div data-lang="en">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">Terms of Service</h1>
+        <p class="policy-meta">Effective: Service Launch Date &nbsp;|&nbsp; Version: <strong>v1.0</strong> &nbsp;|&nbsp; Last Updated: May 2026</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">Table of Contents</div>
+        <ol>
+          <li><a href="#en-t1">Article 1 – Purpose</a></li>
+          <li><a href="#en-t2">Article 2 – Definitions</a></li>
+          <li><a href="#en-t3">Article 3 – Account Registration</a></li>
+          <li><a href="#en-t4">Article 4 – Service Scope</a></li>
+          <li><a href="#en-t5">Article 5 – Voting Fairness &amp; Anti-Fraud</a></li>
+          <li><a href="#en-t6">Article 6 – Prohibited Activities</a></li>
+          <li><a href="#en-t7">Article 7 – Intellectual Property</a></li>
+          <li><a href="#en-t8">Article 8 – AI-Generated Content Policy</a></li>
+          <li><a href="#en-t9">Article 9 – Service Changes &amp; Suspension</a></li>
+          <li><a href="#en-t10">Article 10 – Disclaimer</a></li>
+          <li><a href="#en-t11">Article 11 – Governing Law &amp; Disputes</a></li>
+          <li><a href="#en-t12">Article 12 – Amendments</a></li>
+        </ol>
+      </div>
+
+      <div class="notice-box">
+        <strong>📌 Service Identity Notice</strong>
+        WorldCrown48 ("WC48") is a <strong>fan voting entertainment platform</strong>. Results generated on this platform have absolutely no connection to sports betting, match outcome predictions, or any official sports records. All votes reflect the subjective opinions of fans worldwide.
+      </div>
+
+      <div class="article" id="en-t1">
+        <h2>Article 1 – Purpose</h2>
+        <p>These Terms of Service ("Terms") govern the conditions of use for the WorldCrown48 service ("Service") operated by WorldCrown48 ("Company"), including the rights, obligations, and responsibilities between the Company and its users ("Members").</p>
+      </div>
+
+      <div class="article" id="en-t2">
+        <h2>Article 2 – Definitions</h2>
+        <ol>
+          <li><strong>"Service"</strong>: All digital content and features available at worldcrown48.com, including fan voting, rankings, news, and Crown Cards.</li>
+          <li><strong>"Member"</strong>: Any individual who has completed account registration via social login and agreed to these Terms.</li>
+          <li><strong>"Tournament"</strong>: A 48-candidate bracket-style voting event created and managed by administrators.</li>
+          <li><strong>"Match"</strong>: A 1-vs-1 head-to-head vote within a Tournament.</li>
+          <li><strong>"Crown Card"</strong>: A shareable visual card displaying a user's voting participation.</li>
+          <li><strong>"AI-Generated News"</strong>: Content automatically produced by artificial intelligence, always labeled 'AI GENERATED'.</li>
+        </ol>
+      </div>
+
+      <div class="article" id="en-t3">
+        <h2>Article 3 – Account Registration</h2>
+        <p>① An account agreement is formed when a user agrees to these Terms and completes registration via social login (Google, Apple, etc.).</p>
+        <p>② Users under 14 years of age may not register. For residents of the European Economic Area (EEA), users under 16 require verifiable parental consent pursuant to the GDPR.</p>
+        <p>③ Each person may maintain only one registered account.</p>
+      </div>
+
+      <div class="article" id="en-t4">
+        <h2>Article 4 – Service Scope</h2>
+        <p>The Company provides the following services:</p>
+        <ul>
+          <li>48-candidate fan voting tournaments</li>
+          <li>Real-time and cache-based rankings</li>
+          <li>Crown Card creation and social media sharing</li>
+          <li>News delivery (external API &amp; AI-generated)</li>
+          <li>Member profile and voting history management</li>
+        </ul>
+        <div class="notice-box warning">
+          <strong>⚠️ Disclaimer</strong>
+          Voting results on this platform bear no relation to actual FIFA World Cup match outcomes, player performance, or any official records. Use for sports betting or gambling purposes is strictly prohibited.
+        </div>
+      </div>
+
+      <div class="article" id="en-t5">
+        <h2>Article 5 – Voting Fairness &amp; Anti-Fraud Policy ★</h2>
+        <div class="notice-box">
+          <strong>📋 Core Policy — Voting Integrity</strong>
+          This article contains fundamental rules to ensure a fair and transparent voting experience for all participants.
+        </div>
+        <p>① To ensure fair participation, each registered account may vote in a maximum of five (5) Matches per Tournament per calendar day.</p>
+        <p>② The following actions constitute voting fraud and are strictly prohibited:</p>
+        <ul>
+          <li>Voting from multiple accounts (duplicate voting)</li>
+          <li>Use of automated scripts, bots, or macro programs to cast votes</li>
+          <li>IP address circumvention via VPNs, proxy servers, or similar tools for duplicate voting</li>
+          <li>Voting using another person's account</li>
+          <li>Any organized effort to artificially influence voting results</li>
+        </ul>
+        <p>③ If the Company detects any of the above prohibited activities, it may suspend or permanently ban the offending account's voting privileges without prior notice.</p>
+        <p>④ Votes cast through fraudulent means may be invalidated. The Company accepts no liability for disputes arising from such invalidations.</p>
+        <p>⑤ In cases of severe fraud, the Company may pursue civil or criminal legal action in accordance with applicable laws.</p>
+      </div>
+
+      <div class="article" id="en-t6">
+        <h2>Article 6 – Prohibited Activities</h2>
+        <ul>
+          <li>Impersonating others or providing false information during registration</li>
+          <li>Disrupting the normal operation of the Service (e.g., DDoS attacks)</li>
+          <li>Defaming, threatening, or harassing other Members</li>
+          <li>Infringing intellectual property rights of others (copyrights, trademarks, etc.)</li>
+          <li>Unauthorized commercial activities including spam, phishing, and advertising</li>
+          <li>Scraping, reproducing, or distributing Service data without prior written consent</li>
+          <li>Posting unlawful or morally offensive content</li>
+        </ul>
+      </div>
+
+      <div class="article" id="en-t7">
+        <h2>Article 7 – Intellectual Property</h2>
+        <p>① All intellectual property rights in content produced by the Company (designs, texts, logos, etc.) vest in the Company.</p>
+        <p>② Members may share Crown Cards on personal social media for non-commercial purposes. Commercial use is prohibited.</p>
+        <p>③ Copyright in external news content belongs to the respective original copyright holders. WC48 provides access via links only.</p>
+      </div>
+
+      <div class="article" id="en-t8">
+        <h2>Article 8 – AI-Generated Content Policy</h2>
+        <p>① All news and articles generated by artificial intelligence within the Service are labeled with an 'AI GENERATED' badge.</p>
+        <p>② The Company verifies that AI-generated content aligns with voting statistics before publication.</p>
+        <p>③ AI-generated content is based solely on fan voting data and does not include subjective judgments or private information about individuals.</p>
+        <p>④ In the event of inaccurate reporting, a correction will be published within 24 hours.</p>
+        <p>⑤ AI-generated content complies with applicable regulations including the EU AI Act and Korean AI Framework Act.</p>
+      </div>
+
+      <div class="article" id="en-t9">
+        <h2>Article 9 – Service Changes &amp; Suspension</h2>
+        <p>① The Company may modify or temporarily suspend all or part of the Service for operational, maintenance, or improvement purposes.</p>
+        <p>② In the event of suspension, the Company will provide advance notice where reasonably possible. Emergency suspensions may be communicated retrospectively.</p>
+      </div>
+
+      <div class="article" id="en-t10">
+        <h2>Article 10 – Disclaimer</h2>
+        <p>① The Company is not liable for service interruptions caused by force majeure events including natural disasters, war, or cyberattacks.</p>
+        <p>② Fan voting results represent the opinions of participating fans only and do not reflect the actual skill, value, or standing of any athlete or public figure.</p>
+        <p>③ The Company makes no guarantee of earnings or benefits expected by Members from using the Service.</p>
+      </div>
+
+      <div class="article" id="en-t11">
+        <h2>Article 11 – Governing Law &amp; Dispute Resolution</h2>
+        <p>① These Terms shall be governed by and construed in accordance with the laws of the Republic of Korea.</p>
+        <p>② Any disputes arising from use of the Service shall be submitted to the court of jurisdiction where the Company is located as the court of first instance.</p>
+        <p>③ EU/EEA residents have the right to lodge complaints with their relevant Data Protection Authority under the GDPR.</p>
+        <p>④ California residents retain additional rights under the California Consumer Privacy Act (CCPA).</p>
+      </div>
+
+      <div class="article" id="en-t12">
+        <h2>Article 12 – Amendments</h2>
+        <p>① The Company may revise these Terms in response to changes in applicable laws or service policies.</p>
+        <p>② Any amendments will be announced through the Service's notice board at least seven (7) days prior to the effective date.</p>
+        <p>③ Members who disagree with amended Terms may discontinue use and deactivate their accounts.</p>
+        <p>④ Continued use of the Service following notice of amendments constitutes acceptance of the revised Terms.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Effective: Service Launch Date &nbsp;|&nbsp; Last Updated: May 2026</p>
+      </div>
+    </div><!-- /en -->
+
+
+    <!-- ── SPANISH ── -->
+    <div data-lang="es">
+      <div class="policy-header">
+        <div class="policy-badge">Documento Legal</div>
+        <h1 class="policy-title">Términos de Servicio</h1>
+        <p class="policy-meta">Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Versión: <strong>v1.0</strong> &nbsp;|&nbsp; Última actualización: Mayo 2026</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">Tabla de Contenidos</div>
+        <ol>
+          <li><a href="#es-t1">Artículo 1 – Objeto</a></li>
+          <li><a href="#es-t2">Artículo 2 – Definiciones</a></li>
+          <li><a href="#es-t3">Artículo 3 – Registro de Cuenta</a></li>
+          <li><a href="#es-t4">Artículo 4 – Alcance del Servicio</a></li>
+          <li><a href="#es-t5">Artículo 5 – Equidad en Votación y Prohibición de Fraude</a></li>
+          <li><a href="#es-t6">Artículo 6 – Conductas Prohibidas</a></li>
+          <li><a href="#es-t7">Artículo 7 – Propiedad Intelectual</a></li>
+          <li><a href="#es-t8">Artículo 8 – Política de Contenido Generado por IA</a></li>
+          <li><a href="#es-t9">Artículo 9 – Modificación y Suspensión del Servicio</a></li>
+          <li><a href="#es-t10">Artículo 10 – Exención de Responsabilidad</a></li>
+          <li><a href="#es-t11">Artículo 11 – Ley Aplicable y Resolución de Conflictos</a></li>
+          <li><a href="#es-t12">Artículo 12 – Modificaciones</a></li>
+        </ol>
+      </div>
+
+      <div class="notice-box">
+        <strong>📌 Aviso de Identidad del Servicio</strong>
+        WorldCrown48 ("WC48") es una <strong>plataforma de entretenimiento de votación de fans</strong>. Los resultados generados en esta plataforma no tienen relación alguna con apuestas deportivas, predicciones de resultados de partidos ni registros deportivos oficiales. Todos los votos reflejan las opiniones subjetivas de los fans de todo el mundo.
+      </div>
+
+      <div class="article" id="es-t1">
+        <h2>Artículo 1 – Objeto</h2>
+        <p>Los presentes Términos de Servicio ("Términos") regulan las condiciones de uso del servicio WorldCrown48 ("Servicio") operado por WorldCrown48 ("Empresa"), incluyendo los derechos, obligaciones y responsabilidades entre la Empresa y sus usuarios ("Miembros").</p>
+      </div>
+
+      <div class="article" id="es-t2">
+        <h2>Artículo 2 – Definiciones</h2>
+        <ol>
+          <li><strong>"Servicio"</strong>: Todo el contenido digital y funciones disponibles en worldcrown48.com, incluyendo votaciones de fans, clasificaciones, noticias y Crown Cards.</li>
+          <li><strong>"Miembro"</strong>: Cualquier persona que haya completado el registro a través de inicio de sesión social y aceptado estos Términos.</li>
+          <li><strong>"Torneo"</strong>: Un evento de votación en formato de llave de 48 candidatos creado y gestionado por administradores.</li>
+          <li><strong>"Enfrentamiento" (Match)</strong>: Un duelo 1 contra 1 dentro de un Torneo.</li>
+          <li><strong>"Crown Card"</strong>: Una tarjeta visual compartible que muestra la participación de un usuario en las votaciones.</li>
+          <li><strong>"Noticias generadas por IA"</strong>: Contenido producido automáticamente por inteligencia artificial, siempre etiquetado como 'AI GENERATED'.</li>
+        </ol>
+      </div>
+
+      <div class="article" id="es-t3">
+        <h2>Artículo 3 – Registro de Cuenta</h2>
+        <p>① El acuerdo de uso se formaliza cuando el usuario acepta estos Términos y completa el registro a través de inicio de sesión social (Google, Apple, etc.).</p>
+        <p>② Los menores de 14 años no pueden registrarse. Para residentes en el Espacio Económico Europeo (EEE), los menores de 16 años requieren el consentimiento verificable de sus padres o tutores conforme al RGPD.</p>
+        <p>③ Cada persona puede mantener únicamente una cuenta registrada.</p>
+      </div>
+
+      <div class="article" id="es-t4">
+        <h2>Artículo 4 – Alcance del Servicio</h2>
+        <p>La Empresa proporciona los siguientes servicios:</p>
+        <ul>
+          <li>Torneos de votación de fans con 48 candidatos</li>
+          <li>Clasificaciones en tiempo real y basadas en caché</li>
+          <li>Creación de Crown Cards y compartición en redes sociales</li>
+          <li>Entrega de noticias (API externa y generadas por IA)</li>
+          <li>Gestión de perfiles de miembros e historial de votaciones</li>
+        </ul>
+        <div class="notice-box warning">
+          <strong>⚠️ Aviso Legal</strong>
+          Los resultados de votación en esta plataforma no tienen relación con los resultados reales de la Copa Mundial de la FIFA, el rendimiento de los jugadores ni ningún registro oficial. Su uso con fines de apuestas deportivas o juegos de azar está estrictamente prohibido.
+        </div>
+      </div>
+
+      <div class="article" id="es-t5">
+        <h2>Artículo 5 – Equidad en Votación y Prohibición de Fraude ★</h2>
+        <div class="notice-box">
+          <strong>📋 Política Principal — Integridad de la Votación</strong>
+          Este artículo contiene normas fundamentales para garantizar una experiencia de votación justa y transparente para todos los participantes.
+        </div>
+        <p>① Para garantizar una participación justa, cada cuenta registrada puede votar en un máximo de cinco (5) Enfrentamientos por Torneo por día natural.</p>
+        <p>② Las siguientes acciones constituyen fraude electoral y están estrictamente prohibidas:</p>
+        <ul>
+          <li>Votar desde múltiples cuentas (voto duplicado)</li>
+          <li>Uso de scripts automatizados, bots o programas de macro para emitir votos</li>
+          <li>Elusión de la dirección IP mediante VPN, servidores proxy o herramientas similares para voto duplicado</li>
+          <li>Votar utilizando la cuenta de otra persona</li>
+          <li>Cualquier esfuerzo organizado para influir artificialmente en los resultados de la votación</li>
+        </ul>
+        <p>③ Si la Empresa detecta alguna de las actividades prohibidas anteriores, podrá suspender o prohibir permanentemente los privilegios de votación de la cuenta infractora sin previo aviso.</p>
+        <p>④ Los votos emitidos mediante métodos fraudulentos podrán ser invalidados. La Empresa no acepta ninguna responsabilidad por disputas derivadas de dichas invalidaciones.</p>
+        <p>⑤ En casos de fraude grave, la Empresa podrá emprender acciones legales civiles o penales de conformidad con las leyes aplicables.</p>
+      </div>
+
+      <div class="article" id="es-t6">
+        <h2>Artículo 6 – Conductas Prohibidas</h2>
+        <ul>
+          <li>Suplantar la identidad de otros o proporcionar información falsa durante el registro</li>
+          <li>Interrumpir el funcionamiento normal del Servicio (ej.: ataques DDoS)</li>
+          <li>Difamar, amenazar o acosar a otros Miembros</li>
+          <li>Infringir los derechos de propiedad intelectual de terceros</li>
+          <li>Actividades comerciales no autorizadas, incluyendo spam, phishing y publicidad</li>
+          <li>Extracción, reproducción o distribución de datos del Servicio sin consentimiento previo por escrito</li>
+          <li>Publicación de contenido ilegal o contrario a las buenas costumbres</li>
+        </ul>
+      </div>
+
+      <div class="article" id="es-t7">
+        <h2>Artículo 7 – Propiedad Intelectual</h2>
+        <p>① Todos los derechos de propiedad intelectual sobre el contenido producido por la Empresa (diseños, textos, logotipos, etc.) pertenecen a la Empresa.</p>
+        <p>② Los Miembros pueden compartir las Crown Cards en sus redes sociales personales con fines no comerciales. El uso comercial está prohibido.</p>
+        <p>③ Los derechos de autor del contenido de noticias externas pertenecen a sus respectivos titulares originales. WC48 proporciona acceso únicamente mediante enlaces.</p>
+      </div>
+
+      <div class="article" id="es-t8">
+        <h2>Artículo 8 – Política de Contenido Generado por IA</h2>
+        <p>① Todas las noticias y artículos generados por inteligencia artificial en el Servicio están etiquetados con el distintivo 'AI GENERATED'.</p>
+        <p>② La Empresa verifica que el contenido generado por IA sea coherente con las estadísticas de votación antes de su publicación.</p>
+        <p>③ El contenido generado por IA se basa exclusivamente en datos de votación de fans y no incluye juicios subjetivos ni información privada sobre personas.</p>
+        <p>④ En caso de información inexacta, se publicará una corrección en un plazo de 24 horas.</p>
+        <p>⑤ El contenido generado por IA cumple con la normativa aplicable, incluyendo la Ley de IA de la UE y la Ley Marco de IA de Corea.</p>
+      </div>
+
+      <div class="article" id="es-t9">
+        <h2>Artículo 9 – Modificación y Suspensión del Servicio</h2>
+        <p>① La Empresa puede modificar o suspender temporalmente todo o parte del Servicio por razones operativas, de mantenimiento o mejora.</p>
+        <p>② En caso de suspensión, la Empresa proporcionará aviso previo cuando sea razonablemente posible. Las suspensiones de emergencia podrán comunicarse de forma retroactiva.</p>
+      </div>
+
+      <div class="article" id="es-t10">
+        <h2>Artículo 10 – Exención de Responsabilidad</h2>
+        <p>① La Empresa no se hace responsable de las interrupciones del servicio causadas por eventos de fuerza mayor, incluyendo desastres naturales, guerra o ciberataques.</p>
+        <p>② Los resultados de votación de fans representan únicamente las opiniones de los fans participantes y no reflejan la habilidad, valor o posición real de ningún atleta o figura pública.</p>
+        <p>③ La Empresa no garantiza ganancias ni beneficios esperados por los Miembros al usar el Servicio.</p>
+      </div>
+
+      <div class="article" id="es-t11">
+        <h2>Artículo 11 – Ley Aplicable y Resolución de Conflictos</h2>
+        <p>① Estos Términos se regirán e interpretarán de conformidad con las leyes de la República de Corea.</p>
+        <p>② Cualquier disputa derivada del uso del Servicio se someterá al tribunal de jurisdicción donde esté ubicada la Empresa como tribunal de primera instancia.</p>
+        <p>③ Los residentes de la UE/EEE tienen derecho a presentar reclamaciones ante su Autoridad de Protección de Datos competente en virtud del RGPD.</p>
+        <p>④ Los residentes de California conservan derechos adicionales bajo la Ley de Privacidad del Consumidor de California (CCPA).</p>
+      </div>
+
+      <div class="article" id="es-t12">
+        <h2>Artículo 12 – Modificaciones</h2>
+        <p>① La Empresa podrá revisar estos Términos en respuesta a cambios en la legislación aplicable o en las políticas del servicio.</p>
+        <p>② Cualquier modificación se anunciará en el tablón de noticias del Servicio con al menos siete (7) días de antelación a la fecha de entrada en vigor.</p>
+        <p>③ Los Miembros que no estén de acuerdo con los Términos modificados podrán dejar de usar el Servicio y desactivar sus cuentas.</p>
+        <p>④ El uso continuado del Servicio tras el aviso de modificaciones constituye la aceptación de los Términos revisados.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Última actualización: Mayo 2026</p>
+      </div>
+    </div><!-- /es -->
+
+  </div><!-- /#doc-terms -->
+
+
+  <!-- ════════════════════════════════════════════════
+       DOCUMENT 2: PRIVACY POLICY
+  ════════════════════════════════════════════════ -->
+  <div class="policy-doc" id="doc-privacy">
+
+    <!-- ── KOREAN ── -->
+    <div data-lang="ko">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">개인정보처리방침</h1>
+        <p class="policy-meta">최초 작성: 2026년 5월 &nbsp;|&nbsp; 버전: <strong>v1.0</strong> &nbsp;|&nbsp; 글로벌 기준: GDPR · CCPA · 한국 개인정보보호법</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">목차</div>
+        <ol>
+          <li><a href="#ko-p1">제1조 개인정보 처리방침 개요</a></li>
+          <li><a href="#ko-p2">제2조 수집하는 개인정보의 항목</a></li>
+          <li><a href="#ko-p3">제3조 개인정보의 처리 목적</a></li>
+          <li><a href="#ko-p4">제4조 처리의 법적 근거</a></li>
+          <li><a href="#ko-p5">제5조 개인정보의 보유 및 파기</a></li>
+          <li><a href="#ko-p6">제6조 개인정보의 제3자 제공</a></li>
+          <li><a href="#ko-p7">제7조 정보주체의 권리</a></li>
+          <li><a href="#ko-p8">제8조 국제 데이터 이전</a></li>
+          <li><a href="#ko-p9">제9조 미성년자 보호</a></li>
+          <li><a href="#ko-p10">제10조 개인정보 보호책임자</a></li>
+        </ol>
+      </div>
+
+      <div class="article" id="ko-p1">
+        <h2>제1조 (개인정보 처리방침 개요)</h2>
+        <p>WorldCrown48(이하 "회사")은 개인정보보호법, GDPR(EU 일반 개인정보 보호규정), CCPA(캘리포니아 소비자 개인정보 보호법)를 포함한 글로벌 개인정보 보호 법규를 준수하며 이용자의 개인정보를 처리합니다.</p>
+        <p>회사는 개인정보의 처리 목적, 처리하는 개인정보의 항목, 개인정보의 처리 및 보유 기간, 정보주체의 권리·의무 및 행사방법 등에 관한 사항을 이 방침에 따라 공개합니다.</p>
+      </div>
+
+      <div class="article" id="ko-p2">
+        <h2>제2조 (수집하는 개인정보의 항목)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>구분</th><th>수집 항목</th><th>수집 시점</th><th>필수 여부</th></tr></thead>
+            <tbody>
+              <tr><td>소셜 로그인</td><td>이름, 이메일, 프로필 사진 (소셜 제공자로부터)</td><td>회원 가입 시</td><td>필수</td></tr>
+              <tr><td>서비스 이용</td><td>투표 기록, 대진 참여 이력, Crown Card 생성 이력</td><td>서비스 이용 시</td><td>자동 수집</td></tr>
+              <tr><td>접속 정보</td><td>IP 주소, 디바이스 정보, 브라우저 유형, 접속 시간</td><td>서비스 접속 시</td><td>자동 수집</td></tr>
+              <tr><td>쿠키</td><td>필수·기능·분석·마케팅 쿠키 (동의 여부에 따라)</td><td>서비스 접속 시</td><td>선택적</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="notice-box">
+          <strong>📌 민감 정보 미수집</strong>
+          회사는 사상·신념, 정치적 견해, 종교, 건강정보 등 민감한 개인정보를 수집하지 않습니다.
+        </div>
+      </div>
+
+      <div class="article" id="ko-p3">
+        <h2>제3조 (개인정보의 처리 목적)</h2>
+        <ul>
+          <li>회원 가입 및 본인 확인</li>
+          <li>서비스 제공 (투표, 랭킹, Crown Card 생성 등)</li>
+          <li>부정 투표 방지 및 서비스 보안 유지</li>
+          <li>서비스 개선 및 통계 분석</li>
+          <li>공지사항·이벤트 정보 전달</li>
+          <li>법적 의무 이행 (GDPR, 개인정보보호법 등)</li>
+        </ul>
+      </div>
+
+      <div class="article" id="ko-p4">
+        <h2>제4조 (처리의 법적 근거 — GDPR 제6조 준거)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>처리 목적</th><th>법적 근거</th></tr></thead>
+            <tbody>
+              <tr><td>계정 생성 및 서비스 제공</td><td>계약 이행 (GDPR 제6조 (b)항)</td></tr>
+              <tr><td>부정 투표 방지, 보안</td><td>정당한 이익 (GDPR 제6조 (f)항)</td></tr>
+              <tr><td>분석 쿠키, 마케팅 쿠키</td><td>동의 (GDPR 제6조 (a)항)</td></tr>
+              <tr><td>법적 의무 이행</td><td>법적 의무 준수 (GDPR 제6조 (c)항)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="ko-p5">
+        <h2>제5조 (개인정보의 보유 및 파기)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>보유 데이터</th><th>보유 기간</th><th>파기 방법</th></tr></thead>
+            <tbody>
+              <tr><td>회원 정보</td><td>탈퇴 요청 즉시 (30일 이내)</td><td>전자적 완전 삭제</td></tr>
+              <tr><td>투표 기록 (익명화)</td><td>서비스 통계 목적으로 무기한 보관 (개인 식별 불가)</td><td>익명화 처리 후 유지</td></tr>
+              <tr><td>삭제 요청 로그</td><td>3년 (법적 증거 보전)</td><td>만료 후 자동 삭제</td></tr>
+              <tr><td>쿠키 동의 기록</td><td>12개월 후 재동의 요청</td><td>만료 후 자동 삭제</td></tr>
+              <tr><td>관련 법령 보존 데이터</td><td>각 법령에서 정한 기간</td><td>기간 만료 후 즉시 파기</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="ko-p6">
+        <h2>제6조 (개인정보의 제3자 제공)</h2>
+        <p>회사는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다. 단, 다음의 경우는 예외로 합니다.</p>
+        <ul>
+          <li>이용자의 사전 동의를 받은 경우</li>
+          <li>법령의 규정에 의한 경우, 또는 수사 목적으로 법령에 정해진 절차와 방법에 따라 수사기관의 요구가 있는 경우</li>
+        </ul>
+        <h3>서비스 운영을 위한 처리 위탁</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>수탁자</th><th>위탁 업무</th><th>보유 기간</th></tr></thead>
+            <tbody>
+              <tr><td>Google Firebase (Google LLC)</td><td>인증, 데이터베이스, 스토리지, 분석</td><td>회원 탈퇴 시 파기</td></tr>
+              <tr><td>Vercel Inc.</td><td>웹 서버 호스팅</td><td>계약 종료 시</td></tr>
+              <tr><td>Cloudflare Inc.</td><td>CDN, DDoS 방어</td><td>계약 종료 시</td></tr>
+              <tr><td>GNews (gnews.io)</td><td>외부 뉴스 콘텐츠 제공</td><td>캐시 1시간</td></tr>
+              <tr><td>Anthropic (Claude API)</td><td>AI 뉴스 생성 (MVP 2)</td><td>처리 완료 즉시</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="ko-p7">
+        <h2>제7조 (정보주체의 권리)</h2>
+        <p>이용자는 언제든지 다음 권리를 행사할 수 있습니다.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>권리</th><th>내용</th><th>관련 법규</th></tr></thead>
+            <tbody>
+              <tr><td>열람권</td><td>본인 개인정보 열람 요청</td><td>GDPR 제15조, 개인정보보호법 제35조</td></tr>
+              <tr><td>정정권</td><td>부정확한 개인정보 수정 요청</td><td>GDPR 제16조, 개인정보보호법 제36조</td></tr>
+              <tr><td>삭제권</td><td>개인정보 삭제 요청 (잊힐 권리)</td><td>GDPR 제17조, 개인정보보호법 제36조</td></tr>
+              <tr><td>처리 제한권</td><td>특정 목적의 처리 중단 요청</td><td>GDPR 제18조</td></tr>
+              <tr><td>이동권</td><td>본인 데이터 이동 가능 형태로 제공 요청</td><td>GDPR 제20조</td></tr>
+              <tr><td>거부권</td><td>마케팅 등 특정 처리에 대한 반대</td><td>GDPR 제21조</td></tr>
+              <tr><td>판매 거부권</td><td>개인정보 판매 거부 (해당 사항 없음)</td><td>CCPA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>권리 행사: 서비스 내 '계정 설정 → 개인정보 관리' 또는 이메일(<strong>privacy@worldcrown48.com</strong>) 요청</p>
+        <p>처리 기간: EU 거주자 30일 이내, 한국 거주자 10일 이내</p>
+      </div>
+
+      <div class="article" id="ko-p8">
+        <h2>제8조 (국제 데이터 이전)</h2>
+        <p>회사의 서비스는 글로벌 서비스로, 개인정보가 한국 외 지역(미국 Google 서버 등)으로 이전될 수 있습니다.</p>
+        <ul>
+          <li>Google Firebase: 미국(Iowa, US-CENTRAL1) — Google EU 표준 계약 조항 적용</li>
+          <li>Vercel: 미국, EU — GDPR 준수 계약 적용</li>
+        </ul>
+        <p>EU 거주자의 경우, 이 이전은 GDPR 제46조에 따른 적절한 안전조치(표준 계약 조항)를 기반으로 이루어집니다.</p>
+      </div>
+
+      <div class="article" id="ko-p9">
+        <h2>제9조 (미성년자 보호)</h2>
+        <p>① 회사는 만 14세 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
+        <p>② EEA 거주 만 16세 미만 청소년의 경우, 보호자의 동의 없이 서비스를 이용할 수 없습니다.</p>
+        <p>③ 미성년자의 정보가 부적절하게 수집된 것을 발견한 경우, privacy@worldcrown48.com으로 연락 주시면 즉시 삭제 조치합니다.</p>
+      </div>
+
+      <div class="article" id="ko-p10">
+        <h2>제10조 (개인정보 보호책임자)</h2>
+        <ul>
+          <li>이메일: <strong>privacy@worldcrown48.com</strong></li>
+          <li>처리 기간: 접수 후 10일 이내 (EU 거주자 30일)</li>
+        </ul>
+        <p>EU 거주자는 관할 데이터 보호 감독 기관에 민원을 제기할 권리가 있습니다.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 시행일: 서비스 오픈일 &nbsp;|&nbsp; 최종 수정일: 2026년 5월</p>
+      </div>
+    </div><!-- /ko -->
+
+
+    <!-- ── ENGLISH ── -->
+    <div data-lang="en">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">Privacy Policy</h1>
+        <p class="policy-meta">Effective: Service Launch Date &nbsp;|&nbsp; Version: <strong>v1.0</strong> &nbsp;|&nbsp; Standards: GDPR · CCPA · Korean PIPA</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">Table of Contents</div>
+        <ol>
+          <li><a href="#en-p1">1. Overview</a></li>
+          <li><a href="#en-p2">2. Data We Collect</a></li>
+          <li><a href="#en-p3">3. Purposes of Processing</a></li>
+          <li><a href="#en-p4">4. Legal Basis for Processing</a></li>
+          <li><a href="#en-p5">5. Data Retention &amp; Deletion</a></li>
+          <li><a href="#en-p6">6. Third-Party Sharing &amp; Processors</a></li>
+          <li><a href="#en-p7">7. Your Rights</a></li>
+          <li><a href="#en-p8">8. International Data Transfers</a></li>
+          <li><a href="#en-p9">9. Children's Privacy</a></li>
+          <li><a href="#en-p10">10. Contact &amp; DPO</a></li>
+        </ol>
+      </div>
+
+      <div class="article" id="en-p1">
+        <h2>1. Overview</h2>
+        <p>WorldCrown48 ("Company," "we," "us") is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service at worldcrown48.com.</p>
+        <p>We comply with the EU General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA), and the Korean Personal Information Protection Act (PIPA), among other applicable global privacy laws.</p>
+      </div>
+
+      <div class="article" id="en-p2">
+        <h2>2. Data We Collect</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Data Points</th><th>Collection Trigger</th><th>Required?</th></tr></thead>
+            <tbody>
+              <tr><td>Account Data</td><td>Name, email, profile picture (from social provider)</td><td>Registration</td><td>Required</td></tr>
+              <tr><td>Usage Data</td><td>Voting records, tournament participation, Crown Card history</td><td>Service use</td><td>Automatic</td></tr>
+              <tr><td>Technical Data</td><td>IP address, device info, browser type, access timestamps</td><td>Service access</td><td>Automatic</td></tr>
+              <tr><td>Cookie Data</td><td>Essential, functional, analytics, marketing (per consent)</td><td>Service access</td><td>Optional</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="notice-box">
+          <strong>📌 No Sensitive Data</strong>
+          We do not collect special categories of personal data such as racial origin, political opinions, religious beliefs, health data, or biometric data.
+        </div>
+      </div>
+
+      <div class="article" id="en-p3">
+        <h2>3. Purposes of Processing</h2>
+        <ul>
+          <li>Providing and managing your account</li>
+          <li>Delivering the Service (voting, rankings, Crown Cards)</li>
+          <li>Fraud prevention and security</li>
+          <li>Service analytics and improvement</li>
+          <li>Communications (notices, updates, events)</li>
+          <li>Legal compliance (GDPR, PIPA, etc.)</li>
+        </ul>
+      </div>
+
+      <div class="article" id="en-p4">
+        <h2>4. Legal Basis for Processing (GDPR Article 6)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Purpose</th><th>Legal Basis</th></tr></thead>
+            <tbody>
+              <tr><td>Account creation &amp; service provision</td><td>Performance of contract (Art. 6(1)(b))</td></tr>
+              <tr><td>Fraud prevention &amp; security</td><td>Legitimate interests (Art. 6(1)(f))</td></tr>
+              <tr><td>Analytics &amp; marketing cookies</td><td>Consent (Art. 6(1)(a))</td></tr>
+              <tr><td>Legal obligation compliance</td><td>Legal obligation (Art. 6(1)(c))</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="en-p5">
+        <h2>5. Data Retention &amp; Deletion</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Retention Period</th><th>Deletion Method</th></tr></thead>
+            <tbody>
+              <tr><td>Account information</td><td>Deleted within 30 days of account deletion request</td><td>Secure erasure</td></tr>
+              <tr><td>Voting records (anonymized)</td><td>Retained indefinitely for aggregate statistics (non-identifiable)</td><td>Anonymized &amp; retained</td></tr>
+              <tr><td>Deletion request logs</td><td>3 years (legal evidence)</td><td>Auto-deleted after expiry</td></tr>
+              <tr><td>Cookie consent records</td><td>12 months, then re-consent requested</td><td>Auto-deleted after expiry</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="en-p6">
+        <h2>6. Third-Party Sharing &amp; Processors</h2>
+        <p>We do not sell your personal data. We share data only with the following service processors necessary to operate the platform:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Processor</th><th>Service</th><th>Location</th></tr></thead>
+            <tbody>
+              <tr><td>Google Firebase</td><td>Authentication, database, storage, analytics</td><td>USA (Iowa)</td></tr>
+              <tr><td>Vercel Inc.</td><td>Web hosting</td><td>USA / EU</td></tr>
+              <tr><td>Cloudflare Inc.</td><td>CDN, DDoS protection</td><td>Global</td></tr>
+              <tr><td>GNews (gnews.io)</td><td>External news content</td><td>EU</td></tr>
+              <tr><td>Anthropic (Claude API)</td><td>AI news generation (MVP 2)</td><td>USA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>All processors are bound by data processing agreements ensuring GDPR-compliant handling of your data.</p>
+      </div>
+
+      <div class="article" id="en-p7">
+        <h2>7. Your Rights</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Right</th><th>Description</th><th>Applicable Law</th></tr></thead>
+            <tbody>
+              <tr><td>Access</td><td>Request a copy of your personal data</td><td>GDPR Art. 15, CCPA</td></tr>
+              <tr><td>Rectification</td><td>Correct inaccurate personal data</td><td>GDPR Art. 16</td></tr>
+              <tr><td>Erasure</td><td>Request deletion ("right to be forgotten")</td><td>GDPR Art. 17, CCPA</td></tr>
+              <tr><td>Restriction</td><td>Limit how we use your data</td><td>GDPR Art. 18</td></tr>
+              <tr><td>Portability</td><td>Receive your data in a machine-readable format</td><td>GDPR Art. 20</td></tr>
+              <tr><td>Objection</td><td>Object to marketing or legitimate interest processing</td><td>GDPR Art. 21</td></tr>
+              <tr><td>Opt-out of Sale</td><td>We do not sell data — N/A</td><td>CCPA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>To exercise your rights: use 'Account Settings → Privacy Management' in the Service, or email <strong>privacy@worldcrown48.com</strong>.</p>
+        <p>Response time: within 30 days (EU/EEA residents) or 45 days (CCPA).</p>
+      </div>
+
+      <div class="article" id="en-p8">
+        <h2>8. International Data Transfers</h2>
+        <p>Your data may be transferred to servers outside your country of residence (e.g., Google servers in the United States). Such transfers are protected by:</p>
+        <ul>
+          <li>Standard Contractual Clauses (SCCs) approved by the European Commission</li>
+          <li>Google's compliance with the EU-U.S. Data Privacy Framework</li>
+        </ul>
+      </div>
+
+      <div class="article" id="en-p9">
+        <h2>9. Children's Privacy</h2>
+        <p>We do not knowingly collect personal data from children under 14 years of age. For EEA residents, users under 16 must have verifiable parental consent. If you believe we have inadvertently collected a minor's data, contact us at privacy@worldcrown48.com for immediate deletion.</p>
+      </div>
+
+      <div class="article" id="en-p10">
+        <h2>10. Contact &amp; Privacy Inquiries</h2>
+        <ul>
+          <li>Email: <strong>privacy@worldcrown48.com</strong></li>
+          <li>Response time: 30 days (EU); 45 days (CCPA)</li>
+        </ul>
+        <p>EU/EEA residents have the right to lodge a complaint with their local Data Protection Authority.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Effective: Service Launch Date &nbsp;|&nbsp; Last Updated: May 2026</p>
+      </div>
+    </div><!-- /en -->
+
+
+    <!-- ── SPANISH ── -->
+    <div data-lang="es">
+      <div class="policy-header">
+        <div class="policy-badge">Documento Legal</div>
+        <h1 class="policy-title">Política de Privacidad</h1>
+        <p class="policy-meta">Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Versión: <strong>v1.0</strong> &nbsp;|&nbsp; Estándares: RGPD · CCPA · PIPA de Corea</p>
+      </div>
+      <div class="toc">
+        <div class="toc-title">Tabla de Contenidos</div>
+        <ol>
+          <li><a href="#es-p1">1. Descripción General</a></li>
+          <li><a href="#es-p2">2. Datos que Recopilamos</a></li>
+          <li><a href="#es-p3">3. Finalidades del Tratamiento</a></li>
+          <li><a href="#es-p4">4. Base Legal del Tratamiento</a></li>
+          <li><a href="#es-p5">5. Conservación y Eliminación de Datos</a></li>
+          <li><a href="#es-p6">6. Compartición con Terceros</a></li>
+          <li><a href="#es-p7">7. Sus Derechos</a></li>
+          <li><a href="#es-p8">8. Transferencias Internacionales de Datos</a></li>
+          <li><a href="#es-p9">9. Privacidad de Menores</a></li>
+          <li><a href="#es-p10">10. Contacto</a></li>
+        </ol>
+      </div>
+
+      <div class="article" id="es-p1">
+        <h2>1. Descripción General</h2>
+        <p>WorldCrown48 ("Empresa", "nosotros") se compromete a proteger su información personal. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y salvaguardamos su información cuando utiliza nuestro Servicio en worldcrown48.com.</p>
+        <p>Cumplimos con el Reglamento General de Protección de Datos (RGPD) de la UE, la Ley de Privacidad del Consumidor de California (CCPA) y la Ley de Protección de Información Personal de Corea (PIPA), entre otras leyes de privacidad globales aplicables.</p>
+      </div>
+
+      <div class="article" id="es-p2">
+        <h2>2. Datos que Recopilamos</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Categoría</th><th>Datos</th><th>Momento</th><th>¿Requerido?</th></tr></thead>
+            <tbody>
+              <tr><td>Datos de Cuenta</td><td>Nombre, correo electrónico, foto de perfil (del proveedor social)</td><td>Registro</td><td>Obligatorio</td></tr>
+              <tr><td>Datos de Uso</td><td>Historial de votos, participación en torneos, historial de Crown Cards</td><td>Uso del servicio</td><td>Automático</td></tr>
+              <tr><td>Datos Técnicos</td><td>Dirección IP, info del dispositivo, tipo de navegador, marcas de tiempo</td><td>Acceso al servicio</td><td>Automático</td></tr>
+              <tr><td>Datos de Cookies</td><td>Esenciales, funcionales, analíticas, de marketing (según consentimiento)</td><td>Acceso al servicio</td><td>Opcional</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="notice-box">
+          <strong>📌 No Recopilamos Datos Sensibles</strong>
+          No recopilamos categorías especiales de datos personales tales como origen racial, opiniones políticas, creencias religiosas, datos de salud o datos biométricos.
+        </div>
+      </div>
+
+      <div class="article" id="es-p3">
+        <h2>3. Finalidades del Tratamiento</h2>
+        <ul>
+          <li>Provisión y gestión de su cuenta</li>
+          <li>Prestación del Servicio (votaciones, clasificaciones, Crown Cards)</li>
+          <li>Prevención de fraude y seguridad</li>
+          <li>Análisis y mejora del servicio</li>
+          <li>Comunicaciones (avisos, actualizaciones, eventos)</li>
+          <li>Cumplimiento legal (RGPD, PIPA, etc.)</li>
+        </ul>
+      </div>
+
+      <div class="article" id="es-p4">
+        <h2>4. Base Legal del Tratamiento (Art. 6 RGPD)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Finalidad</th><th>Base Legal</th></tr></thead>
+            <tbody>
+              <tr><td>Creación de cuenta y prestación del servicio</td><td>Ejecución de contrato (Art. 6(1)(b))</td></tr>
+              <tr><td>Prevención de fraude y seguridad</td><td>Intereses legítimos (Art. 6(1)(f))</td></tr>
+              <tr><td>Cookies analíticas y de marketing</td><td>Consentimiento (Art. 6(1)(a))</td></tr>
+              <tr><td>Cumplimiento de obligaciones legales</td><td>Obligación legal (Art. 6(1)(c))</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="es-p5">
+        <h2>5. Conservación y Eliminación de Datos</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Datos</th><th>Período de Conservación</th><th>Método de Eliminación</th></tr></thead>
+            <tbody>
+              <tr><td>Información de cuenta</td><td>Eliminados en 30 días tras la solicitud de baja</td><td>Borrado seguro</td></tr>
+              <tr><td>Registros de votación (anonimizados)</td><td>Conservados indefinidamente para estadísticas agregadas (no identificables)</td><td>Anonimizados y conservados</td></tr>
+              <tr><td>Registros de solicitudes de eliminación</td><td>3 años (evidencia legal)</td><td>Eliminación automática al vencer</td></tr>
+              <tr><td>Registros de consentimiento de cookies</td><td>12 meses, luego se solicita nuevo consentimiento</td><td>Eliminación automática al vencer</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="es-p6">
+        <h2>6. Compartición con Terceros</h2>
+        <p>No vendemos sus datos personales. Compartimos datos únicamente con los siguientes encargados del tratamiento necesarios para operar la plataforma:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Encargado</th><th>Servicio</th><th>Ubicación</th></tr></thead>
+            <tbody>
+              <tr><td>Google Firebase</td><td>Autenticación, base de datos, almacenamiento, analítica</td><td>EE.UU. (Iowa)</td></tr>
+              <tr><td>Vercel Inc.</td><td>Alojamiento web</td><td>EE.UU. / UE</td></tr>
+              <tr><td>Cloudflare Inc.</td><td>CDN, protección DDoS</td><td>Global</td></tr>
+              <tr><td>GNews (gnews.io)</td><td>Contenido de noticias externas</td><td>UE</td></tr>
+              <tr><td>Anthropic (Claude API)</td><td>Generación de noticias por IA (MVP 2)</td><td>EE.UU.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article" id="es-p7">
+        <h2>7. Sus Derechos</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Derecho</th><th>Descripción</th><th>Ley Aplicable</th></tr></thead>
+            <tbody>
+              <tr><td>Acceso</td><td>Solicitar una copia de sus datos personales</td><td>RGPD Art. 15, CCPA</td></tr>
+              <tr><td>Rectificación</td><td>Corregir datos personales inexactos</td><td>RGPD Art. 16</td></tr>
+              <tr><td>Supresión</td><td>Solicitar la eliminación ("derecho al olvido")</td><td>RGPD Art. 17, CCPA</td></tr>
+              <tr><td>Limitación</td><td>Limitar el uso de sus datos</td><td>RGPD Art. 18</td></tr>
+              <tr><td>Portabilidad</td><td>Recibir sus datos en formato legible por máquina</td><td>RGPD Art. 20</td></tr>
+              <tr><td>Oposición</td><td>Oponerse al marketing o tratamiento por interés legítimo</td><td>RGPD Art. 21</td></tr>
+              <tr><td>Opt-out de Venta</td><td>No vendemos datos — No aplica</td><td>CCPA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Para ejercer sus derechos: utilice 'Configuración de Cuenta → Gestión de Privacidad' en el Servicio, o envíe un correo a <strong>privacy@worldcrown48.com</strong>.</p>
+      </div>
+
+      <div class="article" id="es-p8">
+        <h2>8. Transferencias Internacionales de Datos</h2>
+        <p>Sus datos pueden transferirse a servidores fuera de su país de residencia. Dichas transferencias están protegidas por:</p>
+        <ul>
+          <li>Cláusulas Contractuales Tipo (CCT) aprobadas por la Comisión Europea</li>
+          <li>El cumplimiento de Google con el Marco de Privacidad de Datos UE-EE.UU.</li>
+        </ul>
+      </div>
+
+      <div class="article" id="es-p9">
+        <h2>9. Privacidad de Menores</h2>
+        <p>No recopilamos datos personales de menores de 14 años de forma intencionada. Para residentes del EEE, los menores de 16 años necesitan el consentimiento verificable de sus padres o tutores. Si cree que hemos recopilado inadvertidamente datos de un menor, contáctenos en privacy@worldcrown48.com para su eliminación inmediata.</p>
+      </div>
+
+      <div class="article" id="es-p10">
+        <h2>10. Contacto</h2>
+        <ul>
+          <li>Correo electrónico: <strong>privacy@worldcrown48.com</strong></li>
+          <li>Tiempo de respuesta: 30 días (UE/EEE); 45 días (CCPA)</li>
+        </ul>
+        <p>Los residentes de la UE/EEE tienen derecho a presentar una reclamación ante su Autoridad de Control de Protección de Datos competente.</p>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Última actualización: Mayo 2026</p>
+      </div>
+    </div><!-- /es -->
+
+  </div><!-- /#doc-privacy -->
+
+
+  <!-- ════════════════════════════════════════════════
+       DOCUMENT 3: COOKIE POLICY
+  ════════════════════════════════════════════════ -->
+  <div class="policy-doc" id="doc-cookies">
+
+    <!-- ── KOREAN ── -->
+    <div data-lang="ko">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">쿠키 정책</h1>
+        <p class="policy-meta">최초 작성: 2026년 5월 &nbsp;|&nbsp; 버전: <strong>v1.0</strong> &nbsp;|&nbsp; 기준: GDPR · ePrivacy Directive · 한국 개인정보보호법</p>
+      </div>
+
+      <div class="notice-box">
+        <strong>🍪 쿠키란?</strong>
+        쿠키(Cookie)는 이용자의 브라우저에 저장되는 작은 텍스트 파일로, 서비스 이용 편의성을 높이고 통계 분석을 위해 사용됩니다. 이용자는 브라우저 설정을 통해 쿠키를 제어할 수 있습니다.
+      </div>
+
+      <div class="article">
+        <h2>쿠키 4가지 분류</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>분류</th><th>목적</th><th>보관 기간</th><th>동의 필요</th><th>예시</th></tr></thead>
+            <tbody>
+              <tr><td><strong>필수 쿠키</strong></td><td>로그인 유지, 보안 인증, 서비스 기본 작동</td><td>세션 종료 시</td><td>❌ 불필요</td><td>세션 토큰, CSRF 토큰</td></tr>
+              <tr><td><strong>기능 쿠키</strong></td><td>언어 설정, 다크모드, 투표 임시 저장</td><td>최대 1년</td><td>✅ 선택</td><td>언어 설정, UI 설정</td></tr>
+              <tr><td><strong>분석 쿠키</strong></td><td>서비스 개선, 트래픽 분석, 버그 추적</td><td>최대 2년</td><td>✅ 선택</td><td>Google Analytics, Firebase Analytics</td></tr>
+              <tr><td><strong>마케팅 쿠키</strong></td><td>광고 ROI 측정, 맞춤 광고 (MVP 3 활성화)</td><td>최대 1년</td><td>⚠️ 명시적 동의</td><td>광고 효과 측정</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article">
+        <h2>쿠키 동의 관리</h2>
+        <p>① 서비스 첫 방문 시 하단에 쿠키 동의 배너가 표시됩니다.</p>
+        <p>② 동의 선택: <strong>[모두 허용]</strong> / <strong>[필수만 허용]</strong> / <strong>[설정하기]</strong>(세부 선택)</p>
+        <p>③ 이용자는 언제든지 '계정 설정 → 개인정보 관리 → 쿠키 설정'에서 동의를 변경하거나 철회할 수 있습니다.</p>
+        <p>④ 동의 기록은 GDPR 감사 추적을 위해 서버에 안전하게 보관됩니다.</p>
+        <p>⑤ 동의 유효 기간: 12개월 (만료 시 재동의 요청)</p>
+      </div>
+
+      <div class="article">
+        <h2>브라우저를 통한 쿠키 제어</h2>
+        <p>브라우저 설정에서 쿠키를 비활성화할 수 있습니다. 단, 필수 쿠키를 차단하면 서비스 일부 기능이 작동하지 않을 수 있습니다.</p>
+        <ul>
+          <li>Chrome: 설정 → 개인정보 보호 → 쿠키 및 기타 사이트 데이터</li>
+          <li>Firefox: 설정 → 개인 정보 보호 → 쿠키 및 사이트 데이터</li>
+          <li>Safari: 환경설정 → 개인 정보 보호 → 쿠키 및 웹사이트 데이터</li>
+        </ul>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 시행일: 서비스 오픈일 &nbsp;|&nbsp; 최종 수정일: 2026년 5월</p>
+      </div>
+    </div><!-- /ko -->
+
+    <!-- ── ENGLISH ── -->
+    <div data-lang="en">
+      <div class="policy-header">
+        <div class="policy-badge">Legal Document</div>
+        <h1 class="policy-title">Cookie Policy</h1>
+        <p class="policy-meta">Effective: Service Launch Date &nbsp;|&nbsp; Version: <strong>v1.0</strong> &nbsp;|&nbsp; Standards: GDPR · ePrivacy Directive</p>
+      </div>
+
+      <div class="notice-box">
+        <strong>🍪 What Are Cookies?</strong>
+        Cookies are small text files stored on your browser that help improve your experience and enable analytics. You can control cookies through your browser settings.
+      </div>
+
+      <div class="article">
+        <h2>Cookie Categories</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Purpose</th><th>Retention</th><th>Consent?</th><th>Examples</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Essential</strong></td><td>Login, security, core service functions</td><td>Session</td><td>❌ Not required</td><td>Session token, CSRF token</td></tr>
+              <tr><td><strong>Functional</strong></td><td>Language preference, dark mode, temp voting storage</td><td>Up to 1 year</td><td>✅ Optional</td><td>UI preferences</td></tr>
+              <tr><td><strong>Analytics</strong></td><td>Service improvement, traffic, bug tracking</td><td>Up to 2 years</td><td>✅ Optional</td><td>Google Analytics, Firebase</td></tr>
+              <tr><td><strong>Marketing</strong></td><td>Ad ROI measurement, retargeting (MVP 3)</td><td>Up to 1 year</td><td>⚠️ Explicit required</td><td>Ad tracking</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article">
+        <h2>Managing Your Cookie Consent</h2>
+        <p>① A cookie consent banner appears at the bottom of the screen on your first visit.</p>
+        <p>② You may choose: <strong>[Accept All]</strong> / <strong>[Essential Only]</strong> / <strong>[Customize]</strong> (granular control).</p>
+        <p>③ You can update or withdraw consent at any time in 'Account Settings → Privacy Management → Cookie Settings'.</p>
+        <p>④ Consent records are securely stored server-side for GDPR audit trail purposes.</p>
+        <p>⑤ Consent validity: 12 months (re-consent requested upon expiry).</p>
+      </div>
+
+      <div class="article">
+        <h2>Browser-Level Cookie Control</h2>
+        <p>You can disable cookies in your browser settings. Note that blocking essential cookies may impair certain Service features.</p>
+        <ul>
+          <li>Chrome: Settings → Privacy and Security → Cookies and other site data</li>
+          <li>Firefox: Options → Privacy &amp; Security → Cookies and Site Data</li>
+          <li>Safari: Preferences → Privacy → Cookies and website data</li>
+        </ul>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Effective: Service Launch Date &nbsp;|&nbsp; Last Updated: May 2026</p>
+      </div>
+    </div><!-- /en -->
+
+    <!-- ── SPANISH ── -->
+    <div data-lang="es">
+      <div class="policy-header">
+        <div class="policy-badge">Documento Legal</div>
+        <h1 class="policy-title">Política de Cookies</h1>
+        <p class="policy-meta">Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Versión: <strong>v1.0</strong> &nbsp;|&nbsp; Estándares: RGPD · Directiva ePrivacy</p>
+      </div>
+
+      <div class="notice-box">
+        <strong>🍪 ¿Qué Son las Cookies?</strong>
+        Las cookies son pequeños archivos de texto almacenados en su navegador que ayudan a mejorar su experiencia y permiten el análisis del servicio. Puede controlar las cookies a través de la configuración de su navegador.
+      </div>
+
+      <div class="article">
+        <h2>Categorías de Cookies</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Categoría</th><th>Finalidad</th><th>Conservación</th><th>¿Consentimiento?</th><th>Ejemplos</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Esenciales</strong></td><td>Inicio de sesión, seguridad, funciones básicas</td><td>Sesión</td><td>❌ No requerido</td><td>Token de sesión, CSRF</td></tr>
+              <tr><td><strong>Funcionales</strong></td><td>Idioma, modo oscuro, almacenamiento temporal de votos</td><td>Hasta 1 año</td><td>✅ Opcional</td><td>Preferencias de UI</td></tr>
+              <tr><td><strong>Analíticas</strong></td><td>Mejora del servicio, tráfico, seguimiento de errores</td><td>Hasta 2 años</td><td>✅ Opcional</td><td>Google Analytics, Firebase</td></tr>
+              <tr><td><strong>Marketing</strong></td><td>Medición ROI publicitario, retargeting (MVP 3)</td><td>Hasta 1 año</td><td>⚠️ Explícito</td><td>Seguimiento publicitario</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="article">
+        <h2>Gestión de su Consentimiento de Cookies</h2>
+        <p>① Un banner de consentimiento de cookies aparece en la parte inferior de la pantalla en su primera visita.</p>
+        <p>② Puede elegir: <strong>[Aceptar Todas]</strong> / <strong>[Solo Esenciales]</strong> / <strong>[Personalizar]</strong> (control granular).</p>
+        <p>③ Puede actualizar o retirar su consentimiento en cualquier momento en 'Configuración de Cuenta → Gestión de Privacidad → Configuración de Cookies'.</p>
+        <p>④ Los registros de consentimiento se almacenan de forma segura en el servidor para el seguimiento de auditoría RGPD.</p>
+        <p>⑤ Validez del consentimiento: 12 meses (se solicita nuevo consentimiento al vencer).</p>
+      </div>
+
+      <div class="article">
+        <h2>Control de Cookies a Nivel de Navegador</h2>
+        <p>Puede desactivar las cookies en la configuración de su navegador. Tenga en cuenta que bloquear las cookies esenciales puede deteriorar ciertas funciones del Servicio.</p>
+        <ul>
+          <li>Chrome: Configuración → Privacidad y seguridad → Cookies y otros datos de sitios</li>
+          <li>Firefox: Opciones → Privacidad y Seguridad → Cookies y datos del sitio</li>
+          <li>Safari: Preferencias → Privacidad → Cookies y datos del sitio web</li>
+        </ul>
+        <p style="margin-top:20px; color: var(--muted); font-size:0.85rem;">📅 Vigencia: Fecha de lanzamiento &nbsp;|&nbsp; Última actualización: Mayo 2026</p>
+      </div>
+    </div><!-- /es -->
+
+  </div><!-- /#doc-cookies -->
+
+</main>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="logo-sm">👑 WorldCrown48</div>
+  <div>
+    <span data-lang="ko">© 2026 WorldCrown48. All rights reserved. &nbsp;|&nbsp; 법적 효력을 갖는 정식 문서입니다. 실제 서비스 적용 전 법무 검토를 권장합니다.</span>
+    <span data-lang="en">© 2026 WorldCrown48. All rights reserved. &nbsp;|&nbsp; This is a binding legal document. Professional legal review is recommended before deployment.</span>
+    <span data-lang="es">© 2026 WorldCrown48. Todos los derechos reservados. &nbsp;|&nbsp; Este es un documento legal vinculante. Se recomienda revisión legal profesional antes del despliegue.</span>
+  </div>
+  <div style="margin-top:8px; font-size:0.75rem;">
+    worldcrown48.com &nbsp;·&nbsp; privacy@worldcrown48.com
+  </div>
+  <div style="margin-top:6px; font-size:0.72rem; color:#64748B;">
+    Policy Hub v1.0 &nbsp;|&nbsp; Authored by 48티오
+  </div>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.body.dataset.activeLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === {ko:'한국어', en:'English', es:'Español'}[lang]);
+    });
+  }
+
+  function setDoc(docId) {
+    document.querySelectorAll('.policy-doc').forEach(d => d.classList.remove('active'));
+    document.getElementById('doc-' + docId).classList.add('active');
+    document.querySelectorAll('.doc-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', ['terms','privacy','cookies'][i] === docId);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
