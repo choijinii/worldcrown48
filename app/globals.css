@@ -91,3 +91,74 @@ body {
   letter-spacing: 0.06em;
   color: var(--muted);
 }
+
+/* --- 알림 받기(Notify) 폼 --- */
+.notify {
+  display: flex;
+  gap: 8px;
+  margin-top: 28px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.notify-input {
+  flex: 1;
+  padding: 13px 16px;
+  border-radius: 10px;
+  border: 1px solid #2A2350;
+  background: #14102E;
+  color: var(--ink-light);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.notify-input::placeholder {
+  color: #6E6796;
+}
+
+.notify-input:focus {
+  border-color: var(--crown-gold);
+}
+
+.notify-btn {
+  padding: 13px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--crown-gold);
+  color: #1A1147;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.notify-btn:hover {
+  opacity: 0.9;
+}
+
+.notify-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.thanks {
+  margin-top: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--crown-gold);
+}
+
+.privacy {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .notify {
+    flex-direction: column;
+  }
+}
