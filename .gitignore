@@ -1,2 +1,25 @@
 .DS_Store
 graphify-out/
+
+# --- Next.js / Node ---
+/node_modules
+/.next
+/out
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# 폴더 연결(FUSE) 임시 파일 — 커밋 금지
+.fuse_hidden*
+
+# 환경 변수 (절대 커밋 금지 — API 키 등 비밀)
+.env
+.env*.local
+
+# 로그·디버그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
