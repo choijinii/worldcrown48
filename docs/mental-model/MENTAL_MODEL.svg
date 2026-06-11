@@ -1,0 +1,180 @@
+<svg viewBox="0 0 840 860" xmlns="http://www.w3.org/2000/svg" role="img" font-family="ui-sans-serif, system-ui, -apple-system, 'Pretendard'">
+  <title>WC48 멘탈 모델 한 장 — Final</title>
+  <desc>모든 금지 항목을 [금지] 마커로 양쪽 감싸고 술어를 부정형으로 작성. 좌측: 절대 금지되는 FIFA 라이브 이벤트 모델. 우측: 유일 정답인 WC48 5라운드 개인 이진 트리 모델.</desc>
+
+  <defs>
+    <pattern id="hatch_final" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#FCA5A5" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+
+  <text x="420" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">WC48 멘탈 모델 한 장 — Final</text>
+  <text x="420" y="46" text-anchor="middle" font-size="11" fill="#6B7280">에이전트는 코드·디자인·문서 작업 전, 이 한 장을 반드시 본다</text>
+
+  <rect x="20" y="78" width="395" height="730" fill="url(#hatch_final)" opacity="0.22"/>
+
+  <rect x="20" y="78" width="395" height="46" fill="#7F1D1D"/>
+  <text x="217" y="100" text-anchor="middle" font-size="13" font-weight="800" fill="white">[금지] WRONG · 절대 금지 · FORBIDDEN [금지]</text>
+  <text x="217" y="116" text-anchor="middle" font-size="10" font-weight="600" fill="#FCA5A5">FIFA 라이브 이벤트 모델 — 어떤 항목도 만들지 않는다</text>
+
+  <g transform="translate(217,158) rotate(-8)">
+    <rect x="-130" y="-22" width="260" height="44" fill="rgba(220,38,38,0.15)" stroke="#DC2626" stroke-width="3" rx="4"/>
+    <text text-anchor="middle" font-size="16" font-weight="900" fill="#7F1D1D" y="5">전체 금지 / FORBIDDEN</text>
+  </g>
+
+  <rect x="30" y="205" width="375" height="26" rx="3" fill="#7F1D1D"/>
+  <text x="217" y="223" text-anchor="middle" font-size="11" font-weight="700" fill="white">[금지] 아래 4가지 시각 요소를 만들지 않는다 [금지]</text>
+
+  <g transform="translate(0,275)">
+    <g transform="translate(80,0)">
+      <ellipse cx="0" cy="0" rx="32" ry="14" stroke="#9CA3AF" stroke-width="1.8" fill="white"/>
+      <ellipse cx="0" cy="0" rx="16" ry="6" stroke="#9CA3AF" stroke-width="1.2" fill="none"/>
+      <line x1="-40" y1="-22" x2="40" y2="22" stroke="#DC2626" stroke-width="5"/>
+      <line x1="40" y1="-22" x2="-40" y2="22" stroke="#DC2626" stroke-width="5"/>
+    </g>
+    <g transform="translate(170,0)">
+      <circle r="18" fill="white" stroke="#9CA3AF" stroke-width="1.8"/>
+      <line x1="0" y1="0" x2="0" y2="-12" stroke="#374151" stroke-width="2"/>
+      <line x1="0" y1="0" x2="10" y2="0" stroke="#374151" stroke-width="2"/>
+      <line x1="-24" y1="-24" x2="24" y2="24" stroke="#DC2626" stroke-width="5"/>
+      <line x1="24" y1="-24" x2="-24" y2="24" stroke="#DC2626" stroke-width="5"/>
+    </g>
+    <g transform="translate(260,0)">
+      <rect x="-28" y="-15" width="56" height="30" fill="white" stroke="#9CA3AF" stroke-width="1.8"/>
+      <text text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626" y="4">1,247</text>
+      <line x1="-35" y1="-22" x2="35" y2="22" stroke="#DC2626" stroke-width="5"/>
+      <line x1="35" y1="-22" x2="-35" y2="22" stroke="#DC2626" stroke-width="5"/>
+    </g>
+    <g transform="translate(350,0)">
+      <rect x="-22" y="-12" width="44" height="24" rx="12" fill="#DC2626"/>
+      <circle cx="-12" cy="0" r="2.5" fill="white"/>
+      <text x="3" y="3" text-anchor="middle" font-size="9" font-weight="700" fill="white">LIVE</text>
+      <line x1="-30" y1="-22" x2="30" y2="22" stroke="#7F1D1D" stroke-width="5"/>
+      <line x1="30" y1="-22" x2="-30" y2="22" stroke="#7F1D1D" stroke-width="5"/>
+    </g>
+  </g>
+
+  <rect x="30" y="330" width="375" height="430" rx="6" fill="#FEF2F2" stroke="#DC2626" stroke-width="2.5"/>
+  <rect x="30" y="330" width="375" height="34" rx="6" fill="#DC2626"/>
+  <text x="217" y="352" text-anchor="middle" font-size="11" font-weight="800" fill="white">[금지] 위반 항목 — 발견 즉시 작업 중단 [금지]</text>
+
+  <text x="45" y="388" font-size="10" font-weight="700" fill="#7F1D1D">[금지] "모두 같은 시간에 본다"고 가정하지 않는다 [금지]</text>
+  <text x="45" y="426" font-size="10" font-weight="700" fill="#7F1D1D">[금지] 라운드별 마감 시각·카운트다운 UI를 만들지 않는다 [금지]</text>
+  <text x="45" y="464" font-size="10" font-weight="700" fill="#7F1D1D">[금지] 실시간 득표 수치(절대값)를 Voter에게 보여주지 않는다 [금지]</text>
+  <text x="45" y="502" font-size="10" font-weight="700" fill="#7F1D1D">[금지] 실제 경기 결과·중계 영상을 연동하지 않는다 [금지]</text>
+  <text x="45" y="540" font-size="10" font-weight="700" fill="#7F1D1D">[금지] Bracket을 방송용 토너먼트표로 표현하지 않는다 [금지]</text>
+  <text x="45" y="578" font-size="10" font-weight="700" fill="#7F1D1D">[금지] FIFA 라운드명(R16, QF, SF)을 사용하지 않는다 [금지]</text>
+  <text x="45" y="616" font-size="10" font-weight="700" fill="#7F1D1D">[금지] "FIFA"·"Official" 표기를 쓰지 않는다 [금지]</text>
+  <text x="45" y="654" font-size="10" font-weight="700" fill="#7F1D1D">[금지] 우승자 예측·베팅·도박 요소를 넣지 않는다 [금지]</text>
+  <text x="45" y="692" font-size="10" font-weight="700" fill="#7F1D1D">[금지] Voter는 Match를 동시 진행하거나 건너뛸 수 없다 [금지]</text>
+  <text x="45" y="730" font-size="10" font-weight="700" fill="#7F1D1D">[금지] 매치 화면에 Round 배지·HUD("N강 · X/Y")를 표시하지 않는다 [금지]</text>
+
+  <rect x="425" y="78" width="395" height="46" fill="#14532D"/>
+  <text x="622" y="100" text-anchor="middle" font-size="13" font-weight="800" fill="white">✓ RIGHT · 유일 정답</text>
+  <text x="622" y="116" text-anchor="middle" font-size="10" font-weight="600" fill="#86EFAC">WC48 개인 이진 트리 모델</text>
+
+  <rect x="425" y="135" width="395" height="44" fill="#FEF3C7" stroke="#D97706" stroke-width="2.5"/>
+  <text x="622" y="155" text-anchor="middle" font-size="11" font-weight="800" fill="#7C2D12">⚠ FIFA "Round of 48"과 완전히 다른 구조 ⚠</text>
+  <text x="622" y="170" text-anchor="middle" font-size="9" font-weight="600" fill="#92400E">FIFA = 그룹리그 + 결승 토너먼트  ｜  WC48 = 순수 반감 이진 트리</text>
+
+  <g transform="translate(435,192)">
+    <rect width="375" height="40" rx="4" fill="#111827"/>
+    <circle cx="24" cy="20" r="12" fill="#FCD006"/>
+    <text x="24" y="24" text-anchor="middle" font-size="9" font-weight="800" fill="#111827">YOU</text>
+    <text x="46" y="17" font-size="10.5" font-weight="700" fill="#FCD006">Voter는 매 순간 1개 Match만 본다</text>
+    <text x="46" y="31" font-size="9" fill="white">전체 트리는 시스템 관리, Voter는 본인 경로만 통과</text>
+  </g>
+
+  <g transform="translate(435,248)">
+    <text x="187" y="10" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111827">ROUND OF 48 · 24 Match</text>
+    <text x="187" y="22" text-anchor="middle" font-size="8.5" fill="#6B7280">48 Contestants → 24 pairs → 24 Winners</text>
+    <g transform="translate(7,32)" fill="#FCD006" stroke="#111827" stroke-width="0.5">
+      <g><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(15,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(30,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(45,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(60,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(75,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(90,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(105,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(120,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(135,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(150,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(165,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(180,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(195,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(210,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(225,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(240,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(255,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(270,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(285,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(300,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(315,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(330,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(345,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+    </g>
+
+    <text x="187" y="62" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111827">ROUND OF 24 · 12 Match</text>
+    <g transform="translate(50,72)" fill="#FCD006" stroke="#111827" stroke-width="0.5">
+      <g><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(25,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(50,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(75,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(100,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(125,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(150,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(175,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(200,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(225,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(250,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+      <g transform="translate(275,0)"><circle cx="2.5" cy="3" r="2.5"/><circle cx="9.5" cy="3" r="2.5"/></g>
+    </g>
+
+    <text x="187" y="108" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111827">ROUND OF 12 · 6 Match</text>
+    <g transform="translate(80,118)" fill="#FCD006" stroke="#111827" stroke-width="0.5">
+      <g><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+      <g transform="translate(40,0)"><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+      <g transform="translate(80,0)"><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+      <g transform="translate(120,0)"><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+      <g transform="translate(160,0)"><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+      <g transform="translate(200,0)"><circle cx="3" cy="3.5" r="3"/><circle cx="11" cy="3.5" r="3"/></g>
+    </g>
+
+    <text x="187" y="155" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111827">ROUND OF 6 · 3 Match</text>
+    <g transform="translate(125,165)" fill="#FCD006" stroke="#111827" stroke-width="0.5">
+      <g><circle cx="4" cy="4" r="3.5"/><circle cx="13" cy="4" r="3.5"/></g>
+      <g transform="translate(50,0)"><circle cx="4" cy="4" r="3.5"/><circle cx="13" cy="4" r="3.5"/></g>
+      <g transform="translate(100,0)"><circle cx="4" cy="4" r="3.5"/><circle cx="13" cy="4" r="3.5"/></g>
+    </g>
+
+    <rect x="80" y="188" width="215" height="48" rx="6" fill="#111827" stroke="#FCD006" stroke-width="2"/>
+    <text x="187" y="206" text-anchor="middle" font-size="11" font-weight="800" fill="#FCD006">THE FINAL · 3명 중 1명 직접 선택</text>
+    <text x="187" y="219" text-anchor="middle" font-size="9" fill="#FDE68A">1v1 매치 아님 — 3명 동시 표시, Voter 직접 선택</text>
+    <g transform="translate(157,225)" fill="#FCD006" stroke="white" stroke-width="0.8">
+      <circle cx="5" cy="5" r="4.5"/>
+      <circle cx="20" cy="5" r="4.5"/>
+      <circle cx="35" cy="5" r="4.5"/>
+    </g>
+
+    <g transform="translate(187,260)">
+      <circle r="14" fill="#FCD006" stroke="#111827" stroke-width="2"/>
+      <text text-anchor="middle" font-size="14" y="5">👑</text>
+    </g>
+    <text x="187" y="290" text-anchor="middle" font-size="10" font-weight="700" fill="#111827">Champion</text>
+  </g>
+
+  <rect x="425" y="565" width="395" height="195" rx="6" fill="#F0FDF4" stroke="#16A34A" stroke-width="2.5"/>
+  <rect x="425" y="565" width="395" height="32" rx="6" fill="#16A34A"/>
+  <text x="622" y="585" text-anchor="middle" font-size="11" font-weight="800" fill="white">[허용] 다음 원칙만 따른다 [허용]</text>
+
+  <text x="440" y="615" font-size="10" font-weight="600" fill="#14532D">[O] Tournament Deadline만 존재한다 (Round Deadline은 없다)</text>
+  <text x="440" y="640" font-size="10" font-weight="600" fill="#14532D">[O] Vote Rate(%)는 랭킹 화면에서만 노출한다</text>
+  <text x="440" y="665" font-size="10" font-weight="600" fill="#14532D">[O] 라운드는 48 → 24 → 12 → 6 → THE FINAL 순서로 진행한다</text>
+  <text x="440" y="690" font-size="10" font-weight="600" fill="#14532D">[O] Voter가 마지막 Match를 끝내면 advanceRound()가 자동 실행된다</text>
+  <text x="440" y="715" font-size="10" font-weight="600" fill="#14532D">[O] Round 이름은 라운드 전환 이벤트에서만 표시 (매치 화면 HUD 없음)</text>
+  <text x="440" y="740" font-size="10" font-weight="600" fill="#14532D">[O] Champion 확정 시 Crown Card를 생성하고 SNS로 공유한다</text>
+
+  <rect x="20" y="785" width="800" height="28" rx="6" fill="#111827"/>
+  <text x="420" y="804" text-anchor="middle" font-size="11" font-weight="700" fill="#FCD006">스스로에게 물어볼 것 — "이 기능은 Voter 개인의 트리 통과에 필요한가? 아니면 라이브 이벤트 가정인가?"</text>
+</svg>
