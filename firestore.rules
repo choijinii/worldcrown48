@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// ════════════════════════════════════════════════════════════════════
+// WorldCrown48 — Firestore Security Rules
+//
+// Collections covered:
+//   /tournaments/{id}  — public read of `featured == true` docs only
+//   /waitlist/{id}     — create-only; doc ID MUST be SHA-256(email)
+//
+// All other paths are denied by default.
+// ════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── tournaments ────────────────────────────────────────────────
+    // Public reads are restricted to docs with featured == true.
+    //
+    // How `read` interacts with queries:
+    //   - `get` (single doc): the rule evaluates against that doc.
+    //     Non-featured docs return permission-denied to direct fetchers.
+    //   - `list` (collection query): the rule evaluates per returned
+    //     doc. A query without `where("featured", "==", true)` would
+    //     return non-featured docs → entire query fails. The Launch Pad
+    //     client query (`where featured==true limit 1`) returns only
+    //     featured docs → passes per-doc → succeeds.
+    //
+    // Writes are admin-only (deny here; service accounts bypass rules).
+    match /tournaments/{tournamentId} {
+      allow read: if resource.data.featured == true;
+      allow write: if false;
+    }
+
+    // ── waitlist ───────────────────────────────────────────────────
+    // Create-only. No read, no update, no delete from clients.
+    //
+    // Duplicate detection works because:
+    //   - The client computes SHA-256(email) and uses it as the doc ID.
+    //   - `setDoc(doc("waitlist", hash), …)` on an existing doc is
+    //     evaluated as an update — denied here → permission-denied.
+    //   - On a new ID, it's a create → allowed (subject to schema check
+    //     below). One email = exactly one document. Emails never leave
+    //     the database via reads.
+    //
+    // Schema:
+    //   email      — string, basic shape & length check
+    //   createdAt  — must equal request.time (serverTimestamp)
+    //   (only those two keys; reject extra fields)
+    match /waitlist/{docId} {
+      allow read, update, delete: if false;
+
+      allow create: if
+        request.resource.data.keys().hasOnly(['email', 'createdAt'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 320
+        && request.resource.data.email.matches('.+@.+[.].+')
+        && request.resource.data.createdAt == request.time
+        // docId must be exactly 64 lowercase hex chars (SHA-256).
+        && docId.matches('^[0-9a-f]{64}$');
+    }
+
+    // ── default deny ───────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
