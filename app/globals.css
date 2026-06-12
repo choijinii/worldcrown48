@@ -870,6 +870,453 @@ input { font: inherit; }
   .modal-foot-actions .btn-primary { flex: 1; }
 }
 
+/* ── Policy Pages (E1·M2) — long-form readable layout ─────────────── */
+.domain-policy {
+  /* Container-query host — children adapt by container width, not viewport.
+     Handoff §9 trap 6 calls this out: forgetting container-type means the
+     @container rules below silently do nothing. */
+  container-type: inline-size;
+  container-name: policy;
+  min-height: 100vh;
+}
+
+.policy-shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-12);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+}
+
+.policy-nav {
+  position: sticky;
+  top: var(--space-12);
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.policy-nav-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted-light);
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.policy-nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-sub-light);
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.policy-nav a:hover {
+  color: var(--color-royal);
+  background: color-mix(in srgb, var(--color-royal) 4%, transparent);
+}
+.policy-nav a[aria-current="page"] {
+  color: var(--color-royal);
+  background: var(--color-gold-subtle);
+  font-weight: 600;
+  border-color: rgba(252, 208, 6, 0.30);
+}
+.policy-nav a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.policy-nav a .pn-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted-light);
+  flex: 0 0 22px;
+}
+.policy-nav a[aria-current="page"] .pn-num { color: var(--color-gold-hover); }
+
+.policy-nav-foot {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-border);
+}
+.policy-nav-foot .pnf-lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted-light);
+}
+.policy-nav-foot .pnf-mail {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gold-hover);
+  margin-top: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+.policy-nav-foot .pnf-mail:hover { color: var(--color-royal); }
+
+.policy-main { min-width: 0; }
+
+.policy-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: var(--space-8);
+}
+.policy-header .ph-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted-light);
+}
+.policy-header .ph-eyebrow b {
+  color: var(--color-royal);
+  font-weight: 700;
+}
+.policy-header .ph-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-royal);
+  margin: 0;
+}
+.policy-header .ph-meta {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted-light);
+  margin-top: var(--space-4);
+}
+.policy-header .ph-meta b {
+  color: var(--color-royal);
+  font-weight: 700;
+}
+
+/* Language tabs (reused as ph-lang inside header) */
+.policy-lang-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: 2px;
+  gap: 2px;
+  margin-top: var(--space-4);
+}
+.policy-lang-tabs button {
+  padding: 6px var(--space-3);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  color: var(--color-text-sub-light);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+.policy-lang-tabs button[aria-pressed="true"] {
+  background: var(--color-royal);
+  color: var(--color-gold);
+}
+.policy-lang-tabs button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Bilingual content swap — same pattern as the modal */
+.policy-doc[data-lang="ko"] .doc-en { display: none; }
+.policy-doc[data-lang="en"] .doc-ko { display: none; }
+
+/* Policy body — typography for long-form reading.
+ * react-markdown emits semantic elements as siblings. Each <h2> is wrapped
+ * in `<section class="policy-section">` by our custom renderer for scroll-
+ * spy targeting + scroll-margin; the paragraphs/lists/tables that FOLLOW
+ * an h2 are siblings of that section (not children), so all body-element
+ * rules below are scoped to `.policy-doc` (the wrapper around both langs)
+ * rather than `.policy-section`.
+ */
+.policy-section {
+  margin-top: var(--space-10);
+  scroll-margin-top: 110px;
+}
+.policy-section:first-child { margin-top: 0; }
+.policy-section h2 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--color-royal);
+  margin: 0 0 var(--space-4);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.policy-section h2 .ps-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-gold-hover);
+}
+.policy-doc h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  color: var(--color-royal);
+  margin: var(--space-6) 0 var(--space-3);
+}
+.policy-doc p,
+.policy-doc li {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-sub-light);
+  margin: 0 0 var(--space-3);
+}
+.policy-doc p b,
+.policy-doc li b,
+.policy-doc p strong,
+.policy-doc li strong {
+  color: var(--color-royal);
+  font-weight: 700;
+}
+.policy-doc ul,
+.policy-doc ol {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+.policy-doc li { margin-bottom: var(--space-2); }
+.policy-doc a {
+  color: var(--color-gold-hover);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  font-weight: 600;
+}
+.policy-doc a:hover { color: var(--color-royal); }
+.policy-doc blockquote {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-gold-subtle);
+  border-left: 3px solid var(--color-gold);
+  border-radius: var(--radius-border);
+}
+.policy-doc blockquote p:last-child { margin-bottom: 0; }
+.policy-doc blockquote :is(p, li) { color: var(--color-text-light); }
+.policy-doc code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-surface-soft);
+  color: var(--color-royal);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-soft);
+}
+.policy-doc pre {
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-border);
+  padding: var(--space-4);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.policy-doc pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.policy-doc hr {
+  border: 0;
+  border-top: 1px solid var(--color-border-soft);
+  margin: var(--space-8) 0;
+}
+
+/* Tables (remark-gfm) */
+.policy-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-4) 0;
+  font-size: 14px;
+}
+.policy-doc thead {
+  background: var(--color-surface-soft);
+}
+.policy-doc th,
+.policy-doc td {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-soft);
+  text-align: left;
+  vertical-align: top;
+  color: var(--color-text-sub-light);
+  line-height: 1.5;
+}
+.policy-doc th {
+  color: var(--color-royal);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* Skeleton (loading state) */
+.policy-skel { display: flex; flex-direction: column; gap: var(--space-3); }
+.skel {
+  height: 14px;
+  border-radius: var(--radius-border);
+  background: linear-gradient(
+    90deg,
+    var(--color-border-soft) 0%,
+    var(--color-bg-light) 50%,
+    var(--color-border-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.4s linear infinite;
+}
+@keyframes skel-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.skel.h1 { height: 44px; width: 65%; }
+.skel.h2 { height: 18px; width: 40%; margin-top: var(--space-3); }
+.skel.line.s { width: 88%; }
+.skel.line.m { width: 95%; }
+.skel.line.x { width: 72%; }
+
+/* Mobile/tablet — chip switcher for doc selection */
+.policy-doc-switch {
+  display: none;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+.policy-doc-switch a {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-sub-light);
+  font-family: var(--font-sans);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.policy-doc-switch a[aria-current="page"] {
+  background: var(--color-gold-subtle);
+  border-color: rgba(252, 208, 6, 0.45);
+  color: var(--color-royal);
+}
+.policy-doc-switch a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Mobile anchor bar — sticky bottom select */
+.policy-anchor-bar {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--color-surface-light) 95%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-border-light);
+  padding: var(--space-2) var(--space-4);
+  margin-top: var(--space-8);
+}
+@supports not (backdrop-filter: blur(10px)) {
+  .policy-anchor-bar { background: var(--color-surface-light); }
+}
+.policy-anchor-bar select {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-royal);
+}
+.policy-anchor-bar select:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* Container-query breakpoints — handoff §6 table */
+@container policy (max-width: 900px) {
+  .policy-shell {
+    grid-template-columns: 1fr;
+    padding: var(--space-8) var(--space-5) var(--space-12);
+    gap: var(--space-6);
+  }
+  .policy-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .policy-nav-title {
+    width: 100%;
+    padding: 0;
+  }
+  .policy-nav a {
+    padding: var(--space-2) var(--space-3);
+    font-size: 13px;
+  }
+  .policy-nav-foot {
+    width: 100%;
+    margin-top: var(--space-3);
+  }
+}
+
+@container policy (max-width: 480px) {
+  .policy-shell {
+    padding: var(--space-5) var(--space-3) var(--space-10);
+    gap: var(--space-4);
+  }
+  .policy-nav { display: none; }
+  .policy-doc-switch { display: flex; }
+  .policy-anchor-bar { display: block; }
+  .policy-header .ph-title { font-size: 28px; }
+  .policy-section h2 { font-size: 18px; }
+  .policy-doc p,
+  .policy-doc li {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+}
+
 /* prefers-reduced-motion — neutralize animations everywhere in the policy theme */
 @media (prefers-reduced-motion: reduce) {
   .cookie-banner,
@@ -878,7 +1325,8 @@ input { font: inherit; }
   .spin,
   .btn-primary,
   .btn-ghost,
-  .btn-outline {
+  .btn-outline,
+  .skel {
     transition: none !important;
     animation: none !important;
   }
