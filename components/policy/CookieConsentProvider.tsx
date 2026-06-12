@@ -93,22 +93,36 @@ const CookieConsentContext = createContext<CookieConsentContextValue | null>(nul
  * The plaintext IP must never reach the client; the function reads
  * `context.rawRequest.ip` and returns only the hex digest.
  *
- * On failure we fall back to an empty ipHash rather than blocking the
- * save — the consent record is still legally valid without it (the
- * IP hash is for fraud-pattern detection, not consent itself).
+ * Failure modes — ALL fall back to an empty ipHash so the consent save
+ * proceeds (the IP hash is for fraud-pattern detection, not consent
+ * itself; the record is legally valid without it — handoff §9 trap 8):
+ *   - Cloud Function not yet deployed (Cloud Build perms propagating
+ *     after Blaze upgrade — can take 30 min ~ a few hours)
+ *   - Cloud Function rate-limited the caller (resource-exhausted)
+ *   - Network / CORS error
+ *   - Function cold-start exceeding our short timeout
+ *
+ * We override the SDK's 70 s default with a 3 s timeout. During the
+ * post-upgrade permission delay the function may simply not respond;
+ * waiting 70 s for the consent save to complete would be terrible UX.
+ * 3 s is enough for a warm callable round-trip (typically <300 ms) and
+ * an acceptable wait when degrading to the fallback.
  */
+const HASH_IP_TIMEOUT_MS = 3_000;
+
 async function fetchIpHash(): Promise<string> {
   try {
     const callable = httpsCallable<unknown, { ipHash: string }>(
       getFunctionsInstance(),
       "hashIp",
+      { timeout: HASH_IP_TIMEOUT_MS },
     );
     const res = await callable({});
     return res.data?.ipHash ?? "";
   } catch (err) {
     // Log but don't throw — fraud-detection is secondary to recording consent.
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[CookieConsent] hashIp callable failed:", err);
+      console.warn("[CookieConsent] hashIp callable failed (using empty fallback):", err);
     }
     return "";
   }
