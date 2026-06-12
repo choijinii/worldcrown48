@@ -78,12 +78,14 @@ let functions: Functions | null = null;
 /**
  * Functions client for callable hashIp().
  *
- * Region defaults to `us-central1`. If the deployment region changes,
- * set NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION and reflect it here.
+ * Region defaults to `asia-northeast3` (Seoul) to match the
+ * `setGlobalOptions({ region: 'asia-northeast3' })` in functions/src/index.ts.
+ * Override with NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION if the deployment
+ * region changes.
  */
 export function getFunctionsInstance(): Functions {
   if (functions) return functions;
-  const region = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "us-central1";
+  const region = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "asia-northeast3";
   functions = getFunctions(getFirebaseApp(), region);
   return functions;
 }
