@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { I18nProvider } from "@/lib/i18n";
+import { CookieBanner } from "@/components/policy/CookieBanner";
+import { ConsentModal } from "@/components/policy/ConsentModal";
+import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
+import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
 
 export const metadata: Metadata = {
   title: "WorldCrown48 — Who Rules the World?",
@@ -14,6 +19,25 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * RootLayout — wraps the entire app with the I18n + cookie consent
+ * providers and mounts the banner/modal once at the root.
+ *
+ * Theme scoping (handoff §9 trap 1):
+ *   - Domain 0~3 surfaces (e.g. `.lp` in app/page.tsx) keep using the
+ *     dark `:root` tokens from globals.css.
+ *   - The cookie banner and consent modal carry their OWN
+ *     `data-theme="light"` so the light tokens apply only inside their
+ *     subtree, no matter what page they overlay.
+ *   - Policy pages (PR-B) wrap their root in `.domain-policy` for the
+ *     same effect over the body content.
+ *
+ * Footer (handoff §5 / §10):
+ *   - "Report content" mailto:
+ *   - "Cookie 설정 다시 열기" button (calls Provider.reopen())
+ *   These need consent context, so they live in a client component
+ *   (FooterPolicyRow) under the Provider.
+ */
 export default function RootLayout({
   children,
 }: {
@@ -36,7 +60,19 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <I18nProvider>
+          <CookieConsentProvider>
+            {children}
+            <FooterPolicyRow />
+            {/* Banner + modal are themed locally — they overlay any page. */}
+            <div data-theme="light">
+              <CookieBanner />
+              <ConsentModal />
+            </div>
+          </CookieConsentProvider>
+        </I18nProvider>
+      </body>
     </html>
   );
 }

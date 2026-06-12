@@ -1,0 +1,108 @@
+/**
+ * i18n — shared KO/EN state for the policy surfaces.
+ *
+ * Handoff §C decision waterfall (in order):
+ *   1. URL `?lang=ko|en` (explicit user choice via shareable link)
+ *   2. Firestore user preference (when signed in — out of MVP1 scope, hook ready)
+ *   3. navigator.language (`ko-KR` → ko, anything else → en)
+ *   4. Default → en (global-first)
+ *
+ * Why Context, not Zustand:
+ *   - Only two consumers (ConsentModal in PR-A, Policy pages in PR-B).
+ *   - Zustand would add a runtime dep with no upside at this scale.
+ *   - When the same state is needed by 4+ surfaces or we need persistence
+ *     middleware, migrate to Zustand without changing this module's API.
+ *
+ * Filename note: handoff §3 lists this as `lib/i18n.ts`, but since the
+ * Provider is JSX it has to be `.tsx`. The pure helper `resolveBootLang`
+ * still re-exports cleanly so consumers don't care about the extension.
+ */
+
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Lang } from "./cookieConsent";
+
+interface I18nContextValue {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+}
+
+const I18nContext = createContext<I18nContextValue | null>(null);
+
+/**
+ * Resolve the boot lang. Pure-ish — only reads window/document, no React.
+ * Exported for tests.
+ */
+export function resolveBootLang(args: {
+  url?: URL | null;
+  navigatorLang?: string | null;
+}): Lang {
+  // 1. URL query
+  const queryLang = args.url?.searchParams.get("lang");
+  if (queryLang === "ko" || queryLang === "en") return queryLang;
+
+  // 2. (intentionally skipped — Firestore preference is Locker Room scope, MVP2)
+
+  // 3. navigator.language
+  const nav = args.navigatorLang?.toLowerCase() ?? "";
+  if (nav.startsWith("ko")) return "ko";
+
+  // 4. default
+  return "en";
+}
+
+export interface I18nProviderProps {
+  children: ReactNode;
+  /** Override for tests / Storybook. */
+  initialLang?: Lang;
+}
+
+export function I18nProvider({
+  children,
+  initialLang,
+}: I18nProviderProps): JSX.Element {
+  // Start with the SSR-safe fallback ("en") to avoid hydration mismatch.
+  // The real value is resolved in the effect on the client.
+  const [lang, setLangState] = useState<Lang>(initialLang ?? "en");
+
+  useEffect(() => {
+    if (initialLang) return;
+    if (typeof window === "undefined") return;
+    const resolved = resolveBootLang({
+      url: new URL(window.location.href),
+      navigatorLang: window.navigator.language,
+    });
+    setLangState(resolved);
+  }, [initialLang]);
+
+  const setLang = useCallback((next: Lang) => {
+    setLangState(next);
+  }, []);
+
+  const value = useMemo<I18nContextValue>(
+    () => ({ lang, setLang }),
+    [lang, setLang],
+  );
+
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+/**
+ * Read the current lang and a setter. Falls back to `{ lang: "en",
+ * setLang: noop }` when called outside the provider so unwrapped surfaces
+ * (preview routes, error boundaries) don't crash.
+ */
+export function useI18n(): I18nContextValue {
+  const ctx = useContext(I18nContext);
+  if (ctx) return ctx;
+  return { lang: "en", setLang: () => undefined };
+}

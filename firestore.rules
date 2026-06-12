@@ -4,8 +4,9 @@ rules_version = '2';
 // WorldCrown48 — Firestore Security Rules
 //
 // Collections covered:
-//   /tournaments/{id}  — public read of `featured == true` docs only
-//   /waitlist/{id}     — create-only; doc ID MUST be SHA-256(email)
+//   /tournaments/{id}      — public read of `featured == true` docs only
+//   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
+//   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //
 // All other paths are denied by default.
 // ════════════════════════════════════════════════════════════════════
@@ -58,6 +59,55 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         // docId must be exactly 64 lowercase hex chars (SHA-256).
         && docId.matches('^[0-9a-f]{64}$');
+    }
+
+    // ── cookieConsents ─────────────────────────────────────────────
+    // Each user owns the doc at /cookieConsents/{their-uid}. No one else
+    // can read or write it — the consent record is legally sensitive PII
+    // (it ties an IP hash to a category set).
+    //
+    // Anonymous Auth IS valid for ownership here: handoff §9 trap 9 calls
+    // for `signInAnonymously()` before consent so the visitor has a stable
+    // uid even pre-signup. That uid is treated the same as a logged-in uid
+    // for the purposes of this rule.
+    //
+    // Schema validation on write (handoff §B):
+    //   essential   — must be true (constant)
+    //   functional  — bool
+    //   analytics   — bool
+    //   marketing   — bool
+    //   timestamp   — server time at write (`request.time`)
+    //   expiresAt   — Timestamp ~12 months ahead (lower bound check only;
+    //                  client clock skew makes exact equality fragile)
+    //   ipHash      — string (may be empty when the hashIp callable fails)
+    //   lang        — 'ko' | 'en'
+    //   version     — string (policy version at consent time)
+    match /cookieConsents/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+
+      // Both create and update share the same schema check.
+      allow write: if
+        request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.essential == true
+        && request.resource.data.functional is bool
+        && request.resource.data.analytics is bool
+        && request.resource.data.marketing is bool
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.expiresAt is timestamp
+        // Lower-bound on expiresAt: must be at least 300 days in the future.
+        // (The client computes savedAt + 365d; allowing 65d of skew tolerance.)
+        && request.resource.data.expiresAt > request.time + duration.value(300, 'd')
+        && request.resource.data.ipHash is string
+        && request.resource.data.ipHash.size() <= 64
+        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en')
+        && request.resource.data.version is string
+        && request.resource.data.version.size() <= 16
+        && request.resource.data.keys().hasOnly([
+             'uid', 'essential', 'functional', 'analytics', 'marketing',
+             'timestamp', 'expiresAt', 'ipHash', 'lang', 'version'
+           ]);
     }
 
     // ── default deny ───────────────────────────────────────────────
