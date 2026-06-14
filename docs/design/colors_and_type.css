@@ -1,0 +1,308 @@
+/* ============================================================
+   WorldCrown48 · Twilight Stadium · Cinematic Edition
+   colors_and_type.css — single source of truth for tokens.
+   Color tokens aligned to brand logo v3.0 — 2026-05-25.
+   ============================================================ */
+
+/* ----- WEB FONTS -----
+   Brand: Pretendard (self-hosted, supplied by user).
+   Latin partners: Inter (heading/body), Playfair Display (champion-only display),
+                   JetBrains Mono (numbers + AI badges).
+   Korean glyphs are picked up from Pretendard via the family stack.
+*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,700;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+/* ----- Self-hosted Pretendard (Domain-owned brand font) ----- */
+@font-face { font-family: "Pretendard"; font-weight: 100; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Thin.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 200; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-ExtraLight.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 300; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Light.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Regular.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Medium.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-SemiBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Bold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 800; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-ExtraBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 900; font-style: normal; font-display: swap;
+  src: url("./fonts/Pretendard-Black.otf") format("opentype"); }
+
+/* ============================================================
+   1 ▸ DARK THEME — Domain 0–3 (Twilight Stadium)
+   Anchored to brand logo v3.0. Exact-logo values marked ▸logo.
+   ============================================================ */
+:root,
+[data-theme="dark"] {
+  /* — Backgrounds — never pure #000 in dark theme — */
+  --color-bg-deep:        #00003A;   /* ▸logo · darkest navy (base) */
+  --color-bg-default:     #0E0944;   /* derived · deep twilight */
+  --color-bg-soft:        #241754;   /* ▸logo · deep indigo (cards) */
+  --color-bg-elevated:    #362261;   /* derived · raised indigo */
+  --color-bg-charcoal:    #1E1E24;   /* neutral charcoal (admin utility) */
+
+  /* — Brand · Gold family — */
+  --color-gold:           #FCD006;   /* ▸logo · Crown Gold · primary point */
+  --color-gold-bright:    #FFE25C;   /* derived · warmer hi-light */
+  --color-gold-hover:     #E3BB05;   /* derived · gold hover/pressed */
+  --color-gold-subtle:    rgba(252,208,6,0.12);
+  --color-gold-glow:      rgba(252,208,6,0.25);
+
+  /* — Aura — soft secondary highlight — */
+  --color-aura:           #EEDA7D;   /* ▸logo · light gold */
+  --color-aura-subtle:    rgba(238,218,125,0.10);
+
+  /* — Accent · sides + state — */
+  --color-crimson:        #D7063A;   /* ▸logo · VS right · live · error */
+  --color-crimson-glow:   rgba(215,6,58,0.30);
+  --color-turquoise:      #00A3B7;   /* ▸logo · VS left · success (teal) */
+  --color-turquoise-glow: rgba(0,163,183,0.25);
+  --color-powder:         #B1B5C4;   /* ▸logo · sub text · info */
+
+  /* — Text — */
+  --color-text:           #F2F2F5;   /* ▸logo · Off-White (body) */
+  --color-text-sub:       #B1B5C4;   /* ▸logo · grey */
+  --color-text-muted:     #484B67;   /* ▸logo · slate */
+  --color-text-disabled:  #36315D;   /* derived · muted/bg blend */
+
+  /* — Borders — */
+  --color-border:         #2D1C5A;   /* derived · soft/elevated blend */
+  --color-border-light:   #281957;   /* derived · subtle border */
+  --color-border-gold:    rgba(252,208,6,0.30);
+
+  /* — Status — */
+  --color-error:          #D7063A;
+  --color-success:        #00A3B7;
+  --color-warning:        #EEDA7D;
+  --color-info:           #B1B5C4;
+}
+
+/* ============================================================
+   2 ▸ LIGHT THEME — Domain 4–6 (Locker Room · Policy · Admin)
+   ============================================================ */
+[data-theme="light"] {
+  --color-bg-deep:        #F2F2F5;   /* ▸logo · off-white page */
+  --color-bg-default:     #FFFFFF;
+  --color-bg-soft:        #FFFFFF;
+  --color-bg-elevated:    #E7E8EE;   /* derived · raised light */
+
+  --color-gold:           #FCD006;   /* ▸logo */
+  --color-gold-hover:     #E3BB05;
+  --color-aura:           #EEDA7D;   /* ▸logo */
+  --color-crimson:        #D7063A;   /* ▸logo */
+  --color-turquoise:      #00A3B7;   /* ▸logo */
+
+  --color-text:           #241754;   /* ▸logo · deep indigo (body) */
+  --color-text-sub:       #484B67;   /* ▸logo · slate */
+  --color-text-muted:     #6B7A99;   /* derived · soft muted */
+
+  --color-border:         #D9DBE1;   /* derived · light border */
+  --color-border-light:   #E7E8EC;   /* derived · subtle light border */
+  --color-border-gold:    rgba(252,208,6,0.45);
+}
+
+/* ============================================================
+   3 ▸ TYPOGRAPHY — families · scale · semantic
+   ============================================================ */
+:root {
+  --font-heading: "Inter", "Pretendard", system-ui, sans-serif;
+  --font-display: "Playfair Display", "Pretendard", serif;     /* Champion only */
+  --font-body:    "Inter", "Pretendard", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* base scale tokens — px / line-height */
+  --text-hero:    48px;  --lh-hero:    56px;   /* hero slogan */
+  --text-h1:      36px;  --lh-h1:      44px;
+  --text-h2:      28px;  --lh-h2:      36px;   /* champion name (display) */
+  --text-h3:      22px;  --lh-h3:      32px;   /* contestant name */
+  --text-lg:      18px;  --lh-lg:      28px;
+  --text-body:    16px;  --lh-body:    24px;
+  --text-sm:      14px;  --lh-sm:      20px;
+  --text-xs:      12px;  --lh-xs:      16px;
+  --text-2xs:     10px;  --lh-2xs:     14px;   /* AI-Report · mono */
+
+  --tracking-tight:  -0.02em;
+  --tracking-base:   0;
+  --tracking-wide:   0.04em;
+  --tracking-wider:  0.12em;     /* CHAMPION · uppercase */
+}
+
+/* ============================================================
+   4 ▸ SHAPE · SPACE · ELEVATION
+   ============================================================ */
+:root {
+  /* radius */
+  --radius-card:      24px;
+  --radius-card-hero: 32px;   /* VS battle / hero cards */
+  --radius-modal:     20px;
+  --radius-panel:     16px;
+  --radius-btn:       12px;
+  --radius-badge:      8px;
+  --radius-chip:     999px;
+
+  /* shadow + glow */
+  --shadow-card:      0 4px 24px rgba(0,0,58,0.50);
+  --shadow-modal:     0 8px 48px rgba(0,0,58,0.70);
+  --shadow-gold:      0 0 32px rgba(252,208,6,0.25);
+  --shadow-aura:      0 0 24px rgba(238,218,125,0.18);
+  --shadow-crimson:   0 0 24px rgba(215,6,58,0.25);
+  --shadow-turquoise: 0 0 24px rgba(0,163,183,0.20);
+  --shadow-hover:     0 8px 32px rgba(252,208,6,0.18);
+  --shadow-gnb:       0 8px 32px rgba(0,0,58,0.40);   /* floating island */
+
+  /* spacing scale */
+  --spacing-xs:   4px;
+  --spacing-sm:   8px;
+  --spacing-md:  16px;
+  --spacing-lg:  24px;
+  --spacing-xl:  40px;
+  --spacing-2xl: 64px;
+  --spacing-3xl: 96px;
+
+  /* motion tokens */
+  --ease-magnetic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.30, 1);
+  --dur-fast:    160ms;
+  --dur-base:    300ms;
+  --dur-slow:    600ms;
+}
+
+/* ============================================================
+   5 ▸ SEMANTIC ELEMENTS — drop into any page
+   ============================================================ */
+html, body {
+  background: var(--color-bg-deep);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .h-hero {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--text-hero);
+  line-height: var(--lh-hero);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+}
+h2, .h-section {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tracking-tight);
+}
+h3, .h-card {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+}
+.champion-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  color: var(--color-gold);
+}
+.champion-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-powder);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-size: var(--text-xs);
+}
+p, .body { font-size: var(--text-body); line-height: var(--lh-body); }
+.body-lg  { font-size: var(--text-lg);  line-height: var(--lh-lg);  font-weight: 500; }
+.body-sm  { font-size: var(--text-sm);  line-height: var(--lh-sm);  color: var(--color-text-sub); }
+.caption  { font-size: var(--text-xs);  line-height: var(--lh-xs);  color: var(--color-text-muted); }
+.mono, code, kbd, .countdown {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum", "zero";
+}
+.badge-ai {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--lh-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text);
+  background: rgba(14,9,68,0.60);
+  border: 1px solid var(--color-border);
+  padding: 4px 8px;
+  border-radius: var(--radius-badge);
+}
+
+/* ============================================================
+   6 ▸ GLOBAL CINEMATIC LAYERS  (§4-A noise overlay)
+   ============================================================ */
+.wc-noise {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* ============================================================
+   7 ▸ MAGNETIC BUTTON  (§4-B)
+   ============================================================ */
+.btn-magnetic {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border: 0;
+  transition: transform var(--dur-base) var(--ease-magnetic),
+              box-shadow var(--dur-base) ease;
+  transform: translateZ(0);
+}
+.btn-magnetic:hover  { transform: scale(1.03) translateZ(0); }
+.btn-magnetic:active { transform: scale(0.97) translateZ(0); transition-duration: 100ms; }
+
+.btn-magnetic .btn-slide-bg {
+  position: absolute; inset: 0;
+  transform: translateX(-105%);
+  transition: transform 400ms var(--ease-magnetic);
+  pointer-events: none;
+}
+.btn-magnetic:hover .btn-slide-bg { transform: translateX(0); }
+.btn-magnetic > .btn-label { position: relative; z-index: 1; }
+
+.btn-gold    { background: var(--color-gold);      color: var(--color-bg-default); }
+.btn-gold    .btn-slide-bg { background: var(--color-gold-hover); }
+.btn-outline { background: transparent; border: 2px solid var(--color-gold); color: var(--color-gold); }
+.btn-outline .btn-slide-bg { background: var(--color-gold); }
+.btn-outline:hover         { color: var(--color-bg-default); }
+.btn-crimson   { background: var(--color-crimson);   color: var(--color-text); }
+.btn-crimson   .btn-slide-bg { background: rgba(215,6,58,0.80); }
+.btn-turquoise { background: var(--color-turquoise); color: var(--color-bg-default); }
+.btn-turquoise .btn-slide-bg { background: rgba(0,163,183,0.80); }
+
+.link-lift { transition: transform 200ms var(--ease-magnetic); display: inline-block; }
+.link-lift:hover { transform: translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-magnetic, .btn-magnetic:hover, .btn-magnetic .btn-slide-bg,
+  .link-lift:hover { transition: none; transform: none; }
+}

@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WC48 · RoundBadge — 5가지 상태 시안 v1</title>
+
+<!-- Lucide 아이콘 (공식 규정) -->
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+
+<!-- 디자인 토큰 단일 진실 -->
+<link rel="stylesheet" href="../colors_and_type.css" />
+
+<style>
+  /* ----- 페이지 셸 ----- */
+  body {
+    margin: 0;
+    padding: 48px 24px 96px;
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(252,208,6,0.06), transparent 60%),
+      var(--color-bg-deep);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+
+  .doc-head {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 40px;
+  }
+  .doc-head .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+  .doc-head h1 {
+    font-size: 28px; line-height: 1.2; margin: 0;
+    color: var(--color-text); font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .doc-head p {
+    margin: 0; color: var(--color-text-sub); font-size: 14px; max-width: 64ch;
+  }
+
+  /* ----- 섹션 ----- */
+  .section { margin-top: 56px; }
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--color-powder);
+    margin: 0 0 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: ""; width: 6px; height: 6px; border-radius: 999px;
+    background: var(--color-gold);
+    box-shadow: 0 0 8px var(--color-gold-glow);
+  }
+
+  /* ----- 상태 카드 그리드 ----- */
+  .state-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .state-card {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 16px;
+    transition: transform var(--dur-base) var(--ease-magnetic),
+                border-color var(--dur-base) ease;
+  }
+  .state-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-gold);
+  }
+  .state-card .label {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* ============================================================
+     RoundBadge — Arena VS Battle 헤더의 유일한 라운드 표시
+     ============================================================ */
+  .round-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 32px; padding: 0 14px;
+    border-radius: var(--radius-chip);
+    background: rgba(252,208,6,0.10);
+    border: 1px solid var(--color-border-gold);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    white-space: nowrap;
+  }
+  .round-badge .dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--color-gold);
+    box-shadow: 0 0 6px var(--color-gold-glow);
+  }
+  .round-badge .sep {
+    width: 1px; height: 12px; background: rgba(252,208,6,0.30);
+  }
+  .round-badge .match {
+    color: var(--color-text);
+    letter-spacing: 0.10em;
+  }
+  .round-badge .num { color: var(--color-gold); font-weight: 700; }
+  .round-badge .slash { color: var(--color-text-muted); margin: 0 2px; }
+
+  /* THE FINAL — 결승 전용 변형 (한 단계 더 화려하게) */
+  .round-badge--final {
+    height: 36px; padding: 0 16px;
+    background:
+      linear-gradient(90deg, rgba(252,208,6,0.18), rgba(238,218,125,0.12));
+    border-color: var(--color-gold);
+    box-shadow: var(--shadow-gold);
+  }
+  .round-badge--final .crown {
+    width: 16px; height: 15px;
+    display: inline-block;
+    /* 브랜드 등록 SVG 사용 — 직접 그리지 않음 (SKILL.md 규정) */
+  }
+  .round-badge--final .title {
+    font-family: var(--font-display); /* Playfair — Champion 전용 폰트 */
+    font-style: italic;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    color: var(--color-gold);
+  }
+
+  /* 한국어 버전 — 살짝 다른 lockup */
+  .round-badge--ko {
+    font-family: "Pretendard", var(--font-mono);
+    letter-spacing: 0.06em;
+  }
+  .round-badge--ko .match { letter-spacing: 0.04em; }
+
+  /* ============================================================
+     MatchProgressBar — 현재 라운드 안에서의 Match 진행 (허용)
+     ※ Round 단위 그리드/목록은 v2.3 금지. Match 진행만 표시.
+     ============================================================ */
+  .match-progress {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .match-progress .track {
+    position: relative;
+    height: 4px;
+    background: rgba(178,181,196,0.12);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .match-progress .fill {
+    position: absolute; inset: 0 auto 0 0;
+    background: linear-gradient(90deg, var(--color-aura), var(--color-gold));
+    border-radius: 999px;
+    box-shadow: 0 0 12px var(--color-gold-glow);
+    transition: width var(--dur-slow) var(--ease-out);
+  }
+  .match-progress .meta {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .match-progress .meta .ratio { color: var(--color-text-sub); }
+
+  /* ============================================================
+     Arena VS Battle 헤더 — 실제 적용 예시 (full lockup)
+     ============================================================ */
+  .arena-mock {
+    margin-top: 16px;
+    background:
+      radial-gradient(800px 240px at 50% 0%, rgba(252,208,6,0.05), transparent 60%),
+      var(--color-bg-default);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 32px;
+    box-shadow: var(--shadow-card);
+  }
+  .arena-mock .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .arena-mock .deadline {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--color-text-sub);
+  }
+  .arena-mock .deadline i { width: 12px; height: 12px; }
+
+  .arena-mock .progress-row {
+    margin-top: 20px; max-width: 480px;
+  }
+
+  .arena-mock .vs-stub {
+    margin-top: 32px; padding: 48px 24px;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-card);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  }
+
+  /* ============================================================
+     Spec 카드 — 디자인 토큰 검증용
+     ============================================================ */
+  .spec {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-panel);
+    padding: 20px 24px;
+  }
+  .spec h4 {
+    margin: 0 0 12px; font-size: 13px; color: var(--color-text);
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 600;
+  }
+  .spec dl {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 6px 16px; margin: 0;
+    font-size: 12px; color: var(--color-text-sub);
+  }
+  .spec dt { color: var(--color-text-muted); font-family: var(--font-mono); letter-spacing: 0.06em; }
+  .spec dd { margin: 0; font-family: var(--font-mono); color: var(--color-text); }
+
+  /* ============================================================
+     금지 패턴 카드 — 자가 검증
+     ============================================================ */
+  .forbidden-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-top: 16px;
+  }
+  .forbidden, .allowed {
+    border-radius: var(--radius-panel);
+    padding: 16px 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .forbidden {
+    background: rgba(215,6,58,0.08);
+    border: 1px solid rgba(215,6,58,0.35);
+    color: var(--color-text);
+  }
+  .allowed {
+    background: rgba(0,163,183,0.08);
+    border: 1px solid rgba(0,163,183,0.35);
+    color: var(--color-text);
+  }
+  .forbidden .tag, .allowed .tag {
+    display: inline-block; margin-bottom: 6px;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .forbidden .tag { color: var(--color-crimson); }
+  .allowed .tag { color: var(--color-turquoise); }
+  .forbidden .ex { display: block; line-height: 1.7; color: var(--color-text-sub); }
+  .allowed .ex { display: block; line-height: 1.7; color: var(--color-text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .state-card, .match-progress .fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wc-noise" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <header class="doc-head">
+    <span class="eyebrow">● Domain 3 · The Arena · Mockup v1</span>
+    <h1>RoundBadge — 라운드 표시 UI 5가지 상태</h1>
+    <p>
+      WC48에서 Round 정보가 표시될 수 있는 <b>유일한 위치</b>는 Arena VS Battle 헤더입니다.
+      Round 그리드·목록·카드는 v2.3에서 모두 금지되었기 때문에, 이 시안은 헤더 배지 단일 컴포넌트만 다룹니다.
+      MatchProgressBar는 “현재 Round 안에서의 Match 진행”만 표시하므로 허용 범위에 포함했습니다.
+    </p>
+  </header>
+
+  <!-- ============================================================
+       SECTION 1 — 영문 5가지 상태
+       ============================================================ -->
+  <section class="section">
+    <h2 class="section-title">01 · English · 5 States</h2>
+    <div class="state-grid">
+
+      <div class="state-card">
+        <span class="label">round 1 · start</span>
+        <span class="round-badge">
+          <span class="dot"></span>
+          <span>ROUND OF 48</span>
+          <span class="sep"></span>
+          <span class="match">MATCH <span class="num">1</span><span class="slash">/</span><span class="num">24</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">round 2 · mid</span>
+        <span class="round-badge">
+          <span class="dot"></span>
+          <span>ROUND OF 24</span>
+          <span class="sep"></span>
+          <span class="match">MATCH <span class="num">5</span><span class="slash">/</span><span class="num">12</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">round 3 · half</span>
+        <span class="round-badge">
+          <span class="dot"></span>
+          <span>ROUND OF 12</span>
+          <span class="sep"></span>
+          <span class="match">MATCH <span class="num">3</span><span class="slash">/</span><span class="num">6</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">round 4 · late</span>
+        <span class="round-badge">
+          <span class="dot"></span>
+          <span>ROUND OF 6</span>
+          <span class="sep"></span>
+          <span class="match">MATCH <span class="num">2</span><span class="slash">/</span><span class="num">3</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">round 5 · final</span>
+        <span class="round-badge round-badge--final">
+          <img class="crown" src="../../../public/brand/wc48-crown-filled.svg" alt="" aria-hidden="true" />
+          <span class="title">THE FINAL</span>
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2 — 한국어 5가지 상태
+       ============================================================ -->
+  <section class="section">
+    <h2 class="section-title">02 · 한국어 · 5가지 상태</h2>
+    <div class="state-grid">
+
+      <div class="state-card">
+        <span class="label">1라운드 · 시작</span>
+        <span class="round-badge round-badge--ko">
+          <span class="dot"></span>
+          <span>48강</span>
+          <span class="sep"></span>
+          <span class="match"><span class="num">1</span><span class="slash">/</span><span class="num">24</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">2라운드 · 중반</span>
+        <span class="round-badge round-badge--ko">
+          <span class="dot"></span>
+          <span>24강</span>
+          <span class="sep"></span>
+          <span class="match"><span class="num">5</span><span class="slash">/</span><span class="num">12</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">3라운드 · 절반</span>
+        <span class="round-badge round-badge--ko">
+          <span class="dot"></span>
+          <span>12강</span>
+          <span class="sep"></span>
+          <span class="match"><span class="num">3</span><span class="slash">/</span><span class="num">6</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">4라운드 · 후반</span>
+        <span class="round-badge round-badge--ko">
+          <span class="dot"></span>
+          <span>6강</span>
+          <span class="sep"></span>
+          <span class="match"><span class="num">2</span><span class="slash">/</span><span class="num">3</span></span>
+        </span>
+      </div>
+
+      <div class="state-card">
+        <span class="label">5라운드 · 결승</span>
+        <span class="round-badge round-badge--final">
+          <img class="crown" src="../../../public/brand/wc48-crown-filled.svg" alt="" aria-hidden="true" />
+          <span class="title">결승</span>
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3 — 실제 Arena 헤더 lockup (현재 라운드: 24강 5/12)
+       ============================================================ -->
+  <section class="section">
+    <h2 class="section-title">03 · Arena VS Battle 헤더 적용 예시</h2>
+
+    <div class="arena-mock">
+      <div class="topbar">
+        <!-- 좌측: RoundBadge -->
+        <span class="round-badge">
+          <span class="dot"></span>
+          <span>ROUND OF 24</span>
+          <span class="sep"></span>
+          <span class="match">MATCH <span class="num">5</span><span class="slash">/</span><span class="num">12</span></span>
+        </span>
+
+        <!-- 우측: Tournament Deadline (Arena에서 유일하게 허용되는 시간 표시) -->
+        <span class="deadline">
+          <i data-lucide="flag"></i>
+          <span>Tournament ends · May 31, 2026</span>
+        </span>
+      </div>
+
+      <!-- MatchProgressBar — 현재 라운드 안 진행만 표시 (Round 그리드 ❌) -->
+      <div class="progress-row">
+        <div class="match-progress" aria-label="Match progress within current round">
+          <div class="track">
+            <div class="fill" style="width: 41.6%;"></div>
+          </div>
+          <div class="meta">
+            <span>Round Progress</span>
+            <span class="ratio">5 / 12</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs-stub">
+        ContestantCard · Left  ·  VS  ·  ContestantCard · Right
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 4 — 디자인 토큰 스펙
+       ============================================================ -->
+  <section class="section">
+    <h2 class="section-title">04 · 디자인 토큰 스펙</h2>
+
+    <div class="state-grid">
+      <div class="spec">
+        <h4>RoundBadge · default</h4>
+        <dl>
+          <dt>height</dt><dd>32px</dd>
+          <dt>padding</dt><dd>0 14px</dd>
+          <dt>radius</dt><dd>var(--radius-chip) · 999px</dd>
+          <dt>bg</dt><dd>rgba(252,208,6,0.10)</dd>
+          <dt>border</dt><dd>var(--color-border-gold)</dd>
+          <dt>font</dt><dd>JetBrains Mono · 12px / 600</dd>
+          <dt>tracking</dt><dd>0.12em · UPPERCASE</dd>
+          <dt>round name</dt><dd>var(--color-gold) #FCD006</dd>
+          <dt>match label</dt><dd>var(--color-text) #F2F2F5</dd>
+          <dt>match num</dt><dd>var(--color-gold) #FCD006 / 700</dd>
+          <dt>dot glow</dt><dd>0 0 6px gold-glow 25%</dd>
+        </dl>
+      </div>
+
+      <div class="spec">
+        <h4>RoundBadge · final 변형</h4>
+        <dl>
+          <dt>height</dt><dd>36px</dd>
+          <dt>padding</dt><dd>0 16px</dd>
+          <dt>bg</dt><dd>gold→aura 그라데이션 (18%→12%)</dd>
+          <dt>border</dt><dd>var(--color-gold) #FCD006</dd>
+          <dt>shadow</dt><dd>var(--shadow-gold) · gold glow 25%</dd>
+          <dt>icon</dt><dd>brand · wc48-crown-filled.svg · 16×15</dd>
+          <dt>label</dt><dd>Playfair Display · italic · 14px / 700</dd>
+          <dt>label color</dt><dd>var(--color-gold) #FCD006</dd>
+        </dl>
+      </div>
+
+      <div class="spec">
+        <h4>MatchProgressBar</h4>
+        <dl>
+          <dt>track</dt><dd>height 4px · rgba(178,181,196,0.12)</dd>
+          <dt>fill</dt><dd>aura → gold 그라데이션</dd>
+          <dt>fill glow</dt><dd>0 0 12px gold-glow 25%</dd>
+          <dt>radius</dt><dd>999px</dd>
+          <dt>label</dt><dd>JetBrains Mono · 10px · UPPERCASE</dd>
+          <dt>motion</dt><dd>width · var(--dur-slow) · ease-out</dd>
+        </dl>
+      </div>
+
+      <div class="spec">
+        <h4>모션 · 접근성</h4>
+        <dl>
+          <dt>hover</dt><dd>translateY(-2px) + border gold</dd>
+          <dt>easing</dt><dd>var(--ease-magnetic)</dd>
+          <dt>duration</dt><dd>var(--dur-base) · 300ms</dd>
+          <dt>reduced-motion</dt><dd>transition / transform 제거</dd>
+          <dt>contrast</dt><dd>Gold on #241754 · WCAG AA pass</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5 — 금지 패턴 자가검증 (DESIGN_BRIEF 기준)
+       ============================================================ -->
+  <section class="section">
+    <h2 class="section-title">05 · 금지 패턴 자가검증</h2>
+    <div class="forbidden-grid">
+
+      <div class="forbidden">
+        <span class="tag">❌ 금지</span>
+        <span class="ex">"ROUND OF 16 · 8 matches · ends in 03:14:22"</span>
+        <span class="ex">"QUARTERFINAL", "SEMIFINAL" 라운드명</span>
+        <span class="ex">RoundCard, Round 그리드, Round 목록</span>
+        <span class="ex">VOTE 3/5 TODAY · 일일 한도 카운터</span>
+        <span class="ex">54% Vote Rate · LIVE 배지</span>
+        <span class="ex">결승을 1v1 Match 2개로 분리</span>
+      </div>
+
+      <div class="allowed">
+        <span class="tag">✅ 이 시안에서 사용</span>
+        <span class="ex">ROUND OF 48 / 24 / 12 / 6 / THE FINAL</span>
+        <span class="ex">{라운드명} · MATCH {n}/{total} 단일 형식</span>
+        <span class="ex">Tournament ends · May 31, 2026 (유일 허용 시간)</span>
+        <span class="ex">MatchProgressBar (Round 내부 진행만)</span>
+        <span class="ex">THE FINAL = 단일 표시 (X/Y 없음)</span>
+        <span class="ex">Crown Gold #FCD006 · 단일 포인트 컬러</span>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Lucide 아이콘 초기화 — 공식 규정 (createIcons 호출 필수)
+  if (window.lucide) lucide.createIcons();
+</script>
+</body>
+</html>

@@ -3,9 +3,11 @@
  *
  * Reads `NEXT_PUBLIC_FIREBASE_*` env vars and initialises once (singleton).
  * Used by:
- *   - components/launch/FeaturedTournament — Firestore read (`tournaments` where featured==true)
- *   - components/launch/WaitlistForm       — Firestore write (`waitlist` create)
- *   - lib/analytics                        — getAnalytics on the client
+ *   - components/launch/FeaturedTournament   — Firestore read (`tournaments` where featured==true)
+ *   - components/launch/WaitlistForm         — Firestore write (`waitlist` create)
+ *   - components/policy/CookieConsentProvider — Anonymous Auth uid + Firestore I/O
+ *   - lib/cookieConsent                       — Firestore reads/writes on cookieConsents
+ *   - lib/analytics                           — getAnalytics on the client
  *
  * Required env vars (set in `.env.local` / Vercel project):
  *   NEXT_PUBLIC_FIREBASE_API_KEY
@@ -18,7 +20,15 @@
  */
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInAnonymously,
+  type Auth,
+  type User,
+} from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getFunctions, type Functions } from "firebase/functions";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -53,4 +63,76 @@ export function getDb(): Firestore {
   if (db) return db;
   db = getFirestore(getFirebaseApp());
   return db;
+}
+
+let auth: Auth | null = null;
+
+export function getAuthInstance(): Auth {
+  if (auth) return auth;
+  auth = getAuth(getFirebaseApp());
+  return auth;
+}
+
+let functions: Functions | null = null;
+
+/**
+ * Functions client for callable hashIp().
+ *
+ * Region defaults to `asia-northeast3` (Seoul) to match the
+ * `setGlobalOptions({ region: 'asia-northeast3' })` in functions/src/index.ts.
+ * Override with NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION if the deployment
+ * region changes.
+ */
+export function getFunctionsInstance(): Functions {
+  if (functions) return functions;
+  const region = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "asia-northeast3";
+  functions = getFunctions(getFirebaseApp(), region);
+  return functions;
+}
+
+/**
+ * Resolve a uid for the current visitor, signing in anonymously if needed.
+ *
+ * Handoff §9 trap 9: the consent record needs a uid even before the visitor
+ * has logged in. Firebase Anonymous Auth gives us a stable per-device uid
+ * that can later be linked to a real account if the user signs up.
+ *
+ * Returns a Promise that resolves with the User once Auth is ready. On the
+ * server (no window) this returns null — callers must guard.
+ */
+export function ensureAnonymousUid(): Promise<User | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  const a = getAuthInstance();
+  if (a.currentUser) return Promise.resolve(a.currentUser);
+
+  return new Promise<User | null>((resolve, reject) => {
+    // Race: onAuthStateChanged may fire before signInAnonymously resolves
+    // (cached session) or after (cold start). We listen first so we never
+    // miss the cached case, then attempt sign-in for cold starts.
+    let settled = false;
+    const unsub = onAuthStateChanged(
+      a,
+      (user) => {
+        if (settled) return;
+        if (user) {
+          settled = true;
+          unsub();
+          resolve(user);
+        }
+      },
+      (err) => {
+        if (settled) return;
+        settled = true;
+        unsub();
+        reject(err);
+      },
+    );
+
+    signInAnonymously(a).catch((err) => {
+      if (settled) return;
+      settled = true;
+      unsub();
+      reject(err);
+    });
+  });
 }

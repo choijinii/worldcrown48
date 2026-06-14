@@ -23,3 +23,13 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Firebase Functions build artifacts
+/functions/node_modules
+/functions/lib
+/functions/*.tsbuildinfo
+
+# Firebase CLI transient logs
+firebase-debug.log*
+firebase-debug.*.log*
+.firebase/
