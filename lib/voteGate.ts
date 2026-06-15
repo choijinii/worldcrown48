@@ -19,6 +19,7 @@
  */
 import { useCallback } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import type { User } from "firebase/auth";
 import { getDb } from "./firebase";
 import { useAuthStore } from "./authStore";
 import { getTodayKST } from "./kst";
@@ -28,7 +29,28 @@ export type VoteGateResult =
   | { status: "login_required"; reason: "vote" | "share" }
   | { status: "daily_limit_reached" };
 
-const DAILY_LIMIT = 5;
+export const DAILY_LIMIT = 5;
+
+/**
+ * Pure gate decision — exported separately so the three-branch logic can
+ * be unit-tested without React or Firestore. The hook below is a thin
+ * wrapper that supplies `user`, `sessionVoteUsed`, and the Firestore
+ * count.
+ */
+export function decideVoteGate(args: {
+  user: User | null;
+  sessionVoteUsed: boolean;
+  todayCount: number;
+  dailyLimit?: number;
+}): VoteGateResult {
+  const { user, sessionVoteUsed, todayCount, dailyLimit = DAILY_LIMIT } = args;
+  if (!user) {
+    if (!sessionVoteUsed) return { status: "allowed" };
+    return { status: "login_required", reason: "vote" };
+  }
+  if (todayCount >= dailyLimit) return { status: "daily_limit_reached" };
+  return { status: "allowed" };
+}
 
 export async function getTodayVoteCount(
   userId: string,
@@ -52,17 +74,13 @@ export function useVoteGate() {
 
   const checkCanVote = useCallback(
     async (tournamentId: string): Promise<VoteGateResult> => {
-      // Unauthenticated visitor — first vote is allowed (the "taster"),
-      // second hits the login modal.
+      // Skip the Firestore round-trip for unauthenticated visitors —
+      // their decision doesn't depend on `todayCount`.
       if (!user) {
-        if (!sessionVoteUsed) return { status: "allowed" };
-        return { status: "login_required", reason: "vote" };
+        return decideVoteGate({ user: null, sessionVoteUsed, todayCount: 0 });
       }
-
-      const count = await getTodayVoteCount(user.uid, tournamentId);
-      if (count >= DAILY_LIMIT) return { status: "daily_limit_reached" };
-
-      return { status: "allowed" };
+      const todayCount = await getTodayVoteCount(user.uid, tournamentId);
+      return decideVoteGate({ user, sessionVoteUsed, todayCount });
     },
     [user, sessionVoteUsed],
   );
