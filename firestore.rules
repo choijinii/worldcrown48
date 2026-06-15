@@ -7,6 +7,9 @@ rules_version = '2';
 //   /tournaments/{id}      — public read of `featured == true` docs only
 //   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
+//   /votes/{voteId}        — owner-only read; write blocked (callable only)
+//   /auditLog/{logId}      — read/write blocked (admin SDK only)
+//   /userPrefs/{uid}       — owner-only read/write, schema-validated
 //
 // All other paths are denied by default.
 // ════════════════════════════════════════════════════════════════════
@@ -107,6 +110,52 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
              'uid', 'essential', 'functional', 'analytics', 'marketing',
              'timestamp', 'expiresAt', 'ipHash', 'lang', 'version'
+           ]);
+    }
+
+    // ── votes ──────────────────────────────────────────────────────
+    // Read: only the vote's owner can list/get their own vote rows. This
+    // is what useVoteGate.getTodayVoteCount() runs as the signed-in user.
+    // Write: blocked — vote rows are only written by Cloud Functions
+    // (onVote, linkSessionVote) running with admin credentials.
+    match /votes/{voteId} {
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ── auditLog ───────────────────────────────────────────────────
+    // GDPR Art. 30 record. Both read and write are blocked at the rules
+    // layer; the only writer is onUserDelete (admin SDK), and reads
+    // happen via console / future Admin Dashboard with its own auth.
+    // Critically: client must NEVER see uidHash → uid mappings.
+    match /auditLog/{logId} {
+      allow read, write: if false;
+    }
+
+    // ── userPrefs ──────────────────────────────────────────────────
+    // Owner-only. Schema validation keeps the doc small + types tight:
+    //   uid       — must equal the doc id and the caller's uid
+    //   lang      — 'ko' | 'en'
+    //   theme     — optional: 'auto' | 'dark' | 'light'
+    //   updatedAt — server time at write
+    match /userPrefs/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+
+      allow write: if
+        request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en')
+        && (
+          !('theme' in request.resource.data.keys())
+          || request.resource.data.theme == 'auto'
+          || request.resource.data.theme == 'dark'
+          || request.resource.data.theme == 'light'
+        )
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.keys().hasOnly([
+             'uid', 'lang', 'theme', 'updatedAt'
            ]);
     }
 
