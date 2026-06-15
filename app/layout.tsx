@@ -5,6 +5,9 @@ import { CookieBanner } from "@/components/policy/CookieBanner";
 import { ConsentModal } from "@/components/policy/ConsentModal";
 import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
 import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { Navbar } from "@/components/auth/Navbar";
+import { Toaster } from "@/components/Toaster";
 
 export const metadata: Metadata = {
   title: "WorldCrown48 — Who Rules the World?",
@@ -63,13 +66,17 @@ export default function RootLayout({
       <body>
         <I18nProvider>
           <CookieConsentProvider>
-            {children}
-            <FooterPolicyRow />
-            {/* Banner + modal are themed locally — they overlay any page. */}
-            <div data-theme="light">
-              <CookieBanner />
-              <ConsentModal />
-            </div>
+            <AuthProvider>
+              <Navbar />
+              {children}
+              <FooterPolicyRow />
+              {/* Banner + modal are themed locally — they overlay any page. */}
+              <div data-theme="light">
+                <CookieBanner />
+                <ConsentModal />
+              </div>
+              <Toaster />
+            </AuthProvider>
           </CookieConsentProvider>
         </I18nProvider>
       </body>

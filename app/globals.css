@@ -423,7 +423,8 @@ input { font: inherit; }
    only inside the scoped wrapper.
    ════════════════════════════════════════════════════════════════════ */
 [data-theme="light"],
-.domain-policy {
+.domain-policy,
+.domain-locker {
   /* Backgrounds */
   --color-bg-light: #F2F2F5;
   --color-surface-light: #FFFFFF;
@@ -1362,3 +1363,46 @@ input { font: inherit; }
     animation: none !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   D-1 The Locker Room — Navbar + Dropdown responsive
+   No new hex tokens — only layout overrides for ≤ 768px (mobile) and
+   ≤ 480px (modal bottom-sheet).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Mobile (≤ 768px): hide Navbar action slot — profile entry lives in
+   the bottom tab bar instead (handoff §6). */
+@media (max-width: 768px) {
+  .gnb-actions { display: none !important; }
+}
+
+/* Compact avatar on tablet/mobile (handoff §4-1 desktop 56 / mobile 40). */
+@media (max-width: 768px) {
+  .user-avatar button > span:first-child {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .user-avatar button > span:first-child > img,
+  .user-avatar button > span:first-child > span {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+/* User dropdown — bottom sheet on mobile (≤ 480px) per handoff §6. */
+@media (max-width: 480px) {
+  .user-dropdown {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    box-shadow: 0 -16px 40px rgba(14, 9, 68, 0.18) !important;
+    padding: 12px 12px max(16px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
