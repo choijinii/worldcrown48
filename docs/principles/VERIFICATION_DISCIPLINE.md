@@ -56,7 +56,10 @@
 | [vercel-deploy.md](../checklists/vercel-deploy.md) | Vercel 배포 전반 | 도메인 응답 200 + 핵심 페이지 렌더 + 브라우저 콘솔 에러 0 | ⬜ 작성 예정 |
 | [firebase-functions-deploy.md](../checklists/firebase-functions-deploy.md) | Cloud Functions 배포 | 빌드 성공 + 호출 응답 + IAM(빌드 서비스 계정) 권한 확인 | ⬜ 작성 예정 |
 | [firebase-rules-deploy.md](../checklists/firebase-rules-deploy.md) | Firestore 룰 배포 | 룰 컴파일 + 예상 deny/allow 케이스 통과 | ⬜ 작성 예정 |
+| [firebase-auth-domains.md](../checklists/firebase-auth-domains.md) | **Firebase Auth Authorized domains 등록 (v2.1 신설)** | **Firebase Console → Auth → Settings → Authorized domains 에 localhost + worldcrown48.firebaseapp.com + worldcrown48.com + 이번 PR의 Vercel Preview URL 모두 등록 + Console 에러 "current domain is not authorized" 0건** | ⬜ 작성 예정 |
 | [dns-records.md](../checklists/dns-records.md) | DNS(Cloudflare) 변경 | DNS 전파 확인 + 인증서 발급 + Vercel "Valid Configuration ✅" | ⬜ 작성 예정 |
+
+**`firebase-auth-domains` 트리거 (2026-06-15 신설)**: Firebase Auth(`signInWithPopup`·`signInWithRedirect`·`sendSignInLinkToEmail`·`linkWithPopup`·`linkWithRedirect`) 호출하는 모든 PR. **B안 정책 — PR마다 Preview 도메인 등록 의무**. Firebase는 wildcard(`*.vercel.app`) 미지원. 누락 시 OAuth 팝업이 즉시 닫혀 사용자 좌절.
 
 ---
 
@@ -69,6 +72,7 @@
 | 2026-06-13 | Vercel ENV 6개 변수 — 증거 없이 "이미 설정 완료"라고 단정. 메모리에 무엇을 / 어느 Scope에 / 어떤 빌드까지 적용했는지 미기록 | P1, P3 | 사용자가 변수를 다시 넣어야 함. 시간 손실. 신뢰 손상 | UI 값 노출 ≠ 완료. 런타임 검증 필수. **본 문서 신설 계기** |
 | 2026-06-13 (확정) | 위 사건 캡처 4장으로 단정: Production·Preview·Development 3개 환경 **모두 Firebase 키 0개**. `.env.local`도 THENEWSAPI_TOKEN만 존재. 메모리 `project-a0-launch-pad-deployed.md`의 "Vercel env vars 설정"·"`.env.local`에 6개" 양쪽 모두 사실 아님 | P1, P3 | A-0 Launch Pad는 부분 배포 상태였음 (Firestore 룰만 OK, Firebase Client SDK 비작동) | "PR 머지 + Vercel 배포 성공" ≠ "기능 작동". 매 모듈마다 런타임 라이브 검증 의무. 메모리에 검증 캡처 첨부 의무 |
 | 2026-06-11 ~ 2026-06-14 (3일 누적) | **메타 위반 — 문서 미준수.** ① 이전 세션 미검증 "완료" 기록(P3) → ② 사용자가 발견·검증 요청 → ③ VERIFICATION_DISCIPLINE.md **신설** → ④ **문서 신설 직후 P1 재위반**: 대표님의 ".env.local에 6개 있다" 증언을 bash cat 1회 결과로 "lib/firebase.ts 코드를 보신 것이 가장 유력"이라고 단정. 사용자 증언을 사실상 "fake" 취급 → ⑤ 실제로는 VS Code 미저장 버퍼. **Cmd+S 1회로 해소** | P1·P3 + **메타 위반(자가 작성 문서 미준수)** | **사용자 2일 손실.** 신뢰 심각한 손상. 단순 작업("저장 → 붙여넣기")이 3일짜리 분쟁으로 확대 | 1) 원칙 작성 ≠ 원칙 준수. **강제 장치 필요** → P5(사용자 증언 우선) 신설 + P1 금지 표현 6개 명시 + §7(자가 점검) + §8(분노 트리거) 신설. 2) 사용자 증언 신뢰 우선이 자기 도구 결과보다 우선함. 도구 1회 결과는 환경 차이(저장·캐시·경로) 가능성 항상 가짐 |
+| 2026-06-15 | **PR #20 (D-1) Firebase Authorized domains 누락 사고.** ① D-1 핸드오프 v2.0 §10 Done-Definition에 "Vercel Preview 라이브 URL에서 로그인 흐름 1회 통과"는 있었지만 **Firebase Console 설정 단계 누락** → ② Claude Code가 Preview 배포 후 자가 검증을 안 했거나 못 했음 → ③ 대표님이 Preview에서 SIGN IN 클릭 → OAuth 팝업이 즉시 닫힘 → ④ Console 에러 메시지(`current domain is not authorized for OAuth operations`)로 원인 확인 → ⑤ Firebase Console에서 Preview 도메인 추가로 5분 만에 해소. **Cowork(나)가 이전 핸드오프에서도 §11 Superpowers를 "권장"으로만 적어 자동 그물망에서 빠뜨림** | P4(체크리스트) + **메타 위반(메모 `feedback-superpowers-in-handoff.md` 미준수)** | 대표 시간 손실. "왜 Superpowers 적용 안 했는지 다시 질책" | 1) `firebase-auth-domains` 체크리스트 신설(본 §3). 2) D-1 핸드오프 v2.1로 개정 — §11 Superpowers 자동 테스트 별도 섹션 강제 + Playwright E2E 4개 시나리오 필수 + Done-Definition에 Firebase Authorized domains 등록 의무 추가. 3) 메모 `feedback-superpowers-in-handoff.md` v2 강화(셀프체크리스트 4문항) + `feedback-firebase-auth-domains-checklist.md` 신설 + 핸드오프 템플릿 동일 갱신. **B안 정책 확정: PR마다 Preview 도메인 등록** |
 
 ---
 

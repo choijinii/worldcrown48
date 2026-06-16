@@ -1,9 +1,12 @@
 # Handoff Brief — D-1 The Locker Room (Domain 4)
 
 > **From**: Cowork (기획·정책·UX 결정) · **To**: Claude Code (실코드)
-> **Date**: 2026-06-14 · **Author**: 대표 · **Version**: v2.0
+> **Date**: 2026-06-14 (v2.0) · 2026-06-15 (v2.1 개정) · **Author**: 대표 · **Version**: v2.1
 > **작업 브랜치**: `feat/d1-locker-room` (main 최신에서 분기 — Claude Code가 생성·push)
-> **목표 산출물**: `components/auth/` + `lib/authStore.ts` + `lib/voteGate.ts` + `functions/src/onUserDelete.ts` + `functions/src/linkSessionVote.ts` + `app/account/page.tsx`(최소) + `firestore.rules`(EDIT) + `app/layout.tsx`(Navbar wrap)
+> **목표 산출물**: `components/auth/` + `lib/authStore.ts` + `lib/voteGate.ts` + `functions/src/onUserDelete.ts` + `functions/src/linkSessionVote.ts` + `app/account/page.tsx`(최소) + `firestore.rules`(EDIT) + `app/layout.tsx`(Navbar wrap) + **`e2e/d1-auth.spec.ts`(NEW · §11 필수)** + **`.github/workflows/d1-e2e.yml`(NEW · §11 필수)**
+>
+> **v2.1 개정 사유 (2026-06-15)**: PR #20 Preview 머지 후 SIGN IN 클릭 시 OAuth 팝업이 즉시 닫히는 버그를 대표 손 클릭으로 발견. 원인은 Firebase Authorized domains 누락. 자동 검증 그물망에서 빠져있었음.
+> **v2.1 변경 요약**: ① §11 Superpowers 자동 테스트 — 필수 섹션 신설(별도) ② §10 Done-Definition에 Firebase Authorized domains 등록 + E2E 통과 증거 의무 추가 ③ §9 함정 #15 신설(Firebase Authorized domains 누락) ④ §7의 "권장" → §11의 "필수"로 격상
 
 ---
 
@@ -447,11 +450,9 @@ grep -n "익명 투표 없음" docs/planning/WorldCrown48_v4_9.md
 - 모바일 Dropdown은 bottom sheet
 - 모달은 모바일 ≤480px에서 full-bleed bottom sheet
 
-### 자동 테스트 권장 (Superpowers TDD)
+### 자동 테스트 — **§11로 이동·격상 (v2.1)**
 
-- `lib/kst.ts` — 타임존 경계(23:59 → 00:00) 단위 테스트 5개
-- `lib/audit.ts` — hashUid 결정성·길이(64자) 테스트
-- `lib/voteGate.ts` — checkCanVote 3 단계 가지 테스트
+⚠️ v2.0에서 "권장"으로 적었던 자동 테스트 항목은 **§11 Superpowers 자동 테스트 — 필수**로 이동·격상되었습니다. 유닛 테스트만이 아니라 **통합·E2E 3계층 모두 필수**입니다. §11을 반드시 읽으세요.
 
 ---
 
@@ -477,7 +478,7 @@ grep -n "익명 투표 없음" docs/planning/WorldCrown48_v4_9.md
 
 ---
 
-## §9. 알려진 함정 (Cowork이 미리 파악한 위험 — 13개)
+## §9. 알려진 함정 (Cowork이 미리 파악한 위험 — 15개)
 
 1. **iOS Safari 팝업 차단** — `signInWithPopup` 실패율이 높다. `signInWithRedirect` 폴백 필수. 리다이렉트 복귀 시 `getRedirectResult` 처리도 함께. (모르면 Firebase Auth 공식 문서 확인 — P2)
 
@@ -510,6 +511,12 @@ grep -n "익명 투표 없음" docs/planning/WorldCrown48_v4_9.md
 
 14. **상위 기획서 ↔ lite-spec 충돌 (v2.0 신설)** — 본 핸드오프 v1.0 작성 직후 발견: `WorldCrown48_v4_9.md` line 154가 "익명 투표 없음"으로 정반대를 표기했었음. **2026-06-14 A안(맛보기) 채택으로 v4_9를 갱신해 단일 진실 회복**. Claude Code는 §0 자가검증에서 `grep "비로그인 1회" docs/planning/WorldCrown48_v4_9.md` 가 1건 이상 나오는지 확인할 것 — 0건이면 동기화 누락이므로 즉시 중단.
 
+15. **Firebase Authorized domains 누락 (v2.1 신설 · 실제 사고 기반)** — **2026-06-15 PR #20 사고**: Vercel Preview URL이 Firebase Console의 Authorized domains에 등록 안 되어 OAuth 팝업이 즉시 닫혔다. 사용자는 영문도 모르고 좌절. **원인 메시지**: `The current domain is not authorized for OAuth operations. Add your domain to the OAuth redirect domains list in the Firebase console → Authentication → Settings → Authorized domains tab.`
+   - **Vercel은 PR마다 새 Preview 도메인 생성**: `worldcrown48-git-<branch-name>-choijiniis-projects.vercel.app`
+   - **Firebase는 wildcard 미지원** (`*.vercel.app` 등록 불가) → 정확한 도메인 매번 등록 필수
+   - **정책 (2026-06-15 대표 확정, B안)**: PR마다 Preview 도메인을 Authorized domains에 등록. 번거롭더라도 머지 전 OAuth 검증 가능하게 함. A안(Production만 등록) 폐기.
+   - **체크리스트**: `VERIFICATION_DISCIPLINE.md` §3 `firebase-auth-domains` 의무 실행. §10 Done-Definition에 명시.
+
 ---
 
 ## §10. Done-Definition (대표 검수 체크리스트)
@@ -529,12 +536,141 @@ Claude Code가 PR을 제출하면 대표가 다음을 한 줄씩 ✅:
 ☐ Cloud Functions 배포 성공(onUserDelete + linkSessionVote) + 호출 로그 200
 ☐ firestore.rules deploy 성공 + emulator 또는 콘솔에서 deny 케이스 확인
 ☐ firestore.indexes.json deploy 성공 (votes.userId 인덱스)
-☐ Vercel Preview 배포 — 라이브 URL에서 로그인·삭제 흐름 endto-end 1회 통과 (P3 의무)
+☐ Vercel Preview 배포 — 라이브 URL에서 로그인·삭제 흐름 end-to-end 1회 통과 (P3 의무)
 ☐ public/ 에셋 (Google G svg) 포함
-☐ VERIFICATION_DISCIPLINE.md §3 체크리스트 — firebase-functions-deploy / firebase-rules-deploy / vercel-env-vars(추가 변수 없음 확인) 한 줄씩 ✅
+☐ VERIFICATION_DISCIPLINE.md §3 체크리스트 — firebase-functions-deploy / firebase-rules-deploy / vercel-env-vars / **firebase-auth-domains (v2.1 신설)** 한 줄씩 ✅
+
+★★ v2.1 추가 필수 항목 (이거 빠지면 머지 금지) ★★
+☐ **Firebase Console → Authentication → Settings → Authorized domains** 에 다음 모두 등록 확인:
+   - `localhost` (개발)
+   - `worldcrown48.firebaseapp.com` (기본)
+   - `worldcrown48.com` (운영)
+   - **이번 PR의 Preview URL** (B안 정책 — 매 PR 등록 의무) — 예: `worldcrown48-git-feat-d1-locker-room-choijiniis-projects.vercel.app`
+☐ **§11 Playwright E2E 4개 시나리오** GitHub Actions에서 모두 PASS (`.github/workflows/d1-e2e.yml` 실행 로그)
+☐ **E2E HTML 리포트 또는 실행 영상(.webm)** PR 본문에 첨부 (GitHub Actions artifact 링크 가능)
+☐ **Console 에러 0건 자동 검증** — E2E 내장 (`expect(consoleErrors).toHaveLength(0)`)
+☐ **Preview URL에서 직접 SIGN IN 클릭 → Google 팝업 정상 유지** 1회 확인 (자동 + 수동 둘 다)
 ```
 
 그 후 → main 머지 → Vercel 프로덕션 자동 배포.
+
+---
+
+## §11. Superpowers 자동 테스트 — 필수 (Required)
+
+> **본 섹션의 모든 항목은 DoD 통과 조건이다.** 누락 시 PR 머지 금지.
+> 메모 `feedback-superpowers-in-handoff.md` v2 강제 사항. "권장", "선택", "옵션", "가능하면" 단어 금지.
+> v2.1 신설 사유 — 2026-06-15 PR #20 OAuth 사고로 "자동 검증 그물망" 부재 확인.
+
+### §11.1. 3계층 테스트 의무
+
+| 계층 | 도구 | D-1 대상 | 통과 기준 |
+|------|------|---------|----------|
+| **유닛 (Unit)** | vitest | `lib/kst.ts`(타임존 5개) · `lib/audit.ts`(hashUid 결정성·64자) · `lib/voteGate.ts`(3 가지) | `npm run test:unit` 100% PASS |
+| **통합 (Integration)** | Firebase Emulator + vitest | `onUserDelete` · `linkSessionVote` · `onRateLimitCheck` callable + `firestore.rules` deny 케이스 | `npm run test:integration` 100% PASS |
+| **E2E (Playwright)** | `@playwright/test` | 로그인 · 로그아웃 · /account · GDPR 삭제 4개 시나리오 (헤드리스 크롬) | `npm run test:e2e` 100% PASS + Console 에러 0건 |
+
+### §11.2. E2E 필수 시나리오 — 4개
+
+신규 파일: `e2e/d1-auth.spec.ts`
+
+```ts
+import { test, expect } from '@playwright/test';
+
+const PREVIEW_URL = process.env.PREVIEW_URL ?? 'http://localhost:3000';
+
+test.describe('D-1 Locker Room — Auth & GDPR', () => {
+  let consoleErrors: string[] = [];
+
+  test.beforeEach(async ({ page }) => {
+    consoleErrors = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text());
+    });
+  });
+
+  test.afterEach(async () => {
+    expect(consoleErrors, 'Console errors must be 0').toHaveLength(0);
+  });
+
+  test('1. Google 로그인 → 아바타 전환 (3초 내)', async ({ page }) => {
+    await page.goto(PREVIEW_URL);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    // Firebase Emulator 또는 테스트 Google 계정 OAuth 처리
+    await expect(page.getByTestId('user-avatar')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('2. 아바타 드롭다운 → 로그아웃 → SIGN IN 복귀', async ({ page }) => {
+    // 사전 로그인 상태 → 아바타 클릭 → 로그아웃 → SIGN IN 노출
+  });
+
+  test('3. /account 비로그인 접근 → / 리다이렉트', async ({ page }) => {
+    await page.goto(`${PREVIEW_URL}/account`);
+    await expect(page).toHaveURL(PREVIEW_URL + '/');
+  });
+
+  test('4. DELETE 입력 → 데이터 삭제 → 자동 로그아웃 → audit_log 1건', async ({ page }) => {
+    // 사전 로그인 → 드롭다운 → "내 데이터 삭제 요청" → "DELETE" 입력 → 확인
+    // Firestore Admin SDK로 audit_log uidHash 64자 검증
+  });
+});
+```
+
+### §11.3. CI 통합 — GitHub Actions
+
+신규 파일: `.github/workflows/d1-e2e.yml`
+
+```yaml
+name: D-1 E2E (Playwright)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/auth/**'
+      - 'lib/authStore.ts'
+      - 'lib/voteGate.ts'
+      - 'functions/src/**'
+      - 'app/account/**'
+      - 'e2e/d1-auth.spec.ts'
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:unit
+      - run: npm run test:integration
+      - run: npm run test:e2e
+        env:
+          PREVIEW_URL: ${{ github.event.pull_request.head.repo.html_url }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+```
+
+### §11.4. PR 본문 — 실행 증거 첨부 의무
+
+PR 설명에 다음 3가지 첨부:
+
+1. **GitHub Actions 통과 배지 또는 링크** — 세 계층(unit·integration·e2e) 모두 ✅
+2. **Playwright HTML 리포트 artifact 링크** — 위 워크플로우의 upload-artifact 결과물
+3. **실패 시 자동 캡처 트레이스(.zip)** — `playwright-report/trace/` 폴더 첨부
+
+### §11.5. Firebase Emulator 사용 안내
+
+E2E와 통합 테스트는 실제 Firebase가 아닌 **로컬 Emulator**로 실행 (테스트 비용·격리·재현성):
+
+```bash
+firebase emulators:start --only auth,firestore,functions
+npm run test:e2e
+```
+
+`firebase.json`에 emulator 설정 추가. Google OAuth는 Emulator의 mock auth 사용.
 
 ---
 
