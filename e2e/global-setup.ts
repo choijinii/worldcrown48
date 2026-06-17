@@ -90,6 +90,19 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   const context = await browser.newContext();
   const page = await context.newPage();
 
+  // Block the identitytoolkit anonymous-signup endpoint for the duration of
+  // setup. The bundled app's CookieConsentProvider calls ensureAnonymousUid
+  // on mount, which fires signInAnonymously in parallel with our CDN-side
+  // signInWithCustomToken below. Whichever REST call returns LAST wins the
+  // localStorage write, so this race produced a non-deterministic
+  // storageState (sometimes anonymous, sometimes custom). Blocking
+  // accounts:signUp makes signInAnonymously fail fast; signInWithCustomToken
+  // uses a different endpoint (accounts:signInWithCustomToken) and proceeds.
+  await page.route(
+    /identitytoolkit\.googleapis\.com\/v1\/accounts:signUp/,
+    (route) => route.abort(),
+  );
+
   // Prime the Vercel Preview Protection bypass cookie before the dynamic
   // import below. Sending bypass via headers (extraHTTPHeaders) would attach
   // them to the cross-origin gstatic fetch too, triggering a CORS preflight
@@ -101,7 +114,7 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
     ? `${previewUrl}?x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}&x-vercel-set-bypass-cookie=true`
     : previewUrl;
   await page.goto(primedUrl);
-  await page.evaluate(
+  const signInResult = await page.evaluate(
     async ({ token, config, cdnVersion }) => {
       const { initializeApp, getApps, getApp } = await import(
         `https://www.gstatic.com/firebasejs/${cdnVersion}/firebase-app.js`
@@ -117,7 +130,16 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
       const app = getApps().length ? getApp() : initializeApp(config);
       const auth = getAuth(app);
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithCustomToken(auth, token);
+      const cred = await signInWithCustomToken(auth, token);
+      // Confirm the localStorage write landed under the expected key — the
+      // bundled app's SDK reads from this exact key on the next page load.
+      const expectedKey = `firebase:authUser:${config.apiKey}:[DEFAULT]`;
+      const persisted = window.localStorage.getItem(expectedKey);
+      return {
+        uid: cred.user.uid,
+        isAnonymous: cred.user.isAnonymous,
+        persistedKeyFound: persisted !== null,
+      };
     },
     {
       token: customToken,
@@ -125,8 +147,15 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
       cdnVersion: FIREBASE_CDN_VERSION,
     },
   );
+  console.log(
+    `[global-setup] signed in via custom token uid=${signInResult.uid} isAnonymous=${signInResult.isAnonymous} persisted=${signInResult.persistedKeyFound}`,
+  );
+  if (!signInResult.persistedKeyFound || signInResult.isAnonymous) {
+    throw new Error(
+      "[global-setup] custom-token sign-in did not persist a non-anonymous user — refusing to write a storageState that would silently produce signed-out specs.",
+    );
+  }
 
-  await page.waitForTimeout(1500);
   mkdirSync(dirname(STORAGE_STATE_PATH), { recursive: true });
   await context.storageState({ path: STORAGE_STATE_PATH });
   await browser.close();
