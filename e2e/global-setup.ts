@@ -79,8 +79,16 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   }
   const customToken = await admin.auth().createCustomToken(testUid);
 
+  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   const browser = await chromium.launch();
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    extraHTTPHeaders: bypassSecret
+      ? {
+          "x-vercel-protection-bypass": bypassSecret,
+          "x-vercel-set-bypass-cookie": "true",
+        }
+      : undefined,
+  });
   const page = await context.newPage();
   await page.goto(previewUrl);
   await page.evaluate(
