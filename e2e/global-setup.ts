@@ -25,6 +25,12 @@ import * as admin from "firebase-admin";
 
 const STORAGE_STATE_PATH = "tests/.auth/user.json";
 
+// Firebase Web SDK is loaded inside the page via gstatic CDN because
+// page.evaluate() runs in a plain browser context with no bundler — bare
+// specifiers like "firebase/app" can't be resolved there. Keep this in
+// sync with the "firebase" version in package.json.
+const FIREBASE_CDN_VERSION = "12.14.0";
+
 interface PublicFirebaseConfig {
   apiKey: string;
   authDomain: string;
@@ -92,20 +98,28 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   const page = await context.newPage();
   await page.goto(previewUrl);
   await page.evaluate(
-    async ({ token, config }) => {
-      const { initializeApp, getApps, getApp } = await import("firebase/app");
+    async ({ token, config, cdnVersion }) => {
+      const { initializeApp, getApps, getApp } = await import(
+        `https://www.gstatic.com/firebasejs/${cdnVersion}/firebase-app.js`
+      );
       const {
         browserLocalPersistence,
         getAuth,
         setPersistence,
         signInWithCustomToken,
-      } = await import("firebase/auth");
+      } = await import(
+        `https://www.gstatic.com/firebasejs/${cdnVersion}/firebase-auth.js`
+      );
       const app = getApps().length ? getApp() : initializeApp(config);
       const auth = getAuth(app);
       await setPersistence(auth, browserLocalPersistence);
       await signInWithCustomToken(auth, token);
     },
-    { token: customToken, config: publicConfig },
+    {
+      token: customToken,
+      config: publicConfig,
+      cdnVersion: FIREBASE_CDN_VERSION,
+    },
   );
 
   await page.waitForTimeout(1500);
