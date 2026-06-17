@@ -1404,5 +1404,17 @@ input { font: inherit; }
     box-shadow: 0 -16px 40px rgba(14, 9, 68, 0.18) !important;
     padding: 12px 12px max(16px, env(safe-area-inset-bottom)) !important;
   }
+
+  /* Toaster — top-center on mobile so it stays in the user's eye line
+     and never overlaps the bottom tab bar. (Handoff §4-2.) */
+  .toast-root {
+    top: 12px !important;
+    right: 12px !important;
+    left: 12px !important;
+    align-items: center;
+  }
+  .toast-root > [data-testid="toast"] {
+    width: 100% !important;
+  }
 }
 

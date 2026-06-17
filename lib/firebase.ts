@@ -21,8 +21,10 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
+  browserLocalPersistence,
   getAuth,
   onAuthStateChanged,
+  setPersistence,
   signInAnonymously,
   type Auth,
   type User,
@@ -66,11 +68,31 @@ export function getDb(): Firestore {
 }
 
 let auth: Auth | null = null;
+let persistenceReady: Promise<void> | null = null;
 
 export function getAuthInstance(): Auth {
   if (auth) return auth;
   auth = getAuth(getFirebaseApp());
+  // Handoff §9 trap 7 — persistence must be applied to the Auth instance
+  // BEFORE signInWithPopup so the resulting session survives a tab close.
+  // We fire-and-cache here so it's idempotent across the app and any caller
+  // that needs to gate on completion can await ensureAuthReady().
+  if (typeof window !== "undefined" && !persistenceReady) {
+    persistenceReady = setPersistence(auth, browserLocalPersistence).catch(
+      (err) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[Auth] setPersistence failed:", err);
+        }
+      },
+    );
+  }
   return auth;
+}
+
+export function ensureAuthReady(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  getAuthInstance();
+  return persistenceReady ?? Promise.resolve();
 }
 
 let functions: Functions | null = null;

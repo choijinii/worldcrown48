@@ -23,28 +23,44 @@ export interface Toast {
   variant: ToastVariant;
 }
 
+interface ToastOptions {
+  /**
+   * Auto-dismiss delay in ms. Pass 0 to require an explicit dismiss click
+   * (used for the GDPR receipt copy that warns "up to 30 days").
+   */
+  durationMs?: number;
+}
+
 interface ToastState {
   toasts: Toast[];
-  show: (message: string, variant: ToastVariant) => void;
+  show: (
+    message: string,
+    variant: ToastVariant,
+    options?: ToastOptions,
+  ) => void;
   dismiss: (id: number) => void;
 }
 
-const TOAST_DURATION_MS = 4_000;
+// Handoff §4-2 — default 5 s. GDPR copy passes 7 s explicitly.
+export const TOAST_DURATION_MS = 5_000;
 
 let nextId = 1;
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  show: (message, variant) => {
+  show: (message, variant, options) => {
     const id = nextId++;
     set((s) => ({ toasts: [...s.toasts, { id, message, variant }] }));
     if (typeof window !== "undefined") {
-      window.setTimeout(() => {
-        // Re-check via get() — the toast may have been dismissed by click.
-        if (get().toasts.some((t) => t.id === id)) {
-          set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
-        }
-      }, TOAST_DURATION_MS);
+      const delay = options?.durationMs ?? TOAST_DURATION_MS;
+      if (delay > 0) {
+        window.setTimeout(() => {
+          // Re-check via get() — the toast may have been dismissed by click.
+          if (get().toasts.some((t) => t.id === id)) {
+            set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+          }
+        }, delay);
+      }
     }
   },
   dismiss: (id) =>
@@ -54,6 +70,7 @@ export const useToastStore = create<ToastState>((set, get) => ({
 export function showToast(
   message: string,
   variant: ToastVariant = "info",
+  options?: ToastOptions,
 ): void {
-  useToastStore.getState().show(message, variant);
+  useToastStore.getState().show(message, variant, options);
 }

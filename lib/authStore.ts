@@ -23,14 +23,12 @@
 import { create } from "zustand";
 import {
   GoogleAuthProvider,
-  browserLocalPersistence,
-  setPersistence,
   signInWithPopup,
   signInWithRedirect,
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
-import { getAuthInstance } from "./firebase";
+import { ensureAuthReady, getAuthInstance } from "./firebase";
 
 /**
  * sessionStorage key for the pre-signin anonymous uid.
@@ -67,7 +65,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signInWithGoogle: async () => {
     const auth = getAuthInstance();
-    await setPersistence(auth, browserLocalPersistence);
+    // Handoff §9 trap 7 — persistence is set inside getAuthInstance() once
+    // and cached as a promise; await it here so the popup call is gated on
+    // the local-persistence assignment having landed.
+    await ensureAuthReady();
 
     // If the visitor cast their one guest vote, remember the anon uid so
     // AuthProvider can call linkSessionVote(anonUid → googleUid) the moment

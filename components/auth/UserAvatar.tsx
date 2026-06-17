@@ -40,6 +40,7 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
     <div className="user-avatar" style={{ position: "relative" }}>
       <button
         type="button"
+        data-testid="user-avatar"
         onClick={() => setDropdownOpen((o) => !o)}
         aria-expanded={dropdownOpen}
         aria-haspopup="menu"

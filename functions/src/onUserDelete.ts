@@ -88,7 +88,25 @@ export const onUserDelete = onCall(
     // Pass 3: Auth account. If this fails, the Firestore state is already
     // erased; the caller can retry and the head batch will no-op the
     // already-deleted docs (it WILL write a second audit entry — acceptable).
-    await adminAuth.deleteUser(uid);
+    //
+    // Handoff §9 trap 9 — never silent-fail this call. If the runtime SA
+    // lacks `roles/firebaseauth.admin` we surface a proper HttpsError so
+    // the client toast points the user at policy@. `auth/user-not-found`
+    // is fine: someone else already removed the record (idempotent retry).
+    try {
+      await adminAuth.deleteUser(uid);
+    } catch (err) {
+      const code = (err as { code?: string; errorInfo?: { code?: string } })
+        .errorInfo?.code ?? (err as { code?: string }).code;
+      if (code === "auth/user-not-found") {
+        return { ok: true, deletedVotes };
+      }
+      const message =
+        err instanceof Error ? err.message : "Unknown deleteUser failure";
+      throw new HttpsError("internal", `auth.deleteUser failed: ${message}`, {
+        code,
+      });
+    }
 
     return { ok: true, deletedVotes };
   },

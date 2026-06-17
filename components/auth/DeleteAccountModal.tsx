@@ -20,7 +20,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import FocusTrap from "focus-trap-react";
 import { httpsCallable } from "firebase/functions";
@@ -33,6 +34,10 @@ import { showToast } from "@/lib/toast";
 
 const CONFIRM_KEYWORD = "DELETE";
 const DELETE_TIMEOUT_MS = 30_000;
+// Handoff §4-3 P3 — hide the spinner for fast responses, only show it
+// once the callable has been in-flight long enough to feel slow.
+const SPINNER_DELAY_MS = 500;
+const GDPR_TOAST_DURATION_MS = 7_000;
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -48,14 +53,32 @@ export function DeleteAccountModal({
   const { lang } = useI18n();
   const [confirmInput, setConfirmInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const spinnerTimerRef = useRef<number | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (spinnerTimerRef.current !== null) {
+        window.clearTimeout(spinnerTimerRef.current);
+      }
+    };
+  }, []);
+
+  if (!isOpen || !mounted || typeof document === "undefined") return null;
 
   const canDelete = confirmInput === CONFIRM_KEYWORD && !busy;
 
   async function handleDelete() {
     if (!canDelete) return;
     setBusy(true);
+    spinnerTimerRef.current = window.setTimeout(() => {
+      setShowSpinner(true);
+    }, SPINNER_DELAY_MS);
     try {
       const callable = httpsCallable<unknown, { ok: boolean }>(
         getFunctionsInstance(),
@@ -71,6 +94,7 @@ export function DeleteAccountModal({
           ? "요청이 접수됐어요. 처리에 최대 30일 걸릴 수 있어요."
           : "Request received. Processing may take up to 30 days.",
         "success",
+        { durationMs: GDPR_TOAST_DURATION_MS },
       );
       onClose();
       router.replace("/");
@@ -85,12 +109,22 @@ export function DeleteAccountModal({
         "error",
       );
       setBusy(false);
+      setShowSpinner(false);
+    } finally {
+      if (spinnerTimerRef.current !== null) {
+        window.clearTimeout(spinnerTimerRef.current);
+        spinnerTimerRef.current = null;
+      }
     }
   }
 
   const t = strings(lang);
 
-  return (
+  // Handoff §3 — mount via portal at document.body so the modal sits in
+  // the same DOM position regardless of which page or component opened it
+  // (dropdown vs /account button). Otherwise a transformed ancestor can
+  // shift `position: fixed` (trap 16) and the two entry points disagree.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -245,14 +279,32 @@ export function DeleteAccountModal({
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: canDelete ? "pointer" : "not-allowed",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
-              {busy ? t.deleting : t.confirm}
+              {showSpinner ? (
+                <span
+                  aria-hidden="true"
+                  data-testid="delete-spinner"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.4)",
+                    borderTopColor: "#FFFFFF",
+                    animation: "wc-spin 0.7s linear infinite",
+                  }}
+                />
+              ) : null}
+              {showSpinner ? t.deleting : t.confirm}
             </button>
           </div>
         </div>
       </FocusTrap>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
