@@ -87,16 +87,20 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 
   const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   const browser = await chromium.launch();
-  const context = await browser.newContext({
-    extraHTTPHeaders: bypassSecret
-      ? {
-          "x-vercel-protection-bypass": bypassSecret,
-          "x-vercel-set-bypass-cookie": "true",
-        }
-      : undefined,
-  });
+  const context = await browser.newContext();
   const page = await context.newPage();
-  await page.goto(previewUrl);
+
+  // Prime the Vercel Preview Protection bypass cookie before the dynamic
+  // import below. Sending bypass via headers (extraHTTPHeaders) would attach
+  // them to the cross-origin gstatic fetch too, triggering a CORS preflight
+  // that gstatic doesn't satisfy (no Access-Control-Allow-Headers for
+  // x-vercel-protection-bypass). The query-param form makes Vercel issue an
+  // origin-scoped `_vercel_jwt` cookie and 307 to the clean URL — the cookie
+  // covers all same-origin requests after that and never leaks cross-origin.
+  const primedUrl = bypassSecret
+    ? `${previewUrl}?x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}&x-vercel-set-bypass-cookie=true`
+    : previewUrl;
+  await page.goto(primedUrl);
   await page.evaluate(
     async ({ token, config, cdnVersion }) => {
       const { initializeApp, getApps, getApp } = await import(

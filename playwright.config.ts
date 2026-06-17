@@ -9,13 +9,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PREVIEW_URL = process.env.PREVIEW_URL ?? "http://localhost:3000";
-const BYPASS_SECRET = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-const extraHTTPHeaders = BYPASS_SECRET
-  ? {
-      "x-vercel-protection-bypass": BYPASS_SECRET,
-      "x-vercel-set-bypass-cookie": "true",
-    }
-  : undefined;
+
+// Vercel Preview Protection bypass is handled by the `_vercel_jwt` cookie
+// primed in global-setup (via ?x-vercel-set-bypass-cookie=true). The cookie
+// is origin-scoped and saved into storageState, so it carries across specs
+// without leaking to cross-origin requests (e.g. gstatic CDN, identitytoolkit)
+// — which is what an `extraHTTPHeaders` approach would do, triggering CORS
+// preflights that the third-party origins don't satisfy.
 
 export default defineConfig({
   testDir: "e2e",
@@ -30,7 +30,6 @@ export default defineConfig({
     storageState: "tests/.auth/user.json",
     trace: "on-first-retry",
     video: "retain-on-failure",
-    extraHTTPHeaders,
   },
   projects: [
     {
