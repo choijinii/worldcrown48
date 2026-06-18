@@ -1,0 +1,96 @@
+name: D-1 E2E (Playwright)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/auth/**'
+      - 'components/Toaster.tsx'
+      - 'lib/authStore.ts'
+      - 'lib/firebase.ts'
+      - 'lib/toast.ts'
+      - 'lib/audit.ts'
+      - 'lib/voteGate.ts'
+      - 'functions/src/**'
+      - 'app/account/**'
+      - 'app/layout.tsx'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PREVIEW_URL: ${{ secrets.D1_PREVIEW_URL }}
+      TEST_UID: ${{ secrets.D1_TEST_UID }}
+      TEST_EMAIL: ${{ secrets.D1_TEST_EMAIL }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Unit tests (vitest)
+        run: npm run test:unit
+
+      - name: Integration tests (vitest)
+        run: npm run test:integration
+
+      - name: Wait for Vercel Preview
+        run: |
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "D1_PREVIEW_URL not set — skipping wait."
+            exit 0
+          fi
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          else
+            echo "VERCEL_AUTOMATION_BYPASS_SECRET not set — Preview Protection will likely return 401."
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"
+              exit 0
+            fi
+            echo "Preview not ready yet (attempt $i) — sleeping 10s."
+            sleep 10
+          done
+          echo "Preview never became reachable." >&2
+          exit 1
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 14

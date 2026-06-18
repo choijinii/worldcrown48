@@ -21,8 +21,9 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
+  browserLocalPersistence,
   getAuth,
-  onAuthStateChanged,
+  setPersistence,
   signInAnonymously,
   type Auth,
   type User,
@@ -66,11 +67,31 @@ export function getDb(): Firestore {
 }
 
 let auth: Auth | null = null;
+let persistenceReady: Promise<void> | null = null;
 
 export function getAuthInstance(): Auth {
   if (auth) return auth;
   auth = getAuth(getFirebaseApp());
+  // Handoff §9 trap 7 — persistence must be applied to the Auth instance
+  // BEFORE signInWithPopup so the resulting session survives a tab close.
+  // We fire-and-cache here so it's idempotent across the app and any caller
+  // that needs to gate on completion can await ensureAuthReady().
+  if (typeof window !== "undefined" && !persistenceReady) {
+    persistenceReady = setPersistence(auth, browserLocalPersistence).catch(
+      (err) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[Auth] setPersistence failed:", err);
+        }
+      },
+    );
+  }
   return auth;
+}
+
+export function ensureAuthReady(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  getAuthInstance();
+  return persistenceReady ?? Promise.resolve();
 }
 
 let functions: Functions | null = null;
@@ -100,39 +121,18 @@ export function getFunctionsInstance(): Functions {
  * Returns a Promise that resolves with the User once Auth is ready. On the
  * server (no window) this returns null — callers must guard.
  */
-export function ensureAnonymousUid(): Promise<User | null> {
-  if (typeof window === "undefined") return Promise.resolve(null);
+export async function ensureAnonymousUid(): Promise<User | null> {
+  if (typeof window === "undefined") return null;
   const a = getAuthInstance();
-  if (a.currentUser) return Promise.resolve(a.currentUser);
-
-  return new Promise<User | null>((resolve, reject) => {
-    // Race: onAuthStateChanged may fire before signInAnonymously resolves
-    // (cached session) or after (cold start). We listen first so we never
-    // miss the cached case, then attempt sign-in for cold starts.
-    let settled = false;
-    const unsub = onAuthStateChanged(
-      a,
-      (user) => {
-        if (settled) return;
-        if (user) {
-          settled = true;
-          unsub();
-          resolve(user);
-        }
-      },
-      (err) => {
-        if (settled) return;
-        settled = true;
-        unsub();
-        reject(err);
-      },
-    );
-
-    signInAnonymously(a).catch((err) => {
-      if (settled) return;
-      settled = true;
-      unsub();
-      reject(err);
-    });
-  });
+  await ensureAuthReady();
+  // authStateReady() (Firebase Web SDK v9.6+) resolves once the SDK has
+  // finished the initial determination of auth state from persistence.
+  // Without this gate, the signInAnonymously below races against the
+  // cached-session restore on cold loads — if anonymous wins, a real
+  // signed-in user is silently replaced by an anonymous one. (D-1.1 E2E
+  // surfaced this; same race can hit real users on a cold page load.)
+  await a.authStateReady();
+  if (a.currentUser) return a.currentUser;
+  const cred = await signInAnonymously(a);
+  return cred.user;
 }

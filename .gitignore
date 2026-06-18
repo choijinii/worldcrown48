@@ -33,3 +33,10 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 .firebase/
+
+# Playwright (D-1.1 E2E)
+/playwright-report
+/test-results
+/playwright/.cache
+# Storage state seeded by e2e/global-setup.ts — contains session cookies
+/tests/.auth/*.json

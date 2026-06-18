@@ -2,7 +2,11 @@
 
 > **`docs/mental-model/MENTAL_MODEL.svg`** 를 먼저 본다.
 > 어떤 코드·디자인·문서 작업도 이 한 장을 보지 않고는 시작하지 않는다.
-> 충돌 시 우선순위: **MENTAL_MODEL.svg > LANGUAGE.md > 기타**
+>
+> **인프라 작업(배포 · 환경변수 · DNS · Functions) 전**
+> **`docs/principles/VERIFICATION_DISCIPLINE.md`** 4대 원칙(P1~P4)을 함께 확인한다.
+>
+> 충돌 시 우선순위: **MENTAL_MODEL.svg ≥ VERIFICATION_DISCIPLINE.md > LANGUAGE.md > 기타**
 
 ---
 

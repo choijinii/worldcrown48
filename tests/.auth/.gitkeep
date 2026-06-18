@@ -1,0 +1,2 @@
+# Playwright storageState lands here at global-setup time.
+# Path referenced from playwright.config.ts and e2e/global-setup.ts.

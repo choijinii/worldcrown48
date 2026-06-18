@@ -2,9 +2,11 @@
  * WorldCrown48 — Firebase Cloud Functions entry point.
  *
  * Currently exported:
- *   hashIp — server-side SHA-256 of the calling client's IP. Used by the
- *            E-1 Policy Hub consent flow so the plaintext IP never reaches
- *            the browser (handoff §9 trap 8 — GDPR exposure).
+ *   hashIp           — server-side SHA-256 of the calling client's IP.
+ *                      Used by E-1 Policy Hub consent so the plaintext IP
+ *                      never reaches the browser (handoff §9 trap 8).
+ *   onUserDelete     — GDPR Art. 17 erasure (D-1 §3-4).
+ *   linkSessionVote  — re-parent the guest vote after Google sign-in (D-1 §3-4).
  *
  * Future functions land here (Functions v2 callable pattern).
  *
@@ -149,3 +151,7 @@ export const hashIp = onCall(
     return { ipHash: hash };
   },
 );
+
+// D-1 Locker Room callables.
+export { onUserDelete } from "./onUserDelete";
+export { linkSessionVote } from "./linkSessionVote";
