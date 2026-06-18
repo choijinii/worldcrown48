@@ -23,6 +23,7 @@
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { adminAuth, adminDb } from "./admin";
+import { ALLOWED_ORIGINS } from "./cors";
 
 const BATCH_LIMIT = 500;
 const TIMEOUT_SECONDS = 30;
@@ -39,11 +40,7 @@ interface LinkSessionVoteResponse {
 export const linkSessionVote = onCall<LinkSessionVoteRequest>(
   {
     timeoutSeconds: TIMEOUT_SECONDS,
-    cors: [
-      /^https:\/\/worldcrown48\.com$/,
-      /^https:\/\/.*\.vercel\.app$/,
-      /^http:\/\/localhost:\d+$/,
-    ],
+    cors: ALLOWED_ORIGINS,
   },
   async (req): Promise<LinkSessionVoteResponse> => {
     const googleUid = req.auth?.uid;
