@@ -27,6 +27,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { FieldValue } from "firebase-admin/firestore";
 import * as crypto from "node:crypto";
 import { adminAuth, adminDb } from "./admin";
+import { ALLOWED_ORIGINS } from "./cors";
 
 const BATCH_LIMIT = 500;
 const DELETE_TIMEOUT_SECONDS = 60;
@@ -38,11 +39,7 @@ function sha256Hex(input: string): string {
 export const onUserDelete = onCall(
   {
     timeoutSeconds: DELETE_TIMEOUT_SECONDS,
-    cors: [
-      /^https:\/\/worldcrown48\.com$/,
-      /^https:\/\/.*\.vercel\.app$/,
-      /^http:\/\/localhost:\d+$/,
-    ],
+    cors: ALLOWED_ORIGINS,
   },
   async (req): Promise<{ ok: true; deletedVotes: number }> => {
     const uid = req.auth?.uid;

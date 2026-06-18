@@ -25,6 +25,7 @@ import { setGlobalOptions } from "firebase-functions/v2";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as crypto from "node:crypto";
+import { ALLOWED_ORIGINS } from "./cors";
 
 setGlobalOptions({
   maxInstances: 10,
@@ -107,14 +108,7 @@ function pruneIpBuckets(now: number): void {
 export const hashIp = onCall(
   {
     secrets: [IP_HASH_SALT],
-    // CORS — the function is called from the Next.js client on
-    // worldcrown48.com and Vercel preview domains. Functions v2 reads
-    // these from this option.
-    cors: [
-      /^https:\/\/worldcrown48\.com$/,
-      /^https:\/\/.*\.vercel\.app$/,
-      /^http:\/\/localhost:\d+$/,
-    ],
+    cors: ALLOWED_ORIGINS,
   },
   async (req): Promise<{ ipHash: string }> => {
     const ip = req.rawRequest?.ip ?? "";
