@@ -130,7 +130,12 @@ test.describe("D-1.1 Fix — 4 critical flows", () => {
       .getByRole("button", { name: /내 데이터 삭제 요청|delete my data/i })
       .click();
     await page.getByPlaceholder("DELETE").fill("DELETE");
+    // The trigger button on /account and the confirm button inside the
+    // dialog share the same accessible name ("Delete my data" in English).
+    // Scope the confirm click to the dialog so strict mode doesn't reject
+    // an ambiguous match.
     await page
+      .getByRole("dialog")
       .getByRole("button", { name: /데이터 삭제 요청|delete my data/i })
       .click();
 
