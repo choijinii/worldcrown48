@@ -1,20 +1,24 @@
 /**
- * Parse Claude's AI-Fill response into exactly 48 Contestant suggestions
- * (Domain 2 · The Lab, Step 1).
+ * Parse Claude's AI-Fill response into exactly 48 Contestant suggestions.
  *
- * Handoff §9 trap #8: the model's reply is NOT guaranteed to be a bare JSON
- * array — it may be wrapped in prose. We extract the first array, parse it,
- * and enforce exactly 48 well-shaped entries. Every failure is a typed
- * ContestantParseError so the Cloud Function can map it to an HttpsError and
- * the UI can offer "retry".
+ * Server-only logic — lives inside the functions deploy package (functions
+ * can't import the root `lib/`; cross-package constants are duplicated by
+ * project precedent, e.g. cors.ts). Mirrors the client-side domain contract.
  *
- * Lives in lib/ (not functions/) so it's unit-testable in the node-env vitest
- * harness and the function stays a thin adapter around it.
+ * Handoff §9 trap #8: the model reply is not guaranteed to be a bare JSON
+ * array. Extract the first array, parse, enforce exactly 48 well-shaped
+ * entries. Failures are typed (ContestantParseError) so the onCall wrapper
+ * maps them to HttpsError and the UI can offer "retry".
  */
-import {
-  TOTAL_CONTESTANTS,
-  type AiContestantSuggestion,
-} from "@/lib/types/tournament";
+
+export const TOTAL_CONTESTANTS = 48;
+
+export interface AiContestantSuggestion {
+  name: string;
+  nationality: string;
+  position: string;
+  imageSearchKeyword: string;
+}
 
 export type ContestantParseReason =
   | "unparseable"
