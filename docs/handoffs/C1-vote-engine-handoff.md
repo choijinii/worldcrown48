@@ -24,6 +24,8 @@
 - **Firestore 규칙 batch/트랜잭션-안전**: rules `get()`은 같은 batch/트랜잭션의 미커밋 문서를 못 본다. 필요한 권한 필드는 문서에 비정규화한다.
 - **`defineSecret`** (있을 경우) — `.env` 아님.
 
+> 📌 **ADR-0001 (2026-06-21) — 아래 RTDB 표기를 무효화**: roundTransitions/Champion 확정은 **Firestore-only**(onSnapshot)로 결정. `database.rules.json`·RTDB 접근자·`+1` 카운터 불필요. 매치 생성은 **votes-파생 브래킷 + order 페어 + 결정적 matchId**. 상세: `docs/adr/0001-c1-vote-engine-architecture.md` (RTDB 언급 구간은 ADR 우선).
+
 ---
 
 ## §0. 자가 검증 (Self-verify) — 코드 작성 전 반드시 모두 ✓
@@ -39,6 +41,7 @@ test -f docs/handoffs/C1-vote-engine-handoff.md && echo "✓ C1 handoff"
 test -f lib/types/tournament.ts && echo "✓ B-1 Tournament/Contestant 타입(공급원)"
 test -f lib/voteGate.ts && echo "✓ 기존 VoteGate(D-1) 재사용 대상"
 test -f docs/design/WC48_DESIGN_SYSTEM_v2.4.md && echo "✓ Design System v2.4"
+test -f "docs/design/wireframes/Domain 3 · The Arena.html" && echo "✓ D3 wireframe (UI 진실 공급원)"
 
 # 0.3 의존성 — 클라이언트 firebase에 Realtime DB 포함 확인
 grep -E '"firebase"' package.json | wc -l        # 기대값: 1
@@ -65,6 +68,12 @@ grep -E "^NEXT_PUBLIC_FIREBASE_DATABASE_URL=" .env.local 2>/dev/null && echo "�
 ☐ lib/types/tournament.ts (Tournament·Contestant·CATEGORIES — B-1 공급)
 ☐ firestore.rules (기존 /votes, /tournaments, /contestants 규칙 — C-1이 완화/확장)
 ☐ docs/design/WC48_DESIGN_SYSTEM_v2.4.md (Domain 3 = 다크 테마 토큰)
+☐ **docs/design/wireframes/Domain 3 · The Arena.html** — **UI/UX 진실 공급원** (캐노니컬 화면 구조)
+   · Match VS Battle 레이아웃 (좌/우 ContestantCard + 중앙 VS 골드)
+   · Round transition Announcement 위치·타이밍 (라운드 사이에만, 매치 화면 진입 시 자동 dismiss)
+   · THE FINAL 3-pick UI (3명 동시 표시 + 1명 직접 선택, 1v1 매치 2개로 쪼개지 않음)
+   · 매치 화면에 Round HUD·배지 절대 없음 / Vote Count(절대 수치) 절대 없음
+   → MatchView·RoundTransition·FinalPickView 컴포넌트 작성 후 **브라우저로 와이어프레임 직접 띄워 시각 대조 검증 의무**
 ```
 
 ---
