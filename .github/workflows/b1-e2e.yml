@@ -1,19 +1,17 @@
-name: D-1 E2E (Playwright)
+name: B-1 The Lab E2E (Playwright)
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'components/auth/**'
-      - 'components/Toaster.tsx'
-      - 'lib/authStore.ts'
-      - 'lib/firebase.ts'
-      - 'lib/toast.ts'
-      - 'lib/audit.ts'
-      - 'lib/voteGate.ts'
+      - 'app/admin/**'
+      - 'components/admin/**'
       - 'functions/src/**'
-      - 'app/account/**'
-      - 'app/layout.tsx'
+      - 'firestore.rules'
+      - 'lib/lab/**'
+      - 'lib/types/tournament.ts'
+      - 'middleware.ts'
+      - 'tests/rules/**'
       - 'e2e/**'
       - 'playwright.config.ts'
       - 'package.json'
@@ -21,11 +19,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
-      PREVIEW_URL: ${{ secrets.D1_PREVIEW_URL }}
-      TEST_UID: ${{ secrets.D1_TEST_UID }}
-      TEST_EMAIL: ${{ secrets.D1_TEST_EMAIL }}
+      PREVIEW_URL: ${{ secrets.B1_PREVIEW_URL }}
+      # The E2E operator account — its uid MUST equal the preview's
+      # NEXT_PUBLIC_ADMIN_UID or AdminAuthGuard redirects away.
+      TEST_UID: ${{ secrets.B1_TEST_ADMIN_UID }}
+      TEST_EMAIL: ${{ secrets.B1_TEST_ADMIN_EMAIL }}
       FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
       NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -41,52 +41,64 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      # Firestore emulator needs a JRE.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Install firebase-tools (emulator runner)
+        run: npm i -g firebase-tools
 
       - name: Unit tests (vitest)
         run: npm run test:unit
 
-      - name: Integration tests (vitest)
-        run: npm run test:integration
+      - name: Functions unit tests (vitest)
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
+      - name: Firestore Rules tests (emulator)
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Wait for Vercel Preview
         run: |
           if [ -z "$PREVIEW_URL" ]; then
-            echo "D1_PREVIEW_URL not set — skipping wait."
+            echo "B1_PREVIEW_URL not set — skipping E2E wait/run."
             exit 0
           fi
           HEADER_ARGS=()
           if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
             HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
-          else
-            echo "VERCEL_AUTOMATION_BYPASS_SECRET not set — Preview Protection will likely return 401."
           fi
           for i in {1..30}; do
             if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
               echo "Preview reachable at $PREVIEW_URL"
               exit 0
             fi
-            echo "Preview not ready yet (attempt $i) — sleeping 10s."
+            echo "Preview not ready (attempt $i) — sleeping 10s."
             sleep 10
           done
           echo "Preview never became reachable." >&2
           exit 1
 
       - name: E2E (Playwright)
-        # Scope to D-1's own spec — `playwright test` would otherwise run every
-        # spec in e2e/ (incl. B-1's) against this D-1 preview, which lacks
-        # /admin/lab and 404s.
-        run: npm run test:e2e -- e2e/d1-auth.spec.ts
+        if: ${{ env.PREVIEW_URL != '' }}
+        # Scope to B-1's own spec so this job never runs D-1's spec (and vice
+        # versa) — each workflow targets a different preview/secrets.
+        run: npm run test:e2e -- e2e/b1-admin-lab.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: b1-playwright-report
           path: playwright-report/
           retention-days: 14
 
@@ -94,6 +106,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces
+          name: b1-playwright-traces
           path: test-results/
           retention-days: 14

@@ -149,3 +149,6 @@ export const hashIp = onCall(
 // D-1 Locker Room callables.
 export { onUserDelete } from "./onUserDelete";
 export { linkSessionVote } from "./linkSessionVote";
+
+// B-1 The Lab — AI Fill (operator-only Tournament seeding).
+export { aiFillContestants } from "./aiFillContestants";

@@ -1,0 +1,1635 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 · Domain 6 — Admin Dashboard</title>
+<link rel="icon" href="assets/brand/wc48-crown-circle-filled.svg">
+
+<!-- Inter · Playfair Display · JetBrains Mono — Google Fonts CDN per design system's single @import (permitted) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+<style>
+/* ════ PRETENDARD — self-hosted (brand-mandatory · never CDN) ════ */
+@font-face { font-family:"Pretendard"; font-weight:300; src:url("fonts/Pretendard-Light.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:400; src:url("fonts/Pretendard-Regular.otf")    format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:500; src:url("fonts/Pretendard-Medium.otf")     format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:600; src:url("fonts/Pretendard-SemiBold.otf")   format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:700; src:url("fonts/Pretendard-Bold.otf")       format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:800; src:url("fonts/Pretendard-ExtraBold.otf")  format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:900; src:url("fonts/Pretendard-Black.otf")      format("opentype"); font-display:swap; }
+
+/* ════ DESIGN-SYSTEM TOKEN LAYER · LIGHT THEME (Domain 6) ════ */
+:root {
+  --color-bg-light:        #F2F2F5;
+  --color-surface-light:   #FFFFFF;
+  --color-surface-soft:    #F8F8FB;
+  --color-text-light:      #0E0944;
+  --color-text-sub-light:  #3A4570;
+  --color-text-muted-light:#8C99B3;
+  --color-border-light:    #D4DCE3;
+  --color-border-soft:     #E6EAF0;
+  --color-royal:           #241754;
+  --color-deep-twil:       #0E0944;
+  --color-gold:            #FCD006;
+  --color-gold-hover:      #E3BB05;
+  --color-gold-bright:     #FBB03B;
+  --color-gold-subtle:     rgba(252,208,6,0.12);
+  --color-gold-glow:       rgba(252,208,6,0.25);
+  --color-aura:            #EEDA7D;
+  --color-crimson:         #D7063A;
+  --color-crimson-subtle:  rgba(215,6,58,0.10);
+  --color-turquoise:       #00A3B7;
+  --color-turquoise-subtle:rgba(0,163,183,0.10);
+  --color-amber-subtle:    rgba(251,176,59,0.14);
+
+  --shadow-light:    0 1px 2px rgba(36,23,84,0.06), 0 8px 24px rgba(36,23,84,0.06);
+  --shadow-card:     0 1px 2px rgba(36,23,84,0.06);
+  --shadow-card-hover: 0 4px 16px rgba(36,23,84,0.10), 0 1px 2px rgba(36,23,84,0.08);
+  --shadow-gold:     0 0 28px rgba(252,208,6,0.30);
+  --shadow-crimson:  0 0 18px rgba(215,6,58,0.20);
+
+  --radius-rect: 0;
+  --radius-border: 5px;
+  --radius-chip: 999px;
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px;
+  --space-12:48px; --space-16:64px; --space-20:80px;
+
+  --font-sans:    'Inter','Pretendard',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo',sans-serif;
+  --font-display: 'Playfair Display','Pretendard',Georgia,serif;
+  --font-mono:    'JetBrains Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+
+*,*::before,*::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* ════ CONTROL BAR · page chrome (NOT product UI) ════ */
+.cbar {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--color-surface-light) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--space-3) var(--space-6);
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+}
+.cbar-brand { display: flex; align-items: center; gap: var(--space-2); }
+.cbar-brand img { height: 18px; width: auto; }
+.cbar-brand .wm  { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-royal); font-weight: 700; }
+.cbar-brand .dom { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--color-text-muted-light); }
+.cbar-spacer { flex: 1 1 auto; }
+.cgroup { display: flex; align-items: center; gap: var(--space-2); }
+.cgroup-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-sub-light); }
+.seg { display: inline-flex; gap: 2px; padding: 2px; background: var(--color-bg-light); border: 1px solid var(--color-border-light); border-radius: var(--radius-border); }
+.seg button {
+  padding: 6px var(--space-3); background: transparent; color: var(--color-text-sub-light);
+  border: 0; border-radius: 3px; font-size: 12px; font-weight: 500;
+  font-family: var(--font-sans); letter-spacing: 0.02em;
+  transition: background 160ms ease, color 160ms ease;
+}
+[data-reduced-motion="on"] .seg button { transition: none; }
+.seg button[aria-pressed="true"] { background: var(--color-royal); color: var(--color-gold); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.state-seg { display: none; }
+.state-seg.is-active { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+
+/* Tab strip */
+.tabstrip {
+  position: sticky; top: 49px; z-index: 58;
+  background: var(--color-surface-light);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--space-2) var(--space-6);
+  display: flex; gap: var(--space-1); flex-wrap: wrap;
+}
+.tab {
+  padding: var(--space-2) var(--space-4); background: transparent;
+  border: 1px solid transparent; border-radius: var(--radius-border);
+  color: var(--color-text-sub-light); font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+[data-reduced-motion="on"] .tab { transition: none; }
+.tab .mod { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--color-text-muted-light); }
+.tab:hover { color: var(--color-text-light); background: color-mix(in srgb, var(--color-royal) 4%, transparent); }
+.tab[aria-current="true"] {
+  background: var(--color-gold-subtle); color: var(--color-royal);
+  border-color: rgba(252,208,6,0.45);
+}
+.tab:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* Breakpoint device */
+.bp-frame { margin: var(--space-6) auto var(--space-10); display: flex; justify-content: center; }
+.bp-readout {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 0 var(--space-3) var(--space-3);
+  color: var(--color-text-muted-light);
+}
+.bp-readout b { color: var(--color-royal); font-weight: 700; }
+.device {
+  width: var(--fw, 1440px);
+  min-height: var(--fh, 900px);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 30px 60px -20px rgba(14,9,68,0.18);
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+/* ════════════════════════════════════════════════
+   APP SHELL · sidebar + main
+   ════════════════════════════════════════════════ */
+.surface { display: none; }
+.surface.is-active { display: block; }
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sb-w, 240px) 1fr;
+  min-height: var(--fh, 900px);
+}
+.app-shell[data-sidebar="collapsed"] { --sb-w: 64px; }
+
+/* ── Sidebar ── */
+.sidebar {
+  background: var(--color-surface-light);
+  border-right: 1px solid var(--color-border-light);
+  display: flex; flex-direction: column;
+  padding: var(--space-5) var(--space-3);
+  position: sticky; top: 0; height: 100%; min-height: var(--fh, 900px);
+  align-self: start;
+}
+.sb-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 0 var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-border-soft);
+  margin-bottom: var(--space-4);
+}
+.sb-head img { width: 22px; height: 22px; flex: none; }
+.sb-head .sbb { display: flex; flex-direction: column; min-width: 0; }
+.sb-head .sb-wm { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-royal); font-weight: 700; }
+.sb-head .sb-dom { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; color: var(--color-text-muted-light); text-transform: uppercase; margin-top: 2px; }
+.app-shell[data-sidebar="collapsed"] .sb-head .sbb { display: none; }
+
+.sb-toggle {
+  margin-left: auto; width: 28px; height: 28px; padding: 0;
+  background: transparent; border: 1px solid var(--color-border-soft); border-radius: var(--radius-border);
+  color: var(--color-text-muted-light); display: inline-flex; align-items: center; justify-content: center;
+}
+.sb-toggle:hover { color: var(--color-royal); background: color-mix(in srgb, var(--color-royal) 4%, transparent); }
+.sb-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.app-shell[data-sidebar="collapsed"] .sb-toggle { margin: 0 auto; }
+
+.sb-section-label {
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--color-text-muted-light);
+}
+.app-shell[data-sidebar="collapsed"] .sb-section-label { display: none; }
+
+.sb-nav { display: flex; flex-direction: column; gap: 2px; }
+.sb-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-border);
+  color: var(--color-text-sub-light); font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  position: relative;
+}
+[data-reduced-motion="on"] .sb-item { transition: none; }
+.sb-item:hover { color: var(--color-royal); background: color-mix(in srgb, var(--color-royal) 4%, transparent); }
+.sb-item[aria-current="true"] {
+  color: var(--color-royal); background: var(--color-gold-subtle);
+  border-color: rgba(252,208,6,0.35); font-weight: 600;
+}
+.sb-item[aria-current="true"]::before {
+  content: ""; position: absolute; left: -1px; top: 8px; bottom: 8px;
+  width: 3px; background: var(--color-gold); border-radius: var(--radius-chip);
+}
+.sb-item[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.sb-item[aria-disabled="true"]:hover { background: transparent; color: var(--color-text-sub-light); }
+.sb-icon { width: 18px; height: 18px; flex: none; color: currentColor; }
+.sb-label { flex: 1; min-width: 0; }
+.app-shell[data-sidebar="collapsed"] .sb-label,
+.app-shell[data-sidebar="collapsed"] .sb-mvp { display: none; }
+.app-shell[data-sidebar="collapsed"] .sb-item { justify-content: center; padding: var(--space-2); }
+.sb-mvp {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  padding: 2px 6px; border-radius: var(--radius-chip);
+  background: var(--color-bg-light); color: var(--color-text-muted-light); letter-spacing: 0.06em;
+}
+.sb-item[aria-disabled="true"] .sb-mvp { color: var(--color-text-muted-light); }
+
+.sb-foot {
+  margin-top: auto; padding: var(--space-3);
+  border-top: 1px solid var(--color-border-soft);
+  display: flex; align-items: center; gap: var(--space-3);
+}
+.sb-avatar {
+  width: 32px; height: 32px; flex: none; border-radius: var(--radius-chip);
+  background: linear-gradient(135deg, var(--color-royal), var(--color-deep-twil));
+  color: var(--color-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.sb-foot .sf-info { display: flex; flex-direction: column; min-width: 0; }
+.sb-foot .sf-name { font-size: 13px; font-weight: 600; color: var(--color-royal); }
+.sb-foot .sf-role { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; color: var(--color-gold-hover); font-weight: 700; }
+.app-shell[data-sidebar="collapsed"] .sb-foot .sf-info { display: none; }
+
+/* ── Main ── */
+.main { padding: var(--space-6) var(--space-8) var(--space-12); min-width: 0; }
+.main-top {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--space-4); flex-wrap: wrap;
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border-soft);
+  margin-bottom: var(--space-6);
+}
+.main-top h1 {
+  font-family: var(--font-sans); font-weight: 700; font-size: 26px;
+  letter-spacing: -0.02em; line-height: 1.1; color: var(--color-royal);
+  margin: 0;
+}
+.main-top .crumb {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--color-text-muted-light);
+  margin-bottom: var(--space-2);
+}
+.main-top .crumb b { color: var(--color-royal); font-weight: 700; }
+.main-top .live {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+  color: var(--color-text-sub-light); text-transform: uppercase;
+}
+.main-top .live .dot {
+  width: 8px; height: 8px; border-radius: var(--radius-chip);
+  background: var(--color-turquoise); position: relative;
+}
+.main-top .live .dot::after {
+  content: ""; position: absolute; inset: 0; border-radius: var(--radius-chip);
+  background: var(--color-turquoise); animation: pulse-dot 1.6s ease-out infinite;
+}
+[data-reduced-motion="on"] .main-top .live .dot::after { animation: none; }
+@keyframes pulse-dot {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* ════════════════════════════════════════════════
+   KPI CARDS
+   ════════════════════════════════════════════════ */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.kpi {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-2);
+  min-width: 0;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+[data-reduced-motion="on"] .kpi { transition: none; }
+.kpi:hover { box-shadow: var(--shadow-card-hover); }
+.kpi-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--color-text-muted-light);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.kpi-label .lk-ico {
+  width: 14px; height: 14px; color: var(--color-gold-hover);
+}
+.kpi-value {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 32px; letter-spacing: -0.01em; line-height: 1;
+  color: var(--color-royal);
+  display: flex; align-items: baseline; gap: var(--space-2);
+}
+.kpi-value .kv-unit { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--color-text-muted-light); }
+.kpi-desc { font-size: 12px; color: var(--color-text-sub-light); line-height: 1.5; }
+.kpi-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 3px var(--space-2); border-radius: var(--radius-chip);
+}
+.kpi-delta.up { color: var(--color-turquoise); background: var(--color-turquoise-subtle); }
+.kpi-delta.down { color: var(--color-crimson); background: var(--color-crimson-subtle); }
+.kpi-delta.flat { color: var(--color-text-muted-light); background: var(--color-bg-light); }
+
+.kpi.is-stale .kpi-value { color: var(--color-text-muted-light); }
+.kpi.is-stale::before {
+  content: "STALE"; position: absolute; top: 12px; right: 12px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
+  color: var(--color-crimson); font-weight: 700;
+  padding: 2px 6px; border-radius: var(--radius-chip);
+  background: var(--color-crimson-subtle);
+}
+.kpi { position: relative; }
+.kpi.is-loading .kpi-value,
+.kpi.is-loading .kpi-delta,
+.kpi.is-loading .kpi-desc { visibility: hidden; }
+.kpi.is-loading::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-royal) 4%, transparent), transparent);
+  background-size: 60% 100%; background-repeat: no-repeat;
+  animation: shimmer 1.4s linear infinite;
+}
+[data-reduced-motion="on"] .kpi.is-loading::after { animation: none; opacity: 0.4; background-position: 0 0; }
+@keyframes shimmer { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+
+/* ════════════════════════════════════════════════
+   VOTE SPEED CHART + ALERTS (two-column)
+   ════════════════════════════════════════════════ */
+.two-col {
+  display: grid; grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.panel {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-4);
+  min-width: 0;
+}
+.panel-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--space-3); flex-wrap: wrap;
+}
+.panel-head h2 {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.005em;
+  color: var(--color-royal); margin: 0;
+  display: flex; align-items: baseline; gap: var(--space-3);
+}
+.panel-head h2 .h-side {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--color-text-muted-light); font-weight: 600; text-transform: uppercase;
+}
+.panel-head .ph-actions { display: flex; gap: var(--space-2); }
+.panel-head .ph-btn {
+  padding: 4px var(--space-2); background: transparent;
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--color-text-sub-light); font-weight: 600;
+}
+.panel-head .ph-btn:hover { color: var(--color-royal); border-color: var(--color-royal); }
+.panel-head .ph-btn[aria-pressed="true"] { background: var(--color-gold-subtle); border-color: rgba(252,208,6,0.45); color: var(--color-royal); }
+
+/* Chart */
+.chart-wrap { position: relative; height: 220px; }
+.chart-svg { width: 100%; height: 100%; overflow: visible; }
+.chart-x-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.10em;
+  color: var(--color-text-muted-light); padding: 0 var(--space-1); margin-top: var(--space-2);
+}
+.chart-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);
+  padding-top: var(--space-3); border-top: 1px solid var(--color-border-soft);
+}
+.chart-stat .cs-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-text-muted-light); }
+.chart-stat .cs-value { font-family: var(--font-mono); font-weight: 700; font-size: 18px; color: var(--color-royal); margin-top: 2px; letter-spacing: -0.01em; }
+.chart-stat .cs-delta { font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.chart-stat .cs-delta.up { color: var(--color-turquoise); }
+.chart-stat .cs-delta.down { color: var(--color-crimson); }
+
+/* Chart hover tooltip */
+.chart-tip {
+  position: absolute; pointer-events: none; z-index: 4;
+  background: var(--color-deep-twil); color: var(--color-text-light);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-border);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  box-shadow: 0 6px 18px rgba(14,9,68,0.30);
+  display: none;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+}
+.chart-tip .ct-time { color: var(--color-text-muted-light); font-size: 9px; letter-spacing: 0.12em; }
+.chart-tip .ct-val { color: var(--color-gold); margin-top: 2px; font-size: 14px; letter-spacing: -0.01em; }
+.chart-tip::after {
+  content: ""; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+  width: 10px; height: 10px; background: var(--color-deep-twil); transform-origin: center;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* Chart states */
+.chart-empty, .chart-loading {
+  display: none; align-items: center; justify-content: center;
+  height: 220px; flex-direction: column; gap: var(--space-3);
+  border: 1px dashed var(--color-border-light); border-radius: var(--radius-border);
+  color: var(--color-text-muted-light);
+}
+.chart-empty img { width: 36px; opacity: 0.4; }
+.chart-empty .e-title { font-size: 13px; font-weight: 600; color: var(--color-text-sub-light); }
+.chart-empty .e-sub { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; }
+.chart-spinner {
+  width: 24px; height: 24px; border-radius: var(--radius-chip);
+  border: 3px solid var(--color-border-light); border-top-color: var(--color-gold);
+  animation: chart-spin 720ms linear infinite;
+}
+[data-reduced-motion="on"] .chart-spinner { animation: none; }
+@keyframes chart-spin { to { transform: rotate(360deg); } }
+
+.panel[data-chart="loading"] .chart-wrap,
+.panel[data-chart="loading"] .chart-x-labels,
+.panel[data-chart="loading"] .chart-stats { display: none; }
+.panel[data-chart="loading"] .chart-loading { display: flex; }
+
+.panel[data-chart="empty"] .chart-wrap,
+.panel[data-chart="empty"] .chart-x-labels,
+.panel[data-chart="empty"] .chart-stats { display: none; }
+.panel[data-chart="empty"] .chart-empty { display: flex; }
+
+/* ════════════════════════════════════════════════
+   ALERT CARDS
+   ════════════════════════════════════════════════ */
+.alerts-stack { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+.alert {
+  display: grid; grid-template-columns: 36px 1fr auto; gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  background: var(--color-surface-light);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+[data-reduced-motion="on"] .alert { transition: none; }
+.alert:hover { border-color: color-mix(in srgb, var(--color-royal) 22%, var(--color-border-light)); box-shadow: var(--shadow-card); }
+.alert-ico {
+  width: 32px; height: 32px; border-radius: var(--radius-border);
+  display: flex; align-items: center; justify-content: center;
+}
+.alert-ico svg { width: 16px; height: 16px; }
+.alert-body { min-width: 0; }
+.alert-key {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--color-text-muted-light);
+  display: inline-flex; align-items: center; gap: var(--space-2);
+}
+.alert-key .ak-sev { font-weight: 700; }
+.alert-title { font-size: 13px; font-weight: 600; color: var(--color-royal); margin-top: 2px; letter-spacing: -0.005em; }
+.alert-desc { font-size: 12px; color: var(--color-text-sub-light); margin-top: 2px; line-height: 1.5; }
+.alert-actions { display: flex; flex-direction: column; gap: 4px; }
+.alert-btn {
+  padding: 4px var(--space-2); background: transparent;
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; font-weight: 600;
+  color: var(--color-text-sub-light); white-space: nowrap;
+}
+.alert-btn.primary { background: var(--color-royal); color: var(--color-gold); border-color: var(--color-royal); }
+.alert-btn:hover { color: var(--color-royal); border-color: var(--color-royal); }
+.alert-btn.primary:hover { background: var(--color-deep-twil); }
+.alert-btn:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* Severity tints */
+.alert[data-sev="high"] { border-color: color-mix(in srgb, var(--color-crimson) 45%, var(--color-border-light)); background: color-mix(in srgb, var(--color-crimson) 5%, var(--color-surface-light)); }
+.alert[data-sev="high"] .alert-ico { background: var(--color-crimson-subtle); color: var(--color-crimson); }
+.alert[data-sev="high"] .alert-key .ak-sev { color: var(--color-crimson); }
+.alert[data-sev="medium"] .alert-ico { background: var(--color-amber-subtle); color: var(--color-gold-bright); }
+.alert[data-sev="medium"] .alert-key .ak-sev { color: var(--color-gold-hover); }
+.alert[data-sev="medium"] { border-color: color-mix(in srgb, var(--color-gold-bright) 32%, var(--color-border-light)); }
+.alert[data-sev="low"] .alert-ico { background: var(--color-turquoise-subtle); color: var(--color-turquoise); }
+.alert[data-sev="low"] .alert-key .ak-sev { color: var(--color-turquoise); }
+.alert[data-sev="dismissed"] { opacity: 0.45; }
+.alert[data-sev="dismissed"] .alert-actions { display: none; }
+.alert[data-sev="dismissed"] .alert-key::after { content: " · DISMISSED"; color: var(--color-text-muted-light); font-weight: 700; }
+
+.alerts-empty {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--space-2); padding: var(--space-8) var(--space-4);
+  border: 1px dashed var(--color-border-light); border-radius: var(--radius-border);
+  color: var(--color-text-muted-light); flex: 1;
+}
+.alerts-empty .ae-title { font-size: 13px; font-weight: 600; color: var(--color-text-sub-light); }
+.alerts-empty .ae-sub { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.10em; text-align: center; }
+.alerts-empty .ae-ok {
+  width: 32px; height: 32px; border-radius: var(--radius-chip);
+  border: 2px solid var(--color-turquoise); color: var(--color-turquoise);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px; margin-bottom: var(--space-2);
+}
+
+.panel[data-alerts="none"] .alerts-stack { display: none; }
+.panel[data-alerts="none"] .alerts-empty { display: flex; }
+
+/* ════════════════════════════════════════════════
+   TOURNAMENT TABLE (M2)
+   ════════════════════════════════════════════════ */
+.table-bar {
+  display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.search-box {
+  flex: 1; max-width: 320px; position: relative;
+}
+.search-box input {
+  width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-family: var(--font-sans); font-size: 13px; color: var(--color-text-light);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+[data-reduced-motion="on"] .search-box input { transition: none; }
+.search-box input:focus { outline: 0; border-color: var(--color-gold); box-shadow: 0 0 0 3px var(--color-gold-subtle); }
+.search-box input::placeholder { color: var(--color-text-muted-light); }
+.search-box svg {
+  position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--color-text-muted-light); pointer-events: none;
+}
+.filter-group { display: inline-flex; gap: var(--space-2); }
+
+.tournament-table {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  overflow: hidden;
+}
+.tt-head, .tt-row {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 2.4fr) 110px 88px 130px 130px 80px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+.tt-head {
+  background: var(--color-surface-soft);
+  border-bottom: 1px solid var(--color-border-light);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--color-text-muted-light); font-weight: 600;
+}
+.tt-head .sort-btn {
+  background: transparent; border: 0; padding: 0;
+  font: inherit; color: inherit; letter-spacing: inherit;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.tt-head .sort-btn:hover { color: var(--color-royal); }
+.tt-head .sort-btn[aria-sort="ascending"] { color: var(--color-royal); }
+.tt-head .sort-btn[aria-sort="descending"] { color: var(--color-royal); }
+.tt-head .sort-arrow { font-family: var(--font-mono); font-weight: 700; }
+
+.tt-row {
+  border-bottom: 1px solid var(--color-border-soft);
+  font-size: 13px;
+  transition: background 120ms ease;
+}
+[data-reduced-motion="on"] .tt-row { transition: none; }
+.tt-row:last-child { border-bottom: 0; }
+.tt-row:hover { background: var(--color-surface-soft); }
+.tt-row .t-id { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted-light); letter-spacing: 0.04em; }
+.tt-row .t-title { font-weight: 600; color: var(--color-royal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tt-row .t-cat {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; font-weight: 600;
+  color: var(--color-text-sub-light); text-transform: uppercase;
+}
+.tt-row .t-count { font-family: var(--font-mono); font-weight: 700; color: var(--color-royal); font-size: 13px; letter-spacing: -0.01em; }
+.tt-row .t-count small { font-family: var(--font-sans); font-size: 11px; font-weight: 500; color: var(--color-text-muted-light); }
+.tt-row .t-date { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-sub-light); letter-spacing: 0.02em; }
+.tt-row .t-actions { display: flex; gap: var(--space-1); justify-content: flex-end; }
+.tt-iconbtn {
+  width: 26px; height: 26px; padding: 0; background: transparent;
+  border: 1px solid transparent; border-radius: var(--radius-border);
+  color: var(--color-text-muted-light);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.tt-iconbtn:hover { color: var(--color-royal); border-color: var(--color-border-light); }
+.tt-iconbtn svg { width: 14px; height: 14px; }
+
+.t-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; font-weight: 700;
+  padding: 3px var(--space-2); border-radius: var(--radius-chip);
+  text-transform: uppercase;
+}
+.t-status::before {
+  content: ""; width: 6px; height: 6px; border-radius: var(--radius-chip);
+  background: currentColor;
+}
+.t-status[data-st="active"] { color: var(--color-turquoise); background: var(--color-turquoise-subtle); }
+.t-status[data-st="draft"]  { color: var(--color-text-muted-light); background: var(--color-bg-light); }
+.t-status[data-st="closed"] { color: var(--color-crimson); background: var(--color-crimson-subtle); }
+.t-status[data-st="completed"] { color: var(--color-gold-hover); background: var(--color-gold-subtle); }
+
+/* Table states */
+.table-empty, .table-skel { display: none; }
+.surface[data-table="empty"] .tournament-table { display: none; }
+.surface[data-table="empty"] .table-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--space-3); padding: var(--space-16) var(--space-6);
+  border: 1px dashed var(--color-border-light); border-radius: var(--radius-border);
+  background: var(--color-surface-light);
+}
+.table-empty img { width: 48px; opacity: 0.4; }
+.table-empty .te-title { font-size: 16px; font-weight: 700; color: var(--color-royal); }
+.table-empty .te-sub { font-size: 13px; color: var(--color-text-sub-light); }
+
+.surface[data-table="loading"] .tournament-table { display: none; }
+.surface[data-table="loading"] .table-skel {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  padding: var(--space-4);
+}
+.skel-row { height: 32px; border-radius: var(--radius-border);
+  background: linear-gradient(90deg, var(--color-border-soft), var(--color-bg-light), var(--color-border-soft));
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.4s linear infinite;
+}
+[data-reduced-motion="on"] .skel-row { animation: none; }
+@keyframes skel-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.tt-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: var(--space-3); padding: 0 var(--space-2);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--color-text-muted-light); text-transform: uppercase;
+}
+.tt-foot .pages { display: inline-flex; gap: 2px; }
+.tt-foot .page-btn {
+  width: 28px; height: 28px; padding: 0; background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--color-text-sub-light);
+}
+.tt-foot .page-btn[aria-current="true"] { background: var(--color-gold-subtle); border-color: rgba(252,208,6,0.45); color: var(--color-royal); }
+.tt-foot .page-btn:hover { color: var(--color-royal); border-color: var(--color-royal); }
+
+/* ════════════════════════════════════════════════
+   ADMIN GATE
+   ════════════════════════════════════════════════ */
+.gate-shell {
+  min-height: var(--fh, 900px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-12);
+  background:
+    radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-royal) 4%, transparent), transparent 70%),
+    var(--color-bg-light);
+}
+.gate-card {
+  width: 440px; max-width: 100%;
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  box-shadow: var(--shadow-light);
+  padding: var(--space-8); text-align: center;
+  display: flex; flex-direction: column; gap: var(--space-3); align-items: center;
+}
+.gate-ico {
+  width: 56px; height: 56px; border-radius: var(--radius-chip);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: var(--space-2);
+}
+.gate-ico svg { width: 24px; height: 24px; }
+.gate-card[data-st="authed"] .gate-ico { background: var(--color-gold-subtle); color: var(--color-gold-hover); border: 1px solid rgba(252,208,6,0.40); }
+.gate-card[data-st="unauthed"] .gate-ico { background: var(--color-bg-light); color: var(--color-royal); border: 1px solid var(--color-border-light); }
+.gate-card[data-st="denied"] .gate-ico { background: var(--color-crimson-subtle); color: var(--color-crimson); border: 1px solid color-mix(in srgb, var(--color-crimson) 40%, transparent); }
+
+.gate-eyebrow {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--color-text-muted-light);
+}
+.gate-card[data-st="denied"] .gate-eyebrow { color: var(--color-crimson); }
+.gate-card[data-st="authed"] .gate-eyebrow { color: var(--color-gold-hover); }
+.gate-title { font-size: 22px; font-weight: 700; color: var(--color-royal); margin: 0; letter-spacing: -0.015em; }
+.gate-desc { font-size: 14px; color: var(--color-text-sub-light); line-height: 1.6; }
+.gate-meta {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--color-text-muted-light); text-transform: uppercase;
+  margin-top: var(--space-2);
+}
+.gate-meta b { color: var(--color-royal); font-weight: 700; }
+.gate-card[data-st="denied"] .gate-meta b { color: var(--color-crimson); }
+.gate-actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); width: 100%; }
+.gate-btn {
+  flex: 1; padding: var(--space-3) var(--space-4);
+  background: var(--color-gold); color: var(--color-royal);
+  border: 1px solid var(--color-gold); border-radius: var(--radius-border);
+  font-family: var(--font-sans); font-size: 13px; font-weight: 700; letter-spacing: 0.01em;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease, background 160ms ease;
+}
+[data-reduced-motion="on"] .gate-btn { transition: none; transform: none !important; }
+.gate-btn:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.gate-btn.ghost { background: var(--color-surface-light); color: var(--color-royal); border-color: var(--color-border-light); }
+.gate-btn.ghost:hover { background: color-mix(in srgb, var(--color-royal) 4%, transparent); box-shadow: none; }
+.gate-btn:focus-visible { outline: 2px solid var(--color-royal); outline-offset: 2px; }
+
+/* Magnetic */
+.magnetic { will-change: transform; }
+[data-reduced-motion="on"] .magnetic { transform: none !important; }
+
+/* Mobile wide-screen notice */
+.mobile-notice {
+  display: none; padding: var(--space-12) var(--space-5);
+  flex-direction: column; align-items: center; gap: var(--space-3); text-align: center;
+}
+.mobile-notice img { width: 48px; opacity: 0.45; }
+.mobile-notice .mn-title { font-size: 18px; font-weight: 700; color: var(--color-royal); }
+.mobile-notice .mn-sub { font-size: 13px; color: var(--color-text-sub-light); max-width: 320px; line-height: 1.55; }
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE — container queries on .device
+   ════════════════════════════════════════════════ */
+@container (max-width: 900px) {
+  /* Tablet ≤ 900 */
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static; height: auto; min-height: 0;
+    flex-direction: row; align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-right: 0; border-bottom: 1px solid var(--color-border-light);
+  }
+  .sb-head { padding: 0; border: 0; margin: 0; }
+  .sb-section-label, .sb-nav { display: none; }
+  .sb-toggle { margin-left: auto; }
+  .sb-foot {
+    margin: 0 0 0 auto; padding: 0; border: 0;
+    display: flex;
+  }
+  .main { padding: var(--space-5) var(--space-5) var(--space-10); }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .two-col { grid-template-columns: 1fr; }
+  .tt-head, .tt-row {
+    grid-template-columns: 50px minmax(0, 1.8fr) 100px 100px;
+  }
+  .tt-head .h-deadline, .tt-head .h-actions,
+  .tt-row .t-deadline, .tt-row .t-actions { display: none; }
+}
+
+@container (max-width: 480px) {
+  /* Mobile ≤ 480 — show notice instead of dashboard */
+  .surface.sf-dashboard .app-shell,
+  .surface.sf-table .app-shell { display: none; }
+  .surface.sf-dashboard .mobile-notice,
+  .surface.sf-table .mobile-notice { display: flex; }
+  .gate-card { padding: var(--space-6); }
+  .gate-shell { padding: var(--space-5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
+}
+</style>
+</head>
+<body data-reduced-motion="off">
+
+<!-- ════════════════════════════════════════════════
+     CONTROL BAR · preview chrome (NOT product UI)
+     ════════════════════════════════════════════════ -->
+<header class="cbar" role="toolbar" aria-label="Domain 6 preview controls">
+  <div class="cbar-brand">
+    <img src="assets/brand/wc48-crown-filled.svg" alt="">
+    <span class="wm">WorldCrown48</span>
+    <span class="dom">· DOMAIN 6 · ADMIN DASHBOARD</span>
+  </div>
+  <div class="cbar-spacer"></div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Breakpoint</span>
+    <div class="seg" role="group" aria-label="Breakpoint">
+      <button data-bp="mobile"  aria-pressed="false">Mobile · 375</button>
+      <button data-bp="tablet"  aria-pressed="false">Tablet · 768</button>
+      <button data-bp="desktop" aria-pressed="true">Desktop · 1440</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Motion</span>
+    <div class="seg" role="group" aria-label="Motion">
+      <button data-rm="off" aria-pressed="true">On</button>
+      <button data-rm="on"  aria-pressed="false">Reduced</button>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════
+     SURFACE TABS — Auth Gate · Dashboard · Tournaments
+     ════════════════════════════════════════════════ -->
+<nav class="tabstrip" id="surface-tabs" aria-label="Surfaces">
+  <button class="tab" data-surface="gate"      aria-current="false">Admin Gate <span class="mod">G1·AUTH</span></button>
+  <button class="tab" data-surface="dashboard" aria-current="true">Dashboard <span class="mod">G1·M1</span></button>
+  <button class="tab" data-surface="table"     aria-current="false">Tournaments <span class="mod">G1·M2</span></button>
+</nav>
+
+<!-- per-surface state segments -->
+<div class="tabstrip" id="state-strip" style="top: 89px; padding-top: var(--space-2); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border-soft);">
+
+  <!-- GATE states -->
+  <div class="cgroup state-seg" data-for="gate">
+    <span class="cgroup-label">State</span>
+    <div class="seg" role="group" aria-label="Gate state">
+      <button data-state="authed"   data-target="gate" aria-pressed="true">Authenticated admin</button>
+      <button data-state="unauthed" data-target="gate" aria-pressed="false">Unauthenticated</button>
+      <button data-state="denied"   data-target="gate" aria-pressed="false">Non-admin · 403</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD states (sidebar, kpi, chart, alerts) -->
+  <div class="cgroup state-seg is-active" data-for="dashboard">
+    <span class="cgroup-label">Sidebar</span>
+    <div class="seg" role="group" aria-label="Sidebar state">
+      <button data-state="expanded"  data-target="sidebar" aria-pressed="true">Expanded</button>
+      <button data-state="collapsed" data-target="sidebar" aria-pressed="false">Collapsed</button>
+    </div>
+    <span class="cgroup-label" style="margin-left: var(--space-2);">KPI</span>
+    <div class="seg" role="group" aria-label="KPI state">
+      <button data-state="loaded"  data-target="kpi" aria-pressed="true">Loaded</button>
+      <button data-state="loading" data-target="kpi" aria-pressed="false">Loading</button>
+      <button data-state="stale"   data-target="kpi" aria-pressed="false">Stale</button>
+    </div>
+    <span class="cgroup-label" style="margin-left: var(--space-2);">Chart</span>
+    <div class="seg" role="group" aria-label="Chart state">
+      <button data-state="loaded"  data-target="chart" aria-pressed="true">Loaded</button>
+      <button data-state="loading" data-target="chart" aria-pressed="false">Loading</button>
+      <button data-state="empty"   data-target="chart" aria-pressed="false">Empty</button>
+      <button data-state="hover"   data-target="chart" aria-pressed="false">Hover-tip</button>
+    </div>
+    <span class="cgroup-label" style="margin-left: var(--space-2);">Alerts</span>
+    <div class="seg" role="group" aria-label="Alerts state">
+      <button data-state="mixed" data-target="alerts" aria-pressed="true">Mixed</button>
+      <button data-state="high"  data-target="alerts" aria-pressed="false">High only</button>
+      <button data-state="none"  data-target="alerts" aria-pressed="false">None · all clear</button>
+    </div>
+  </div>
+
+  <!-- TABLE states -->
+  <div class="cgroup state-seg" data-for="table">
+    <span class="cgroup-label">State</span>
+    <div class="seg" role="group" aria-label="Table state">
+      <button data-state="loaded"   data-target="table" aria-pressed="true">Loaded</button>
+      <button data-state="loading"  data-target="table" aria-pressed="false">Loading</button>
+      <button data-state="filtered" data-target="table" aria-pressed="false">Filtered · By Category</button>
+      <button data-state="sorted"   data-target="table" aria-pressed="false">Sorted · by deadline</button>
+      <button data-state="empty"    data-target="table" aria-pressed="false">Empty</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PREVIEW FRAME · breakpoint device
+     ════════════════════════════════════════════════ -->
+<div class="bp-frame">
+  <div style="position: relative;">
+    <div class="bp-readout" id="bp-readout"><b>Desktop</b> · 1440 × 900 · primary admin viewport</div>
+    <div class="device" id="device" style="--fw: 1440px; --fh: 900px;">
+
+      <!-- ════ SURFACE · Admin Gate ════ -->
+      <section class="surface sf-gate" id="sf-gate">
+        <div class="gate-shell">
+          <div class="gate-card" id="gate-card" data-st="authed">
+            <!-- Authenticated admin -->
+            <div class="ga-st ga-authed">
+              <div class="gate-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"/></svg>
+              </div>
+              <div class="gate-eyebrow">ADMIN SESSION · VERIFIED</div>
+              <h2 class="gate-title">Welcome back, Park.</h2>
+              <p class="gate-desc">Your admin session is active. The dashboard is ready — five live KPI cards, real-time vote-speed chart, and the tournament queue are waiting.</p>
+              <div class="gate-meta">UID · <b>adm_7f3a··c91</b> · ROLE · <b>admin</b> · ELEVATED 2 MIN AGO</div>
+              <div class="gate-actions">
+                <button class="gate-btn magnetic" data-magnetic onclick="document.querySelector('#surface-tabs .tab[data-surface=&quot;dashboard&quot;]').click()" type="button">Open dashboard →</button>
+              </div>
+            </div>
+            <!-- Unauthenticated -->
+            <div class="ga-st ga-unauthed" style="display:none;">
+              <div class="gate-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg>
+              </div>
+              <div class="gate-eyebrow">SESSION REQUIRED</div>
+              <h2 class="gate-title">Sign in to continue.</h2>
+              <p class="gate-desc">The Admin Dashboard is restricted to verified Tournament Hosts and System Admins. Sign in with your admin credential to monitor live tournaments.</p>
+              <div class="gate-meta">REDIRECT · <b>/sign-in</b> ← /admin/dashboard</div>
+              <div class="gate-actions">
+                <button class="gate-btn magnetic" data-magnetic type="button">Sign in with email</button>
+                <button class="gate-btn ghost" type="button">Use SSO</button>
+              </div>
+            </div>
+            <!-- Non-admin -->
+            <div class="ga-st ga-denied" style="display:none;">
+              <div class="gate-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg>
+              </div>
+              <div class="gate-eyebrow">403 · ACCESS DENIED</div>
+              <h2 class="gate-title">Admin privileges required.</h2>
+              <p class="gate-desc">Your account is signed in, but your role does not include admin scope. If you believe this is a mistake, contact the System Admin.</p>
+              <div class="gate-meta">UID · <b>vot_a8e1··42b</b> · ROLE · <b>voter</b> · BLOCKED BY MIDDLEWARE</div>
+              <div class="gate-actions">
+                <button class="gate-btn ghost" type="button">Return home</button>
+                <button class="gate-btn" type="button">Contact admin</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════ SURFACE · Dashboard (M1) ════ -->
+      <section class="surface sf-dashboard is-active" id="sf-dashboard" data-kpi="loaded" data-chart="loaded" data-alerts="mixed">
+
+        <!-- Mobile wide-screen notice -->
+        <div class="mobile-notice">
+          <img src="assets/brand/wc48-crown-outline.svg" alt="">
+          <div class="mn-title">Use a wider screen</div>
+          <div class="mn-sub">Admin Dashboard is desktop-first (1440 px primary). On smaller widths, only read-only KPI tiles are surfaced — please switch to a laptop or external monitor.</div>
+        </div>
+
+        <div class="app-shell" data-sidebar="expanded" id="dash-shell">
+
+          <!-- ── SIDEBAR ── -->
+          <aside class="sidebar" aria-label="Admin sidebar">
+            <div class="sb-head">
+              <img src="assets/brand/wc48-crown-filled.svg" alt="">
+              <div class="sbb">
+                <span class="sb-wm">WorldCrown48</span>
+                <span class="sb-dom">ADMIN · BACKSTAGE</span>
+              </div>
+              <button class="sb-toggle" id="sb-toggle" aria-label="Toggle sidebar" type="button">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+              </button>
+            </div>
+
+            <div class="sb-section-label">Workspace · MVP 1</div>
+            <nav class="sb-nav" aria-label="Primary">
+              <a class="sb-item" aria-current="true" href="#" title="대시보드 · Dashboard">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span class="sb-label">Dashboard</span>
+                <span class="sb-mvp">M1</span>
+              </a>
+              <a class="sb-item" href="#" onclick="document.querySelector('#surface-tabs .tab[data-surface=&quot;table&quot;]').click(); return false;" title="대진 목록 · Tournaments">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+                <span class="sb-label">Tournaments</span>
+                <span class="sb-mvp">M2</span>
+              </a>
+              <a class="sb-item" href="#" title="대진 생성 · The Lab">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6L4 19a2 2 0 0 0 1.7 3h12.6A2 2 0 0 0 20 19L15 9V3"/><line x1="8" y1="3" x2="16" y2="3"/></svg>
+                <span class="sb-label">The Lab</span>
+                <span class="sb-mvp">M1</span>
+              </a>
+            </nav>
+
+            <div class="sb-section-label">Operations · MVP 2</div>
+            <nav class="sb-nav" aria-label="Future">
+              <a class="sb-item" aria-disabled="true" title="MVP 2 예정 · planned">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span class="sb-label">Live operations</span>
+                <span class="sb-mvp">M2</span>
+              </a>
+              <a class="sb-item" aria-disabled="true" title="MVP 2 예정 · planned">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h13a3 3 0 0 1 3 3v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+                <span class="sb-label">AI-Report queue</span>
+                <span class="sb-mvp">M2</span>
+              </a>
+            </nav>
+
+            <div class="sb-foot">
+              <div class="sb-avatar">P</div>
+              <div class="sf-info">
+                <span class="sf-name">Park, J.</span>
+                <span class="sf-role">SYSTEM ADMIN</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- ── MAIN ── -->
+          <main class="main">
+            <header class="main-top">
+              <div>
+                <div class="crumb">Admin / <b>Dashboard</b></div>
+                <h1>Live tournament control.</h1>
+              </div>
+              <span class="live"><span class="dot" aria-hidden="true"></span> Realtime DB · synced 2s ago</span>
+            </header>
+
+            <!-- ═══ KPI CARDS ═══ -->
+            <div class="kpi-grid" id="kpi-grid">
+              <div class="kpi">
+                <div class="kpi-label">
+                  <svg class="lk-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4 10-10"/></svg>
+                  Total Votes · 총 투표 수
+                </div>
+                <div class="kpi-value" data-base="2841920">2,841,920</div>
+                <div class="kpi-desc">Vote Count is admin-internal only. Never surfaced to Voters.</div>
+                <span class="kpi-delta up">▲ 12.4% · vs 어제</span>
+              </div>
+
+              <div class="kpi">
+                <div class="kpi-label">
+                  <svg class="lk-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 21v-.7a3 3 0 0 1 3-3h1.5a2 2 0 0 1 2 2v1.7"/></svg>
+                  Active Voters · 활성 Voter 수
+                </div>
+                <div class="kpi-value" data-base="14820">14,820</div>
+                <div class="kpi-desc">Unique Voters who cast a Vote in the last 1 hour.</div>
+                <span class="kpi-delta up">▲ 3.1% · vs 1h</span>
+              </div>
+
+              <div class="kpi">
+                <div class="kpi-label">
+                  <svg class="lk-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 12 8 12 11 5 14 19 17 12 22 12"/></svg>
+                  Vote Speed · 분당 투표 수
+                </div>
+                <div class="kpi-value" data-base="287"><span data-num>287</span> <span class="kv-unit">votes/min</span></div>
+                <div class="kpi-desc">Realtime DB onValue listener · 60-second rolling window.</div>
+                <span class="kpi-delta flat">▬ 0.0% · stable</span>
+              </div>
+
+              <div class="kpi">
+                <div class="kpi-label">
+                  <svg class="lk-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="17" r="0.8" fill="currentColor"/></svg>
+                  Abuse Warnings · 어뷰징 경고
+                </div>
+                <div class="kpi-value" data-base="7">7</div>
+                <div class="kpi-desc">Rate-limit hits + suspicious accounts · last 1 hour.</div>
+                <span class="kpi-delta down">▲ 2 · 즉시 검토</span>
+              </div>
+
+              <div class="kpi">
+                <div class="kpi-label">
+                  <svg class="lk-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+                  Round Status · 라운드 현황
+                </div>
+                <div class="kpi-value" data-base="3">3 <span class="kv-unit">active</span></div>
+                <div class="kpi-desc">1 in ROUND OF 24 · 1 in ROUND OF 12 · 1 in THE FINAL</div>
+                <span class="kpi-delta flat">Deadline · 2026·06·20</span>
+              </div>
+            </div>
+
+            <!-- ═══ CHART + ALERTS ═══ -->
+            <div class="two-col">
+
+              <!-- Vote Speed Chart -->
+              <div class="panel" id="chart-panel" data-chart="loaded">
+                <div class="panel-head">
+                  <h2>Vote speed · last 24h <span class="h-side">votes per hour · realtime</span></h2>
+                  <div class="ph-actions">
+                    <button class="ph-btn" aria-pressed="false">1H</button>
+                    <button class="ph-btn" aria-pressed="true">24H</button>
+                    <button class="ph-btn" aria-pressed="false">7D</button>
+                  </div>
+                </div>
+
+                <div class="chart-wrap" id="chart-wrap">
+                  <svg class="chart-svg" viewBox="0 0 800 220" preserveAspectRatio="none" aria-hidden="true">
+                    <!-- gridlines -->
+                    <g stroke="#E6EAF0" stroke-width="1">
+                      <line x1="0" y1="40" x2="800" y2="40"/>
+                      <line x1="0" y1="90" x2="800" y2="90"/>
+                      <line x1="0" y1="140" x2="800" y2="140"/>
+                      <line x1="0" y1="190" x2="800" y2="190"/>
+                    </g>
+                    <!-- area + line -->
+                    <defs>
+                      <linearGradient id="vs-grad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#FCD006" stop-opacity="0.32"/>
+                        <stop offset="100%" stop-color="#FCD006" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path id="vs-area" d="M0,180 L33,170 L66,150 L100,140 L133,125 L166,128 L200,110 L233,95 L266,100 L300,80 L333,68 L366,72 L400,60 L433,55 L466,75 L500,70 L533,52 L566,48 L600,40 L633,55 L666,50 L700,42 L733,38 L766,35 L800,30 L800,220 L0,220 Z" fill="url(#vs-grad)"/>
+                    <path id="vs-line" d="M0,180 L33,170 L66,150 L100,140 L133,125 L166,128 L200,110 L233,95 L266,100 L300,80 L333,68 L366,72 L400,60 L433,55 L466,75 L500,70 L533,52 L566,48 L600,40 L633,55 L666,50 L700,42 L733,38 L766,35 L800,30" fill="none" stroke="#FCD006" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                    <!-- focus point (for hover state) -->
+                    <g id="vs-focus" style="display:none;">
+                      <line x1="600" y1="40" x2="600" y2="200" stroke="#241754" stroke-width="1" stroke-dasharray="2 3" opacity="0.4"/>
+                      <circle cx="600" cy="40" r="5" fill="#FCD006" stroke="#241754" stroke-width="2"/>
+                    </g>
+                  </svg>
+                  <div class="chart-tip" id="chart-tip" style="left:75%; top:18%;">
+                    <div class="ct-time">19:00 KST</div>
+                    <div class="ct-val">17,840 votes/hr</div>
+                  </div>
+                  <div class="chart-loading">
+                    <div class="chart-spinner" aria-hidden="true"></div>
+                    <span style="font-family:var(--font-mono); font-size:10px; letter-spacing:0.14em; color:var(--color-text-muted-light);">Subscribing to Realtime DB…</span>
+                  </div>
+                  <div class="chart-empty">
+                    <img src="assets/brand/wc48-crown-outline.svg" alt="">
+                    <div class="e-title">No vote data yet</div>
+                    <div class="e-sub">CHART WILL APPEAR WHEN FIRST VOTE LANDS</div>
+                  </div>
+                </div>
+                <div class="chart-x-labels"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>NOW</span></div>
+
+                <div class="chart-stats">
+                  <div class="chart-stat">
+                    <div class="cs-label">24h Total</div>
+                    <div class="cs-value">412,330</div>
+                    <div class="cs-delta up">▲ 8.2%</div>
+                  </div>
+                  <div class="chart-stat">
+                    <div class="cs-label">Peak hr</div>
+                    <div class="cs-value">17,840 <span style="font-family:var(--font-sans); font-size:11px; font-weight:500; color:var(--color-text-muted-light);">@ 19:00</span></div>
+                    <div class="cs-delta up">▲ vs 24h avg</div>
+                  </div>
+                  <div class="chart-stat">
+                    <div class="cs-label">Now</div>
+                    <div class="cs-value">17,220 <span style="font-family:var(--font-sans); font-size:11px; font-weight:500; color:var(--color-text-muted-light);">/hr</span></div>
+                    <div class="cs-delta down">▼ 3.5% · 5m</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alerts -->
+              <div class="panel" id="alerts-panel" data-alerts="mixed">
+                <div class="panel-head">
+                  <h2>Abuse alerts <span class="h-side">admin_alerts · realtime</span></h2>
+                  <button class="ph-btn" type="button">Mark all read</button>
+                </div>
+                <div class="alerts-stack">
+
+                  <article class="alert" data-sev="high">
+                    <div class="alert-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="17" r="0.8" fill="currentColor"/></svg>
+                    </div>
+                    <div class="alert-body">
+                      <div class="alert-key"><span class="ak-sev">HIGH</span> · ABUSE · 2 MIN AGO</div>
+                      <div class="alert-title">Vote bot pattern detected · 1 IP, 38 accounts</div>
+                      <div class="alert-desc">Cluster spiking on Strikers of the Century — Round of 12. Rate-limit triggered 7×.</div>
+                    </div>
+                    <div class="alert-actions">
+                      <button class="alert-btn primary" type="button">Investigate</button>
+                      <button class="alert-btn" type="button">Dismiss</button>
+                    </div>
+                  </article>
+
+                  <article class="alert" data-sev="medium">
+                    <div class="alert-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+                    </div>
+                    <div class="alert-body">
+                      <div class="alert-key"><span class="ak-sev">MEDIUM</span> · ANOMALY · 18 MIN AGO</div>
+                      <div class="alert-title">Ranking margin anomaly · T-2 over T-1 by 33.3%p</div>
+                      <div class="alert-desc">"K-Pop Visual Crown" ranking lead unusually wide for current Round size. Review recommended.</div>
+                    </div>
+                    <div class="alert-actions">
+                      <button class="alert-btn primary" type="button">Review</button>
+                      <button class="alert-btn" type="button">Dismiss</button>
+                    </div>
+                  </article>
+
+                  <article class="alert" data-sev="low">
+                    <div class="alert-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><circle cx="12" cy="17" r="0.9" fill="currentColor"/></svg>
+                    </div>
+                    <div class="alert-body">
+                      <div class="alert-key"><span class="ak-sev">LOW</span> · RATE-LIMIT · 1 H AGO</div>
+                      <div class="alert-title">Voter rate-limit · 3 cooldown emails sent</div>
+                      <div class="alert-desc">Hit 5-votes-per-tournament cap. Standard cooldown applied. No action required.</div>
+                    </div>
+                    <div class="alert-actions">
+                      <button class="alert-btn" type="button">Open log</button>
+                    </div>
+                  </article>
+
+                  <article class="alert" data-sev="dismissed">
+                    <div class="alert-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-11"/></svg>
+                    </div>
+                    <div class="alert-body">
+                      <div class="alert-key"><span class="ak-sev">LOW</span> · DUPLICATE · 4 H AGO</div>
+                      <div class="alert-title">Duplicate-vote attempt · Voter session blocked</div>
+                      <div class="alert-desc">Same Voter UID tried 3 votes on Strikers · Round 24 Match 4. Blocked at write-time.</div>
+                    </div>
+                    <div class="alert-actions"></div>
+                  </article>
+
+                </div>
+                <div class="alerts-empty">
+                  <div class="ae-ok">✓</div>
+                  <div class="ae-title">All clear</div>
+                  <div class="ae-sub">NO ACTIVE ALERTS · LAST CHECK 2 S AGO</div>
+                </div>
+              </div>
+
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <!-- ════ SURFACE · Tournaments table (M2) ════ -->
+      <section class="surface sf-table" id="sf-table" data-table="loaded">
+
+        <div class="mobile-notice">
+          <img src="assets/brand/wc48-crown-outline.svg" alt="">
+          <div class="mn-title">Use a wider screen</div>
+          <div class="mn-sub">The tournament table is desktop-first. Filter and sort live on 1440 px+ viewports — switch to a laptop to manage tournaments.</div>
+        </div>
+
+        <div class="app-shell" data-sidebar="expanded">
+
+          <!-- Reuse sidebar markup (Tournaments active) -->
+          <aside class="sidebar" aria-label="Admin sidebar">
+            <div class="sb-head">
+              <img src="assets/brand/wc48-crown-filled.svg" alt="">
+              <div class="sbb">
+                <span class="sb-wm">WorldCrown48</span>
+                <span class="sb-dom">ADMIN · BACKSTAGE</span>
+              </div>
+            </div>
+            <div class="sb-section-label">Workspace · MVP 1</div>
+            <nav class="sb-nav" aria-label="Primary">
+              <a class="sb-item" href="#" onclick="document.querySelector('#surface-tabs .tab[data-surface=&quot;dashboard&quot;]').click(); return false;">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span class="sb-label">Dashboard</span><span class="sb-mvp">M1</span>
+              </a>
+              <a class="sb-item" aria-current="true" href="#">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+                <span class="sb-label">Tournaments</span><span class="sb-mvp">M2</span>
+              </a>
+              <a class="sb-item" href="#">
+                <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6L4 19a2 2 0 0 0 1.7 3h12.6A2 2 0 0 0 20 19L15 9V3"/><line x1="8" y1="3" x2="16" y2="3"/></svg>
+                <span class="sb-label">The Lab</span><span class="sb-mvp">M1</span>
+              </a>
+            </nav>
+            <div class="sb-foot">
+              <div class="sb-avatar">P</div>
+              <div class="sf-info"><span class="sf-name">Park, J.</span><span class="sf-role">SYSTEM ADMIN</span></div>
+            </div>
+          </aside>
+
+          <!-- MAIN -->
+          <main class="main">
+            <header class="main-top">
+              <div>
+                <div class="crumb">Admin / <b>Tournaments</b></div>
+                <h1>All tournaments · queue & status.</h1>
+              </div>
+              <button class="gate-btn magnetic" data-magnetic type="button" style="flex: 0 0 auto; padding: var(--space-2) var(--space-5);">＋ New Tournament</button>
+            </header>
+
+            <div class="table-bar">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><line x1="20" y1="20" x2="16" y2="16"/></svg>
+                <input type="search" placeholder="Tournament title · Host UID · keyword" aria-label="Search tournaments">
+              </div>
+              <span class="cgroup-label">Category</span>
+              <div class="filter-group seg" role="group" aria-label="Category filter">
+                <button data-filter="all" aria-pressed="true">All</button>
+                <button data-filter="football" aria-pressed="false">Football</button>
+                <button data-filter="kpop" aria-pressed="false">K-Pop · soon</button>
+              </div>
+              <span class="cgroup-label" style="margin-left: var(--space-2);">Status</span>
+              <div class="filter-group seg" role="group" aria-label="Status filter">
+                <button aria-pressed="true">All</button>
+                <button aria-pressed="false">Active</button>
+                <button aria-pressed="false">Draft</button>
+                <button aria-pressed="false">Closed</button>
+              </div>
+            </div>
+
+            <div class="tournament-table">
+              <div class="tt-head">
+                <span class="h-id">ID</span>
+                <span class="h-title"><button class="sort-btn" aria-sort="none" type="button">Title <span class="sort-arrow">↕</span></button></span>
+                <span class="h-cat">Category</span>
+                <span class="h-status">Status</span>
+                <span class="h-votes"><button class="sort-btn" aria-sort="descending" type="button">Vote Count <span class="sort-arrow">↓</span></button></span>
+                <span class="h-deadline"><button class="sort-btn" aria-sort="none" type="button">Deadline <span class="sort-arrow">↕</span></button></span>
+                <span class="h-actions" style="text-align:right;">Actions</span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-001</span>
+                <span class="t-title">Strikers of the Century · 2026</span>
+                <span class="t-cat">FOOTBALL</span>
+                <span><span class="t-status" data-st="active">ACTIVE</span></span>
+                <span class="t-count">847,210 <small>votes</small></span>
+                <span class="t-deadline">2026·06·20</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="tt-iconbtn" aria-label="Edit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4v16h16v-7"/><path d="M18 2l4 4-11 11H7v-4z"/></svg></button>
+                </span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-002</span>
+                <span class="t-title">The 'face genius' soccer player on your feed</span>
+                <span class="t-cat">FOOTBALL</span>
+                <span><span class="t-status" data-st="active">ACTIVE</span></span>
+                <span class="t-count">412,089 <small>votes</small></span>
+                <span class="t-deadline">2026·06·25</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="tt-iconbtn" aria-label="Edit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4v16h16v-7"/><path d="M18 2l4 4-11 11H7v-4z"/></svg></button>
+                </span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-003</span>
+                <span class="t-title">The winning nation that will heat up the season</span>
+                <span class="t-cat">FOOTBALL</span>
+                <span><span class="t-status" data-st="active">ACTIVE</span></span>
+                <span class="t-count">298,540 <small>votes</small></span>
+                <span class="t-deadline">2026·07·01</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="tt-iconbtn" aria-label="Edit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4v16h16v-7"/><path d="M18 2l4 4-11 11H7v-4z"/></svg></button>
+                </span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-004</span>
+                <span class="t-title">K-Pop Visual Crown · 2026</span>
+                <span class="t-cat">K-POP</span>
+                <span><span class="t-status" data-st="draft">DRAFT</span></span>
+                <span class="t-count">0 <small>votes</small></span>
+                <span class="t-deadline">—</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="tt-iconbtn" aria-label="Edit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4v16h16v-7"/><path d="M18 2l4 4-11 11H7v-4z"/></svg></button>
+                </span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-005</span>
+                <span class="t-title">Rookie player under 20 · 2026 Showcase</span>
+                <span class="t-cat">FOOTBALL</span>
+                <span><span class="t-status" data-st="completed">COMPLETED</span></span>
+                <span class="t-count">189,720 <small>votes</small></span>
+                <span class="t-deadline">2026·05·24</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </span>
+              </div>
+
+              <div class="tt-row">
+                <span class="t-id">T-006</span>
+                <span class="t-title">Legendary cheering fever in the stands</span>
+                <span class="t-cat">FOOTBALL</span>
+                <span><span class="t-status" data-st="closed">CLOSED</span></span>
+                <span class="t-count">73,401 <small>votes</small></span>
+                <span class="t-deadline">2026·05·11</span>
+                <span class="t-actions">
+                  <button class="tt-iconbtn" aria-label="View" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </span>
+              </div>
+
+            </div>
+
+            <!-- Empty state -->
+            <div class="table-empty">
+              <img src="assets/brand/wc48-crown-outline.svg" alt="">
+              <div class="te-title">No tournaments match these filters</div>
+              <div class="te-sub">Try widening the category or status filter, or clear the search box.</div>
+            </div>
+
+            <!-- Skeleton loading -->
+            <div class="table-skel">
+              <div class="skel-row"></div><div class="skel-row" style="width: 92%;"></div><div class="skel-row" style="width: 96%;"></div><div class="skel-row" style="width: 88%;"></div><div class="skel-row" style="width: 95%;"></div><div class="skel-row" style="width: 80%;"></div>
+            </div>
+
+            <div class="tt-foot">
+              <span>Showing <b style="color:var(--color-royal);">1–6</b> of <b style="color:var(--color-royal);">14</b> tournaments</span>
+              <span class="pages">
+                <button class="page-btn" aria-label="Previous">‹</button>
+                <button class="page-btn" aria-current="true">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn" aria-label="Next">›</button>
+              </span>
+            </div>
+          </main>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Reduced motion ──────────────────────────────────────────────
+  document.querySelectorAll('[data-rm]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.body.setAttribute('data-reduced-motion', btn.getAttribute('data-rm'));
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Breakpoint ──────────────────────────────────────────────────
+  var device = document.getElementById('device');
+  var bpReadout = document.getElementById('bp-readout');
+  var BP = {
+    mobile:  { w: 375,  h: 760,  label: 'iPhone · wider-screen notice' },
+    tablet:  { w: 768,  h: 1024, label: 'iPad · sidebar collapses' },
+    desktop: { w: 1440, h: 900,  label: 'primary admin viewport' }
+  };
+  document.querySelectorAll('[data-bp]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-bp');
+      var bp = BP[key];
+      device.style.setProperty('--fw', bp.w + 'px');
+      device.style.setProperty('--fh', bp.h + 'px');
+      bpReadout.innerHTML = '<b>' + key[0].toUpperCase() + key.slice(1) + '</b> · ' + bp.w + ' × ' + bp.h + ' · ' + bp.label;
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Surface tabs ────────────────────────────────────────────────
+  var surfaces = {
+    gate:      document.getElementById('sf-gate'),
+    dashboard: document.getElementById('sf-dashboard'),
+    table:     document.getElementById('sf-table')
+  };
+  var stateSegs = document.querySelectorAll('.state-seg');
+  document.querySelectorAll('#surface-tabs .tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.getAttribute('data-surface');
+      Object.keys(surfaces).forEach(function (k) {
+        surfaces[k].classList.toggle('is-active', k === target);
+      });
+      document.querySelectorAll('#surface-tabs .tab').forEach(function (t) {
+        t.setAttribute('aria-current', t === tab ? 'true' : 'false');
+      });
+      stateSegs.forEach(function (seg) {
+        seg.classList.toggle('is-active', seg.getAttribute('data-for') === target);
+      });
+    });
+  });
+
+  // ── Gate state ──────────────────────────────────────────────────
+  var gateCard = document.getElementById('gate-card');
+  document.querySelectorAll('[data-target="gate"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var st = btn.getAttribute('data-state');
+      gateCard.setAttribute('data-st', st);
+      gateCard.querySelectorAll('.ga-st').forEach(function (n) { n.style.display = 'none'; });
+      var show = gateCard.querySelector('.ga-' + st);
+      if (show) show.style.display = 'flex';
+      show.style.flexDirection = 'column';
+      show.style.alignItems = 'center';
+      show.style.gap = '12px';
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Sidebar state ───────────────────────────────────────────────
+  var dashShell = document.getElementById('dash-shell');
+  var sbToggle = document.getElementById('sb-toggle');
+  function setSidebar(st) {
+    if (dashShell) dashShell.setAttribute('data-sidebar', st);
+    document.querySelectorAll('[data-target="sidebar"]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-state') === st ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('[data-target="sidebar"]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setSidebar(btn.getAttribute('data-state')); });
+  });
+  if (sbToggle) sbToggle.addEventListener('click', function () {
+    var cur = dashShell.getAttribute('data-sidebar');
+    setSidebar(cur === 'expanded' ? 'collapsed' : 'expanded');
+  });
+
+  // ── KPI state ───────────────────────────────────────────────────
+  var kpiGrid = document.getElementById('kpi-grid');
+  document.querySelectorAll('[data-target="kpi"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var st = btn.getAttribute('data-state');
+      kpiGrid.querySelectorAll('.kpi').forEach(function (k) {
+        k.classList.remove('is-loading', 'is-stale');
+        if (st === 'loading') k.classList.add('is-loading');
+        if (st === 'stale')   k.classList.add('is-stale');
+      });
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Chart state ─────────────────────────────────────────────────
+  var chartPanel = document.getElementById('chart-panel');
+  var chartTip = document.getElementById('chart-tip');
+  var vsFocus = document.getElementById('vs-focus');
+  document.querySelectorAll('[data-target="chart"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var st = btn.getAttribute('data-state');
+      chartPanel.setAttribute('data-chart', st === 'hover' ? 'loaded' : st);
+      var showTip = (st === 'hover');
+      if (chartTip) chartTip.style.display = showTip ? 'block' : 'none';
+      if (vsFocus) vsFocus.style.display = showTip ? 'block' : 'none';
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Alerts state ────────────────────────────────────────────────
+  var alertsPanel = document.getElementById('alerts-panel');
+  document.querySelectorAll('[data-target="alerts"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var st = btn.getAttribute('data-state');
+      alertsPanel.setAttribute('data-alerts', st);
+      var alerts = alertsPanel.querySelectorAll('.alert');
+      alerts.forEach(function (a) {
+        a.style.display = '';
+        if (st === 'high') {
+          if (a.getAttribute('data-sev') !== 'high') a.style.display = 'none';
+        }
+      });
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Table state ─────────────────────────────────────────────────
+  var sfTable = document.getElementById('sf-table');
+  document.querySelectorAll('[data-target="table"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var st = btn.getAttribute('data-state');
+      // map filtered/sorted to "loaded" but apply visual hint
+      sfTable.setAttribute('data-table', (st === 'filtered' || st === 'sorted') ? 'loaded' : st);
+      var rows = sfTable.querySelectorAll('.tt-row');
+      // reset
+      rows.forEach(function (r) { r.style.display = ''; r.style.order = ''; });
+      sfTable.querySelectorAll('.sort-btn').forEach(function (s) { s.setAttribute('aria-sort', 'none'); });
+      var arrows = sfTable.querySelectorAll('.sort-arrow');
+      arrows.forEach(function (a) { a.textContent = '↕'; });
+
+      if (st === 'filtered') {
+        // hide K-POP row
+        rows.forEach(function (r) {
+          var cat = r.querySelector('.t-cat');
+          if (cat && cat.textContent.indexOf('K-POP') !== -1) r.style.display = 'none';
+        });
+      } else if (st === 'sorted') {
+        // sort by deadline ascending
+        sfTable.querySelectorAll('.h-deadline .sort-btn').forEach(function (s) {
+          s.setAttribute('aria-sort', 'ascending');
+          var arr = s.querySelector('.sort-arrow'); if (arr) arr.textContent = '↑';
+        });
+        // Apply visual ordering via flex order
+        var sorted = Array.prototype.slice.call(rows).sort(function (a, b) {
+          var da = (a.querySelector('.t-deadline').textContent || '').trim();
+          var db = (b.querySelector('.t-deadline').textContent || '').trim();
+          if (da === '—') return 1; if (db === '—') return -1;
+          return da.localeCompare(db);
+        });
+        // tournament-table is a block, not a flex container — reorder via DOM
+        var ttRoot = sfTable.querySelector('.tournament-table');
+        sorted.forEach(function (r) { ttRoot.appendChild(r); });
+      }
+
+      btn.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+    });
+  });
+
+  // ── Magnetic CTA ────────────────────────────────────────────────
+  document.querySelectorAll('[data-magnetic]').forEach(function (el) {
+    el.addEventListener('pointermove', function (e) {
+      if (document.body.getAttribute('data-reduced-motion') === 'on') return;
+      var r = el.getBoundingClientRect();
+      var dx = (e.clientX - (r.left + r.width / 2)) * 0.16;
+      var dy = (e.clientY - (r.top + r.height / 2)) * 0.16;
+      el.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+    });
+    el.addEventListener('pointerleave', function () { el.style.transform = ''; });
+  });
+
+  // ── Simulated live ticker for KPI values ────────────────────────
+  function tickKPI() {
+    if (document.body.getAttribute('data-reduced-motion') === 'on') return;
+    document.querySelectorAll('.kpi[data-base], .kpi .kpi-value[data-base]').forEach(function (el) {
+      var target = el.querySelector ? el.querySelector('.kpi-value[data-base]') : el;
+      if (!target || target.closest('.kpi').classList.contains('is-loading')) return;
+      var base = parseInt(target.getAttribute('data-base'), 10);
+      if (isNaN(base)) return;
+      var drift = Math.round(base * 0.0008 * (Math.random() - 0.3));
+      var num = base + drift;
+      var numNode = target.querySelector('[data-num]');
+      if (numNode) {
+        numNode.textContent = num.toLocaleString();
+      } else if (target.children.length === 0) {
+        target.textContent = num.toLocaleString();
+      } else {
+        target.firstChild.textContent = num.toLocaleString() + ' ';
+      }
+    });
+  }
+  setInterval(tickKPI, 2400);
+})();
+</script>
+
+</body>
+</html>

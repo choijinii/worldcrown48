@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko" data-reduced-motion="off">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 · Domain 0 — Launch Pad</title>
+<link rel="icon" href="assets/brand/wc48-crown-circle-filled.svg">
+
+<!-- Inter · Playfair Display · JetBrains Mono — Google Fonts CDN (per design system colors_and_type.css) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+<style>
+/* ════ PRETENDARD — self-hosted (brand-mandatory · never via CDN) ════ */
+@font-face { font-family:"Pretendard"; font-weight:100; src:url("fonts/Pretendard-Thin.otf")       format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:200; src:url("fonts/Pretendard-ExtraLight.otf") format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:300; src:url("fonts/Pretendard-Light.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:400; src:url("fonts/Pretendard-Regular.otf")    format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:500; src:url("fonts/Pretendard-Medium.otf")     format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:600; src:url("fonts/Pretendard-SemiBold.otf")   format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:700; src:url("fonts/Pretendard-Bold.otf")       format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:800; src:url("fonts/Pretendard-ExtraBold.otf")  format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:900; src:url("fonts/Pretendard-Black.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:400; font-style:italic; src:url("fonts/PlayfairDisplay-Italic.ttf")     format("truetype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:900; font-style:italic; src:url("fonts/PlayfairDisplay-BlackItalic.ttf") format("truetype"); font-display:swap; }
+
+/* ════ DESIGN-SYSTEM TOKEN LAYER · the colour anchor.
+   The ONLY place a hex literal appears outside the inlined logo SVG —
+   values decoded verbatim from colors_and_type.css (wc48-colors.svg palette).
+   Every rule below references tokens via var(--*) / currentColor / color-mix. ════ */
+:root {
+  --color-bg-void:#00001F; --color-bg-deep:#00003A; --color-bg-default:#0E0944;
+  --color-bg-soft:#241754; --color-bg-elevated:#362261; --color-bg-charcoal:#1E1E24;
+  --color-gold:#FCD006; --color-gold-bright:#FBB03B; --color-gold-hover:#E3BB05;
+  --color-gold-subtle:rgba(252,208,6,0.12); --color-gold-glow:rgba(252,208,6,0.25); --color-aura:#EEDA7D;
+  --color-crimson:#D7063A; --color-turquoise:#00A3B7; --color-powder:#B1B5C4;
+  --color-text:#F2F2F5; --color-text-sub:#B1B5C4; --color-text-muted:#484B67;
+  --color-border:#2D1C5A; --color-border-gold:rgba(252,208,6,0.30);
+  --color-bg-light:#F2F2F5; --color-surface-light:#FFFFFF; --color-text-light:#0E0944;
+  --color-text-sub-light:#3A4570; --color-text-muted-light:#8C99B3; --color-border-light:#D4DCE3;
+  --shadow-card:0 4px 24px rgba(0,0,58,0.50); --shadow-gold:0 0 32px rgba(252,208,6,0.25);
+  --shadow-crimson:0 0 24px rgba(215,6,58,0.25); --shadow-turquoise:0 0 24px rgba(0,163,183,0.20);
+  --shadow-gnb:0 8px 32px rgba(0,0,58,0.40);
+  --radius-rect:0; --radius-border:5px; --radius-chip:999px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px;
+  --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px; --space-24:96px; --space-32:128px;
+  --font-sans:'Inter','Pretendard',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo',sans-serif;
+  --font-display:'Playfair Display','Playfair Display Local','Pretendard',Georgia,serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-void);
+  color: var(--color-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; color: inherit; }
+input { font: inherit; }
+
+/* ════════════════════════════════════════════════
+   CONTROL BAR (review chrome — not part of A0)
+   ════════════════════════════════════════════════ */
+.cbar {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--color-bg-deep) 86%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap;
+}
+.cbar-brand { display: flex; align-items: center; gap: var(--space-2); }
+.cbar-brand img { height: 18px; width: auto; }
+.cbar-brand .wm { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-gold); font-weight: 700; }
+.cbar-brand .dom { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--color-text-muted); }
+.cbar-spacer { flex: 1 1 auto; }
+.cgroup { display: flex; align-items: center; gap: var(--space-2); }
+.cgroup-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-sub); }
+.seg { display: inline-flex; background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-chip); padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button {
+  border: 0; background: transparent; color: var(--color-text-sub);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-3); border-radius: var(--radius-chip);
+  transition: background 120ms ease, color 120ms ease;
+}
+[data-reduced-motion="on"] .seg button { transition: none; }
+.seg button[aria-pressed="true"] { background: var(--color-gold); color: var(--color-bg-deep); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* ════════════════════════════════════════════════
+   STAGE + scaled device frame
+   ════════════════════════════════════════════════ */
+.stage {
+  padding: var(--space-10) var(--space-6) var(--space-16);
+  display: flex; justify-content: center;
+  background:
+    radial-gradient(80% 50% at 50% 0%, var(--color-bg-default) 0%, transparent 70%),
+    var(--color-bg-void);
+  min-height: calc(100vh - 56px);
+}
+.device-scaler { position: relative; }
+.device {
+  width: var(--fw, 1440px);
+  container-type: inline-size;
+  position: absolute; top: 0; left: 0; transform-origin: top left;
+  border-radius: var(--radius-border);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.bp-readout {
+  position: absolute; top: -28px; left: 0;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--color-text-muted);
+}
+
+/* ════════════════════════════════════════════════
+   A0 · LAUNCH PAD
+   ════════════════════════════════════════════════ */
+.lp {
+  position: relative;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 38%, color-mix(in srgb, var(--color-gold) 9%, transparent) 0%, transparent 70%),
+    linear-gradient(180deg, var(--color-bg-deep) 0%, var(--color-bg-void) 100%);
+  color: var(--color-text);
+}
+/* Film grain — mandatory on the dark stage */
+.lp-grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.lp-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: var(--space-16) var(--space-5) var(--space-12); }
+
+/* ── M1 · LaunchHero ── */
+.hero { text-align: center; }
+.hero-crown { width: 80px; height: auto; margin: 0 auto var(--space-8); filter: drop-shadow(0 0 28px var(--color-gold-glow)); }
+.hero-kicker {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--color-aura); margin-bottom: var(--space-6); display: inline-flex; gap: var(--space-2); align-items: center;
+}
+.hero-kicker .dot { width: 4px; height: 4px; border-radius: var(--radius-chip); background: var(--color-gold); display: inline-block; }
+.hero-line1 {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 32px; line-height: 1.05; letter-spacing: -0.02em; color: var(--color-text); margin: 0;
+}
+.hero-line2 {
+  font-family: var(--font-display); font-style: italic; font-weight: 700;
+  font-size: 30px; line-height: 1.05; letter-spacing: -0.02em; color: var(--color-gold);
+  margin: var(--space-2) 0 0; text-shadow: 0 0 48px var(--color-gold-glow);
+}
+
+/* ── M2 · FeaturedTournament card (replaces CountdownTimer v0.1) ── */
+/* Data binding: tournaments.where("featured", "==", true).limit(1) — backend resolves */
+.featured-tournament {
+  margin-top: var(--space-12); max-width: 560px; margin-left: auto; margin-right: auto;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-bg-soft) 80%, transparent), color-mix(in srgb, var(--color-bg-elevated) 70%, transparent));
+  border: 1px solid var(--color-border); border-radius: var(--radius-border);
+  padding: var(--space-6) var(--space-5); text-align: center;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-gold) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-gold) 10%, transparent);
+  position: relative; overflow: hidden;
+}
+.featured-tournament::before {
+  content: ""; position: absolute; inset: -1px; border-radius: var(--radius-border);
+  padding: 1px; background: linear-gradient(160deg, var(--color-gold), transparent 38%, transparent 62%, var(--color-gold));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0.35;
+}
+.ft-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-bg-deep); background: var(--color-gold);
+  border-radius: var(--radius-chip); padding: 4px var(--space-3);
+  box-shadow: 0 2px 14px color-mix(in srgb, var(--color-gold) 38%, transparent);
+  margin-bottom: var(--space-5);
+}
+.ft-pill .star { font-size: 11px; line-height: 1; }
+.ft-title {
+  font-family: var(--font-sans); font-weight: 800; font-size: 24px; line-height: 1.18; letter-spacing: -0.02em;
+  color: var(--color-text); margin: 0 0 var(--space-4); text-wrap: balance;
+}
+.ft-meta {
+  display: inline-flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; justify-content: center;
+  font-family: var(--font-sans); font-size: 13px; color: var(--color-text-sub); margin-bottom: var(--space-6);
+}
+.ft-meta-num { font-family: var(--font-mono); font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.ft-meta-sep { color: var(--color-text-muted); }
+.ft-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--color-gold); color: var(--color-bg-deep);
+  font-family: var(--font-sans); font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+  border: 0; border-radius: var(--radius-border); padding: var(--space-3) var(--space-6); min-height: 48px;
+  text-decoration: none; cursor: pointer;
+  box-shadow: var(--shadow-gold);
+  transition: transform 160ms cubic-bezier(.22,.61,.36,1), filter 160ms ease;
+}
+.ft-cta:hover { filter: brightness(1.05); }
+.ft-cta:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+[data-reduced-motion="on"] .ft-cta { transition: none; }
+
+/* ── M3 · WaitlistForm ── */
+.waitlist { margin-top: var(--space-16); max-width: 520px; margin-left: auto; margin-right: auto; text-align: center; }
+.wl-head { font-size: 15px; color: var(--color-text-sub); margin-bottom: var(--space-5); }
+.wl-form { display: flex; flex-direction: column; gap: var(--space-4); align-items: stretch; }
+.wl-field { position: relative; flex: 1; text-align: left; }
+.wl-field input {
+  width: 100%; background: transparent; border: 0; border-bottom: 2px solid var(--color-border);
+  color: var(--color-text); padding: var(--space-3) var(--space-1); font-size: 16px; outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.wl-field input::placeholder { color: var(--color-text-muted); }
+.wl-field input:focus,
+.wl-form.is-focused .wl-field input {
+  border-bottom-color: var(--color-gold);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-gold) 20%, transparent);
+}
+.wl-form.is-error .wl-field input { border-bottom-color: var(--color-crimson); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-crimson) 22%, transparent); }
+[data-reduced-motion="on"] .wl-field input { transition: none; }
+
+.wl-submit {
+  position: relative; border: 0; background: var(--color-gold); color: var(--color-bg-deep);
+  font-weight: 700; font-size: 15px; height: 48px; padding: 0 var(--space-6); border-radius: var(--radius-border);
+  transition: box-shadow 180ms ease, transform 120ms ease, background 120ms ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; will-change: transform;
+}
+.wl-submit:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.wl-submit:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+.wl-submit[disabled] { background: var(--color-bg-soft); color: var(--color-text-muted); cursor: not-allowed; box-shadow: none; }
+[data-reduced-motion="on"] .wl-submit { transform: none !important; transition: box-shadow 180ms ease; }
+.wl-spinner {
+  width: 16px; height: 16px; border-radius: var(--radius-chip);
+  border: 2px solid color-mix(in srgb, var(--color-bg-deep) 35%, transparent); border-top-color: var(--color-bg-deep);
+  animation: wc-spin 720ms linear infinite;
+}
+[data-reduced-motion="on"] .wl-spinner { animation: none; }
+@keyframes wc-spin { to { transform: rotate(360deg); } }
+
+.wl-msg { margin-top: var(--space-4); font-size: 14px; min-height: 20px; display: none; }
+.wl-form.state-success ~ .wl-msg,
+.wl-form.state-duplicate ~ .wl-msg,
+.wl-form.state-invalid ~ .wl-msg { display: block; }
+.wl-msg.ok { color: var(--color-turquoise); font-weight: 600; }
+.wl-msg.err { color: var(--color-crimson); font-weight: 500; }
+.wl-form.state-success { display: none; }
+.wl-success {
+  display: none; align-items: center; justify-content: center; gap: var(--space-2);
+  font-size: 17px; font-weight: 600; color: var(--color-turquoise);
+  border: 1px solid color-mix(in srgb, var(--color-turquoise) 40%, transparent);
+  border-radius: var(--radius-border); padding: var(--space-5);
+  background: color-mix(in srgb, var(--color-turquoise) 8%, transparent);
+}
+.waitlist[data-state="success"] .wl-success { display: flex; }
+.wl-privacy { margin-top: var(--space-4); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--color-text-muted); text-transform: uppercase; }
+
+/* ── M4 · SNSLinks ── */
+.sns { margin-top: var(--space-16); display: flex; flex-direction: column; align-items: center; gap: var(--space-6); }
+.sns-row { display: flex; gap: var(--space-6); justify-content: center; }
+.sns-link {
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted); border-radius: var(--radius-chip);
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+.sns-link svg { width: 24px; height: 24px; }
+.sns-link:hover { color: var(--color-gold); background: var(--color-gold-subtle); }
+.sns-link:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+[data-reduced-motion="on"] .sns-link { transition: none; }
+.sns-link.is-hover { color: var(--color-gold); background: var(--color-gold-subtle); }  /* forced hover demo */
+.lp-foot { text-align: center; margin-top: var(--space-12); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--color-text-muted); text-transform: uppercase; }
+
+/* ════════════════════════════════════════════════
+   CONTAINER QUERIES — Tablet ≥768 · Desktop ≥1100
+   ════════════════════════════════════════════════ */
+@container (min-width: 760px) {
+  .lp-inner { padding: var(--space-24) var(--space-8) var(--space-16); }
+  .hero-crown { width: 104px; }
+  .hero-line1 { font-size: 44px; }
+  .hero-line2 { font-size: 40px; }
+  .featured-tournament { max-width: 600px; padding: var(--space-8) var(--space-8); }
+  .ft-title { font-size: 30px; }
+  .ft-meta { font-size: 14px; }
+  .wl-form { flex-direction: row; align-items: stretch; }
+  .wl-submit { min-width: 168px; }
+}
+@container (min-width: 1100px) {
+  .hero-crown { width: 120px; }
+  .hero-line1 { font-size: 56px; }
+  .hero-line2 { font-size: 48px; }
+  .featured-tournament { max-width: 640px; }
+  .ft-title { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ CONTROL BAR (review chrome) ════ -->
+<header class="cbar">
+  <div class="cbar-brand">
+    <img src="assets/brand/wc48-branding-horizontal-dark.svg" alt="WorldCrown48" style="height: 18px; width: auto;">
+    <span class="dom">· DOMAIN 0 · LAUNCH PAD</span>
+  </div>
+  <div class="cbar-spacer"></div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Breakpoint</span>
+    <div class="seg" id="seg-bp" role="group" aria-label="Breakpoint">
+      <button data-w="375"  aria-pressed="false">Mobile</button>
+      <button data-w="768"  aria-pressed="false">Tablet</button>
+      <button data-w="1440" aria-pressed="true">Desktop</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Waitlist&nbsp;state</span>
+    <div class="seg" id="seg-state" role="group" aria-label="Waitlist state">
+      <button data-s="default"   aria-pressed="true">Default</button>
+      <button data-s="focused"   aria-pressed="false">Focused</button>
+      <button data-s="loading"   aria-pressed="false">Loading</button>
+      <button data-s="success"   aria-pressed="false">Success</button>
+      <button data-s="duplicate" aria-pressed="false">Duplicate</button>
+      <button data-s="invalid"   aria-pressed="false">Invalid</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">SNS</span>
+    <div class="seg" id="seg-sns" role="group" aria-label="SNS state">
+      <button data-h="off" aria-pressed="true">Default</button>
+      <button data-h="on"  aria-pressed="false">Hover</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Reduced&nbsp;motion</span>
+    <div class="seg" id="seg-rm" role="group" aria-label="Reduced motion">
+      <button data-rm="off" aria-pressed="true">Off</button>
+      <button data-rm="on"  aria-pressed="false">On</button>
+    </div>
+  </div>
+</header>
+
+<!-- ════ STAGE ════ -->
+<div class="stage" id="stage">
+  <div class="device-scaler" id="scaler">
+    <div class="bp-readout" id="bpReadout">DESKTOP · 1440 px</div>
+    <div class="device" id="device" style="--fw: 1440px;">
+
+      <!-- ════ A0 · LAUNCH PAD ════ -->
+      <div class="lp">
+        <div class="lp-grain" aria-hidden="true"></div>
+        <div class="lp-inner">
+
+          <!-- M1 · LaunchHero -->
+          <section class="hero" aria-label="Launch hero">
+            <!-- registered logo SVG · inlined (colour anchor) -->
+            <svg class="hero-crown" viewBox="0 0 143.938 134.878" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WorldCrown48 crown">
+              <path fill="#FCD006" d="M141.13,72.455c-0.728-0.064-1.409,0.143-1.972,0.521c-0.097,0.066-0.188,0.132-0.285,0.199c-9.776,6.764-26.054,14.975-38.315,5.759C87.99,69.486,80.666,51.155,77.34,40.736c-0.006-0.019-0.011-0.036-0.018-0.054c-0.376-1.129-1.389-1.985-2.649-2.096c-1.26-0.11-2.407,0.557-2.974,1.604c-0.009,0.017-0.016,0.033-0.026,0.05c-5.084,9.684-15.481,26.464-29.498,33.585C28.5,80.771,13.895,69.859,5.442,61.5c-0.084-0.083-0.163-0.164-0.246-0.246c-0.489-0.47-1.125-0.792-1.852-0.855c-1.692-0.148-3.185,1.104-3.333,2.797c-0.018,0.205-0.013,0.407,0.008,0.605l0.013,0.077l10.049,58.828l0.03,0.168c0.216,1.361,1.325,2.455,2.76,2.581l53.787,4.706l0.004,0l0.004,0l53.786,4.706c1.435,0.125,2.717-0.76,3.165-2.062l0.059-0.161l20.111-56.189l0.026-0.073c0.057-0.19,0.096-0.389,0.113-0.595C144.075,74.095,142.822,72.603,141.13,72.455z"></path>
+              <circle fill="#FCD006" cx="77.036" cy="11.563" r="11.562"></circle>
+            </svg>
+
+            <div class="hero-kicker"><span class="dot"></span>지금 진행 중 · A WORLDCROWN48 TOURNAMENT IS OPEN</div>
+            <h1 class="hero-line1">WHO RULES THE WORLD?</h1>
+            <p class="hero-line2">YOU DECIDE.</p>
+          </section>
+
+          <!-- M2 · FeaturedTournament card (replaces CountdownTimer v0.1)
+               Data binding: tournaments.where("featured", "==", true).limit(1) — backend resolves -->
+          <section class="featured-tournament" aria-label="Featured tournament">
+            <div class="ft-pill"><span class="star" aria-hidden="true">★</span> FEATURED TOURNAMENT</div>
+            <h2 class="ft-title" id="ftTitle">2026 World Cup Best Eleven</h2>
+            <div class="ft-meta">
+              <span class="ft-meta-item"><span class="ft-meta-num">48</span> Contestants</span>
+              <span class="ft-meta-sep" aria-hidden="true">·</span>
+              <span class="ft-meta-item">Closes <span class="ft-meta-num" id="ftDeadline">Jun 20</span></span>
+            </div>
+            <a class="ft-cta magnetic" href="#" id="ftCta">
+              <span>ENTER ARENA</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="12" x2="18" y2="12"></line>
+                <polyline points="12 6 18 12 12 18"></polyline>
+              </svg>
+            </a>
+          </section>
+
+          <!-- M3 · WaitlistForm -->
+          <section class="waitlist" id="waitlist" data-state="default" aria-label="Waitlist">
+            <p class="wl-head">Be first through the gate. 이메일을 남기면 개막을 가장 먼저 알려드립니다.</p>
+            <form class="wl-form" id="wlForm" novalidate>
+              <div class="wl-field">
+                <input type="email" id="wlInput" placeholder="Enter your email" autocomplete="email" aria-label="Email address">
+              </div>
+              <button type="submit" class="wl-submit" id="wlSubmit">Join the Waitlist</button>
+            </form>
+            <div class="wl-msg" id="wlMsg" role="status" aria-live="polite"></div>
+            <div class="wl-success"><span aria-hidden="true">✓</span> You're on the list!</div>
+            <p class="wl-privacy">No spam · unsubscribe anytime</p>
+          </section>
+
+          <!-- M4 · SNSLinks -->
+          <section class="sns" aria-label="Social links">
+            <div class="sns-row" id="snsRow">
+              <a class="sns-link" href="https://instagram.com/worldcrown48" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </a>
+              <a class="sns-link" href="https://twitter.com/worldcrown48" target="_blank" rel="noopener noreferrer" aria-label="X">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4 L20 20 M20 4 L4 20"></path>
+                </svg>
+              </a>
+              <a class="sns-link" href="https://tiktok.com/@worldcrown48" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 11.5 a4 4 0 1 0 4 4 V4 c0.8 2.4 2.6 3.8 5 4"></path>
+                </svg>
+              </a>
+            </div>
+            <p class="lp-foot">WorldCrown48 · 48 Contestants · One Crown</p>
+          </section>
+
+        </div>
+      </div>
+      <!-- ════ /A0 ════ -->
+
+    </div>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="#00003A"/>
+    <circle cx="50" cy="34" r="6" fill="#FCD006"/>
+    <path d="M30 44c6 6 12 4 16-4 4 8 10 10 16 4l-4 22-24-2-4-20z" fill="#FCD006"/>
+  </svg>
+</template>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var device = document.getElementById('device');
+  var scaler = document.getElementById('scaler');
+  var stage = document.getElementById('stage');
+  var bpReadout = document.getElementById('bpReadout');
+
+  function reduced() { return root.getAttribute('data-reduced-motion') === 'on'; }
+
+  /* ── generic segmented wiring ── */
+  function wireSeg(id, fn) {
+    var seg = document.getElementById(id); if (!seg) return;
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      fn(b);
+    });
+  }
+
+  /* ── Breakpoint switcher + fit scaler ── */
+  var labels = { '375': 'MOBILE', '768': 'TABLET', '1440': 'DESKTOP' };
+  function fit() {
+    var fw = parseInt(device.style.getPropertyValue('--fw')) || 1440;
+    var avail = stage.clientWidth - 48;
+    var scale = Math.min(1, avail / fw);
+    device.style.transform = 'scale(' + scale + ')';
+    scaler.style.width = (fw * scale) + 'px';
+    scaler.style.height = (device.offsetHeight * scale) + 'px';
+  }
+  wireSeg('seg-bp', function (b) {
+    var w = b.getAttribute('data-w');
+    device.style.setProperty('--fw', w + 'px');
+    bpReadout.textContent = labels[w] + ' · ' + w + ' px';
+    requestAnimationFrame(fit);
+  });
+  window.addEventListener('resize', fit);
+  if ('ResizeObserver' in window) { new ResizeObserver(fit).observe(device); }
+
+  /* ── Reduced motion (toggle + OS preference) ── */
+  wireSeg('seg-rm', function (b) { root.setAttribute('data-reduced-motion', b.getAttribute('data-rm')); });
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function applyMQ() {
+    if (mq.matches) {
+      root.setAttribute('data-reduced-motion', 'on');
+      var seg = document.getElementById('seg-rm');
+      seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-rm') === 'on')); });
+    }
+  }
+  applyMQ(); if (mq.addEventListener) mq.addEventListener('change', applyMQ);
+
+  /* ── SNS forced-hover demo ── */
+  wireSeg('seg-sns', function (b) {
+    var on = b.getAttribute('data-h') === 'on';
+    document.querySelectorAll('.sns-link').forEach(function (l) { l.classList.toggle('is-hover', on); });
+  });
+
+  /* ════ M3 · WaitlistForm states ════ */
+  var waitlist = document.getElementById('waitlist');
+  var form = document.getElementById('wlForm');
+  var input = document.getElementById('wlInput');
+  var submit = document.getElementById('wlSubmit');
+  var msg = document.getElementById('wlMsg');
+  var SAMPLE = 'voter@worldcrown48.com';
+  var DUPES = ['taken@worldcrown48.com', 'voter@worldcrown48.com'];
+
+  function setState(state) {
+    waitlist.setAttribute('data-state', state);
+    form.className = 'wl-form';
+    msg.className = 'wl-msg';
+    msg.textContent = '';
+    submit.disabled = false;
+    submit.innerHTML = 'Join the Waitlist';
+
+    if (state === 'focused') {
+      form.classList.add('is-focused');
+      if (!input.value) input.value = SAMPLE;
+    } else if (state === 'loading') {
+      submit.disabled = true;
+      submit.innerHTML = '<span class="wl-spinner" aria-hidden="true"></span> Submitting…';
+      if (!input.value) input.value = SAMPLE;
+    } else if (state === 'success') {
+      form.classList.add('state-success');
+    } else if (state === 'duplicate') {
+      form.classList.add('state-duplicate', 'is-error');
+      msg.classList.add('err'); msg.textContent = 'This email is already on the list.';
+      if (!input.value) input.value = DUPES[0];
+    } else if (state === 'invalid') {
+      form.classList.add('state-invalid', 'is-error');
+      msg.classList.add('err'); msg.textContent = 'Enter a valid email address.';
+      input.value = 'not-an-email';
+    } else {
+      input.value = '';
+    }
+  }
+
+  /* state switcher */
+  wireSeg('seg-state', function (b) { setState(b.getAttribute('data-s')); });
+
+  /* live interaction — focus reflects the focused chip visually */
+  input.addEventListener('focus', function () {
+    if (waitlist.getAttribute('data-state') === 'default') form.classList.add('is-focused');
+  });
+  input.addEventListener('blur', function () { form.classList.remove('is-focused'); });
+  input.addEventListener('input', function () { form.classList.remove('is-error'); msg.className = 'wl-msg'; msg.textContent = ''; });
+
+  function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = input.value.trim();
+    if (!validEmail(v)) {
+      form.classList.add('is-error'); msg.className = 'wl-msg err'; msg.textContent = 'Enter a valid email address.';
+      reflectChip('invalid'); return;
+    }
+    /* simulate async submit (visual only — no Firebase) */
+    submit.disabled = true; submit.innerHTML = '<span class="wl-spinner" aria-hidden="true"></span> Submitting…';
+    reflectChip('loading');
+    setTimeout(function () {
+      if (DUPES.indexOf(v.toLowerCase()) !== -1) {
+        submit.disabled = false; submit.innerHTML = 'Join the Waitlist';
+        form.classList.add('is-error'); msg.className = 'wl-msg err'; msg.textContent = 'This email is already on the list.';
+        reflectChip('duplicate');
+      } else {
+        form.classList.add('state-success'); waitlist.setAttribute('data-state', 'success');
+        reflectChip('success');
+      }
+      fit();
+    }, reduced() ? 0 : 1200);
+  });
+
+  function reflectChip(s) {
+    var seg = document.getElementById('seg-state');
+    seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-s') === s)); });
+  }
+
+  /* ── Magnetic CTA ── */
+  var strength = 0.3;
+  submit.addEventListener('mousemove', function (e) {
+    if (reduced() || submit.disabled) return;
+    var r = submit.getBoundingClientRect();
+    var sc = (parseInt(device.style.getPropertyValue('--fw')) ? (scaler.offsetWidth / (parseInt(device.style.getPropertyValue('--fw')))) : 1);
+    var dx = (e.clientX - (r.left + r.width / 2)) / (sc || 1);
+    var dy = (e.clientY - (r.top + r.height / 2)) / (sc || 1);
+    submit.style.transform = 'translate(' + (dx * strength).toFixed(2) + 'px,' + (dy * strength).toFixed(2) + 'px)';
+  });
+  submit.addEventListener('mouseleave', function () { submit.style.transform = 'translate(0,0)'; });
+
+  /* ════ M2 · CountdownTimer removed v0.1 — replaced by FeaturedTournament card (static, backend-fed) ════ */
+
+  /* initial fit */
+  requestAnimationFrame(fit);
+  setTimeout(fit, 300);
+})();
+</script>
+</body>
+</html>

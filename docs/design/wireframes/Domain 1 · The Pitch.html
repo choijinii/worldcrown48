@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko" data-reduced-motion="off">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 · Domain 1 — The Pitch</title>
+<link rel="icon" href="assets/brand/wc48-crown-circle-filled.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+<style>
+/* ════ PRETENDARD — self-hosted (brand-mandatory · never via CDN) ════ */
+@font-face { font-family:"Pretendard"; font-weight:100; src:url("fonts/Pretendard-Thin.otf")       format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:200; src:url("fonts/Pretendard-ExtraLight.otf") format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:300; src:url("fonts/Pretendard-Light.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:400; src:url("fonts/Pretendard-Regular.otf")    format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:500; src:url("fonts/Pretendard-Medium.otf")     format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:600; src:url("fonts/Pretendard-SemiBold.otf")   format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:700; src:url("fonts/Pretendard-Bold.otf")       format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:800; src:url("fonts/Pretendard-ExtraBold.otf")  format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:900; src:url("fonts/Pretendard-Black.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:400; font-style:italic; src:url("fonts/PlayfairDisplay-Italic.ttf")     format("truetype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:900; font-style:italic; src:url("fonts/PlayfairDisplay-BlackItalic.ttf") format("truetype"); font-display:swap; }
+
+/* ════ DESIGN-SYSTEM TOKEN LAYER · colour anchor.
+   The ONLY place a hex literal appears outside the inlined logo SVG —
+   values decoded verbatim from colors_and_type.css (wc48-colors.svg). ════ */
+:root {
+  --color-bg-void:#00001F; --color-bg-deep:#00003A; --color-bg-default:#0E0944;
+  --color-bg-soft:#241754; --color-bg-elevated:#362261; --color-bg-charcoal:#1E1E24;
+  --color-gold:#FCD006; --color-gold-bright:#FBB03B; --color-gold-hover:#E3BB05;
+  --color-gold-subtle:rgba(252,208,6,0.12); --color-gold-glow:rgba(252,208,6,0.25); --color-aura:#EEDA7D;
+  --color-crimson:#D7063A; --color-turquoise:#00A3B7; --color-powder:#B1B5C4;
+  --color-text:#F2F2F5; --color-text-sub:#B1B5C4; --color-text-muted:#484B67;
+  --color-border:#2D1C5A; --color-border-gold:rgba(252,208,6,0.30);
+  --color-bg-light:#F2F2F5; --color-surface-light:#FFFFFF; --color-text-light:#0E0944;
+  --color-text-sub-light:#3A4570; --color-text-muted-light:#8C99B3; --color-border-light:#D4DCE3;
+  --shadow-card:0 4px 24px rgba(0,0,58,0.50); --shadow-gold:0 0 32px rgba(252,208,6,0.25);
+  --shadow-crimson:0 0 24px rgba(215,6,58,0.25); --shadow-turquoise:0 0 24px rgba(0,163,183,0.20);
+  --shadow-gnb:0 8px 32px rgba(0,0,58,0.40);
+  --radius-rect:0; --radius-border:5px; --radius-chip:999px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px;
+  --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px; --space-24:96px; --space-32:128px;
+  --font-sans:'Inter','Pretendard',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo',sans-serif;
+  --font-display:'Playfair Display','Playfair Display Local','Pretendard',Georgia,serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans); background: var(--color-bg-void); color: var(--color-text); line-height: 1.5;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; color: inherit; }
+
+/* ════ CONTROL BAR (review chrome) ════ */
+.cbar {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--color-bg-deep) 86%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+  display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap;
+}
+.cbar-brand { display: flex; align-items: center; gap: var(--space-2); }
+.cbar-brand img { height: 36px; width: auto; }
+.cbar-brand .wm { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-gold); font-weight: 700; }
+.cbar-brand .dom { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--color-text-muted); }
+.cbar-spacer { flex: 1 1 auto; }
+.cgroup { display: flex; align-items: center; gap: var(--space-2); }
+.cgroup-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-sub); }
+.seg { display: inline-flex; background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-chip); padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button {
+  border: 0; background: transparent; color: var(--color-text-sub);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-3); border-radius: var(--radius-chip); transition: background 120ms ease, color 120ms ease;
+}
+[data-reduced-motion="on"] .seg button { transition: none; }
+.seg button[aria-pressed="true"] { background: var(--color-gold); color: var(--color-bg-deep); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* ════ STAGE + scaled fixed-height device ════ */
+.stage {
+  padding: var(--space-10) var(--space-6) var(--space-16);
+  display: flex; justify-content: center;
+  background: radial-gradient(80% 50% at 50% 0%, var(--color-bg-default) 0%, transparent 70%), var(--color-bg-void);
+  min-height: calc(100vh - 56px);
+}
+.device-scaler { position: relative; }
+.bp-readout { position: absolute; top: -28px; left: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--color-text-muted); }
+.device {
+  width: var(--fw, 1440px); height: var(--fh, 840px);
+  container-type: inline-size;
+  position: absolute; top: 0; left: 0; transform-origin: top left;
+  border-radius: var(--radius-border); border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card); overflow: hidden;
+}
+
+/* ════════════════════════════════════════════════
+   A1 · THE PITCH
+   ════════════════════════════════════════════════ */
+.pitch {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  background: linear-gradient(180deg, var(--color-bg-default) 0%, var(--color-bg-deep) 100%);
+  scrollbar-width: thin; scrollbar-color: var(--color-border) transparent;
+}
+.pitch::-webkit-scrollbar { width: 8px; }
+.pitch::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-chip); }
+.pitch-grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.pitch-inner { position: relative; z-index: 2; padding: var(--space-16) var(--space-5) var(--space-20); }
+
+/* ── Floating Island GNB ── */
+.gnb {
+  position: absolute; left: 50%; transform: translateX(-50%); top: var(--space-4); z-index: 20;
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  background: var(--color-bg-elevated); border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-border); padding: 3px var(--space-2); box-shadow: var(--shadow-gnb);
+  transition: padding 160ms ease, top 160ms ease;
+}
+[data-reduced-motion="on"] .gnb { transition: none; }
+.gnb.gnb--compact { padding: 2px var(--space-1); gap: var(--space-2); top: var(--space-2); }
+.gnb-brand { display: flex; align-items: center; padding: var(--space-1) var(--space-3); white-space: nowrap; }
+.gnb-brand img { height: 20px; width: auto; display: block; }
+.gnb.gnb--compact .gnb-brand img { height: 16px; }
+.gnb-sep { width: 1px; height: 14px; background: color-mix(in srgb, var(--color-text) 12%, transparent); flex: none; }
+.gnb-item {
+  border: 0; background: transparent; color: var(--color-text-sub); white-space: nowrap;
+  font-size: 13px; font-weight: 500; padding: 5px var(--space-3); border-radius: var(--radius-border);
+  display: inline-flex; align-items: center; gap: 6px; transition: background 140ms ease, color 140ms ease;
+}
+[data-reduced-motion="on"] .gnb-item { transition: none; }
+.gnb-item svg { width: 16px; height: 16px; }
+.gnb-item .lbl { display: inline; }
+.gnb-item:hover { color: var(--color-text); background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.gnb-item[aria-current="true"] { color: var(--color-gold); background: var(--color-gold-subtle); font-weight: 600; }
+.gnb-item:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.gnb-cta {
+  border: 0; background: var(--color-gold); color: var(--color-bg-default); font-weight: 700; font-size: 12px;
+  letter-spacing: 0.02em; padding: 6px var(--space-4); border-radius: var(--radius-border); white-space: nowrap; margin-left: var(--space-1);
+}
+.gnb-cta:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* ── HeroSection ── */
+.hero { position: relative; text-align: left; margin-bottom: var(--space-12); }
+.hero-glow { position: absolute; inset: -40px -20px; pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 30% 40%, color-mix(in srgb, var(--color-gold) 9%, transparent) 0%, transparent 70%); }
+.hero-kicker { position: relative; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-aura); margin-bottom: var(--space-4); }
+.hero-title { position: relative; margin: 0; }
+.hero-l1 { font-family: var(--font-sans); font-weight: 800; font-size: 38px; line-height: 1.04; letter-spacing: -0.02em; color: var(--color-text); display: block; }
+.hero-l2 { font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 40px; line-height: 1.04; letter-spacing: -0.025em; color: var(--color-gold); display: block; }
+.hero-sub { position: relative; color: var(--color-text-sub); font-size: 15px; max-width: 52ch; margin: var(--space-5) 0 0; }
+.hero-cta { position: relative; display: flex; gap: var(--space-3); margin-top: var(--space-6); flex-wrap: wrap; }
+.btn {
+  position: relative; border: 0; border-radius: var(--radius-border); font-weight: 700; font-size: 14px;
+  height: 46px; padding: 0 var(--space-6); display: inline-flex; align-items: center; gap: var(--space-2);
+  transition: box-shadow 180ms ease, transform 120ms ease, background 120ms ease; will-change: transform; white-space: nowrap;
+}
+[data-reduced-motion="on"] .btn { transform: none !important; transition: box-shadow 180ms ease; }
+.btn-primary { background: var(--color-gold); color: var(--color-bg-deep); }
+.btn-primary:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.btn-ghost { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
+.btn-ghost:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+.btn:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+
+/* CategoryFilter removed v0.1 (2026-06-06) — Pitch is single-stream; no client-side filter, no cat-chip on cards */
+
+/* ── Section head ── */
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin: var(--space-12) 0 var(--space-5); }
+.sec-head:first-of-type { margin-top: 0; }
+.sec-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
+.sec-title { font-family: var(--font-sans); font-weight: 700; font-size: 22px; line-height: 1.2; letter-spacing: -0.01em; margin: var(--space-1) 0 0; }
+.sec-count { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--color-text-muted); }
+
+/* ── Layout: full-width feed (TopCreatorsSidebar retired in v0.2) ── */
+.feed-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+
+/* ── TournamentCard ── */
+.tcard {
+  position: relative; text-align: left; background: var(--color-bg-soft); border: 1px solid var(--color-border);
+  border-left: 4px solid transparent; border-radius: var(--radius-border); overflow: hidden; padding: 0;
+  transition: transform 160ms ease, box-shadow 200ms ease, border-color 160ms ease; will-change: transform;
+}
+[data-reduced-motion="on"] .tcard { transition: box-shadow 200ms ease; transform: none !important; }
+.tcard:hover, .feed-grid.force-hover .tcard {
+  transform: translateY(-4px); box-shadow: var(--shadow-gold);
+  border-color: var(--color-border-gold); border-left-color: var(--color-gold);
+}
+.feed-grid.force-pressed .tcard, .tcard:active { transform: translateY(-1px); box-shadow: 0 0 14px var(--color-gold-subtle); border-left-color: var(--color-gold); }
+.tcard:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.tcard-cover {
+  position: relative; height: 132px; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 78% 22%, color-mix(in srgb, var(--color-gold) 14%, transparent), transparent 55%), linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg-soft) 70%);
+  border-bottom: 1px solid var(--color-border);
+}
+.tcard-vs { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 48px; color: color-mix(in srgb, var(--color-text) 80%, transparent); letter-spacing: -0.03em; }
+.tcard-chips { position: absolute; top: var(--space-3); left: var(--space-3); right: var(--space-3); display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.featured-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-bg-deep); background: var(--color-gold); border: 1px solid var(--color-gold); border-radius: var(--radius-chip); padding: 3px var(--space-2); display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 8px color-mix(in srgb, var(--color-gold) 35%, transparent); }
+.featured-pill::before { content: '★'; font-size: 11px; line-height: 1; }
+.tcard-spacer { display: inline-block; }
+.status-pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px var(--space-2); border-radius: var(--radius-chip); display: inline-flex; align-items: center; gap: 5px; }
+.status-pill .led { width: 5px; height: 5px; border-radius: var(--radius-chip); }
+.status-active { color: var(--color-gold); background: var(--color-gold-subtle); border: 1px solid var(--color-border-gold); }
+.status-active .led { background: var(--color-gold); }
+.status-published { color: var(--color-powder); background: color-mix(in srgb, var(--color-powder) 10%, transparent); border: 1px solid var(--color-border); }
+.status-published .led { background: var(--color-powder); }
+.tcard-body { padding: var(--space-4) var(--space-5) var(--space-5); }
+.tcard-title { font-weight: 700; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; color: var(--color-text); }
+.tcard-meta { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--color-text-sub); }
+.tcard-meta .sep { color: var(--color-text-muted); }
+.tcard-foot { margin-top: var(--space-4); display: flex; justify-content: flex-end; }
+.tcard-enter { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; color: var(--color-gold); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; }
+.tcard-enter svg { width: 16px; height: 16px; }
+
+/* skeleton + empty */
+.skel-grid, .empty-state { display: none; }
+.feed-wrap[data-card-state="loading"] .feed-grid { display: none; }
+.feed-wrap[data-card-state="loading"] .skel-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+.feed-wrap[data-card-state="empty"] .feed-grid { display: none; }
+.feed-wrap[data-card-state="empty"] .empty-state { display: flex; }
+.skel { background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); overflow: hidden; }
+.skel-cover { height: 132px; }
+.skel-line { height: 12px; border-radius: var(--radius-chip); margin: var(--space-3) var(--space-5) 0; }
+.skel-cover, .skel-line { background: linear-gradient(90deg, var(--color-bg-soft) 0%, var(--color-bg-elevated) 50%, var(--color-bg-soft) 100%); background-size: 200% 100%; animation: shimmer 1400ms ease infinite; }
+.skel-line.w60 { width: 60%; } .skel-line.w40 { width: 40%; margin-bottom: var(--space-5); }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+[data-reduced-motion="on"] .skel-cover, [data-reduced-motion="on"] .skel-line { animation: none; }
+.empty-state { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-4); padding: var(--space-20) var(--space-6); border: 1px dashed var(--color-border); border-radius: var(--radius-border); }
+.empty-state img { width: 56px; opacity: 0.6; }
+.empty-state .et { font-weight: 600; font-size: 16px; color: var(--color-text); }
+.empty-state .es { font-size: 13px; color: var(--color-text-sub); }
+
+/* footer */
+.pitch-foot { margin-top: var(--space-16); text-align: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-text-muted); }
+
+/* ── M4 · LabEntryCard ── */
+.lab-entry { position: relative; margin-top: var(--space-12); display: flex; align-items: center; gap: var(--space-5); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-border); background: linear-gradient(135deg, var(--color-bg-soft), var(--color-bg-default)); transition: border-color 160ms ease, box-shadow 200ms ease; }
+[data-reduced-motion="on"] .lab-entry { transition: none; }
+.lab-entry-ico { width: 48px; height: 48px; border-radius: var(--radius-border); border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); flex: none; }
+.lab-entry-ico svg { width: 22px; height: 22px; }
+.lab-entry-body { flex: 1; min-width: 0; }
+.lab-entry-title { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: var(--space-2); }
+.lab-entry-sub { font-size: 13px; color: var(--color-text-sub); margin-top: 4px; }
+.lab-role-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; padding: 2px var(--space-2); border-radius: var(--radius-chip); border: 1px solid var(--color-border); color: var(--color-text-muted); }
+.lab-cta { border: 0; border-radius: var(--radius-border); font-weight: 700; font-size: 13px; padding: var(--space-3) var(--space-5); display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; flex: none; }
+.lab-cta svg { width: 15px; height: 15px; }
+.lab-cta-active { background: var(--color-gold); color: var(--color-bg-deep); }
+.lab-cta-active:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.lab-cta-locked { background: var(--color-bg-elevated); color: var(--color-text-muted); border: 1px solid var(--color-border); cursor: not-allowed; }
+.lab-cta:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.lab-tip { position: absolute; bottom: calc(100% + 8px); right: var(--space-6); background: var(--color-bg-charcoal); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); padding: var(--space-2) var(--space-3); font-size: 12px; color: var(--color-text); white-space: nowrap; box-shadow: var(--shadow-gnb); opacity: 0; transform: translateY(4px); pointer-events: none; transition: opacity 140ms ease, transform 140ms ease; z-index: 5; }
+.lab-tip b { color: var(--color-gold); }
+[data-reduced-motion="on"] .lab-tip { transition: none; }
+.lab-entry[data-lab="locked"] .lab-cta-active { display: none; }
+.lab-entry[data-lab="active"] .lab-cta-locked, .lab-entry[data-lab="active"] .lab-tip { display: none; }
+.lab-entry[data-lab="active"] { border-color: var(--color-border-gold); cursor: pointer; }
+.lab-entry[data-lab="active"]:hover, .lab-entry.force-hover { box-shadow: var(--shadow-gold); border-color: var(--color-gold); }
+.lab-entry[data-lab="active"] .lab-entry-ico { color: var(--color-gold); border-color: var(--color-border-gold); background: var(--color-gold-subtle); }
+.lab-entry[data-lab="locked"] .lab-entry-title { color: var(--color-text-sub); }
+.lab-entry[data-lab="locked"]:hover .lab-tip { opacity: 1; transform: translateY(0); }
+
+/* ── M5 · NewsroomFeed ── */
+.newsroom { margin-top: var(--space-12); }
+.see-more { margin-top: var(--space-6); border: 1px solid var(--color-border); background: transparent; color: var(--color-text); font-weight: 600; font-size: 13px; padding: var(--space-3) var(--space-5); border-radius: var(--radius-border); display: inline-flex; align-items: center; gap: var(--space-2); transition: border-color 140ms ease, color 140ms ease; }
+.see-more svg { width: 15px; height: 15px; }
+.see-more:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+.see-more:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.news-feed { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+.nfi { position: relative; display: flex; gap: var(--space-3); padding: var(--space-3); background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); cursor: pointer; transition: border-color 160ms ease, box-shadow 200ms ease, transform 160ms ease; }
+[data-reduced-motion="on"] .nfi { transition: none; }
+.nfi:hover { border-color: var(--color-border-gold); box-shadow: var(--shadow-gold); transform: translateY(-2px); }
+.nfi.ai { border-left: 3px solid var(--color-gold); }
+.nfi-thumb { width: 88px; height: 72px; border-radius: var(--radius-border); flex: none; display: block; object-fit: cover; background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg-soft)); border: 1px solid var(--color-border); }
+.nfi-body { flex: 1; min-width: 0; padding-right: var(--space-5); }
+.nfi-top { display: flex; align-items: center; gap: var(--space-2); }
+.nfi-source { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--color-text-sub); text-transform: uppercase; }
+.nfi-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; color: var(--color-gold); border: 1px solid var(--color-border-gold); border-radius: var(--radius-chip); padding: 1px 6px; }
+.nfi-title { font-size: 13px; font-weight: 500; line-height: 1.35; color: var(--color-text); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nfi-date { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-muted); margin-top: 4px; letter-spacing: 0.03em; }
+.nfi-ext { position: absolute; top: var(--space-3); right: var(--space-3); color: var(--color-text-muted); }
+.nfi-ext svg { width: 14px; height: 14px; }
+.nfi.notice { cursor: default; align-items: center; justify-content: center; text-align: center; color: var(--color-text-muted); font-size: 12px; border-style: dashed; }
+.nfi.notice:hover { transform: none; box-shadow: none; border-color: var(--color-border); }
+.news-skel, .news-empty { display: none; }
+.newsroom[data-news="loading"] .news-feed, .newsroom[data-news="loading"] .see-more { display: none; }
+.newsroom[data-news="loading"] .news-skel { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+.newsroom[data-news="empty"] .news-feed, .newsroom[data-news="empty"] .see-more { display: none; }
+.newsroom[data-news="empty"] .news-empty { display: flex; }
+.nskel { height: 86px; border-radius: var(--radius-border); background: linear-gradient(90deg, var(--color-bg-soft) 0%, var(--color-bg-elevated) 50%, var(--color-bg-soft) 100%); background-size: 200% 100%; animation: shimmer 1400ms ease infinite; }
+[data-reduced-motion="on"] .nskel { animation: none; }
+.news-empty { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-3); padding: var(--space-16) var(--space-6); border: 1px dashed var(--color-border); border-radius: var(--radius-border); }
+.news-empty img { width: 48px; opacity: 0.5; }
+.news-empty .et { font-weight: 600; font-size: 15px; color: var(--color-text); }
+.news-empty .es { font-size: 13px; color: var(--color-text-sub); }
+
+/* ════ CONTAINER QUERIES ════ */
+@container (min-width: 760px) {
+  .pitch-inner { padding: var(--space-20) var(--space-10) var(--space-24); }
+  .hero-l1 { font-size: 52px; } .hero-l2 { font-size: 54px; }
+  .feed-grid, .feed-wrap[data-card-state="loading"] .skel-grid,
+  .news-feed, .newsroom[data-news="loading"] .news-skel { grid-template-columns: 1fr 1fr; }
+  .sec-title { font-size: 26px; }
+}
+@container (min-width: 1100px) {
+  .pitch-inner { padding: var(--space-24) var(--space-12) var(--space-24); max-width: 1320px; margin: 0 auto; }
+  .hero-l1 { font-size: 60px; } .hero-l2 { font-size: 62px; }
+  .feed-grid, .feed-wrap[data-card-state="loading"] .skel-grid,
+  .news-feed, .newsroom[data-news="loading"] .news-skel { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ════ CONTROL BAR ════ -->
+<header class="cbar">
+  <div class="cbar-brand">
+    <img src="assets/brand/wc48-branding-horizontal-dark.svg" alt="WorldCrown48" style="height: 36px; width: auto;">
+    <span class="dom">· DOMAIN 1 · THE PITCH</span>
+  </div>
+  <div class="cbar-spacer"></div>
+  <div class="cgroup">
+    <span class="cgroup-label">Breakpoint</span>
+    <div class="seg" id="seg-bp" role="group" aria-label="Breakpoint">
+      <button data-w="375" data-h="760"  aria-pressed="false">Mobile</button>
+      <button data-w="768" data-h="700"  aria-pressed="false">Tablet</button>
+      <button data-w="1440" data-h="840" aria-pressed="true">Desktop</button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <span class="cgroup-label">Card&nbsp;state</span>
+    <div class="seg" id="seg-card" role="group" aria-label="Card state">
+      <button data-s="default" aria-pressed="true">Default</button>
+      <button data-s="hover"   aria-pressed="false">Hover</button>
+      <button data-s="pressed" aria-pressed="false">Pressed</button>
+      <button data-s="loading" aria-pressed="false">Loading</button>
+      <button data-s="empty"   aria-pressed="false">Empty</button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <span class="cgroup-label">Lab&nbsp;entry</span>
+    <div class="seg" id="seg-lab" role="group" aria-label="Lab entry state">
+      <button data-l="locked" aria-pressed="true">Locked</button>
+      <button data-l="active" aria-pressed="false">Host</button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <span class="cgroup-label">Newsroom</span>
+    <div class="seg" id="seg-news" role="group" aria-label="Newsroom state">
+      <button data-n="loaded"  aria-pressed="true">Loaded</button>
+      <button data-n="loading" aria-pressed="false">Loading</button>
+      <button data-n="partial" aria-pressed="false">Partial</button>
+      <button data-n="empty"   aria-pressed="false">Empty</button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <span class="cgroup-label">GNB</span>
+    <div class="seg" id="seg-gnb" role="group" aria-label="GNB state">
+      <button data-g="default" aria-pressed="true">Default</button>
+      <button data-g="compact" aria-pressed="false">Compact</button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <span class="cgroup-label">Reduced&nbsp;motion</span>
+    <div class="seg" id="seg-rm" role="group" aria-label="Reduced motion">
+      <button data-rm="off" aria-pressed="true">Off</button>
+      <button data-rm="on"  aria-pressed="false">On</button>
+    </div>
+  </div>
+</header>
+
+<!-- ════ STAGE ════ -->
+<div class="stage" id="stage">
+  <div class="device-scaler" id="scaler">
+    <div class="bp-readout" id="bpReadout">DESKTOP · 1440 × 840</div>
+    <div class="device" id="device" style="--fw: 1440px; --fh: 840px;">
+
+      <!-- ════ A1 · THE PITCH ════ -->
+      <div class="pitch" id="pitchScroll">
+        <div class="pitch-grain" aria-hidden="true"></div>
+
+        <!-- Floating Island GNB -->
+        <nav class="gnb" id="gnb" aria-label="Primary navigation">
+          <span class="gnb-brand"><img src="assets/brand/wc48-branding-horizontal-dark.svg" alt="WorldCrown48"></span>
+          <span class="gnb-sep"></span>
+          <button class="gnb-item" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl">The Pitch</span></button>
+          <button class="gnb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6l-5 9a1.6 1.6 0 0 0 1.4 2.4h11.2A1.6 1.6 0 0 0 19 18l-5-9V3"/></svg><span class="lbl">The Lab</span></button>
+          <button class="gnb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg><span class="lbl">Locker Room</span></button>
+          <button class="gnb-cta">Vote Now</button>
+        </nav>
+
+        <div class="pitch-inner">
+
+          <!-- M1 · HeroSection -->
+          <section class="hero" aria-label="Hero">
+            <div class="hero-glow" aria-hidden="true"></div>
+            <div class="hero-kicker">트렌딩 · The Pitch · Global Fan Voting</div>
+            <h1 class="hero-title">
+              <span class="hero-l1">Who wears the</span>
+              <span class="hero-l2">Ultimate Crown?</span>
+            </h1>
+            <p class="hero-sub">48 Contestants. Five Rounds. You advance Match by Match until one Crown remains. No predictions, no odds — pure fan choice. 당신의 한 표가 챔피언을 만듭니다.</p>
+            <div class="hero-cta">
+              <button class="btn btn-primary magnetic">Start Voting <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="18" y2="12"/><polyline points="12 6 18 12 12 18"/></svg></button>
+              <button class="btn btn-ghost">Explore</button>
+            </div>
+          </section>
+
+          <!-- M2 · CategoryFilter removed v0.1 — single-stream feed -->
+
+          <!-- M2 · TrendingFeed -->
+          <div class="sec-head">
+            <div>
+              <div class="sec-kicker">트렌딩 · Trending</div>
+              <h2 class="sec-title">Trending Tournaments</h2>
+            </div>
+            <span class="sec-count" id="trendCount">4 published · 2 draft</span>
+          </div>
+
+          <div class="feed-wrap" id="feedWrap" data-card-state="default">
+            <div class="feed-grid" id="feedGrid"><!-- cards injected --></div>
+            <div class="skel-grid" aria-hidden="true">
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+              <div class="skel"><div class="skel-cover"></div><div class="skel-line w60"></div><div class="skel-line w40"></div></div>
+            </div>
+            <div class="empty-state">
+              <img src="assets/brand/wc48-crown-circle-outline.svg" alt="">
+              <div class="et">No Tournaments are open right now</div>
+              <div class="es">아직 공개된 토너먼트가 없습니다 · check back soon</div>
+            </div>
+          </div>
+
+          <!-- M4 · LabEntryCard (locked for non-Host Voters / active for Tournament Host) -->
+          <section class="lab-entry" id="labEntry" data-lab="locked" aria-label="Create Tournament">
+            <div class="lab-entry-ico" id="labIco">
+              <svg id="labIcoLock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            </div>
+            <div class="lab-entry-body">
+              <div class="lab-entry-title">Create Tournament <span class="lab-role-tag" id="labRole">TOURNAMENT HOST</span></div>
+              <div class="lab-entry-sub" id="labSub">대진 만들기 · 48명의 Contestant로 나만의 토너먼트를 엽니다. The Lab access is reserved for Tournament Hosts.</div>
+            </div>
+            <button class="lab-cta lab-cta-active" id="labCtaActive">Open The Lab <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="18" y2="12"/><polyline points="12 6 18 12 12 18"/></svg></button>
+            <button class="lab-cta lab-cta-locked" id="labCtaLocked" aria-disabled="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Coming Soon</button>
+            <div class="lab-tip" role="tooltip"><b>Coming Soon</b> · Tournament hosting opens after launch</div>
+          </section>
+
+          <!-- M5 · NewsroomFeed -->
+          <section class="newsroom" id="newsroom" data-news="loaded" aria-label="Newsroom">
+            <div class="sec-head">
+              <div>
+                <div class="sec-kicker">뉴스룸 · Newsroom</div>
+                <h2 class="sec-title">Around the Pitch</h2>
+              </div>
+              <span class="sec-count">Powered by GNews</span>
+            </div>
+            <div class="news-feed" id="newsFeed"><!-- items injected --></div>
+            <div class="news-skel" aria-hidden="true">
+              <div class="nskel"></div><div class="nskel"></div><div class="nskel"></div>
+              <div class="nskel"></div><div class="nskel"></div><div class="nskel"></div>
+            </div>
+            <div class="news-empty">
+              <img src="assets/brand/wc48-crown-outline.svg" alt="">
+              <div class="et">곧 다채로운 뉴스가 도착합니다</div>
+              <div class="es">Fresh news is on the way — check back soon.</div>
+            </div>
+            <button class="see-more" id="seeMore">더 보기 · See more in the Arena Newsroom <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="18" y2="12"/><polyline points="12 6 18 12 12 18"/></svg></button>
+          </section>
+
+          <p class="pitch-foot">WorldCrown48 · 48 Contestants · One Crown</p>
+        </div>
+      </div>
+      <!-- ════ /A1 ════ -->
+
+    </div>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail" data-bg-color="#0E0944">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="#0E0944"/>
+    <circle cx="50" cy="32" r="6" fill="#FCD006"/>
+    <path d="M30 42c6 6 12 4 16-4 4 8 10 10 16 4l-4 22-24-2-4-20z" fill="#FCD006"/>
+  </svg>
+</template>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var device = document.getElementById('device');
+  var scaler = document.getElementById('scaler');
+  var stage = document.getElementById('stage');
+  var bpReadout = document.getElementById('bpReadout');
+
+  function reduced() { return root.getAttribute('data-reduced-motion') === 'on'; }
+  function wireSeg(id, fn) {
+    var seg = document.getElementById(id); if (!seg) return;
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      fn(b);
+    });
+  }
+
+  /* ── Tournament data (status: published / draft — no voteCount, no Vote Rate, no LIVE) ──
+     Categories live in data (backend), not in UI. Featured flag drives the ★ FEATURED badge. */
+  var TRENDING = [
+    { t: '2026 World Cup Best Eleven', cat: 'Football',  status: 'published', deadline: 'Jun 20', featured: true },
+    { t: 'Strikers of the Century',    cat: 'Football',  status: 'published', deadline: 'Jun 22' },
+    { t: 'Midfield Maestros',          cat: 'Football',  status: 'published', deadline: 'Jun 25' },
+    { t: 'Goalkeeper Legends',         cat: 'Football',  status: 'published', deadline: 'Jun 18' },
+    { t: 'K-Pop Visuals of the Decade',cat: 'K-Pop',     status: 'draft',     deadline: 'Jul 02' },
+    { t: 'Cinema Icons of 2025',       cat: 'Cinema',    status: 'draft',     deadline: 'Jul 10' }
+  ];
+  function statusPill(s) {
+    var cls = s === 'published' ? 'status-active' : 'status-published';
+    return '<span class="status-pill ' + cls + '"><span class="led"></span>' + s.toUpperCase() + '</span>';
+  }
+  function card(c) {
+    var el = document.createElement('article');
+    el.className = 'tcard magnetic'; el.tabIndex = 0;
+    el.innerHTML =
+      '<div class="tcard-cover">' +
+        '<div class="tcard-chips">' +
+          (c.featured ? '<span class="featured-pill" aria-label="Featured tournament">FEATURED</span>' : '<span class="tcard-spacer"></span>') +
+          statusPill(c.status) +
+        '</div>' +
+        '<span class="tcard-vs">48</span>' +
+      '</div>' +
+      '<div class="tcard-body">' +
+        '<div class="tcard-title">' + c.t + '</div>' +
+        '<div class="tcard-meta"><span>48 Contestants</span><span class="sep">·</span><span>Closes ' + c.deadline + '</span></div>' +
+        '<div class="tcard-foot"><span class="tcard-enter">ENTER <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="18" y2="12"/><polyline points="12 6 18 12 12 18"/></svg></span></div>' +
+      '</div>';
+    return el;
+  }
+  var grid = document.getElementById('feedGrid');
+  TRENDING.forEach(function (c) { grid.appendChild(card(c)); });
+  var pubCount = TRENDING.filter(function (c) { return c.status === 'published'; }).length;
+  var draftCount = TRENDING.length - pubCount;
+  document.getElementById('trendCount').textContent =
+    pubCount + ' published' + (draftCount ? ' · ' + draftCount + ' draft' : '');
+
+  /* ── Breakpoint + fit scaler ── */
+  var labels = { '375': 'MOBILE', '768': 'TABLET', '1440': 'DESKTOP' };
+  function curW() { return parseInt(device.style.getPropertyValue('--fw')) || 1440; }
+  function fit() {
+    var fw = curW(); var fh = parseInt(device.style.getPropertyValue('--fh')) || 840;
+    var scale = Math.min(1, (stage.clientWidth - 48) / fw);
+    device.style.transform = 'scale(' + scale + ')';
+    scaler.style.width = (fw * scale) + 'px';
+    scaler.style.height = (fh * scale) + 'px';
+  }
+  wireSeg('seg-bp', function (b) {
+    var w = b.getAttribute('data-w'), h = b.getAttribute('data-h');
+    device.style.setProperty('--fw', w + 'px'); device.style.setProperty('--fh', h + 'px');
+    bpReadout.textContent = labels[w] + ' · ' + w + ' × ' + h;
+    requestAnimationFrame(fit);
+  });
+  window.addEventListener('resize', fit);
+
+  /* ── Reduced motion ── */
+  wireSeg('seg-rm', function (b) { root.setAttribute('data-reduced-motion', b.getAttribute('data-rm')); });
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function applyMQ() {
+    if (mq.matches) {
+      root.setAttribute('data-reduced-motion', 'on');
+      var seg = document.getElementById('seg-rm');
+      seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-rm') === 'on')); });
+    }
+  }
+  applyMQ(); if (mq.addEventListener) mq.addEventListener('change', applyMQ);
+
+  /* ── Card state switcher ── */
+  var feedWrap = document.getElementById('feedWrap');
+  wireSeg('seg-card', function (b) {
+    var s = b.getAttribute('data-s');
+    feedWrap.setAttribute('data-card-state', (s === 'loading' || s === 'empty') ? s : 'default');
+    grid.classList.toggle('force-hover', s === 'hover');
+    grid.classList.toggle('force-pressed', s === 'pressed');
+  });
+
+  /* ── GNB compact ── */
+  var gnb = document.getElementById('gnb');
+  wireSeg('seg-gnb', function (b) { gnb.classList.toggle('gnb--compact', b.getAttribute('data-g') === 'compact'); });
+
+  /* GNB active pill on click */
+  document.querySelectorAll('.gnb-item').forEach(function (it) {
+    it.addEventListener('click', function () {
+      document.querySelectorAll('.gnb-item').forEach(function (i) { i.removeAttribute('aria-current'); });
+      it.setAttribute('aria-current', 'true');
+    });
+  });
+
+  /* CategoryFilter chip handler removed v0.1 — no filter UI */
+
+  /* ── Magnetic translate (CTA + cards) ── */
+  function bindMagnetic(el, strength) {
+    el.addEventListener('mousemove', function (e) {
+      if (reduced()) return;
+      var scale = (scaler.offsetWidth / curW()) || 1;
+      var r = el.getBoundingClientRect();
+      var dx = (e.clientX - (r.left + r.width / 2)) / scale;
+      var dy = (e.clientY - (r.top + r.height / 2)) / scale;
+      el.style.transform = 'translate(' + (dx * strength).toFixed(2) + 'px,' + (dy * strength).toFixed(2) + 'px)';
+    });
+    el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+  }
+  document.querySelectorAll('.hero-cta .magnetic').forEach(function (el) { bindMagnetic(el, 0.3); });
+  document.querySelectorAll('.tcard.magnetic').forEach(function (el) {
+    el.addEventListener('mousemove', function (e) {
+      if (reduced()) return;
+      var scale = (scaler.offsetWidth / curW()) || 1;
+      var r = el.getBoundingClientRect();
+      var dx = (e.clientX - (r.left + r.width / 2)) / scale;
+      var dy = (e.clientY - (r.top + r.height / 2)) / scale;
+      el.style.transform = 'translateY(-4px) translate(' + (dx * 0.06).toFixed(2) + 'px,' + (dy * 0.06).toFixed(2) + 'px)';
+    });
+    el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+  });
+
+  /* ── auto-compact GNB on internal scroll ── */
+  var pitchScroll = document.getElementById('pitchScroll');
+  pitchScroll.addEventListener('scroll', function () {
+    if (document.getElementById('seg-gnb').querySelector('[data-g="compact"]').getAttribute('aria-pressed') === 'true') return;
+    gnb.classList.toggle('gnb--compact', pitchScroll.scrollTop > 40);
+  });
+
+  /* ── M4 · LabEntryCard state ── */
+  var labEntry = document.getElementById('labEntry');
+  var labIco = document.getElementById('labIco');
+  var labSub = document.getElementById('labSub');
+  var ICO_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+  var ICO_LAB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6l-5 9a1.6 1.6 0 0 0 1.4 2.4h11.2A1.6 1.6 0 0 0 19 18l-5-9V3"/></svg>';
+  function setLab(s) {
+    labEntry.setAttribute('data-lab', s);
+    labIco.innerHTML = s === 'active' ? ICO_LAB : ICO_LOCK;
+    labSub.textContent = s === 'active'
+      ? 'You are a Tournament Host — open The Lab to create a Tournament, set its Deadline, and publish.'
+      : '대진 만들기 · The Lab is reserved for Tournament Hosts. Hosting opens after launch.';
+  }
+  wireSeg('seg-lab', function (b) { setLab(b.getAttribute('data-l')); });
+  setLab('locked');
+
+  /* ── M5 · NewsroomFeed ── */
+  /* ── In production the `img` field is the GNews thumbnail URL. For the prototype we use
+     picsum.photos with stable seeds so each card has a distinct, deterministic stand-in. ── */
+  var KW = [
+    { id: 'news-kw-1', src: 'Reuters',     t: 'A new generation of forwards steps into the global spotlight this summer', d: '2시간 전', img: 'https://picsum.photos/seed/wc48-news-kw1/176/144' },
+    { id: 'news-kw-2', src: 'ESPN',        t: 'Why fan-vote tournaments are reshaping how supporters engage with the game', d: '4시간 전', img: 'https://picsum.photos/seed/wc48-news-kw2/176/144' },
+    { id: 'news-kw-3', src: 'The Athletic',t: 'Tactical trends: the modern striker’s evolving role across leagues', d: '6시간 전', img: 'https://picsum.photos/seed/wc48-news-kw3/176/144' },
+    { id: 'news-kw-4', src: 'Goal',        t: 'Rising stars to watch as the season gets underway worldwide', d: '9시간 전', img: 'https://picsum.photos/seed/wc48-news-kw4/176/144' }
+  ];
+  var AI = [
+    { id: 'news-ai-1', src: 'WC48 · Fan Intelligence', t: 'Top 5 strikers fans voted for — a global fan-vote report', d: '1시간 전', img: 'https://picsum.photos/seed/wc48-news-ai1/176/144' },
+    { id: 'news-ai-2', src: 'WC48 · Fan Intelligence', t: 'Upsets by vote share: late-stage ranking shifts, analyzed', d: '3시간 전', img: 'https://picsum.photos/seed/wc48-news-ai2/176/144' }
+  ];
+  var newsFeed = document.getElementById('newsFeed');
+  var EXT = '<span class="nfi-ext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h9v9M18 6l-12 12"/></svg></span>';
+  function nfi(item, variant) {
+    var el = document.createElement('article');
+    el.className = 'nfi' + (variant === 'ai-report' ? ' ai' : '');
+    /* NewsFeedItem: photo + source + title(2-line) + date + external link.
+       Photos render directly from the news source (or stable picsum stand-ins in the prototype). */
+    el.innerHTML =
+      '<img class="nfi-thumb" src="' + item.img + '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
+      '<div class="nfi-body"><div class="nfi-top"><span class="nfi-source">' + item.src + '</span>' +
+        (variant === 'ai-report' ? '<span class="nfi-tag">REPORT</span>' : '') + '</div>' +
+        '<div class="nfi-title">' + item.t + '</div><div class="nfi-date">' + item.d + '</div></div>' + EXT;
+    return el;
+  }
+  function noticeItem() {
+    var el = document.createElement('article');
+    el.className = 'nfi notice';
+    el.innerHTML = 'AI 뉴스 준비 중 · Fan Intelligence reports are coming soon';
+    return el;
+  }
+  function buildNews(state) {
+    newsFeed.innerHTML = '';
+    if (state === 'partial') {
+      KW.forEach(function (k) { newsFeed.appendChild(nfi(k, 'keyword')); });
+      newsFeed.appendChild(noticeItem());
+    } else {
+      /* loaded — merge keyword + ai-report, generation order (6) */
+      var merged = [AI[0], KW[0], KW[1], AI[1], KW[2], KW[3]];
+      merged.forEach(function (m) { newsFeed.appendChild(nfi(m, m.src.indexOf('Fan Intelligence') !== -1 ? 'ai-report' : 'keyword')); });
+    }
+  }
+  buildNews('loaded');
+  var newsroom = document.getElementById('newsroom');
+  wireSeg('seg-news', function (b) {
+    var s = b.getAttribute('data-n');
+    newsroom.setAttribute('data-news', s);
+    if (s === 'partial') buildNews('partial');
+    else if (s === 'loaded') buildNews('loaded');
+  });
+
+
+})();
+</script>
+</body>
+</html>

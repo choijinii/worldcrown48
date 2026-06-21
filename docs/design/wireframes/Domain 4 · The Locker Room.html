@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light" data-reduced-motion="off">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 · Domain 4 — The Locker Room</title>
+<link rel="icon" href="assets/brand/wc48-crown-circle-filled.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+/* ════ PRETENDARD — self-hosted (brand-mandatory · never CDN) ════ */
+@font-face { font-family:"Pretendard"; font-weight:100; src:url("fonts/Pretendard-Thin.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:200; src:url("fonts/Pretendard-ExtraLight.otf")format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:300; src:url("fonts/Pretendard-Light.otf")     format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:400; src:url("fonts/Pretendard-Regular.otf")   format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:500; src:url("fonts/Pretendard-Medium.otf")    format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:600; src:url("fonts/Pretendard-SemiBold.otf")  format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:700; src:url("fonts/Pretendard-Bold.otf")      format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:800; src:url("fonts/Pretendard-ExtraBold.otf") format("opentype"); font-display:swap; }
+@font-face { font-family:"Pretendard"; font-weight:900; src:url("fonts/Pretendard-Black.otf")     format("opentype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:400; font-style:italic; src:url("fonts/PlayfairDisplay-Italic.ttf")     format("truetype"); font-display:swap; }
+@font-face { font-family:"Playfair Display Local"; font-weight:900; font-style:italic; src:url("fonts/PlayfairDisplay-BlackItalic.ttf") format("truetype"); font-display:swap; }
+
+/* ════ DESIGN-SYSTEM TOKEN LAYER · light-group only (Domain 4–6) ════ */
+:root {
+  /* Gold (theme-shared) */
+  --color-gold:        #FCD006;
+  --color-gold-bright: #FBB03B;
+  --color-gold-hover:  #E3BB05;
+  --color-gold-subtle: rgba(252,208,6,0.14);
+  --color-gold-glow:   rgba(252,208,6,0.30);
+  --color-aura:        #EEDA7D;
+  /* Accent · state-reserved */
+  --color-crimson:     #D7063A;
+  --color-turquoise:   #00A3B7;
+  /* Twilight Indigo — text & logo anchor (also matches wordmark fill) */
+  --color-royal:       #241754;
+  --color-deep-twil:   #0E0944;
+  /* LIGHT surfaces & ink */
+  --color-bg-light:         #F2F2F5;
+  --color-surface-light:    #FFFFFF;
+  --color-surface-cream:    #FAF7EE;  /* warm off-white · personal sections */
+  --color-text-light:       #0E0944;
+  --color-text-sub-light:   #3A4570;
+  --color-text-muted-light: #8C99B3;
+  --color-border-light:     #D4DCE3;
+  --color-border-soft:      #E6EAEF;
+  /* Shadow · light theme */
+  --shadow-light:     0 1px 2px rgba(36,23,84,0.06), 0 8px 24px rgba(36,23,84,0.06);
+  --shadow-soft:      0 1px 2px rgba(36,23,84,0.04);
+  --shadow-gold:      0 0 28px rgba(252,208,6,0.30);
+  --shadow-crimson:   0 0 24px rgba(215,6,58,0.20);
+  --shadow-gnb:       0 10px 30px rgba(36,23,84,0.10);
+  --shadow-modal:     0 24px 60px rgba(14,9,68,0.22);
+  /* Radius — three only */
+  --radius-rect:   0;
+  --radius-border: 5px;
+  --radius-chip:   999px;
+  /* Spacing (8-grid) */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+  --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px;
+  --space-20:80px; --space-24:96px; --space-32:128px;
+  /* Typography */
+  --font-sans:    'Inter','Pretendard',-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo',sans-serif;
+  --font-display: 'Playfair Display','Playfair Display Local','Pretendard',Georgia,serif;
+  --font-mono:    'JetBrains Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+
+/* ════ RESET ════ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; border-radius: var(--radius-border); }
+
+/* ════ CONTROL BAR (page chrome) ════ */
+.cbar {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--color-surface-light) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--space-3) var(--space-5);
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+}
+.cbar-brand { display: flex; align-items: center; }
+.cbar-brand img { height: 36px; width: auto; display: block; }
+.cbar-spacer { flex: 1 1 auto; }
+.cgroup { display: flex; align-items: center; gap: var(--space-2); }
+.cgroup-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-sub-light); }
+.seg { display: inline-flex; background: var(--color-bg-light); border: 1px solid var(--color-border-light); border-radius: var(--radius-chip); padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button {
+  border: 0; background: transparent; color: var(--color-text-sub-light);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-3); border-radius: var(--radius-chip);
+  transition: background 120ms ease, color 120ms ease;
+}
+[data-reduced-motion="on"] .seg button { transition: none; }
+.seg button[aria-pressed="true"] {
+  background: var(--color-royal); color: var(--color-gold); font-weight: 600;
+}
+.state-seg { display: none; }
+.state-seg.is-active { display: inline-flex; }
+
+/* ════ Surface tab strip ════ */
+.tabstrip {
+  position: sticky; top: 49px; z-index: 55;
+  display: flex; gap: var(--space-1);
+  padding: var(--space-2) var(--space-5);
+  background: color-mix(in srgb, var(--color-bg-light) 90%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border-light);
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabstrip::-webkit-scrollbar { display: none; }
+.tab {
+  border: 1px solid transparent; background: transparent;
+  color: var(--color-text-sub-light); font-size: 12px; font-weight: 600;
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-chip);
+  white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-2);
+  transition: background 140ms ease, color 140ms ease;
+}
+[data-reduced-motion="on"] .tab { transition: none; }
+.tab .mod { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--color-text-muted-light); }
+.tab:hover { color: var(--color-text-light); background: color-mix(in srgb, var(--color-royal) 4%, transparent); }
+.tab[aria-current="true"] {
+  background: var(--color-gold-subtle); color: var(--color-royal);
+  border-color: rgba(252,208,6,0.45);
+}
+.tab[aria-current="true"] .mod { color: var(--color-gold-hover); }
+
+/* ════ STAGE + device ════ */
+.stage {
+  padding: var(--space-8) var(--space-6) var(--space-16);
+  display: flex; justify-content: center;
+  background:
+    radial-gradient(80% 50% at 50% 0%, color-mix(in srgb, var(--color-aura) 12%, transparent) 0%, transparent 70%),
+    var(--color-bg-light);
+  min-height: calc(100vh - 92px);
+}
+.device-scaler { position: relative; }
+.bp-readout {
+  position: absolute; top: -26px; left: 0;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  color: var(--color-text-muted-light);
+}
+.bp-readout b { color: var(--color-royal); font-weight: 700; }
+.device {
+  width: var(--fw, 1440px); height: var(--fh, 900px);
+  container-type: inline-size;
+  position: absolute; top: 0; left: 0; transform-origin: top left;
+  border-radius: var(--radius-border);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  background: var(--color-bg-light);
+}
+
+/* ════════════════════════════════════════════════
+   LOCKER ROOM root + surface routing
+   ════════════════════════════════════════════════ */
+.lr {
+  position: absolute; inset: 0;
+  background: var(--color-bg-light);
+  overflow: hidden;
+}
+.surface { position: absolute; inset: 0; display: none; flex-direction: column; }
+.lr[data-surface="auth"]    .sf-auth,
+.lr[data-surface="profile"] .sf-profile,
+.lr[data-surface="gdpr"]    .sf-gdpr { display: flex; }
+
+/* ════════════════════════════════════════════════
+   FLOATING ISLAND GNB · LIGHT VARIANT
+   ════════════════════════════════════════════════ */
+.gnb-wrap {
+  position: relative; z-index: 30;
+  padding: var(--space-5) var(--space-6) 0;
+  display: flex; justify-content: center;
+}
+.gnb {
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  padding: 4px var(--space-2);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-gnb);
+  max-width: 100%;
+}
+.gnb__brand { display: flex; align-items: center; gap: var(--space-2); padding: 2px var(--space-2); }
+.gnb__brand img { width: 16px; height: 16px; }
+.gnb__wm { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-royal); font-weight: 700; }
+.gnb__sep { width: 1px; height: 14px; background: var(--color-border-light); }
+.gnb__nav { display: flex; gap: 2px; }
+.gnb__link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-border);
+  font-size: 13px; font-weight: 500;
+  color: var(--color-text-sub-light);
+  cursor: pointer;
+}
+.gnb__link.is-active {
+  color: var(--color-royal); background: var(--color-gold-subtle); font-weight: 600;
+}
+.gnb__hamburger {
+  display: none; border: 0; background: transparent;
+  width: 32px; height: 32px; padding: 0;
+  border-radius: var(--radius-border);
+  color: var(--color-royal);
+}
+
+/* ── GNB right side: SignIn button OR Profile menu ── */
+.gnb__right { display: flex; align-items: center; gap: var(--space-2); padding-right: var(--space-1); }
+
+.signin-btn {
+  position: relative; overflow: hidden;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-gold); color: var(--color-deep-twil);
+  border: 0; border-radius: var(--radius-border);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+  transition: box-shadow 140ms ease, transform 140ms ease, background 140ms ease;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  will-change: transform;
+}
+.signin-btn:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.signin-btn[data-state="loading"] { background: var(--color-gold-hover); cursor: wait; }
+.signin-btn[data-state="error"]   { background: var(--color-crimson); color: var(--color-surface-light); box-shadow: var(--shadow-crimson); }
+.signin-btn .sb-spin {
+  width: 12px; height: 12px; border-radius: var(--radius-chip);
+  border: 2px solid color-mix(in srgb, var(--color-deep-twil) 30%, transparent);
+  border-top-color: var(--color-deep-twil);
+  animation: spin 720ms linear infinite;
+}
+[data-reduced-motion="on"] .signin-btn .sb-spin { animation: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.profile-menu {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 3px var(--space-2) 3px 3px;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-chip);
+  cursor: pointer;
+  font-size: 12px; color: var(--color-royal); font-weight: 600;
+}
+.profile-menu .avatar-sm {
+  width: 24px; height: 24px; border-radius: var(--radius-chip);
+  background: linear-gradient(135deg, var(--color-royal), var(--color-deep-twil));
+  color: var(--color-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.profile-menu .pm-cap { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-muted-light); letter-spacing: 0.1em; }
+.profile-menu .chev { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-muted-light); padding-right: var(--space-2); }
+
+/* ════════════════════════════════════════════════
+   AUTH PROVIDER GATE — Loading · Unauthenticated · Authenticated
+   ════════════════════════════════════════════════ */
+.sf-auth { padding-top: 0; }
+.auth-shell {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  position: relative;
+}
+.auth-card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-light);
+  padding: var(--space-10) var(--space-10) var(--space-8);
+  width: 100%; max-width: 460px;
+  text-align: center;
+}
+.auth-card .crown-lg { width: 56px; height: auto; margin: 0 auto var(--space-5); }
+.auth-card .eyebrow {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.28em;
+  color: var(--color-gold-hover); font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.auth-card h1 {
+  font-family: var(--font-sans); font-weight: 700; font-size: 28px;
+  letter-spacing: -0.02em; margin: 0 0 var(--space-2); color: var(--color-text-light);
+  text-wrap: balance;
+}
+.auth-card .h-sub {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 18px; color: var(--color-text-sub-light);
+  margin-bottom: var(--space-6); letter-spacing: -0.01em;
+}
+.auth-card .lead {
+  font-size: 14px; color: var(--color-text-sub-light);
+  margin-bottom: var(--space-6); text-wrap: pretty;
+  line-height: 1.6;
+}
+.auth-card .lead .ko { display: block; margin-bottom: 4px; font-weight: 500; color: var(--color-text-light); }
+.auth-providers { display: flex; flex-direction: column; gap: var(--space-2); }
+.auth-btn {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-border); font-size: 14px; font-weight: 600;
+  border: 1px solid var(--color-border-light); background: var(--color-surface-light);
+  color: var(--color-text-light);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+  will-change: transform;
+}
+.auth-btn:hover { background: var(--color-bg-light); border-color: var(--color-text-muted-light); }
+.auth-btn.primary {
+  background: var(--color-gold); color: var(--color-deep-twil); border-color: var(--color-gold);
+  font-weight: 700;
+}
+.auth-btn.primary:hover { background: var(--color-gold-hover); border-color: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.auth-btn .auth-ico {
+  width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center;
+}
+.auth-foot {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--color-text-muted-light); margin-top: var(--space-8);
+}
+.auth-foot a { color: var(--color-gold-hover); }
+
+/* Loading state */
+.auth-loading {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-5);
+  padding: var(--space-12) var(--space-8);
+}
+.auth-loading .crown-pulse {
+  width: 56px; height: auto; opacity: 0.6;
+  animation: pulse-crown 1400ms ease-in-out infinite;
+}
+@keyframes pulse-crown {
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50%      { opacity: 0.85; transform: scale(1.0); }
+}
+[data-reduced-motion="on"] .auth-loading .crown-pulse { animation: none; opacity: 0.6; }
+.auth-loading .lt {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.22em;
+  color: var(--color-text-muted-light); text-transform: uppercase;
+}
+
+.lr[data-auth="loading"] .auth-card,
+.lr[data-auth="authed"]  .auth-card { display: none; }
+.lr[data-auth="loading"] .auth-loading { display: flex; }
+.lr[data-auth="unauthed"] .auth-loading,
+.lr[data-auth="authed"]   .auth-loading { display: none; }
+/* When viewing the AUTH surface in 'authed' mode, show a small "you're already signed in" affordance */
+.lr[data-auth="authed"] .auth-authed-already { display: flex; }
+.auth-authed-already { display: none; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-12) var(--space-6); }
+.auth-authed-already .crown-lg { width: 44px; }
+.auth-authed-already .l1 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; color: var(--color-gold-hover); font-weight: 700; }
+.auth-authed-already .l2 { font-size: 18px; font-weight: 700; color: var(--color-text-light); }
+.auth-authed-already .l3 { font-size: 13px; color: var(--color-text-sub-light); }
+.auth-authed-already button {
+  margin-top: var(--space-3); padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-light); background: var(--color-surface-light);
+  border-radius: var(--radius-border); font-size: 13px; font-weight: 600; color: var(--color-royal);
+}
+
+/* ── Navbar SignIn state synchronization with auth state ── */
+.lr[data-auth="unauthed"] .profile-menu  { display: none; }
+.lr[data-auth="unauthed"] .signin-btn    { display: inline-flex; }
+.lr[data-auth="authed"]   .profile-menu  { display: inline-flex; }
+.lr[data-auth="authed"]   .signin-btn    { display: none; }
+.lr[data-auth="loading"]  .profile-menu  { display: none; }
+.lr[data-auth="loading"]  .signin-btn    { display: inline-flex; opacity: 0.5; pointer-events: none; }
+
+/* ════════════════════════════════════════════════
+   PROFILE SURFACE · main content
+   ════════════════════════════════════════════════ */
+.sf-profile { overflow-y: auto; overflow-x: hidden; }
+.sf-profile::-webkit-scrollbar { width: 8px; }
+.sf-profile::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: var(--radius-chip); }
+
+.lr-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12) var(--space-16);
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+}
+@container (max-width: 1100px) {
+  .lr-main { grid-template-columns: minmax(0, 1fr); padding: var(--space-6) var(--space-6) var(--space-12); gap: var(--space-6); }
+}
+@container (max-width: 480px) {
+  .lr-main { padding: var(--space-4); gap: var(--space-5); }
+  .gnb-wrap { padding: var(--space-3) var(--space-3) 0; }
+}
+
+/* Profile header */
+.prof-header {
+  display: grid; grid-template-columns: 120px 1fr auto; gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-8);
+  background: var(--color-surface-cream);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-soft);
+}
+@container (max-width: 720px) {
+  .prof-header { grid-template-columns: 88px 1fr; gap: var(--space-4); padding: var(--space-5); }
+  .prof-header .prof-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@container (max-width: 480px) {
+  .prof-header { grid-template-columns: 72px 1fr; padding: var(--space-4); }
+}
+
+.avatar {
+  width: 120px; height: 120px; border-radius: var(--radius-chip);
+  background: linear-gradient(135deg, var(--color-royal) 0%, var(--color-deep-twil) 100%);
+  color: var(--color-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 56px; letter-spacing: -0.02em;
+  border: 3px solid var(--color-surface-light);
+  box-shadow: var(--shadow-soft);
+}
+@container (max-width: 720px) {
+  .avatar { width: 88px; height: 88px; font-size: 40px; border-width: 2px; }
+}
+@container (max-width: 480px) {
+  .avatar { width: 72px; height: 72px; font-size: 32px; }
+}
+.lr[data-avatar="photo"] .avatar { background-image: var(--photo-grad, linear-gradient(135deg, var(--color-turquoise), var(--color-royal))); color: transparent; }
+
+.prof-info { min-width: 0; }
+.prof-info .name {
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 40px; line-height: 1.04; letter-spacing: -0.025em;
+  color: var(--color-text-light); margin: 0;
+}
+@container (max-width: 720px) { .prof-info .name { font-size: 28px; } }
+@container (max-width: 480px) { .prof-info .name { font-size: 22px; } }
+
+.prof-info .handle {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--color-text-muted-light); letter-spacing: 0.06em;
+  margin-top: var(--space-1);
+}
+.prof-meta {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+}
+.prof-meta span {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--color-text-sub-light); letter-spacing: 0.04em;
+  display: inline-flex; align-items: center; gap: var(--space-1);
+}
+.prof-meta b { color: var(--color-royal); font-weight: 700; }
+
+.prof-actions { display: flex; gap: var(--space-2); align-items: center; }
+.btn-ghost {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-light); color: var(--color-royal);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-size: 12px; font-weight: 600;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.btn-ghost:hover { background: var(--color-bg-light); border-color: var(--color-text-muted-light); }
+.btn-ghost.danger { color: var(--color-crimson); border-color: rgba(215,6,58,0.30); }
+.btn-ghost.danger:hover { background: rgba(215,6,58,0.06); border-color: var(--color-crimson); }
+
+/* ════════════════════════════════════════════════
+   VOTING HISTORY
+   ════════════════════════════════════════════════ */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: var(--space-10) 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-light);
+}
+.section-head h2 {
+  font-family: var(--font-sans); font-weight: 700; font-size: 20px;
+  letter-spacing: -0.015em; margin: 0; color: var(--color-text-light);
+  display: flex; align-items: baseline; gap: var(--space-3);
+}
+.section-head h2 .ko-side {
+  font-family: var(--font-sans); font-weight: 500; font-size: 13px;
+  color: var(--color-text-sub-light); letter-spacing: 0;
+}
+.section-head .sh-meta {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--color-text-muted-light); letter-spacing: 0.14em;
+}
+.section-head .sh-meta b { color: var(--color-royal); font-weight: 700; }
+
+.history-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@container (max-width: 1100px) { .history-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.history-item {
+  display: grid; grid-template-columns: 72px 1fr auto; gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-soft);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+.history-item:hover {
+  border-color: rgba(252,208,6,0.45);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+}
+[data-reduced-motion="on"] .history-item { transition: none; }
+[data-reduced-motion="on"] .history-item:hover { transform: none; box-shadow: var(--shadow-soft); }
+
+.hist-thumb {
+  width: 72px; height: 72px; border-radius: var(--radius-border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 28px; color: var(--color-surface-light);
+  letter-spacing: -0.02em;
+}
+.hist-thumb.t1 { background: linear-gradient(135deg, var(--color-royal), var(--color-deep-twil)); }
+.hist-thumb.t2 { background: linear-gradient(135deg, var(--color-turquoise), var(--color-royal)); }
+.hist-thumb.t3 { background: linear-gradient(135deg, var(--color-crimson), #6B0721); }
+.hist-thumb.t4 { background: linear-gradient(135deg, #5A3A8E, var(--color-royal)); }
+.hist-thumb.t5 { background: linear-gradient(135deg, var(--color-gold-bright), #7A4900); color: var(--color-deep-twil); }
+.hist-thumb.t6 { background: linear-gradient(135deg, #2D4A6E, var(--color-deep-twil)); }
+
+.hist-body { min-width: 0; }
+.hist-body .h-title {
+  font-size: 15px; font-weight: 700; color: var(--color-text-light);
+  margin: 0; letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+.hist-body .h-sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--color-text-muted-light); letter-spacing: 0.14em;
+  margin-top: 2px; text-transform: uppercase;
+}
+.hist-body .h-champ {
+  margin-top: var(--space-2);
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: 13px;
+}
+.hist-body .h-champ .h-crown { width: 14px; height: 14px; }
+.hist-body .h-champ .h-name {
+  font-family: var(--font-display); font-style: italic; font-weight: 700;
+  color: var(--color-royal);
+}
+.hist-body .h-champ .h-prefix {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em;
+  color: var(--color-gold-hover); font-weight: 700; text-transform: uppercase;
+}
+
+.hist-state { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.18em; font-weight: 600; text-transform: uppercase;
+  border-radius: var(--radius-chip);
+}
+.pill.completed {
+  background: rgba(0,163,183,0.10); color: #007988;
+  border: 1px solid rgba(0,163,183,0.30);
+}
+.pill.completed::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-chip); background: var(--color-turquoise); }
+.pill.in-progress {
+  background: var(--color-gold-subtle); color: #8A6F00;
+  border: 1px solid rgba(252,208,6,0.40);
+}
+.pill.in-progress::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-chip); background: var(--color-gold-hover); }
+
+/* In-progress card variant: champion line replaced with "still voting" */
+.history-item[data-state="in-progress"] .h-champ .h-prefix,
+.history-item[data-state="in-progress"] .h-champ .h-name { display: none; }
+.history-item[data-state="in-progress"] .h-still { display: inline-flex; }
+.h-still {
+  display: none; align-items: center; gap: var(--space-2);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em;
+  color: var(--color-text-sub-light); font-weight: 600;
+}
+.h-still .h-dot {
+  width: 6px; height: 6px; border-radius: var(--radius-chip); background: var(--color-gold-hover);
+  animation: pulse-dot 1400ms ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.5; transform: scale(0.85); }
+  50%      { opacity: 1; transform: scale(1.1); }
+}
+[data-reduced-motion="on"] .h-dot { animation: none; }
+
+/* ── Empty state ── */
+.history-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-8);
+  background: var(--color-surface-light);
+  border: 1px dashed var(--color-border-light);
+  border-radius: var(--radius-border);
+}
+.history-empty .crown-em { width: 40px; opacity: 0.40; margin: 0 auto var(--space-4); }
+.history-empty .e-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--color-text-light); margin: 0 0 var(--space-2); }
+.history-empty .e-sub { font-size: 13px; color: var(--color-text-sub-light); margin-bottom: var(--space-5); }
+.history-empty .e-cta {
+  padding: var(--space-2) var(--space-5); border-radius: var(--radius-border);
+  background: var(--color-gold); color: var(--color-deep-twil); border: 0;
+  font-size: 13px; font-weight: 700;
+}
+.history-empty .e-cta:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+
+/* ── Skeleton state ── */
+.history-skel {
+  display: grid; grid-template-columns: 72px 1fr auto; gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+}
+.skel-block {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--color-bg-light) 80%, var(--color-border-light)) 0%,
+    color-mix(in srgb, var(--color-bg-light) 60%, var(--color-border-light)) 50%,
+    color-mix(in srgb, var(--color-bg-light) 80%, var(--color-border-light)) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1400ms linear infinite;
+  border-radius: var(--radius-border);
+}
+[data-reduced-motion="on"] .skel-block { animation: none; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skel-thumb { width: 72px; height: 72px; }
+.skel-line { height: 12px; border-radius: 3px; }
+.skel-line.lg { height: 16px; width: 70%; }
+.skel-line.sm { width: 40%; margin-top: var(--space-2); }
+.skel-line.xs { width: 28%; margin-top: var(--space-3); height: 10px; }
+.skel-pill { width: 100px; height: 22px; border-radius: var(--radius-chip); }
+
+.lr[data-history="loaded"] .history-grid    { display: grid; }
+.lr[data-history="loaded"] .history-empty,
+.lr[data-history="loaded"] .history-skel-wrap { display: none; }
+.lr[data-history="empty"]  .history-grid,
+.lr[data-history="empty"]  .history-skel-wrap { display: none; }
+.lr[data-history="empty"]  .history-empty { display: block; }
+.lr[data-history="loading"] .history-grid,
+.lr[data-history="loading"] .history-empty { display: none; }
+.lr[data-history="loading"] .history-skel-wrap { display: grid; }
+.history-skel-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+@container (max-width: 1100px) { .history-skel-wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* ════════════════════════════════════════════════
+   SIDEBAR — Vote-limit · Rate-limit warning · Saved Crown Cards · Danger zone
+   ════════════════════════════════════════════════ */
+.lr-side { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.side-card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-soft);
+}
+.side-card .sc-eyebrow {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--color-text-muted-light); letter-spacing: 0.22em;
+  font-weight: 700; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.side-card .sc-eyebrow .sc-reset {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.12em;
+  color: var(--color-text-muted-light); font-weight: 600;
+}
+
+/* ── Vote-limit indicator (live · per-Tournament) ── */
+.vl-current {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em;
+  color: var(--color-gold-hover); font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.vl-current b { color: var(--color-royal); font-weight: 700; letter-spacing: -0.01em; font-size: 13px; font-family: var(--font-sans); text-transform: none; }
+.vl-headline {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.vl-headline .vl-num {
+  font-family: var(--font-mono); font-weight: 700; font-size: 44px;
+  color: var(--color-royal); letter-spacing: -0.02em; line-height: 1;
+}
+.vl-headline .vl-den {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  color: var(--color-text-muted-light); letter-spacing: 0.04em;
+}
+.vl-headline .vl-lbl {
+  font-size: 12px; color: var(--color-text-sub-light);
+  margin-left: auto; padding-left: var(--space-3); text-align: right;
+}
+.vl-dots {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-2);
+}
+.vl-dots .dot {
+  height: 6px; border-radius: var(--radius-chip);
+  background: var(--color-border-light);
+}
+.vl-dots .dot.used { background: var(--color-gold); box-shadow: 0 0 0 1px rgba(252,208,6,0.3); }
+.vl-foot {
+  margin-top: var(--space-4); padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-soft);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--color-text-muted-light);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.vl-foot b { color: var(--color-royal); font-weight: 700; }
+
+/* states: 5 · 2 · 0 votes remaining */
+.lr[data-vote-limit="5"] .vl-num { color: var(--color-turquoise); }
+.lr[data-vote-limit="2"] .vl-num { color: var(--color-gold-hover); }
+.lr[data-vote-limit="0"] .vl-num { color: var(--color-crimson); }
+.lr[data-vote-limit="5"] .vl-dot-5,
+.lr[data-vote-limit="5"] .vl-dot-4,
+.lr[data-vote-limit="5"] .vl-dot-3,
+.lr[data-vote-limit="5"] .vl-dot-2,
+.lr[data-vote-limit="5"] .vl-dot-1 { background: var(--color-turquoise); box-shadow: 0 0 0 1px rgba(0,163,183,0.30); }
+.lr[data-vote-limit="2"] .vl-dot-1,
+.lr[data-vote-limit="2"] .vl-dot-2 { background: var(--color-gold); box-shadow: 0 0 0 1px rgba(252,208,6,0.30); }
+.lr[data-vote-limit="0"] .vl-num::after { content: ""; }
+.lr[data-vote-limit="0"] .vl-foot b { color: var(--color-crimson); }
+.lr[data-vote-limit="0"] .vl-zeromsg { display: block; }
+.vl-zeromsg {
+  display: none;
+  margin-top: var(--space-3); padding: var(--space-3);
+  background: rgba(215,6,58,0.06);
+  border: 1px solid rgba(215,6,58,0.30);
+  border-radius: var(--radius-border);
+  font-size: 12px; line-height: 1.5; color: var(--color-text-light);
+}
+.vl-zeromsg .z-ko { display: block; font-weight: 600; margin-bottom: 2px; color: var(--color-crimson); }
+
+/* ── Rate-limit warning ── */
+.rl-card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-soft);
+}
+.lr[data-rate-limit="idle"] .rl-card { border-color: var(--color-border-light); }
+.lr[data-rate-limit="triggered"] .rl-card {
+  border-color: var(--color-gold);
+  background: linear-gradient(180deg, rgba(252,208,6,0.06), var(--color-surface-light) 60%);
+  box-shadow: 0 0 0 3px var(--color-gold-subtle), var(--shadow-soft);
+}
+.lr[data-rate-limit="cleared"] .rl-card {
+  border-color: rgba(0,163,183,0.40);
+  background: linear-gradient(180deg, rgba(0,163,183,0.06), var(--color-surface-light) 60%);
+}
+
+.rl-eyebrow {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em;
+  font-weight: 700; text-transform: uppercase;
+  margin-bottom: var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.lr[data-rate-limit="idle"]      .rl-eyebrow { color: var(--color-text-muted-light); }
+.lr[data-rate-limit="triggered"] .rl-eyebrow { color: var(--color-gold-hover); }
+.lr[data-rate-limit="cleared"]   .rl-eyebrow { color: #007988; }
+.rl-dot {
+  width: 8px; height: 8px; border-radius: var(--radius-chip);
+}
+.lr[data-rate-limit="idle"]      .rl-dot { background: var(--color-text-muted-light); }
+.lr[data-rate-limit="triggered"] .rl-dot { background: var(--color-gold-hover); animation: rl-blink 1200ms ease-in-out infinite; }
+.lr[data-rate-limit="cleared"]   .rl-dot { background: var(--color-turquoise); }
+@keyframes rl-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+[data-reduced-motion="on"] .rl-dot { animation: none; }
+
+.rl-headline { font-size: 14px; font-weight: 700; color: var(--color-text-light); margin: 0 0 var(--space-1); letter-spacing: -0.01em; }
+.rl-headline .ko { display: block; font-family: var(--font-sans); font-weight: 500; font-size: 12px; color: var(--color-text-sub-light); margin-bottom: 2px; }
+.rl-body { display: none; margin-top: var(--space-3); }
+.lr[data-rate-limit="triggered"] .rl-body { display: block; }
+.lr[data-rate-limit="idle"]      .rl-idle { display: block; }
+.lr[data-rate-limit="cleared"]   .rl-cleared { display: block; }
+.rl-idle, .rl-cleared { display: none; }
+.rl-idle, .rl-cleared, .rl-body p { font-size: 12px; line-height: 1.55; color: var(--color-text-sub-light); margin: 0; }
+.rl-timer {
+  margin-top: var(--space-3);
+  padding: var(--space-3); border-radius: var(--radius-border);
+  background: var(--color-bg-light); border: 1px solid var(--color-border-light);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.rl-timer .lbl {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em;
+  color: var(--color-text-muted-light); font-weight: 700; text-transform: uppercase;
+}
+.rl-timer .val {
+  font-family: var(--font-mono); font-weight: 700; font-size: 22px;
+  color: var(--color-royal); letter-spacing: 0.02em;
+}
+
+/* ── Saved Crown Cards mini-gallery (D1 lite-spec authorized) ── */
+.crown-mini-gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); margin-top: var(--space-3); }
+.crown-mini {
+  aspect-ratio: 4/5; border-radius: var(--radius-border);
+  border: 1px solid var(--color-border-light);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.crown-mini .cm-crown { width: 18px; opacity: 0.85; }
+.crown-mini.c1 { background: linear-gradient(160deg, var(--color-royal), var(--color-deep-twil)); }
+.crown-mini.c2 { background: linear-gradient(160deg, var(--color-crimson), #5C0420); }
+.crown-mini.c3 { background: linear-gradient(160deg, var(--color-turquoise), var(--color-royal)); }
+.crown-mini::after {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 30%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.45));
+}
+.cm-link {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--color-gold-hover); font-weight: 700;
+  margin-top: var(--space-3); display: inline-flex; align-items: center; gap: var(--space-1);
+}
+
+/* ── Quiet account-management footer (replaces noisy danger-zone) ── */
+.locker-foot {
+  margin-top: var(--space-12); padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border-soft);
+  display: flex; justify-content: flex-end;
+}
+.foot-link {
+  font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--color-text-muted-light); font-weight: 600;
+  cursor: pointer; padding: var(--space-2) 0;
+  transition: color 140ms ease;
+}
+.foot-link:hover { color: var(--color-crimson); }
+.foot-link .ko-side {
+  font-family: var(--font-sans); font-weight: 500; font-size: 11px;
+  letter-spacing: 0; text-transform: none; color: var(--color-text-muted-light);
+  margin-left: 4px;
+}
+[data-reduced-motion="on"] .foot-link { transition: none; }
+
+/* ── Danger zone (entry surface to GDPR flow) ── */
+.danger-zone {
+  background: var(--color-surface-light);
+  border: 1px solid rgba(215,6,58,0.20);
+  border-radius: var(--radius-border);
+  padding: var(--space-5);
+}
+.danger-zone .dz-eyebrow {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em;
+  color: var(--color-crimson); font-weight: 700; text-transform: uppercase;
+  margin-bottom: var(--space-2);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.danger-zone .dz-eyebrow .d-dot { width: 6px; height: 6px; border-radius: var(--radius-chip); background: var(--color-crimson); }
+.danger-zone p { font-size: 12px; line-height: 1.55; color: var(--color-text-sub-light); margin: 0 0 var(--space-4); }
+.danger-zone p .ko { display: block; color: var(--color-text-light); font-weight: 500; margin-bottom: 2px; }
+
+/* ════════════════════════════════════════════════
+   GDPR DELETION FLOW
+   ════════════════════════════════════════════════ */
+.sf-gdpr { overflow-y: auto; }
+.sf-gdpr::-webkit-scrollbar { width: 8px; }
+.sf-gdpr::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: var(--radius-chip); }
+.gdpr-wrap {
+  max-width: 640px; margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+}
+.gdpr-crumb {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--color-text-muted-light); font-weight: 700; text-transform: uppercase;
+  margin-bottom: var(--space-4);
+}
+.gdpr-crumb .crumb-back {
+  border: 0; background: transparent; color: var(--color-text-muted-light);
+  padding: 0; font: inherit; cursor: pointer; letter-spacing: inherit;
+}
+.gdpr-crumb .crumb-back:hover { color: var(--color-royal); }
+.gdpr-crumb .sep { color: var(--color-border-light); }
+.gdpr-crumb .here { color: var(--color-crimson); }
+
+.gdpr-card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  padding: var(--space-10);
+  box-shadow: var(--shadow-light);
+}
+@container (max-width: 720px) { .gdpr-card { padding: var(--space-6); } }
+.gdpr-card .g-eyebrow {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.28em;
+  color: var(--color-crimson); font-weight: 700; text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+.gdpr-card h2 {
+  font-family: var(--font-sans); font-weight: 700; font-size: 28px;
+  letter-spacing: -0.02em; margin: 0 0 var(--space-2); color: var(--color-text-light);
+}
+.gdpr-card .g-sub {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: 17px; color: var(--color-text-sub-light);
+  margin-bottom: var(--space-6);
+}
+.gdpr-card .g-lead {
+  font-size: 14px; line-height: 1.65; color: var(--color-text-light);
+  margin-bottom: var(--space-6);
+}
+.gdpr-card .g-lead .ko { display: block; color: var(--color-text-light); font-weight: 500; margin-bottom: var(--space-2); }
+.gdpr-card .g-lead p { margin: 0 0 var(--space-3); color: var(--color-text-sub-light); }
+
+.gdpr-list {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4); margin-bottom: var(--space-6);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+}
+.gdpr-list li {
+  list-style: none; display: flex; align-items: flex-start; gap: var(--space-3);
+  font-size: 13px; color: var(--color-text-light); line-height: 1.5;
+}
+.gdpr-list li::before {
+  content: ""; flex: none; margin-top: 6px;
+  width: 6px; height: 6px; border-radius: 1px;
+  background: var(--color-crimson);
+}
+.gdpr-list li b { font-weight: 700; color: var(--color-royal); }
+.gdpr-list li small {
+  display: block; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.06em; color: var(--color-text-muted-light); margin-top: 2px;
+}
+
+.gdpr-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: flex-end; }
+.btn-primary {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-gold); color: var(--color-deep-twil);
+  border: 0; border-radius: var(--radius-border);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.01em;
+  transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+.btn-primary:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.btn-danger {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-crimson); color: var(--color-surface-light);
+  border: 0; border-radius: var(--radius-border);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.01em;
+  transition: background 140ms ease, box-shadow 140ms ease;
+}
+.btn-danger:hover { background: #B30532; box-shadow: var(--shadow-crimson); }
+.btn-danger[disabled] { background: var(--color-border-light); color: var(--color-text-muted-light); cursor: not-allowed; box-shadow: none; }
+.btn-secondary {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface-light); color: var(--color-royal);
+  border: 1px solid var(--color-border-light); border-radius: var(--radius-border);
+  font-size: 14px; font-weight: 600;
+}
+.btn-secondary:hover { background: var(--color-bg-light); border-color: var(--color-text-muted-light); }
+
+/* GDPR · confirmation modal */
+.modal-veil {
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--color-deep-twil) 35%, transparent);
+  backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: var(--space-6); z-index: 40;
+}
+.lr[data-gdpr="confirm"] .modal-veil,
+.lr[data-gdpr="submitting"] .modal-veil,
+.lr[data-gdpr="success"] .modal-veil { display: flex; }
+.modal-card {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-modal);
+  padding: var(--space-8);
+  width: 100%; max-width: 480px;
+}
+.modal-card .mc-eyebrow {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.24em;
+  color: var(--color-crimson); font-weight: 700;
+  margin-bottom: var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.modal-card .mc-eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-chip); background: var(--color-crimson); }
+.modal-card h3 {
+  font-family: var(--font-sans); font-weight: 700; font-size: 20px;
+  margin: 0 0 var(--space-2); color: var(--color-text-light); letter-spacing: -0.015em;
+}
+.modal-card p { font-size: 13px; line-height: 1.6; color: var(--color-text-sub-light); margin: 0 0 var(--space-4); }
+.modal-card p .ko { display: block; color: var(--color-text-light); font-weight: 500; margin-bottom: 2px; }
+.modal-card .mc-warn {
+  background: rgba(215,6,58,0.06);
+  border: 1px solid rgba(215,6,58,0.30);
+  border-radius: var(--radius-border);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px; color: var(--color-text-light); line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+.mc-input-lbl {
+  display: block; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.16em; color: var(--color-text-muted-light); font-weight: 700;
+  text-transform: uppercase; margin-bottom: var(--space-2);
+}
+.mc-input {
+  width: 100%; padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-border);
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+  color: var(--color-crimson); letter-spacing: 0.16em;
+}
+.mc-input:focus { outline: 0; border-color: var(--color-crimson); box-shadow: 0 0 0 3px rgba(215,6,58,0.12); }
+.mc-input::placeholder { color: var(--color-text-muted-light); letter-spacing: 0.04em; font-weight: 500; }
+.mc-actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-5); }
+
+/* Submitting overlay */
+.lr[data-gdpr="submitting"] .mc-submit-overlay { display: flex; }
+.mc-submit-overlay {
+  display: none; flex-direction: column; align-items: center; gap: var(--space-4);
+  padding: var(--space-6) var(--space-8);
+}
+.mc-submit-overlay .sub-spin {
+  width: 36px; height: 36px; border-radius: var(--radius-chip);
+  border: 3px solid var(--color-border-light);
+  border-top-color: var(--color-crimson);
+  animation: spin 720ms linear infinite;
+}
+[data-reduced-motion="on"] .mc-submit-overlay .sub-spin { animation: none; }
+.mc-submit-overlay .sub-lbl {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em;
+  color: var(--color-text-sub-light); font-weight: 700; text-transform: uppercase;
+}
+.mc-submit-overlay .sub-sub { font-size: 12px; color: var(--color-text-muted-light); text-align: center; }
+.lr[data-gdpr="submitting"] .modal-card > *:not(.mc-submit-overlay) { display: none; }
+
+/* Success state */
+.lr[data-gdpr="success"] .mc-success { display: flex; }
+.mc-success { display: none; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; padding: var(--space-4) var(--space-2); }
+.mc-success .crown-ok { width: 44px; height: auto; margin-bottom: var(--space-2); }
+.mc-success h3 { font-family: var(--font-sans); font-weight: 700; font-size: 22px; color: var(--color-text-light); margin: 0; letter-spacing: -0.015em; }
+.mc-success .ok-sub { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 16px; color: var(--color-text-sub-light); }
+.mc-success p { font-size: 13px; color: var(--color-text-sub-light); margin: 0; line-height: 1.6; }
+.mc-success .ok-cta { margin-top: var(--space-4); }
+.lr[data-gdpr="success"] .modal-card > *:not(.mc-success) { display: none; }
+
+/* Cancelled toast */
+.cancel-toast {
+  display: none; position: absolute; left: 50%; bottom: var(--space-8);
+  transform: translateX(-50%);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  border-left: 3px solid var(--color-turquoise);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-light);
+  font-size: 13px; color: var(--color-text-light); z-index: 35;
+  max-width: 420px;
+}
+.lr[data-gdpr="cancelled"] .cancel-toast { display: flex; align-items: center; gap: var(--space-2); }
+.cancel-toast .ko { font-weight: 500; }
+.cancel-toast::before { content: "✓"; color: var(--color-turquoise); font-weight: 700; }
+
+/* Magnetic CTA shared transform var (driven by JS pointer tracking) */
+.magnetic { transform: translate(var(--mx, 0px), var(--my, 0px)); }
+[data-reduced-motion="on"] .magnetic { transform: none !important; }
+
+/* ════════════════════════════════════════════════
+   Mobile-only adjustments (≤480 container)
+   ════════════════════════════════════════════════ */
+@container (max-width: 480px) {
+  .gnb__nav { display: none; }
+  .gnb__hamburger { display: inline-flex; align-items: center; justify-content: center; }
+  .gnb { padding: 3px var(--space-2); }
+  .gnb__brand .gnb__wm { display: none; }
+  .gnb__wm-compact { display: inline; }
+  .signin-btn { padding: var(--space-2) var(--space-3); font-size: 11px; }
+  .profile-menu .pm-name, .profile-menu .chev { display: none; }
+  .auth-card { padding: var(--space-6) var(--space-5); }
+  .gdpr-wrap { padding: var(--space-6) var(--space-4); }
+}
+.gnb__wm-compact {
+  display: none;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; color: var(--color-royal);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     CONTROL BAR · page chrome
+     ════════════════════════════════════════════════ -->
+<header class="cbar" role="toolbar" aria-label="Domain 4 preview controls">
+  <div class="cbar-brand">
+    <img src="assets/brand/wc48-branding-horizontal-light.svg" alt="WorldCrown48 · Domain 4 · Locker Room">
+  </div>
+  <div class="cbar-spacer"></div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Breakpoint</span>
+    <div class="seg" id="seg-bp" role="radiogroup" aria-label="Breakpoint">
+      <button data-bp="mobile"  aria-pressed="false">375 · Mobile</button>
+      <button data-bp="tablet"  aria-pressed="false">768 · Tablet</button>
+      <button data-bp="desktop" aria-pressed="true">1440 · Desktop</button>
+    </div>
+  </div>
+
+  <div class="cgroup">
+    <span class="cgroup-label">Motion</span>
+    <div class="seg" id="seg-rm" role="radiogroup" aria-label="Reduced motion">
+      <button data-rm="off" aria-pressed="true">On</button>
+      <button data-rm="on"  aria-pressed="false">Reduced</button>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════
+     SURFACE TAB STRIP · Auth gate · Profile · GDPR
+     ════════════════════════════════════════════════ -->
+<nav class="tabstrip" id="surface-tabs" aria-label="Surfaces">
+  <button class="tab" data-surface="auth"    aria-current="false">AuthProvider gate <span class="mod">D1·AUTH</span></button>
+  <button class="tab" data-surface="profile" aria-current="true">Locker Room <span class="mod">D1·PROFILE</span></button>
+  <button class="tab" data-surface="gdpr"    aria-current="false">Delete account <span class="mod">D1·GDPR</span></button>
+</nav>
+
+<!-- per-surface state segments -->
+<div class="cbar" style="position: sticky; top: 89px; z-index: 54; background: color-mix(in srgb, var(--color-bg-light) 92%, transparent); border-bottom: 1px solid var(--color-border-light); padding-top: 8px; padding-bottom: 8px;">
+  <!-- AUTH state -->
+  <div class="cgroup state-seg" data-for="auth">
+    <span class="cgroup-label">AuthProvider</span>
+    <div class="seg" id="seg-auth" role="radiogroup">
+      <button data-auth="loading"   aria-pressed="false">Loading</button>
+      <button data-auth="unauthed"  aria-pressed="true">Unauthenticated</button>
+      <button data-auth="authed"    aria-pressed="false">Authenticated</button>
+    </div>
+    <span class="cgroup-label" style="margin-left:var(--space-4);">SignInButton</span>
+    <div class="seg" id="seg-signin" role="radiogroup">
+      <button data-signin="default" aria-pressed="true">Default</button>
+      <button data-signin="hover"   aria-pressed="false">Hover</button>
+      <button data-signin="loading" aria-pressed="false">Loading</button>
+      <button data-signin="error"   aria-pressed="false">Error</button>
+    </div>
+  </div>
+
+  <!-- PROFILE state -->
+  <div class="cgroup state-seg is-active" data-for="profile">
+    <span class="cgroup-label">Avatar</span>
+    <div class="seg" id="seg-avatar" role="radiogroup">
+      <button data-avatar="initial" aria-pressed="true">Initial fallback</button>
+      <button data-avatar="photo"   aria-pressed="false">With photo</button>
+    </div>
+    <span class="cgroup-label" style="margin-left:var(--space-4);">History</span>
+    <div class="seg" id="seg-history" role="radiogroup">
+      <button data-history="loaded"  aria-pressed="true">Loaded</button>
+      <button data-history="empty"   aria-pressed="false">Empty</button>
+      <button data-history="loading" aria-pressed="false">Skeleton</button>
+    </div>
+    <span class="cgroup-label" style="margin-left:var(--space-4);">Vote-limit</span>
+    <div class="seg" id="seg-vl" role="radiogroup">
+      <button data-vl="5" aria-pressed="true">5 left</button>
+      <button data-vl="2" aria-pressed="false">2 left</button>
+      <button data-vl="0" aria-pressed="false">0 left</button>
+    </div>
+    <span class="cgroup-label" style="margin-left:var(--space-4);">Rate-limit</span>
+    <div class="seg" id="seg-rl" role="radiogroup">
+      <button data-rl="idle"      aria-pressed="true">Idle</button>
+      <button data-rl="triggered" aria-pressed="false">Triggered</button>
+      <button data-rl="cleared"   aria-pressed="false">Cleared</button>
+    </div>
+  </div>
+
+  <!-- GDPR state -->
+  <div class="cgroup state-seg" data-for="gdpr">
+    <span class="cgroup-label">Deletion flow</span>
+    <div class="seg" id="seg-gdpr" role="radiogroup">
+      <button data-gdpr="entry"      aria-pressed="true">Entry</button>
+      <button data-gdpr="confirm"    aria-pressed="false">Confirmation</button>
+      <button data-gdpr="submitting" aria-pressed="false">Submitting</button>
+      <button data-gdpr="success"    aria-pressed="false">Success</button>
+      <button data-gdpr="cancelled"  aria-pressed="false">Cancelled</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     STAGE · scaled device frame
+     ════════════════════════════════════════════════ -->
+<main class="stage">
+  <div class="device-scaler" id="scaler">
+    <div class="bp-readout"><b id="bp-w">1440</b> × <span id="bp-h">900</span> · <span id="bp-name">Desktop</span></div>
+    <div class="device" id="device" style="--fw: 1440px; --fh: 900px;">
+      <div class="lr"
+           id="lr-root"
+           data-surface="profile"
+           data-auth="authed"
+           data-signin="default"
+           data-avatar="initial"
+           data-history="loaded"
+           data-vote-limit="5"
+           data-rate-limit="idle"
+           data-gdpr="entry">
+
+        <!-- ════════════════════════════════════════════════
+             AUTH PROVIDER SURFACE
+             ════════════════════════════════════════════════ -->
+        <section class="surface sf-auth">
+          <div class="gnb-wrap">
+            <nav class="gnb" aria-label="Floating Island GNB">
+              <a class="gnb__brand" aria-label="WorldCrown48 home">
+                <img src="assets/brand/wc48-crown-filled.svg" alt="">
+                <span class="gnb__wm">WorldCrown48</span>
+                <span class="gnb__wm-compact">WC48</span>
+              </a>
+              <div class="gnb__sep"></div>
+              <div class="gnb__nav">
+                <a class="gnb__link">Pitch</a>
+                <a class="gnb__link">Trending</a>
+                <a class="gnb__link">Newsroom</a>
+                <a class="gnb__link is-active">Locker</a>
+              </div>
+              <button class="gnb__hamburger" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+              </button>
+              <div class="gnb__sep"></div>
+              <div class="gnb__right">
+                <button id="signin-btn" class="signin-btn magnetic" data-magnetic>
+                  <span class="sb-spin" style="display:none;"></span>
+                  <span class="sb-label">Sign in</span>
+                </button>
+                <div class="profile-menu" tabindex="0">
+                  <span class="avatar-sm">JP</span>
+                  <span class="pm-name">Joon Park</span>
+                  <span class="chev">▾</span>
+                </div>
+              </div>
+            </nav>
+          </div>
+
+          <div class="auth-shell">
+            <!-- Loading -->
+            <div class="auth-loading">
+              <img class="crown-pulse" src="assets/brand/wc48-crown-filled.svg" alt="">
+              <span class="lt">Checking session · 세션 확인 중</span>
+            </div>
+
+            <!-- Unauthenticated → sign-in card -->
+            <div class="auth-card">
+              <img class="crown-lg" src="assets/brand/wc48-crown-filled.svg" alt="">
+              <div class="eyebrow">THE LOCKER ROOM</div>
+              <h1>Step into your locker.</h1>
+              <div class="h-sub">당신의 라커룸이 기다리고 있어요.</div>
+              <div class="lead">
+                <span class="ko">Sign in으로 본인이 뽑은 Champion과 투표 이력을 안전하게 보관할 수 있어요.</span>
+                Sign in to keep your voting history, your Crowned Champions, and the Crown Cards you've saved — synced to this account, yours alone.
+              </div>
+              <div class="auth-providers">
+                <button class="auth-btn primary magnetic" data-magnetic>
+                  <span class="auth-ico">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1H12v2.9h5.35c-.23 1.5-1.7 4.4-5.35 4.4-3.22 0-5.85-2.67-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.56-2.46C16.79 3.94 14.6 3 12 3 6.92 3 2.8 7.1 2.8 12.05S6.92 21.1 12 21.1c6.93 0 9.5-4.87 9.5-7.42 0-.5-.05-.9-.15-1.58z"/></svg>
+                  </span>
+                  Continue with Google
+                </button>
+                <button class="auth-btn">
+                  <span class="auth-ico">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg>
+                  </span>
+                  Continue with email
+                </button>
+              </div>
+              <div class="auth-foot">
+                BY SIGNING IN YOU AGREE TO THE <a>TERMS</a> + <a>PRIVACY</a>
+              </div>
+            </div>
+
+            <!-- already-authenticated affordance (when surface=auth + state=authed) -->
+            <div class="auth-authed-already">
+              <img class="crown-lg" src="assets/brand/wc48-crown-filled.svg" alt="">
+              <span class="l1">SESSION · ACTIVE</span>
+              <span class="l2">You're already signed in.</span>
+              <span class="l3">이미 로그인되어 있어요 · Go to your Locker Room.</span>
+              <button class="btn-ghost" onclick="setSurface('profile')">Open Locker Room →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════
+             PROFILE SURFACE
+             ════════════════════════════════════════════════ -->
+        <section class="surface sf-profile">
+          <div class="gnb-wrap">
+            <nav class="gnb" aria-label="Floating Island GNB">
+              <a class="gnb__brand">
+                <img src="assets/brand/wc48-crown-filled.svg" alt="">
+                <span class="gnb__wm">WorldCrown48</span>
+                <span class="gnb__wm-compact">WC48</span>
+              </a>
+              <div class="gnb__sep"></div>
+              <div class="gnb__nav">
+                <a class="gnb__link">Pitch</a>
+                <a class="gnb__link">Trending</a>
+                <a class="gnb__link">Newsroom</a>
+                <a class="gnb__link is-active">Locker</a>
+              </div>
+              <button class="gnb__hamburger" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+              </button>
+              <div class="gnb__sep"></div>
+              <div class="gnb__right">
+                <button class="signin-btn magnetic" data-magnetic>
+                  <span class="sb-label">Sign in</span>
+                </button>
+                <div class="profile-menu" tabindex="0">
+                  <span class="avatar-sm">JP</span>
+                  <span class="pm-name">Joon Park</span>
+                  <span class="chev">▾</span>
+                </div>
+              </div>
+            </nav>
+          </div>
+
+          <div class="lr-main">
+            <!-- LEFT: profile header + voting history -->
+            <div>
+              <!-- Profile header -->
+              <header class="prof-header">
+                <div class="avatar" id="avatar">JP</div>
+                <div class="prof-info">
+                  <h1 class="name">Joon Park</h1>
+                  <div class="handle">@joon · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8c2c7c7c686d8c9dac3e8dfc7dac4cccbdac7dfc69c9086cbc7c5">[email&#160;protected]</a></div>
+                  <div class="prof-meta">
+                    <span>JOINED · <b>2026 · MAR</b></span>
+                    <span>VOTED IN · <b>14 TOURNAMENTS</b></span>
+                    <span>CHAMPIONS CROWNED · <b>11</b></span>
+                  </div>
+                </div>
+                <div class="prof-actions">
+                  <button class="btn-ghost">Edit profile</button>
+                </div>
+              </header>
+
+              <!-- Voting history -->
+              <div class="section-head">
+                <h2>Your voting history <span class="ko-side">투표 이력</span></h2>
+                <span class="sh-meta">SHOWING <b>6 OF 14</b></span>
+              </div>
+
+              <!-- Loaded grid -->
+              <div class="history-grid">
+                <article class="history-item" data-state="completed">
+                  <div class="hist-thumb t1">FF</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">The &lsquo;face genius&rsquo; soccer player you want to keep on your feed forever — who is your top choice?</h3>
+                    <div class="h-sub">FOOTBALL · COMPLETED · 2026·05·24</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">Kylian Mbappé</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill completed">COMPLETED</span></div>
+                </article>
+
+                <article class="history-item" data-state="in-progress">
+                  <div class="hist-thumb t2">KP</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">Make eye contact and you lose! The ruler of the pitch, 48 — the player who explodes with catharsis!</h3>
+                    <div class="h-sub">FOOTBALL · ACTIVE · STARTED 2026·05·30</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">—</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill in-progress">IN PROGRESS</span></div>
+                </article>
+
+                <article class="history-item" data-state="completed">
+                  <div class="hist-thumb t3">CS</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">The enthusiastic cheering squad that looks more exhausted than the players — the king of reactions, 48!</h3>
+                    <div class="h-sub">FOOTBALL · COMPLETED · 2026·05·11</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">Korean Red Devils</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill completed">COMPLETED</span></div>
+                </article>
+
+                <article class="history-item" data-state="completed">
+                  <div class="hist-thumb t4">U20</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">The ultimate cutie, perfect in both skill and looks — the rookie player under 20, 48</h3>
+                    <div class="h-sub">FOOTBALL · COMPLETED · 2026·05·04</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">Lamine Yamal</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill completed">COMPLETED</span></div>
+                </article>
+
+                <article class="history-item" data-state="in-progress">
+                  <div class="hist-thumb t5">FZ</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">The legendary cheering fever recorded worldwide through fan cams — the true festival is in the stands!</h3>
+                    <div class="h-sub">FOOTBALL · ACTIVE · STARTED 2026·05·26</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">—</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill in-progress">IN PROGRESS</span></div>
+                </article>
+
+                <article class="history-item" data-state="completed">
+                  <div class="hist-thumb t6">WN</div>
+                  <div class="hist-body">
+                    <h3 class="h-title">The winning nation that will crown this Featured Tournament, 48!</h3>
+                    <div class="h-sub">FOOTBALL · COMPLETED · 2026·04·22</div>
+                    <div class="h-champ">
+                      <img class="h-crown" src="assets/brand/wc48-crown-filled.svg" alt="">
+                      <span class="h-prefix">YOUR CHAMPION ·</span>
+                      <span class="h-name">Argentina</span>
+                      <span class="h-still"><span class="h-dot"></span> STILL VOTING · 투표 진행 중</span>
+                    </div>
+                  </div>
+                  <div class="hist-state"><span class="pill completed">COMPLETED</span></div>
+                </article>
+              </div>
+
+              <!-- Skeleton -->
+              <div class="history-skel-wrap" style="display:none;">
+                <div class="history-skel"><div class="skel-block skel-thumb"></div><div style="min-width:0; width:100%;"><div class="skel-block skel-line lg"></div><div class="skel-block skel-line sm"></div><div class="skel-block skel-line xs"></div></div><div class="skel-block skel-pill"></div></div>
+                <div class="history-skel"><div class="skel-block skel-thumb"></div><div style="min-width:0; width:100%;"><div class="skel-block skel-line lg" style="width:60%;"></div><div class="skel-block skel-line sm"></div><div class="skel-block skel-line xs"></div></div><div class="skel-block skel-pill"></div></div>
+                <div class="history-skel"><div class="skel-block skel-thumb"></div><div style="min-width:0; width:100%;"><div class="skel-block skel-line lg" style="width:80%;"></div><div class="skel-block skel-line sm"></div><div class="skel-block skel-line xs"></div></div><div class="skel-block skel-pill"></div></div>
+                <div class="history-skel"><div class="skel-block skel-thumb"></div><div style="min-width:0; width:100%;"><div class="skel-block skel-line lg" style="width:50%;"></div><div class="skel-block skel-line sm"></div><div class="skel-block skel-line xs"></div></div><div class="skel-block skel-pill"></div></div>
+              </div>
+
+              <!-- Empty -->
+              <div class="history-empty">
+                <img class="crown-em" src="assets/brand/wc48-crown-outline.svg" alt="">
+                <h3 class="e-title">No Champions yet · 아직 Crown이 비어 있어요</h3>
+                <p class="e-sub">Cast your first Vote and your Crowned Champions will line up here.</p>
+                <button class="e-cta magnetic" data-magnetic>Explore Tournaments →</button>
+              </div>
+
+              <!-- Quiet account-management footer · navigates to GDPR surface -->
+              <footer class="locker-foot">
+                <a class="foot-link" onclick="setSurface('gdpr')">Delete account <span class="ko-side">· 계정 삭제</span></a>
+              </footer>
+            </div>
+
+            <!-- RIGHT: sidebar -->
+            <aside class="lr-side">
+              <!-- Vote-limit indicator -->
+              <section class="side-card" aria-label="Daily vote-limit indicator">
+                <div class="sc-eyebrow">
+                  <span>VOTES LEFT TODAY</span>
+                  <span class="sc-reset">RESETS · 00:00 KST</span>
+                </div>
+                <div class="vl-current">CURRENT · <b>K-Pop Visual Crown · 2026</b></div>
+                <div class="vl-headline">
+                  <span class="vl-num" id="vl-num">5</span>
+                  <span class="vl-den">/ 5</span>
+                  <span class="vl-lbl">per Tournament<br>오늘 남은 투표</span>
+                </div>
+                <div class="vl-dots">
+                  <span class="dot vl-dot-1"></span>
+                  <span class="dot vl-dot-2"></span>
+                  <span class="dot vl-dot-3"></span>
+                  <span class="dot vl-dot-4"></span>
+                  <span class="dot vl-dot-5"></span>
+                </div>
+                <div class="vl-zeromsg">
+                  <span class="z-ko">오늘의 투표를 모두 사용했어요.</span>
+                  Daily limit reached on this Tournament. Limit resets at <b style="color:var(--color-crimson)">00:00 KST</b>.
+                </div>
+                <div class="vl-foot">
+                  <span>NEXT RESET · IN <b id="vl-eta">07h 24m</b></span>
+                  <span>1d · 5 votes/Tournament</span>
+                </div>
+              </section>
+
+              <!-- Rate-limit warning -->
+              <section class="rl-card" aria-label="Rate-limit warning">
+                <div class="rl-eyebrow"><span class="rl-dot"></span><span class="rl-eyebrow-lbl">VOTE PACE</span></div>
+                <h3 class="rl-headline">
+                  <span class="ko" id="rl-ko">투표 페이스 정상</span>
+                  <span id="rl-en">All clear · cast away.</span>
+                </h3>
+                <div class="rl-idle">
+                  Comfortable pace. No restrictions while you're voting at a human tempo.
+                </div>
+                <div class="rl-body">
+                  <p>You've cast 10 votes in under a minute — we've paused you briefly to keep the room honest. <b style="color:var(--color-text-light);">Take fifteen minutes</b> and come back stronger.</p>
+                  <div class="rl-timer">
+                    <span class="lbl">COOLDOWN · 쿨다운</span>
+                    <span class="val" id="rl-timer">14:38</span>
+                  </div>
+                </div>
+                <div class="rl-cleared">
+                  You're back in. Cooldown cleared · keep the pace human.
+                </div>
+              </section>
+
+              <!-- Saved Crown Cards mini-gallery -->
+              <section class="side-card" aria-label="Saved Crown Cards">
+                <div class="sc-eyebrow"><span>SAVED CROWN CARDS</span><span class="sc-reset">3 SAVED</span></div>
+                <div class="crown-mini-gal">
+                  <div class="crown-mini c1"><img class="cm-crown" src="assets/brand/wc48-crown-filled.svg" alt=""></div>
+                  <div class="crown-mini c2"><img class="cm-crown" src="assets/brand/wc48-crown-filled.svg" alt=""></div>
+                  <div class="crown-mini c3"><img class="cm-crown" src="assets/brand/wc48-crown-filled.svg" alt=""></div>
+                </div>
+                <a class="cm-link" href="#">VIEW ALL · 전체보기 →</a>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════
+             GDPR DELETION FLOW SURFACE
+             ════════════════════════════════════════════════ -->
+        <section class="surface sf-gdpr">
+          <div class="gnb-wrap">
+            <nav class="gnb" aria-label="Floating Island GNB">
+              <a class="gnb__brand">
+                <img src="assets/brand/wc48-crown-filled.svg" alt="">
+                <span class="gnb__wm">WorldCrown48</span>
+                <span class="gnb__wm-compact">WC48</span>
+              </a>
+              <div class="gnb__sep"></div>
+              <div class="gnb__nav">
+                <a class="gnb__link">Pitch</a>
+                <a class="gnb__link">Trending</a>
+                <a class="gnb__link">Newsroom</a>
+                <a class="gnb__link is-active">Locker</a>
+              </div>
+              <button class="gnb__hamburger" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+              </button>
+              <div class="gnb__sep"></div>
+              <div class="gnb__right">
+                <div class="profile-menu" tabindex="0">
+                  <span class="avatar-sm">JP</span>
+                  <span class="pm-name">Joon Park</span>
+                  <span class="chev">▾</span>
+                </div>
+              </div>
+            </nav>
+          </div>
+
+          <div class="gdpr-wrap">
+            <div class="gdpr-crumb">
+              <button class="crumb-back" onclick="setSurface('profile')">← LOCKER ROOM</button>
+              <span class="sep">/</span>
+              <span class="here">DELETE ACCOUNT</span>
+            </div>
+
+            <div class="gdpr-card">
+              <div class="g-eyebrow">PERMANENT · IRREVERSIBLE · GDPR</div>
+              <h2>Delete your account.</h2>
+              <div class="g-sub">정말로 모든 흔적을 지우시겠어요?</div>
+              <div class="g-lead">
+                <span class="ko">아래 데이터는 즉시 삭제됩니다. 한 번 지우면 되돌릴 수 없어요.</span>
+                <p>The following data is removed from our systems within seconds. Once it's gone, we can't bring it back — no backups, no recovery.</p>
+              </div>
+              <ul class="gdpr-list">
+                <li>
+                  <div><b>Your profile</b> — display name, avatar, email, account record.
+                    <small>EMAIL · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="771d181819590716051c370018051b131405180019434f5914181a">[email&#160;protected]</a></small>
+                  </div>
+                </li>
+                <li>
+                  <div><b>Your voting history</b> — every Match, every Crowned Champion, every saved Crown Card.
+                    <small>14 TOURNAMENTS · 11 CHAMPIONS · 3 SAVED CARDS</small>
+                  </div>
+                </li>
+                <li>
+                  <div><b>Your sessions &amp; device records</b> — anything tied to this account on any device.
+                    <small>SESSION TOKENS · DEVICE FINGERPRINTS</small>
+                  </div>
+                </li>
+                <li>
+                  <div><b>Anonymous aggregate Vote Rate</b> remains.
+                    <small>YOUR INDIVIDUAL CHOICES ARE UN-LINKED, NOT RE-IDENTIFIABLE</small>
+                  </div>
+                </li>
+              </ul>
+              <div class="gdpr-actions">
+                <button class="btn-secondary" onclick="setSurface('profile'); setGdpr('cancelled');">Keep my account</button>
+                <button class="btn-danger" onclick="setGdpr('confirm')">Continue to delete →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmation modal · veil -->
+          <div class="modal-veil" aria-modal="true" role="dialog">
+            <div class="modal-card">
+              <!-- Default / confirm body -->
+              <div class="mc-eyebrow"><span>FINAL CONFIRMATION</span></div>
+              <h3>Type DELETE to confirm.</h3>
+              <p>
+                <span class="ko">이 작업은 즉시 진행되며 되돌릴 수 없습니다.</span>
+                This action is immediate and irreversible. To proceed, type the word <b style="color:var(--color-crimson)">DELETE</b> in the box below.
+              </p>
+              <div class="mc-warn">
+                <b style="color:var(--color-crimson)">Heads up · 주의</b> — your 14 Tournaments, 11 Crowned Champions, and 3 saved Crown Cards will be removed from your account record within seconds of confirmation.
+              </div>
+              <label class="mc-input-lbl">CONFIRMATION · TYPE THE WORD</label>
+              <input class="mc-input" id="gdpr-input" type="text" placeholder="DELETE" autocomplete="off" spellcheck="false" oninput="gdprInputChange()">
+              <div class="mc-actions">
+                <button class="btn-secondary" onclick="setGdpr('cancelled'); setSurface('profile')">Cancel</button>
+                <button class="btn-danger" id="gdpr-submit" disabled onclick="setGdpr('submitting'); setTimeout(()=>setGdpr('success'), 1600)">Delete forever</button>
+              </div>
+
+              <!-- Submitting overlay -->
+              <div class="mc-submit-overlay">
+                <div class="sub-spin"></div>
+                <div class="sub-lbl">SUBMITTING DELETION</div>
+                <div class="sub-sub">Erasing profile · voting history · sessions.<br>프로필과 투표 기록을 지우는 중입니다.</div>
+              </div>
+
+              <!-- Success state -->
+              <div class="mc-success">
+                <img class="crown-ok" src="assets/brand/wc48-crown-outline.svg" alt="">
+                <h3>Your account is gone.</h3>
+                <div class="ok-sub">당신의 모든 흔적이 깨끗이 지워졌습니다.</div>
+                <p>You're signed out. The locker is empty, the bench is yours again. If you ever want to come back, you can start fresh with the same email.</p>
+                <button class="btn-primary ok-cta" onclick="setSurface('auth'); setAuth('unauthed'); setGdpr('entry');">Return to sign-in →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cancelled toast (transient · shown only when [data-gdpr=cancelled]) -->
+          <div class="cancel-toast"><span class="ko">계정 삭제를 취소했습니다.</span>&nbsp;Deletion cancelled · your account is safe.</div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ════════════════════════════════════════════════
+   STATE MACHINE · device-scaler · pointer magnetism
+   ════════════════════════════════════════════════ */
+const root    = document.documentElement;
+const lr      = document.getElementById('lr-root');
+const device  = document.getElementById('device');
+const scaler  = document.getElementById('scaler');
+const bpW     = document.getElementById('bp-w');
+const bpH     = document.getElementById('bp-h');
+const bpName  = document.getElementById('bp-name');
+
+const BP = {
+  mobile:  { w: 375,  h: 760, name: 'Mobile · 375' },
+  tablet:  { w: 768,  h: 900, name: 'Tablet · 768' },
+  desktop: { w: 1440, h: 900, name: 'Desktop · 1440' },
+};
+let currentBP = 'desktop';
+
+function applyBP(bp) {
+  currentBP = bp;
+  const { w, h, name } = BP[bp];
+  device.style.setProperty('--fw', w + 'px');
+  device.style.setProperty('--fh', h + 'px');
+  bpW.textContent = w; bpH.textContent = h; bpName.textContent = name;
+  fitDevice();
+  syncSeg('seg-bp', 'bp', bp);
+}
+function fitDevice() {
+  const { w, h } = BP[currentBP];
+  const stage = document.querySelector('.stage');
+  const padX = 48, padY = 48;
+  const availW = Math.max(320, stage.clientWidth - padX);
+  const availH = Math.max(420, window.innerHeight - 280);
+  const scale = Math.min(1, availW / w, availH / h);
+  device.style.transform = `scale(${scale})`;
+  scaler.style.width  = (w * scale) + 'px';
+  scaler.style.height = (h * scale) + 'px';
+}
+window.addEventListener('resize', fitDevice);
+
+function syncSeg(segId, key, val) {
+  document.querySelectorAll(`#${segId} button`).forEach(btn => {
+    btn.setAttribute('aria-pressed', String(btn.dataset[key] === val));
+  });
+}
+
+/* ── State setters ── */
+function setSurface(s) {
+  lr.dataset.surface = s;
+  document.querySelectorAll('#surface-tabs .tab').forEach(t => t.setAttribute('aria-current', String(t.dataset.surface === s)));
+  document.querySelectorAll('.state-seg').forEach(el => el.classList.toggle('is-active', el.dataset.for === s));
+}
+function setAuth(s) {
+  lr.dataset.auth = s;
+  syncSeg('seg-auth', 'auth', s);
+  const btn = document.getElementById('signin-btn');
+  const spin = btn && btn.querySelector('.sb-spin');
+  const lbl = btn && btn.querySelector('.sb-label');
+  if (btn) {
+    btn.dataset.state = lr.dataset.signin || 'default';
+    if (s === 'loading') { btn.dataset.state = 'loading'; if (spin) spin.style.display='inline-block'; if (lbl) lbl.textContent='Signing in…'; }
+    else if (s === 'unauthed') { btn.dataset.state = 'default'; if (spin) spin.style.display='none'; if (lbl) lbl.textContent='Sign in'; }
+    else { if (spin) spin.style.display='none'; if (lbl) lbl.textContent='Sign in'; }
+  }
+}
+function setSignin(s) {
+  lr.dataset.signin = s;
+  syncSeg('seg-signin', 'signin', s);
+  const btn = document.getElementById('signin-btn');
+  if (!btn) return;
+  const spin = btn.querySelector('.sb-spin');
+  const lbl  = btn.querySelector('.sb-label');
+  btn.dataset.state = s;
+  btn.classList.toggle('is-hover', s === 'hover');
+  spin.style.display = (s === 'loading') ? 'inline-block' : 'none';
+  if (s === 'loading') lbl.textContent = 'Signing in…';
+  else if (s === 'error') lbl.textContent = 'Try again';
+  else lbl.textContent = 'Sign in';
+  // force visual hover via inline style for the preview
+  if (s === 'hover') {
+    btn.style.background = 'var(--color-gold-hover)';
+    btn.style.boxShadow  = 'var(--shadow-gold)';
+    btn.style.setProperty('--mx', '6px');
+    btn.style.setProperty('--my', '-2px');
+  } else {
+    btn.style.background = ''; btn.style.boxShadow = '';
+    btn.style.setProperty('--mx', '0px');
+    btn.style.setProperty('--my', '0px');
+  }
+}
+function setAvatar(s) { lr.dataset.avatar = s; syncSeg('seg-avatar', 'avatar', s); }
+function setHistory(s) {
+  lr.dataset.history = s;
+  syncSeg('seg-history', 'history', s);
+  document.querySelector('.history-grid').style.display      = (s === 'loaded')  ? 'grid' : 'none';
+  document.querySelector('.history-skel-wrap').style.display = (s === 'loading') ? 'grid' : 'none';
+  document.querySelector('.history-empty').style.display     = (s === 'empty')   ? 'block' : 'none';
+}
+function setVL(n) {
+  lr.dataset.voteLimit = n;
+  syncSeg('seg-vl', 'vl', String(n));
+  const num = document.getElementById('vl-num');
+  if (num) num.textContent = n;
+  // light up dots based on remaining
+  const remaining = parseInt(n, 10);
+  document.querySelectorAll('.vl-dots .dot').forEach((d, i) => {
+    d.classList.toggle('used', i < remaining);
+  });
+}
+function setRL(s) {
+  lr.dataset.rateLimit = s;
+  syncSeg('seg-rl', 'rl', s);
+  const ko = document.getElementById('rl-ko'), en = document.getElementById('rl-en');
+  if (s === 'idle')      { ko.textContent = '투표 페이스 정상'; en.textContent = 'All clear · cast away.'; }
+  if (s === 'triggered') { ko.textContent = '잠시 숨 고르기 · 15분 쿨다운'; en.textContent = 'Slow down — 15-minute cooldown.'; }
+  if (s === 'cleared')   { ko.textContent = '쿨다운 해제 · 페이스 양호'; en.textContent = 'Cooldown cleared · pace restored.'; }
+}
+function setGdpr(s) {
+  lr.dataset.gdpr = s;
+  syncSeg('seg-gdpr', 'gdpr', s);
+  // reset input on entry
+  if (s === 'entry') {
+    const i = document.getElementById('gdpr-input'); if (i) i.value = '';
+    const b = document.getElementById('gdpr-submit'); if (b) b.disabled = true;
+  }
+}
+function gdprInputChange() {
+  const i = document.getElementById('gdpr-input');
+  const b = document.getElementById('gdpr-submit');
+  if (!i || !b) return;
+  b.disabled = (i.value.trim().toUpperCase() !== 'DELETE');
+}
+
+/* ── Event wiring ── */
+document.querySelectorAll('#seg-bp button').forEach(b => b.addEventListener('click', () => applyBP(b.dataset.bp)));
+document.querySelectorAll('#seg-rm button').forEach(b => b.addEventListener('click', () => {
+  root.dataset.reducedMotion = b.dataset.rm;
+  syncSeg('seg-rm', 'rm', b.dataset.rm);
+}));
+document.querySelectorAll('#surface-tabs .tab').forEach(t => t.addEventListener('click', () => setSurface(t.dataset.surface)));
+document.querySelectorAll('#seg-auth button').forEach(b => b.addEventListener('click', () => setAuth(b.dataset.auth)));
+document.querySelectorAll('#seg-signin button').forEach(b => b.addEventListener('click', () => setSignin(b.dataset.signin)));
+document.querySelectorAll('#seg-avatar button').forEach(b => b.addEventListener('click', () => setAvatar(b.dataset.avatar)));
+document.querySelectorAll('#seg-history button').forEach(b => b.addEventListener('click', () => setHistory(b.dataset.history)));
+document.querySelectorAll('#seg-vl button').forEach(b => b.addEventListener('click', () => setVL(b.dataset.vl)));
+document.querySelectorAll('#seg-rl button').forEach(b => b.addEventListener('click', () => setRL(b.dataset.rl)));
+document.querySelectorAll('#seg-gdpr button').forEach(b => b.addEventListener('click', () => setGdpr(b.dataset.gdpr)));
+
+/* ── Magnetic CTA · pointer-track translate ── */
+function bindMagnetic() {
+  document.querySelectorAll('[data-magnetic]').forEach(el => {
+    if (el.__mag) return; el.__mag = true;
+    el.addEventListener('pointermove', (e) => {
+      if (root.dataset.reducedMotion === 'on') return;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - (r.left + r.width / 2)) * 0.18;
+      const y = (e.clientY - (r.top  + r.height/ 2)) * 0.18;
+      el.style.setProperty('--mx', x.toFixed(1) + 'px');
+      el.style.setProperty('--my', y.toFixed(1) + 'px');
+    });
+    el.addEventListener('pointerleave', () => {
+      el.style.setProperty('--mx', '0px');
+      el.style.setProperty('--my', '0px');
+    });
+  });
+}
+
+/* ── Rate-limit cooldown ticker (display only) ── */
+let rlSeconds = 14 * 60 + 38;
+setInterval(() => {
+  if (lr.dataset.rateLimit !== 'triggered' || root.dataset.reducedMotion === 'on') return;
+  rlSeconds = Math.max(0, rlSeconds - 1);
+  const m = String(Math.floor(rlSeconds / 60)).padStart(2, '0');
+  const s = String(rlSeconds % 60).padStart(2, '0');
+  const t = document.getElementById('rl-timer');
+  if (t) t.textContent = `${m}:${s}`;
+}, 1000);
+
+/* ── Init ── */
+applyBP('desktop');
+setHistory('loaded');
+setVL(5);
+setRL('idle');
+setAvatar('initial');
+bindMagnetic();
+setTimeout(fitDevice, 50);
+</script>
+</body>
+</html>
