@@ -25,6 +25,8 @@
 - **`defineSecret`** (있을 경우) — `.env` 아님.
 
 > 📌 **ADR-0001 (2026-06-21) — 아래 RTDB 표기를 무효화**: roundTransitions/Champion 확정은 **Firestore-only**(onSnapshot)로 결정. `database.rules.json`·RTDB 접근자·`+1` 카운터 불필요. 매치 생성은 **votes-파생 브래킷 + order 페어 + 결정적 matchId**. 상세: `docs/adr/0001-c1-vote-engine-architecture.md` (RTDB 언급 구간은 ADR 우선).
+>
+> 📌 **ADR-0001 Addendum — 와이어프레임 정합**: 매치 화면에 **VoteRateBar 없음**(rate%는 랭킹 화면 전용, `.vs-foot` 캐노니컬). C-1에서 `VoteRateBar.tsx`·`lib/arena/rate.ts`·`rateCache`/`subscribeToRates` 제거. 투표 후 = selected(pick-check) → loading("다음 매치") → 다음 매치. **flag #4(rate degrade)는 C-1에서 무효** (ranking_cache 미사용).
 
 ---
 

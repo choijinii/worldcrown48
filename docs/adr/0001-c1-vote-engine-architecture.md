@@ -54,7 +54,29 @@ in tension with the codebase, surfaced during §0 self-verify:
 - **Con**: Reconstructing the bracket from `votes` requires a deterministic,
   well-tested `lib/arena/matches.ts` (the highest-risk unit — covered first by TDD).
 
+## Addendum (2026-06-21) — wireframe reconciliation: NO VoteRateBar on the match screen
+
+Reading the canonical Domain 3 wireframe (`docs/design/wireframes/Domain 3 · The
+Arena.html`, the `.vs-foot` disclaimer) overrides the lite-spec on one point:
+
+> "No Round/Match counter … **No Vote Rate %** — it would bias the next Voter.
+> Rate appears only on the Ranking screen."
+
+The lite-spec showed a `VoteRateBar` sliding in after each vote; the wireframe +
+MENTAL_MODEL ("Vote Rate(%)는 랭킹 화면에서만") forbid it. Wireframe wins (priority:
+MENTAL_MODEL/wireframe > lite-spec).
+
+**C-1 scope reduction:**
+- DROP `components/arena/VoteRateBar.tsx`, `lib/arena/rate.ts`, and
+  `rateCache` / `subscribeToRates` from `voteStore`.
+- Match flow after a vote = `selected` (pick-check, opponent dims) → `loading`
+  ("다음 매치 · Next match") → next match. No rate/count/quota/timer.
+- **Flag #4 (rate% graceful degrade) is now MOOT for C-1** — C-1 never reads
+  `ranking_cache`; Vote Rate % is entirely C-3's surface. The C-3 cross-dependency
+  is removed from C-1.
+- Tournament Deadline pill (vgnb) IS shown on match/final screens — that's allowed
+  (Tournament Deadline exists; only Round Deadline is forbidden).
+
 ## Notes
-- Voter-read rules relaxation (tournaments active-public, contestants public) and
-  rate(%) graceful-degrade were also approved (handoff §9 #2, #4) — straightforward,
-  not architecturally contentious, so recorded here only for traceability.
+- Voter-read rules relaxation (tournaments active-public, contestants public) was
+  also approved (handoff §9 #2) — straightforward, recorded for traceability.
