@@ -90,7 +90,9 @@ jobs:
 
       - name: E2E (Playwright)
         if: ${{ env.PREVIEW_URL != '' }}
-        run: npm run test:e2e
+        # Scope to B-1's own spec so this job never runs D-1's spec (and vice
+        # versa) — each workflow targets a different preview/secrets.
+        run: npm run test:e2e -- e2e/b1-admin-lab.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()

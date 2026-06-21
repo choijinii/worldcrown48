@@ -77,7 +77,10 @@ jobs:
           exit 1
 
       - name: E2E (Playwright)
-        run: npm run test:e2e
+        # Scope to D-1's own spec — `playwright test` would otherwise run every
+        # spec in e2e/ (incl. B-1's) against this D-1 preview, which lacks
+        # /admin/lab and 404s.
+        run: npm run test:e2e -- e2e/d1-auth.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()
