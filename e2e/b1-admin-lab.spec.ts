@@ -92,6 +92,15 @@ test.afterAll(async () => {
 });
 
 test.describe("B-1 The Lab — operator critical path", () => {
+  // Park the whole suite until a real B-1 preview is configured. b1-e2e.yml
+  // maps the B1_PREVIEW_URL secret → PREVIEW_URL; with neither set, the spec
+  // would otherwise hit playwright.config's localhost fallback and 404. Skipped
+  // (not failed) keeps CI green; the B1_ secrets land post-merge on main.
+  test.skip(
+    !process.env.PREVIEW_URL,
+    "B1_PREVIEW_URL not set — B-1 E2E parked until post-merge secret setup",
+  );
+
   test("operator reaches the console (gate allows admin)", async ({ page }) => {
     await page.goto("/admin/lab");
     await expect(
