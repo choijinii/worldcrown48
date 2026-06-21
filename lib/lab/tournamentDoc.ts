@@ -67,6 +67,7 @@ export function buildTournamentDoc(input: TournamentInput): TournamentDocData {
 
 export function buildContestantDocs(
   tournamentId: string,
+  hostUid: string,
   drafts: ContestantDraft[],
 ): ContestantDocData[] {
   if (drafts.length !== TOTAL_CONTESTANTS) {
@@ -76,6 +77,7 @@ export function buildContestantDocs(
   }
   return drafts.map((d, i) => ({
     tournamentId,
+    hostUid,
     order: i + 1,
     name: d.name,
     nationality: d.nationality,

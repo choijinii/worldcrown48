@@ -125,7 +125,7 @@ export function TournamentCreator(): JSX.Element {
         createdAt: serverTimestamp(),
       });
 
-      for (const c of buildContestantDocs(tRef.id, contestants)) {
+      for (const c of buildContestantDocs(tRef.id, uid, contestants)) {
         batch.set(doc(collection(db, "contestants")), c);
       }
 

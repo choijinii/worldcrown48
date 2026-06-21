@@ -58,11 +58,12 @@ describe("buildTournamentDoc", () => {
 });
 
 describe("buildContestantDocs", () => {
-  it("builds 48 docs with sequential 1-based order", () => {
-    const docs = buildContestantDocs("t1", drafts(48));
+  it("builds 48 docs with sequential 1-based order and stamps hostUid", () => {
+    const docs = buildContestantDocs("t1", "host-1", drafts(48));
     expect(docs).toHaveLength(48);
     expect(docs[0]).toEqual({
       tournamentId: "t1",
+      hostUid: "host-1",
       order: 1,
       name: "P1",
       nationality: "KR",
@@ -71,10 +72,11 @@ describe("buildContestantDocs", () => {
       imageSearchKeyword: "p1",
     });
     expect(docs[47].order).toBe(48);
+    expect(docs[47].hostUid).toBe("host-1");
   });
 
   it("rejects when not exactly 48 contestants", () => {
-    expect(() => buildContestantDocs("t1", drafts(47))).toThrow();
-    expect(() => buildContestantDocs("t1", drafts(49))).toThrow();
+    expect(() => buildContestantDocs("t1", "host-1", drafts(47))).toThrow();
+    expect(() => buildContestantDocs("t1", "host-1", drafts(49))).toThrow();
   });
 });

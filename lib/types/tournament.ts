@@ -64,6 +64,7 @@ export interface Tournament {
 export interface Contestant {
   id: string;
   tournamentId: string;
+  hostUid: string; // denormalized from the Tournament — enables batch-safe Firestore rules
   order: number; // 1..48
   name: string;
   nationality: string;

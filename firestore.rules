@@ -29,10 +29,39 @@ service cloud.firestore {
     //     client query (`where featured==true limit 1`) returns only
     //     featured docs → passes per-doc → succeeds.
     //
-    // Writes are admin-only (deny here; service accounts bypass rules).
+    // B-1 The Lab makes this collection writable by its operator (owner).
+    //   read   — public reads stay featured-only (Launch Pad hero); the
+    //            operator additionally reads their own Tournaments
+    //            (TournamentList query: where hostUid == uid).
+    //   create — MVP1 has no custom claims, so operator-only is enforced
+    //            client-side (AdminAuthGuard). Rules enforce owner-scoping:
+    //            you may only create a Tournament you host.
+    //   update/delete — owner only.
     match /tournaments/{tournamentId} {
-      allow read: if resource.data.featured == true;
-      allow write: if false;
+      allow read: if resource.data.featured == true
+                  || (request.auth != null
+                      && resource.data.hostUid == request.auth.uid);
+      allow create: if request.auth != null
+                    && request.resource.data.hostUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                    && resource.data.hostUid == request.auth.uid;
+    }
+
+    // ── contestants (B-1) ──────────────────────────────────────────
+    // New collection. hostUid is denormalized from the parent Tournament so
+    // create rules are BATCH-SAFE: Publish writes the Tournament + 48
+    // Contestants in one writeBatch, and rules get() can't see a same-batch
+    // doc — so we validate hostUid on the Contestant itself instead of a
+    // get() to the (not-yet-committed) Tournament. No PII on these docs;
+    // reads are owner-scoped for now and C-1 will relax them to public when
+    // Voters need to read Contestants for voting.
+    match /contestants/{contestantId} {
+      allow read: if request.auth != null
+                  && resource.data.hostUid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.hostUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+                    && resource.data.hostUid == request.auth.uid;
     }
 
     // ── waitlist ───────────────────────────────────────────────────
