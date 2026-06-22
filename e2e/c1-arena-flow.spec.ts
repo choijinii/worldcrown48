@@ -179,6 +179,10 @@ test.describe("C-1 The Arena — Voter critical path", () => {
       }
       return { hasAuthKey: k.length > 0, uid, isAnonymous };
     });
+    const loadDiag = await page.evaluate(
+      () => (globalThis as { __loadDiag?: unknown[] }).__loadDiag ?? "NONE",
+    );
+    console.log(`[DIAG] loadTournament trace: ${JSON.stringify(loadDiag)}`);
     console.log(`[DIAG] browser-auth: ${JSON.stringify(authState)}`);
     console.log(
       `[DIAG] page-text: ${(await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 240)}`,
