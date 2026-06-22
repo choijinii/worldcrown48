@@ -38,7 +38,10 @@ service cloud.firestore {
     //            you may only create a Tournament you host.
     //   update/delete — owner only.
     match /tournaments/{tournamentId} {
-      allow read: if resource.data.featured == true
+      // C-1: Voters read ACTIVE tournaments to vote (active-public). Launch Pad
+      // still relies on featured-public; the operator reads their own.
+      allow read: if resource.data.status == 'active'
+                  || resource.data.featured == true
                   || (request.auth != null
                       && resource.data.hostUid == request.auth.uid);
       allow create: if request.auth != null
@@ -56,8 +59,9 @@ service cloud.firestore {
     // reads are owner-scoped for now and C-1 will relax them to public when
     // Voters need to read Contestants for voting.
     match /contestants/{contestantId} {
-      allow read: if request.auth != null
-                  && resource.data.hostUid == request.auth.uid;
+      // C-1: public read — Contestants carry no PII and Voters must read them to
+      // vote. Writes stay operator-owner-scoped.
+      allow read: if true;
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
       allow update, delete: if request.auth != null
@@ -148,6 +152,17 @@ service cloud.firestore {
     // Write: blocked — vote rows are only written by Cloud Functions
     // (onVote, linkSessionVote) running with admin credentials.
     match /votes/{voteId} {
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ── roundProgress (C-1) ────────────────────────────────────────
+    // Per-Voter round-transition + Champion doc (id = `${uid}_${tid}`), the
+    // client subscribes via onSnapshot (ADR-0001, Firestore-only). Read: owner
+    // only. Write: blocked — only advanceRound (admin SDK) writes it, so a
+    // Voter can never forge a round advance or a Champion.
+    match /roundProgress/{progressId} {
       allow read: if request.auth != null
                   && resource.data.userId == request.auth.uid;
       allow write: if false;
