@@ -41,11 +41,11 @@ const VOTER = "voter-uid";
 
 let testEnv: RulesTestEnvironment;
 
-function tournament(hostUid: string, featured = false) {
+function tournament(hostUid: string, featured = false, status = "active") {
   return {
     title: "Best Strikers",
     category: "FOOTBALL",
-    status: "active",
+    status,
     hostUid,
     currentRound: 1,
     totalContestants: 48,
@@ -121,9 +121,14 @@ describe("tournaments rules", () => {
     await assertSucceeds(getDoc(doc(db, "tournaments/feat")));
   });
 
-  it("forbids a Voter reading an operator's non-featured Tournament", async () => {
+  // C-1 relaxed reads: ACTIVE tournaments are public. The still-denied case is a
+  // non-active, non-featured, non-owned tournament (draft).
+  it("forbids a Voter reading a non-active, non-featured Tournament (draft)", async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), "tournaments/t1"), tournament(OPERATOR));
+      await setDoc(
+        doc(ctx.firestore(), "tournaments/t1"),
+        tournament(OPERATOR, false, "draft"),
+      );
     });
     const db = testEnv.authenticatedContext(VOTER).firestore();
     await assertFails(getDoc(doc(db, "tournaments/t1")));
@@ -152,11 +157,12 @@ describe("contestants rules", () => {
     await assertFails(setDoc(doc(db, "contestants/c1"), contestant(OPERATOR)));
   });
 
-  it("forbids a Voter reading an operator's Contestant", async () => {
+  // C-1 made Contestants public-read (no PII; Voters read to vote).
+  it("allows anyone to read a Contestant (public after C-1)", async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), "contestants/c1"), contestant(OPERATOR));
     });
-    const db = testEnv.authenticatedContext(VOTER).firestore();
-    await assertFails(getDoc(doc(db, "contestants/c1")));
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(db, "contestants/c1")));
   });
 });

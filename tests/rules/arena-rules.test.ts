@@ -88,10 +88,13 @@ describe("tournaments — Voter read", () => {
     await assertFails(getDoc(doc(db, "tournaments/t1")));
   });
 
-  it("DENIES a Voter writing a tournament", async () => {
+  // Owner-scoped (B-1/ADR-0002): a Voter cannot write an OPERATOR-owned
+  // tournament. (Self-owned creates stay allowed by the owner-scoped rule —
+  // operator-only is a client gate, not a rules gate; see report note.)
+  it("DENIES a Voter writing an operator-owned tournament", async () => {
     const db = testEnv.authenticatedContext(VOTER).firestore();
     await assertFails(
-      setDoc(doc(db, "tournaments/t1"), tournament("active", false, VOTER)),
+      setDoc(doc(db, "tournaments/t1"), tournament("active", false, OPERATOR)),
     );
   });
 });
