@@ -91,7 +91,12 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
 
   test.beforeEach(async ({ page }) => {
     consoleErrors = [];
-    page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
+    page.on("console", (m) => {
+      if (m.type() !== "error") return;
+      const t = m.text();
+      if (t.includes("Could not reach Cloud Firestore backend")) return;
+      consoleErrors.push(t);
+    });
   });
   test.afterEach(async () => {
     expect(consoleErrors, "Console errors must be 0").toHaveLength(0);

@@ -74,7 +74,10 @@ export function getDb(): Firestore {
   // production, and what makes the Arena load reliably under Playwright/CI.
   try {
     db = initializeFirestore(fbApp, {
-      experimentalAutoDetectLongPolling: true,
+      // Force long-polling: auto-detect still hit "[code=unavailable] Could not
+      // reach Cloud Firestore backend" in headless CI (the detection round-trip
+      // itself fails over WebChannel). Forcing skips WebChannel entirely.
+      experimentalForceLongPolling: true,
     });
   } catch {
     // Already initialized (HMR / a prior getFirestore call) — reuse it.
