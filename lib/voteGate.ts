@@ -56,15 +56,27 @@ export async function getTodayVoteCount(
   userId: string,
   tournamentId: string,
 ): Promise<number> {
-  const snapshot = await getDocs(
-    query(
-      collection(getDb(), "votes"),
-      where("userId", "==", userId),
-      where("tournamentId", "==", tournamentId),
-      where("date", "==", getTodayKST()),
-    ),
+  const q = query(
+    collection(getDb(), "votes"),
+    where("userId", "==", userId),
+    where("tournamentId", "==", tournamentId),
+    where("date", "==", getTodayKST()),
   );
-  return snapshot.size;
+  // Retry on the transient "[code=unavailable] Could not reach Cloud Firestore
+  // backend" — a single dropped connection here would otherwise throw out of
+  // checkCanVote and silently skip the vote gate.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return (await getDocs(q)).size;
+    } catch (e) {
+      const code = (e as { code?: string }).code;
+      if (attempt < 2 && code === "unavailable") {
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      throw e;
+    }
+  }
 }
 
 export function useVoteGate() {
