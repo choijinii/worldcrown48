@@ -152,3 +152,7 @@ export { linkSessionVote } from "./linkSessionVote";
 
 // B-1 The Lab — AI Fill (operator-only Tournament seeding).
 export { aiFillContestants } from "./aiFillContestants";
+
+// C-1 The Arena — vote engine.
+export { onVote } from "./onVote";
+export { advanceRound } from "./advanceRound";
