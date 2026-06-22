@@ -102,11 +102,9 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
     expect(consoleErrors, "Console errors must be 0").toHaveLength(0);
   });
 
-  test.only("anonymous Voter: 5 votes process, 6th opens the daily-limit LoginModal", async ({
+  test("anonymous Voter: 5 votes process, 6th opens the daily-limit LoginModal", async ({
     page,
   }) => {
-    const pageConsole: string[] = [];
-    page.on("console", (m) => pageConsole.push(`[${m.type()}] ${m.text()}`));
     // Empty storageState dropped the Vercel Preview Protection bypass cookie
     // (global-setup primes it into the authed state). Prime it here via the
     // query-param form so this anonymous context can reach the app.
@@ -134,34 +132,7 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
 
     // 6th match is m5 = (P11, P12); the 6th vote attempt must be gated.
     await expect(page.getByTestId("vote-left")).toContainText("P11");
-
-    // ─── DIAG (temporary): committed count + 6th-vote outcome ───
-    const anonUid = await page.evaluate(() => {
-      const k = Object.keys(localStorage).find((x) =>
-        x.startsWith("firebase:authUser:"),
-      );
-      try {
-        return JSON.parse(k ? localStorage.getItem(k) || "{}" : "{}").uid ?? null;
-      } catch {
-        return null;
-      }
-    });
-    const committed = (
-      await db()
-        .collection("votes")
-        .where("userId", "==", anonUid)
-        .where("tournamentId", "==", TID)
-        .get()
-    ).size;
-    console.log(`[DIAG] anonUid=${anonUid} committedVotes=${committed}`);
-
     await page.getByTestId("vote-left").click();
-    await page.waitForTimeout(3000);
-    console.log(
-      `[DIAG] after-6th page-text: ${(await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 200)}`,
-    );
-    console.log(`[DIAG] page-console:\n${pageConsole.join("\n")}`);
-    // ─── end DIAG ───
 
     // LoginModal (daily_limit) appears — "오늘의 투표를 모두 사용했어요 (5/5)".
     await expect(page.getByText(/오늘의 투표를 모두 사용했어요/)).toBeVisible();
