@@ -1,0 +1,602 @@
+/* Domain 3 · The Arena — adapted from the canonical wireframe
+   (docs/design/wireframes/Domain 3 · The Arena.html). Class structure mirrors
+   .vs-* / .rt-* / .final-* so the components match the design 1:1. Container
+   queries in the wireframe become viewport media queries here. */
+
+.arena {
+  --bg-void: #00001f;
+  --bg-deep: #00003a;
+  --bg-default: #0e0944;
+  --bg-soft: #241754;
+  --bg-elevated: #362261;
+  --gold: #fcd006;
+  --gold-glow: rgba(252, 208, 6, 0.25);
+  --gold-subtle: rgba(252, 208, 6, 0.12);
+  --gold-hover: #e3bb05;
+  --aura: #eeda7d;
+  --crimson: #d7063a;
+  --turquoise: #00a3b7;
+  --text: #f2f2f5;
+  --text-sub: #b1b5c4;
+  --text-muted: #484b67;
+  --border: #2d1c5a;
+  --border-gold: rgba(252, 208, 6, 0.3);
+  --radius: 5px;
+  --font-sans: "Inter", "Pretendard", system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --shadow-gold: 0 0 32px rgba(252, 208, 6, 0.25);
+  --shadow-crimson: 0 0 24px rgba(215, 6, 58, 0.25);
+  --shadow-turquoise: 0 0 24px rgba(0, 163, 183, 0.2);
+
+  position: relative;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-sans);
+  background: radial-gradient(
+      120% 80% at 50% 0%,
+      var(--bg-default) 0%,
+      var(--bg-deep) 60%,
+      var(--bg-void) 100%
+    );
+  overflow: hidden;
+}
+
+/* ── VS Battle ── */
+.vsStage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 64px 48px 32px;
+  background: var(--bg-default);
+}
+.vsStage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+      ellipse 50% 60% at 12% 50%,
+      color-mix(in srgb, var(--turquoise) 20%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 60% at 88% 50%,
+      color-mix(in srgb, var(--crimson) 20%, transparent),
+      transparent 55%
+    );
+}
+.vsHeader {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin-bottom: 32px;
+}
+.vsEyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.vsTitle {
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.vsBody {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.vsCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+}
+.vsPortrait {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 72px;
+  overflow: hidden;
+  transition:
+    transform 200ms ease,
+    box-shadow 220ms ease,
+    border-color 200ms ease;
+}
+.left .vsPortrait {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--turquoise) 28%, transparent),
+    color-mix(in srgb, var(--bg-soft) 65%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--turquoise) 45%, transparent);
+  color: var(--turquoise);
+}
+.right .vsPortrait {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--crimson) 28%, transparent),
+    color-mix(in srgb, var(--bg-soft) 65%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--crimson) 45%, transparent);
+  color: var(--crimson);
+}
+.vsPortrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vsCard:hover .vsPortrait {
+  transform: translateY(-4px) scale(1.02);
+}
+.left:hover .vsPortrait {
+  box-shadow: var(--shadow-turquoise);
+}
+.right:hover .vsPortrait {
+  box-shadow: var(--shadow-crimson);
+}
+.vsName {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.015em;
+}
+.vsMeta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-sub);
+  letter-spacing: 0.1em;
+}
+.right .vsName,
+.right .vsMeta {
+  text-align: right;
+}
+.pickCheck {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--bg-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: var(--shadow-gold);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+.vsCard.picked .pickCheck {
+  opacity: 1;
+  transform: scale(1);
+}
+.vsCard.picked .vsPortrait {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-gold);
+}
+.vsCard.dimmed {
+  opacity: 0.38;
+  filter: saturate(0.6);
+}
+.glyph {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 78px;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--gold) 45%, transparent);
+  padding-bottom: 48px;
+  user-select: none;
+}
+.voteBtn {
+  margin-top: 4px;
+  padding: 10px 14px;
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+.voteBtn small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+.left .voteBtn {
+  background: var(--turquoise);
+  color: color-mix(in srgb, var(--turquoise) 14%, black);
+  box-shadow: var(--shadow-turquoise);
+}
+.right .voteBtn {
+  background: var(--crimson);
+  color: var(--text);
+  box-shadow: var(--shadow-crimson);
+}
+.vsFoot {
+  position: relative;
+  z-index: 1;
+  margin: 32px auto 0;
+  max-width: 920px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-sub);
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  text-align: center;
+}
+.vsFoot .g {
+  color: var(--gold);
+}
+.vsFoot strong {
+  color: var(--text);
+}
+.loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: color-mix(in srgb, var(--bg-void) 68%, transparent);
+  backdrop-filter: blur(3px);
+}
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 3px solid var(--gold-subtle);
+  border-top-color: var(--gold);
+  animation: spin 720ms linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.loadingText {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--text-sub);
+  text-transform: uppercase;
+}
+
+/* ── Round Transition ── */
+.rtStage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+.rtGlow {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    color-mix(in srgb, var(--gold) 18%, transparent),
+    transparent 60%
+  );
+}
+.rtCorner {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+}
+.rtCornerBl {
+  bottom: 24px;
+  left: 32px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+.rtAnnounce {
+  position: relative;
+  z-index: 2;
+  padding: 48px;
+  transform: scale(0.92);
+  opacity: 0;
+  transition:
+    transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 500ms ease,
+    filter 500ms ease;
+}
+.rtAnnounce.hold {
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+}
+.rtAnnounce.out {
+  transform: scale(1.06);
+  opacity: 0;
+  filter: blur(8px);
+}
+.rtDone {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+.rtDone b {
+  color: var(--turquoise);
+}
+.rtNextLabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--aura);
+  margin: 28px 0 16px;
+}
+.rtNext {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 88px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--gold);
+  text-shadow: 0 0 60px var(--gold-glow);
+}
+.rtMeta {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--text-sub);
+  margin-top: 20px;
+}
+.rtBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}
+.rtBar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--gold);
+  box-shadow: 0 0 16px var(--gold-glow);
+}
+
+/* ── THE FINAL ── */
+.finalStage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 64px 32px 40px;
+}
+.finalHead {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.finalEyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gold);
+}
+.finalH {
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  margin: 8px 0 0;
+}
+.finalSub {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin-top: 12px;
+}
+.finalRow {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1040px;
+}
+.fcard {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+  background: var(--bg-soft);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  text-align: center;
+  transition:
+    transform 200ms ease,
+    box-shadow 220ms ease,
+    border-color 180ms ease;
+}
+.fcard:nth-child(1) {
+  border-color: color-mix(in srgb, var(--turquoise) 35%, transparent);
+}
+.fcard:nth-child(2) {
+  border-color: var(--border-gold);
+}
+.fcard:nth-child(3) {
+  border-color: color-mix(in srgb, var(--crimson) 35%, transparent);
+}
+.fcard:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: var(--shadow-gold);
+  border-color: var(--gold);
+}
+.fcard.picked {
+  border-color: var(--gold);
+  border-width: 3px;
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-6px);
+}
+.fcard.dimmed {
+  opacity: 0.42;
+  filter: saturate(0.6);
+}
+.fcardPhoto {
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 64px;
+}
+.fcard:nth-child(1) .fcardPhoto {
+  color: var(--turquoise);
+}
+.fcard:nth-child(2) .fcardPhoto {
+  color: var(--gold);
+}
+.fcard:nth-child(3) .fcardPhoto {
+  color: var(--crimson);
+}
+.fcardPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fcardBody {
+  padding: 16px;
+}
+.fcardName {
+  font-weight: 700;
+  font-size: 18px;
+}
+.fcardMeta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-sub);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+.fcardVote {
+  margin-top: 12px;
+  width: 100%;
+  border: 0;
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-gold);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+.fcardVote small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+}
+.finalFoot {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-top: 32px;
+  text-transform: uppercase;
+}
+
+/* ── Responsive (mobile stacks; wireframe container-query <720) ── */
+@media (max-width: 719px) {
+  .vsBody {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .vsCard {
+    max-width: 300px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .right .vsName,
+  .right .vsMeta {
+    text-align: left;
+  }
+  .glyph {
+    font-size: 56px;
+    padding: 0;
+  }
+  .vsTitle {
+    font-size: 28px;
+  }
+  .rtNext {
+    font-size: 48px;
+  }
+  .finalRow {
+    flex-direction: column;
+    align-items: center;
+  }
+  .fcard {
+    max-width: 280px;
+    width: 100%;
+  }
+  .finalH {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vsPortrait,
+  .pickCheck,
+  .rtAnnounce,
+  .fcard,
+  .spinner {
+    transition: none;
+    animation: none;
+  }
+}

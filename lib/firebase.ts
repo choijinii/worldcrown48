@@ -28,7 +28,11 @@ import {
   type Auth,
   type User,
 } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  type Firestore,
+} from "firebase/firestore";
 import { getFunctions, type Functions } from "firebase/functions";
 
 const config = {
@@ -62,7 +66,23 @@ let db: Firestore | null = null;
 
 export function getDb(): Firestore {
   if (db) return db;
-  db = getFirestore(getFirebaseApp());
+  const fbApp = getFirebaseApp();
+  // Auto-detect long-polling: the default WebChannel transport intermittently
+  // fails with "[code=unavailable] Could not reach Cloud Firestore backend" in
+  // headless/CI browsers and behind some proxies. Auto-detect keeps WebChannel
+  // where it works and falls back to long-polling where it doesn't — safe for
+  // production, and what makes the Arena load reliably under Playwright/CI.
+  try {
+    db = initializeFirestore(fbApp, {
+      // Force long-polling: auto-detect still hit "[code=unavailable] Could not
+      // reach Cloud Firestore backend" in headless CI (the detection round-trip
+      // itself fails over WebChannel). Forcing skips WebChannel entirely.
+      experimentalForceLongPolling: true,
+    });
+  } catch {
+    // Already initialized (HMR / a prior getFirestore call) — reuse it.
+    db = getFirestore(fbApp);
+  }
   return db;
 }
 
