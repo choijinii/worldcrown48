@@ -119,7 +119,7 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
     await page.goto(`/arena/${TID}`);
 
     // The match rendering proves the anonymous uid was issued + tournament loaded.
-    await expect(page.getByText("P1", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("vote-left")).toContainText("P1");
 
     // Votes 1–5 (left-pick): m0..m4 lefts are P1,P3,P5,P7,P9. Each click → onVote
     // → next match, advancing the per-Voter bracket.
