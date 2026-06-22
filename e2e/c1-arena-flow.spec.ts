@@ -16,7 +16,8 @@
  * secrets), not locally.
  *
  * onVote + advanceRound are deployed to prod (asia-northeast3) so the voting
- * tests run end-to-end.
+ * tests run end-to-end; Firestore uses long-polling auto-detect so the browser
+ * reaches the backend reliably under CI.
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
