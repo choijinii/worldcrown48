@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 25
     env:
       PREVIEW_URL: ${{ secrets.C1_PREVIEW_URL }}
+      # global-setup reads TEST_UID (custom-token sign-in); the C-1 specs read
+      # C1_TEST_UID for seeding. Both map to the same secret.
+      TEST_UID: ${{ secrets.C1_TEST_UID }}
       C1_TEST_UID: ${{ secrets.C1_TEST_UID }}
       FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
       NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}

@@ -100,6 +100,17 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
   test("anonymous Voter: 5 votes process, 6th opens the daily-limit LoginModal", async ({
     page,
   }) => {
+    // Empty storageState dropped the Vercel Preview Protection bypass cookie
+    // (global-setup primes it into the authed state). Prime it here via the
+    // query-param form so this anonymous context can reach the app.
+    const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    const base = process.env.PREVIEW_URL;
+    if (bypass && base) {
+      await page.goto(
+        `${base}/?x-vercel-protection-bypass=${encodeURIComponent(bypass)}&x-vercel-set-bypass-cookie=true`,
+      );
+    }
+
     await page.goto(`/arena/${TID}`);
 
     // The match rendering proves the anonymous uid was issued + tournament loaded.
