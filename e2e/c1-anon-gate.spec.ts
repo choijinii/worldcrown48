@@ -125,12 +125,13 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
     // → next match, advancing the per-Voter bracket.
     const leftNames = ["P1", "P3", "P5", "P7", "P9"];
     for (const name of leftNames) {
-      await expect(page.getByText(name, { exact: true })).toBeVisible();
+      // Assert via the side button (name appears twice → getByText is ambiguous).
+      await expect(page.getByTestId("vote-left")).toContainText(name);
       await page.getByTestId("vote-left").click();
     }
 
     // 6th match is m5 = (P11, P12); the 6th vote attempt must be gated.
-    await expect(page.getByText("P11", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("vote-left")).toContainText("P11");
     await page.getByTestId("vote-left").click();
 
     // LoginModal (daily_limit) appears — "오늘의 투표를 모두 사용했어요 (5/5)".

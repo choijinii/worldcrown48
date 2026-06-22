@@ -141,9 +141,11 @@ test.describe("C-1 The Arena — Voter critical path", () => {
   }) => {
     await seedRound1Votes(10); // winners c1,c3,…,c19 → next match m10 = (c21,c22)
     await page.goto(`/arena/${TID}`);
-    // m10 pairs order 21 vs 22 → P21 / P22 (bracket is votes-derived, refresh-safe)
-    await expect(page.getByText("P21", { exact: true })).toBeVisible();
-    await expect(page.getByText("P22", { exact: true })).toBeVisible();
+    // m10 pairs order 21 vs 22 → P21 / P22. Assert via the side buttons (the
+    // name appears in both the name div and the vote label → getByText is
+    // ambiguous under strict mode).
+    await expect(page.getByTestId("vote-left")).toContainText("P21");
+    await expect(page.getByTestId("vote-right")).toContainText("P22");
   });
 
   test("THE FINAL pick writes only roundProgress.championId; tournament doc untouched", async ({
@@ -179,9 +181,12 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     await page.getByRole("button", { name: /CROWN/ }).first().click();
 
     // roundProgress.championId is set; the tournament doc is unchanged.
+    // advanceRound is an async Firestore trigger (Eventarc) — give it time.
     await expect
-      .poll(async () =>
-        (await d.doc(`roundProgress/${UID}_${TID}`).get()).data()?.championId,
+      .poll(
+        async () =>
+          (await d.doc(`roundProgress/${UID}_${TID}`).get()).data()?.championId,
+        { timeout: 30_000 },
       )
       .toBeTruthy();
     const after = (await d.doc(`tournaments/${TID}`).get()).data();
