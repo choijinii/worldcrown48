@@ -78,18 +78,10 @@ export const useVoteStore = create<VoteState>((set, get) => ({
   reset: () => set({ ...EMPTY }),
 
   loadTournament: async (tournamentId, userId) => {
-    // ── DIAG (temporary): trace loadTournament phases via globalThis (console
-    // is stripped in prod, globalThis is not). Read by the E2E via evaluate. ──
-    const diag = (p: Record<string, unknown>) => {
-      const g = globalThis as { __loadDiag?: unknown[] };
-      (g.__loadDiag ??= []).push({ t: Date.now(), ...p });
-    };
-    diag({ phase: "start", tournamentId, userId });
     set({ loading: true, error: null });
     try {
       const db = getDb();
       const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
-      diag({ phase: "t-read", exists: tSnap.exists() });
       if (!tSnap.exists()) {
         set({ loading: false, error: "not-found" });
         return;
@@ -106,7 +98,6 @@ export const useVoteStore = create<VoteState>((set, get) => ({
       const contestants = cSnap.docs.map(
         (d) => ({ id: d.id, ...d.data() }) as Contestant,
       );
-      diag({ phase: "contestants-read", count: contestants.length });
 
       const vSnap = await getDocs(
         query(
@@ -128,15 +119,8 @@ export const useVoteStore = create<VoteState>((set, get) => ({
         };
       });
 
-      diag({ phase: "votes-read", count: votes.length });
       set({ tournament, contestants, votes, loading: false, error: null });
-      diag({ phase: "done" });
-    } catch (e) {
-      diag({
-        phase: "error",
-        message: String((e as Error)?.message ?? e),
-        code: (e as { code?: string })?.code ?? null,
-      });
+    } catch {
       set({ loading: false, error: "load-failed" });
     }
   },

@@ -136,60 +136,11 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     expect(consoleErrors, "Console errors must be 0").toHaveLength(0);
   });
 
-  test.only("refresh mid-round (10/24 votes) resumes at exactly m10", async ({
+  test("refresh mid-round (10/24 votes) resumes at exactly m10", async ({
     page,
   }) => {
-    // ─── DIAG (temporary): evidence for the "tournament not found" failure ───
-    const tSnap = await db().doc(`tournaments/${TID}`).get();
-    const cCount = (
-      await db().collection("contestants").where("tournamentId", "==", TID).get()
-    ).size;
-    console.log(
-      `[DIAG] seed-in-prod: tournament.exists=${tSnap.exists} status=${tSnap.data()?.status} contestants=${cCount}`,
-    );
-
     await seedRound1Votes(10); // winners c1,c3,…,c19 → next match m10 = (c21,c22)
-    const vCount = (
-      await db()
-        .collection("votes")
-        .where("userId", "==", UID)
-        .where("tournamentId", "==", TID)
-        .get()
-    ).size;
-    console.log(`[DIAG] votes seeded in prod: ${vCount} for uid=${UID}`);
-
-    const pageConsole: string[] = [];
-    page.on("console", (m) => pageConsole.push(`[${m.type()}] ${m.text()}`));
-
     await page.goto(`/arena/${TID}`);
-    await page.waitForTimeout(6000); // let anon/custom auth + loadTournament settle
-
-    const authState = await page.evaluate(() => {
-      const k = Object.keys(localStorage).filter((x) =>
-        x.startsWith("firebase:authUser:"),
-      );
-      let uid: unknown = null;
-      let isAnonymous: unknown = null;
-      try {
-        const j = JSON.parse(k[0] ? localStorage.getItem(k[0]) || "{}" : "{}");
-        uid = j.uid;
-        isAnonymous = j.isAnonymous;
-      } catch {
-        /* ignore */
-      }
-      return { hasAuthKey: k.length > 0, uid, isAnonymous };
-    });
-    const loadDiag = await page.evaluate(
-      () => (globalThis as { __loadDiag?: unknown[] }).__loadDiag ?? "NONE",
-    );
-    console.log(`[DIAG] loadTournament trace: ${JSON.stringify(loadDiag)}`);
-    console.log(`[DIAG] browser-auth: ${JSON.stringify(authState)}`);
-    console.log(
-      `[DIAG] page-text: ${(await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 240)}`,
-    );
-    console.log(`[DIAG] page-console:\n${pageConsole.join("\n")}`);
-    // ─── end DIAG ───
-
     // m10 pairs order 21 vs 22 → P21 / P22 (bracket is votes-derived, refresh-safe)
     await expect(page.getByText("P21", { exact: true })).toBeVisible();
     await expect(page.getByText("P22", { exact: true })).toBeVisible();
