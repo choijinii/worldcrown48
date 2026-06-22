@@ -84,8 +84,8 @@ jobs:
 
       - name: E2E (Playwright)
         if: ${{ env.PREVIEW_URL != '' }}
-        # Scope to C-1's own spec (each workflow targets its own preview/secrets).
-        run: npm run test:e2e -- e2e/c1-arena-flow.spec.ts
+        # Scope to C-1's own specs (each workflow targets its own preview/secrets).
+        run: npm run test:e2e -- e2e/c1-arena-flow.spec.ts e2e/c1-anon-gate.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()
