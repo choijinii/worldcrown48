@@ -14,6 +14,9 @@
  * merge-set by construction — here we assert the END STATE is correct and
  * stable. Authored to the D-1/B-1 E2E pattern; verified in CI (needs preview +
  * secrets), not locally.
+ *
+ * onVote + advanceRound are deployed to prod (asia-northeast3) so the voting
+ * tests run end-to-end.
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
