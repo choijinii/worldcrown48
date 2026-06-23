@@ -111,22 +111,27 @@ interface CrownCanvasPreviewProps {
 
 export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.Element {
   const ref = useRef<HTMLCanvasElement>(null);
+  // Depend on the rendered fields, not the `data` object identity — toCrownData
+  // builds a fresh object every parent render, which would otherwise repaint the
+  // canvas on every unrelated re-render (path is not drawn, so it's excluded).
+  const { initial, name, title, url } = data;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
+    const d: CrownData = { initial, name, title, url, path: "" };
     const img = loadCrownImage();
-    let raf = requestAnimationFrame(() => paintCrown(canvas, fmt, data, img));
+    let raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     // Re-render once the crown SVG finishes loading so it replaces the glyph.
     const onLoad = (): void => {
-      raf = requestAnimationFrame(() => paintCrown(canvas, fmt, data, img));
+      raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     };
     if (img && !img.complete) img.addEventListener("load", onLoad);
     return () => {
       cancelAnimationFrame(raf);
       if (img) img.removeEventListener("load", onLoad);
     };
-  }, [fmt, data]);
+  }, [fmt, initial, name, title, url]);
 
   return (
     <div className={styles.ccCanvasWrap}>

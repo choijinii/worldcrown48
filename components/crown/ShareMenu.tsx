@@ -12,7 +12,7 @@
  */
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FORMATS, type FormatKey, type CrownData } from "@/lib/crown/formats";
 import { useI18n } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
@@ -74,6 +74,12 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
     timer.current = setTimeout(() => setToastMsg(null), 2800);
   }, []);
 
+  // Clear any pending toast timer on unmount (the menu remounts on each open via
+  // key={openNonce}) so setToastMsg never fires on an unmounted instance.
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
   const img = loadCrownImage();
   // §8 analytics base — drop tournamentId when absent (EventParams forbids undefined).
   const base: Record<string, string> = {};
@@ -98,8 +104,11 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
   };
 
   const onBoth = async (): Promise<void> => {
+    // Await BOTH saves before claiming success (AC-6) — a failed feed render
+    // must not show "saved both". Sequential awaits also space the two browser
+    // downloads so the second isn't blocked.
     await downloadCrown("story", data, img);
-    setTimeout(() => void downloadCrown("feed", data, img), 400);
+    await downloadCrown("feed", data, img);
     void track("crown_downloaded", { ...base, fmt: "both" });
     showToast(t.savedBoth);
   };

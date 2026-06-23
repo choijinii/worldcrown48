@@ -68,7 +68,9 @@ export default function ChampionPage(): JSX.Element {
     );
   }
 
-  if (!tournament) return <Center>Crown Card 불러오는 중…</Center>;
+  // Guard against the shared voteStore still holding a DIFFERENT tournament
+  // (deep-link before loadTournament resolves) — never render a stale card.
+  if (!tournament || tournament.id !== tournamentId) return <Center>Crown Card 불러오는 중…</Center>;
 
   const championId = resolveChampionId(progress);
   const champion = contestants.find((c) => c.id === championId);

@@ -51,18 +51,33 @@ export const onChampionConfirmed = onDocumentUpdated(
     const tournamentTitle = String(tournament.title ?? "");
     const tournamentCategory = String(tournament.category ?? "");
 
-    // Render the 1.91:1 PNG and upload it (admin SDK only — storage.rules).
-    const png = renderCrownPng({
-      initial: championName.trim() ? Array.from(championName.trim())[0].toUpperCase() : "?",
-      name: championName,
-      title: tournamentTitle,
-      url: "worldcrown48.com",
-      path: VICTORY_PATH,
-    });
+    // Render the 1.91:1 PNG. A render failure is PERMANENT (e.g. the optional
+    // node-canvas binary is absent on this instance) — log and return WITHOUT
+    // throwing, so the at-least-once trigger does not retry-storm for days.
+    let png: Buffer;
+    try {
+      png = renderCrownPng({
+        initial: championName.trim() ? Array.from(championName.trim())[0].toUpperCase() : "?",
+        name: championName,
+        title: tournamentTitle,
+        url: "worldcrown48.com",
+        path: VICTORY_PATH,
+      });
+    } catch (err) {
+      console.error(
+        `[onChampionConfirmed] render failed for ${cardId} (canvas unavailable?) — skipping without retry:`,
+        err,
+      );
+      return;
+    }
+
+    // Upload (admin SDK only — storage.rules). storage.rules makes /crown-cards
+    // publicly readable, so we use the tokenless Firebase media URL — no
+    // getSignedUrl, which would need signBlob perms the default runtime SA lacks.
     const storagePath = `crown-cards/${tournamentId}/${voterUid}.png`;
-    const file = adminStorage.bucket().file(storagePath);
-    await file.save(png, { contentType: "image/png" });
-    const [imageUrl] = await file.getSignedUrl({ action: "read", expires: "01-01-2100" });
+    const bucket = adminStorage.bucket();
+    await bucket.file(storagePath).save(png, { contentType: "image/png", resumable: false });
+    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
     // Write the crown_cards doc (createdAt stamped here; builder validates).
     const record = buildCrownCardRecord({
