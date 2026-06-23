@@ -32,6 +32,8 @@ import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { MatchView } from "@/components/arena/MatchView";
 import { FinalPickView } from "@/components/arena/FinalPickView";
 import { RoundTransition } from "@/components/arena/RoundTransition";
+import { CrownCardModal } from "@/components/crown/CrownCardModal";
+import { toCrownData } from "@/lib/crown/championLoader";
 import styles from "@/components/arena/arena.module.css";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
@@ -56,7 +58,10 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ArenaPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
-  const uid = useAuthStore((s) => s.user?.uid);
+  const user = useAuthStore((s) => s.user);
+  const uid = user?.uid;
+  // Share/download require a real (non-anonymous) sign-in (AC-9/10).
+  const canShare = Boolean(user && !user.isAnonymous);
 
   const tournament = useVoteStore((s) => s.tournament);
   const contestants = useVoteStore((s) => s.contestants);
@@ -166,17 +171,21 @@ export default function ArenaPage(): JSX.Element {
   const state = useVoteStore.getState();
   const complete = selectIsComplete(state) || Boolean(progress?.complete);
   if (complete) {
+    // C-2: the Voter confirmed a Champion → auto-open the Crown Card modal in
+    // place (AC-1). The champion is resolved from the per-Voter roundProgress
+    // doc (championId) — never a global tournaments.status (§9 trap #1).
     const champ = progress?.championId ? byId(progress.championId) : null;
-    return (
-      <Center>
-        <div>
-          <div style={{ fontSize: 44 }}>👑</div>
-          <div style={{ color: "#fcd006", fontWeight: 800, fontSize: 22 }}>
-            Champion 확정{champ ? ` · ${champ.name}` : ""}
-          </div>
+    if (champ && tournament) {
+      const data = toCrownData(champ, tournament);
+      return (
+        <div className={styles.arena} data-arena-surface="champion">
+          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} />
+          {loginModal}
         </div>
-      </Center>
-    );
+      );
+    }
+    // championId not yet readable (Eventarc trigger lag) — brief hold.
+    return <Center>👑 Champion 확정 · Crown Card 준비 중…</Center>;
   }
 
   const match = selectCurrentMatch(state);

@@ -1,0 +1,297 @@
+/*
+ * C-2 Crown Card · styles — ported verbatim from the wireframe truth source
+ * (docs/design/wireframes/Domain 3 · The Arena.html line 294-367).
+ *
+ * Tokens resolve to the global design system (app/globals.css). The wireframe's
+ * `--color-bg-charcoal` is not in the Domain-3 set; per handoff §5 ("Domain 3
+ * 토큰만 사용") it is substituted with allowed Domain-3 surfaces (bg-deep / elevated).
+ * NO AI-Report badge anywhere (wireframe line 305, CLAUDE.md 원칙 #4).
+ */
+
+.crownStage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  background: radial-gradient(ellipse 60% 60% at 50% 45%, color-mix(in srgb, var(--color-gold) 12%, transparent), transparent 70%);
+}
+.crownHalo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 760px;
+  height: 760px;
+  max-width: 130%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(circle, var(--color-gold-glow) 0%, transparent 60%);
+  opacity: 0.7;
+  animation: haloPulse 3.2s ease-in-out infinite;
+}
+@keyframes haloPulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.05); }
+}
+/* AC-21 — stop the pulse for reduced-motion (wireframe data-attr + OS setting). */
+:global([data-reduced-motion="on"]) .crownHalo { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .crownHalo { animation: none; }
+}
+
+.crownModal {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-bg-default);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-card), var(--shadow-gold);
+  overflow: hidden;
+}
+.crownModalHead { padding: var(--space-5) var(--space-6) 0; text-align: center; }
+.crownEyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-aura);
+}
+.crownConfirm {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 30px;
+  color: var(--color-text);
+  margin-top: var(--space-2);
+}
+.crownConfirm em { color: var(--color-gold); font-style: italic; }
+
+/* Crown Card preview (1200×630 ratio) — NO AI-Report badge */
+.crownCard {
+  position: relative;
+  margin: var(--space-5) var(--space-6);
+  aspect-ratio: 1200 / 630;
+  border: 3px solid var(--color-gold);
+  border-radius: var(--radius-border);
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-gold) 14%, transparent), transparent 62%), var(--color-bg-deep);
+  display: grid;
+  grid-template-columns: 40% 1fr;
+}
+.crownCardPhoto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 78px;
+  color: var(--color-gold);
+  background: linear-gradient(160deg, var(--color-bg-elevated), var(--color-bg-soft));
+  margin: var(--space-4);
+  border-radius: var(--radius-border);
+}
+.crownCardInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-5) var(--space-5) var(--space-5) 0;
+}
+.cl { font-family: var(--font-sans); font-weight: 700; font-size: 13px; letter-spacing: 0.18em; color: var(--color-text-sub); }
+.cn {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 38px;
+  line-height: 1.02;
+  color: var(--color-gold);
+  letter-spacing: -0.02em;
+  margin: var(--space-2) 0;
+}
+.ct { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.cw { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); margin-top: auto; letter-spacing: 0.06em; }
+.crownCardMark { position: absolute; top: var(--space-3); right: var(--space-3); width: 26px; opacity: 0.9; }
+
+/* loading */
+.crownLoading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  background: color-mix(in srgb, var(--color-bg-default) 80%, transparent);
+}
+.sfCrown[data-crown="loading"] .crownLoading { display: flex; }
+.crownLoading .lt { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--color-text-sub); }
+
+/* share actions */
+.shareActions { display: flex; gap: var(--space-3); padding: 0 var(--space-6) var(--space-6); }
+.shareBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 13px;
+  padding: var(--space-3);
+  border-radius: var(--radius-border);
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+.shareBtn svg { width: 16px; height: 16px; }
+.shareBtn:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+.shareBtn.primary { background: var(--color-gold); color: var(--color-bg-deep); border-color: var(--color-gold); }
+.shareBtn.primary:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-gold); }
+.shareBtn:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.shareBtn.saved { color: var(--color-turquoise); border-color: color-mix(in srgb, var(--color-turquoise) 50%, transparent); }
+
+/* share menu */
+.shareMenu { display: none; padding: 0 var(--space-6) var(--space-6); max-height: 100%; overflow-y: auto; }
+.sfCrown[data-crown="menu"] .shareMenu { display: block; }
+.sfCrown[data-crown="menu"] .shareActions { display: none; }
+.sfCrown[data-crown="menu"] .crownModalHead,
+.sfCrown[data-crown="menu"] .crownCard { display: none; }
+.sfCrown[data-crown="menu"] .crownStage { align-items: flex-start; overflow-y: auto; }
+.shareMenu .smh { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: var(--space-3); }
+.shareOpt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-border);
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.shareOpt:hover { border-color: var(--color-border-gold); }
+.shareOpt svg { width: 18px; height: 18px; color: var(--color-gold); }
+
+/* login prompt banner (unauth) — charcoal → bg-deep (Domain-3 set, §5) */
+.loginBanner {
+  display: none;
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 6;
+  padding: var(--space-5) var(--space-6);
+  background: color-mix(in srgb, var(--color-bg-deep) 94%, transparent);
+  border-top: 1px solid var(--color-border-gold);
+}
+.sfCrown[data-crown="unauth"] .loginBanner { display: flex; align-items: center; gap: var(--space-4); }
+.sfCrown[data-crown="unauth"] .shareActions { opacity: 0.4; pointer-events: none; }
+.loginBanner .lbIco {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.loginBanner .lbT { font-size: 13px; font-weight: 600; }
+.loginBanner .lbS { font-size: 12px; color: var(--color-text-sub); }
+.loginBanner .lbBtn {
+  margin-left: auto;
+  border: 0;
+  background: var(--color-gold);
+  color: var(--color-bg-deep);
+  font-weight: 700;
+  font-size: 12px;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-border);
+  white-space: nowrap;
+}
+
+/* share generator · client-side canvas (9:16 · 4:5 · 1.91:1) */
+.smTop { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
+.smBack {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-border);
+  color: var(--color-text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.smBack svg { width: 16px; height: 16px; }
+.smBack:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+.smTop .smh { margin-bottom: 0; }
+.smFormats { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
+.smFormats button {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text-sub);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: var(--space-3) var(--space-1);
+  border-radius: var(--radius-border);
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+.smFormats button:hover { color: var(--color-text); }
+.smFormats button[aria-pressed="true"] { border-color: var(--color-border-gold); background: var(--color-gold-subtle); color: var(--color-gold); font-weight: 600; }
+.smPreview { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); }
+.ccCanvasWrap { display: flex; align-items: center; justify-content: center; height: 620px; }
+.ccPreviewCanvas {
+  max-height: 620px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-card), 0 0 0 1px var(--color-border-gold);
+  background: var(--color-bg-deep);
+}
+.ccDim { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--color-text-muted); }
+.smActions { display: flex; gap: var(--space-3); margin-bottom: var(--space-3); }
+.smActions .shareBtn { flex: 1; }
+.smNet .shareOpt { justify-content: center; font-weight: 600; }
+.ccNote { margin-top: var(--space-3); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--color-text-muted); text-align: center; line-height: 1.5; }
+
+/* toast — charcoal → bg-elevated (Domain-3 set, §5) */
+.ccToast {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-8);
+  transform: translateX(-50%) translateY(8px);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 9;
+  white-space: nowrap;
+  max-width: 90%;
+}
+.ccToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* responsive (wireframe §6 breakpoints) */
+@media (max-width: 767px) {
+  .crownModal { max-width: calc(100% - 16px); }
+  .ccCanvasWrap { height: auto; }
+  .ccPreviewCanvas { max-height: 60vh; }
+  .smFormats { overflow-x: auto; }
+}
