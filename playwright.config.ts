@@ -21,14 +21,17 @@ export default defineConfig({
   testDir: "e2e",
   testIgnore: ["**/global-setup.ts"],
   fullyParallel: false,
-  retries: process.env.CI ? 2 : 0,
+  // DIAGNOSTIC (temporary — reverted before merge): retries:0 so the mobile-320
+  // flake fails the run instead of being masked by a retry, and trace:on so the
+  // failure uploads a DOM snapshot + trace to confirm the mechanism. See ADR-0004.
+  retries: 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html", { open: "never" }], ["list"]],
   globalSetup: "./e2e/global-setup.ts",
   use: {
     baseURL: PREVIEW_URL,
     storageState: "tests/.auth/user.json",
-    trace: "on-first-retry",
+    trace: "on",
     video: "retain-on-failure",
   },
   projects: [
