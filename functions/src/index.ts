@@ -156,3 +156,6 @@ export { aiFillContestants } from "./aiFillContestants";
 // C-1 The Arena — vote engine.
 export { onVote } from "./onVote";
 export { advanceRound } from "./advanceRound";
+
+// C-2 The Arena — Crown Card generation (roundProgress.complete → Storage PNG + doc).
+export { onChampionConfirmed } from "./onChampionConfirmed";

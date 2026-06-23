@@ -168,6 +168,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── crown_cards (C-2) ──────────────────────────────────────────
+    // Per-Voter Crown Card metadata (id = `${voterUid}_${tournamentId}`),
+    // written ONLY by onChampionConfirmed (admin SDK). A Voter reads their own
+    // card; `featured == true` cards are public for the MVP-2 Hall of Fame.
+    // Client writes are blocked so a Voter can never forge a Champion card.
+    match /crown_cards/{cardId} {
+      allow read: if request.auth != null
+                  && (resource.data.voterUid == request.auth.uid
+                      || resource.data.featured == true);
+      allow write: if false;
+    }
+
     // ── auditLog ───────────────────────────────────────────────────
     // GDPR Art. 30 record. Both read and write are blocked at the rules
     // layer; the only writer is onUserDelete (admin SDK), and reads
