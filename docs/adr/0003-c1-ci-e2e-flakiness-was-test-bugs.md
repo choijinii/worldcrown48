@@ -97,6 +97,11 @@ When a `*-e2e` spec exercises The Arena / vote flow, verify before merge:
 ☐ Cross-check the run timestamp (KST) against any hardcoded date in the spec.
 ☐ advanceRound is an async Eventarc trigger — poll championId with a generous
    timeout (we use 30 s); a timeout means the upstream vote never fired, not slowness.
+☐ The FIRST assertion after a cold page load (auth → Firestore reads → render)
+   can edge past the default 5s expect timeout on a cold serverless preview. Gate
+   on a render anchor (e.g. getByTestId("vote-left")) with a generous timeout —
+   condition-based, never an arbitrary sleep. (Surfaced as a mobile-320px retry
+   flake on this very PR.)
 ```
 
 ## Consequences
