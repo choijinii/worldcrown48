@@ -179,7 +179,7 @@ export default function ArenaPage(): JSX.Element {
       const data = toCrownData(champ, tournament);
       return (
         <div className={styles.arena} data-arena-surface="champion">
-          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} />
+          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} tournamentId={tournamentId} />
           {loginModal}
         </div>
       );

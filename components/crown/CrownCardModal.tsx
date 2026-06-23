@@ -14,11 +14,14 @@
  */
 "use client";
 
-import { useState } from "react";
-import type { CrownData } from "@/lib/crown/formats";
+import { useEffect, useState } from "react";
+import type { CrownData, FormatKey } from "@/lib/crown/formats";
+import { track } from "@/lib/analytics";
 import { CrownStaticCard } from "./CrownStaticCard";
 import { ShareActions } from "./ShareActions";
+import { ShareMenu } from "./ShareMenu";
 import { LoginPromptBanner } from "./LoginPromptBanner";
+import { loadCrownImage, downloadCrown } from "./CrownCanvasPreview";
 import styles from "./crown.module.css";
 
 interface CrownCardModalProps {
@@ -29,15 +32,35 @@ interface CrownCardModalProps {
   onSignIn: () => void;
   /** Tournament Deadline display value, e.g. "2026·06·20" (optional chip). */
   deadline?: string | null;
+  /** Threaded into the §8 analytics events. */
+  tournamentId?: string;
 }
 
-export function CrownCardModal({ data, canShare, onSignIn, deadline }: CrownCardModalProps): JSX.Element {
+export function CrownCardModal({ data, canShare, onSignIn, deadline, tournamentId }: CrownCardModalProps): JSX.Element {
   const [view, setView] = useState<"ready" | "menu">("ready");
+  const [menuFmt, setMenuFmt] = useState<FormatKey>("story");
+  // Bumped on each open so the menu remounts and re-applies the preselected
+  // format (the menu element stays in the DOM, hidden by CSS, between opens).
+  const [openNonce, setOpenNonce] = useState(0);
   const crownState = !canShare ? "unauth" : view;
 
-  // Download / X share need the client canvas renderer — wired in Phase 2.
-  const onDownload = (): void => {};
-  const onShareX = (): void => {};
+  useEffect(() => {
+    void track("crown_modal_opened", tournamentId ? { tournamentId } : {});
+  }, [tournamentId]);
+
+  // Ready-state quick Download → Story PNG (wireframe dlBtn, silent).
+  const onDownload = (): void => {
+    void downloadCrown("story", data, loadCrownImage());
+  };
+  // Ready "Share to X" / "Instagram" open the share menu with the format the
+  // wireframe preps (X → link, Instagram → story); the real actions + toast live
+  // in the menu (AC-7 fulfilled by "Post to X").
+  const openMenu = (fmt: FormatKey): void => {
+    setMenuFmt(fmt);
+    setOpenNonce((n) => n + 1);
+    setView("menu");
+  };
+  const onShareX = (): void => openMenu("link");
 
   return (
     <div className={styles.sfCrown} data-crown={crownState} data-testid="crown-modal">
@@ -73,21 +96,11 @@ export function CrownCardModal({ data, canShare, onSignIn, deadline }: CrownCard
           <ShareActions
             onDownload={onDownload}
             onShareX={onShareX}
-            onOpenMenu={() => setView("menu")}
+            onOpenMenu={() => openMenu("story")}
             disabled={!canShare}
           />
 
-          {/* menu region — full ShareMenu (chips + canvas + toast) lands in Phase 2 */}
-          <div className={styles.shareMenu}>
-            <div className={styles.smTop}>
-              <button type="button" className={styles.smBack} onClick={() => setView("ready")} aria-label="Back to card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <div className={styles.smh}>Share your Crown Card</div>
-            </div>
-          </div>
+          <ShareMenu key={openNonce} data={data} initialFmt={menuFmt} onBack={() => setView("ready")} tournamentId={tournamentId} />
 
           <LoginPromptBanner onSignIn={onSignIn} />
         </div>
