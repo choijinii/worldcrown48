@@ -100,9 +100,13 @@ When a `*-e2e` spec exercises The Arena / vote flow, verify before merge:
 ☐ Render-heavy assertions after a fresh page load can edge past the default 5s
    expect timeout on a cold preview — prefer a condition-based wait on a render
    anchor over asserting deep content directly, never an arbitrary sleep.
+☐ An E2E that depends on the per-Voter bracket must RESET that Voter's votes +
+   roundProgress first — a prior test in the same file (e.g. the FINAL pick) leaves
+   the Voter with a COMPLETED bracket, so a later test loads the champion screen
+   instead of a match. Never assume a prior test left a fresh bracket. (ADR-0004.)
 ```
 
-## Known residual (out of scope — separate follow-up)
+## Known residual (RESOLVED in ADR-0004)
 
 `c1-arena-flow.spec.ts` `mobile 320px renders the match` (a wireframe-screenshot
 capture, unrelated to the gate/transport bugs above) is an **intermittent retry

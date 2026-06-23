@@ -102,6 +102,25 @@ async function seedRound1Votes(n: number): Promise<void> {
   await batch.commit();
 }
 
+/**
+ * Clear THIS Voter's votes + roundProgress for the tournament so the per-Voter
+ * bracket resets to m0. Needed because the FINAL test leaves the Voter with a
+ * COMPLETED bracket (46 votes + championId); without this reset a later test
+ * loads the champion screen instead of a match. (ADR-0004.)
+ */
+async function resetVoterProgress(): Promise<void> {
+  const d = db();
+  const snap = await d
+    .collection("votes")
+    .where("userId", "==", UID)
+    .where("tournamentId", "==", TID)
+    .get();
+  const batch = d.batch();
+  snap.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+  await d.doc(`roundProgress/${UID}_${TID}`).delete().catch(() => {});
+}
+
 async function cleanup(): Promise<void> {
   const d = db();
   for (const coll of ["votes", "contestants", "roundProgress"]) {
@@ -207,7 +226,11 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     test(`mobile ${width}px renders the match (capture for wireframe compare)`, async ({
       page,
     }) => {
-      await seedRound1Votes(0);
+      // Reset this Voter to a fresh bracket (m0). The FINAL test above left them
+      // with a COMPLETED tournament; loading it renders the champion screen
+      // (no MatchView → no ".vs-foot"), which is exactly the flake this test
+      // hit — deterministically caught here once retries were disabled. (ADR-0004.)
+      await resetVoterProgress();
       await page.setViewportSize({ width, height: 800 });
       await page.goto(`/arena/${TID}`);
       await expect(page.getByText("No Vote Rate %")).toBeVisible(); // canonical .vs-foot
