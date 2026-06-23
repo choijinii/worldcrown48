@@ -116,7 +116,12 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
       );
     }
 
-    await page.goto(`/arena/${TID}`);
+    // Force ko so the daily-limit modal renders the Korean copy this test
+    // asserts. The app's i18n default is EN (global-first, lib/i18n.tsx step 4)
+    // and headless CI Chromium reports navigator.language=en-US, so without
+    // ?lang=ko the modal renders "You've used today's votes (5/5)" and the
+    // Korean assertion below never matches. (ADR-0002 trap a.)
+    await page.goto(`/arena/${TID}?lang=ko`);
 
     // The match rendering proves the anonymous uid was issued + tournament loaded.
     await expect(page.getByTestId("vote-left")).toContainText("P1");

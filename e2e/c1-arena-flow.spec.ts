@@ -25,6 +25,15 @@ import * as admin from "firebase-admin";
 const TID = "c1-e2e-tournament";
 const UID = process.env.C1_TEST_UID ?? "";
 
+// Seeded votes set up bracket progress (the bracket is votes-derived) — they
+// must NOT count toward today's daily-5 limit, or the UI vote under test gets
+// gated (daily_limit) instead of firing onVote. Use a CONFIRMED PAST date, not
+// the authoring day: a hardcoded "today" silently broke the FINAL test on the
+// day it ran (45 seeded votes == today → final pick gated → championId never
+// written → 30s timeout). The daily-limit query matches on date == todayKST,
+// so any fixed past date is invisible to it. (ADR-0002 trap b.)
+const SEED_PAST_DATE = "2020-01-01";
+
 let consoleErrors: string[] = [];
 
 function loadServiceAccount(): admin.ServiceAccount | null {
@@ -87,7 +96,7 @@ async function seedRound1Votes(n: number): Promise<void> {
       round: 1,
       matchId: matchId(1, i),
       contestantId: `${TID}_c${i * 2 + 1}`, // left of pair i (order 2i+1)
-      date: "2026-06-22",
+      date: SEED_PAST_DATE,
     });
   }
   await batch.commit();
@@ -170,7 +179,7 @@ test.describe("C-1 The Arena — Voter critical path", () => {
           round,
           matchId: matchId(round, i),
           contestantId: `${TID}_c${round === 1 ? i * 2 + 1 : i + 1}`,
-          date: "2026-06-22",
+          date: SEED_PAST_DATE,
         });
       }
     }
