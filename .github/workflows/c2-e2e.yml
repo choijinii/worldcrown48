@@ -67,7 +67,7 @@ jobs:
           npm test --prefix functions
 
       - name: Rules tests (firestore + storage emulators)
-        run: firebase emulators:exec --only firestore,storage "npx vitest run --config vitest.rules.config.ts"
+        run: npm run test:rules
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
