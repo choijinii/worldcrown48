@@ -97,12 +97,25 @@ When a `*-e2e` spec exercises The Arena / vote flow, verify before merge:
 ☐ Cross-check the run timestamp (KST) against any hardcoded date in the spec.
 ☐ advanceRound is an async Eventarc trigger — poll championId with a generous
    timeout (we use 30 s); a timeout means the upstream vote never fired, not slowness.
-☐ The FIRST assertion after a cold page load (auth → Firestore reads → render)
-   can edge past the default 5s expect timeout on a cold serverless preview. Gate
-   on a render anchor (e.g. getByTestId("vote-left")) with a generous timeout —
-   condition-based, never an arbitrary sleep. (Surfaced as a mobile-320px retry
-   flake on this very PR.)
+☐ Render-heavy assertions after a fresh page load can edge past the default 5s
+   expect timeout on a cold preview — prefer a condition-based wait on a render
+   anchor over asserting deep content directly, never an arbitrary sleep.
 ```
+
+## Known residual (out of scope — separate follow-up)
+
+`c1-arena-flow.spec.ts` `mobile 320px renders the match` (a wireframe-screenshot
+capture, unrelated to the gate/transport bugs above) is an **intermittent retry
+flake**: it occasionally fails the first attempt (`toBeVisible` timeout) and
+passes on retry with identical Firestore state. `workers:1` rules out a
+parallelism race, and the same-data retry-pass rules out data contamination —
+pointing to transient preview render/load latency. The exact mechanism is **not
+yet confirmed** (the trace artifact only uploads `if: failure()`, so a
+retry-masked flake leaves no DOM snapshot). The existing `retries: 2` policy
+absorbs it (the workflow stays green). A speculative timeout bump was tried on
+this PR and reverted — it did not eliminate the flake (one attempt exceeded even
+15 s), and an unverified mechanism does not belong in this ADR. Tracked as its
+own follow-up.
 
 ## Consequences
 

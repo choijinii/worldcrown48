@@ -210,12 +210,6 @@ test.describe("C-1 The Arena — Voter critical path", () => {
       await seedRound1Votes(0);
       await page.setViewportSize({ width, height: 800 });
       await page.goto(`/arena/${TID}`);
-      // Gate on the match button before asserting the foot copy: the FIRST
-      // mobile load is a cold serverless start (auth → 3 Firestore reads →
-      // render) that can edge past the default 5s expect timeout — the 320px
-      // case flaked here, passing only on retry. Condition-based wait with a
-      // generous timeout, no arbitrary sleep. (ADR-0003 checklist.)
-      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 15_000 });
       await expect(page.getByText("No Vote Rate %")).toBeVisible(); // canonical .vs-foot
       await page.screenshot({
         path: `playwright-report/c1-arena-${width}.png`,
