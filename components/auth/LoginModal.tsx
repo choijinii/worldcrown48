@@ -22,7 +22,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import FocusTrap from "focus-trap-react";
 import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
@@ -46,6 +46,14 @@ export function LoginModal({
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const { lang } = useI18n();
   const [busy, setBusy] = useState(false);
+
+  // Live mirror of `busy` for the focus-trap `onDeactivate` guard below.
+  // focus-trap-react freezes focusTrapOptions.onDeactivate at construction
+  // and never re-syncs it on re-render, so a closure over `busy` would be
+  // stuck at the mount-time value (false) — pressing Escape mid-sign-in
+  // would then close the modal despite the `!busy` guard. Read via the ref.
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
 
   if (!isOpen) return null;
 
@@ -87,7 +95,7 @@ export function LoginModal({
         focusTrapOptions={{
           initialFocus: showGoogleButton ? "#login-google" : "#login-close",
           escapeDeactivates: true,
-          onDeactivate: () => !busy && onClose(),
+          onDeactivate: () => !busyRef.current && onClose(),
         }}
       >
         <div
