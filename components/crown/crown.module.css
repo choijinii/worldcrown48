@@ -8,6 +8,23 @@
  * NO AI-Report badge anywhere (wireframe line 305, CLAUDE.md 원칙 #4).
  */
 
+/*
+ * Overlay surface. Restores the wireframe's `.arena[data-surface="crown"]
+ * .sf-crown` rule (Domain 3 · The Arena.html:95-97 — position:relative + a
+ * real min-height), which the module port dropped. Without it `.sfCrown` has
+ * no height: its only child `.crownStage` is `position:absolute; inset:0`, so
+ * it leaves the flow and `.sfCrown` collapses to 0px. The modal still paints
+ * (the stage anchors to the nearest positioned ancestor), but `.sfCrown`'s own
+ * box is empty — so Playwright/AT report the `crown-modal` element as hidden.
+ * `position:relative` makes `.crownStage` resolve against this box; the full
+ * viewport height matches both mount sites (arena `.arena` / champion
+ * `[data-arena-root]`, both `min-height:100vh`).
+ */
+.sfCrown {
+  position: relative;
+  min-height: 100vh;
+}
+
 .crownStage {
   position: absolute;
   inset: 0;
