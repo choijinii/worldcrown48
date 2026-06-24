@@ -195,7 +195,7 @@ function ModalHeader({
   return (
     <header className="modal-head">
       <div className="mh-icon">
-        <img src="/wc48-crown-filled.svg" alt="" />
+        <img src="/brand/wc48-crown-filled.svg" alt="" />
       </div>
       <div className="mh-text">
         <div className="mh-eyebrow">
