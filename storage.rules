@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// ════════════════════════════════════════════════════════════════════
+// WorldCrown48 — Cloud Storage Security Rules (C-2 Crown Card)
+//
+//   /crown-cards/{tournamentId}/{cardFile}
+//     read  — public (SNS / OG crawlers fetch the shared 1.91:1 PNG)
+//     write — denied; only onChampionConfirmed (admin SDK) writes cards
+//
+// Everything else is denied by default (whitelist only).
+// ════════════════════════════════════════════════════════════════════
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /crown-cards/{tournamentId}/{cardFile} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

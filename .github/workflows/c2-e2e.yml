@@ -1,0 +1,112 @@
+name: C-2 Crown Card E2E (Playwright)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/arena/**'
+      - 'components/crown/**'
+      - 'lib/crown/**'
+      - 'lib/firebase.ts'
+      - 'functions/src/onChampionConfirmed.ts'
+      - 'functions/src/core/**'
+      - 'functions/scripts/**'
+      - 'storage.rules'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'tests/rules/**'
+      - 'e2e/c2-**'
+      - 'playwright.config.ts'
+      - '.github/workflows/c2-e2e.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PREVIEW_URL: ${{ secrets.C2_PREVIEW_URL }}
+      # global-setup reads TEST_UID (custom-token sign-in); the C-2 specs read
+      # C2_TEST_UID for seeding. Both map to the same secret.
+      TEST_UID: ${{ secrets.C2_TEST_UID }}
+      C2_TEST_UID: ${{ secrets.C2_TEST_UID }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Emulators (firestore + storage) need a JRE; firebase-tools requires Java 21+.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install firebase-tools (emulator runner)
+        run: npm i -g firebase-tools
+
+      - name: Unit tests (vitest)
+        run: npm run test:unit -- lib/__tests__/crown
+
+      - name: Functions unit tests (vitest)
+        # canvas is an optionalDependency — npm ci tolerates its native build
+        # failing; the cores under test do not need it.
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
+      - name: Rules tests (firestore + storage emulators)
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for Vercel Preview
+        run: |
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "C2_PREVIEW_URL not set — skipping E2E wait/run."
+            exit 0
+          fi
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not ready (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable." >&2; exit 1
+
+      - name: E2E (Playwright)
+        if: ${{ env.PREVIEW_URL != '' }}
+        # Scope to C-2's own specs ([[feedback-workflow-spec-scope]]).
+        run: npm run test:e2e -- e2e/c2-crown-card-flow.spec.ts e2e/c2-crown-mobile-320.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c2-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c2-playwright-traces
+          path: test-results/
+          retention-days: 14

@@ -17,4 +17,6 @@ if (admin.apps.length === 0) {
 
 export const adminAuth = admin.auth();
 export const adminDb = admin.firestore();
+// C-2: onChampionConfirmed uploads the 1.91:1 Crown Card PNG to Storage.
+export const adminStorage = admin.storage();
 export { admin };

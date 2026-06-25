@@ -8,7 +8,7 @@
     "node": "20"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/copy-crown.mjs && tsc",
     "build:watch": "tsc --watch",
     "test": "vitest run",
     "serve": "npm run build && firebase emulators:start --only functions",
@@ -18,10 +18,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",
     "firebase-admin": "^12.7.0",
-    "firebase-functions": "^6.0.1"
+    "firebase-functions": "^6.0.1",
+    "qrcode-generator": "^1.4.4"
   },
   "devDependencies": {
+    "@types/qrcode-generator": "^0.0.16",
     "typescript": "^5.5.3",
     "vitest": "^4.1.9"
+  },
+  "optionalDependencies": {
+    "canvas": "^2.11.2"
   }
 }

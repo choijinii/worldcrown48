@@ -60,6 +60,25 @@ export function ConsentModal(): JSX.Element | null {
   const [draft, setDraft] = useState<ConsentPreferences>(savedPreferences);
   const lastOpenedAtRef = useRef<number>(0);
 
+  // Only the "open" state is user-editable; "saving"/"saved" are read-only.
+  const isInteractive = modalState === "open";
+
+  // Live mirror of `isInteractive` for the focus-trap `onDeactivate` guard.
+  //
+  // focus-trap-react copies `focusTrapOptions.onDeactivate` into its
+  // constructor ONCE and never re-syncs it on re-render (its
+  // componentDidUpdate updates containerElements + activate/deactivate, but
+  // not originalOptions). A closure over `isInteractive` would therefore be
+  // frozen at the modal's first render — when modalState is "open" and
+  // isInteractive is `true`. On Save, `active` flips true→false (open→saving),
+  // focus-trap fires that frozen onDeactivate, the stale `true` guard passes,
+  // and closeModal() unmounts the modal mid-save; it only reappears when the
+  // async save resolves to "saved" — the visible flicker. Reading the live
+  // value through a ref keeps the guard honest: a programmatic deactivation
+  // during saving sees `false` and does NOT close.
+  const isInteractiveRef = useRef(isInteractive);
+  isInteractiveRef.current = isInteractive;
+
   useEffect(() => {
     if (modalState === "open" || modalState === "closed") {
       // Reset draft when transitioning to a re-editable state. We compare
@@ -76,7 +95,6 @@ export function ConsentModal(): JSX.Element | null {
 
   const isSaving = modalState === "saving";
   const isSaved = modalState === "saved";
-  const isInteractive = modalState === "open";
 
   return (
     <FocusTrap
@@ -88,8 +106,9 @@ export function ConsentModal(): JSX.Element | null {
         onDeactivate: () => {
           // Only treat Escape as a close action when the modal is still
           // editable — during saving/saved we let the explicit Close button
-          // drive transitions.
-          if (isInteractive) closeModal();
+          // drive transitions. Read the live value via the ref: the closure
+          // focus-trap holds is frozen at first render (see isInteractiveRef).
+          if (isInteractiveRef.current) closeModal();
         },
         // The library checks isClickable before allowing the initial focus —
         // a button with `disabled` would fail, so we guide it explicitly.
@@ -195,7 +214,7 @@ function ModalHeader({
   return (
     <header className="modal-head">
       <div className="mh-icon">
-        <img src="/wc48-crown-filled.svg" alt="" />
+        <img src="/brand/wc48-crown-filled.svg" alt="" />
       </div>
       <div className="mh-text">
         <div className="mh-eyebrow">

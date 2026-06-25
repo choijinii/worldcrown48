@@ -57,6 +57,15 @@ export function DeleteAccountModal({
   const [mounted, setMounted] = useState(false);
   const spinnerTimerRef = useRef<number | null>(null);
 
+  // Live mirror of `busy` for the focus-trap `onDeactivate` guard below.
+  // focus-trap-react freezes focusTrapOptions.onDeactivate at construction and
+  // never re-syncs it, so a closure over `busy` would be stuck at the
+  // mount-time value (false) — pressing Escape mid-deletion would close the
+  // modal despite the `!busy` guard. The stakes are higher here (a destructive
+  // GDPR erasure request in flight), so read the live value via the ref.
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -141,7 +150,7 @@ export function DeleteAccountModal({
         padding: 16,
       }}
     >
-      <FocusTrap focusTrapOptions={{ initialFocus: "#delete-cancel", escapeDeactivates: true, onDeactivate: () => !busy && onClose() }}>
+      <FocusTrap focusTrapOptions={{ initialFocus: "#delete-cancel", escapeDeactivates: true, onDeactivate: () => !busyRef.current && onClose() }}>
         <div
           style={{
             width: "100%",

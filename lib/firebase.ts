@@ -34,6 +34,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { getFunctions, type Functions } from "firebase/functions";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -129,6 +130,22 @@ export function getFunctionsInstance(): Functions {
   const region = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "asia-northeast3";
   functions = getFunctions(getFirebaseApp(), region);
   return functions;
+}
+
+let storage: FirebaseStorage | null = null;
+
+/**
+ * Storage client for C-2 Crown Card assets.
+ *
+ * Bucket comes from `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` (already in the config
+ * above). The client only ever READS Crown Card PNGs via the SDK (getDownloadURL
+ * avoids the Storage CORS constraint — handoff §9 trap 8); writes are admin-SDK
+ * only (onChampionConfirmed), enforced by storage.rules.
+ */
+export function getStorageInstance(): FirebaseStorage {
+  if (storage) return storage;
+  storage = getStorage(getFirebaseApp());
+  return storage;
 }
 
 /**
