@@ -63,6 +63,13 @@ export interface RankingCache extends RankingSnapshot {
   generatedAt: TimestampLike;
   /** Previous generation time. First run is null. */
   previousGeneratedAt: TimestampLike | null;
+  /**
+   * Detail line of the primary (first) fired anomaly — the cron computes it
+   * (it alone holds the history needed for T-3/T-4 details) so the UI can render
+   * the wireframe badge subtitle (§4) without reading admin-only `admin_alerts`.
+   * null when `anomalies` is empty. (ADR-0006 — extends §6.1 to satisfy the §4 UI.)
+   */
+  anomalyDetail: string | null;
 }
 
 /** Per-contestant tally fed into {@link computeRankings} (one per >0-vote contestant). */
