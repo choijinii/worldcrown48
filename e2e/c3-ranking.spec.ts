@@ -195,5 +195,7 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
       { timeout: 30_000 },
     );
     await expect(page.getByText("아직 랭킹이 없어요")).toBeVisible();
+    // W-1 copy guard: ambiguous "절대 수치 비공개" direct-translation is gone.
+    await expect(page.locator("text=절대 수치")).toHaveCount(0);
   });
 });

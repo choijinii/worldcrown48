@@ -20,7 +20,7 @@ import type { RankingCache } from "@/lib/ranking/rankingTypes";
 const LABELS = {
   ko: {
     kicker: "랭킹 · RANKING",
-    note: "VOTE RATE (%) · 투표 완료 후 공개 · 절대 수치 비공개",
+    note: "VOTE RATE (%) · 투표 완료 후 공개",
     deadlineLabel: "토너먼트 마감",
     anomalyTitle: "검토 대상 랭킹 이상 징후",
     emptyTitle: "아직 랭킹이 없어요",
@@ -29,7 +29,7 @@ const LABELS = {
   },
   en: {
     kicker: "RANKING",
-    note: "VOTE RATE (%) · revealed after you vote · fan share, no absolute counts",
+    note: "VOTE RATE (%) · published after vote close",
     deadlineLabel: "Tournament Deadline",
     anomalyTitle: "Ranking anomaly flagged for review",
     emptyTitle: "No ranking yet",
