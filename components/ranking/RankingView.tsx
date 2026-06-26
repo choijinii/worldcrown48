@@ -70,6 +70,10 @@ const STYLE = `
 .rank-empty .et { font-weight: 600; font-size: 16px; }
 .rank-empty .es { font-size: 13px; color: var(--color-text-sub); }
 @media (max-width: 520px) { .rank-row { grid-template-columns: 28px 36px 1fr 80px; } }
+/* Mobile shows top 12 only (W-3, 대표 결정 2026-06-26) — desktop keeps all active
+   rows so a Voter can find their own Contestant. Rows are direct .rank-list
+   children, so nth-child(n+13) targets the 13th+. */
+@media (max-width: 520px) { .rank-row:nth-child(n+13) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .rskel { animation: none; } }
 `;
 

@@ -19,7 +19,8 @@ import * as admin from "firebase-admin";
 const PREFIX = "c3-e2e";
 const TID_LOADED = `${PREFIX}-loaded`;
 const TID_EMPTY = `${PREFIX}-empty`;
-const ALL = [TID_LOADED, TID_EMPTY];
+const TID_MANY = `${PREFIX}-many`; // 14 rows — mobile top-12 cutoff (W-3)
+const ALL = [TID_LOADED, TID_EMPTY, TID_MANY];
 
 // A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
 const SECRET_VOTE_COUNT = 7777;
@@ -95,6 +96,18 @@ async function seed(): Promise<void> {
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
     previousGeneratedAt: null,
   });
+  // 14-row cache for the W-3 mobile top-12 cutoff test (desktop shows all 14).
+  const manyRankings = Array.from({ length: 14 }, (_, i) =>
+    entry(i + 1, `m${i + 1}`, `Player ${i + 1}`, 90 - i * 5),
+  );
+  batch.set(d.doc(`ranking_cache/${TID_MANY}`), {
+    tournamentId: TID_MANY,
+    rankings: manyRankings,
+    totalVotes: SECRET_VOTE_COUNT * 14,
+    generationSequence: 1,
+    generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    previousGeneratedAt: null,
+  });
   // TID_EMPTY: no ranking_cache doc at all → empty state.
   await batch.commit();
 }
@@ -159,6 +172,25 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     await page.screenshot({ path: "playwright-report/c3-ranking-tablet768.png", fullPage: true });
     await page.setViewportSize({ width: 360, height: 800 });
     await page.screenshot({ path: "playwright-report/c3-ranking-mobile360.png", fullPage: true });
+  });
+
+  test("W-3 — mobile shows top 12 only; desktop shows all", async ({ page }) => {
+    await page.goto(`/arena/${TID_MANY}/ranking?lang=en`);
+    const view = page.getByTestId("ranking-view");
+    await expect(view).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
+    const rows = page.getByTestId("rank-row");
+    await expect(rows).toHaveCount(14); // all 14 are in the DOM either way
+
+    // Mobile (≤520px): rows 13 & 14 are hidden via CSS (nth-child(n+13)).
+    await page.setViewportSize({ width: 375, height: 800 });
+    await expect(rows.nth(11)).toBeVisible(); // 12th row visible
+    await expect(rows.nth(12)).not.toBeVisible(); // 13th row hidden
+    await expect(rows.nth(13)).not.toBeVisible(); // 14th row hidden
+
+    // Desktop: every active contestant is visible (find-your-candidate).
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(rows.nth(12)).toBeVisible();
+    await expect(rows.nth(13)).toBeVisible();
   });
 
   test("empty (en) — No ranking yet", async ({ page }) => {
