@@ -16,13 +16,15 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 
 const VOTER = "voter-uid";
 const ADMIN = "admin-uid";
+const DAY_MS = 86_400_000;
 
 let testEnv: RulesTestEnvironment;
 
+// ranking_cache carries PURE Voter data only — no anomaly fields (W-2).
 function cache() {
   return {
     tournamentId: "t1",
@@ -30,10 +32,19 @@ function cache() {
       { rank: 1, contestantId: "c1", name: "P1", imageUrl: null, voteCount: 9, rate: 60 },
     ],
     totalVotes: 15,
-    anomalies: ["T-1"],
-    anomalyDetail: "#1 P1 at 60% (≥60% threshold)",
     generationSequence: 0,
   };
+}
+
+/** Seed the parent Tournament whose deadline gates the ranking_cache read (W-7). */
+async function seedTournament(deadlineFromNowMs: number) {
+  await testEnv.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), "tournaments/t1"), {
+      title: "T",
+      status: "active",
+      tournamentDeadline: Timestamp.fromMillis(Date.now() + deadlineFromNowMs),
+    });
+  });
 }
 function alert() {
   return {
@@ -57,8 +68,9 @@ beforeAll(async () => {
 afterAll(async () => testEnv.cleanup());
 beforeEach(async () => testEnv.clearFirestore());
 
-describe("ranking_cache — public read, no client write", () => {
-  it("lets anyone (even unauthenticated) read the cache", async () => {
+describe("ranking_cache — public read after Deadline, no client write", () => {
+  it("lets anyone (even unauthenticated) read the cache once closed", async () => {
+    await seedTournament(-1 * DAY_MS); // Deadline 1d ago → open ranking
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1"), cache());
     });
@@ -66,7 +78,8 @@ describe("ranking_cache — public read, no client write", () => {
     await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
   });
 
-  it("lets anyone read a history snapshot", async () => {
+  it("lets anyone read a history snapshot once closed", async () => {
+    await seedTournament(-1 * DAY_MS);
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1/history/0"), cache());
     });
@@ -82,6 +95,44 @@ describe("ranking_cache — public read, no client write", () => {
   it("DENIES even an admin-claim client writing the cache", async () => {
     const db = testEnv.authenticatedContext(ADMIN, { admin: true }).firestore();
     await assertFails(setDoc(doc(db, "ranking_cache/t1"), cache()));
+  });
+});
+
+describe("ranking_cache — Tournament Deadline gate (W-7)", () => {
+  it("DENIES read BEFORE the Deadline (locked)", async () => {
+    await seedTournament(30 * DAY_MS); // Deadline 30d ahead → still open
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "ranking_cache/t1"), cache());
+    });
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "ranking_cache/t1")));
+  });
+
+  it("ALLOWS read AFTER the Deadline", async () => {
+    await seedTournament(-1 * DAY_MS); // Deadline passed → revealed
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "ranking_cache/t1"), cache());
+    });
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
+  });
+
+  it("DENIES a history read BEFORE the Deadline (locked)", async () => {
+    await seedTournament(30 * DAY_MS);
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "ranking_cache/t1/history/0"), cache());
+    });
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "ranking_cache/t1/history/0")));
+  });
+
+  it("DENIES read when the parent Tournament doc is missing", async () => {
+    // No tournaments/t1 seeded → the exists() guard short-circuits to deny.
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "ranking_cache/t1"), cache());
+    });
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "ranking_cache/t1")));
   });
 });
 

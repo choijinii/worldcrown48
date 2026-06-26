@@ -1,7 +1,8 @@
 /**
  * RankingView — wireframe `sf-ranking` surface (Domain 3 dark). Presentational:
- * the page container subscribes to ranking_cache and maps it to one of three
- * `data-rank` states (loaded · loading · empty). Anomaly signal NEVER reaches
+ * the page container subscribes to ranking_cache and maps it to one of four
+ * `data-rank` states (loaded · loading · empty · locked — W-7 Deadline gate).
+ * Anomaly signal NEVER reaches
  * this Voter surface (W-2, ADR-0006 amendment) — it lives only in admin_alerts.
  * The CSS below is
  * PORTED VERBATIM from `docs/design/wireframes/Domain 3 · The Arena.html`
@@ -17,8 +18,9 @@ import { RankingHeader } from "./RankingHeader";
 import { RankList } from "./RankList";
 import { RankSkeleton } from "./RankSkeleton";
 import { RankEmpty } from "./RankEmpty";
+import { RankLocked } from "./RankLocked";
 
-export type RankState = "loading" | "empty" | "loaded";
+export type RankState = "loading" | "empty" | "loaded" | "locked";
 
 export interface RankingViewLabels {
   kicker: string;
@@ -26,6 +28,8 @@ export interface RankingViewLabels {
   deadlineLabel: string;
   emptyTitle: string;
   emptySubtitle: string;
+  lockedTitle: string;
+  lockedSub: string;
 }
 
 export interface RankingViewProps {
@@ -69,6 +73,10 @@ const STYLE = `
 .rank-empty img { width: 64px; opacity: 0.85; filter: drop-shadow(0 0 12px rgba(252, 208, 6, 0.18)); }
 .rank-empty .et { font-weight: 600; font-size: 16px; }
 .rank-empty .es { font-size: 13px; color: var(--color-text-sub); }
+.rank-locked { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-20) var(--space-6); border: 1px dashed var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-gold-subtle); }
+.rank-locked svg { width: 40px; height: 40px; color: var(--color-gold); filter: drop-shadow(0 0 12px rgba(252, 208, 6, 0.18)); }
+.rank-locked .rl-title { font-weight: 600; font-size: 16px; }
+.rank-locked .rl-sub { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-sub); letter-spacing: 0.04em; }
 @media (max-width: 520px) { .rank-row { grid-template-columns: 28px 36px 1fr 80px; } }
 /* Mobile shows top 12 only (W-3, 대표 결정 2026-06-26) — desktop keeps all active
    rows so a Voter can find their own Contestant. Rows are direct .rank-list
@@ -97,6 +105,14 @@ export function RankingView({
         />
 
         {state === "loading" ? <RankSkeleton /> : null}
+
+        {state === "locked" ? (
+          <RankLocked
+            title={labels.lockedTitle}
+            subtitle={labels.lockedSub}
+            deadlineText={deadlineText}
+          />
+        ) : null}
 
         {state === "empty" ? (
           <RankEmpty title={labels.emptyTitle} subtitle={labels.emptySubtitle} />

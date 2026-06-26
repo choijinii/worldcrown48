@@ -8,7 +8,7 @@ rules_version = '2';
 //   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //   /votes/{voteId}        — owner-only read; write blocked (callable only)
-//   /ranking_cache/{id}    — public read; write blocked (cron admin SDK only)
+//   /ranking_cache/{id}    — read gated by Tournament Deadline (W-7); write blocked
 //   /admin_alerts/{id}     — admin-claim read/write only (anomaly flags)
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
@@ -183,19 +183,22 @@ service cloud.firestore {
     }
 
     // ── ranking_cache (C-3 The Arena) ──────────────────────────────
-    // The ONLY Vote Rate (%) surface. Public read so any Voter can see the
-    // ranking; writes are blocked — the sole writer is scheduleRankingCache
-    // (admin SDK bypasses rules). `voteCount` rides inside the doc (internal
-    // only) — the UI is forbidden from rendering it (CLAUDE.md 원칙 #8), but
-    // rules can't field-mask, so the no-Vote-Count guard lives in the client +
-    // E2E (handoff §9 trap #7), not here.
+    // The ONLY Vote Rate (%) surface. Read is gated by the Tournament Deadline
+    // (W-7, defense in depth): a ranking exposed before close skews 표심, so the
+    // cache only becomes readable once `tournamentDeadline < request.time`. Writes
+    // are blocked — the sole writer is scheduleRankingCache (admin SDK bypasses
+    // rules). `voteCount` rides inside the doc (internal only) — the UI is
+    // forbidden from rendering it (CLAUDE.md 원칙 #8), but rules can't field-mask,
+    // so the no-Vote-Count guard lives in the client + E2E (trap #7), not here.
     match /ranking_cache/{tournamentId} {
-      allow read: if true;
+      allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
+                  && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
       allow write: if false;
 
-      // 24-generation history (T-3 24h baseline) — same posture.
+      // 24-generation history (T-3 24h baseline) — same Deadline gate + posture.
       match /history/{generationSequence} {
-        allow read: if true;
+        allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
+                    && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
         allow write: if false;
       }
     }

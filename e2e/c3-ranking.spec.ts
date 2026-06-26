@@ -20,7 +20,11 @@ const PREFIX = "c3-e2e";
 const TID_LOADED = `${PREFIX}-loaded`;
 const TID_EMPTY = `${PREFIX}-empty`;
 const TID_MANY = `${PREFIX}-many`; // 14 rows — mobile top-12 cutoff (W-3)
-const ALL = [TID_LOADED, TID_EMPTY, TID_MANY];
+const TID_LOCKED = `${PREFIX}-locked`; // Deadline in the future → locked (W-7)
+const ALL = [TID_LOADED, TID_EMPTY, TID_MANY, TID_LOCKED];
+// W-7: the ranking is revealed ONLY after the Deadline, so the visible-data
+// tournaments are seeded CLOSED (past), and TID_LOCKED stays open (future).
+const CLOSED = new Set([TID_LOADED, TID_EMPTY, TID_MANY]);
 
 // A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
 const SECRET_VOTE_COUNT = 7777;
@@ -63,8 +67,13 @@ function entry(
 async function seed(): Promise<void> {
   const d = db();
   const batch = d.batch();
-  // Dynamic deadline keeps every seeded Tournament "active".
-  const deadline = admin.firestore.Timestamp.fromMillis(
+  // W-7: CLOSED tournaments are past their Deadline (ranking revealed); TID_LOCKED
+  // stays in the future (ranking locked). Dynamic dates ([[feedback-seed-date-
+  // anti-pattern]]).
+  const pastDeadline = admin.firestore.Timestamp.fromMillis(
+    Date.now() - 1 * 86_400 * 1000,
+  );
+  const futureDeadline = admin.firestore.Timestamp.fromMillis(
     Date.now() + 30 * 86_400 * 1000,
   );
   for (const tid of ALL) {
@@ -75,7 +84,7 @@ async function seed(): Promise<void> {
       hostUid: "seed-operator",
       currentRound: 1,
       totalContestants: 48,
-      tournamentDeadline: deadline,
+      tournamentDeadline: CLOSED.has(tid) ? pastDeadline : futureDeadline,
       settings: { aiNews: false, multiLang: false, showRanking: true },
       featured: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -104,6 +113,16 @@ async function seed(): Promise<void> {
     tournamentId: TID_MANY,
     rankings: manyRankings,
     totalVotes: SECRET_VOTE_COUNT * 14,
+    generationSequence: 1,
+    generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    previousGeneratedAt: null,
+  });
+  // TID_LOCKED has REAL cached data, but the future Deadline must keep it sealed
+  // (locked state) — proving W-7 hides existing rankings, not just empty ones.
+  batch.set(d.doc(`ranking_cache/${TID_LOCKED}`), {
+    tournamentId: TID_LOCKED,
+    rankings: loadedRankings,
+    totalVotes: SECRET_VOTE_COUNT * 4,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
     previousGeneratedAt: null,
@@ -191,6 +210,18 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect(rows.nth(12)).toBeVisible();
     await expect(rows.nth(13)).toBeVisible();
+  });
+
+  test("W-7 — locked before Deadline: sealed even with cached data", async ({ page }) => {
+    await page.goto(`/arena/${TID_LOCKED}/ranking?lang=ko`);
+    const view = page.getByTestId("ranking-view");
+    await expect(view).toHaveAttribute("data-rank", "locked", { timeout: 30_000 });
+    await expect(page.getByTestId("rank-locked")).toBeVisible();
+    await expect(page.getByText("토너먼트 진행 중")).toBeVisible();
+    // The real cached rows must NOT leak while locked.
+    await expect(page.getByTestId("rank-row")).toHaveCount(0);
+    const body = (await page.locator("body").innerText()).toLowerCase();
+    expect(body).not.toContain("messi");
   });
 
   test("W-6 — ModuleNav: 4 tabs, Ranking active, Newsroom disabled", async ({ page }) => {
