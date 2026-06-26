@@ -22,19 +22,15 @@ const LABELS = {
     kicker: "랭킹 · RANKING",
     note: "VOTE RATE (%) · 투표 완료 후 공개",
     deadlineLabel: "토너먼트 마감",
-    anomalyTitle: "검토 대상 랭킹 이상 징후",
     emptyTitle: "아직 랭킹이 없어요",
     emptySubtitle: "투표가 모이면 Vote Rate 랭킹이 여기에 표시됩니다",
-    sentSuffix: "시스템 관리자에게 전송됨",
   },
   en: {
     kicker: "RANKING",
     note: "VOTE RATE (%) · published after vote close",
     deadlineLabel: "Tournament Deadline",
-    anomalyTitle: "Ranking anomaly flagged for review",
     emptyTitle: "No ranking yet",
     emptySubtitle: "vote to reveal the ranking",
-    sentSuffix: "sent to System Admin",
   },
 } as const;
 
@@ -50,7 +46,7 @@ function formatDeadline(value: unknown): string | null {
 function deriveState(cache: RankingCache | null | undefined): RankState {
   if (cache === undefined) return "loading";
   if (!cache || cache.rankings.length === 0) return "empty";
-  return cache.anomalies.length > 0 ? "anomaly" : "loaded";
+  return "loaded";
 }
 
 export default function RankingPage(): JSX.Element {
@@ -89,10 +85,6 @@ export default function RankingPage(): JSX.Element {
 
   const state = deriveState(cache);
   const entries = cache?.rankings ?? [];
-  const anomalyTag = cache?.anomalies?.[0] ?? null;
-  const anomalyDetail = cache?.anomalyDetail
-    ? `${cache.anomalyDetail} · ${labels.sentSuffix}`
-    : null;
 
   return (
     <RankingView
@@ -100,8 +92,6 @@ export default function RankingPage(): JSX.Element {
       title={title}
       deadlineText={deadlineText}
       entries={entries}
-      anomalyTag={anomalyTag}
-      anomalyDetail={anomalyDetail}
       labels={labels}
     />
   );

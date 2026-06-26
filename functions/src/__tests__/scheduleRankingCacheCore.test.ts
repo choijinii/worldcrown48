@@ -27,7 +27,6 @@ const snapshotOf = (
     tournamentId,
     rankings,
     totalVotes: rankings.reduce((s, e) => s + e.voteCount, 0),
-    anomalies: [],
     generationSequence,
   };
 };
@@ -49,10 +48,14 @@ describe("buildRankingUpdate — first run (no history)", () => {
     expect(update.totalVotes).toBe(7);
   });
   it("skips T-3/T-4 with no history (intended, trap #5)", () => {
-    // calm split → no T-1/T-2 either
-    expect(update.anomalies).toEqual([]);
-    expect(update.anomalyDetail).toBeNull();
+    // calm split → no T-1/T-2 either → no admin_alerts actions
     expect(update.alertActions).toEqual([]);
+  });
+  it("never carries anomaly fields onto the cache update (W-2)", () => {
+    // anomaly signal lives ONLY in alertActions → admin_alerts, never in
+    // ranking_cache (the Voter surface). ADR-0006 amendment.
+    expect(update).not.toHaveProperty("anomalies");
+    expect(update).not.toHaveProperty("anomalyDetail");
   });
 });
 
@@ -81,8 +84,8 @@ describe("buildRankingUpdate — T-4 (rank jump vs 1h-ago prevCache)", () => {
       history24: null,
       existingUnresolvedTags: [],
     });
-    expect(update.anomalies).toContain("T-4");
     const t4 = update.alertActions.find((a) => a.type === "T-4");
+    expect(t4).toBeDefined();
     expect(t4?.create).toBe(true);
     expect(t4?.detail).toMatch(/Neymar jumped rank 3→1/);
   });
@@ -98,7 +101,7 @@ describe("buildRankingUpdate — T-3 (24h growth vs history24)", () => {
       history24,
       existingUnresolvedTags: [],
     });
-    expect(update.anomalies).toContain("T-3");
+    expect(update.alertActions.map((a) => a.type)).toContain("T-3");
     expect(update.alertActions.find((a) => a.type === "T-3")?.detail).toMatch(
       /Messi \+200% in 24h/,
     );
@@ -117,7 +120,7 @@ describe("buildRankingUpdate — dedup persistent alerts (trap #8)", () => {
       history24: null,
       existingUnresolvedTags: [],
     });
-    expect(update.anomalies).toEqual(["T-1", "T-2"]);
+    expect(update.alertActions.map((a) => a.type)).toEqual(["T-1", "T-2"]);
     expect(update.alertActions.every((a) => a.create)).toBe(true);
   });
 
@@ -133,8 +136,7 @@ describe("buildRankingUpdate — dedup persistent alerts (trap #8)", () => {
     const t2 = update.alertActions.find((a) => a.type === "T-2");
     expect(t1?.create).toBe(false); // deduped — refresh, don't spam
     expect(t2?.create).toBe(true); // T-2 still new
-    // the cache still records the anomaly state regardless of dedup
-    expect(update.anomalies).toContain("T-1");
-    expect(update.anomalyDetail).toMatch(/at 80% \(≥60% threshold\)/);
+    // admin_alerts still records the anomaly detail regardless of dedup
+    expect(t1?.detail).toMatch(/at 80% \(≥60% threshold\)/);
   });
 });

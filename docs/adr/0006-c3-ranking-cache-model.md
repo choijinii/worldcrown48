@@ -54,6 +54,30 @@ vitest'd directly (aiFillCore precedent). The shared pure logic is mirrored into
 no duplicate implementation). The thin `scheduleRankingCache` wrapper is the only
 Firestore/Timestamp surface; rules are emulator-tested in CI.
 
+## Amendment (2026-06-26 · 대표 시각 검증, PR #28 sequel W-2)
+
+**Decision 3 (`anomalyDetail` denormalized onto the cache) is WITHDRAWN.** The
+`ranking_cache` doc now holds PURE Voter data only — `rankings` + `totalVotes`
+(internal) + `generationSequence` + timestamps. Both `anomalyDetail` and the
+`anomalies` tag array are removed from the persisted document and from the
+`RankingSnapshot`/`RankingCache`/`RankingUpdate` types. The anomaly signal lives
+**exclusively** in `admin_alerts` (admin-claim-only), reached by the operator —
+never by a Voter.
+
+**Why.** A legitimate, genuinely popular #1 can exceed the T-1 ≥60% threshold.
+Surfacing that as an "이상 징후" (anomaly) on the Voter ranking reads as a
+fraud-suspicion signal against a fair winner — corroding brand + fairness trust.
+The Voter surface must show only the neutral Vote Rate (%); anomaly triage is an
+internal operations concern.
+
+**What stays.** `evaluateAnomalies` / `buildAlertDetail` (T-1..T-4) still run
+inside the cron every generation — their output feeds `admin_alerts` via
+`RankingUpdate.alertActions` (dedup unchanged). `AnomalyTag` + `AdminAlert` types
+remain. The `AnomalyBadge` Voter component and the RankingView `"anomaly"` state
+are deleted; the Admin Dashboard (G-1, unbuilt) will render alerts with its own
+admin-authed component. Migration: none — `ranking_cache` has never reached
+production (PR #28 unmerged); the first post-merge cron writes the new shape.
+
 ## Consequences
 
 - C-4 Newsroom + MVP2 Fan Intelligence can consume `ranking_cache` / `admin_alerts`.

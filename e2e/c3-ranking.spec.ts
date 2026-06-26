@@ -18,9 +18,8 @@ import * as admin from "firebase-admin";
 
 const PREFIX = "c3-e2e";
 const TID_LOADED = `${PREFIX}-loaded`;
-const TID_ANOMALY = `${PREFIX}-anomaly`;
 const TID_EMPTY = `${PREFIX}-empty`;
-const ALL = [TID_LOADED, TID_ANOMALY, TID_EMPTY];
+const ALL = [TID_LOADED, TID_EMPTY];
 
 // A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
 const SECRET_VOTE_COUNT = 7777;
@@ -87,22 +86,11 @@ async function seed(): Promise<void> {
     entry(3, "c3", "Neymar Jr", 10),
     entry(4, "c4", "K. Mbappe", 5),
   ];
+  // ranking_cache carries PURE Voter data only — no anomaly fields (W-2).
   batch.set(d.doc(`ranking_cache/${TID_LOADED}`), {
     tournamentId: TID_LOADED,
     rankings: loadedRankings,
     totalVotes: SECRET_VOTE_COUNT * 4,
-    anomalies: [],
-    anomalyDetail: null,
-    generationSequence: 1,
-    generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    previousGeneratedAt: null,
-  });
-  batch.set(d.doc(`ranking_cache/${TID_ANOMALY}`), {
-    tournamentId: TID_ANOMALY,
-    rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
-    anomalies: ["T-2"],
-    anomalyDetail: "#1 lead margin 35.0%p over #2",
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
     previousGeneratedAt: null,
@@ -159,25 +147,18 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     expect(body).not.toContain(String(SECRET_VOTE_COUNT)); // 7777 never leaks
     expect(body).not.toContain("votecount");
 
+    // ── W-2 anomaly-removal regression guard ────────────────────────
+    // ranking_cache no longer carries anomaly signal — the Voter surface
+    // must never render an anomaly badge (a legit popular #1 ≠ "이상 징후").
+    await expect(page.getByTestId("anomaly-badge")).toHaveCount(0);
+    expect(body).not.toContain("anomaly");
+
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.screenshot({ path: "playwright-report/c3-ranking-desktop1440.png", fullPage: true });
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.screenshot({ path: "playwright-report/c3-ranking-tablet768.png", fullPage: true });
     await page.setViewportSize({ width: 360, height: 800 });
     await page.screenshot({ path: "playwright-report/c3-ranking-mobile360.png", fullPage: true });
-  });
-
-  test("anomaly — crimson badge + tag, #1 flagged", async ({ page }) => {
-    await page.goto(`/arena/${TID_ANOMALY}/ranking?lang=en`);
-
-    const view = page.getByTestId("ranking-view");
-    await expect(view).toHaveAttribute("data-rank", "anomaly", { timeout: 30_000 });
-    await expect(page.getByTestId("anomaly-badge")).toBeVisible();
-    await expect(page.getByTestId("anomaly-tag")).toHaveText("T-2");
-    await expect(page.getByText("Ranking anomaly flagged for review")).toBeVisible();
-    await expect(page.getByText(/sent to System Admin/)).toBeVisible();
-    // still no Vote Count
-    await expect(page.locator("text=/^\\d+표$/")).toHaveCount(0);
   });
 
   test("empty (en) — No ranking yet", async ({ page }) => {
@@ -197,5 +178,7 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     await expect(page.getByText("아직 랭킹이 없어요")).toBeVisible();
     // W-1 copy guard: ambiguous "절대 수치 비공개" direct-translation is gone.
     await expect(page.locator("text=절대 수치")).toHaveCount(0);
+    // W-2 guard: no anomaly "이상 징후" language anywhere on the Voter surface.
+    await expect(page.locator("text=이상 징후")).toHaveCount(0);
   });
 });

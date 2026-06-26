@@ -43,8 +43,6 @@ export interface RankingSnapshot {
   rankings: RankingEntry[];
   /** INTERNAL ONLY — UI never renders. T-1/T-2 rate-share verification. */
   totalVotes: number;
-  /** Anomaly tags evaluated this cron run. Empty = normal. */
-  anomalies: AnomalyTag[];
   /** 0-based, +1 per cron run. T-24 compares (seq-24), T-1h compares (seq-1). */
   generationSequence: number;
 }
@@ -58,18 +56,18 @@ export interface TimestampLike {
   toDate(): Date;
 }
 
-/** Persisted `ranking_cache/{tournamentId}` document (UI subscribes via onSnapshot). */
+/**
+ * Persisted `ranking_cache/{tournamentId}` document (UI subscribes via onSnapshot).
+ *
+ * PURE VOTER DATA ONLY (ADR-0006 amendment, 2026-06-26 / W-2): rankings + meta.
+ * It carries NO anomaly signal — a legitimate ≥60% popular #1 must never read as
+ * an "이상 징후" on the Voter surface. Anomaly tags/details live ONLY in the
+ * admin-only `admin_alerts` collection ({@link AdminAlert}).
+ */
 export interface RankingCache extends RankingSnapshot {
   generatedAt: TimestampLike;
   /** Previous generation time. First run is null. */
   previousGeneratedAt: TimestampLike | null;
-  /**
-   * Detail line of the primary (first) fired anomaly — the cron computes it
-   * (it alone holds the history needed for T-3/T-4 details) so the UI can render
-   * the wireframe badge subtitle (§4) without reading admin-only `admin_alerts`.
-   * null when `anomalies` is empty. (ADR-0006 — extends §6.1 to satisfy the §4 UI.)
-   */
-  anomalyDetail: string | null;
 }
 
 /** Per-contestant tally fed into {@link computeRankings} (one per >0-vote contestant). */

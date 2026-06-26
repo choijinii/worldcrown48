@@ -45,9 +45,12 @@ export interface AlertAction {
 export interface RankingUpdate {
   rankings: RankingEntry[];
   totalVotes: number;
-  anomalies: AnomalyTag[];
-  anomalyDetail: string | null;
   generationSequence: number;
+  /**
+   * The cron's admin_alerts actions (W-2). Anomaly signal lives ONLY here, never
+   * on the persisted ranking_cache — the Voter surface stays pure (ADR-0006
+   * amendment). `alertActions.map(a => a.type)` is the set of tags that fired.
+   */
   alertActions: AlertAction[];
 }
 
@@ -62,11 +65,11 @@ export function buildRankingUpdate(input: RankingUpdateInput): RankingUpdate {
     tournamentId: input.tournamentId,
     rankings,
     totalVotes,
-    anomalies: [],
     generationSequence,
   };
 
-  // history1 (T-4, 1h ago) IS the previous live cache — no extra read.
+  // Anomaly evaluation STILL runs (W-2) — but only to feed admin_alerts, never
+  // the cache. history1 (T-4, 1h ago) IS the previous live cache — no extra read.
   const anomalies = evaluateAnomalies(current, input.prevCache, input.history24);
 
   const open = new Set(input.existingUnresolvedTags);
@@ -76,15 +79,9 @@ export function buildRankingUpdate(input: RankingUpdateInput): RankingUpdate {
     return { type: tag, detail, create: !(isPersistent && open.has(tag)) };
   });
 
-  const anomalyDetail = anomalies.length
-    ? buildAlertDetail(anomalies[0], current, input.prevCache, input.history24)
-    : null;
-
   return {
     rankings,
     totalVotes,
-    anomalies,
-    anomalyDetail,
     generationSequence,
     alertActions,
   };

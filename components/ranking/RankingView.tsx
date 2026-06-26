@@ -1,7 +1,9 @@
 /**
  * RankingView — wireframe `sf-ranking` surface (Domain 3 dark). Presentational:
- * the page container subscribes to ranking_cache and maps it to one of four
- * `data-rank` states (loaded · loading · empty · anomaly). The CSS below is
+ * the page container subscribes to ranking_cache and maps it to one of three
+ * `data-rank` states (loaded · loading · empty). Anomaly signal NEVER reaches
+ * this Voter surface (W-2, ADR-0006 amendment) — it lives only in admin_alerts.
+ * The CSS below is
  * PORTED VERBATIM from `docs/design/wireframes/Domain 3 · The Arena.html`
  * (lines 119~131 t-deadline, 372~404 rank-*, plus the narrow-viewport rule) so
  * the rendered surface matches the wireframe ±2px. All tokens resolve from
@@ -10,20 +12,18 @@
  * Round Scope Lock (§9 trap #11): import ONLY from app/arena/[id]/ranking/.
  * Never render this on the Match VS surface (Vote Rate is ranking-only).
  */
-import type { AnomalyTag, RankingEntry } from "@/lib/ranking/rankingTypes";
+import type { RankingEntry } from "@/lib/ranking/rankingTypes";
 import { RankingHeader } from "./RankingHeader";
-import { AnomalyBadge } from "./AnomalyBadge";
 import { RankList } from "./RankList";
 import { RankSkeleton } from "./RankSkeleton";
 import { RankEmpty } from "./RankEmpty";
 
-export type RankState = "loading" | "empty" | "loaded" | "anomaly";
+export type RankState = "loading" | "empty" | "loaded";
 
 export interface RankingViewLabels {
   kicker: string;
   note: string;
   deadlineLabel: string;
-  anomalyTitle: string;
   emptyTitle: string;
   emptySubtitle: string;
 }
@@ -33,8 +33,6 @@ export interface RankingViewProps {
   title: string;
   deadlineText: string | null;
   entries: RankingEntry[];
-  anomalyTag: AnomalyTag | null;
-  anomalyDetail: string | null;
   labels: RankingViewLabels;
 }
 
@@ -49,11 +47,6 @@ const STYLE = `
 .t-deadline svg { width: 12px; height: 12px; color: var(--color-gold-bright); flex: none; }
 .t-deadline .td-l { color: var(--color-text-sub); font-weight: 600; }
 .t-deadline .td-v { color: var(--color-gold); font-weight: 700; letter-spacing: 0.12em; }
-.anomaly { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border: 1px solid color-mix(in srgb, var(--color-crimson) 45%, transparent); background: color-mix(in srgb, var(--color-crimson) 9%, transparent); border-radius: var(--radius-border); margin-bottom: var(--space-5); box-shadow: 0 0 24px rgba(215,6,58,0.25); }
-.anomaly .aico { width: 34px; height: 34px; flex: none; border-radius: var(--radius-chip); border: 1px solid color-mix(in srgb, var(--color-crimson) 60%, transparent); color: var(--color-crimson); display: flex; align-items: center; justify-content: center; font-weight: 800; }
-.anomaly .at { font-size: 13px; font-weight: 600; color: var(--color-text); }
-.anomaly .as { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-sub); letter-spacing: 0.04em; }
-.anomaly .atag { margin-left: auto; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--color-crimson); border: 1px solid color-mix(in srgb, var(--color-crimson) 50%, transparent); border-radius: var(--radius-chip); padding: 2px var(--space-2); }
 .rank-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .rank-row { display: grid; grid-template-columns: 36px 44px 1fr 96px; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); }
 .rank-row.top { border-color: var(--color-border-gold); background: linear-gradient(90deg, var(--color-gold-subtle), transparent 60%); }
@@ -85,8 +78,6 @@ export function RankingView({
   title,
   deadlineText,
   entries,
-  anomalyTag,
-  anomalyDetail,
   labels,
 }: RankingViewProps): JSX.Element {
   return (
@@ -101,22 +92,14 @@ export function RankingView({
           deadlineText={deadlineText}
         />
 
-        {state === "anomaly" && anomalyTag ? (
-          <AnomalyBadge
-            title={labels.anomalyTitle}
-            detail={anomalyDetail ?? ""}
-            tag={anomalyTag}
-          />
-        ) : null}
-
         {state === "loading" ? <RankSkeleton /> : null}
 
         {state === "empty" ? (
           <RankEmpty title={labels.emptyTitle} subtitle={labels.emptySubtitle} />
         ) : null}
 
-        {state === "loaded" || state === "anomaly" ? (
-          <RankList entries={entries} flagFirst={state === "anomaly"} />
+        {state === "loaded" ? (
+          <RankList entries={entries} flagFirst={false} />
         ) : null}
       </div>
     </section>

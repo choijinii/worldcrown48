@@ -24,7 +24,6 @@ const snap = (rankings: RankingEntry[], generationSequence = 0): RankingSnapshot
   tournamentId: "t1",
   rankings,
   totalVotes: rankings.reduce((s, r) => s + r.voteCount, 0),
-  anomalies: [],
   generationSequence,
 });
 

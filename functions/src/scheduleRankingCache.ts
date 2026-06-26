@@ -30,7 +30,6 @@ function toSnapshot(data: FirebaseFirestore.DocumentData): RankingSnapshot {
     tournamentId: data.tournamentId,
     rankings: data.rankings ?? [],
     totalVotes: data.totalVotes ?? 0,
-    anomalies: data.anomalies ?? [],
     generationSequence: data.generationSequence ?? 0,
   };
 }
@@ -117,13 +116,12 @@ export const scheduleRankingCache = onSchedule(
         }
       }
 
-      // 4b. write the fresh cache (Vote Count carried in voteCount — internal only).
+      // 4b. write the fresh cache — PURE Voter data, no anomaly signal (W-2).
+      //     (Vote Count carried in voteCount — internal only.)
       const newCache: RankingCache = {
         tournamentId,
         rankings: update.rankings,
         totalVotes: update.totalVotes,
-        anomalies: update.anomalies,
-        anomalyDetail: update.anomalyDetail,
         generationSequence,
         generatedAt: now,
         previousGeneratedAt: (prevData?.generatedAt as Timestamp | undefined) ?? null,

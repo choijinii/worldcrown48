@@ -68,8 +68,10 @@ export function evaluateAnomalies(
 }
 
 /**
- * Human-readable detail for `admin_alerts.detail` + the UI anomaly badge subtitle
- * (handoff §7.6). Assumes the tag's precondition already held (caller fired it).
+ * Human-readable detail for `admin_alerts.detail` — ADMIN-ONLY (W-2, ADR-0006
+ * amendment). This NEVER reaches the Voter surface; ranking_cache no longer
+ * carries an anomalyDetail. Assumes the tag's precondition already held (caller
+ * fired it).
  */
 export function buildAlertDetail(
   tag: AnomalyTag,
