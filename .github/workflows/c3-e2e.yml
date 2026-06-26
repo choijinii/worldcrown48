@@ -1,0 +1,130 @@
+name: C-3 Ranking E2E (Playwright)
+
+# Patterned on c2-e2e.yml ([[feedback-workflow-spec-scope]]):
+#   · Each module's workflow scopes to its own spec(s) so other modules'
+#     Playwright tests don't false-red against this Preview/secrets.
+#   · paths: trigger this job ONLY on files C-3 actually depends on.
+#   · test:unit covers lib/__tests__/ranking (50 tests added in Phase A).
+#   · test:rules covers tests/rules/ranking-rules.test.ts (Phase C rules).
+#   · test:e2e runs ONLY e2e/c3-ranking.spec.ts (Phase D).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/arena/**'
+      - 'components/ranking/**'
+      - 'lib/ranking/**'
+      - 'lib/__tests__/ranking/**'
+      - 'lib/firebase.ts'
+      - 'functions/src/scheduleRankingCache.ts'
+      - 'functions/src/onVote.ts'
+      - 'functions/src/core/scheduleRankingCacheCore.ts'
+      - 'functions/src/core/rankingAggregator.ts'
+      - 'functions/scripts/copy-ranking.mjs'
+      - 'functions/src/__tests__/scheduleRankingCacheCore.test.ts'
+      - 'functions/src/__tests__/rankingAggregator.test.ts'
+      - 'functions/src/__tests__/onVote.test.ts'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'tests/rules/ranking-rules.test.ts'
+      - 'e2e/c3-**'
+      - 'playwright.config.ts'
+      - '.github/workflows/c3-e2e.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PREVIEW_URL: ${{ secrets.C3_PREVIEW_URL }}
+      # global-setup reads TEST_UID (custom-token sign-in); the C-3 spec reads
+      # C3_TEST_UID for seeding. Both map to the same secret.
+      TEST_UID: ${{ secrets.C3_TEST_UID }}
+      C3_TEST_UID: ${{ secrets.C3_TEST_UID }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Emulators (firestore + storage) need a JRE; firebase-tools requires
+      # Java 21+ ([[feedback-firebase-tools-java21]]).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install firebase-tools (emulator runner)
+        run: npm i -g firebase-tools
+
+      - name: Unit tests (vitest) — C-3 lib/ranking
+        # Scope to lib/__tests__/ranking (Phase A's 50 tests). Other modules'
+        # unit tests are covered by their own workflows.
+        run: npm run test:unit -- lib/__tests__/ranking
+
+      - name: Functions unit tests (vitest)
+        # canvas is an optionalDependency — npm ci tolerates its native build
+        # failing; the cores under test do not need it. Runs ALL functions
+        # tests (incl. onVote, rankingAggregator, scheduleRankingCacheCore).
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
+      - name: Rules tests (firestore + storage emulators)
+        # Runs all tests/rules/*.test.ts — incl. ranking-rules.test.ts.
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for Vercel Preview
+        run: |
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "C3_PREVIEW_URL not set — skipping E2E wait/run."
+            exit 0
+          fi
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not ready (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable." >&2; exit 1
+
+      - name: E2E (Playwright) — C-3 only
+        if: ${{ env.PREVIEW_URL != '' }}
+        # Scope to C-3's own spec ([[feedback-workflow-spec-scope]]).
+        run: npm run test:e2e -- e2e/c3-ranking.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c3-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c3-playwright-traces
+          path: test-results/
+          retention-days: 14
