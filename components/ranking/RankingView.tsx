@@ -49,7 +49,7 @@ const STYLE = `
 .t-deadline .td-v { color: var(--color-gold); font-weight: 700; letter-spacing: 0.12em; }
 .rank-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .rank-row { display: grid; grid-template-columns: 36px 44px 1fr 96px; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); }
-.rank-row.top { border-color: var(--color-border-gold); background: linear-gradient(90deg, var(--color-gold-subtle), transparent 60%); }
+.rank-row.top { border: 2px solid var(--color-gold-bright); background: linear-gradient(90deg, var(--color-gold-subtle), transparent 60%); box-shadow: 0 0 24px rgba(252, 208, 6, 0.25); }
 .rank-row.flag { border-color: color-mix(in srgb, var(--color-crimson) 45%, transparent); }
 .rank-no { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--color-text-sub); text-align: center; }
 .rank-row.top .rank-no { color: var(--color-gold); }
@@ -66,7 +66,7 @@ const STYLE = `
 .rskel { height: 64px; border-radius: var(--radius-border); background: linear-gradient(90deg, var(--color-bg-soft) 0%, var(--color-bg-elevated) 50%, var(--color-bg-soft) 100%); background-size: 200% 100%; animation: rankShimmer 1400ms ease infinite; }
 @keyframes rankShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .rank-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-20) var(--space-6); border: 1px dashed var(--color-border); border-radius: var(--radius-border); }
-.rank-empty img { width: 52px; opacity: 0.5; }
+.rank-empty img { width: 64px; opacity: 0.85; filter: drop-shadow(0 0 12px rgba(252, 208, 6, 0.18)); }
 .rank-empty .et { font-weight: 600; font-size: 16px; }
 .rank-empty .es { font-size: 13px; color: var(--color-text-sub); }
 @media (max-width: 520px) { .rank-row { grid-template-columns: 28px 36px 1fr 80px; } }
