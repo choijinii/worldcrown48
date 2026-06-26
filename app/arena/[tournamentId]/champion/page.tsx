@@ -18,6 +18,7 @@ import { useVoteStore } from "@/lib/arena/voteStore";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
+import { ModuleNav } from "@/components/arena/ModuleNav";
 import { resolveChampionId, toCrownData } from "@/lib/crown/championLoader";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
@@ -80,6 +81,7 @@ export default function ChampionPage(): JSX.Element {
 
   return (
     <>
+      <ModuleNav tournamentId={tournamentId} />
       <CrownCardModal data={data} canShare={canShare} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} />
       <LoginModal
         isOpen={loginOpen}

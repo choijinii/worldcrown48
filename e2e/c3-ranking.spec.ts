@@ -193,6 +193,31 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     await expect(rows.nth(13)).toBeVisible();
   });
 
+  test("W-6 — ModuleNav: 4 tabs, Ranking active, Newsroom disabled", async ({ page }) => {
+    await page.goto(`/arena/${TID_LOADED}/ranking?lang=en`);
+    const nav = page.getByTestId("module-nav");
+    await expect(nav).toBeVisible({ timeout: 30_000 });
+
+    // Ranking is the active tab on this route (exact-match, trap #6).
+    await expect(page.getByTestId("module-tab-ranking")).toHaveAttribute(
+      "data-active",
+      "true",
+    );
+    await expect(page.getByTestId("module-tab-vs")).toHaveAttribute(
+      "data-active",
+      "false",
+    );
+
+    // Newsroom is disabled (C-4/C-5 unbuilt) — a <button>, not a link.
+    const newsroom = page.getByTestId("module-tab-newsroom");
+    await expect(newsroom).toBeDisabled();
+    await expect(newsroom).toContainText("Coming soon");
+
+    // VS Battle tab routes back to the base arena surface.
+    await page.getByTestId("module-tab-vs").click();
+    await expect(page).toHaveURL(new RegExp(`/arena/${TID_LOADED}(\\?|$)`));
+  });
+
   test("empty (en) — No ranking yet", async ({ page }) => {
     await page.goto(`/arena/${TID_EMPTY}/ranking?lang=en`);
     const view = page.getByTestId("ranking-view");

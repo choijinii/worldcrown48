@@ -15,6 +15,7 @@ import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { useI18n } from "@/lib/i18n";
 import { RankingView, type RankState } from "@/components/ranking/RankingView";
+import { ModuleNav } from "@/components/arena/ModuleNav";
 import type { RankingCache } from "@/lib/ranking/rankingTypes";
 
 const LABELS = {
@@ -87,12 +88,15 @@ export default function RankingPage(): JSX.Element {
   const entries = cache?.rankings ?? [];
 
   return (
-    <RankingView
-      state={state}
-      title={title}
-      deadlineText={deadlineText}
-      entries={entries}
-      labels={labels}
-    />
+    <>
+      <ModuleNav tournamentId={tournamentId} />
+      <RankingView
+        state={state}
+        title={title}
+        deadlineText={deadlineText}
+        entries={entries}
+        labels={labels}
+      />
+    </>
   );
 }

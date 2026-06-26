@@ -30,6 +30,7 @@ import {
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { MatchView } from "@/components/arena/MatchView";
+import { ModuleNav } from "@/components/arena/ModuleNav";
 import { FinalPickView } from "@/components/arena/FinalPickView";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
@@ -214,16 +215,19 @@ export default function ArenaPage(): JSX.Element {
   if (!left || !right) return <Center>…</Center>;
 
   return (
-    <div className={styles.arena} data-arena-surface="vs">
-      <MatchView
-        title={tournament.title}
-        left={left}
-        right={right}
-        pickedId={pickedId}
-        loading={submitting}
-        onVote={vote}
-      />
-      {loginModal}
-    </div>
+    <>
+      <ModuleNav tournamentId={tournamentId} />
+      <div className={styles.arena} data-arena-surface="vs">
+        <MatchView
+          title={tournament.title}
+          left={left}
+          right={right}
+          pickedId={pickedId}
+          loading={submitting}
+          onVote={vote}
+        />
+        {loginModal}
+      </div>
+    </>
   );
 }
