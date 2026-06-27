@@ -159,3 +159,6 @@ export { advanceRound } from "./advanceRound";
 
 // C-2 The Arena — Crown Card generation (roundProgress.complete → Storage PNG + doc).
 export { onChampionConfirmed } from "./onChampionConfirmed";
+
+// C-3 The Arena — ranking cache + anomaly detection (1h cron, asia-northeast3).
+export { scheduleRankingCache } from "./scheduleRankingCache";

@@ -8,6 +8,8 @@ rules_version = '2';
 //   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //   /votes/{voteId}        — owner-only read; write blocked (callable only)
+//   /ranking_cache/{id}    — read gated by Tournament Deadline (W-7); write blocked
+//   /admin_alerts/{id}     — admin-claim read/write only (anomaly flags)
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
 //
@@ -178,6 +180,36 @@ service cloud.firestore {
                   && (resource.data.voterUid == request.auth.uid
                       || resource.data.featured == true);
       allow write: if false;
+    }
+
+    // ── ranking_cache (C-3 The Arena) ──────────────────────────────
+    // The ONLY Vote Rate (%) surface. Read is gated by the Tournament Deadline
+    // (W-7, defense in depth): a ranking exposed before close skews 표심, so the
+    // cache only becomes readable once `tournamentDeadline < request.time`. Writes
+    // are blocked — the sole writer is scheduleRankingCache (admin SDK bypasses
+    // rules). `voteCount` rides inside the doc (internal only) — the UI is
+    // forbidden from rendering it (CLAUDE.md 원칙 #8), but rules can't field-mask,
+    // so the no-Vote-Count guard lives in the client + E2E (trap #7), not here.
+    match /ranking_cache/{tournamentId} {
+      allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
+                  && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
+      allow write: if false;
+
+      // 24-generation history (T-3 24h baseline) — same Deadline gate + posture.
+      match /history/{generationSequence} {
+        allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
+                    && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
+        allow write: if false;
+      }
+    }
+
+    // ── admin_alerts (C-3 anomaly flags) ───────────────────────────
+    // Anomaly records (T-1..T-4) written by scheduleRankingCache (admin SDK).
+    // Read/write require the `admin` custom claim — a Voter must NEVER see them
+    // (they expose the internal anomaly model + would let a forged write spoof
+    // alerts). The Admin Dashboard (G-1) reads them with its own auth.
+    match /admin_alerts/{alertId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
     }
 
     // ── auditLog ───────────────────────────────────────────────────

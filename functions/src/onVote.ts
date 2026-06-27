@@ -10,7 +10,7 @@
  *   returns:      { ok: true }
  *
  * Anonymous uids are allowed (the guest's one free vote — D-1 linkSessionVote
- * re-parents it after sign-in). Per-uid in-memory rate limit (10/min) defuses
+ * re-parents it after sign-in). Per-uid in-memory rate limit (5/min) defuses
  * floods before any Firestore read (trap-style cost guard). `date` is the KST
  * day computed server-side — never trusted from the client.
  */
@@ -22,12 +22,16 @@ import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 
 const DAILY_LIMIT = 5;
 
-// Per-uid token bucket — 10 calls / uid / minute / instance (B-1 pattern).
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60_000;
+// Per-uid token bucket — 5 calls / uid / minute / instance (C-3 anti-abuse 강화).
+// 12초당 1회 — 정상 voter의 Match 풀이 흐름(선택→Round 전환 애니→다음 Match)과 일치.
+// Same algorithm as before (handoff §8.1: token bucket 패턴 유지) — only the
+// limit moved 10 → 5. Exported below for unit testing (handoff §8.3) without
+// invoking the onCall wrapper / Firestore.
+export const RATE_LIMIT = 5;
+export const RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
 
-function checkRateLimit(uid: string, now: number): boolean {
+export function checkRateLimit(uid: string, now: number): boolean {
   const bucket = uidBuckets.get(uid);
   if (!bucket || now - bucket.windowStart >= RATE_WINDOW_MS) {
     uidBuckets.set(uid, { count: 1, windowStart: now });
@@ -35,6 +39,11 @@ function checkRateLimit(uid: string, now: number): boolean {
   }
   bucket.count += 1;
   return bucket.count <= RATE_LIMIT;
+}
+
+/** Test-only — clears the per-instance buckets between cases. */
+export function __resetRateBucketsForTest(): void {
+  uidBuckets.clear();
 }
 
 export const onVote = onCall(
