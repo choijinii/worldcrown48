@@ -25,7 +25,14 @@ export function LanguageToggle(): JSX.Element {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
+
+  // Return focus to the trigger when the listbox closes (ARIA combobox).
+  const close = () => {
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
 
   const current = LOCALE_META[lang];
   const options = SUPPORTED_LOCALES;
@@ -51,7 +58,7 @@ export function LanguageToggle(): JSX.Element {
   }, [open]);
 
   const pick = (next: Lang) => {
-    setOpen(false);
+    close();
     if (next !== lang) {
       void trackWithConsent("cookie_lang_switch", {
         from: lang,
@@ -72,7 +79,7 @@ export function LanguageToggle(): JSX.Element {
   const onListKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      setOpen(false);
+      close();
       return;
     }
     if (e.key === "ArrowDown") {
@@ -94,6 +101,7 @@ export function LanguageToggle(): JSX.Element {
   return (
     <div ref={rootRef} style={{ position: "relative" }} data-testid="lang-toggle">
       <button
+        ref={triggerRef}
         type="button"
         role="combobox"
         aria-haspopup="listbox"
