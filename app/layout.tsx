@@ -7,6 +7,7 @@ import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider
 import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Navbar } from "@/components/auth/Navbar";
+import { DevNavFab } from "@/components/dev/DevNavFab";
 import { Toaster } from "@/components/Toaster";
 
 export const metadata: Metadata = {
@@ -76,6 +77,8 @@ export default function RootLayout({
                 <ConsentModal />
               </div>
               <Toaster />
+              {/* Dev-only nav aid — renders null unless Cmd/Ctrl+Shift+D is on. */}
+              <DevNavFab />
             </AuthProvider>
           </CookieConsentProvider>
         </I18nProvider>
