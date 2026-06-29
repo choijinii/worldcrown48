@@ -14,10 +14,30 @@ import { expect, test, type ConsoleMessage } from "@playwright/test";
 
 let consoleErrors: string[] = [];
 
+/**
+ * Environmental console noise to ignore — NOT A-1 defects. The Pitch is a
+ * PUBLIC page tested signed-out, so the global Navbar's SignInButton boots
+ * Google Sign-In (GSI/FedCM); in headless CI there is no Google session and
+ * the preview domain may be unauthorised/rate-limited, so these always fire.
+ * App-level errors (TypeError / Cannot read … / Uncaught) do NOT match these
+ * and are still caught — e.g. the Hotfix-1 `…reading 'toDate'` regression.
+ */
+const IGNORED_CONSOLE = [
+  /Failed to load resource/i,
+  /GSI_LOGGER/i,
+  /\bFedCM\b/i,
+  /accounts list is empty/i,
+  /identitytoolkit/i,
+  /status of (401|403|429)/i,
+];
+
 test.beforeEach(({ page }) => {
   consoleErrors = [];
   page.on("console", (m: ConsoleMessage) => {
-    if (m.type() === "error") consoleErrors.push(m.text());
+    if (m.type() !== "error") return;
+    const text = m.text();
+    if (IGNORED_CONSOLE.some((re) => re.test(text))) return;
+    consoleErrors.push(text);
   });
 });
 
