@@ -1,31 +1,39 @@
+"use client";
+
 /**
- * A-1 · The Pitch (Domain 1) — page shell.
+ * A-1 · The Pitch (Domain 1) — page composition.
  *
- * Phase A scaffold: this establishes the route + `.pitch` container-query host
- * and renders the Hero headline so the `/` route swap is verifiable (dev 200 +
- * "Who wears the" present). Phase B replaces the inner placeholder with the
- * full module tree per handoff §6.1:
- *
- *   <GnbIsland /> · <HeroSection /> · <TrendingFeed /> · <LabEntryCard />
- *   · <NewsroomFeed /> · <PitchFoot />
- *
- * Container-query host is `.pitch` (PitchInner), NOT the viewport — handoff
- * §6.3 forbids viewport media queries for the responsive grid.
+ * Module tree (handoff §6.1): GnbIsland · HeroSection · TrendingFeed ·
+ * LabEntryCard · NewsroomFeed · PitchFoot. `.pitch` is the container-query
+ * host (pitch.css), so the responsive grid keys off page width — never
+ * viewport media queries (handoff §6.3). The view-mount analytics event fires
+ * once on mount (handoff §8: a1_pitch_view).
  */
+
+import { useEffect } from "react";
+import { track } from "@/lib/analytics";
+import { GnbIsland } from "./GnbIsland";
+import { HeroSection } from "./HeroSection";
+import { TrendingFeed } from "./TrendingFeed";
+import { LabEntryCard } from "./LabEntryCard";
+import { NewsroomFeed } from "./NewsroomFeed";
+import "./pitch.css";
+
 export default function PitchPage() {
+  useEffect(() => {
+    track("a1_pitch_view", {});
+  }, []);
+
   return (
-    <main className="pitch-shell">
+    <main className="pitch">
       <div className="pitch-grain" aria-hidden="true" />
-      <div className="pitch">
-        {/* Phase B: GnbIsland · HeroSection · TrendingFeed · LabEntryCard ·
-            NewsroomFeed · PitchFoot mount here. */}
-        <section className="hero">
-          <div className="hero-kicker">트렌딩 · The Pitch · Global Fan Voting</div>
-          <h1 className="hero-title">
-            <span className="hero-l1">Who wears the</span>
-            <span className="hero-l2">Ultimate Crown?</span>
-          </h1>
-        </section>
+      <GnbIsland />
+      <div className="pitch-inner">
+        <HeroSection />
+        <TrendingFeed />
+        <LabEntryCard />
+        <NewsroomFeed />
+        <p className="pitch-foot">WorldCrown48 · 48 Contestants · One Crown</p>
       </div>
     </main>
   );
