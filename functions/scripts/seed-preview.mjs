@@ -135,14 +135,21 @@ async function deleteArenaTournament(db) {
 /**
  * A-1 · The Pitch trending feed: 6 Tournaments spanning all 6 categories —
  * 4 `active` (surface in the feed, handoff §5 query) + 2 `draft` (hidden;
- * they live in the Host's Lab). Exactly one active Tournament is `featured`.
- * The Pitch card reads only the Tournament doc, so no contestants are needed.
- * createdAt is serverTimestamp() (NOT hardcoded) so the orderBy createdAt desc
- * query is exercised against the composite index (handoff §9 trap 2).
+ * they live in the Host's Lab). The Pitch card reads only the Tournament doc,
+ * so no contestants are needed. createdAt is serverTimestamp() (NOT hardcoded)
+ * so the orderBy createdAt desc query is exercised against the composite index
+ * (handoff §9 trap 2).
+ *
+ * NONE is `featured`. `featured` is a GLOBAL singleton consumed by A-0's
+ * FeaturedTournament hero (`where featured==true limit 1`) across every
+ * deployment. A preview seed claiming it crashed the un-migrated A-0 code on
+ * pinned/production deployments (legacy closesAt → toDate on undefined). The
+ * global hero is set deliberately by 대표 on a real, playable tournament — not
+ * here. A-1's FEATURED pill component is intact for when one exists.
  */
 const A1_TIDS = [1, 2, 3, 4, 5, 6].map((n) => `a1-preview-${n}`);
 const A1_TOURNAMENTS = [
-  { id: A1_TIDS[0], title: "Strikers of the Century", category: "FOOTBALL", status: "active", featured: true },
+  { id: A1_TIDS[0], title: "Strikers of the Century", category: "FOOTBALL", status: "active", featured: false },
   { id: A1_TIDS[1], title: "K-Pop Visuals of the Decade", category: "KPOP", status: "active", featured: false },
   { id: A1_TIDS[2], title: "Greatest Anime Protagonists", category: "ANIME", status: "active", featured: false },
   { id: A1_TIDS[3], title: "Legendary Game Bosses", category: "GAMING", status: "active", featured: false },
