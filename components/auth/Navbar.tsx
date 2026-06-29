@@ -19,6 +19,7 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/lib/authStore";
+import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { SignInButton } from "./SignInButton";
 import { UserAvatar } from "./UserAvatar";
 
@@ -61,6 +62,7 @@ export function Navbar(): JSX.Element {
       </Link>
 
       <div className="gnb-actions" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <LanguageToggle />
         {loading ? (
           <NavbarActionSkeleton />
         ) : user && !user.isAnonymous ? (
