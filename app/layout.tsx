@@ -6,7 +6,7 @@ import { ConsentModal } from "@/components/policy/ConsentModal";
 import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
 import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { Navbar } from "@/components/auth/Navbar";
+import { Navbar } from "@/components/layout/Navbar";
 import { DevNavFab } from "@/components/dev/DevNavFab";
 import { Toaster } from "@/components/Toaster";
 

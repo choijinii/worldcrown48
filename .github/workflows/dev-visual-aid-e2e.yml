@@ -15,7 +15,7 @@ on:
       - 'app/layout.tsx'
       - 'components/i18n/**'
       - 'components/dev/**'
-      - 'components/auth/Navbar.tsx'
+      - 'components/layout/Navbar.tsx'
       - 'lib/locale.ts'
       - 'lib/useLocaleSync.ts'
       - 'lib/dev/**'

@@ -17,8 +17,14 @@ on:
       - 'app/layout.tsx'
       - 'app/launch/**'
       - 'components/pitch/**'
+      - 'components/layout/**'
+      - 'components/launch/**'
       - 'lib/pitch/**'
+      - 'lib/layout/**'
+      - 'lib/launch/**'
       - 'lib/__tests__/pitch/**'
+      - 'lib/__tests__/layout/**'
+      - 'lib/__tests__/launch/**'
       - 'lib/__tests__/seedPreview.test.ts'
       - 'functions/scripts/seed-preview.mjs'
       - 'functions/scripts/seed-preview.lib.mjs'
@@ -55,8 +61,8 @@ jobs:
       - name: Typecheck (tsc)
         run: npx tsc --noEmit
 
-      - name: Unit tests (vitest) — pitch logic + seed-preview CLI
-        run: npm run test:unit -- lib/__tests__/pitch lib/__tests__/seedPreview.test.ts
+      - name: Unit tests (vitest) — pitch / layout / launch logic + seed-preview CLI
+        run: npm run test:unit -- lib/__tests__/pitch lib/__tests__/layout lib/__tests__/launch lib/__tests__/seedPreview.test.ts
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

@@ -1,0 +1,264 @@
+/* ════════════════════════════════════════════════════════════════════
+   Unified global Navbar — dark floating tone (Phase F · ADR-0010).
+
+   Option C: the Navbar head is ALWAYS dark (brand global constant); page
+   BODIES keep their per-domain theme. This file lives outside the
+   [data-theme="light"]/.domain-* scope, so its var(--…) read the :root dark
+   palette regardless of the body theme below it.
+
+   Tokens only — no hex literals (decision ③, v2.4). Scoped under .wc-nav so
+   it never collides with A-1's .pitch .gnb or A-0 styles.
+   ════════════════════════════════════════════════════════════════════ */
+
+.wc-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-gold);
+  box-shadow: var(--shadow-gnb);
+  font-family: var(--font-sans);
+}
+
+.wc-nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.wc-nav-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-border);
+  background: transparent;
+  color: var(--color-text);
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+.wc-nav-burger:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold);
+  background: var(--color-gold-subtle);
+}
+.wc-nav-burger:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.wc-nav-burger svg {
+  width: 18px;
+  height: 18px;
+}
+
+.wc-nav-logo {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.wc-nav-logo img {
+  height: 22px;
+  width: auto;
+  display: block;
+}
+
+.wc-nav-sep {
+  width: 1px;
+  height: 18px;
+  background: color-mix(in srgb, var(--color-text) 14%, transparent);
+  flex: none;
+}
+
+.wc-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.wc-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-sub);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-border);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+}
+.wc-nav-item svg {
+  width: 16px;
+  height: 16px;
+}
+.wc-nav-item:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+.wc-nav-item[aria-current="true"] {
+  color: var(--color-gold);
+  background: var(--color-gold-subtle);
+  font-weight: 600;
+}
+.wc-nav-item:focus-visible,
+.wc-nav-cta:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.wc-nav-cta {
+  border: 0;
+  background: var(--color-gold);
+  color: var(--color-bg-default);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  padding: 7px var(--space-4);
+  border-radius: var(--radius-border);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 120ms ease, box-shadow 180ms ease;
+}
+.wc-nav-cta:hover {
+  background: var(--color-gold-hover);
+  box-shadow: var(--shadow-gold);
+}
+
+.wc-nav-spacer {
+  flex: 1 1 auto;
+}
+
+.wc-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Narrow widths: collapse the inline menu — the ☰ SiteMapSheet is the fallback
+   nav. Keep the existing globals.css `.gnb-actions` mobile rule working too. */
+@media (max-width: 860px) {
+  .wc-nav-menu {
+    display: none;
+  }
+}
+
+/* ── SiteMapSheet (☰) ── */
+.wc-sitemap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  background: color-mix(in srgb, var(--color-bg-void) 70%, transparent);
+  backdrop-filter: blur(2px);
+}
+.wc-sitemap {
+  width: min(360px, 86vw);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--color-bg-deep);
+  border-right: 1px solid var(--color-border-gold);
+  box-shadow: var(--shadow-gnb);
+  padding: var(--space-6) var(--space-5);
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+.wc-sitemap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+.wc-sitemap-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+.wc-sitemap-close {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-sub);
+  border-radius: var(--radius-border);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wc-sitemap-close:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-gold);
+}
+.wc-sitemap-close:focus-visible,
+.wc-sitemap-item:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.wc-sitemap-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.wc-sitemap-item {
+  display: block;
+  text-decoration: none;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-border);
+  background: var(--color-bg-soft);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.wc-sitemap-item:hover {
+  border-color: var(--color-border-gold);
+  background: var(--color-bg-elevated);
+}
+.wc-sitemap-dom {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.wc-sitemap-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.wc-sitemap-desc {
+  font-size: 12px;
+  color: var(--color-text-sub);
+  margin-top: 2px;
+}
+.wc-sitemap-item[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.wc-sitemap-soon {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-chip);
+  padding: 1px 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-nav *,
+  .wc-sitemap * {
+    transition: none !important;
+  }
+}

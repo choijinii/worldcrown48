@@ -69,4 +69,23 @@ test.describe("A-1 The Pitch", () => {
       await expect(page.locator(".pitch .feed-wrap")).toBeVisible();
     }
   });
+
+  test("Phase F: ☰ opens SiteMapSheet (7 domains, 2 disabled), ESC closes", async ({ page }) => {
+    await page.goto("/?lang=ko");
+    // One unified dark Navbar — no separate floating Pitch GNB component.
+    await expect(page.locator(".pitch .gnb")).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Open site map" }).click();
+    const sheet = page.getByRole("dialog", { name: "Site map" });
+    await expect(sheet).toBeVisible();
+
+    // 7 domains, with Locker Room + Admin Dashboard disabled.
+    await expect(sheet.locator(".wc-sitemap-item")).toHaveCount(7);
+    await expect(sheet.locator('.wc-sitemap-item[aria-disabled="true"]')).toHaveCount(2);
+    await expect(sheet.getByText("The Pitch")).toBeVisible();
+    await expect(sheet.getByText("Admin Dashboard")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+  });
 });
