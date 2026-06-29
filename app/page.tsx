@@ -1,27 +1,12 @@
-import { LaunchHero } from "@/components/launch/LaunchHero";
-import { FeaturedTournament } from "@/components/launch/FeaturedTournament";
-import { WaitlistForm } from "@/components/launch/WaitlistForm";
-import { SNSLinks } from "@/components/launch/SNSLinks";
+import PitchPage from "@/components/pitch/PitchPage";
 
 /**
- * A-0 · Launch Pad (Domain 0)
+ * `/` — A-1 The Pitch (Domain 1), the trending tournament feed.
  *
- * Composition: LaunchHero + FeaturedTournament + WaitlistForm + SNSLinks,
- * wrapped in `.lp` shell with film-grain overlay.
- *
- * The `.lp-inner` is the container-query host (container-type: inline-size in
- * globals.css), so children scale by container width, not viewport width.
+ * Route swap (handoff §3, Phase A): this route used to render A-0 Launch Pad,
+ * which now lives at `/launch`. The composition lives in <PitchPage> so this
+ * file stays a thin route entry.
  */
 export default function Home() {
-  return (
-    <main className="lp">
-      <div className="lp-grain" aria-hidden="true" />
-      <div className="lp-inner">
-        <LaunchHero />
-        <FeaturedTournament />
-        <WaitlistForm />
-        <SNSLinks />
-      </div>
-    </main>
-  );
+  return <PitchPage />;
 }

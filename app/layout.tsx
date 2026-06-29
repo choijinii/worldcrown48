@@ -11,12 +11,15 @@ import { DevNavFab } from "@/components/dev/DevNavFab";
 import { Toaster } from "@/components/Toaster";
 
 export const metadata: Metadata = {
-  title: "WorldCrown48 — Who Rules the World?",
+  // A-1 The Pitch is the homepage as of the route swap (handoff §3, Phase A).
+  // A-0 Launch Pad's metadata moved to app/launch/layout.tsx.
+  title: "WorldCrown48 — Who Wears the Ultimate Crown?",
   description:
-    "WorldCrown48 — the global fan-voting arena. A WorldCrown48 tournament is open. Vote for who you love. Crown your champion.",
+    "The Pitch — WorldCrown48's trending tournament feed. 48 contestants, one crown. Vote for who you love and crown your champion.",
   openGraph: {
-    title: "WorldCrown48 — Who Rules the World?",
-    description: "The global fan-voting arena. A WorldCrown48 tournament is open.",
+    title: "WorldCrown48 — Who Wears the Ultimate Crown?",
+    description:
+      "The Pitch — trending fan-voting tournaments. 48 contestants, one crown.",
     url: "https://worldcrown48.com",
     siteName: "WorldCrown48",
     type: "website",
