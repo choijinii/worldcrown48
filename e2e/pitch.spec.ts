@@ -23,12 +23,20 @@ let consoleErrors: string[] = [];
  * and are still caught — e.g. the Hotfix-1 `…reading 'toDate'` regression.
  */
 const IGNORED_CONSOLE = [
+  // Signed-out Google Sign-In init (the global Navbar's SignInButton).
   /Failed to load resource/i,
   /GSI_LOGGER/i,
   /\bFedCM\b/i,
   /accounts list is empty/i,
   /identitytoolkit/i,
   /status of (401|403|429)/i,
+  // Headless-CI Firestore transport hiccup — the feed's onSnapshot retries and
+  // degrades to skeleton/empty gracefully (no crash); not an A-1 defect.
+  /Could not reach Cloud Firestore backend/i,
+  // Next.js Link prefetch fallback for routes the preview can't RSC-fetch
+  // signed-out (e.g. /admin/lab) — falls back to browser nav, benign. Specific
+  // to the "RSC payload" message, so a real app "Failed to fetch" still trips.
+  /Failed to fetch RSC payload/i,
 ];
 
 test.beforeEach(({ page }) => {
