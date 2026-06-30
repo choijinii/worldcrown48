@@ -15,8 +15,10 @@
  *   - NEXT_PUBLIC_FIREBASE_PROJECT_ID
  *   - NEXT_PUBLIC_FIREBASE_APP_ID
  *
- * If any are missing we write an empty storage state — auth-gated specs
- * will then fail loudly, which is the right signal locally.
+ * If any are missing we still prime the Vercel bypass cookie (signed-out) via
+ * primeBypassOnly so PUBLIC-page specs can reach a Protected preview; auth-gated
+ * specs then fail loudly (signed out), which is the right signal. With no bypass
+ * secret (local/unprotected) we write an empty state.
  */
 import { chromium, type FullConfig } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -67,16 +69,60 @@ function writeEmptyState(reason: string): void {
   );
 }
 
+/**
+ * Prime ONLY the Vercel Preview Protection bypass cookie (no auth), then save a
+ * signed-out storageState. Lets a PUBLIC spec reach a Protected preview when the
+ * auth secrets are absent. Falls back to an empty state when there is no bypass
+ * secret (local/unprotected) or priming fails, so the storageState file always
+ * exists for the runner. The query-param form issues an origin-scoped
+ * `_vercel_jwt` cookie + 307 to the clean URL (same mechanism as the auth path)
+ * without leaking the secret cross-origin.
+ */
+async function primeBypassOnly(
+  previewUrl: string,
+  bypassSecret: string | undefined,
+): Promise<void> {
+  if (!bypassSecret) {
+    writeEmptyState(
+      "auth secrets absent and no VERCEL_AUTOMATION_BYPASS_SECRET — nothing to prime",
+    );
+    return;
+  }
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const primedUrl = `${previewUrl}?x-vercel-protection-bypass=${encodeURIComponent(
+      bypassSecret,
+    )}&x-vercel-set-bypass-cookie=true`;
+    await page.goto(primedUrl);
+    mkdirSync(dirname(STORAGE_STATE_PATH), { recursive: true });
+    await context.storageState({ path: STORAGE_STATE_PATH });
+    console.log(
+      "[global-setup] auth secrets absent — primed Vercel bypass cookie only (signed-out storageState for public specs).",
+    );
+  } catch (err) {
+    writeEmptyState(`bypass-only priming failed: ${(err as Error).message}`);
+  } finally {
+    await browser.close();
+  }
+}
+
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   const previewUrl = process.env.PREVIEW_URL ?? "http://localhost:3000";
   const testUid = process.env.TEST_UID;
   const serviceAccount = loadServiceAccount();
   const publicConfig = loadPublicConfig();
+  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
+  // Auth-less path: without the auth secrets we can't sign a test user in, but
+  // PUBLIC-page specs (e.g. A-1 The Pitch) still must get past Vercel Preview
+  // Protection. Prime ONLY the bypass cookie and save a signed-out storageState
+  // — instead of bailing with no cookie, which left public specs staring at the
+  // "Log in to Vercel" 401 wall (a1-pitch AC-1/AC-2/AC-11). Auth-gated specs
+  // still fail loudly (signed out), which is the right signal.
   if (!serviceAccount || !testUid || !publicConfig) {
-    writeEmptyState(
-      "FIREBASE_ADMIN_SDK_KEY / TEST_UID / NEXT_PUBLIC_FIREBASE_* missing",
-    );
+    await primeBypassOnly(previewUrl, bypassSecret);
     return;
   }
 
@@ -85,7 +131,6 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   }
   const customToken = await admin.auth().createCustomToken(testUid);
 
-  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
