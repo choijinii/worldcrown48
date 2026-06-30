@@ -162,3 +162,8 @@ export { onChampionConfirmed } from "./onChampionConfirmed";
 
 // C-3 The Arena — ranking cache + anomaly detection (1h cron, asia-northeast3).
 export { scheduleRankingCache } from "./scheduleRankingCache";
+
+// G-1 Admin Dashboard — operator-only KPI snapshot + abuse-alert feed.
+// Both re-verify ADMIN_UID server-side (defense-in-depth — handoff §9 trap #5).
+export { getAdminKpis } from "./getAdminKpis";
+export { listAdminAlerts } from "./listAdminAlerts";

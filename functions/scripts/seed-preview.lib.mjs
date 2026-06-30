@@ -6,7 +6,7 @@
  */
 
 /** Modules the seeder knows how to inject. */
-export const MODULES = ["a1", "b1", "c1", "c2", "c3", "d1", "e1"];
+export const MODULES = ["a1", "b1", "c1", "c2", "c3", "d1", "e1", "admin"];
 
 /** Days a preview Deadline sits in the past / future. */
 export const DEADLINE_OFFSET_DAYS = 30;
