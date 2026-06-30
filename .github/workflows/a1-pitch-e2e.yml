@@ -1,42 +1,45 @@
-name: dev-visual-aid E2E (Playwright)
+name: A-1 Pitch E2E (Playwright)
 
-# Patterned on c3-e2e.yml ([[feedback-workflow-spec-scope]]):
-#   · Scoped to this module's files so other modules don't false-red.
-#   · test:unit covers the pure logic (locale + dev nav + seed-preview CLI).
+# Patterned on dev-visual-aid-e2e.yml ([[feedback-workflow-spec-scope]]):
+#   · Scoped to A-1's files so other modules don't false-red.
+#   · test:unit covers the pure logic (pitch store/newsroom/trending/labEntry
+#     + the seed-preview CLI now that it owns the a1 module).
 #   · E2E is GATED on PREVIEW_URL — skipped (not failed) until the
-#     DEV_VISUAL_AID_PREVIEW_URL secret + Vercel Preview are provisioned by 대표.
-#   · No emulator/rules/functions steps: this module adds no Firestore rules
-#     and no Cloud Functions (seed-preview.mjs is an operator script, not a fn).
+#     A1_PITCH_PREVIEW_URL secret + Vercel Preview are provisioned by 대표.
+#   · No emulator/rules step: A-1 adds no Firestore rules; it reads the
+#     tournaments collection via the composite index deployed in Phase C.
 
 on:
   pull_request:
     branches: [main]
     paths:
+      - 'app/page.tsx'
       - 'app/layout.tsx'
-      - 'components/i18n/**'
-      - 'components/dev/**'
-      - 'components/layout/Navbar.tsx'
-      - 'lib/locale.ts'
-      - 'lib/useLocaleSync.ts'
-      - 'lib/dev/**'
-      - 'lib/__tests__/locale.test.ts'
-      - 'lib/__tests__/dev/**'
+      - 'app/launch/**'
+      - 'components/pitch/**'
+      - 'components/layout/**'
+      - 'components/launch/**'
+      - 'lib/pitch/**'
+      - 'lib/layout/**'
+      - 'lib/launch/**'
+      - 'lib/__tests__/pitch/**'
+      - 'lib/__tests__/layout/**'
+      - 'lib/__tests__/launch/**'
       - 'lib/__tests__/seedPreview.test.ts'
       - 'functions/scripts/seed-preview.mjs'
       - 'functions/scripts/seed-preview.lib.mjs'
-      - 'e2e/language-toggle.spec.ts'
-      - 'e2e/dev-nav.spec.ts'
-      - 'e2e/dev-nav-mobile-320.spec.ts'
+      - 'firestore.indexes.json'
+      - 'e2e/pitch.spec.ts'
       - 'playwright.config.ts'
-      - '.github/workflows/dev-visual-aid-e2e.yml'
+      - '.github/workflows/a1-pitch-e2e.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PREVIEW_URL: ${{ secrets.DEV_VISUAL_AID_PREVIEW_URL }}
-      TEST_UID: ${{ secrets.DEV_VISUAL_AID_TEST_UID }}
+      PREVIEW_URL: ${{ secrets.A1_PITCH_PREVIEW_URL }}
+      TEST_UID: ${{ secrets.A1_PITCH_TEST_UID }}
       FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
       NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -58,8 +61,8 @@ jobs:
       - name: Typecheck (tsc)
         run: npx tsc --noEmit
 
-      - name: Unit tests (vitest) — locale + dev nav + seed-preview CLI
-        run: npm run test:unit -- lib/__tests__/locale.test.ts lib/__tests__/dev lib/__tests__/seedPreview.test.ts
+      - name: Unit tests (vitest) — pitch / layout / launch logic + seed-preview CLI
+        run: npm run test:unit -- lib/__tests__/pitch lib/__tests__/layout lib/__tests__/launch lib/__tests__/seedPreview.test.ts
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -67,7 +70,7 @@ jobs:
       - name: Wait for Vercel Preview (skip if secret unset)
         run: |
           if [ -z "$PREVIEW_URL" ]; then
-            echo "DEV_VISUAL_AID_PREVIEW_URL not set — skipping E2E."
+            echo "A1_PITCH_PREVIEW_URL not set — skipping E2E."
             exit 0
           fi
           HEADER_ARGS=()
@@ -82,15 +85,15 @@ jobs:
           done
           echo "Preview never became reachable." >&2; exit 1
 
-      - name: E2E (Playwright) — dev-visual-aid specs only
+      - name: E2E (Playwright) — pitch spec only
         if: ${{ env.PREVIEW_URL != '' }}
-        run: npm run test:e2e -- e2e/language-toggle.spec.ts e2e/dev-nav.spec.ts e2e/dev-nav-mobile-320.spec.ts
+        run: npm run test:e2e -- e2e/pitch.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dev-visual-aid-playwright-report
+          name: a1-pitch-playwright-report
           path: playwright-report/
           retention-days: 14
 
@@ -98,6 +101,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: dev-visual-aid-playwright-traces
+          name: a1-pitch-playwright-traces
           path: test-results/
           retention-days: 14

@@ -26,6 +26,10 @@ describe("resolveModules", () => {
   it("comma list → those modules", () => {
     expect(resolveModules("b1,c1")).toEqual(["b1", "c1"]);
   });
+  it("knows the a1 (The Pitch) trending-feed module", () => {
+    expect(MODULES).toContain("a1");
+    expect(resolveModules("a1")).toEqual(["a1"]);
+  });
   it("an unknown module throws", () => {
     expect(() => resolveModules("xx")).toThrow(/Unknown module/);
   });

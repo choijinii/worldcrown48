@@ -21,7 +21,12 @@
  *   - Idempotent: existing docs are skipped, not overwritten (unless --cleanup).
  */
 
-import * as admin from "firebase-admin";
+// Default import (not `* as admin`): firebase-admin is CJS, and under Node's
+// ESM interop a namespace import leaves `.apps`/`.initializeApp`/`.firestore`
+// on `.default` (undefined at top level) — broke under node 25 (firebase-admin
+// engines = 20||22||24). The default import resolves to module.exports on every
+// supported node, so .apps/.credential/.firestore are always present.
+import admin from "firebase-admin";
 import {
   deadlineFromOption,
   isProductionBlocked,
@@ -127,7 +132,64 @@ async function deleteArenaTournament(db) {
   console.log(`  ✗ deleted tournaments/${DEV_TID}`);
 }
 
+/**
+ * A-1 · The Pitch trending feed: 6 Tournaments spanning all 6 categories —
+ * 4 `active` (surface in the feed, handoff §5 query) + 2 `draft` (hidden;
+ * they live in the Host's Lab). The Pitch card reads only the Tournament doc,
+ * so no contestants are needed. createdAt is serverTimestamp() (NOT hardcoded)
+ * so the orderBy createdAt desc query is exercised against the composite index
+ * (handoff §9 trap 2).
+ *
+ * NONE is `featured`. `featured` is a GLOBAL singleton consumed by A-0's
+ * FeaturedTournament hero (`where featured==true limit 1`) across every
+ * deployment. A preview seed claiming it crashed the un-migrated A-0 code on
+ * pinned/production deployments (legacy closesAt → toDate on undefined). The
+ * global hero is set deliberately by 대표 on a real, playable tournament — not
+ * here. A-1's FEATURED pill component is intact for when one exists.
+ */
+const A1_TIDS = [1, 2, 3, 4, 5, 6].map((n) => `a1-preview-${n}`);
+const A1_TOURNAMENTS = [
+  { id: A1_TIDS[0], title: "Strikers of the Century", category: "FOOTBALL", status: "active", featured: false },
+  { id: A1_TIDS[1], title: "K-Pop Visuals of the Decade", category: "KPOP", status: "active", featured: false },
+  { id: A1_TIDS[2], title: "Greatest Anime Protagonists", category: "ANIME", status: "active", featured: false },
+  { id: A1_TIDS[3], title: "Legendary Game Bosses", category: "GAMING", status: "active", featured: false },
+  { id: A1_TIDS[4], title: "Cinema Icons of 2025", category: "MOVIE", status: "draft", featured: false },
+  { id: A1_TIDS[5], title: "Icons of the Year", category: "OTHER", status: "draft", featured: false },
+];
+
+async function seedPitchFeed(db, deadline) {
+  for (const t of A1_TOURNAMENTS) {
+    await ensureDoc(db.doc(`tournaments/${t.id}`), {
+      title: t.title,
+      category: t.category,
+      status: t.status,
+      hostUid: "seed-operator",
+      currentRound: 1,
+      totalContestants: 48,
+      tournamentDeadline:
+        t.status === "active"
+          ? admin.firestore.Timestamp.fromDate(deadline)
+          : null,
+      settings: { aiNews: false, multiLang: false, showRanking: true },
+      featured: t.featured,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+}
+
+async function deletePitchFeed(db) {
+  for (const id of A1_TIDS) {
+    await db.doc(`tournaments/${id}`).delete();
+    console.log(`  ✗ deleted tournaments/${id}`);
+  }
+}
+
 const SEEDERS = {
+  // a1 — The Pitch trending feed (4 active + 2 draft, all 6 categories).
+  a1: {
+    seed: (db, ctx) => seedPitchFeed(db, ctx.deadline),
+    cleanup: (db) => deletePitchFeed(db),
+  },
   // c1 / c2 share the active Arena tournament (crown is produced by playing it).
   c1: {
     seed: (db, ctx) => ensureArenaTournament(db, ctx.deadline),

@@ -1,0 +1,93 @@
+"use client";
+
+/**
+ * SiteMapSheet — the ☰ Voter site map (Phase F · decision ⑤).
+ *
+ * A left drawer listing all 7 domains (lib/layout/domains). Built on
+ * focus-trap-react to match the repo's modal convention (LoginModal /
+ * ConsentModal) — shadcn is not scaffolded here. Escape + overlay click +
+ * the × button all close it. Separate from the Dev Nav (Cmd+Shift+D), which
+ * is unchanged.
+ */
+
+import Link from "next/link";
+import FocusTrap from "focus-trap-react";
+import { SITE_DOMAINS } from "@/lib/layout/domains";
+
+export interface SiteMapSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function SiteMapSheet({ isOpen, onClose }: SiteMapSheetProps): JSX.Element | null {
+  if (!isOpen) return null;
+
+  return (
+    <FocusTrap
+      focusTrapOptions={{
+        onDeactivate: onClose,
+        escapeDeactivates: true,
+        clickOutsideDeactivates: true,
+      }}
+    >
+      <div
+        className="wc-sitemap-overlay"
+        role="presentation"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <nav
+          className="wc-sitemap"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site map"
+        >
+          <div className="wc-sitemap-head">
+            <span className="wc-sitemap-title">WorldCrown48 · Site Map</span>
+            <button
+              type="button"
+              className="wc-sitemap-close"
+              aria-label="Close site map"
+              onClick={onClose}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="wc-sitemap-list">
+            {SITE_DOMAINS.map((d) =>
+              d.href ? (
+                <Link
+                  key={d.n}
+                  className="wc-sitemap-item"
+                  href={d.href}
+                  onClick={onClose}
+                >
+                  <span className="wc-sitemap-dom">Domain {d.n}</span>
+                  <span className="wc-sitemap-name">{d.name}</span>
+                  <span className="wc-sitemap-desc">{d.desc}</span>
+                </Link>
+              ) : (
+                <div
+                  key={d.n}
+                  className="wc-sitemap-item"
+                  aria-disabled="true"
+                >
+                  <span className="wc-sitemap-dom">Domain {d.n}</span>
+                  <span className="wc-sitemap-name">
+                    {d.name} <span className="wc-sitemap-soon">Coming soon</span>
+                  </span>
+                  <span className="wc-sitemap-desc">{d.desc}</span>
+                </div>
+              ),
+            )}
+          </div>
+        </nav>
+      </div>
+    </FocusTrap>
+  );
+}

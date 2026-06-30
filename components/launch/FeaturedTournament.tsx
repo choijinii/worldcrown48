@@ -11,24 +11,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { collection, getDocs, limit, query, where, type Timestamp } from "firebase/firestore";
+import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { track } from "@/lib/analytics";
-
-type FeaturedTournamentDoc = {
-  id: string;
-  title: string;
-  contestantsCount: number;
-  closesAt: Timestamp;
-};
-
-function formatClosesAt(ts: Timestamp): string {
-  const d = ts.toDate();
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+import {
+  formatClosesAt,
+  resolveFeaturedView,
+  type FeaturedView,
+} from "@/lib/launch/featured";
 
 export function FeaturedTournament() {
-  const [tournament, setTournament] = useState<FeaturedTournamentDoc | null>(null);
+  const [tournament, setTournament] = useState<FeaturedView | null>(null);
   const [resolved, setResolved] = useState(false);
 
   useEffect(() => {
@@ -48,13 +41,10 @@ export function FeaturedTournament() {
           return;
         }
         const doc = snap.docs[0];
-        const data = doc.data() as Omit<FeaturedTournamentDoc, "id">;
-        setTournament({
-          id: doc.id,
-          title: data.title,
-          contestantsCount: data.contestantsCount,
-          closesAt: data.closesAt,
-        });
+        // Resolve the CANONICAL Tournament schema (tournamentDeadline /
+        // totalContestants) — a featured doc never carries the legacy
+        // closesAt/contestantsCount, so reading those crashed /launch (Hotfix-1).
+        setTournament(resolveFeaturedView(doc.id, doc.data()));
         setResolved(true);
       } catch (err) {
         // Firestore unreachable / env vars missing — graceful hide.
@@ -81,16 +71,22 @@ export function FeaturedTournament() {
       <h2 className="ft-title">{tournament.title}</h2>
       <div className="ft-meta">
         <span className="ft-meta-item">
-          <span className="ft-meta-num">{tournament.contestantsCount}</span>{" "}
+          <span className="ft-meta-num">{tournament.contestantsCount ?? 48}</span>{" "}
           Contestants
         </span>
-        <span className="ft-meta-sep" aria-hidden="true">
-          ·
-        </span>
-        <span className="ft-meta-item">
-          Closes{" "}
-          <span className="ft-meta-num">{formatClosesAt(tournament.closesAt)}</span>
-        </span>
+        {formatClosesAt(tournament.closesAt) && (
+          <>
+            <span className="ft-meta-sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="ft-meta-item">
+              Closes{" "}
+              <span className="ft-meta-num">
+                {formatClosesAt(tournament.closesAt)}
+              </span>
+            </span>
+          </>
+        )}
       </div>
       <Link
         className="ft-cta"
