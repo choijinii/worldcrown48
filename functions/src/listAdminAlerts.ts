@@ -33,7 +33,7 @@ interface RawAdminAlertWire {
 }
 
 export const listAdminAlerts = onCall(
-  { cors: ALLOWED_ORIGINS },
+  { cors: ALLOWED_ORIGINS, secrets: ["ADMIN_UID"] },
   async (req): Promise<{ alerts: RawAdminAlertWire[] }> => {
     requireAdmin(req.auth?.uid, process.env.ADMIN_UID);
 
