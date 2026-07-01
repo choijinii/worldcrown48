@@ -30,6 +30,10 @@ describe("resolveModules", () => {
     expect(MODULES).toContain("a1");
     expect(resolveModules("a1")).toEqual(["a1"]);
   });
+  it("knows the admin (G-1 Admin Dashboard) module", () => {
+    expect(MODULES).toContain("admin");
+    expect(resolveModules("admin")).toEqual(["admin"]);
+  });
   it("an unknown module throws", () => {
     expect(() => resolveModules("xx")).toThrow(/Unknown module/);
   });

@@ -261,7 +261,121 @@ const SEEDERS = {
     },
     cleanup: async () => {},
   },
+  // admin — G-1 Admin Dashboard: a few active Tournaments at different rounds,
+  // ~40 votes across 24h (some in the last hour/minute so vote_speed and
+  // active_voters are non-zero), and 4 admin_alerts spanning the severities.
+  // Prevents the "0/0/0/0/0 → is it broken?" first-load confusion (trap #8).
+  admin: {
+    seed: (db) => seedAdmin(db),
+    cleanup: (db) => deleteAdmin(db),
+  },
 };
+
+// ── G-1 admin seed ──────────────────────────────────────────────────────
+const ADMIN_TIDS = ["admin-preview-1", "admin-preview-2", "admin-preview-3"];
+// status active + a currentRound each so round_status shows a distribution.
+const ADMIN_TOURNAMENTS = [
+  { id: ADMIN_TIDS[0], title: "Admin Preview — Strikers", category: "FOOTBALL", round: 2 },
+  { id: ADMIN_TIDS[1], title: "Admin Preview — K-Pop Visual", category: "KPOP", round: 3 },
+  { id: ADMIN_TIDS[2], title: "Admin Preview — Anime Icons", category: "ANIME", round: 5 },
+];
+const ADMIN_ALERT_IDS = [
+  "admin-preview-alert-high",
+  "admin-preview-alert-medium",
+  "admin-preview-alert-low",
+  "admin-preview-alert-dismissed",
+];
+
+async function seedAdmin(db) {
+  const now = Date.now();
+  const future = admin.firestore.Timestamp.fromMillis(now + 14 * 24 * 60 * 60 * 1000);
+
+  for (const t of ADMIN_TOURNAMENTS) {
+    await ensureDoc(db.doc(`tournaments/${t.id}`), {
+      title: t.title,
+      category: t.category,
+      status: "active",
+      hostUid: "seed-operator",
+      currentRound: t.round,
+      totalContestants: 48,
+      tournamentDeadline: future,
+      settings: { aiNews: false, multiLang: false, showRanking: true },
+      featured: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ~40 votes: spread across 24h, with a cluster in the last hour and a few in
+  // the last minute. Distinct userIds u1..u15 (≈6 active within the last hour).
+  const existingVotes = await db
+    .collection("votes")
+    .where("tournamentId", "==", ADMIN_TIDS[0])
+    .limit(1)
+    .get();
+  if (existingVotes.empty) {
+    const batch = db.batch();
+    const ageMsList = [
+      // last 60s (vote_speed) — 3
+      10_000, 30_000, 55_000,
+      // last hour (active_voters) — 7 (distinct u1..u6 + a repeat)
+      5 * 60_000, 12 * 60_000, 20 * 60_000, 33 * 60_000, 41 * 60_000, 52 * 60_000, 18 * 60_000,
+      // spread across the rest of 24h — 30
+      ...Array.from({ length: 30 }, (_, i) => (i + 2) * 45 * 60_000),
+    ];
+    ageMsList.forEach((ageMs, i) => {
+      const uid = `admin-voter-${(i % 15) + 1}`;
+      const tid = ADMIN_TIDS[i % ADMIN_TIDS.length];
+      batch.set(db.collection("votes").doc(`admin-preview-vote-${i}`), {
+        userId: uid,
+        tournamentId: tid,
+        round: 1,
+        matchId: `${tid}:r1:m${i}`,
+        contestantId: `c${(i % 48) + 1}`,
+        date: "seed",
+        createdAt: admin.firestore.Timestamp.fromMillis(now - ageMs),
+      });
+    });
+    await batch.commit();
+    console.log(`  ✓ wrote ${ageMsList.length} votes for admin preview`);
+  } else {
+    console.log("  · skip (exists) admin preview votes");
+  }
+
+  // 4 admin_alerts — severity override so the AlertList shows all four tints.
+  const alerts = [
+    { id: ADMIN_ALERT_IDS[0], type: "T-3", severity: "high", detail: "#1 Strikers +210% in 24h — bot pattern suspected", resolved: false, ageMs: 2 * 60_000 },
+    { id: ADMIN_ALERT_IDS[1], type: "T-1", severity: "medium", detail: "#1 K-Pop Visual lead at 61% (≥60% threshold)", resolved: false, ageMs: 18 * 60_000 },
+    { id: ADMIN_ALERT_IDS[2], type: "T-4", severity: "low", detail: "Anime Icons rank 4→2 jump in the last hour", resolved: false, ageMs: 55 * 60_000 },
+    { id: ADMIN_ALERT_IDS[3], type: "T-2", severity: "low", detail: "Resolved earlier — kept for the dismissed tint", resolved: true, ageMs: 3 * 60 * 60_000 },
+  ];
+  for (const a of alerts) {
+    await ensureDoc(db.doc(`admin_alerts/${a.id}`), {
+      type: a.type,
+      severity: a.severity,
+      tournamentId: ADMIN_TIDS[0],
+      detail: a.detail,
+      resolved: a.resolved,
+      createdAt: admin.firestore.Timestamp.fromMillis(now - a.ageMs),
+    });
+  }
+}
+
+async function deleteAdmin(db) {
+  for (const id of ADMIN_TIDS) {
+    await db.doc(`tournaments/${id}`).delete().catch(() => {});
+  }
+  const votes = await db
+    .collection("votes")
+    .where("tournamentId", "in", ADMIN_TIDS)
+    .get();
+  const batch = db.batch();
+  votes.forEach((d) => batch.delete(d.ref));
+  if (votes.size) await batch.commit();
+  for (const id of ADMIN_ALERT_IDS) {
+    await db.doc(`admin_alerts/${id}`).delete().catch(() => {});
+  }
+  console.log(`  ✗ deleted admin preview (${ADMIN_TIDS.length} tournaments, ${votes.size} votes, ${ADMIN_ALERT_IDS.length} alerts)`);
+}
 
 async function main() {
   let opts;
