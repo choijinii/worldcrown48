@@ -32,6 +32,8 @@ MVP 3 (2026년 하반기):
 
 ## 2. URL 구조 (Next.js i18n 라우팅)
 
+> ⚠️ 현행 구현은 React Context(`lib/i18n.tsx`) + `?lang=` 쿼리 방식이며, 아래 next-intl / `/ko/`·`/en/`·`/es/` URL 라우팅 안은 **미채택**입니다(2026-07-01, A1-i18n). 확장은 `lib/i18n/messages.ts` + `useT`로 합니다.
+
 ```
 worldcrown48.com/ko/       — 한국어 기본
 worldcrown48.com/en/       — 영어 기본
@@ -50,6 +52,8 @@ URL 예시:
 ---
 
 ## 3. 기술 구현 — next-intl
+
+> ⚠️ 현행 구현은 React Context(`lib/i18n.tsx`) + `?lang=` 쿼리 방식이며, 아래 next-intl / `/ko/`·`/en/`·`/es/` URL 라우팅 안은 **미채택**입니다(2026-07-01, A1-i18n). 확장은 `lib/i18n/messages.ts` + `useT`로 합니다.
 
 ```typescript
 // next.config.ts
