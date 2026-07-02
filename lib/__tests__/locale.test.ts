@@ -7,10 +7,12 @@ import {
 } from "../locale";
 
 describe("SUPPORTED_LOCALES", () => {
-  it("contains ko and en (MVP1 — two options)", () => {
+  it("contains ko, en, es (es joins at MVP2 — A1-i18n completion)", () => {
     expect(SUPPORTED_LOCALES).toContain("ko");
     expect(SUPPORTED_LOCALES).toContain("en");
-    expect(SUPPORTED_LOCALES).toHaveLength(2);
+    expect(SUPPORTED_LOCALES).toContain("es");
+    expect(SUPPORTED_LOCALES).toHaveLength(3);
+    expect([...SUPPORTED_LOCALES]).toEqual(["ko", "en", "es"]);
   });
 });
 
@@ -22,6 +24,10 @@ describe("LOCALE_META", () => {
   it("en → English / EN abbrev", () => {
     expect(LOCALE_META.en.label).toBe("English");
     expect(LOCALE_META.en.abbrev).toBe("EN");
+  });
+  it("es → Español / ES abbrev", () => {
+    expect(LOCALE_META.es.label).toBe("Español");
+    expect(LOCALE_META.es.abbrev).toBe("ES");
   });
 });
 
@@ -55,6 +61,7 @@ describe("isLang", () => {
   it("true for supported codes", () => {
     expect(isLang("ko")).toBe(true);
     expect(isLang("en")).toBe(true);
+    expect(isLang("es")).toBe(true);
   });
   it("false for unsupported / empty (edge case: ?lang=xx falls back)", () => {
     expect(isLang("xx")).toBe(false);

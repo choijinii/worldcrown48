@@ -30,6 +30,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Lang } from "./cookieConsent";
+import { resolveBootLang } from "./resolveBootLang";
 
 interface I18nContextValue {
   lang: Lang;
@@ -38,27 +39,7 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-/**
- * Resolve the boot lang. Pure-ish — only reads window/document, no React.
- * Exported for tests.
- */
-export function resolveBootLang(args: {
-  url?: URL | null;
-  navigatorLang?: string | null;
-}): Lang {
-  // 1. URL query
-  const queryLang = args.url?.searchParams.get("lang");
-  if (queryLang === "ko" || queryLang === "en") return queryLang;
-
-  // 2. (intentionally skipped — Firestore preference is Locker Room scope, MVP2)
-
-  // 3. navigator.language
-  const nav = args.navigatorLang?.toLowerCase() ?? "";
-  if (nav.startsWith("ko")) return "ko";
-
-  // 4. default
-  return "en";
-}
+export { resolveBootLang };
 
 export interface I18nProviderProps {
   children: ReactNode;
