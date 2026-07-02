@@ -50,8 +50,8 @@ export function TrendingFeed() {
 
       <div className="feed-wrap" data-card-state={cardState}>
         <div className="feed-grid">
-          {tournaments.map((t, i) => (
-            <TournamentCard key={t.id} tournament={t} position={i} />
+          {tournaments.map((tournament, i) => (
+            <TournamentCard key={tournament.id} tournament={tournament} position={i} />
           ))}
         </div>
 
