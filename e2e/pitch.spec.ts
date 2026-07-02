@@ -6,9 +6,9 @@
  * are verified HERE, plus the route swap and a 3-breakpoint responsive smoke.
  * Every test asserts zero console errors (handoff §11.6).
  *
- * i18n note: the headline strings are bilingual-static (대표 2026-06-29), so
- * they read identically under ?lang=ko and ?lang=en — the lang query is pinned
- * for determinism only ([[feedback-i18n-test-determinism]]).
+ * i18n note: copy is now keyed; English assertions must pin ?lang=en because
+ * ?lang=ko renders Korean. Catalog en values match the previous bilingual-static
+ * English, ensuring determinism ([[feedback-i18n-test-determinism]]).
  */
 import { expect, test, type ConsoleMessage } from "@playwright/test";
 
@@ -55,7 +55,7 @@ test.afterEach(() => {
 
 test.describe("A-1 The Pitch", () => {
   test("AC-1: / renders the 5 modules", async ({ page }) => {
-    await page.goto("/?lang=ko");
+    await page.goto("/?lang=en");
     await expect(page.locator('[aria-label="Primary navigation"]')).toBeVisible();
     await expect(page.getByText("Who wears the")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Trending Tournaments" })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe("A-1 The Pitch", () => {
   });
 
   test("AC-5+AC-6: no CategoryFilter chips, no Round labels", async ({ page }) => {
-    await page.goto("/?lang=ko");
+    await page.goto("/?lang=en");
     await expect(page.getByRole("button", { name: /^(Football|K-Pop|Anime|Gaming|Movie)$/i })).toHaveCount(0);
     await expect(page.getByText(/ROUND OF (48|24|12|6)/i)).toHaveCount(0);
     await expect(page.getByText(/QUARTERFINAL|SEMIFINAL/i)).toHaveCount(0);
@@ -92,14 +92,14 @@ test.describe("A-1 The Pitch", () => {
   test("AC-11: 3-breakpoint responsive — feed grid renders at each width", async ({ page }) => {
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/?lang=ko");
+      await page.goto("/?lang=en");
       await expect(page.getByRole("heading", { name: "Trending Tournaments" })).toBeVisible();
       await expect(page.locator(".pitch .feed-wrap")).toBeVisible();
     }
   });
 
   test("Phase F: ☰ opens SiteMapSheet (7 domains, 2 disabled), ESC closes", async ({ page }) => {
-    await page.goto("/?lang=ko");
+    await page.goto("/?lang=en");
     // One unified dark Navbar — no separate floating Pitch GNB component.
     await expect(page.locator(".pitch .gnb")).toHaveCount(0);
 
