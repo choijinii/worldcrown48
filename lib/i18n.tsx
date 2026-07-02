@@ -1,10 +1,10 @@
 /**
- * i18n — shared KO/EN state for the policy surfaces.
+ * i18n — shared KO/EN/ES state for the policy surfaces.
  *
  * Handoff §C decision waterfall (in order):
- *   1. URL `?lang=ko|en` (explicit user choice via shareable link)
+ *   1. URL `?lang=ko|en|es` (explicit user choice via shareable link)
  *   2. Firestore user preference (when signed in — out of MVP1 scope, hook ready)
- *   3. navigator.language (`ko-KR` → ko, anything else → en)
+ *   3. navigator.language (`ko-KR` → ko, `es-*` → es, anything else → en)
  *   4. Default → en (global-first)
  *
  * Why Context, not Zustand:
@@ -13,9 +13,8 @@
  *   - When the same state is needed by 4+ surfaces or we need persistence
  *     middleware, migrate to Zustand without changing this module's API.
  *
- * Filename note: handoff §3 lists this as `lib/i18n.ts`, but since the
- * Provider is JSX it has to be `.tsx`. The pure helper `resolveBootLang`
- * still re-exports cleanly so consumers don't care about the extension.
+ * Module note: `resolveBootLang` lives in `lib/resolveBootLang.ts` because
+ * Vitest cannot parse `.tsx` files under `"jsx": "preserve"` in tsconfig.
  */
 
 "use client";

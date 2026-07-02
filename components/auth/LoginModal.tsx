@@ -26,6 +26,7 @@ import { useRef, useState } from "react";
 import FocusTrap from "focus-trap-react";
 import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
+import type { Lang } from "@/lib/cookieConsent";
 import { showToast } from "@/lib/toast";
 
 export type LoginReason = "vote" | "share" | "daily_limit";
@@ -206,7 +207,7 @@ function GoogleGlyph(): JSX.Element {
   );
 }
 
-function strings(lang: "ko" | "en") {
+function strings(lang: Lang) {
   if (lang === "ko") {
     return {
       vote: "투표하려면 로그인이 필요해요",

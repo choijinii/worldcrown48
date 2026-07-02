@@ -30,6 +30,7 @@ import {
 } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
+import type { Lang } from "@/lib/cookieConsent";
 import { showToast } from "@/lib/toast";
 
 const CONFIRM_KEYWORD = "DELETE";
@@ -317,7 +318,7 @@ export function DeleteAccountModal({
   );
 }
 
-function strings(lang: "ko" | "en") {
+function strings(lang: Lang) {
   if (lang === "ko") {
     return {
       titleKo: "내 데이터 삭제 요청",
