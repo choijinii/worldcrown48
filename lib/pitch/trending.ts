@@ -10,7 +10,7 @@
  * Status note: the typed contract (lib/types/tournament.ts) is the single
  * source of truth — TournamentStatus is `active | ended | draft`. There is no
  * "published" (handoff §5 says "published" but the contract — and LANGUAGE.md
- * — use `active`; published → active per product-owner decision 2026-06-29). The Pitch
+ * — use `active`; published → active per 대표 decision 2026-06-29). The Pitch
  * feed shows ONLY `active` tournaments; drafts live in the Host's Lab.
  */
 
