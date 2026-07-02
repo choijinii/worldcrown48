@@ -10,6 +10,7 @@
 
 import { isAiReport, type NewsItem } from "@/lib/pitch/newsroom";
 import { track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 
 function ExtIcon() {
   return (
@@ -27,6 +28,7 @@ export interface NewsFeedItemProps {
 }
 
 export function NewsFeedItem({ item, position }: NewsFeedItemProps) {
+  const { t } = useT();
   const ai = isAiReport(item.source);
   return (
     <article
@@ -47,7 +49,7 @@ export function NewsFeedItem({ item, position }: NewsFeedItemProps) {
           <span className="nfi-source">{item.source}</span>
         </div>
         <div className="nfi-title">{item.title}</div>
-        <div className="nfi-date">{item.date}</div>
+        <div className="nfi-date">{t("pitch.news.hoursAgo", { count: item.hoursAgo })}</div>
         {ai && <div className="nfi-report">✦ AI-Report</div>}
       </div>
       <ExtIcon />

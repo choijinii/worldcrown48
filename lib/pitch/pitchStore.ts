@@ -7,7 +7,7 @@
  * by E2E, per the voteStore precedent); the pure pieces (sort/limit/empty/meta)
  * live in lib/pitch/trending.ts and are unit-tested.
  *
- * Query (handoff §5, 대표 decision 2026-06-29 — published → active):
+ * Query (handoff §5, product-owner decision 2026-06-29 — published → active):
  *   where status == 'active'  orderBy createdAt desc  limit 12
  * Only `active` Tournaments surface on The Pitch; drafts live in the Host's Lab.
  * This where+orderBy needs the composite index added in Phase C

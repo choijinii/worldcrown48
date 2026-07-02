@@ -12,6 +12,7 @@
 import { useEffect } from "react";
 import { usePitchStore } from "@/lib/pitch/pitchStore";
 import { isFeedEmpty } from "@/lib/pitch/trending";
+import { useT } from "@/lib/i18n/useT";
 import { TournamentCard } from "./TournamentCard";
 
 type CardState = "loading" | "empty" | "default";
@@ -19,6 +20,7 @@ type CardState = "loading" | "empty" | "default";
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"];
 
 export function TrendingFeed() {
+  const { t } = useT();
   const tournaments = usePitchStore((s) => s.tournaments);
   const loading = usePitchStore((s) => s.loading);
   const subscribeToTrending = usePitchStore((s) => s.subscribeToTrending);
@@ -35,11 +37,14 @@ export function TrendingFeed() {
     <>
       <div className="sec-head" id="trending">
         <div>
-          <div className="sec-kicker">트렌딩 · Trending</div>
-          <h2 className="sec-title">Trending Tournaments</h2>
+          <div className="sec-kicker">{t("pitch.trending.kicker")}</div>
+          <h2 className="sec-title">{t("pitch.trending.title")}</h2>
         </div>
         <span className="sec-count">
-          {tournaments.length} {tournaments.length === 1 ? "Tournament" : "Tournaments"} · 진행 중
+          {t(
+            tournaments.length === 1 ? "pitch.trending.count.one" : "pitch.trending.count.other",
+            { count: tournaments.length },
+          )}
         </span>
       </div>
 
@@ -62,8 +67,8 @@ export function TrendingFeed() {
 
         <div className="empty-state">
           <img src="/brand/wc48-crown-circle-outline.svg" alt="" width={56} />
-          <div className="et">No Tournaments are open right now</div>
-          <div className="es">아직 공개된 토너먼트가 없습니다 · check back soon</div>
+          <div className="et">{t("pitch.trending.empty.title")}</div>
+          <div className="es">{t("pitch.trending.empty.sub")}</div>
         </div>
       </div>
     </>

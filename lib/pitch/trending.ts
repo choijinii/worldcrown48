@@ -2,13 +2,15 @@
  * A-1 TrendingFeed pure helpers (Domain 1 · The Pitch).
  *
  * The store's onSnapshot subscription is Firestore glue (E2E-covered); these
- * are the framework-free pieces: the query limit, empty detection, the card
- * meta line, and the status-pill variant.
+ * are the framework-free pieces: the query limit, empty detection, the
+ * "Closes …" date formatter, and the status-pill variant. The card meta line
+ * itself is composed in TournamentCard via useT (`pitch.card.contestants` /
+ * `pitch.card.closes`) so it localizes.
  *
  * Status note: the typed contract (lib/types/tournament.ts) is the single
  * source of truth — TournamentStatus is `active | ended | draft`. There is no
  * "published" (handoff §5 says "published" but the contract — and LANGUAGE.md
- * — use `active`; published → active per 대표 decision 2026-06-29). The Pitch
+ * — use `active`; published → active per product-owner decision 2026-06-29). The Pitch
  * feed shows ONLY `active` tournaments; drafts live in the Host's Lab.
  */
 
@@ -46,18 +48,6 @@ export function formatCloses(deadline: unknown): string {
   }
   if (!date) return "";
   return closesFormatter.format(date);
-}
-
-/**
- * The card meta line segments. Always leads with "48 Contestants" (every
- * Tournament has exactly 48 — TOTAL_CONTESTANTS); appends "Closes …" when a
- * deadline is set. Never Vote Count / Vote Rate / Round info (handoff §5).
- */
-export function cardMeta(t: { tournamentDeadline?: unknown }): string[] {
-  const segments = ["48 Contestants"];
-  const closes = formatCloses(t.tournamentDeadline);
-  if (closes) segments.push(`Closes ${closes}`);
-  return segments;
 }
 
 /** Which status pill to render: gold for active, muted for everything else. */

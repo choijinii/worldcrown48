@@ -4,14 +4,16 @@
  * M4 · LabEntryCard — invites Tournament Hosts into The Lab.
  *
  * `locked` for ordinary Voters (Coming Soon tooltip on hover, AC-9), `active`
- * for a Tournament Host (Open The Lab CTA → /admin/lab). State + copy come from
- * lib/pitch/labEntry (unit-tested); the DOM transition + tooltip reveal are
- * E2E-covered. Defaults to locked — host detection is wired by the caller.
+ * for a Tournament Host (Open The Lab CTA → /admin/lab). State comes from
+ * lib/pitch/labEntry (unit-tested); copy is rendered via useT (pitch.lab.*).
+ * The DOM transition + tooltip reveal are E2E-covered. Defaults to locked —
+ * host detection is wired by the caller.
  */
 
 import Link from "next/link";
-import { resolveLabState, LAB_COPY } from "@/lib/pitch/labEntry";
+import { resolveLabState } from "@/lib/pitch/labEntry";
 import { track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 
 function LockIcon() {
   return (
@@ -43,22 +45,24 @@ export interface LabEntryCardProps {
 }
 
 export function LabEntryCard({ isTournamentHost = false }: LabEntryCardProps) {
+  const { t } = useT();
   const state = resolveLabState({ isTournamentHost });
-  const copy = state === "active" ? LAB_COPY.active : LAB_COPY.locked;
 
   return (
     <section className="lab-entry" data-lab={state} aria-label="Create Tournament">
       <div className="lab-entry-ico">{state === "active" ? <LabIcon /> : <LockIcon />}</div>
       <div className="lab-entry-body">
         <div className="lab-entry-title">
-          {copy.title} <span className="lab-role-tag">{copy.roleTag}</span>
+          {t("pitch.lab.title")} <span className="lab-role-tag">{t("pitch.lab.roleTag")}</span>
         </div>
-        <div className="lab-entry-sub">{copy.sub}</div>
+        <div className="lab-entry-sub">
+          {state === "active" ? t("pitch.lab.sub.active") : t("pitch.lab.sub.locked")}
+        </div>
       </div>
 
       {/* active CTA — hidden by CSS when data-lab="locked" */}
       <Link className="lab-cta lab-cta-active" href="/admin/lab">
-        {LAB_COPY.active.cta} <ArrowIcon />
+        {t("pitch.lab.cta.active")} <ArrowIcon />
       </Link>
 
       {/* locked CTA — hidden by CSS when data-lab="active" */}
@@ -68,12 +72,10 @@ export function LabEntryCard({ isTournamentHost = false }: LabEntryCardProps) {
         aria-disabled="true"
         onClick={() => track("a1_lab_locked_hover", {})}
       >
-        <LockIcon /> {LAB_COPY.locked.cta}
+        <LockIcon /> {t("pitch.lab.cta.locked")}
       </button>
 
-      <div className="lab-tip" role="tooltip">
-        <b>Coming Soon</b> · Tournament hosting opens after launch
-      </div>
+      <div className="lab-tip" role="tooltip">{t("pitch.lab.tip")}</div>
     </section>
   );
 }

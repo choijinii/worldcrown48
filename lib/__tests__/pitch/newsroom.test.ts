@@ -18,7 +18,7 @@ function item(over: Partial<NewsItem>): NewsItem {
     id: "x",
     source: "Reuters",
     title: "t",
-    date: "2시간 전",
+    hoursAgo: 2,
     imageUrl: "https://example.com/x.jpg",
     publishedAt: 0,
     ...over,

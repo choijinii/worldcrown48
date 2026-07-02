@@ -3,16 +3,17 @@
 /**
  * M1 · HeroSection — kicker + L1/L2 title + sub + Start Voting / Explore CTA.
  *
- * Copy is bilingual-static, verbatim from the wireframe (lines 400-412) — A-1
- * has no lang-toggle key system (대표 decision 2026-06-29). The L2 line
- * "Ultimate Crown?" is the marker the route-swap + CDN checks grep for
- * (handoff §0 / §10).
+ * Copy is rendered via the message catalog (lib/i18n/messages.ts) through
+ * useT. The `pitch.hero.l2` key resolves to "Ultimate Crown?" in en — the
+ * marker the route-swap + CDN checks grep for (handoff §0 / §10).
  *
  * Both CTAs scroll to the trending feed (#trending). prefers-reduced-motion is
  * honoured in pitch.css (transitions/transform disabled); the magnetic hover
  * polish is intentionally CSS-only here (repo precedent: CSS-only animation,
  * [[project-dev-visual-aid-stack-conflict]]).
  */
+
+import { useT } from "@/lib/i18n/useT";
 
 function ArrowIcon() {
   return (
@@ -28,25 +29,22 @@ function scrollToTrending() {
 }
 
 export function HeroSection() {
+  const { t } = useT();
   return (
     <section className="hero" aria-label="Hero">
       <div className="hero-glow" aria-hidden="true" />
-      <div className="hero-kicker">트렌딩 · The Pitch · Global Fan Voting</div>
+      <div className="hero-kicker">{t("pitch.hero.kicker")}</div>
       <h1 className="hero-title">
-        <span className="hero-l1">Who wears the</span>
-        <span className="hero-l2">Ultimate Crown?</span>
+        <span className="hero-l1">{t("pitch.hero.l1")}</span>
+        <span className="hero-l2">{t("pitch.hero.l2")}</span>
       </h1>
-      <p className="hero-sub">
-        48 Contestants. Five Rounds. You advance Match by Match until one Crown
-        remains. No predictions, no odds — pure fan choice. 당신의 한 표가
-        챔피언을 만듭니다.
-      </p>
+      <p className="hero-sub">{t("pitch.hero.sub")}</p>
       <div className="hero-cta">
         <button className="btn btn-primary" type="button" onClick={scrollToTrending}>
-          Start Voting <ArrowIcon />
+          {t("pitch.hero.cta.start")} <ArrowIcon />
         </button>
         <button className="btn btn-ghost" type="button" onClick={scrollToTrending}>
-          Explore
+          {t("pitch.hero.cta.explore")}
         </button>
       </div>
     </section>
