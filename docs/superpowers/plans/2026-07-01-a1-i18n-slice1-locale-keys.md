@@ -237,13 +237,16 @@ describe("resolveMessage", () => {
     expect(resolveMessage("es", "pitch.hero.cta.start")).toBe("Empezar a votar");
   });
 
-  it("interpolates {vars}", () => {
+  it("interpolates {vars} (plural key)", () => {
     expect(
-      resolveMessage("en", "pitch.trending.count", { count: 3 }),
+      resolveMessage("en", "pitch.trending.count.other", { count: 3 }),
     ).toBe("3 Tournaments · Live");
+  });
+
+  it("singular key is grammatically correct at count 1", () => {
     expect(
-      resolveMessage("en", "pitch.trending.count", { count: 1 }),
-    ).toBe("1 Tournaments · Live");
+      resolveMessage("en", "pitch.trending.count.one", { count: 1 }),
+    ).toBe("1 Tournament · Live");
   });
 
   it("preserves non-translatable proper nouns in every lang", () => {
@@ -380,7 +383,12 @@ export const MESSAGES = {
     ko: "Trending Tournaments",
     en: "Trending Tournaments",
   },
-  "pitch.trending.count": {
+  "pitch.trending.count.one": {
+    ko: "{count} Tournament · 진행 중",
+    en: "{count} Tournament · Live",
+    es: "{count} Tournament · En vivo",
+  },
+  "pitch.trending.count.other": {
     ko: "{count} Tournaments · 진행 중",
     en: "{count} Tournaments · Live",
     es: "{count} Tournaments · En vivo",
@@ -721,7 +729,12 @@ Add the hook. Replace the count and headings:
           <div className="sec-kicker">{t("pitch.trending.kicker")}</div>
           <h2 className="sec-title">{t("pitch.trending.title")}</h2>
         </div>
-        <span className="sec-count">{t("pitch.trending.count", { count: tournaments.length })}</span>
+        <span className="sec-count">
+          {t(
+            tournaments.length === 1 ? "pitch.trending.count.one" : "pitch.trending.count.other",
+            { count: tournaments.length },
+          )}
+        </span>
       </div>
 ```
 
@@ -735,24 +748,60 @@ Replace the empty state:
         </div>
 ```
 
-> The old count had singular/plural logic (`Tournament` vs `Tournaments`). The key uses `Tournaments` in all cases (matches wireframe count line); the pluralization branch is dropped — acceptable per handoff (no inline conditional copy). `.es` className here is a CSS class (empty-state sub), unrelated to the es locale.
+> Singular/plural is preserved via two keys (`pitch.trending.count.one` / `.other`) — count 1 renders "1 Tournament · Live" grammatically (대표 decision 2026-07-01). The `.es` className here is a CSS class (empty-state sub), unrelated to the es locale.
 
-- [ ] **Step 3: TournamentCard — key FEATURED/ENTER**
+- [ ] **Step 3: TournamentCard — key FEATURED/ENTER + localize meta line**
 
-Add the hook. Replace the two literals (leave `tournament.title` and status pill — status is data, title is Slice ②):
+Add the hook and import `formatCloses` (already exported from `lib/pitch/trending`). Replace `cardMeta` usage: build the meta line via `t()` so it localizes (대표 decision 2026-07-01 — wire card meta now, not deferred).
+
+Change the imports:
+
+```tsx
+import { formatCloses, statusPillVariant } from "@/lib/pitch/trending";
+```
+
+Replace the component body's meta computation + render. At the top of the component:
+
+```tsx
+export function TournamentCard({ tournament, position }: TournamentCardProps) {
+  const { t } = useT();
+  const closes = formatCloses(tournament.tournamentDeadline);
+  const pill = statusPillVariant(tournament.status);
+```
+
+The FEATURED literal:
 
 ```tsx
             <span className="featured-pill" aria-label="Featured tournament">
               {t("pitch.card.featured")}
             </span>
 ```
+
+The meta line (was `meta.map(...)`):
+
+```tsx
+        <div className="tcard-meta">
+          <span>{t("pitch.card.contestants")}</span>
+          {closes && (
+            <span>
+              <span className="sep">·&nbsp;</span>
+              {t("pitch.card.closes", { date: closes })}
+            </span>
+          )}
+        </div>
+```
+
+The ENTER literal:
+
 ```tsx
           <span className="tcard-enter">
             {t("pitch.card.enter")} <ArrowIcon />
           </span>
 ```
 
-> `cardMeta()` already returns only English/brand segments ("48 Contestants", "Closes {date}") — no Korean. It stays as data for this slice; localizing the meta line via `pitch.card.contestants`/`pitch.card.closes` is deferred (segments carry no Korean, grep-clean). No change to `lib/pitch/trending.ts`.
+Leave `tournament.title` (Slice ②) and the status pill (`tournament.status.toUpperCase()` — data) untouched.
+
+> **`cardMeta` cleanup:** `cardMeta` is now unused (TournamentCard was its only consumer). First confirm: `grep -rn 'cardMeta' components lib app` → only the (now-removed) import. Then delete `cardMeta` from `lib/pitch/trending.ts` and its test block from `lib/__tests__/pitch/trending.test.ts`. Keep `formatCloses`, `statusPillVariant`, `isFeedEmpty`, `TRENDING_LIMIT` (all still used/tested).
 
 - [ ] **Step 4: LabEntryCard — key copy, keep state logic**
 
@@ -1165,4 +1214,6 @@ Invoke `superpowers:requesting-code-review` against the slice ① diff (handoff 
 
 **Type consistency:** `Lang` (Task 1) consumed by `resolveMessage`/`useT` (Task 2) and `NewsItem.hoursAgo:number` used identically in NewsFeedItem + NewsroomFeed mock data + newsroom tests (Task 4). `MessageKey` union is the single param type across `resolveMessage`/`useT`/all components.
 
-**Deferred (NOT this slice):** `tournament.title` localization + `getTitle` (Slice ②); `pitch.card.contestants`/`pitch.card.closes` keys exist in the catalog but the meta line stays English-data this slice (grep-clean) — wired when Slice ② localizes card data.
+**Deferred (NOT this slice):** `tournament.title` localization + `getTitle` (Slice ②). The card meta line (`pitch.card.contestants`/`pitch.card.closes`) IS wired this slice (대표 decision 2026-07-01), replacing the now-deleted `cardMeta` helper.
+
+**대표 decisions applied (2026-07-01, pre-flight):** (1) trending count keeps singular/plural via `pitch.trending.count.one`/`.other`; (2) card meta line localized now (cardMeta removed) — no unused catalog keys.
