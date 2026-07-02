@@ -195,7 +195,7 @@ function interpolate(
 }
 
 /**
- * Pure message resolution. `entry[lang] ?? entry.en` guarantees es (and any
+ * Pure message resolution. `entry[lang] || entry.en` guarantees es (and any
  * future partial locale) never renders blank or a raw key.
  */
 export function resolveMessage(
@@ -204,6 +204,8 @@ export function resolveMessage(
   vars?: Record<string, string | number>,
 ): string {
   const entry: Entry = MESSAGES[key];
-  const raw = entry[lang] ?? entry.en;
+  // `||` (not `??`) so an empty-string locale value also falls back to en —
+  // structurally guarantees the "never blank / never a raw key" invariant.
+  const raw = entry[lang] || entry.en;
   return interpolate(raw, vars);
 }

@@ -10,9 +10,11 @@ on:
     paths:
       - 'lib/i18n.tsx'
       - 'lib/i18n/**'
+      - 'lib/resolveBootLang.ts'
       - 'lib/locale.ts'
       - 'lib/cookieConsent.ts'
       - 'lib/__tests__/i18n.test.ts'
+      - 'lib/__tests__/i18n/**'
       - 'lib/__tests__/locale.test.ts'
       - 'components/pitch/**'
       - 'components/launch/**'
