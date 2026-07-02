@@ -15,8 +15,8 @@ export interface NewsItem {
   id: string;
   source: string;
   title: string;
-  /** Display string for recency, e.g. "2시간 전" (bilingual, verbatim copy). */
-  date: string;
+  /** Relative-time input for the `pitch.news.hoursAgo` catalog key (e.g. 2 → "2h ago" in en). */
+  hoursAgo: number;
   imageUrl: string;
   /** Epoch ms used only for ordering the merged feed. */
   publishedAt: number;

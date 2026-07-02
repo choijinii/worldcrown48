@@ -5,16 +5,18 @@
  * + ENTER. Links to the Arena (/arena/{id}).
  *
  * Hard constraints (handoff §5 / AC-4 / AC-6): NO Vote Count, NO Vote Rate(%),
- * NO LIVE badge, NO Round info anywhere on the card. The meta line is built by
- * cardMeta() — "48 Contestants · Closes {date}" only. The status pill text is
- * the tournament's own status; on The Pitch the feed is active-only, so this
- * renders the gold ACTIVE pill.
+ * NO LIVE badge, NO Round info anywhere on the card. The meta line is built
+ * inline from `pitch.card.contestants` + `pitch.card.closes` (formatCloses
+ * supplies the date) — "48 Contestants · Closes {date}" only. The status pill
+ * text is the tournament's own status; on The Pitch the feed is active-only,
+ * so this renders the gold ACTIVE pill.
  */
 
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
-import { cardMeta, statusPillVariant } from "@/lib/pitch/trending";
+import { formatCloses, statusPillVariant } from "@/lib/pitch/trending";
 import { track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 
 function ArrowIcon() {
   return (
@@ -31,7 +33,8 @@ export interface TournamentCardProps {
 }
 
 export function TournamentCard({ tournament, position }: TournamentCardProps) {
-  const meta = cardMeta(tournament);
+  const { t } = useT();
+  const closes = formatCloses(tournament.tournamentDeadline);
   const pill = statusPillVariant(tournament.status);
 
   return (
@@ -47,7 +50,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
         <div className="tcard-chips">
           {tournament.featured ? (
             <span className="featured-pill" aria-label="Featured tournament">
-              FEATURED
+              {t("pitch.card.featured")}
             </span>
           ) : (
             <span className="tcard-spacer" />
@@ -62,16 +65,17 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
       <div className="tcard-body">
         <div className="tcard-title">{tournament.title}</div>
         <div className="tcard-meta">
-          {meta.map((seg, i) => (
-            <span key={seg}>
-              {i > 0 && <span className="sep">·&nbsp;</span>}
-              {seg}
+          <span>{t("pitch.card.contestants")}</span>
+          {closes && (
+            <span>
+              <span className="sep">·&nbsp;</span>
+              {t("pitch.card.closes", { date: closes })}
             </span>
-          ))}
+          )}
         </div>
         <div className="tcard-foot">
           <span className="tcard-enter">
-            ENTER <ArrowIcon />
+            {t("pitch.card.enter")} <ArrowIcon />
           </span>
         </div>
       </div>

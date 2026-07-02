@@ -30,7 +30,7 @@ const TEXT = {
 
 export function LoginPromptBanner({ onSignIn }: LoginPromptBannerProps): JSX.Element {
   const { lang } = useI18n();
-  const t = TEXT[lang] ?? TEXT.en;
+  const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.en;
   return (
     <div className={styles.loginBanner}>
       <div className={styles.lbIco}>

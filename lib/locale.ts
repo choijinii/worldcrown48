@@ -11,18 +11,19 @@
 
 import type { Lang } from "./cookieConsent";
 
-/** Locales shipped in MVP1, in display order. `'es'` joins here at MVP2. */
-export const SUPPORTED_LOCALES: readonly Lang[] = ["ko", "en"] as const;
+/** Locales shipped, in display order. `'es'` joins at MVP2 (A1-i18n completion). */
+export const SUPPORTED_LOCALES: readonly Lang[] = ["ko", "en", "es"] as const;
 
 /** Display metadata for each locale. `label` = full name, `abbrev` = trigger glyph text. */
 export const LOCALE_META: Record<Lang, { label: string; abbrev: string }> = {
   ko: { label: "한국어", abbrev: "KO" },
   en: { label: "English", abbrev: "EN" },
+  es: { label: "Español", abbrev: "ES" },
 };
 
 /** Type guard for an unknown `?lang=` value (edge case: `?lang=xx` → falls back to default). */
 export function isLang(value: unknown): value is Lang {
-  return value === "ko" || value === "en";
+  return value === "ko" || value === "en" || value === "es";
 }
 
 /**

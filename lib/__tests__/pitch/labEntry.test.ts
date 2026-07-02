@@ -24,8 +24,8 @@ describe("resolveLabState", () => {
 });
 
 describe("LAB_COPY", () => {
-  it("exposes the 'Coming Soon' tooltip for the locked state", () => {
-    expect(LAB_COPY.locked.tooltip).toMatch(/Coming Soon/i);
+  it("exposes the 'Coming Soon' CTA for the locked state", () => {
+    expect(LAB_COPY.locked.cta).toMatch(/Coming Soon/i);
   });
 
   it("invites the Host to open The Lab in the active state", () => {

@@ -1,9 +1,13 @@
+"use client";
+
+import { useT } from "@/lib/i18n/useT";
+
 /**
- * M1 · LaunchHero
- * — Crown SVG (inline, colour anchor) + bilingual kicker + slogan.
- * Slogan: "WHO RULES THE WORLD? / YOU DECIDE." (Playfair Display italic)
+ * M1 · LaunchHero — Crown SVG (colour anchor) + kicker + slogan.
+ * Copy via useT (A1-i18n); slogan keys keep the same en text.
  */
 export function LaunchHero() {
+  const { t } = useT();
   return (
     <section className="hero" aria-label="Launch hero">
       {/* Registered crown mark — inline for the colour anchor (#FCD006). */}
@@ -23,10 +27,10 @@ export function LaunchHero() {
 
       <div className="hero-kicker">
         <span className="dot" aria-hidden="true" />
-        지금 진행 중 · A WORLDCROWN48 TOURNAMENT IS OPEN
+        {t("launch.hero.kicker")}
       </div>
-      <h1 className="hero-line1">WHO RULES THE WORLD?</h1>
-      <p className="hero-line2">YOU DECIDE.</p>
+      <h1 className="hero-line1">{t("launch.hero.line1")}</h1>
+      <p className="hero-line2">{t("launch.hero.line2")}</p>
     </section>
   );
 }

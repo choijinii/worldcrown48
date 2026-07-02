@@ -3,7 +3,6 @@ import {
   TRENDING_LIMIT,
   isFeedEmpty,
   formatCloses,
-  cardMeta,
   statusPillVariant,
 } from "@/lib/pitch/trending";
 
@@ -12,7 +11,8 @@ import {
  *
  * The store's onSnapshot subscription is Firestore glue (E2E-covered, per the
  * voteStore precedent); these are the pure pieces worth unit-testing: the feed
- * query limit, empty detection, card meta line, and the status-pill variant.
+ * query limit, empty detection, the "Closes …" formatter, and the status-pill
+ * variant. The card meta line itself is composed in TournamentCard via useT.
  */
 
 describe("TRENDING_LIMIT", () => {
@@ -41,19 +41,6 @@ describe("formatCloses", () => {
   it("returns an empty string when no deadline is set", () => {
     expect(formatCloses(null)).toBe("");
     expect(formatCloses(undefined)).toBe("");
-  });
-});
-
-describe("cardMeta", () => {
-  it("always leads with '48 Contestants' and appends 'Closes …' when dated", () => {
-    expect(cardMeta({ tournamentDeadline: new Date("2026-06-20T12:00:00Z") })).toEqual([
-      "48 Contestants",
-      "Closes Jun 20",
-    ]);
-  });
-
-  it("omits the Closes segment when there is no deadline", () => {
-    expect(cardMeta({ tournamentDeadline: null })).toEqual(["48 Contestants"]);
   });
 });
 

@@ -1,0 +1,104 @@
+name: A1-i18n E2E (Playwright)
+
+# Scoped to A1-i18n's files ([[feedback-workflow-spec-scope]]). Spec path pinned so
+# other modules' specs never false-red this workflow.
+#
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API — NOT the frozen A1_PITCH_PREVIEW_URL secret, which is
+# pinned to the feat/a1-the-pitch branch's deployment and therefore lacks the
+# i18n code (es locale, new catalog). Testing that frozen deployment made the
+# es/ko assertions fail against a build that predates this branch
+# ([[feedback_c2_preview_url_pinned]]). Resolving by head SHA guarantees we test
+# the exact commit under review.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/i18n.tsx'
+      - 'lib/i18n/**'
+      - 'lib/resolveBootLang.ts'
+      - 'lib/locale.ts'
+      - 'lib/cookieConsent.ts'
+      - 'lib/__tests__/i18n.test.ts'
+      - 'lib/__tests__/i18n/**'
+      - 'lib/__tests__/locale.test.ts'
+      - 'components/pitch/**'
+      - 'components/launch/**'
+      - 'components/i18n/**'
+      - 'e2e/a1-i18n.spec.ts'
+      - 'playwright.config.ts'
+      - '.github/workflows/a1-i18n-e2e.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck (tsc)
+        run: npx tsc --noEmit
+      - name: Unit tests — i18n + locale + pitch/launch logic
+        run: npm run test:unit -- lib/__tests__/i18n lib/__tests__/locale.test.ts lib/__tests__/pitch lib/__tests__/launch
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
+          fi
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
+      - name: E2E (Playwright) — a1-i18n spec only
+        run: npm run test:e2e -- e2e/a1-i18n.spec.ts
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a1-i18n-playwright-report
+          path: playwright-report/
+          retention-days: 14

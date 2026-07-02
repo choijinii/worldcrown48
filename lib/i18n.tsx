@@ -1,10 +1,10 @@
 /**
- * i18n — shared KO/EN state for the policy surfaces.
+ * i18n — shared KO/EN/ES state for the policy surfaces.
  *
  * Handoff §C decision waterfall (in order):
- *   1. URL `?lang=ko|en` (explicit user choice via shareable link)
+ *   1. URL `?lang=ko|en|es` (explicit user choice via shareable link)
  *   2. Firestore user preference (when signed in — out of MVP1 scope, hook ready)
- *   3. navigator.language (`ko-KR` → ko, anything else → en)
+ *   3. navigator.language (`ko-KR` → ko, `es-*` → es, anything else → en)
  *   4. Default → en (global-first)
  *
  * Why Context, not Zustand:
@@ -13,9 +13,8 @@
  *   - When the same state is needed by 4+ surfaces or we need persistence
  *     middleware, migrate to Zustand without changing this module's API.
  *
- * Filename note: handoff §3 lists this as `lib/i18n.ts`, but since the
- * Provider is JSX it has to be `.tsx`. The pure helper `resolveBootLang`
- * still re-exports cleanly so consumers don't care about the extension.
+ * Module note: `resolveBootLang` lives in `lib/resolveBootLang.ts` because
+ * Vitest cannot parse `.tsx` files under `"jsx": "preserve"` in tsconfig.
  */
 
 "use client";
@@ -30,6 +29,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Lang } from "./cookieConsent";
+import { resolveBootLang } from "./resolveBootLang";
 
 interface I18nContextValue {
   lang: Lang;
@@ -38,27 +38,7 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-/**
- * Resolve the boot lang. Pure-ish — only reads window/document, no React.
- * Exported for tests.
- */
-export function resolveBootLang(args: {
-  url?: URL | null;
-  navigatorLang?: string | null;
-}): Lang {
-  // 1. URL query
-  const queryLang = args.url?.searchParams.get("lang");
-  if (queryLang === "ko" || queryLang === "en") return queryLang;
-
-  // 2. (intentionally skipped — Firestore preference is Locker Room scope, MVP2)
-
-  // 3. navigator.language
-  const nav = args.navigatorLang?.toLowerCase() ?? "";
-  if (nav.startsWith("ko")) return "ko";
-
-  // 4. default
-  return "en";
-}
+export { resolveBootLang };
 
 export interface I18nProviderProps {
   children: ReactNode;

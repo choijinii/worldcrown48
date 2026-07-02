@@ -51,7 +51,7 @@ export interface ConsentPreferences {
   marketing: boolean;
 }
 
-export type Lang = "ko" | "en";
+export type Lang = "ko" | "en" | "es";
 
 /** Shape persisted under cookieConsents/{uid} per handoff Appendix B. */
 export interface CookieConsentDoc {

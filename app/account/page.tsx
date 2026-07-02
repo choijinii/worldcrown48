@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
+import type { Lang } from "@/lib/cookieConsent";
 import { DeleteAccountModal } from "@/components/auth/DeleteAccountModal";
 
 const dateKstFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -187,7 +188,7 @@ function Row({ label, value }: { label: string; value: string }): JSX.Element {
   );
 }
 
-function strings(lang: "ko" | "en") {
+function strings(lang: Lang) {
   if (lang === "ko") {
     return {
       title: "계정 설정",
