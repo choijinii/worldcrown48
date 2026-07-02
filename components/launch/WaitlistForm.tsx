@@ -26,6 +26,7 @@ import { useEffect, useRef, useState } from "react";
 import { doc, serverTimestamp, setDoc, type FirestoreError } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { hashEmail, track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 
 type WaitlistState =
   | "default"
@@ -55,6 +56,7 @@ export function WaitlistForm() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<WaitlistState>("default");
   const submitRef = useRef<HTMLButtonElement>(null);
+  const { t } = useT();
 
   // ── Magnetic submit (matches Cinematic pattern from design system) ──
   useEffect(() => {
@@ -119,9 +121,9 @@ export function WaitlistForm() {
   const isError = state === "invalid" || state === "duplicate";
   const errMsg =
     state === "duplicate"
-      ? "This email is already on the list."
+      ? t("launch.waitlist.errDuplicate")
       : state === "invalid"
-        ? "Enter a valid email address."
+        ? t("launch.waitlist.errInvalid")
         : "";
 
   const formClass = [
@@ -134,14 +136,11 @@ export function WaitlistForm() {
 
   return (
     <section className="waitlist" data-state={state} aria-label="Waitlist">
-      <p className="wl-head">
-        Be first through the gate. 이메일을 남기면 개막을 가장 먼저
-        알려드립니다.
-      </p>
+      <p className="wl-head">{t("launch.waitlist.head")}</p>
 
       {state === "success" ? (
         <div className="wl-success" role="status" aria-live="polite">
-          <span aria-hidden="true">✓</span> You&apos;re on the list!
+          <span aria-hidden="true">✓</span> {t("launch.waitlist.success")}
         </div>
       ) : (
         <>
@@ -149,9 +148,9 @@ export function WaitlistForm() {
             <div className="wl-field">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t("launch.waitlist.placeholder")}
                 autoComplete="email"
-                aria-label="Email address"
+                aria-label={t("launch.waitlist.emailLabel")}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -175,10 +174,10 @@ export function WaitlistForm() {
             >
               {state === "loading" ? (
                 <>
-                  <span className="wl-spinner" aria-hidden="true" /> Submitting…
+                  <span className="wl-spinner" aria-hidden="true" /> {t("launch.waitlist.submitting")}
                 </>
               ) : (
-                "Join the Waitlist"
+                t("launch.waitlist.submit")
               )}
             </button>
           </form>
@@ -192,7 +191,7 @@ export function WaitlistForm() {
         </>
       )}
 
-      <p className="wl-privacy">No spam · unsubscribe anytime</p>
+      <p className="wl-privacy">{t("launch.waitlist.privacy")}</p>
     </section>
   );
 }

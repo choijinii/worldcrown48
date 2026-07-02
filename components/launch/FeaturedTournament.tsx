@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 import {
   formatClosesAt,
   resolveFeaturedView,
@@ -23,6 +24,7 @@ import {
 export function FeaturedTournament() {
   const [tournament, setTournament] = useState<FeaturedView | null>(null);
   const [resolved, setResolved] = useState(false);
+  const { t } = useT();
 
   useEffect(() => {
     let cancelled = false;
@@ -66,13 +68,13 @@ export function FeaturedTournament() {
         <span className="star" aria-hidden="true">
           ★
         </span>{" "}
-        FEATURED TOURNAMENT
+        {t("launch.featured.pill")}
       </div>
       <h2 className="ft-title">{tournament.title}</h2>
       <div className="ft-meta">
         <span className="ft-meta-item">
           <span className="ft-meta-num">{tournament.contestantsCount ?? 48}</span>{" "}
-          Contestants
+          {t("launch.featured.contestants")}
         </span>
         {formatClosesAt(tournament.closesAt) && (
           <>
@@ -80,7 +82,7 @@ export function FeaturedTournament() {
               ·
             </span>
             <span className="ft-meta-item">
-              Closes{" "}
+              {t("launch.featured.closes")}{" "}
               <span className="ft-meta-num">
                 {formatClosesAt(tournament.closesAt)}
               </span>
@@ -95,7 +97,7 @@ export function FeaturedTournament() {
           void track("featured_tournament_click", { tournament_id: tournament.id });
         }}
       >
-        <span>ENTER ARENA</span>
+        <span>{t("launch.featured.cta")}</span>
         <svg
           width={16}
           height={16}
