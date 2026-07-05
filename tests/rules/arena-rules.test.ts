@@ -167,3 +167,36 @@ describe("roundProgress — owner read, no client write", () => {
     );
   });
 });
+
+describe("daily_participation (HF-1) — owner read, no client write", () => {
+  const DATE = "2026-07-05";
+
+  it("lets the owner read their own participation doc (`${uid}_${date}`)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `daily_participation/${VOTER}_${DATE}`), {
+        tournamentIds: ["t1", "t2"],
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `daily_participation/${VOTER}_${DATE}`)));
+  });
+
+  it("forbids reading another Voter's participation doc", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `daily_participation/${OTHER}_${DATE}`), {
+        tournamentIds: ["t1"],
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(getDoc(doc(db, `daily_participation/${OTHER}_${DATE}`)));
+  });
+
+  it("DENIES a Voter writing their participation doc (onVote/admin only)", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, `daily_participation/${VOTER}_${DATE}`), {
+        tournamentIds: ["t1"],
+      }),
+    );
+  });
+});

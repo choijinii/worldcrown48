@@ -3,15 +3,17 @@
 > ⚠️ **[2026-05-25 정합성 정정]** 이 문서의 프레임워크·환경변수·폴더 구조·라우팅 표기 중 일부는 구버전(Vite + React Router)입니다. **WorldCrown48의 공식 스택은 Next.js 14 (App Router)입니다** — CLAUDE.md 불변 원칙 #8(스택 고정). 프레임워크·폴더 구조·라우팅의 단일 진실은 `WorldCrown48_ARCHITECTURE.md` + `WC48_CODING_CONTEXT_v1.md`입니다. 이 문서의 화면 구성·컴포넌트·기능 명세 자체는 유효합니다.
 
 # ✅ Step 1 업그레이드 — 2026-05-14
-# 🔴 주요 수정: 비로그인 1회 투표 정책 확인, 일일 한도 로직 추가
+# 🔴 주요 수정: 비로그인 1회 투표 정책 확인, Daily Participation Limit 로직
+# 🔧 HF-1 정정 (2026-07-05): "Tournament당 1일 5표" → "1일 신규 Tournament 5개 참가"
 
 ---
 
 ## ⛔ 절대 규칙
 ```
-✅ 투표 한도: Tournament당 1일 5회 (KST 자정 리셋)
-✅ 비로그인: 세션 1회 투표 허용 → 2회째부터 로그인 요청
-✅ Rate Limit: 1분 10회 초과 → 15분 쿨다운 (onRateLimitCheck)
+✅ Daily Participation Limit: 1일(KST) 신규 참가 Tournament 5개 한도.
+   이미 참가한 Tournament 안에서는 무제한 (브래킷 구조상 대회당 최대 46표로 자연 상한)
+✅ 비로그인: 세션 1회 투표 허용 → 2회째부터 로그인 요청 (불변)
+✅ Rate Limit: 1분 5회 초과 시 resource-exhausted (per-uid 토큰 버킷, C-3)
 ✅ 로그인 후 세션 투표 uid 연결: Cloud Function 자동 처리
 ```
 
@@ -51,18 +53,21 @@ function useVoteGate() {
   const { user, sessionVoteUsed, markSessionVoteUsed } = useAuthStore()
 
   async function checkCanVote(tournamentId: string): Promise<VoteGateResult> {
-    // Step 1: Rate Limit (onRateLimitCheck Cloud Function)
-    // → 1분 10회 초과 시 429 에러 → 15분 쿨다운
+    // Step 1: Rate Limit — onVote Cloud Function (per-uid 토큰 버킷, 1분 5회)
 
-    // Step 2: 비로그인 세션 체크
+    // Step 2: 비로그인 세션 체크 (불변)
     if (!user) {
       if (!sessionVoteUsed) return { status: 'allowed' }
       return { status: 'login_required', reason: 'vote' }
     }
 
-    // Step 3: 로그인 유저 — 1일 5회 한도 체크
-    const todayCount = await getTodayVoteCount(user.uid, tournamentId)
-    if (todayCount >= 5) {
+    // Step 3: 로그인 유저 — Daily Participation Limit 체크.
+    // 이미 참가한 Tournament면 무제한 허용, 신규 Tournament는 5개까지만.
+    const { participatedTournamentIds } = await getDailyParticipation(user.uid)
+    if (participatedTournamentIds.includes(tournamentId)) {
+      return { status: 'allowed' }
+    }
+    if (participatedTournamentIds.length >= 5) {
       return { status: 'daily_limit_reached' }
     }
 
@@ -76,17 +81,11 @@ function useVoteGate() {
   return { checkCanVote, onVoteSuccess }
 }
 
-// KST 기준 오늘 날짜 투표 수 조회
-async function getTodayVoteCount(userId: string, tournamentId: string): Promise<number> {
-  const todayKST = getTodayKST() // "2026-06-14" (UTC+9 자정 기준)
-
-  const snapshot = await getDocs(query(
-    collection(db, 'votes'),
-    where('userId', '==', userId),
-    where('tournamentId', '==', tournamentId),
-    where('date', '==', todayKST)
-  ))
-  return snapshot.size  // 최대 5까지
+// KST 기준 오늘 참가한 Tournament 집합 조회 — 단일 doc 읽기 (신규 index 불필요).
+async function getDailyParticipation(userId: string): Promise<{ participatedTournamentIds: string[] }> {
+  const todayKST = getTodayKST() // "2026-07-05" (UTC+9 자정 기준)
+  const snap = await getDoc(doc(db, 'daily_participation', `${userId}_${todayKST}`))
+  return { participatedTournamentIds: snap.exists() ? (snap.data().tournamentIds ?? []) : [] }
 }
 
 type VoteGateResult =
@@ -119,7 +118,7 @@ interface LoginModalProps {
 // reason별 표시 문구:
 //   'vote'        → "투표하려면 로그인이 필요해요"
 //   'share'       → "공유하려면 로그인이 필요해요"
-//   'daily_limit' → "오늘의 투표를 모두 사용했어요 (5/5)"
+//   'daily_limit' → "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)"
 ```
 
 ## Navbar UI

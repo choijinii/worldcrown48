@@ -1,18 +1,19 @@
 /**
- * lib/voteGate — three-branch decision table.
+ * lib/voteGate — decision table under the Daily Participation Limit (HF-1).
  *
- * Branches (handoff §4-2 + lite-spec):
- *   - Guest, hasn't voted yet  → allowed (the "taster" vote)
- *   - Guest, already voted     → login_required(reason='vote')
- *   - Signed-in, hit 5/day cap → daily_limit_reached
+ * Branches:
+ *   - Guest, hasn't voted yet            → allowed (the "taster" vote)
+ *   - Guest, already voted               → login_required(reason='vote')
+ *   - Signed-in, joined this Tournament  → allowed (unlimited within it)
+ *   - Signed-in, new Tournament, quota   → daily_limit_reached (6th new join)
+ *   - Signed-in, new Tournament, room    → allowed (consumes a slot server-side)
  *
- * The hook itself depends on React + Firestore; testing just the pure
- * `decideVoteGate` keeps the unit small and fast while still covering the
- * branch logic that actually matters.
+ * The hook depends on React + Firestore; testing the pure `decideVoteGate`
+ * keeps the unit small while covering the branch logic that matters.
  */
 import { describe, expect, it } from "vitest";
 import type { User } from "firebase/auth";
-import { DAILY_LIMIT, decideVoteGate } from "../voteGate";
+import { DAILY_PARTICIPATION_LIMIT, decideVoteGate } from "../voteGate";
 
 const fakeUser = { uid: "u1" } as User;
 
@@ -22,7 +23,8 @@ describe("decideVoteGate", () => {
       decideVoteGate({
         user: null,
         sessionVoteUsed: false,
-        todayCount: 0,
+        participatedThisTournament: false,
+        participationCount: 0,
       }),
     ).toEqual({ status: "allowed" });
   });
@@ -32,27 +34,41 @@ describe("decideVoteGate", () => {
       decideVoteGate({
         user: null,
         sessionVoteUsed: true,
-        todayCount: 0,
+        participatedThisTournament: false,
+        participationCount: 0,
       }),
     ).toEqual({ status: "login_required", reason: "vote" });
   });
 
-  it(`signed-in, todayCount === ${DAILY_LIMIT} → daily_limit_reached`, () => {
+  it("signed-in, already joined this Tournament → allowed even at full quota", () => {
     expect(
       decideVoteGate({
         user: fakeUser,
         sessionVoteUsed: false,
-        todayCount: DAILY_LIMIT,
+        participatedThisTournament: true,
+        participationCount: DAILY_PARTICIPATION_LIMIT,
+      }),
+    ).toEqual({ status: "allowed" });
+  });
+
+  it(`signed-in, NEW Tournament at ${DAILY_PARTICIPATION_LIMIT} joins → daily_limit_reached`, () => {
+    expect(
+      decideVoteGate({
+        user: fakeUser,
+        sessionVoteUsed: false,
+        participatedThisTournament: false,
+        participationCount: DAILY_PARTICIPATION_LIMIT,
       }),
     ).toEqual({ status: "daily_limit_reached" });
   });
 
-  it("signed-in, todayCount < limit → allowed", () => {
+  it("signed-in, NEW Tournament under the limit → allowed", () => {
     expect(
       decideVoteGate({
         user: fakeUser,
         sessionVoteUsed: false,
-        todayCount: DAILY_LIMIT - 1,
+        participatedThisTournament: false,
+        participationCount: DAILY_PARTICIPATION_LIMIT - 1,
       }),
     ).toEqual({ status: "allowed" });
   });

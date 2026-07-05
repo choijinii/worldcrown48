@@ -1,21 +1,38 @@
 /**
- * C-1 anon-gate E2E — guest votes 1–5, then the 6th opens the LoginModal.
+ * C-1 daily-participation gate E2E — a signed-in Voter who has already JOINED
+ * 5 Tournaments today is blocked when opening a 6th NEW one (HF-1).
  *
- * No stored auth (`storageState` empty): on /arena the app issues an ANONYMOUS
- * Firebase uid (ensureAnonymousUid via CookieConsentProvider), so onVote works
- * and the daily-5 limit applies to that anon uid. The 6th attempt trips
- * decideVoteGate → daily_limit → LoginModal renders.
+ * The old scenario (5 votes in ONE tournament → 6th gated) is obsolete: under
+ * the Daily Participation Limit, votes inside an already-joined Tournament are
+ * unlimited (the 48-bracket's 46-vote path is the natural cap). Only JOINING a
+ * NEW Tournament costs quota, so the gate is exercised with a signed-in Voter
+ * whose daily_participation doc already lists 5 Tournaments (handoff §3-9).
  *
- * REQUIRES onVote/advanceRound deployed to the preview's Firebase project
- * (votes must really persist for the daily count). Seeds its own tournament via
- * firebase-admin; console-error-0; test.skip(!PREVIEW_URL).
+ * Uses the default authed storageState (global-setup signs in TEST_UID). We
+ * seed daily_participation/`${TEST_UID}_${kstToday}` = 5 ids + a 6th tournament,
+ * then the first vote on the 6th trips decideVoteGate → daily_limit → LoginModal.
+ *
+ * REQUIRES onVote/advanceRound deployed + FIREBASE_ADMIN_SDK_KEY + TEST_UID.
+ * console-error-0; test.skip when the preview/secrets are absent.
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
 
-const TID = "c1-anon-e2e-tournament";
+const TID = "hf1-participation-e2e-tournament";
+// Five Tournaments already joined today (quota full) — none is TID.
+const JOINED_IDS = ["joined-1", "joined-2", "joined-3", "joined-4", "joined-5"];
 
 let consoleErrors: string[] = [];
+
+/** KST day (YYYY-MM-DD) — must match the server's kstDate() doc-id scheme. */
+function kstToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
 
 function loadServiceAccount(): admin.ServiceAccount | null {
   const raw = process.env.FIREBASE_ADMIN_SDK_KEY;
@@ -28,17 +45,17 @@ function loadServiceAccount(): admin.ServiceAccount | null {
 function db(): admin.firestore.Firestore {
   if (admin.apps.length === 0) {
     const sa = loadServiceAccount();
-    if (!sa) throw new Error("FIREBASE_ADMIN_SDK_KEY required for C-1 anon-gate E2E.");
+    if (!sa) throw new Error("FIREBASE_ADMIN_SDK_KEY required for the HF-1 gate E2E.");
     admin.initializeApp({ credential: admin.credential.cert(sa) });
   }
   return admin.firestore();
 }
 
-async function seedTournament(): Promise<void> {
+async function seed(uid: string): Promise<void> {
   const d = db();
   const batch = d.batch();
   batch.set(d.doc(`tournaments/${TID}`), {
-    title: "Anon Gate Strikers",
+    title: "Participation Gate Strikers",
     category: "FOOTBALL",
     status: "active",
     hostUid: "seed-operator",
@@ -60,34 +77,39 @@ async function seedTournament(): Promise<void> {
       imageSearchKeyword: `p${i}`,
     });
   }
+  // The Voter has already joined 5 Tournaments today → quota full.
+  batch.set(d.doc(`daily_participation/${uid}_${kstToday()}`), {
+    tournamentIds: JOINED_IDS,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
   await batch.commit();
 }
 
-async function cleanup(): Promise<void> {
+async function cleanup(uid: string): Promise<void> {
   const d = db();
-  for (const coll of ["votes", "contestants"]) {
+  // Reset votes + roundProgress + daily_participation before/after (test isolation).
+  for (const coll of ["votes", "contestants", "roundProgress"]) {
     const snap = await d.collection(coll).where("tournamentId", "==", TID).get();
     const batch = d.batch();
     snap.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
   }
+  await d.doc(`daily_participation/${uid}_${kstToday()}`).delete().catch(() => {});
   await d.doc(`tournaments/${TID}`).delete();
 }
 
-test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
+test.describe("C-1 daily-participation gate — 6th NEW Tournament blocked", () => {
+  const uid = process.env.TEST_UID;
   test.skip(
-    !process.env.PREVIEW_URL,
-    "PREVIEW_URL not set — C-1 anon-gate parked until secret setup",
+    !process.env.PREVIEW_URL || !uid,
+    "PREVIEW_URL / TEST_UID not set — HF-1 gate E2E parked until secret setup",
   );
 
-  // Anonymous: no hydrated auth state.
-  test.use({ storageState: { cookies: [], origins: [] } });
-
   test.beforeAll(async () => {
-    await cleanup().catch(() => {});
-    await seedTournament();
+    await cleanup(uid!).catch(() => {});
+    await seed(uid!);
   });
-  test.afterAll(async () => cleanup());
+  test.afterAll(async () => cleanup(uid!));
 
   test.beforeEach(async ({ page }) => {
     consoleErrors = [];
@@ -102,44 +124,22 @@ test.describe("C-1 anon-gate — guest 5 votes → 6th LoginModal", () => {
     expect(consoleErrors, "Console errors must be 0").toHaveLength(0);
   });
 
-  test("anonymous Voter: 5 votes process, 6th opens the daily-limit LoginModal", async ({
+  test("signed-in Voter at 5/5 joins → 6th NEW Tournament opens the daily-limit LoginModal", async ({
     page,
   }) => {
-    // Empty storageState dropped the Vercel Preview Protection bypass cookie
-    // (global-setup primes it into the authed state). Prime it here via the
-    // query-param form so this anonymous context can reach the app.
-    const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-    const base = process.env.PREVIEW_URL;
-    if (bypass && base) {
-      await page.goto(
-        `${base}/?x-vercel-protection-bypass=${encodeURIComponent(bypass)}&x-vercel-set-bypass-cookie=true`,
-      );
-    }
-
-    // Force ko so the daily-limit modal renders the Korean copy this test
-    // asserts. The app's i18n default is EN (global-first, lib/i18n.tsx step 4)
-    // and headless CI Chromium reports navigator.language=en-US, so without
-    // ?lang=ko the modal renders "You've used today's votes (5/5)" and the
-    // Korean assertion below never matches. (ADR-0002 trap a.)
+    // Force ko so the daily-limit modal renders the Korean copy asserted below.
+    // (App i18n default is EN; headless Chromium reports en-US — ADR-0002 trap a.)
     await page.goto(`/arena/${TID}?lang=ko`);
 
-    // The match rendering proves the anonymous uid was issued + tournament loaded.
+    // The match renders → the (authed) Voter loaded the 6th Tournament.
     await expect(page.getByTestId("vote-left")).toContainText("P1");
 
-    // Votes 1–5 (left-pick): m0..m4 lefts are P1,P3,P5,P7,P9. Each click → onVote
-    // → next match, advancing the per-Voter bracket.
-    const leftNames = ["P1", "P3", "P5", "P7", "P9"];
-    for (const name of leftNames) {
-      // Assert via the side button (name appears twice → getByText is ambiguous).
-      await expect(page.getByTestId("vote-left")).toContainText(name);
-      await page.getByTestId("vote-left").click();
-    }
-
-    // 6th match is m5 = (P11, P12); the 6th vote attempt must be gated.
-    await expect(page.getByTestId("vote-left")).toContainText("P11");
+    // First vote on this NEW Tournament is a 6th join → gated before onVote.
     await page.getByTestId("vote-left").click();
 
-    // LoginModal (daily_limit) appears — "오늘의 투표를 모두 사용했어요 (5/5)".
-    await expect(page.getByText(/오늘의 투표를 모두 사용했어요/)).toBeVisible();
+    // LoginModal (daily_limit) appears with the HF-1 §6 copy.
+    await expect(
+      page.getByText(/오늘 참가할 수 있는 Tournament를 모두 사용했어요/),
+    ).toBeVisible();
   });
 });

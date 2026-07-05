@@ -4,11 +4,13 @@
  * Three reasons (handoff §4-2 / §부록 C):
  *   - "vote"        → "Sign in to cast your vote" + Google button
  *   - "share"       → "Sign in to share your Crown Card" + Google button
- *   - "daily_limit" → "You've used today's votes (5/5)" + Close only
+ *   - "daily_limit" → "You've joined all 5 Tournaments for today (5/5)" + Close
  *
- * The "daily_limit" variant is informational — the visitor is already
- * signed in and there's nothing the modal can do other than tell them to
- * come back tomorrow. Hiding the Google button keeps the affordance honest.
+ * The "daily_limit" variant is informational — the visitor is already signed
+ * in and has used the Daily Participation Limit (5 NEW Tournaments / KST day;
+ * HF-1). Voting inside an already-joined Tournament is unlimited, so there's
+ * nothing the modal can do but tell them to come back tomorrow. Hiding the
+ * Google button keeps the affordance honest.
  *
  * Success path (popup): signInWithGoogle resolves → onSuccess?.() fires →
  * onClose() collapses the modal so the caller (VoteGate) can retry the
@@ -207,29 +209,57 @@ function GoogleGlyph(): JSX.Element {
   );
 }
 
-function strings(lang: Lang) {
-  if (lang === "ko") {
-    return {
-      vote: "투표하려면 로그인이 필요해요",
-      share: "공유하려면 로그인이 필요해요",
-      daily_limit: "오늘의 투표를 모두 사용했어요 (5/5)",
-      subtitle: "Google 계정으로 1초 만에 시작해요.",
-      dailyLimitSub: "한국 시간 자정에 다시 5회 투표할 수 있어요.",
-      googleCta: "Google로 계속하기",
-      signingIn: "로그인 중…",
-      close: "닫기",
-      signInFailed: "로그인에 실패했어요. 다시 시도해 주세요.",
-    } as const;
-  }
-  return {
+interface ModalStrings {
+  vote: string;
+  share: string;
+  daily_limit: string;
+  subtitle: string;
+  dailyLimitSub: string;
+  googleCta: string;
+  signingIn: string;
+  close: string;
+  signInFailed: string;
+}
+
+// ko/en/es — es is first-class here (LANGUAGE.md: Tournament stays verbatim in
+// every language). daily_limit copy = HF-1 §6 (Daily Participation Limit, 5/5).
+const STRINGS: Record<Lang, ModalStrings> = {
+  ko: {
+    vote: "투표하려면 로그인이 필요해요",
+    share: "공유하려면 로그인이 필요해요",
+    daily_limit: "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
+    subtitle: "Google 계정으로 1초 만에 시작해요.",
+    dailyLimitSub: "한국 시간 자정에 새 Tournament 5개에 다시 참가할 수 있어요.",
+    googleCta: "Google로 계속하기",
+    signingIn: "로그인 중…",
+    close: "닫기",
+    signInFailed: "로그인에 실패했어요. 다시 시도해 주세요.",
+  },
+  en: {
     vote: "Sign in to cast your vote",
     share: "Sign in to share your Crown Card",
-    daily_limit: "You've used today's votes (5/5)",
+    daily_limit: "You've joined all 5 Tournaments for today (5/5)",
     subtitle: "One tap with Google.",
-    dailyLimitSub: "Your daily 5 reset at Seoul midnight.",
+    dailyLimitSub: "You can join 5 new Tournaments again at Seoul midnight.",
     googleCta: "Continue with Google",
     signingIn: "Signing in…",
     close: "Close",
     signInFailed: "Sign in failed. Please try again.",
-  } as const;
+  },
+  es: {
+    vote: "Inicia sesión para votar",
+    share: "Inicia sesión para compartir tu Crown Card",
+    daily_limit: "Ya has participado en los 5 Tournaments de hoy (5/5)",
+    subtitle: "Un toque con Google.",
+    dailyLimitSub:
+      "Puedes participar en 5 Tournaments nuevos otra vez a medianoche de Seúl.",
+    googleCta: "Continuar con Google",
+    signingIn: "Iniciando sesión…",
+    close: "Cerrar",
+    signInFailed: "Error al iniciar sesión. Inténtalo de nuevo.",
+  },
+};
+
+function strings(lang: Lang): ModalStrings {
+  return STRINGS[lang] ?? STRINGS.en;
 }

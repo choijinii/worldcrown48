@@ -1,16 +1,18 @@
 # Lite Spec — #12 부정투표 방지 — Cloud Functions 검증
 # ✅ Step 1 업그레이드 — 2026-05-14
-# 🔴 주요 수정: uid 기반 "한 Tournament 1회" 제한 삭제 → 1일 5회로 교체
+# 🔴 주요 수정: uid 기반 "한 Tournament 1회" 제한 삭제
+# 🔧 HF-1 정정 (2026-07-05): "1일 5표" → Daily Participation Limit (신규 Tournament 5개/일)
 
 ---
 
 ## ⛔ 절대 규칙
 ```
-✅ 1일 5회 한도 (KST 자정 리셋) — Tournament당 (❌ Tournament당 1회 평생)
-✅ Rate Limit: 1분 10회 초과 → 15분 쿨다운
+✅ Daily Participation Limit: 1일(KST) 신규 참가 Tournament 5개.
+   이미 참가한 Tournament 안에서는 무제한 (❌ Tournament당 5표 카운트 아님)
+✅ Rate Limit: 1분 5회 초과 시 resource-exhausted (per-uid 토큰 버킷, C-3)
 ✅ 실제 IP 저장 금지 — sha256(ip + salt) 16자리만
 ✅ device_hash: MVP 2 (fingerprintjs) — MVP 1에서는 null 허용
-⛔ uid 기반 "이미 참여한 토너먼트" 차단 금지 (재투표 허용이 핵심)
+⛔ uid 기반 "이미 참여한 토너먼트" 차단 금지 (같은 대회 계속 진행이 핵심)
 ```
 
 ---
@@ -49,18 +51,16 @@ exports.onVote = onCall(async (request) => {
   }
   await timestampsRef.set([...recent, Date.now()])
 
-  // ── Step 2: 1일 5회 한도 (KST 기준) ──
+  // ── Step 2: Daily Participation Limit (KST 기준) ──
+  // 신규 참가 Tournament는 하루 5개까지. 이미 참가한 Tournament는 무제한.
+  // 단일 doc 읽기 (daily_participation/${uid}_${date}) — votes 쿼리·신규 index 불필요.
   const todayKST = getTodayKST()
-  const dailySnap = await getDocs(query(
-    collection(db, 'votes'),
-    where('userId', '==', userId),
-    where('tournamentId', '==', tournamentId),
-    where('date', '==', todayKST)
-  ))
-  if (dailySnap.size >= 5) {
-    throw new HttpsError('resource-exhausted', '오늘 투표 한도(5회) 도달')
+  const partSnap = await getDoc(doc(db, 'daily_participation', `${userId}_${todayKST}`))
+  const participatedIds: string[] = partSnap.exists() ? (partSnap.data().tournamentIds ?? []) : []
+  if (!participatedIds.includes(tournamentId) && participatedIds.length >= 5) {
+    throw new HttpsError('resource-exhausted', '오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)')
   }
-  // ❌ uid 기반 "이미 참여" 차단 금지 (다음 날 재투표 허용)
+  // 참가 doc 갱신은 신규 Tournament일 때만 (arrayUnion) — 같은 대회 재투표는 한도 미소비.
 
   // ── Step 3: Realtime DB 트랜잭션 (+1) ──
   const voteRef = rtdb.ref(`votes/${matchId}/${contestantId}`)
