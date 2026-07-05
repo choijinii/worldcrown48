@@ -120,7 +120,7 @@ Domain 6: Admin Dashboard  [MVP 1]   — 관리·Fan Intelligence 생성 [🖥�
 | U-9 ★ | Voter | AI-Report 기사에는 "● AI-Report" 배지가 표시되어 AI 작성 콘텐츠임을 알 수 있어야 한다 |
 | U-10 | Voter | 투표 기록이 저장되어 다시 방문해도 내 결과를 볼 수 있어야 한다 |
 | U-11 | Voter | 계정 설정에서 내 데이터 삭제를 요청할 수 있어야 한다 (GDPR Right to Erasure) |
-| U-12 | Voter | 같은 Tournament에 하루 5회 초과 투표 시 차단 메시지를 받아야 한다 |
+| U-12 | Voter | 하루에 신규 참가 Tournament 5개를 넘겨 6번째 Tournament에 참가하려 하면 차단 메시지를 받아야 한다 (Daily Participation Limit; 참가한 대회 안에서는 무제한) |
 
 ### 4-4. Tournament Host / System Admin
 
@@ -143,7 +143,7 @@ Domain 6: Admin Dashboard  [MVP 1]   — 관리·Fan Intelligence 생성 [🖥�
 | # | 요구사항 |
 |---|---------|
 | S-1 | Rate Limiting: 동일 Voter가 1분 10회 이상 투표 시 15분 쿨다운 적용 |
-| S-2 | 1일 5회 제한: 동일 Voter는 같은 Tournament에서 하루 최대 5개 Match 투표 (KST 00:00 리셋) |
+| S-2 | Daily Participation Limit: 동일 Voter는 하루(KST 00:00 리셋) 신규 Tournament 5개까지 참가. 이미 참가한 Tournament 안에서는 투표 무제한 (HF-1, 2026-07-05) |
 | S-3 | 투표 집계를 Firebase Realtime Database 트랜잭션으로 처리 |
 | S-4 | advanceRound(): Voter가 Round 마지막 Match 완료 시 자동으로 다음 Round 전환. Round에 Deadline 없음 |
 | S-5 | 라운드 흐름: 48강(24)→24강(12)→12강(6)→6강(3)→결승(1)→Champion→Crown Card |
@@ -186,8 +186,8 @@ Voter 1명의 완전한 흐름:
 Firestore 쿼리 `status=='active'`, `trendScore` 내림차순. `onSnapshot` 실시간. 반응형 그리드(1/2/3열).
 
 #### Module 2: VoteEngine (The Arena 핵심) — MVP 1
-Realtime Database 트랜잭션 1:1 투표. 소셜 로그인 필수, 1일 5회(Tournament별 독립), KST 리셋.
-Rate Limiting(1분 10회+→15분 쿨다운). advanceRound() 자동 전환 + Round Transition 효과.
+Firestore 트랜잭션 1:1 투표. 소셜 로그인 필수, Daily Participation Limit(1일 신규 Tournament 5개, 참가 대회 내 무제한), KST 리셋.
+Rate Limiting(per-uid 토큰 버킷 1분 5회). advanceRound() 자동 전환 + Round Transition 효과.
 
 #### Module 3: CrownCardGenerator — MVP 1
 클라이언트 HTML Canvas 이미지 생성. PNG 1080×1080. Champion 확정 시 자동 트리거.
@@ -268,7 +268,7 @@ cookie_consents / waitlist / admin_alerts / audit_log / crown_cards
 
 | 모듈 | 테스트 유형 | 핵심 케이스 |
 |------|-----------|------------|
-| VoteEngine | 통합 (Firebase Emulator) | 정상 투표, 1일 5회 초과 차단, advanceRound() 전환 |
+| VoteEngine | 통합 (Firebase Emulator) | 정상 투표, 신규 Tournament 6개째 참가 차단, 참가 대회 내 무제한, advanceRound() 전환 |
 | CrownCardGenerator | 유닛 | 캔버스 출력 크기(1080×1080), 필수 요소 |
 | CookieConsent | 통합 | 동의 저장, 재방문 시 미표시 |
 | AdminTournamentCreator | 유닛 | Claude API 응답 파싱, Contestant 48개 |

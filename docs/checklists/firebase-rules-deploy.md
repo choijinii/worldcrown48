@@ -93,7 +93,7 @@ i  firestore: deploying indexes...
 
 | 시나리오 | 명령 | 합격 기준 | 결과 (2026-06-15) |
 |---|---|---|---|
-| 1일 카운트 쿼리 (votes 3-key) | useVoteGate 동작 (5번 투표 후 6번째) | "오늘의 투표를 모두 사용했어요" 모달 표시. 콘솔 로그에 인덱스 누락 에러 없음 | ⏳ Vercel Preview e2e (C-1 vote engine 미구현 — D-1 단독으로는 5회 한도 트리거 불가. linkSessionVote 호출 시 userId,sessionId 인덱스만 1회 사용됨) |
+| 참가 한도 읽기 (daily_participation 단일 doc) | useVoteGate 동작 (신규 Tournament 6개째 참가) | "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)" 모달 표시. 콘솔 인덱스 에러 없음 | ⏳ Vercel Preview e2e (HF-1: 단일 doc read라 신규 composite index 불필요 — votes 3-key 카운트 쿼리 폐기) |
 | 인덱스 빌드 완료 | Firebase Console → Indexes | 두 composite index 모두 "Enabled" | ⏳ 대표 콘솔 확인 (빌드 보통 1~5분 소요) |
 
 ## 위반 신호 (STOP)

@@ -126,10 +126,9 @@ async function castVote(matchId: string, contestantId: string) {  // ✅ contest
   if (result.status === 'daily_limit_reached') { showDailyLimitToast(); return }
 
   // Step 2: onVote Cloud Function 호출 (서버사이드 검증 포함)
-  // → Rate Limit 체크 (1분 10회 → 15분 쿨다운)
-  // → 1일 5회 한도 체크
-  // → Realtime DB 트랜잭션 (+1)
-  // → Firestore votes 기록
+  // → Rate Limit 체크 (per-uid 토큰 버킷, 1분 5회)
+  // → Daily Participation Limit 체크 (신규 Tournament 5개/KST일; HF-1)
+  // → Firestore votes 기록 (트랜잭션 — dedupe + participation 원자적)
   const onVoteFn = httpsCallable(functions, 'onVote')
   await onVoteFn({
     tournamentId,

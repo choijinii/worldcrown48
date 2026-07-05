@@ -62,6 +62,7 @@ System Admin
 | **투표** | **Vote** | vote | Voter가 하나의 Match에서 두 Contestant 중 하나를 선택하는 행위. |
 | **득표** | **Vote Count** | voteCount | 특정 Contestant이 받은 투표의 합계. 랭킹 화면에는 절대 수치가 아닌 득표율(Vote Rate)만 표시. |
 | **득표율** | **Vote Rate** | voteRate | 전체 투표 중 특정 Contestant이 받은 비율(%). 랭킹에 표시되는 유일한 수치. |
+| **일일 참가 한도** | **Daily Participation Limit** | dailyParticipation | Voter 1명이 **하루(KST 기준)에 새로 참가할 수 있는 Tournament 수 = 5개**. 이미 참가한 Tournament 안에서는 투표 **무제한**(48강 브래킷 구조상 대회당 최대 46표로 자연 상한). 서버가 `daily_participation/${uid}_${date}` 단일 doc(`tournamentIds[]`)으로 원자적 집계. **HF-1 (2026-07-05) 도입** — 폐기된 "Daily Vote Limit(1일 5표)" 개념을 대체. |
 | **우승자** | **Champion** | champion | 최종 결승(Final)에서 Voter가 선택한 최종 1인 Contestant. |
 | **왕관** | **Crown** | crown | Champion에게 수여되는 월크48의 상징. 서비스명 WorldCrown48의 핵심 브랜드 요소. |
 | **대진 마감일** | **Tournament Deadline** | tournamentDeadline | **Tournament Host가 설정**하는 **Tournament 전체**의 투표 마감 시각. Tournament에만 존재하며 Round에는 Deadline이 없다. |
@@ -198,6 +199,7 @@ AI 에이전트가 혼용하면 즉시 지적하고 공식 용어로 교정하�
 | 실제 경기 결과 연동 | **(사용 금지)** | 외부 경기 결과와 무관한 서비스 |
 | Round Deadline | **(존재하지 않는 개념)** | ★ v1.2: Round에는 Deadline이 없다. Tournament Deadline만 존재 |
 | 라운드 마감일 | **(존재하지 않는 개념)** | Round는 Voter 투표 흐름에 따라 자동 전환. 마감 개념 없음 |
+| Daily Vote Limit / 1일 5표 / Tournament당 하루 5회 | **Daily Participation Limit (1일 신규 참가 5개)** | ★ HF-1 (2026-07-05): 투표 수를 세는 규칙은 폐기. 하루에 새로 참가하는 Tournament 수만 5개로 제한하고, 참가한 대회 안에서는 무제한 |
 | 라운드 자동 종료 | **Voter의 마지막 Match 완료 → advanceRound()** | 종료가 아니라 '전환'이며 Voter 행동에 의해 트리거됨 |
 | Host가 라운드를 전환한다 | **시스템이 자동으로 advanceRound()** | ★ v1.2: 라운드 전환은 Host가 아닌 시스템이 자동 수행 |
 
