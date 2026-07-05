@@ -149,13 +149,26 @@ service cloud.firestore {
     }
 
     // ── votes ──────────────────────────────────────────────────────
-    // Read: only the vote's owner can list/get their own vote rows. This
-    // is what useVoteGate.getTodayVoteCount() runs as the signed-in user.
+    // Read: only the vote's owner can list/get their own vote rows.
     // Write: blocked — vote rows are only written by Cloud Functions
     // (onVote, linkSessionVote) running with admin credentials.
     match /votes/{voteId} {
       allow read: if request.auth != null
                   && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ── daily_participation (HF-1) ─────────────────────────────────
+    // One doc per Voter per KST day (id = `${uid}_${YYYY-MM-DD}`) holding the
+    // set of Tournaments the Voter has JOINED today. useVoteGate reads its own
+    // doc (single get) to enforce the Daily Participation Limit (5 new
+    // Tournaments / KST day). Firebase uids are alphanumeric with no '_', so
+    // `split('_')[0]` recovers the owner uid from the doc id. Write: blocked —
+    // only onVote (admin SDK) mutates it, atomically inside the vote tx, so a
+    // Voter can never forge or reset their participation set.
+    match /daily_participation/{docId} {
+      allow read: if request.auth != null
+                  && docId.split('_')[0] == request.auth.uid;
       allow write: if false;
     }
 
