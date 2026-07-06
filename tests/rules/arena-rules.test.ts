@@ -155,6 +155,20 @@ describe("roundProgress — owner read, no client write", () => {
     await assertFails(getDoc(doc(db, `roundProgress/${OTHER}_t1`)));
   });
 
+  // HF-1.6: a Voter entering a NEW Tournament has no roundProgress doc yet.
+  // The read rule must allow the get/listen on the not-yet-existing doc so
+  // useRoundTransition's onSnapshot listener survives (otherwise it errors and
+  // terminates → no round-transition overlay, THE FINAL hangs until refresh).
+  it("lets the owner get/listen their OWN roundProgress before it exists", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `roundProgress/${VOTER}_t1`)));
+  });
+
+  it("forbids get/listen on another Voter's not-yet-existing roundProgress", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(getDoc(doc(db, `roundProgress/${OTHER}_t1`)));
+  });
+
   it("DENIES a Voter writing roundProgress (advanceRound/admin only)", async () => {
     const db = testEnv.authenticatedContext(VOTER).firestore();
     await assertFails(
@@ -163,6 +177,62 @@ describe("roundProgress — owner read, no client write", () => {
         tournamentId: "t1",
         complete: true,
         championId: "c1",
+      }),
+    );
+  });
+});
+
+describe("crown_cards (C-2) — owner read, featured public, no client write", () => {
+  it("lets the owner read their own crown card", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `crown_cards/${VOTER}_t1`), {
+        voterUid: VOTER,
+        championId: "c1",
+        featured: false,
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `crown_cards/${VOTER}_t1`)));
+  });
+
+  // HF-1.6: owner can get/listen their card before onChampionConfirmed writes
+  // it — same not-yet-existing-doc trap as roundProgress.
+  it("lets the owner get/listen their OWN crown card before it exists", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `crown_cards/${VOTER}_t1`)));
+  });
+
+  it("lets an authed Voter read a featured crown card (Hall of Fame)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `crown_cards/${OTHER}_t1`), {
+        voterUid: OTHER,
+        championId: "c1",
+        featured: true,
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `crown_cards/${OTHER}_t1`)));
+  });
+
+  it("forbids reading another Voter's non-featured crown card", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `crown_cards/${OTHER}_t1`), {
+        voterUid: OTHER,
+        championId: "c1",
+        featured: false,
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(getDoc(doc(db, `crown_cards/${OTHER}_t1`)));
+  });
+
+  it("DENIES a Voter writing a crown card (onChampionConfirmed/admin only)", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, `crown_cards/${VOTER}_t1`), {
+        voterUid: VOTER,
+        championId: "c1",
+        featured: false,
       }),
     );
   });

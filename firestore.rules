@@ -174,12 +174,20 @@ service cloud.firestore {
 
     // ── roundProgress (C-1) ────────────────────────────────────────
     // Per-Voter round-transition + Champion doc (id = `${uid}_${tid}`), the
-    // client subscribes via onSnapshot (ADR-0001, Firestore-only). Read: owner
-    // only. Write: blocked — only advanceRound (admin SDK) writes it, so a
-    // Voter can never forge a round advance or a Champion.
+    // client subscribes via onSnapshot (ADR-0001, Firestore-only). Write:
+    // blocked — only advanceRound (admin SDK) writes it, so a Voter can never
+    // forge a round advance or a Champion.
+    //
+    // Read: owner only, keyed off the DOC ID — not resource.data. HF-1.6: a
+    // Voter entering a new Tournament subscribes BEFORE advanceRound creates
+    // the doc; a `resource.data.userId == uid` rule denies the get/listen on
+    // the not-yet-existing doc, which kills useRoundTransition's onSnapshot
+    // (no overlay; THE FINAL hangs until refresh). The doc-id prefix check
+    // (id = `${uid}_${tid}`; Firebase uids carry no '_') authorizes the owner
+    // whether or not the doc exists, and leaks no other Voter's doc existence.
     match /roundProgress/{progressId} {
       allow read: if request.auth != null
-                  && resource.data.userId == request.auth.uid;
+                  && progressId.split('_')[0] == request.auth.uid;
       allow write: if false;
     }
 
@@ -188,10 +196,17 @@ service cloud.firestore {
     // written ONLY by onChampionConfirmed (admin SDK). A Voter reads their own
     // card; `featured == true` cards are public for the MVP-2 Hall of Fame.
     // Client writes are blocked so a Voter can never forge a Champion card.
+    //
+    // Read: owner keyed off the DOC ID (id = `${voterUid}_${tid}`; uids carry
+    // no '_'), so the owner may get/listen BEFORE onChampionConfirmed creates
+    // the doc — same not-yet-existing-doc trap as roundProgress (HF-1.6). The
+    // `featured` public branch still reads resource.data, so it's guarded by
+    // `resource != null` to avoid denying on a missing doc.
     match /crown_cards/{cardId} {
       allow read: if request.auth != null
-                  && (resource.data.voterUid == request.auth.uid
-                      || resource.data.featured == true);
+                  && (cardId.split('_')[0] == request.auth.uid
+                      || (resource != null
+                          && resource.data.featured == true));
       allow write: if false;
     }
 
