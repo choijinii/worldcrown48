@@ -31,7 +31,13 @@ export function useRoundTransition(
       ref,
       (snap) =>
         setEvent(snap.exists() ? (snap.data() as RoundProgressEvent) : null),
-      () => setEvent(null),
+      (err) => {
+        // HF-1.6: never swallow silently — a permission-denied here (e.g. a
+        // rule that rejects the not-yet-existing doc) terminates the listener,
+        // so the round-transition overlay never fires and THE FINAL hangs.
+        console.error("[useRoundTransition] onSnapshot error", err);
+        setEvent(null);
+      },
     );
     return unsub;
   }, [userId, tournamentId]);
