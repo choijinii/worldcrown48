@@ -1,8 +1,8 @@
 /**
- * onVote rate limit — C-3 strengthens the per-uid token bucket 10 → 5 (handoff §8).
+ * onVote rate limit — HF-1.5 relaxes the per-uid token bucket 5 → 20 (3초/표).
  *
- * The bucket takes `now` as an explicit param, so the three §8.3 scenarios
- * (5 pass · 6th rejects · reset after the window) are deterministic without
+ * The bucket takes `now` as an explicit param, so the three scenarios
+ * (20 pass · 21st rejects · reset after the window) are deterministic without
  * fake timers, the onCall wrapper, or Firestore.
  */
 import { beforeEach, describe, expect, it } from "vitest";
@@ -15,19 +15,19 @@ import {
 
 beforeEach(() => __resetRateBucketsForTest());
 
-describe("onVote rate limit (C-3: 5 / uid / min)", () => {
-  it("the constant is 5 (was 10)", () => {
-    expect(RATE_LIMIT).toBe(5);
+describe("onVote rate limit (HF-1.5: 20 / uid / min)", () => {
+  it("the constant is 20 (was 5)", () => {
+    expect(RATE_LIMIT).toBe(20);
   });
 
-  it("passes the first 5 calls within a window", () => {
+  it("passes the first 20 calls within a window", () => {
     const now = 1_000_000;
     for (let i = 0; i < RATE_LIMIT; i++) {
       expect(checkRateLimit("u1", now)).toBe(true);
     }
   });
 
-  it("rejects the 6th call in the same window", () => {
+  it("rejects the 21st call in the same window", () => {
     const now = 1_000_000;
     for (let i = 0; i < RATE_LIMIT; i++) checkRateLimit("u1", now);
     expect(checkRateLimit("u1", now)).toBe(false);
