@@ -210,6 +210,33 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── bracket_seeds (HF-2) ───────────────────────────────────────
+    // Per-Voter, per-Tournament random bracket seed (id = `${uid}_${tid}`),
+    // the third input to the pure bracket (contestants, votes, seed) — ADR-0007.
+    // Created ONCE on Arena entry, then immutable (a changed seed would reshuffle
+    // an in-flight bracket → duplicate winners → broken round transition).
+    //
+    // Read: owner keyed off the DOC ID — NOT resource.data. HF-1.6 (PR #37): the
+    // Voter get/listens this doc on Arena entry BEFORE it is created; a
+    // `resource.data.uid == uid` rule would permission-deny that read on the
+    // not-yet-existing doc and kill the listener. The doc-id prefix authorizes
+    // the owner whether or not the doc exists (Firebase uids carry no '_').
+    //
+    // Create-once: `create` fires only on a non-existent doc; `update`/`delete`
+    // are blocked, so the seed can be written exactly once and never mutated.
+    // The client's load-or-create relies on this (bracketSeed.ts); a two-tab
+    // race has its losing create rejected here and re-reads the winner's seed.
+    match /bracket_seeds/{seedId} {
+      allow read: if request.auth != null
+                  && seedId.split('_')[0] == request.auth.uid;
+      allow create: if request.auth != null
+                    && seedId.split('_')[0] == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['seed', 'createdAt'])
+                    && request.resource.data.seed is int
+                    && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     // ── ranking_cache (C-3 The Arena) ──────────────────────────────
     // The ONLY Vote Rate (%) surface. Read is gated by the Tournament Deadline
     // (W-7, defense in depth): a ranking exposed before close skews 표심, so the
