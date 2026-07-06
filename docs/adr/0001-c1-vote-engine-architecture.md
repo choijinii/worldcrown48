@@ -23,6 +23,11 @@ in tension with the codebase, surfaced during §0 self-verify:
 ## Decision
 
 **1. Per-Voter bracket is derived from the `votes` collection; pairing is order-based; matchId is deterministic.**
+> ⚠️ **Superseded by ADR-0007 (HF-2, 2026-07-05):** pairing is no longer plain
+> order — it is `order`-sorted **then seed-shuffled**, so each Voter gets their
+> own random bracket. The pure-function signature is now
+> **(contestants, votes, bracketSeed)**. The order-based description below is the
+> pre-HF-2 behaviour; read ADR-0007 for the current rule.
 - ROUND OF 48 pairing = Contestant `order` ascending: (1,2),(3,4),…,(47,48).
 - A Voter's round-N winners = the `contestantId`s on their own `votes` for round N.
   Round N+1 pairs those winners in advancement order. **The `votes` collection is

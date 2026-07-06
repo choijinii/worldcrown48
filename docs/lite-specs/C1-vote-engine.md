@@ -45,6 +45,12 @@
 
 ## 라운드 구조 (1~5 체계)
 
+> **대진 페어링 (HF-2 / ADR-0007):** 페어링은 등록 `order` 순서가 아니라
+> `order` 정렬 후 **Voter별 시드로 셔플**된다 — 전 라운드(48강~THE FINAL) 랜덤,
+> 단 같은 Voter는 새로고침·재로그인 후에도 같은 대진(순수 함수 of
+> (contestants, votes, **bracketSeed**)). 시드는 `bracket_seeds/${uid}_${tid}`에
+> 최초 진입 시 1회 생성 후 불변. 상세 → `docs/adr/0007-hf2-seeded-random-bracket.md`.
+
 ```ts
 const ROUND_CONFIG = {
   1: { name: '48강', nameEn: 'ROUND OF 48', matchCount: 24, contestants: 48 },
