@@ -9,7 +9,7 @@
 ```
 ✅ Daily Participation Limit: 1일(KST) 신규 참가 Tournament 5개.
    이미 참가한 Tournament 안에서는 무제한 (❌ Tournament당 5표 카운트 아님)
-✅ Rate Limit: 1분 5회 초과 시 resource-exhausted (per-uid 토큰 버킷, C-3)
+✅ Rate Limit: 1분 20회 초과 시 resource-exhausted (per-uid 토큰 버킷, HF-1.5 — 3초당 1표)
 ✅ 실제 IP 저장 금지 — sha256(ip + salt) 16자리만
 ✅ device_hash: MVP 2 (fingerprintjs) — MVP 1에서는 null 허용
 ⛔ uid 기반 "이미 참여한 토너먼트" 차단 금지 (같은 대회 계속 진행이 핵심)

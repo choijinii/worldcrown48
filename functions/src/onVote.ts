@@ -10,7 +10,7 @@
  *   returns:      { ok: true }
  *
  * Anonymous uids are allowed (the guest's one free vote — D-1 linkSessionVote
- * re-parents it after sign-in). Per-uid in-memory rate limit (5/min) defuses
+ * re-parents it after sign-in). Per-uid in-memory rate limit (20/min) defuses
  * floods before any Firestore read (trap-style cost guard). `date` is the KST
  * day computed server-side — never trusted from the client.
  */
@@ -21,12 +21,12 @@ import { ALLOWED_ORIGINS } from "./cors";
 import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 import { decideParticipation, participationDocId } from "./core/participation";
 
-// Per-uid token bucket — 5 calls / uid / minute / instance (C-3 anti-abuse 강화).
-// 12초당 1회 — 정상 voter의 Match 풀이 흐름(선택→Round 전환 애니→다음 Match)과 일치.
+// Per-uid token bucket — 20 calls / uid / minute / instance (HF-1.5 완화).
+// 3초당 1회 — 46표 완주하는 정상 voter가 12초/표 제한에 반복 차단되던 UX 결함 해소.
 // Same algorithm as before (handoff §8.1: token bucket 패턴 유지) — only the
-// limit moved 10 → 5. Exported below for unit testing (handoff §8.3) without
+// limit moved 5 → 20. Exported below for unit testing (handoff §8.3) without
 // invoking the onCall wrapper / Firestore.
-export const RATE_LIMIT = 5;
+export const RATE_LIMIT = 20;
 export const RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
 
