@@ -27,6 +27,7 @@ import {
   type ArenaMatch,
   type ArenaVote,
 } from "./matches";
+import { loadOrCreateBracketSeed } from "./bracketSeed";
 import {
   currentMatchIndex,
   currentRound,
@@ -37,6 +38,8 @@ export interface VoteSlice {
   tournament: Tournament | null;
   contestants: Contestant[];
   votes: ArenaVote[];
+  /** Per-Voter, per-Tournament bracket seed (ADR-0007). 0 until loaded. */
+  seed: number;
 }
 
 interface VoteState extends VoteSlice {
@@ -47,6 +50,7 @@ interface VoteState extends VoteSlice {
     tournament: Tournament,
     contestants: Contestant[],
     votes: ArenaVote[],
+    seed: number,
   ) => void;
   addVote: (vote: ArenaVote) => void;
   reset: () => void;
@@ -58,6 +62,7 @@ const EMPTY: VoteSlice & { loading: boolean; error: string | null } = {
   tournament: null,
   contestants: [],
   votes: [],
+  seed: 0,
   loading: false,
   error: null,
 };
@@ -65,8 +70,8 @@ const EMPTY: VoteSlice & { loading: boolean; error: string | null } = {
 export const useVoteStore = create<VoteState>((set, get) => ({
   ...EMPTY,
 
-  setData: (tournament, contestants, votes) =>
-    set({ tournament, contestants, votes, loading: false, error: null }),
+  setData: (tournament, contestants, votes, seed) =>
+    set({ tournament, contestants, votes, seed, loading: false, error: null }),
 
   addVote: (vote) =>
     set((s) =>
@@ -119,7 +124,12 @@ export const useVoteStore = create<VoteState>((set, get) => ({
         };
       });
 
-      set({ tournament, contestants, votes, loading: false, error: null });
+      // Per-Voter bracket seed (ADR-0007): created once on first entry, then
+      // immutable. linkSessionVote carries it across a guest→login so the
+      // bracket never reshuffles (§8 Edge #1).
+      const seed = await loadOrCreateBracketSeed(db, userId, tournamentId);
+
+      set({ tournament, contestants, votes, seed, loading: false, error: null });
     } catch {
       set({ loading: false, error: "load-failed" });
     }
@@ -146,6 +156,7 @@ export function selectCurrentMatch(s: VoteSlice): ArenaMatch | null {
     s.contestants,
     s.votes,
     round,
+    s.seed,
   );
   return matches[currentMatchIndex(s.votes, round)] ?? null;
 }
