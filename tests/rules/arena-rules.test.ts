@@ -25,7 +25,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 
 const OPERATOR = "operator-uid";
 const VOTER = "voter-uid";
@@ -268,5 +268,85 @@ describe("daily_participation (HF-1) — owner read, no client write", () => {
         tournamentIds: ["t1"],
       }),
     );
+  });
+});
+
+describe("bracket_seeds (HF-2) — owner read via doc-id prefix, create-once, immutable", () => {
+  function seedDoc() {
+    return { seed: 12345, createdAt: serverTimestamp() };
+  }
+
+  it("lets the owner read their own seed doc (`${uid}_${tid}`)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `bracket_seeds/${VOTER}_t1`), {
+        seed: 42,
+        createdAt: new Date(),
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `bracket_seeds/${VOTER}_t1`)));
+  });
+
+  it("forbids reading another Voter's seed doc", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `bracket_seeds/${OTHER}_t1`), {
+        seed: 42,
+        createdAt: new Date(),
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(getDoc(doc(db, `bracket_seeds/${OTHER}_t1`)));
+  });
+
+  // HF-1.6 lesson (PR #37): the read rule MUST authorize the owner off the DOC
+  // ID, never resource.data — a Voter's Arena entry get/listens the seed doc
+  // BEFORE it is created, and a resource.data owner check would permission-deny
+  // that read and kill the listener. Doc-absent owner read must SUCCEED.
+  it("lets the owner get/listen their OWN seed doc before it exists", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, `bracket_seeds/${VOTER}_t1`)));
+  });
+
+  it("forbids get/listen on another Voter's not-yet-existing seed doc", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(getDoc(doc(db, `bracket_seeds/${OTHER}_t1`)));
+  });
+
+  it("lets the owner CREATE their own seed doc once (Arena entry)", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(
+      setDoc(doc(db, `bracket_seeds/${VOTER}_t1`), seedDoc()),
+    );
+  });
+
+  it("DENIES creating a seed doc under another Voter's id", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, `bracket_seeds/${OTHER}_t1`), seedDoc()),
+    );
+  });
+
+  it("DENIES updating an existing seed doc (seed is immutable — no reshuffle)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `bracket_seeds/${VOTER}_t1`), {
+        seed: 42,
+        createdAt: new Date(),
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, `bracket_seeds/${VOTER}_t1`), seedDoc()),
+    );
+  });
+
+  it("DENIES deleting a seed doc", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), `bracket_seeds/${VOTER}_t1`), {
+        seed: 42,
+        createdAt: new Date(),
+      });
+    });
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(deleteDoc(doc(db, `bracket_seeds/${VOTER}_t1`)));
   });
 });

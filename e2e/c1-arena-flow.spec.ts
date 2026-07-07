@@ -21,9 +21,31 @@
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { round1OrderedIds } from "@/lib/arena/matches";
 
 const TID = "c1-e2e-tournament";
 const UID = process.env.C1_TEST_UID ?? "";
+
+// HF-2: the bracket is a pure fn of (contestants, votes, seed). We pre-inject a
+// FIXED seed so the seeded votes and the resumed-match assertion are
+// deterministic (§8 Edge #3 — a spec that assumed order pairing must pin the
+// seed and compute expected from it, not hardcode c1..c48 adjacency).
+const E2E_SEED = 1;
+
+/** The seeded round-1 contestant-id order for E2E_SEED (P{order} id = `${TID}_c${order}`). */
+function seededRound1Ids(): string[] {
+  const contestants = Array.from({ length: 48 }, (_, i) => ({
+    id: `${TID}_c${i + 1}`,
+    order: i + 1,
+  }));
+  return round1OrderedIds(contestants, E2E_SEED);
+}
+
+/** P-number (name) of the contestant at a given seeded round-1 slot. */
+function seededPlayerNameAt(slot: number): string {
+  const id = seededRound1Ids()[slot]; // `${TID}_c${order}`
+  return `P${id.slice(`${TID}_c`.length)}`;
+}
 
 // Seeded votes set up bracket progress (the bracket is votes-derived) — they
 // must NOT count toward today's daily-5 limit, or the UI vote under test gets
@@ -83,11 +105,22 @@ async function seedTournament(): Promise<void> {
     });
   }
   await batch.commit();
+  await seedBracketSeed();
 }
 
-/** Seed n round-1 left-picks (m0..m{n-1}) for the test Voter. */
+/** Pin the Voter's bracket seed so the seeded bracket is deterministic (HF-2). */
+async function seedBracketSeed(): Promise<void> {
+  const d = db();
+  await d.doc(`bracket_seeds/${UID}_${TID}`).set({
+    seed: E2E_SEED,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+/** Seed n round-1 left-picks (m0..m{n-1}) — left = the SEEDED slot 2i (HF-2). */
 async function seedRound1Votes(n: number): Promise<void> {
   const d = db();
+  const ids = seededRound1Ids();
   const batch = d.batch();
   for (let i = 0; i < n; i++) {
     batch.set(d.doc(`votes/${TID}_${UID}_r1_m${i}`), {
@@ -95,7 +128,7 @@ async function seedRound1Votes(n: number): Promise<void> {
       tournamentId: TID,
       round: 1,
       matchId: matchId(1, i),
-      contestantId: `${TID}_c${i * 2 + 1}`, // left of pair i (order 2i+1)
+      contestantId: ids[i * 2], // left of seeded pair i
       date: SEED_PAST_DATE,
     });
   }
@@ -119,6 +152,9 @@ async function resetVoterProgress(): Promise<void> {
   snap.forEach((doc) => batch.delete(doc.ref));
   await batch.commit();
   await d.doc(`roundProgress/${UID}_${TID}`).delete().catch(() => {});
+  // HF-2 (§8 Edge #3): the bracket seed is part of per-Voter state — clear it
+  // too, else a leftover seed carries the old bracket into the next test.
+  await d.doc(`bracket_seeds/${UID}_${TID}`).delete().catch(() => {});
 }
 
 async function cleanup(): Promise<void> {
@@ -134,6 +170,7 @@ async function cleanup(): Promise<void> {
   }
   await d.doc(`tournaments/${TID}`).delete();
   await d.doc(`roundProgress/${UID}_${TID}`).delete().catch(() => {});
+  await d.doc(`bracket_seeds/${UID}_${TID}`).delete().catch(() => {});
 }
 
 test.describe("C-1 The Arena — Voter critical path", () => {
@@ -167,13 +204,14 @@ test.describe("C-1 The Arena — Voter critical path", () => {
   test("refresh mid-round (10/24 votes) resumes at exactly m10", async ({
     page,
   }) => {
-    await seedRound1Votes(10); // winners c1,c3,…,c19 → next match m10 = (c21,c22)
+    await seedRound1Votes(10); // 10 votes in round 1 → resume at match m10
     await page.goto(`/arena/${TID}`);
-    // m10 pairs order 21 vs 22 → P21 / P22. Assert via the side buttons (the
-    // name appears in both the name div and the vote label → getByText is
-    // ambiguous under strict mode).
-    await expect(page.getByTestId("vote-left")).toContainText("P21");
-    await expect(page.getByTestId("vote-right")).toContainText("P22");
+    // m10 = the SEEDED slots 20 & 21 (HF-2 — pairing is seed-shuffled, not
+    // c21/c22). Compute the expected P-names from E2E_SEED. Assert via the side
+    // buttons (the name appears in both the name div and the vote label →
+    // getByText is ambiguous under strict mode).
+    await expect(page.getByTestId("vote-left")).toContainText(seededPlayerNameAt(20));
+    await expect(page.getByTestId("vote-right")).toContainText(seededPlayerNameAt(21));
   });
 
   test("THE FINAL pick writes only roundProgress.championId; tournament doc untouched", async ({

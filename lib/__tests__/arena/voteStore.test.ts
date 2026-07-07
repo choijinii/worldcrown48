@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { matchIdFor, type ArenaVote } from "@/lib/arena/matches";
+import {
+  matchIdFor,
+  matchesForRound,
+  contestantIdsForRound,
+  buildMatchesForRound,
+  type ArenaVote,
+} from "@/lib/arena/matches";
+import type { RoundIndex } from "@/lib/arena/roundConfig";
 import {
   useVoteStore,
   selectCurrentRound,
@@ -9,6 +16,8 @@ import {
 import type { Contestant, Tournament } from "@/lib/types/tournament";
 
 const TID = "t1";
+const SEED = 12345;
+const OTHER_SEED = 99999;
 
 function tournament(): Tournament {
   return { id: TID } as Tournament;
@@ -19,26 +28,42 @@ function contestants48(): Contestant[] {
     (_, i) => ({ id: `c${i + 1}`, order: i + 1 }) as Contestant,
   );
 }
-function leftPicks(round: number, ids: string[], n: number): ArenaVote[] {
-  return Array.from({ length: n }, (_, i) => ({
-    round,
-    matchId: matchIdFor(TID, round, i),
-    contestantId: ids[i * 2],
-  }));
+
+/**
+ * Play an "always pick the LEFT contestant" Voter for `throughRound` rounds,
+ * deriving each round's actual (seeded) pairing so the votes are internally
+ * consistent with the seed.
+ */
+function leftVoterVotes(
+  c: Contestant[],
+  seed: number,
+  throughRound: RoundIndex,
+): ArenaVote[] {
+  const votes: ArenaVote[] = [];
+  for (let r = 1 as RoundIndex; r <= throughRound; r = (r + 1) as RoundIndex) {
+    const participants = contestantIdsForRound(c, votes, r, seed);
+    const matches = buildMatchesForRound(TID, r, participants);
+    for (const m of matches) {
+      votes.push({ round: r, matchId: m.matchId, contestantId: m.contestantIds[0] });
+    }
+  }
+  return votes;
 }
 
 beforeEach(() => useVoteStore.getState().reset());
 
 describe("voteStore", () => {
-  it("starts empty (no tournament, no votes)", () => {
+  it("starts empty (no tournament, no votes, seed 0)", () => {
     const s = useVoteStore.getState();
     expect(s.votes).toEqual([]);
     expect(s.tournament).toBeNull();
+    expect(s.seed).toBe(0);
   });
 
-  it("setData populates the votes cache + tournament + contestants", () => {
-    useVoteStore.getState().setData(tournament(), contestants48(), []);
+  it("setData populates the votes cache + tournament + contestants + seed", () => {
+    useVoteStore.getState().setData(tournament(), contestants48(), [], SEED);
     expect(useVoteStore.getState().contestants).toHaveLength(48);
+    expect(useVoteStore.getState().seed).toBe(SEED);
   });
 
   it("addVote appends, and dedupes a repeat for the same matchId", () => {
@@ -48,36 +73,33 @@ describe("voteStore", () => {
     expect(useVoteStore.getState().votes).toHaveLength(1);
   });
 
-  it("selectCurrentMatch is computed from votes each call (round 1, match 0)", () => {
-    useVoteStore.getState().setData(tournament(), contestants48(), []);
+  it("selectCurrentMatch is the seeded round-1 match 0", () => {
+    useVoteStore.getState().setData(tournament(), contestants48(), [], SEED);
     const m = selectCurrentMatch(useVoteStore.getState());
     expect(selectCurrentRound(useVoteStore.getState())).toBe(1);
-    expect(m?.matchId).toBe("t1:r1:m0");
-    expect(m?.contestantIds).toEqual(["c1", "c2"]);
+    const expected = matchesForRound(TID, contestants48(), [], 1, SEED)[0];
+    expect(m).toEqual(expected);
   });
 
-  it("recomputes the bracket as votes accrue (round 2 first match)", () => {
-    const ids = contestants48().map((c) => c.id);
-    useVoteStore
-      .getState()
-      .setData(tournament(), contestants48(), leftPicks(1, ids, 24));
+  it("is Voter-specific: a different seed yields a different first match", () => {
+    const a = matchesForRound(TID, contestants48(), [], 1, SEED)[0];
+    const b = matchesForRound(TID, contestants48(), [], 1, OTHER_SEED)[0];
+    expect(a.contestantIds).not.toEqual(b.contestantIds);
+  });
+
+  it("recomputes the seeded bracket as votes accrue (round 2 first match)", () => {
+    const c = contestants48();
+    const r1 = leftVoterVotes(c, SEED, 1);
+    useVoteStore.getState().setData(tournament(), c, r1, SEED);
     expect(selectCurrentRound(useVoteStore.getState())).toBe(2);
-    expect(selectCurrentMatch(useVoteStore.getState())?.contestantIds).toEqual([
-      "c1",
-      "c3",
-    ]);
+    const expected = matchesForRound(TID, c, r1, 2, SEED)[0];
+    expect(selectCurrentMatch(useVoteStore.getState())).toEqual(expected);
   });
 
   it("selectCurrentMatch is null and isComplete is true once THE FINAL is picked", () => {
-    const ids = contestants48().map((c) => c.id);
-    const votes = [
-      ...leftPicks(1, ids, 24),
-      ...leftPicks(2, ids, 12),
-      ...leftPicks(3, ids, 6),
-      ...leftPicks(4, ids, 3),
-      { round: 5, matchId: matchIdFor(TID, 5, 0), contestantId: "c1" },
-    ];
-    useVoteStore.getState().setData(tournament(), contestants48(), votes);
+    const c = contestants48();
+    const votes = leftVoterVotes(c, SEED, 5);
+    useVoteStore.getState().setData(tournament(), c, votes, SEED);
     expect(selectIsComplete(useVoteStore.getState())).toBe(true);
     expect(selectCurrentMatch(useVoteStore.getState())).toBeNull();
   });
