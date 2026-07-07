@@ -23,6 +23,7 @@
 
 | 작업 | 검증 명령 | 합격 기준 | 결과 (2026-06-15) |
 |---|---|---|---|
+| 배포 가드 (자동) | `firestore` predeploy 훅이 `scripts/predeploy-guard.sh` 자동 실행 | `✅ 로컬 = GitHub main` 출력 후 통과. main이 아니거나 origin/main과 다르면 `🛑 배포 중단` + exit 1 로 배포 차단 (pull 없이 옛 코드 재배포 방지) | — |
 | 룰 구문 컴파일 | `npx firebase deploy --only firestore:rules --dry-run` | "Compiled successfully" 또는 dry-run 시뮬레이션 통과. 컴파일 에러 0 | ✅ deploy 단계의 사전 컴파일에서 `cloud.firestore: rules file firestore.rules compiled successfully` 확인 (별도 dry-run 호출 없이 본 deploy의 사전 단계로 검증) |
 | 인덱스 JSON 유효성 | `cat firestore.indexes.json \| jq .` | 파싱 통과 (jq 에러 없음) | ✅ `node -e require('./firestore.indexes.json')` 으로 검증 (jq 미설치 환경 대체) — `indexes: 2, fieldOverrides: 0` |
 | firebase.json 포인터 | `cat firebase.json \| jq '.firestore.indexes'` | `"firestore.indexes.json"` 출력 | ✅ `firestore.indexes → firestore.indexes.json` 확인 |
