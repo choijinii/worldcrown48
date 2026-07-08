@@ -151,14 +151,16 @@ async function advanceRound(voterId: string, tournamentId: string) {
 | 자정 리셋 | 매일 자정 (KST 00:00) 카운트 초기화 |
 | 랜덤 Match | VS Battle View는 매 새로고침마다 임의 1:1 Match 무작위 제공. 같은 Match 재출현 정상 |
 | 복수 Tournament | 동시 진행 시 각각 별도 5회 카운트 적용 |
-| **비로그인 1회 허용** | **세션당 첫 투표 1건은 비로그인(익명 uid)으로 허용. 2번째 Match부터 로그인 모달.** |
-| **본인 연결 의무** | **로그인 성공 시 1회 투표의 userId를 새 uid로 즉시 이전(`linkSessionVote` callable). 익명 uid는 정리.** |
+| **Guest Run 1회 허용** | **비로그인(익명 uid)은 Guest Run 1회 — 토너먼트 1개를 완주 — 허용. 완주 후·두 번째 대회 진입 시 로그인 모달.** (2026-07-07 대표 재정의, ADR-0008. 종전 "세션 1회 투표"는 스펙 오염) |
+| **본인 연결 의무** | **로그인 성공 시 Guest Run 전체(votes · bracket_seeds · roundProgress · Crown Card)를 새 uid로 이전(`linkSessionVote` callable) + daily_participation 병합. 익명 uid는 정리.** |
 | 로그인 후 한도 | 로그인 유저 1계정 기준 동일 Tournament 1일 5회 (위 "대진별 1일 5회" 적용) |
 
 > 💡 **투표 정책 설계 철학 v2 — 2026-06-14 대표 확정**
-> 부정투표 문제의 본질은 "투표 횟수"가 아니라 "가짜 계정"이다. Google 소셜 로그인이 계정 신뢰성을 보장하되, **"체험 후 가입" 흐름**을 위해 비로그인 1회 투표는 허용한다(맛보기 모델). 2번째 Match부터 로그인 모달 + 1회 투표는 본인 uid로 자동 흡수된다. 단일 진실: `docs/lite-specs/D1-locker-room.md` + `docs/handoffs/D1-locker-room-handoff.md` v2.0.
+> 부정투표 문제의 본질은 "투표 횟수"가 아니라 "가짜 계정"이다. Google 소셜 로그인이 계정 신뢰성을 보장하되, **"체험 후 가입" 흐름**을 위해 **Guest Run 1회(토너먼트 1개 완주)** 는 허용한다(맛보기 모델). 완주 후·두 번째 대회부터 로그인 모달 + Guest Run 전체가 본인 uid로 자동 흡수된다. 단일 진실: `LANGUAGE.md` §12(Guest Run) + `docs/adr/0008-hf3-guest-run.md`.
 >
 > **v4.8 → v4.9 변경 이력**: v4.8까지는 강제 로그인 정책(익명 비허용)을 채택했으나 2026-06-14 대표 결정으로 lite-spec(맛보기 1회 허용)으로 통일. 본 표 5·6행 신설, 7행 명시화.
+>
+> **2026-07-07 대표 재정의 (HF-3, ADR-0008)**: A안의 올바른 정의는 "비로그인 **1개 대회 완주**"이며, 종전 "세션 1회 투표"·"2번째 Match부터 로그인"은 "1표" 용어의 모호함이 낳은 **스펙 오염**(UX-8 근본 원인)이다. 위 표 5·6행을 Guest Run 기준으로 정정.
 
 ---
 

@@ -12,7 +12,7 @@
 ```
 ✅ Daily Participation Limit: 1일(KST) 신규 참가 Tournament 5개 한도.
    이미 참가한 Tournament 안에서는 무제한 (브래킷 구조상 대회당 최대 46표로 자연 상한)
-✅ 비로그인: 세션 1회 투표 허용 → 2회째부터 로그인 요청 (불변)
+✅ 비로그인: Guest Run 1회 허용 — 토너먼트 1개를 완주 가능. 완주 후·두 번째 대회부터 로그인 요청 (HF-3 재정의, ADR-0008 · LANGUAGE.md §12). 종전 "세션 1회 투표"는 스펙 오염
 ✅ Rate Limit: 1분 5회 초과 시 resource-exhausted (per-uid 토큰 버킷, C-3)
 ✅ 로그인 후 세션 투표 uid 연결: Cloud Function 자동 처리
 ```
@@ -55,10 +55,13 @@ function useVoteGate() {
   async function checkCanVote(tournamentId: string): Promise<VoteGateResult> {
     // Step 1: Rate Limit — onVote Cloud Function (per-uid 토큰 버킷, 1분 5회)
 
-    // Step 2: 비로그인 세션 체크 (불변)
-    if (!user) {
-      if (!sessionVoteUsed) return { status: 'allowed' }
-      return { status: 'login_required', reason: 'vote' }
+    // Step 2: Guest Run 체크 (HF-3, ADR-0008) — 익명 uid 기준(!user 아님).
+    // 익명 user는 non-null이라 !user 분기는 절대 발동 안 함 = UX-8 근본 원인.
+    if (!user || user.isAnonymous) {
+      if (guestCompleted) return { status: 'login_required', reason: 'vote' }
+      if (guestTournamentId && guestTournamentId !== tournamentId)
+        return { status: 'login_required', reason: 'vote' }
+      return { status: 'allowed' } // 첫 대회 또는 진행 중 같은 대회 = Guest Run 진행
     }
 
     // Step 3: 로그인 유저 — Daily Participation Limit 체크.

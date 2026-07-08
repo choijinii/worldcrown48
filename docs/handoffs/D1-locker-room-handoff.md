@@ -1,5 +1,14 @@
 # Handoff Brief — D-1 The Locker Room (Domain 4)
 
+> ## ⚠️ 2026-07-07 Guest Run 재정의 (HF-3) — 아래 "비로그인 1회" 관련 서술 대체 고지
+> A안(맛보기 모델)의 올바른 정의는 **"비로그인 Voter가 토너먼트 1개를 1회 완주"**(= **Guest Run**)이며,
+> 이 문서 곳곳의 "1회 투표"·"세션 1회 투표"·"2번째 Match부터 로그인" 서술은 **"1표" 용어의 모호함이 낳은
+> 스펙 오염**(UX-8 근본 원인)이다. 해당 정책 절은 **HF-3 핸드오프**
+> (`docs/handoffs/HF3-guest-run-handoff.md`) + **ADR-0008** + **LANGUAGE.md §12(Guest Run)** 가 대체한다.
+> 게이트 기준은 `!user`가 아니라 `isAnonymous`, `linkSessionVote`는 votes·bracket_seeds뿐 아니라
+> roundProgress·Crown Card 이전 + daily_participation 병합까지 수행한다. (v2.0 본문은 이력 보존을 위해 유지)
+
+
 > **From**: Cowork (기획·정책·UX 결정) · **To**: Claude Code (실코드)
 > **Date**: 2026-06-14 (v2.0) · 2026-06-15 (v2.1 개정) · **Author**: 대표 · **Version**: v2.1
 > **작업 브랜치**: `feat/d1-locker-room` (main 최신에서 분기 — Claude Code가 생성·push)

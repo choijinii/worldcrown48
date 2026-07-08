@@ -371,10 +371,30 @@ LIVE · VOTE RATE · VS
 
 ---
 
+## 12. 신규 용어 — Guest Run (v1.6 추가, HF-3)
+
+| **한국어** | **English (공식)** | **코드 변수명** | **정의** |
+| --- | --- | --- | --- |
+| 게스트 런 (1회 완주) | **Guest Run** | `guestRun` / `guestTournamentId` | 비로그인(익명 uid) Voter가 **토너먼트 1개를 1회 완주**하는 것. A안(맛보기 모델) = Guest Run 1회 허용. 완주 후 또는 **두 번째 대회 진입 시** 로그인 필요. 로그인 시 Guest Run 전체(votes · bracket_seeds · roundProgress · Crown Card)가 새 uid로 이전됨(`linkSessionVote`). |
+
+### ⛔ 금지 표현 (모호 — 스펙 오염의 원인)
+
+| ❌ 금지 | ✅ 대체 |
+| --- | --- |
+| ~~게스트 1표~~ · ~~비로그인 1표~~ | Guest Run (토너먼트 1개 완주) |
+| ~~세션 1회 투표~~ · ~~세션당 첫 투표 1건~~ | Guest Run |
+| ~~2번째 Match부터 로그인~~ | 완주 후 · 두 번째 **대회**부터 로그인 |
+
+> "1표"라는 용어의 모호함이 A안(비로그인 1회 완주)을 "매치 1클릭"으로 오독시켰다(UX-8 근본
+> 원인). 상세 경위·설계 근거 → `docs/adr/0008-hf3-guest-run.md`.
+
+---
+
 ## 변경 이력
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v1.6** | **2026-07-08** | **★ §12 신규 — Guest Run 용어 등록 + 금지 표현(게스트 1표·세션 1회 투표) 박제** (HF-3, ADR-0008). "비로그인 1회"의 올바른 의미 = 토너먼트 1개 완주 |
 | **v1.5** | **2026-05-25** | **★ §11 신규 — 뉴스룸 개념 용어 추가** (Newsroom · Keyword News View · AI-Report News View · Fan Intelligence). 대표님 지시(Arena 2칼럼 + The Pitch 뉴스룸) 반영 |
 | **v1.4** | **2026-05-23** | **★ "48명" → "48개" 전면 수정** (Contestant = 사람만이 아님) |
 | | | **§10 다국어(i18n) 어휘 섹션 신규 추가** |
@@ -397,4 +417,4 @@ LIVE · VOTE RATE · VS
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.5 | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.6 | CONFIDENTIAL*
