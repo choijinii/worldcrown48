@@ -2,7 +2,9 @@
  * LoginModal — sign-in prompt shown when the visitor hits a gate.
  *
  * Three reasons (handoff §4-2 / §부록 C):
- *   - "vote"        → "Sign in to cast your vote" + Google button
+ *   - "vote"        → "Sign in to keep voting" + Google button (HF-3: shown when
+ *                     a Guest Run is complete or a second Tournament is attempted;
+ *                     the guest's first run itself needs no sign-in)
  *   - "share"       → "Sign in to share your Crown Card" + Google button
  *   - "daily_limit" → "You've joined all 5 Tournaments for today (5/5)" + Close
  *
@@ -225,7 +227,7 @@ interface ModalStrings {
 // every language). daily_limit copy = HF-1 §6 (Daily Participation Limit, 5/5).
 const STRINGS: Record<Lang, ModalStrings> = {
   ko: {
-    vote: "투표하려면 로그인이 필요해요",
+    vote: "계속하려면 로그인이 필요해요",
     share: "공유하려면 로그인이 필요해요",
     daily_limit: "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
     subtitle: "Google 계정으로 1초 만에 시작해요.",
@@ -236,7 +238,7 @@ const STRINGS: Record<Lang, ModalStrings> = {
     signInFailed: "로그인에 실패했어요. 다시 시도해 주세요.",
   },
   en: {
-    vote: "Sign in to cast your vote",
+    vote: "Sign in to keep voting",
     share: "Sign in to share your Crown Card",
     daily_limit: "You've joined all 5 Tournaments for today (5/5)",
     subtitle: "One tap with Google.",
@@ -247,7 +249,7 @@ const STRINGS: Record<Lang, ModalStrings> = {
     signInFailed: "Sign in failed. Please try again.",
   },
   es: {
-    vote: "Inicia sesión para votar",
+    vote: "Inicia sesión para seguir votando",
     share: "Inicia sesión para compartir tu Crown Card",
     daily_limit: "Ya has participado en los 5 Tournaments de hoy (5/5)",
     subtitle: "Un toque con Google.",

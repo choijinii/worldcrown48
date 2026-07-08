@@ -118,12 +118,19 @@ export default function ArenaPage(): JSX.Element {
         onVoteSuccess(tournamentId);
       } catch (e) {
         const code = (e as { code?: string }).code;
-        showToast(
-          code === "functions/resource-exhausted"
-            ? "잠시 후 다시 시도해주세요."
-            : "투표에 실패했어요. 다시 시도해주세요.",
-          "error",
-        );
+        // HF-3 W3: the Guest Run server guard rejects a policy-violating anon
+        // vote (completed run / second Tournament) with permission-denied even
+        // if the client gate was bypassed — surface the LoginModal, not a toast.
+        if (code === "functions/permission-denied") {
+          setModal("vote");
+        } else {
+          showToast(
+            code === "functions/resource-exhausted"
+              ? "잠시 후 다시 시도해주세요."
+              : "투표에 실패했어요. 다시 시도해주세요.",
+            "error",
+          );
+        }
       } finally {
         setSubmitting(false);
         setPickedId(null);
