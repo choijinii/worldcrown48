@@ -19,6 +19,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
   getRedirectResult,
   onAuthStateChanged,
@@ -30,27 +31,48 @@ import {
 } from "@/lib/firebase";
 import { PENDING_ANON_UID_KEY, useAuthStore } from "@/lib/authStore";
 
-const LINK_SESSION_VOTE_TIMEOUT_MS = 5_000;
+// HF-3 §확인 필요 4: the transfer grew (votes + bracket_seeds + roundProgress +
+// daily_participation), so widen the client timeout to 10s. Crown Card rendering
+// stays async — it runs in the onChampionConfirmed trigger AFTER this resolves,
+// and the Champion page's "카드 준비 중" state absorbs the lag.
+const LINK_SESSION_VOTE_TIMEOUT_MS = 10_000;
 
-async function linkPendingVote(googleUid: string): Promise<void> {
-  if (typeof window === "undefined") return;
+interface LinkSessionVoteResult {
+  linked: number;
+  tournaments?: Array<{ tournamentId: string; complete: boolean }>;
+}
+
+/**
+ * Link the guest run to the new uid. Returns the tournament to LAND on — the
+ * first completed run (W6) — or null to stay on the current screen (AC5, a
+ * mid-progress transfer just continues in place).
+ */
+async function linkPendingVote(
+  googleUid: string,
+): Promise<{ completedTournamentId: string | null }> {
+  if (typeof window === "undefined") return { completedTournamentId: null };
   const pendingAnonUid = sessionStorage.getItem(PENDING_ANON_UID_KEY);
-  if (!pendingAnonUid || pendingAnonUid === googleUid) return;
+  if (!pendingAnonUid || pendingAnonUid === googleUid) {
+    return { completedTournamentId: null };
+  }
 
   try {
-    const callable = httpsCallable<{ anonUid: string }, { linked: number }>(
+    const callable = httpsCallable<{ anonUid: string }, LinkSessionVoteResult>(
       getFunctionsInstance(),
       "linkSessionVote",
       { timeout: LINK_SESSION_VOTE_TIMEOUT_MS },
     );
-    await callable({ anonUid: pendingAnonUid });
+    const res = await callable({ anonUid: pendingAnonUid });
+    const completed = res.data.tournaments?.find((t) => t.complete);
+    return { completedTournamentId: completed?.tournamentId ?? null };
   } catch (err) {
-    // Per acceptance §4-6 #4: keep sessionVoteUsed=true (already true) so
-    // the visitor can't double-vote, and surface a toast at a higher
-    // layer. Logging here helps the next debugger see *why*.
+    // Per acceptance §4-6 #4: the pending key is cleared below so a later
+    // sign-in can't mis-link; surface a toast at a higher layer. Logging here
+    // helps the next debugger see *why*.
     if (process.env.NODE_ENV !== "production") {
       console.warn("[Auth] linkSessionVote failed:", err);
     }
+    return { completedTournamentId: null };
   } finally {
     sessionStorage.removeItem(PENDING_ANON_UID_KEY);
   }
@@ -58,6 +80,7 @@ async function linkPendingVote(googleUid: string): Promise<void> {
 
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
   const bootRanRef = useRef(false);
 
   useEffect(() => {
@@ -79,16 +102,22 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       }
     })();
 
-    // (1) + (3) — listen for state changes and link any pending guest vote.
+    // (1) + (3) — listen for state changes and link any pending guest run.
     const unsub = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user && !user.isAnonymous) {
-        void linkPendingVote(user.uid);
+        void linkPendingVote(user.uid).then(({ completedTournamentId }) => {
+          // W6: a completed Guest Run lands on the shareable Crown Card page;
+          // a mid-progress transfer stays put and continues in place (AC5).
+          if (completedTournamentId) {
+            router.push(`/arena/${completedTournamentId}/champion`);
+          }
+        });
       }
     });
 
     return unsub;
-  }, [setUser]);
+  }, [setUser, router]);
 
   return <>{children}</>;
 }

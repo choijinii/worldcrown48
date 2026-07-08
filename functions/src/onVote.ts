@@ -15,11 +15,50 @@
  * day computed server-side — never trusted from the client.
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, FieldPath } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
 import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 import { decideParticipation, participationDocId } from "./core/participation";
+import { decideGuestVoteGuard, type GuestVoteFacts } from "./core/guestVoteGuard";
+
+/**
+ * Guest Run server guard (HF-3 W3, AC7). For an anonymous caller, gather the two
+ * facts the pure guard needs — with the admin SDK, which bypasses the
+ * doc-id-prefix `list` denial that blocked the client (§확인 필요 1). Fail-open on
+ * a transient read error (never break a legit 46-vote run on a dropped read; the
+ * client gate + rules remain) — the deny path only fires on a confirmed fact.
+ */
+async function fetchGuestVoteFacts(
+  uid: string,
+  tournamentId: string,
+): Promise<GuestVoteFacts> {
+  try {
+    const progressRef = adminDb.doc(`roundProgress/${uid}_${tournamentId}`);
+    const lo = `${uid}_`;
+    const hi = `${uid}_`;
+    const [progressSnap, seedsSnap] = await Promise.all([
+      progressRef.get(),
+      adminDb
+        .collection("bracket_seeds")
+        .where(FieldPath.documentId(), ">=", lo)
+        .where(FieldPath.documentId(), "<", hi)
+        .get(),
+    ]);
+    const completedCurrentTournament = progressSnap.get("complete") === true;
+    const enteredOtherTournament = seedsSnap.docs.some(
+      (d) => d.id !== `${uid}_${tournamentId}`,
+    );
+    return { isAnonymous: true, completedCurrentTournament, enteredOtherTournament };
+  } catch (err) {
+    console.warn("[onVote] guest guard fact fetch failed (fail-open):", err);
+    return {
+      isAnonymous: true,
+      completedCurrentTournament: false,
+      enteredOtherTournament: false,
+    };
+  }
+}
 
 // Per-uid token bucket — 20 calls / uid / minute / instance (HF-1.5 완화).
 // 3초당 1회 — 46표 완주하는 정상 voter가 12초/표 제한에 반복 차단되던 UX 결함 해소.
@@ -82,6 +121,19 @@ export const onVote = onCall(
         throw new HttpsError("invalid-argument", e.message);
       }
       throw e;
+    }
+
+    // Guest Run server guard (HF-3 W3, AC7). Only anonymous callers are guarded
+    // — detected off the Firebase sign-in provider, not a client-supplied flag.
+    const isAnonymous =
+      req.auth?.token?.firebase?.sign_in_provider === "anonymous";
+    if (isAnonymous) {
+      const decision = decideGuestVoteGuard(
+        await fetchGuestVoteFacts(uid, doc.tournamentId),
+      );
+      if (decision.status === "deny") {
+        throw new HttpsError("permission-denied", decision.reason);
+      }
     }
 
     const votes = adminDb.collection("votes");

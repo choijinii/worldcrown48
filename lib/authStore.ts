@@ -14,11 +14,12 @@
  *     back to a full-page redirect. `getRedirectResult` is read once by
  *     AuthProvider on next load.
  *
- * sessionVoteUsed lifecycle:
- *   - Flipped true by VoteGate after a guest's first vote lands.
- *   - Stays true across the sign-in modal (so the pending vote can be
- *     re-cast by VoteGate against the new uid without double-counting).
- *   - Reset to false on signOut so a returning guest starts fresh.
+ * Guest link trigger (HF-3 W5): when an anonymous visitor signs in, we always
+ * stash their anon uid in PENDING_ANON_UID_KEY so AuthProvider can call
+ * linkSessionVote — gated on `currentUser.isAnonymous` ALONE, not a
+ * "voted this session" flag. If the guest cast zero votes, linkSessionVote is a
+ * safe no-op (linked 0, tournaments []), so unconditionally arming the link is
+ * correct and removes the sessionVoteUsed flag that HF-3 replaced.
  */
 import { create } from "zustand";
 import {
@@ -45,23 +46,18 @@ export const PENDING_ANON_UID_KEY = "wc48_pending_anon_uid";
 interface AuthState {
   user: User | null;
   loading: boolean;
-  sessionVoteUsed: boolean;
 
   // Called by AuthProvider on every onAuthStateChanged tick.
   setUser: (user: User | null) => void;
-  // Called by VoteGate after a guest vote succeeds.
-  markSessionVoteUsed: () => void;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
-  sessionVoteUsed: false,
 
   setUser: (user) => set({ user, loading: false }),
-  markSessionVoteUsed: () => set({ sessionVoteUsed: true }),
 
   signInWithGoogle: async () => {
     const auth = getAuthInstance();
@@ -70,16 +66,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // the local-persistence assignment having landed.
     await ensureAuthReady();
 
-    // If the visitor cast their one guest vote, remember the anon uid so
+    // Whenever an anonymous visitor signs in, remember the anon uid so
     // AuthProvider can call linkSessionVote(anonUid → googleUid) the moment
-    // onAuthStateChanged fires. This unifies the popup and redirect paths:
-    // the redirect-return reload doesn't lose track of which anon uid to
-    // link, because sessionStorage survives the navigation within the tab.
-    if (
-      typeof window !== "undefined" &&
-      auth.currentUser?.isAnonymous &&
-      get().sessionVoteUsed
-    ) {
+    // onAuthStateChanged fires — migrating the whole Guest Run (votes +
+    // bracket_seeds + roundProgress + Crown Card). Armed on isAnonymous ALONE
+    // (HF-3 W5): a zero-vote guest just makes linkSessionVote a no-op. This
+    // unifies the popup and redirect paths: the redirect-return reload keeps the
+    // anon uid because sessionStorage survives the navigation within the tab.
+    if (typeof window !== "undefined" && auth.currentUser?.isAnonymous) {
       sessionStorage.setItem(PENDING_ANON_UID_KEY, auth.currentUser.uid);
     }
 
@@ -112,6 +106,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     const auth = getAuthInstance();
     await firebaseSignOut(auth);
-    set({ user: null, sessionVoteUsed: false });
+    set({ user: null });
   },
 }));

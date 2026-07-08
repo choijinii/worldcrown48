@@ -39,4 +39,25 @@ describe("shouldGenerateCrownCard", () => {
   it("does NOT fire when after is undefined (doc deleted)", () => {
     expect(shouldGenerateCrownCard({ complete: false }, undefined)).toBe(false);
   });
+
+  // HF-3 §확인 필요 2 (Guest Run Crown Card transfer, Option A) — VERIFIED here.
+  // linkSessionVote re-parents a COMPLETED guest run to the Google uid by a
+  // 2-stage write on roundProgress/{googleUid}_{tid}: (1) create complete=false,
+  // then (2) update complete=true + championId. The onDocumentUpdated trigger
+  // then sees before.complete=false / after.complete=true → this guard must
+  // return true so the Crown Card regenerates under the new uid.
+  // IMPLEMENTATION CAVEAT (enforced in linkSessionVote, not provable here): the
+  // two writes MUST be separate commits — a single create carrying complete=true
+  // fires only onDocumentCreated, never onDocumentUpdated, so the card trigger
+  // would never run.
+  it("fires on the linkSessionVote 2-stage transfer edge (Option A)", () => {
+    const created = { userId: "googleUid", tournamentId: "t1", complete: false };
+    const updated = {
+      userId: "googleUid",
+      tournamentId: "t1",
+      complete: true,
+      championId: "c7",
+    };
+    expect(shouldGenerateCrownCard(created, updated)).toBe(true);
+  });
 });
