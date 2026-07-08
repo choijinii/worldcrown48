@@ -115,7 +115,7 @@ export default function ArenaPage(): JSX.Element {
           contestantId,
         });
         addVote({ round: match.round, matchId: match.matchId, contestantId });
-        onVoteSuccess();
+        onVoteSuccess(tournamentId);
       } catch (e) {
         const code = (e as { code?: string }).code;
         showToast(
