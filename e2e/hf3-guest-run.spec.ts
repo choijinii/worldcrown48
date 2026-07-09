@@ -307,6 +307,54 @@ test.describe("HF-3 Guest Run", () => {
     }
   });
 
+  test("E2E-5: guest re-completes a Tournament the account ALREADY finished → conflict (votes deleted, existing card + banner)", async ({ page }) => {
+    // HF-3.1 case 2. The account already finished A (champion c2 — the OLD card).
+    // The guest completes A again with a DIFFERENT champion (c1). The link must:
+    // keep the existing card (Google wins), DELETE the guest votes (no double
+    // vote → no Vote Rate skew), and raise the "already finished" banner.
+    const d = db();
+    await deleteVoterState(GOOGLE_UID, TID_A);
+    const anonUid = await createAnonAccount();
+    try {
+      await seedGuestRun(GOOGLE_UID, TID_A, {
+        rounds: [[1, 24], [2, 12], [3, 6], [4, 3], [5, 1]],
+        complete: true,
+        championId: `${TID_A}_c2`, // the EXISTING champion
+      });
+      await seedGuestRun(anonUid, TID_A, {
+        rounds: [[1, 24], [2, 12], [3, 6], [4, 3], [5, 1]],
+        complete: true,
+        championId: `${TID_A}_c1`, // the guest's (to-be-discarded) champion
+      });
+
+      await triggerLink(page, anonUid);
+
+      // Lands on the EXISTING card (a `complete` `existing` entry, W2 fallback).
+      await expect(page).toHaveURL(new RegExp(`/arena/${TID_A}/champion`), { timeout: 15_000 });
+
+      // The existing roundProgress wins — the champion stays c2, NOT overwritten
+      // by the guest's c1 (Google data wins, §8 Edge #1).
+      const rp = (await d.doc(`roundProgress/${GOOGLE_UID}_${TID_A}`).get()).data();
+      expect(rp?.championId).toBe(`${TID_A}_c2`);
+
+      // The guest votes were DELETED (not re-parented) — nothing left under the
+      // anon uid, and the Google uid keeps only its own original run.
+      await expect
+        .poll(async () => (await d.collection("votes").where("userId", "==", anonUid).get()).size, { timeout: 20_000 })
+        .toBe(0);
+
+      // The "already finished" banner is shown (ko or en).
+      await expect(
+        page.getByText(/already finished this Tournament|이미 이 계정으로 완주/),
+      ).toBeVisible({ timeout: 10_000 });
+
+      // Anon account tidied up.
+      await expect(ensureAdmin().auth().getUser(anonUid)).rejects.toThrow(/no user record/i);
+    } finally {
+      await deleteUserQuietly(anonUid);
+    }
+  });
+
   test("E2E-3: a guest who joined Tournament A is gated in Tournament B (LoginModal)", async ({ browser }) => {
     const context = await anonContext(browser);
     const page = await context.newPage();
