@@ -179,6 +179,16 @@ export const MESSAGES = {
     es: "Ver más en el Arena Newsroom",
   },
   "pitch.news.hoursAgo": { ko: "{count}시간 전", en: "{count}h ago", es: "hace {count} h" },
+
+  // ── Champion (Domain 3, /arena/{tid}/champion) ──────────────────
+  // HF-3.1 W3 — shown once when a returning guest lands on a CONFLICT card (an
+  // account that already finished this Tournament). "Tournament" stays verbatim.
+  "champion.returning.banner": {
+    ko: "이 Tournament은 이미 이 계정으로 완주하셨어요 — 기존 기록을 보여드려요.",
+    en: "You've already finished this Tournament on this account — here's your existing record.",
+    es: "Ya completaste este Tournament con esta cuenta — aquí está tu registro anterior.",
+  },
+  "champion.returning.dismiss": { ko: "닫기", en: "Dismiss", es: "Cerrar" },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;

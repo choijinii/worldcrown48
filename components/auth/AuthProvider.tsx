@@ -30,6 +30,7 @@ import {
   getFunctionsInstance,
 } from "@/lib/firebase";
 import { PENDING_ANON_UID_KEY, useAuthStore } from "@/lib/authStore";
+import { pickLanding, RETURNING_CARD_TID_KEY, type Landing } from "@/lib/auth/landing";
 
 // HF-3 §확인 필요 4: the transfer grew (votes + bracket_seeds + roundProgress +
 // daily_participation), so widen the client timeout to 10s. Crown Card rendering
@@ -39,21 +40,22 @@ const LINK_SESSION_VOTE_TIMEOUT_MS = 10_000;
 
 interface LinkSessionVoteResult {
   linked: number;
-  tournaments?: Array<{ tournamentId: string; complete: boolean }>;
+  tournaments?: Array<{ tournamentId: string; complete: boolean; source?: "guest" | "existing" }>;
 }
 
 /**
- * Link the guest run to the new uid. Returns the tournament to LAND on — the
- * first completed run (W6) — or null to stay on the current screen (AC5, a
- * mid-progress transfer just continues in place).
+ * Link the guest run to the new uid. Returns the Landing target — the run just
+ * completed (W6, no banner) or, failing that, a conflict card (returning:true →
+ * banner) — or null to stay on the current screen (AC5, a mid-progress transfer
+ * just continues in place). The guest>existing priority lives in pickLanding.
  */
 async function linkPendingVote(
   googleUid: string,
-): Promise<{ completedTournamentId: string | null }> {
-  if (typeof window === "undefined") return { completedTournamentId: null };
+): Promise<{ landing: Landing | null }> {
+  if (typeof window === "undefined") return { landing: null };
   const pendingAnonUid = sessionStorage.getItem(PENDING_ANON_UID_KEY);
   if (!pendingAnonUid || pendingAnonUid === googleUid) {
-    return { completedTournamentId: null };
+    return { landing: null };
   }
 
   try {
@@ -63,8 +65,7 @@ async function linkPendingVote(
       { timeout: LINK_SESSION_VOTE_TIMEOUT_MS },
     );
     const res = await callable({ anonUid: pendingAnonUid });
-    const completed = res.data.tournaments?.find((t) => t.complete);
-    return { completedTournamentId: completed?.tournamentId ?? null };
+    return { landing: pickLanding(res.data.tournaments) };
   } catch (err) {
     // Per acceptance §4-6 #4: the pending key is cleared below so a later
     // sign-in can't mis-link; surface a toast at a higher layer. Logging here
@@ -72,7 +73,7 @@ async function linkPendingVote(
     if (process.env.NODE_ENV !== "production") {
       console.warn("[Auth] linkSessionVote failed:", err);
     }
-    return { completedTournamentId: null };
+    return { landing: null };
   } finally {
     sessionStorage.removeItem(PENDING_ANON_UID_KEY);
   }
@@ -106,12 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     const unsub = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user && !user.isAnonymous) {
-        void linkPendingVote(user.uid).then(({ completedTournamentId }) => {
+        void linkPendingVote(user.uid).then(({ landing }) => {
           // W6: a completed Guest Run lands on the shareable Crown Card page;
           // a mid-progress transfer stays put and continues in place (AC5).
-          if (completedTournamentId) {
-            router.push(`/arena/${completedTournamentId}/champion`);
+          if (!landing) return;
+          // A conflict landing (returning) hands the tid to the Champion page so
+          // it can raise the "already finished" banner once (HF-3.1 W3).
+          if (landing.returning && typeof window !== "undefined") {
+            sessionStorage.setItem(RETURNING_CARD_TID_KEY, landing.tournamentId);
           }
+          router.push(`/arena/${landing.tournamentId}/champion`);
         });
       }
     });

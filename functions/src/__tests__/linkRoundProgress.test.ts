@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   planRoundProgressTransfer,
   transferredTournaments,
+  conflictTournamentIds,
   type RoundProgressFacts,
 } from "../core/linkRoundProgress";
 
@@ -32,57 +33,77 @@ const fact = (over: Partial<RoundProgressFacts> = {}): RoundProgressFacts => ({
 describe("planRoundProgressTransfer", () => {
   it("SKIPs when Google already has the roundProgress (Google wins, §8 Edge 1)", () => {
     expect(planRoundProgressTransfer([fact({ googleExists: true, googleComplete: false })])).toEqual([
-      { tournamentId: "t1", action: "skip", responseComplete: false },
+      { tournamentId: "t1", action: "skip", responseComplete: false, source: "existing" },
     ]);
   });
 
-  it("SKIP with responseComplete=true when Google already completed it", () => {
+  it("SKIP with responseComplete=true + source=existing when Google already completed it (HF-3.1 conflict landing)", () => {
     expect(planRoundProgressTransfer([fact({ googleExists: true, googleComplete: true })])).toEqual([
-      { tournamentId: "t1", action: "skip", responseComplete: true },
+      { tournamentId: "t1", action: "skip", responseComplete: true, source: "existing" },
     ]);
   });
 
   it("SKIPs when the guest has no roundProgress (mid round-1 — votes carry it)", () => {
     expect(planRoundProgressTransfer([fact({ guestExists: false })])).toEqual([
-      { tournamentId: "t1", action: "skip", responseComplete: false },
+      { tournamentId: "t1", action: "skip", responseComplete: false, source: "existing" },
     ]);
   });
 
-  it("COPYs an incomplete guest run (single create)", () => {
+  it("COPYs an incomplete guest run (single create) — source=guest", () => {
     expect(planRoundProgressTransfer([fact({ guestComplete: false })])).toEqual([
-      { tournamentId: "t1", action: "copy", responseComplete: false },
+      { tournamentId: "t1", action: "copy", responseComplete: false, source: "guest" },
     ]);
   });
 
-  it("REFIREs a completed guest run (2-stage → Crown Card regen)", () => {
+  it("REFIREs a completed guest run (2-stage → Crown Card regen) — source=guest", () => {
     expect(planRoundProgressTransfer([fact({ guestComplete: true })])).toEqual([
-      { tournamentId: "t1", action: "refire", responseComplete: true },
+      { tournamentId: "t1", action: "refire", responseComplete: true, source: "guest" },
     ]);
   });
 
-  it("plans each tournament independently", () => {
+  it("plans each tournament independently (mixed guest + existing in one run)", () => {
     const plan = planRoundProgressTransfer([
       fact({ tournamentId: "a", guestComplete: true }),
       fact({ tournamentId: "b", googleExists: true, googleComplete: true }),
       fact({ tournamentId: "c", guestExists: false }),
     ]);
     expect(plan).toEqual([
-      { tournamentId: "a", action: "refire", responseComplete: true },
-      { tournamentId: "b", action: "skip", responseComplete: true },
-      { tournamentId: "c", action: "skip", responseComplete: false },
+      { tournamentId: "a", action: "refire", responseComplete: true, source: "guest" },
+      { tournamentId: "b", action: "skip", responseComplete: true, source: "existing" },
+      { tournamentId: "c", action: "skip", responseComplete: false, source: "existing" },
     ]);
   });
 });
 
+describe("conflictTournamentIds (HF-3.1 — votes on these are DELETED, not re-parented)", () => {
+  it("returns the tids where Google already has a roundProgress (googleExists)", () => {
+    const facts = [
+      fact({ tournamentId: "a", guestComplete: true }), // case 1 — new tournament, non-conflict
+      fact({ tournamentId: "b", googleExists: true, googleComplete: true }), // case 2 — conflict
+      fact({ tournamentId: "c", googleExists: true, googleComplete: false }), // conflict (mid old run)
+    ];
+    expect(conflictTournamentIds(facts)).toEqual(["b", "c"]);
+  });
+
+  it("returns [] when no tournament conflicts (all new — case 1)", () => {
+    expect(
+      conflictTournamentIds([
+        fact({ tournamentId: "a", guestComplete: true }),
+        fact({ tournamentId: "b", guestComplete: false }),
+      ]),
+    ).toEqual([]);
+  });
+});
+
 describe("transferredTournaments (linkSessionVote response payload)", () => {
-  it("maps the plan to { tournamentId, complete } for the landing decision", () => {
+  it("maps the plan to { tournamentId, complete, source } for the landing decision", () => {
     const plan = planRoundProgressTransfer([
       fact({ tournamentId: "a", guestComplete: true }),
-      fact({ tournamentId: "b", guestComplete: false }),
+      fact({ tournamentId: "b", googleExists: true, googleComplete: true }),
     ]);
     expect(transferredTournaments(plan)).toEqual([
-      { tournamentId: "a", complete: true },
-      { tournamentId: "b", complete: false },
+      { tournamentId: "a", complete: true, source: "guest" },
+      { tournamentId: "b", complete: true, source: "existing" },
     ]);
   });
 });
