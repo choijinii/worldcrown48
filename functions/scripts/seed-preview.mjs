@@ -149,11 +149,12 @@ async function deleteArenaTournament(db) {
  */
 const A1_TIDS = [1, 2, 3, 4, 5, 6].map((n) => `a1-preview-${n}`);
 const A1_TOURNAMENTS = [
+  // TX-0: category ids are the new taxonomy (ANIME→ANIME_WEBTOON, MOVIE→HOLLYWOOD).
   { id: A1_TIDS[0], title: "Strikers of the Century", category: "FOOTBALL", status: "active", featured: false },
   { id: A1_TIDS[1], title: "K-Pop Visuals of the Decade", category: "KPOP", status: "active", featured: false },
-  { id: A1_TIDS[2], title: "Greatest Anime Protagonists", category: "ANIME", status: "active", featured: false },
+  { id: A1_TIDS[2], title: "Greatest Anime Protagonists", category: "ANIME_WEBTOON", status: "active", featured: false },
   { id: A1_TIDS[3], title: "Legendary Game Bosses", category: "GAMING", status: "active", featured: false },
-  { id: A1_TIDS[4], title: "Cinema Icons of 2025", category: "MOVIE", status: "draft", featured: false },
+  { id: A1_TIDS[4], title: "Cinema Icons of 2025", category: "HOLLYWOOD", status: "draft", featured: false },
   { id: A1_TIDS[5], title: "Icons of the Year", category: "OTHER", status: "draft", featured: false },
 ];
 
@@ -227,7 +228,7 @@ const SEEDERS = {
     seed: (db) =>
       ensureDoc(db.doc(`tournaments/${DEV_LAB_TID}`), {
         title: "Dev Preview — Lab Draft",
-        category: "K-POP",
+        category: "KPOP",
         status: "draft",
         hostUid: "seed-operator",
         currentRound: 0,
@@ -277,7 +278,7 @@ const ADMIN_TIDS = ["admin-preview-1", "admin-preview-2", "admin-preview-3"];
 const ADMIN_TOURNAMENTS = [
   { id: ADMIN_TIDS[0], title: "Admin Preview — Strikers", category: "FOOTBALL", round: 2 },
   { id: ADMIN_TIDS[1], title: "Admin Preview — K-Pop Visual", category: "KPOP", round: 3 },
-  { id: ADMIN_TIDS[2], title: "Admin Preview — Anime Icons", category: "ANIME", round: 5 },
+  { id: ADMIN_TIDS[2], title: "Admin Preview — Anime Icons", category: "ANIME_WEBTOON", round: 5 },
 ];
 const ADMIN_ALERT_IDS = [
   "admin-preview-alert-high",
