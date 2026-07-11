@@ -116,7 +116,9 @@ PR·핸드오프·시각 검증의 모든 URL은 **branch alias 형식**:
 ❌ https://worldcrown48-{hash}-choijiniis-projects.vercel.app   ← deploy-hash 금지 (stale 고정)
 ```
 
-push 1~3분 후 풋터 deploy timestamp가 최신인지 확인 ([[feedback-deployed-version-stale]]).
+push 1~3분 후 **Vercel 대시보드 → Deployments에서 해당 브랜치 최신 배포의 커밋 SHA가 `git rev-parse HEAD`와 일치하는지** 확인 ([[feedback-deployed-version-stale]]).
+
+> ⚠️ 정정(2026-07-10): 기존 "풋터 deploy timestamp 확인" 문구 삭제 — 풋터에 배포 정보 표시 기능은 코드에 존재하지 않음(components/·app/ grep으로 확인). 풋터 배포 정보 표시 기능 신설 여부는 별도 결정 사항.
 
 ---
 
@@ -134,7 +136,7 @@ PR 본문에 아래 4블록 필수.
 
 ## §15 Definition of Done
 - [ ] Phase 전체 commit + `git push` + 원격 HEAD = 로컬 HEAD
-- [ ] Vercel branch alias URL 새 deploy timestamp 확인
+- [ ] Vercel branch alias 최신 배포 커밋 SHA = 로컬 HEAD 확인 (§13)
 - [ ] PR description에 §14 시각 검증 가이드 포함
 - [ ] CI green (Vitest + Playwright, 모듈 spec 스코프 [[feedback-workflow-spec-scope]])
 - [ ] 디자이너(대표) 시각 점검 통과 (§11.5 Phase D′)

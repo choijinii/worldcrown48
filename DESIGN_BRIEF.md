@@ -1,5 +1,5 @@
 # WorldCrown48 — DESIGN_BRIEF.md
-# v1.3 — 2026-05-27
+# v1.4 — 2026-07-11 (대개편 반영: Bracket Size · Crown Score 랭킹 지표 · Ranking Scope Lock)
 # Claude Design 전용 진입점 (Single Entry Point)
 
 > **이 파일을 가장 먼저 읽으세요.**
@@ -29,6 +29,10 @@
    ROUND OF 12  — 3라운드 (Match 6개)
    ROUND OF 6   — 4라운드 (Match 3개)
    THE FINAL    — 결승 (Match 1개)
+
+✅ Bracket Size (2026-07-11 신규): Voter가 시작 시 12/24/48강 선택 가능.
+   시작 라운드만 달라지며(24강 → ROUND OF 24부터) 라운드명·규칙은 위와 동일.
+   시작 화면에 "총 라운드 선택" UI 필요 — Round HUD 금지 규칙은 그대로 적용.
 
 ❌ Round 카드(Round Card) UI 자체 금지 (v2.3 신규):
    Round는 Voter 개인 진행값이며 DB 독립 문서가 없습니다.
@@ -109,10 +113,21 @@ Voter마다 라운드 진행 속도가 다르기 때문에 전역 라운드 타�
 ❌ 절대 금지: "64% vs 36%"  /  "1,234 votes"  /  숫자 표시 (Match VS 화면)
 ✅ Vote Rate 바(progress bar): 랭킹 화면에서만 허용
 ❌ Match VS 화면(투표 중)에는 Vote Rate 바도 완전 금지
+❌ "1,234 votes" 같은 절대 수치는 랭킹 화면에도 금지 (2026-07-11 — 트래픽 종속 값)
 ```
 
 **근거**: Match 투표 화면에서 실시간 득표율을 보여주면 다수 의견에 쏠리는 편향 효과가 발생합니다.
 Vote Rate는 Voter가 투표를 완료하고 랭킹 화면에서 결과를 확인할 때만 표시합니다.
+
+**✅ 랭킹 화면(Crown Rankings) 확정 지표 (2026-07-11, LANGUAGE.md §13):**
+
+```
+순위 기준 = Crown Score (우승비율×50% + 점유율×50%)
+표시 순서 = 우승비율 → 점유율 → 승률  (% 3종, 절대 수치 없음)
+각 지표에 ? 마크 → 탭하면 산식 설명 툴팁 (산식 공개 원칙)
+사용 범위 = 랭킹 도메인 + AI 뉴스 소재만 (Ranking Scope Lock)
+           배틀(Match VS)·Crown Card에는 절대 사용 금지
+```
 
 ---
 
@@ -164,7 +179,8 @@ Tier 3 (도메인 구현 시):
 | `FIFA` / `Official` 표기 | 상표권 위반 | `Football`, `International` 등 중립 표현 |
 | 한국적 디자인 요소 | 글로벌 MZ Sporty 럭셔리 서비스 | 중립 글로벌 스타일 유지 |
 | `48명의 Contestant` | Contestant = 사람만이 아닌 모든 개체 | `48개의 Contestant` |
-| Vote Count 숫자 노출 | 서비스 정체성 원칙 — 절대 수치 금지 | Vote Rate(%) 바 형태만 허용 |
+| Vote Count 숫자 노출 | 서비스 정체성 원칙 — 절대 수치는 랭킹 포함 어디에도 금지 | 랭킹 도메인에서 % 지표 3종(우승비율·점유율·승률)만 (2026-07-11) |
+| Crown Score를 배틀·Crown Card에 표시 | Ranking Scope Lock 위반 | 랭킹 도메인 + AI 뉴스 소재만 |
 
 ---
 
@@ -244,6 +260,9 @@ Domain 0(Launch Pad) UI 작업 시 반드시 아래 패턴을 적용하세요.
 | Crown Card | 결과 이미지, 결과 카드 |
 | Tournament Deadline | Round Deadline (존재 안 함) |
 | Vote Rate (%) | Vote Count (절대 수치) |
+| Crown Score | 점수, 스코어 (임의 명칭) |
+| Voter Count (참여자 수) | Vote Count와 혼용 |
+| Bracket Size (12/24/48) | 라운드 수, 강 수 (임의 명칭) |
 | `active` | `In Progress` |
 
 ---
@@ -260,4 +279,4 @@ Domain 0(Launch Pad) UI 작업 시 반드시 아래 패턴을 적용하세요.
 
 ---
 
-*© 2026 WorldCrown48 | DESIGN_BRIEF.md v1.3 | CONFIDENTIAL*
+*© 2026 WorldCrown48 | DESIGN_BRIEF.md v1.4 (2026-07-11) | CONFIDENTIAL*

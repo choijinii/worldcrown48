@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 디자인 반영 대기: ① 랭킹 지표 3종(우승비율→점유율→승률)+? 툴팁 ② Bracket Size 선택 UI("총 라운드 선택") ③ 우측 상설 프레임 ④ Pitch 카테고리 섹션형+동적 히어로. 컴포넌트 설계는 디자인 토론 후 반영
+
 # 🎨 WorldCrown48 (월크48) — UI 디자인 시스템 v2.3
 # WC48_DESIGN_SYSTEM_v2.3.md
 # Twilight Stadium Edition — Round Scope Lock + Arena Rule Complete | 2026-05-27 수정 | 작성자: 48티오

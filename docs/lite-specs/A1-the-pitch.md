@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 대체된 것: The Pitch는 **카테고리 섹션형 + 동적 히어로 + 우측 상설 프레임**으로 전면 개편 예정(Pitch 개편 모듈). 본문 레이아웃을 신규 작업 기준으로 사용하지 말 것
+
 # Lite Spec — #7 The Pitch — 트렌딩 대진 피드
 
 > ⚠️ **[2026-05-25 정합성 정정]** 이 문서의 프레임워크·환경변수·폴더 구조·라우팅 표기 중 일부는 구버전(Vite + React Router)입니다. **WorldCrown48의 공식 스택은 Next.js 14 (App Router)입니다** — CLAUDE.md 불변 원칙 #8(스택 고정). 프레임워크·폴더 구조·라우팅의 단일 진실은 `WorldCrown48_ARCHITECTURE.md` + `WC48_CODING_CONTEXT_v1.md`입니다. 이 문서의 화면 구성·컴포넌트·기능 명세 자체는 유효합니다.
@@ -64,7 +69,7 @@ interface TournamentCardProps {
   tournament: Tournament
   onClick: (id: string) => void
 }
-// ✅ 표시 가능: 제목, 카테고리 배지, "LIVE" 뱃지, 썸네일, 남은 기간
+// ✅ 표시 가능: 제목, 카테고리 배지, 썸네일, 남은 기간  (❌ "LIVE" 뱃지 금지 — DESIGN_BRIEF 금지 패턴. 2026-07-11 오염 정정)
 // ❌ 표시 금지: total_votes, voteCount, 참여자 절대 수치
 // hover: border-l-4 border-wc-primary (골드 좌측 보더)
 // 카드 배경: bg-wc-surface, border border-wc-border
