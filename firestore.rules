@@ -302,6 +302,21 @@ service cloud.firestore {
            ]);
     }
 
+    // ── categories (TX-0 Category Taxonomy) ────────────────────────
+    // Public reference data: every client reads the whole collection once on
+    // page load (loadCategories) to drive the Lab dropdown and (later) the
+    // Pitch/Arena category nav. The docs carry no PII (id + locale names +
+    // status/phase/order), so read is fully public — including pre-auth Pitch.
+    //
+    // Write requires the `admin` custom claim: the taxonomy is operated via the
+    // seed/migration scripts (admin SDK, bypasses rules) or a future admin UI. A
+    // Voter must NEVER add, hide, or reorder a category (it would reshape
+    // discovery for everyone), so every client write is denied here.
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
     // ── default deny ───────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

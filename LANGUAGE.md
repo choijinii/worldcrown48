@@ -60,8 +60,8 @@ System Admin
 | **매치** | **Match** | match | 하나의 Round 안에서 두 Contestant이 1:1로 겨루는 투표 단위. Voter에게 **순서대로** 하나씩 제시되며, Voter가 한쪽을 선택하면 다음 Match가 자동으로 나타난다. |
 | **후보** | **Contestant** | contestant | Tournament에 참여하는 투표 대상 (선수, 팀, 캐릭터, 인물, 음식 등 모든 개체). 하나의 Tournament에는 반드시 **48개**의 Contestant이 있음. ⚠️ 사람에 한정되지 않으므로 "48명" 아닌 "48개" 사용. |
 | **투표** | **Vote** | vote | Voter가 하나의 Match에서 두 Contestant 중 하나를 선택하는 행위. |
-| **득표** | **Vote Count** | voteCount | 특정 Contestant이 받은 투표의 합계. 랭킹 화면에는 절대 수치가 아닌 득표율(Vote Rate)만 표시. |
-| **득표율** | **Vote Rate** | voteRate | 전체 투표 중 특정 Contestant이 받은 비율(%). 랭킹에 표시되는 유일한 수치. |
+| **득표** | **Vote Count** | voteCount | 특정 Contestant이 받은 투표의 합계. 랭킹 화면에는 절대 수치가 아닌 득표율(Vote Rate)만 표시. ★ v1.7: **Vote Count(득표 수)와 점수(Crown Score)는 완전히 다른 개념** — §13 참조. 절대 수치는 랭킹에도 표시하지 않음 |
+| **득표율** | **Vote Rate** | voteRate | 전체 투표 중 특정 Contestant이 받은 비율(%). 랭킹에 표시되는 유일한 수치. ★ v1.7: 랭킹 표시 지표가 3종(우승비율·점유율·승률)으로 확장됨 — §13 참조. "점유율"은 Vote Rate의 동의 표기 |
 | **일일 참가 한도** | **Daily Participation Limit** | dailyParticipation | Voter 1명이 **하루(KST 기준)에 새로 참가할 수 있는 Tournament 수 = 5개**. 이미 참가한 Tournament 안에서는 투표 **무제한**(48강 브래킷 구조상 대회당 최대 46표로 자연 상한). 서버가 `daily_participation/${uid}_${date}` 단일 doc(`tournamentIds[]`)으로 원자적 집계. **HF-1 (2026-07-05) 도입** — 폐기된 "Daily Vote Limit(1일 5표)" 개념을 대체. |
 | **우승자** | **Champion** | champion | 최종 결승(Final)에서 Voter가 선택한 최종 1인 Contestant. |
 | **왕관** | **Crown** | crown | Champion에게 수여되는 월크48의 상징. 서비스명 WorldCrown48의 핵심 브랜드 요소. |
@@ -152,7 +152,7 @@ System Admin
 | 정책 허브 | **Policy Hub** | /policies | 이용약관, 개인정보처리방침, 쿠키 정책. |
 | 관리자 대시보드 | **Admin Dashboard** | /admin | System Admin 전용 통합 관리 콘트롤 센터. |
 | 1:1 투표 화면 | **VS Battle View** | /arena/[id] 내부 컴포넌트 | 두 Contestant이 나란히 표시되는 핵심 투표 UI. 순서대로 자동 전환. |
-| 글로벌 랭킹 | **Crown Rankings** | /arena/[id]/rankings | Vote Rate(%)만 표시하는 랭킹 화면. |
+| 글로벌 랭킹 | **Crown Rankings** | /arena/[id]/rankings | Vote Rate(%)만 표시하는 랭킹 화면. ★ v1.7: 표시 지표 = 우승비율·점유율·승률 3종 + Crown Score 순위 (§13) |
 
 ---
 
@@ -390,10 +390,76 @@ LIVE · VOTE RATE · VS
 
 ---
 
+## 13. 신규 용어 — 대개편 (v1.7 추가, 2026-07-11 대표 확정)
+
+> ⛔ 기존 용어(Vote Count · Vote Rate · Round 체계)는 재정의하지 않는다. 아래는 전부 신규 용어다.
+> 상세 결정 경위: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+
+### Category Taxonomy
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Category Taxonomy` |
+| **한국어** | 카테고리 분류 체계 |
+| **정의** | 카테고리를 코드 enum이 아닌 **Firestore `categories` 컬렉션 데이터**로 관리하는 체계. 필드: `id` · `name{ko,en,es}` · `status(hidden\|scheduled\|live)` · `phase` · `order`. 카테고리 추가·숨김·순서 변경 = 배포 없이 데이터 수정 |
+| **런칭 단계** | 1차 KPOP·CREATOR(live) → 2차 KDRAMA·ESPORTS → 3차 ANIME_WEBTOON·GLOBAL_POP·HOLLYWOOD. FOOTBALL·GAMING·OTHER = hidden 보존 |
+| **구현** | TX-0 모듈 (기존 6종 enum 폐지·마이그레이션) |
+
+### ANIME & WEBTOON
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `ANIME & WEBTOON` (카테고리 ID: `ANIME_WEBTOON`) |
+| **정의** | 3차 런칭 신설 **상위 카테고리**. 하위 태그 = ANIME(기존 정의 유지: 일본 애니메이션 한정) · WEBTOON · MANGA |
+| **혼용 금지** | 기존 ANIME 용어를 재정의한 것이 아님 — ANIME은 하위 태그로 원래 정의 그대로 존속 |
+
+### Voter Count
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Voter Count` |
+| **한국어** | 참여자 수 |
+| **정의** | **Tournament에 참여한 Voter의 수.** Vote Count(득표 수)와 **완전히 별개 개념** — 혼용 절대 금지 |
+| **노출 정책** | 노출 허용. The Pitch에서는 배지(HOT·NEW)+순위 우선, 임계치(예: 1,000명) 초과 시 수치 해금. "1,000 Voters 모으기" 등 이벤트 소재로 활용 가능 |
+
+### Crown Score
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Crown Score` |
+| **한국어** | (번역 불가 — 영문 원형 사용) |
+| **정의** | 랭킹 순위를 결정하는 합성 점수. **Crown Score = 우승비율 × 50% + 점유율 × 50%** |
+| **우승비율 (Championship Rate)** | 그 Contestant가 Champion이 된 완주 수 ÷ 전체 완주 수 |
+| **점유율** | Vote Rate(기존 용어)의 동의 표기 — 받은 표 ÷ 대회 전체 표 |
+| **승률 (Win Rate)** | 1:1 Match에서 이긴 횟수 ÷ 대결 횟수. **표시만 하고 Crown Score 산정에는 불포함** |
+| **랭킹 표시** | 순위 옆에 **우승비율 → 점유율 → 승률** 순서로 표시. 각 지표에 **? 마크 툴팁으로 산식 공개** (어뷰징 감지 임계값은 비공개) |
+| **⚠️ Vote Count와의 구분** | **점수(Crown Score) ≠ 득표 수(Vote Count).** Vote Count 절대 수치는 트래픽에 종속된 값이라 랭킹 포함 어디에도 표시하지 않는다. Crown Score와 3지표는 모두 %/비율 기반 |
+
+### Ranking Scope Lock
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Ranking Scope Lock` |
+| **정의** | Crown Score와 랭킹 지표(우승비율·점유율·승률)의 사용 범위 잠금: **랭킹 도메인 + AI 뉴스 기사 소재만 허용.** 매치(VS Battle)·Crown Card 사용 절대 금지 |
+| **관계** | 기존 "Vote Rate는 랭킹 화면에서만" 원칙의 확장판 |
+
+### Bracket Size
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Bracket Size` |
+| **한국어** | 브래킷 규모 |
+| **정의** | Voter가 Tournament 시작 시 선택하는 라운드 규모: **12강 / 24강 / 48강**. 후보 풀은 항상 48개 고정, 선택 규모에 맞춰 무작위 추출 |
+| **구조** | 기존 라운드 경로(48→24→12→6→THE FINAL)의 **중간 진입** — 24강은 ROUND OF 24부터, 12강은 ROUND OF 12부터. 라운드명·전환 규칙 불변 |
+| **혼용 금지** | Tournament의 Contestant 수(48개 고정)와 혼동 금지 — Bracket Size는 Voter의 **1회 완주(run) 단위** 속성 |
+
+---
+
 ## 변경 이력
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v1.7** | **2026-07-11** | **★ §13 신규 — 대개편 용어 6종 등록** (Category Taxonomy · ANIME & WEBTOON · Voter Count · Crown Score · Ranking Scope Lock · Bracket Size). **Vote Count(득표 수) ≠ 점수(Crown Score) 구분 박제.** §2·§5에 v1.7 교차 참조 추가 (기존 정의 무변경) |
 | **v1.6** | **2026-07-08** | **★ §12 신규 — Guest Run 용어 등록 + 금지 표현(게스트 1표·세션 1회 투표) 박제** (HF-3, ADR-0008). "비로그인 1회"의 올바른 의미 = 토너먼트 1개 완주 |
 | **v1.5** | **2026-05-25** | **★ §11 신규 — 뉴스룸 개념 용어 추가** (Newsroom · Keyword News View · AI-Report News View · Fan Intelligence). 대표님 지시(Arena 2칼럼 + The Pitch 뉴스룸) 반영 |
 | **v1.4** | **2026-05-23** | **★ "48명" → "48개" 전면 수정** (Contestant = 사람만이 아님) |
@@ -417,4 +483,4 @@ LIVE · VOTE RATE · VS
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.6 | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.7 (2026-07-11) | CONFIDENTIAL*

@@ -10,8 +10,9 @@
 
 ---
 
-# WorldCrown48 — CLAUDE.md v2.1 (핵심 압축판)
+# WorldCrown48 — CLAUDE.md v2.2 (핵심 압축판)
 # 에이전트 진입점 — 가장 먼저 읽는 파일
+# v2.2 (2026-07-11): 대개편 반영 — Taxonomy·Bracket Size·Crown Score·Ranking Scope Lock
 
 ## ⛔ IMMUTABLE TERMINOLOGY RULE
 RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 용어 생성. 재정의 금지.
@@ -40,6 +41,8 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 
 월크48 = 팬이 좋아하는 Contestant를 투표하는 서비스 (이상형 월드컵 방식)
 절대 금지: 우승자 예측·베팅, 실제 경기 결과 연동, Vote Count(절대 수치) UI 노출
+— Vote Count 절대 수치는 **랭킹 포함 어디에도** 표시하지 않음(트래픽 종속 값이라 무의미).
+   랭킹 도메인은 % 지표만 허용 → 대진 흐름 #8 (Crown Score, 2026-07-11)
 
 ---
 
@@ -67,9 +70,11 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 5. **Round 정보는 라운드 전환 ANNOUNCEMENT에서만 표시**. 매치 화면에는 Round 배지·HUD 없음. (Voter는 관중이 아닌 선수 — "N강 · X/Y" 같은 진행 HUD는 관중 환상)
 6. 라운드명: `ROUND OF 48` → `ROUND OF 24` → `ROUND OF 12` → `ROUND OF 6` → `THE FINAL`
 7. 금지 라운드명: `ROUND OF 16`, `QUARTERFINAL`, `SEMIFINAL` (FIFA 표준 — WC48에 없음)
-8. Vote Count(절대 수치) 금지. Vote Rate(%)는 **랭킹 화면에서만** 허용
+8. Vote Count(절대 수치)는 어디에도 표시 금지. **랭킹 도메인**은 % 지표 3종만 허용: **우승비율 → 점유율(Vote Rate) → 승률** 순서 표시 + 각 지표 **? 마크 툴팁으로 산식 공개**. 순위 기준 = **Crown Score(우승비율×50% + 점유율×50%)** (2026-07-11 대표 확정)
+9. **Ranking Scope Lock (2026-07-11)**: Crown Score·랭킹 지표는 **랭킹 도메인 + AI 뉴스 소재**로만 사용. 매치(배틀)·Crown Card 사용 금지
+10. **Bracket Size (2026-07-11)**: 후보 풀은 항상 48개, **Voter가 시작 시 12/24/48강 선택**(무작위 추출) — 기존 라운드 경로의 중간 진입. 라운드명 체계·규칙 불변
 
-**Voter 전체 흐름:**
+**Voter 전체 흐름 (48강 선택 시 — 24강은 ROUND OF 24부터, 12강은 ROUND OF 12부터 시작):**
 ```
 ROUND OF 48 (24 Match) → ROUND OF 24 (12 Match) → ROUND OF 12 (6 Match)
 → ROUND OF 6 (3 Match) → THE FINAL (3명 중 1명 선택)
@@ -117,6 +122,8 @@ AI:         Claude API (claude-sonnet-4-20250514)
 | Crown Card | 결과 이미지, 결과 카드 |
 | Tournament Deadline | Round Deadline (없는 개념) |
 | Vote Rate (%) | Vote Count (절대 수치) |
+| Crown Score | 점수, 스코어, 랭킹 점수 (임의 명칭) |
+| Voter Count | Vote Count와 혼용 (완전 별개 개념) |
 | `active` | `In Progress` |
 
 ---
@@ -132,4 +139,20 @@ AI:         Claude API (claude-sonnet-4-20250514)
 
 ---
 
-*© 2026 WorldCrown48 | CLAUDE.md v2.0 | CONFIDENTIAL*
+## 🔄 2026-07 대개편 (v2.2 박제 — 상세: outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md v1.2)
+
+| 결정 | 내용 |
+|------|------|
+| **Category Taxonomy** | 카테고리 = 코드 enum이 아닌 **Firestore `categories` 컬렉션 데이터** (status: hidden/scheduled/live · phase · order). 구현 모듈 = TX-0 |
+| **3단계 순차 런칭** | 1차 K-POP·CREATOR(2026-07말~08말) → 2차 K-DRAMA·E-SPORTS(09~10) → 3차 ANIME & WEBTOON·GLOBAL POP·HOLLYWOOD(11~). **FOOTBALL = hidden 대기**(폐기 아님) |
+| **The Pitch = 발견** | 카테고리 섹션형(가로 스크롤 row) + 상단 동적 히어로(인기순, 매치 화면에 Round 배지·수치 없음) |
+| **Arena 홈 = 활동** | 신설 — 이어하기·내 기록·카테고리 nav (Pitch와 역할 분리) |
+| **우측 상설 프레임** | 뉴스뷰+배너: Pitch·Lab·Arena·Locker Room 적용, **매치·Crown Card 제외**. 모바일 = 피드 인라인. Arena 뉴스룸 계획 대체 |
+| **Crown Card** | 팝업화 보류 — **기존 페이지 방식 유지** (SNS 공유 URL이 핵심) |
+| **Bracket Size** | Voter가 시작 시 12/24/48 선택 (풀 48 고정, 무작위 추출) — 대진 흐름 #10 |
+| **Crown Score** | 랭킹 순위 = 우승비율×50% + 점유율×50% — 대진 흐름 #8·#9 |
+| **Voters 이벤트** | Voter Count(참여자 수)는 노출 가능 — "1,000 Voters 모으기" 등 런칭 이벤트 소재 |
+
+---
+
+*© 2026 WorldCrown48 | CLAUDE.md v2.2 (2026-07-11) | CONFIDENTIAL*

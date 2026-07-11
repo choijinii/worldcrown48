@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 대체된 것: 카테고리 체계·런칭 전략 서술은 대개편 이전 기준. 최신은 CLAUDE.md v2.2 「대개편」 섹션 참조
+
 ---
 name: worldcrown48-project-skill
 description: >

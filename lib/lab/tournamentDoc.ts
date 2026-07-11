@@ -40,12 +40,19 @@ export interface ContestantDraft {
 /** A Contestant doc minus the Firestore-owned `id`. */
 export type ContestantDocData = Omit<Contestant, "id">;
 
-export function buildTournamentDoc(input: TournamentInput): TournamentDocData {
+export function buildTournamentDoc(
+  input: TournamentInput,
+  validCategoryIds: readonly string[],
+): TournamentDocData {
   const title = validateTitle(input.title);
   if (!title.isValid) {
     throw new Error("Tournament 제목이 유효하지 않습니다 (1~50자).");
   }
-  if (!isValidCategory(input.category)) {
+  // TX-0: category validity is data-driven — the caller passes the ids loaded
+  // from the `categories` collection (never a hard-coded tuple). This is the
+  // AUTHORITATIVE membership check: a Tournament can only be created with a
+  // known category id, so a bad category never becomes a real Tournament.
+  if (!isValidCategory(input.category, validCategoryIds)) {
     throw new Error(`유효하지 않은 카테고리: ${String(input.category)}`);
   }
   if (!input.hostUid) {

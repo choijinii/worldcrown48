@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { httpsCallable } from "firebase/functions";
 import {
   collection,
@@ -28,7 +28,9 @@ import {
   buildContestantDocs,
   type ContestantDraft,
 } from "@/lib/lab/tournamentDoc";
-import { TOTAL_CONTESTANTS, type Category } from "@/lib/types/tournament";
+import { loadCategories } from "@/lib/taxonomy/loadCategories";
+import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
+import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import { lab } from "./theme";
 import { TitleInput } from "./TitleInput";
 import { CategorySelect } from "./CategorySelect";
@@ -58,11 +60,25 @@ export function TournamentCreator(): JSX.Element {
   const uid = useAuthStore((s) => s.user?.uid) ?? "";
   const [step, setStep] = useState<1 | 2>(1);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<Category | "">("");
+  const [category, setCategory] = useState<string>("");
+  const [categories, setCategories] = useState<CategoryDoc[]>([]);
   const [contestants, setContestants] = useState<ContestantDraft[]>([]);
   const [filling, setFilling] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [listRefresh, setListRefresh] = useState(0);
+
+  // TX-0: categories are DATA — fetch the `categories` collection once (module
+  // cached) and drive the dropdown + the data-driven validation from it.
+  const validCategoryIds = categoryIds(categories);
+  useEffect(() => {
+    let alive = true;
+    void loadCategories().then((cats) => {
+      if (alive) setCategories(cats);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function fillWithAI() {
     if (!category) return;
@@ -121,7 +137,7 @@ export function TournamentCreator(): JSX.Element {
 
       const tRef = doc(collection(db, "tournaments"));
       batch.set(tRef, {
-        ...buildTournamentDoc({ title, category, hostUid: uid }),
+        ...buildTournamentDoc({ title, category, hostUid: uid }, validCategoryIds),
         createdAt: serverTimestamp(),
       });
 
@@ -178,10 +194,15 @@ export function TournamentCreator(): JSX.Element {
       {step === 1 && (
         <div style={{ display: "grid", gap: 20 }}>
           <TitleInput value={title} onChange={setTitle} />
-          <CategorySelect value={category} onChange={setCategory} />
+          <CategorySelect
+            value={category}
+            onChange={setCategory}
+            categories={categories}
+          />
           <AiFillButton
             title={title}
             category={category}
+            validCategoryIds={validCategoryIds}
             busy={filling}
             onClick={fillWithAI}
           />

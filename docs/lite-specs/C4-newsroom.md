@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 대체된 것: **Arena 뉴스룸(2칼럼) 계획은 삭제됨** → 전 화면 **우측 상설 프레임**(Pitch·Lab·Arena·Locker Room, 매치·Crown Card 제외, 모바일 인라인)으로 대체. 뉴스 데이터 파이프라인(GNews·news_cache)과 용어는 유지
+
 # Lite Spec — C4 Newsroom (Keyword News View)
 # Domain 3 THE ARENA — M6 뉴스룸 | 에이전트 C-4 | MVP 1
 # 🆕 신규 생성 — 2026-05-14 | ✏️ v1.1 개정 — 2026-05-25

@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 이 문서는 MVP1 시점의 역사적 기준 문서입니다. 대개편 이후 계획(카테고리 3단계 런칭·Pitch/Arena 홈 개편·Bracket Size·Crown Score)과 충돌하는 부분은 결정 문서 v1.2가 우선
+
 # WorldCrown48 MVP 1 — Product Requirements Document
 # PRD-MVP1 v2.2 | 뉴스룸 2칼럼 + Fan Intelligence 반영 · 문서 정합성 정정
 

@@ -6,9 +6,12 @@ import {
 
 const validInput = {
   title: "  Best Strikers 2026  ",
-  category: "FOOTBALL" as const,
+  category: "FOOTBALL",
   hostUid: "admin-uid-1",
 };
+
+// TX-0: category validity is checked against the loaded id list, not a tuple.
+const VALID_IDS = ["FOOTBALL", "KPOP", "ANIME_WEBTOON", "HOLLYWOOD"];
 
 function drafts(n: number) {
   return Array.from({ length: n }, (_, i) => ({
@@ -22,7 +25,7 @@ function drafts(n: number) {
 
 describe("buildTournamentDoc", () => {
   it("builds the canonical active Tournament document", () => {
-    const doc = buildTournamentDoc(validInput);
+    const doc = buildTournamentDoc(validInput, VALID_IDS);
     expect(doc).toMatchObject({
       title: "Best Strikers 2026", // trimmed
       category: "FOOTBALL",
@@ -37,23 +40,23 @@ describe("buildTournamentDoc", () => {
   });
 
   it("does not stamp id or createdAt (caller owns serverTimestamp)", () => {
-    const doc = buildTournamentDoc(validInput);
+    const doc = buildTournamentDoc(validInput, VALID_IDS);
     expect(doc).not.toHaveProperty("id");
     expect(doc).not.toHaveProperty("createdAt");
   });
 
   it("rejects an invalid category", () => {
     expect(() =>
-      buildTournamentDoc({ ...validInput, category: "WORLD CUP" as never }),
+      buildTournamentDoc({ ...validInput, category: "NOT_A_CATEGORY" }, VALID_IDS),
     ).toThrow();
   });
 
   it("rejects an empty title", () => {
-    expect(() => buildTournamentDoc({ ...validInput, title: "   " })).toThrow();
+    expect(() => buildTournamentDoc({ ...validInput, title: "   " }, VALID_IDS)).toThrow();
   });
 
   it("rejects a missing hostUid", () => {
-    expect(() => buildTournamentDoc({ ...validInput, hostUid: "" })).toThrow();
+    expect(() => buildTournamentDoc({ ...validInput, hostUid: "" }, VALID_IDS)).toThrow();
   });
 });
 

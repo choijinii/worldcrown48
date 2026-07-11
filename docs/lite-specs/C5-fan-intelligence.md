@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 대체된 것: 노출 위치가 Arena 뉴스룸 → **우측 상설 프레임**으로 변경. Crown Score·랭킹 지표는 AI 뉴스 소재로 활용 허용(단 Ranking Scope Lock — 랭킹 도메인+AI뉴스만)
+
 # Lite Spec — C5 Fan Intelligence (AI-Report News)
 # Domain 3 THE ARENA — M7 AI 뉴스 · AI-Report News View | 에이전트 C-5
 # 🆕 신규 생성 — 2026-05-25 | 작성: Claude (Cowork)

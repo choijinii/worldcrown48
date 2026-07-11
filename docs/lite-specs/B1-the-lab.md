@@ -1,3 +1,8 @@
+> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
+> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
+> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
+> 대체된 것: Lab 생성 플로우는 **5단계 개편**(B-2 v2.2, `outputs/handoffs-staging/B2-lab-flow-handoff-v2.2.md`) + 카테고리 데이터화(TX-0)로 대체 예정. B-2 완료 시 이 스펙 갱신됨
+
 # Lite Spec — #8 Admin Lab — Claude API 48명 추천 + 대진 생성
 
 > ⚠️ **[2026-05-25 정합성 정정]** 이 문서의 프레임워크·환경변수·폴더 구조·라우팅 표기 중 일부는 구버전(Vite + React Router)입니다. **WorldCrown48의 공식 스택은 Next.js 14 (App Router)입니다** — CLAUDE.md 불변 원칙 #8(스택 고정). 프레임워크·폴더 구조·라우팅의 단일 진실은 `WorldCrown48_ARCHITECTURE.md` + `WC48_CODING_CONTEXT_v1.md`입니다. 이 문서의 화면 구성·컴포넌트·기능 명세 자체는 유효합니다.
@@ -83,7 +88,7 @@ async function publishTournament() {
 
   batch.set(tournamentRef, {
     title,
-    category: 'FIFA',
+    category: 'KPOP',  // 2026-07-11 정정: 'FIFA'는 유효 카테고리가 아님 + FIFA 표기 금지 원칙 위반
     status: 'active',
     hostUid: user.uid,
     createdAt: serverTimestamp(),

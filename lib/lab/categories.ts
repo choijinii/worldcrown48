@@ -1,16 +1,19 @@
 /**
- * Category runtime helpers (Domain 2 · The Lab).
+ * Category runtime guard (Domain 2 · The Lab) — TX-0 data-driven rewrite.
  *
- * The `Category` union and `CATEGORIES` tuple live in lib/types/tournament so
- * both client and Cloud Function share one source of truth. This module adds
- * the runtime guard used at trust boundaries (Cloud Function input, Firestore
- * write) so a single-sport or typo value can never slip in (trap #4).
+ * Categories are Firestore DATA now (a `categories` collection), so validity is
+ * checked against the list of ids loaded from that collection — never a
+ * hard-coded tuple. This Lab-facing wrapper just delegates to the shared
+ * data-driven guard so the Lab publish path and the AI-Fill gate speak one
+ * vocabulary. The caller supplies the loaded id list (preloaded client cache /
+ * server query), so a typo or single-sport value still can't slip in (trap #4),
+ * and an empty list (a 0-category fetch failure) rejects everything.
  */
-import { CATEGORIES, type Category } from "@/lib/types/tournament";
+import { isValidCategoryId } from "@/lib/taxonomy/category";
 
-export function isValidCategory(value: unknown): value is Category {
-  return (
-    typeof value === "string" &&
-    (CATEGORIES as readonly string[]).includes(value)
-  );
+export function isValidCategory(
+  value: unknown,
+  validIds: readonly string[],
+): value is string {
+  return isValidCategoryId(value, validIds);
 }
