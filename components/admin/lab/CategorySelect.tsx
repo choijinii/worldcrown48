@@ -1,33 +1,39 @@
 /**
- * CategorySelect — the 6-category dropdown (FOOTBALL · KPOP · ANIME · GAMING ·
- * MOVIE · OTHER), driven by the shared CATEGORIES enum (대표 결정 2026-06-20).
+ * CategorySelect — the category dropdown, driven by the `categories` collection
+ * DATA (TX-0), never a hard-coded tuple.
  *
- * Renders exactly the 6 official categories — never a single hard-coded sport
- * like "WORLD CUP 2026" (trap #4). Same enum as the G-1 admin console.
+ * This is an OPERATOR tool, so it lists EVERY category regardless of status
+ * (live · scheduled · hidden) with the status label shown beside each name — the
+ * Lab must let a Host build 2차·3차 (scheduled) content ahead of its public
+ * launch, and keep FOOTBALL/GAMING/OTHER (hidden) reachable (handoff §3 item 4).
+ * Voter-facing status filtering is the Pitch/Arena모듈 몫, not here.
  */
 "use client";
 
-import { CATEGORIES, type Category } from "@/lib/types/tournament";
+import { selectCategories, CATEGORY_STATUSES, type CategoryDoc } from "@/lib/taxonomy/category";
 import { lab } from "./theme";
 
 interface CategorySelectProps {
-  value: Category | "";
-  onChange: (next: Category) => void;
+  value: string;
+  onChange: (next: string) => void;
+  categories: CategoryDoc[];
 }
 
-const LABELS: Record<Category, string> = {
-  FOOTBALL: "⚽ Football",
-  KPOP: "🎤 K-Pop",
-  ANIME: "🎌 Anime",
-  GAMING: "🎮 Gaming",
-  MOVIE: "🎬 Movie",
-  OTHER: "✨ Other",
+/** Operator-facing status label (병기). */
+const STATUS_LABEL: Record<CategoryDoc["status"], string> = {
+  live: "live",
+  scheduled: "scheduled",
+  hidden: "hidden",
 };
 
 export function CategorySelect({
   value,
   onChange,
+  categories,
 }: CategorySelectProps): JSX.Element {
+  // Operator sees all statuses, ordered by `order`.
+  const options = selectCategories(categories, CATEGORY_STATUSES);
+
   return (
     <label style={{ display: "block", fontFamily: lab.font }}>
       <span
@@ -43,8 +49,9 @@ export function CategorySelect({
       </span>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value as Category)}
+        onChange={(e) => onChange(e.target.value)}
         aria-label="카테고리"
+        disabled={options.length === 0}
         style={{
           width: "100%",
           padding: "12px 14px",
@@ -57,11 +64,11 @@ export function CategorySelect({
         }}
       >
         <option value="" disabled>
-          카테고리 선택
+          {options.length === 0 ? "카테고리를 불러오지 못했습니다" : "카테고리 선택"}
         </option>
-        {CATEGORIES.map((c) => (
-          <option key={c} value={c} style={{ color: "#000" }}>
-            {LABELS[c]}
+        {options.map((c) => (
+          <option key={c.id} value={c.id} style={{ color: "#000" }}>
+            {c.name.ko} · {STATUS_LABEL[c.status]}
           </option>
         ))}
       </select>

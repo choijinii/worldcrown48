@@ -47,19 +47,20 @@ describe("buildCrownCardRecord", () => {
     expect(() => buildCrownCardRecord({ ...INPUT, championId: "" })).toThrow(/champion/i);
   });
 
-  it.each(["voterUid", "tournamentId", "imageUrl", "tournamentTitle"] as const)(
+  it.each(["voterUid", "tournamentId", "imageUrl", "tournamentTitle", "tournamentCategory"] as const)(
     "throws when required field %s is empty",
     (field) => {
       expect(() => buildCrownCardRecord({ ...INPUT, [field]: "" })).toThrow();
     },
   );
 
-  it("rejects a category outside the six WC48 categories", () => {
-    expect(() => buildCrownCardRecord({ ...INPUT, tournamentCategory: "ESPORTS" })).toThrow(/category/i);
-  });
-
-  it("accepts every valid WC48 category", () => {
-    for (const cat of ["FOOTBALL", "KPOP", "ANIME", "GAMING", "MOVIE", "OTHER"]) {
+  // TX-0: categories are DATA now, not a 6-value enum. The category rides in
+  // from an already-validated Tournament doc, so the builder only enforces the
+  // shape (non-empty string) — the authoritative id-membership check lives at
+  // Tournament creation (buildTournamentDoc, data-driven). Any real category id
+  // passes through unchanged.
+  it("carries any category id through unchanged (data-driven, no enum)", () => {
+    for (const cat of ["KPOP", "CREATOR", "ANIME_WEBTOON", "HOLLYWOOD", "ESPORTS"]) {
       expect(buildCrownCardRecord({ ...INPUT, tournamentCategory: cat }).tournamentCategory).toBe(cat);
     }
   });

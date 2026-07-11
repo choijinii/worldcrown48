@@ -14,6 +14,8 @@ import { lab } from "./theme";
 interface AiFillButtonProps {
   title: string;
   category: string;
+  /** Ids loaded from the `categories` collection — the data-driven guard list. */
+  validCategoryIds: readonly string[];
   busy: boolean;
   onClick: () => void;
 }
@@ -21,10 +23,14 @@ interface AiFillButtonProps {
 export function AiFillButton({
   title,
   category,
+  validCategoryIds,
   busy,
   onClick,
 }: AiFillButtonProps): JSX.Element {
-  const enabled = validateTitle(title).isValid && isValidCategory(category) && !busy;
+  const enabled =
+    validateTitle(title).isValid &&
+    isValidCategory(category, validCategoryIds) &&
+    !busy;
 
   return (
     <button

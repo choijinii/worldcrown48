@@ -6,12 +6,12 @@
  * here, never spread across callers). The trigger stamps `createdAt`
  * (serverTimestamp) after this builder runs — same split as advanceRound.
  *
- * CATEGORIES is duplicated from the root `lib/types/tournament.ts` because
- * functions cannot import the root lib (separate tsconfig; same boundary
- * precedent as advanceRoundCore's MATCH_COUNT and cors.ts).
+ * TX-0 (2026-07-11): categories are Firestore DATA, not a code enum. The
+ * category rides in from an already-validated Tournament doc, so the builder
+ * enforces only its SHAPE (a non-empty string) — the authoritative id-membership
+ * check lives at Tournament creation (buildTournamentDoc, data-driven). This
+ * keeps the builder's caller contract unchanged and drops the duplicated tuple.
  */
-const CATEGORIES = ["FOOTBALL", "KPOP", "ANIME", "GAMING", "MOVIE", "OTHER"] as const;
-
 export interface CrownCardInput {
   voterUid: string;
   tournamentId: string;
@@ -47,8 +47,8 @@ export function buildCrownCardRecord(input: CrownCardInput): CrownCardRecord {
   if (!tournamentId) throw new Error("crown_cards: tournamentId is required.");
   if (!tournamentTitle) throw new Error("crown_cards: tournamentTitle is required.");
   if (!imageUrl) throw new Error("crown_cards: imageUrl is required.");
-  if (!(CATEGORIES as readonly string[]).includes(tournamentCategory)) {
-    throw new Error(`crown_cards: invalid category "${tournamentCategory}".`);
+  if (typeof tournamentCategory !== "string" || !tournamentCategory) {
+    throw new Error("crown_cards: tournamentCategory is required.");
   }
 
   return {

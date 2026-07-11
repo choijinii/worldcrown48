@@ -14,21 +14,14 @@
  */
 
 /**
- * The six Tournament categories. Multi-genre by design (대표 결정 2026-06-20)
- * — never a single hard-coded sport like "WORLD CUP 2026" (Domain 2 결정,
- * MENTAL_MODEL forbids the FIFA live-event framing). This enum is shared with
- * the G-1 admin console so the two consoles never drift.
+ * A Tournament category id (UPPER_SNAKE, e.g. "KPOP"). TX-0 (2026-07-11):
+ * categories are Firestore DATA (a `categories` collection), NOT a code enum,
+ * so a Tournament just carries the id string. Validity is checked against the
+ * loaded category id list (lib/taxonomy · isValidCategoryId) at every trust
+ * boundary — never a hard-coded tuple. The doc shape lives in
+ * `lib/taxonomy/category.ts` (CategoryDoc). See LANGUAGE.md §13.
  */
-export const CATEGORIES = [
-  "FOOTBALL",
-  "KPOP",
-  "ANIME",
-  "GAMING",
-  "MOVIE",
-  "OTHER",
-] as const;
-
-export type Category = (typeof CATEGORIES)[number];
+export type Category = string;
 
 /** Exactly 48 Contestants per Tournament — the binary tree halves 48→24→12→6→FINAL. */
 export const TOTAL_CONTESTANTS = 48;

@@ -49,15 +49,20 @@ describe("aiFillCore", () => {
     ).rejects.toMatchObject({ reason: "invalid-argument" });
   });
 
-  it("throws invalid-argument for a non-enum category", async () => {
+  // TX-0: categories are DATA, not an enum. aiFillCore only builds a prompt, so
+  // it enforces category SHAPE (non-empty string); the authoritative id check is
+  // at Tournament creation (buildTournamentDoc), so a bad category can never
+  // become a real Tournament. An empty/blank category is still rejected BEFORE
+  // the model is called (cost guard, trap #10).
+  it("throws invalid-argument for a blank category", async () => {
     await expect(
-      aiFillCore({ ...validInput, category: "WORLD CUP 2026" }, okDeps),
+      aiFillCore({ ...validInput, category: "   " }, okDeps),
     ).rejects.toMatchObject({ reason: "invalid-argument" });
   });
 
   it("does NOT call the model when validation fails (cost guard, trap #10)", async () => {
     const createMessage = vi.fn(async () => fakeArray(48));
-    await aiFillCore({ ...validInput, category: "BAD" }, { createMessage }).catch(
+    await aiFillCore({ ...validInput, category: "" }, { createMessage }).catch(
       () => {},
     );
     expect(createMessage).not.toHaveBeenCalled();

@@ -10,31 +10,20 @@
  * runs BEFORE the model is called, so a malformed request never spends a
  * paid Claude token.
  *
- * Category list is duplicated here (server-owned) — functions can't import the
- * root lib/; same boundary precedent as cors.ts.
+ * TX-0 (2026-07-11): categories are Firestore DATA, not a code enum. aiFillCore
+ * only builds a prompt from the category, so it enforces the SHAPE (a non-empty
+ * string) — the authoritative id-membership check lives at Tournament creation
+ * (buildTournamentDoc, data-driven), so a bad category can never become a real
+ * Tournament. This keeps the pure core free of any Firestore read and its caller
+ * contract unchanged, and drops the duplicated tuple.
  */
 import {
   parseAiContestants,
   type AiContestantSuggestion,
 } from "./parseContestants";
 
-export const CATEGORIES = [
-  "FOOTBALL",
-  "KPOP",
-  "ANIME",
-  "GAMING",
-  "MOVIE",
-  "OTHER",
-] as const;
-
-export type Category = (typeof CATEGORIES)[number];
-
-export function isValidCategory(value: unknown): value is Category {
-  return (
-    typeof value === "string" &&
-    (CATEGORIES as readonly string[]).includes(value)
-  );
-}
+/** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
+export type Category = string;
 
 const TITLE_MAX = 50;
 
@@ -95,13 +84,15 @@ export async function aiFillCore(
       `title은 ${TITLE_MAX}자 이하여야 합니다.`,
     );
   }
-  if (!isValidCategory(input.category)) {
+  const category =
+    typeof input.category === "string" ? input.category.trim() : "";
+  if (!category) {
     throw new AiFillError("invalid-argument", "유효한 category가 필요합니다.");
   }
 
   let text: string;
   try {
-    text = await deps.createMessage(buildPrompt(title, input.category));
+    text = await deps.createMessage(buildPrompt(title, category));
   } catch {
     throw new AiFillError("ai-failed", "AI 호출에 실패했습니다.");
   }
