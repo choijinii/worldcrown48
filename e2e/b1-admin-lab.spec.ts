@@ -1,7 +1,8 @@
 /**
  * B-1 The Lab critical-path E2E (handoff §11.2 / §11.4).
  *
- * Flow under test: operator gate → Tournament 생성 → featured 토글 → 삭제.
+ * Flow under test (B-2 5-step): operator gate → STEP 1 (제목·카테고리·키워드·
+ * Deadline, 다음 게이트) → STEP 2 채우기 → publish → Arena 링크 → featured → 삭제.
  *
  * Auth: global-setup hydrates storageState for the OPERATOR account — the
  * preview's NEXT_PUBLIC_ADMIN_UID MUST equal that user's uid or AdminAuthGuard
@@ -50,7 +51,7 @@ function fakeContestants() {
   }));
 }
 
-/** Stub the Firebase callable so no real Claude call happens. */
+/** Stub the Firebase callables so no real Claude call happens (B-2 5-step flow). */
 async function stubAiFill(page: Page) {
   await page.route("**/aiFillContestants*", async (route) => {
     await route.fulfill({
@@ -58,6 +59,20 @@ async function stubAiFill(page: Page) {
       contentType: "application/json",
       // onCall v2 wire format: the SDK reads the top-level `result`.
       body: JSON.stringify({ result: { contestants: fakeContestants() } }),
+    });
+  });
+  // Publish translates title/description once — stub so no Claude call / console
+  // noise. (translateMeta would otherwise fall back to the original silently.)
+  await page.route("**/translateTournamentMeta*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        result: {
+          titleI18n: { ko: "E2E Tournament", en: "E2E Tournament", es: "E2E Tournament" },
+          descriptionI18n: { ko: "", en: "", es: "" },
+        },
+      }),
     });
   });
 }
@@ -108,18 +123,29 @@ test.describe("B-1 The Lab — operator critical path", () => {
     ).toBeVisible();
   });
 
-  test("create → featured → delete", async ({ page }) => {
+  test("STEP 1 (제목·카테고리·키워드·Deadline) → STEP 2 fill → publish → Arena 링크 → delete", async ({
+    page,
+  }) => {
     await stubAiFill(page);
     await page.goto("/admin/lab");
 
-    // Step 1 — title + category enables AI Fill.
+    // STEP 1 — the 다음 button is the gate. It stays disabled until ①②④⑤ are met,
+    // WITHOUT any AI call (핵심 AC#1: a hand-typed keyword is enough).
+    const next = page.getByTestId("lab-next-button");
+    await expect(next).toBeDisabled();
+
     await page.getByLabel("Tournament 제목").fill("E2E Tournament");
     await page.getByLabel("카테고리").selectOption("FOOTBALL");
-    const fill = page.getByRole("button", { name: /48명 추천/ });
-    await expect(fill).toBeEnabled();
-    await fill.click();
+    // Keyword typed by hand (no aiSuggestKeywords call) → satisfies ④.
+    await page.getByLabel("키워드 추가").fill("e2e-keyword");
+    await page.getByLabel("키워드 추가").press("Enter");
+    await expect(page.getByTestId("keyword-chip")).toHaveText(/e2e-keyword/);
+    // ⑤ Deadline defaults to the +7d preset, so the gate now opens.
+    await expect(next).toBeEnabled();
+    await next.click();
 
-    // Step 2 — 48 nodes filled from the stub → Publish enabled.
+    // STEP 2 — fill all 48 from the stub → Publish enabled.
+    await page.getByTestId("fill-all-button").click();
     await expect(page.getByTestId("contestant-grid")).toBeVisible();
     const publish = page.getByRole("button", { name: /토너먼트 생성 \(48\/48\)/ });
     await expect(publish).toBeEnabled();
@@ -133,7 +159,16 @@ test.describe("B-1 The Lab — operator critical path", () => {
 
     // Record the id for cleanup.
     const testId = await row.getAttribute("data-testid");
-    if (testId) createdTournamentIds.push(testId.replace("tournament-row-", ""));
+    const newId = testId?.replace("tournament-row-", "");
+    if (newId) createdTournamentIds.push(newId);
+
+    // AC#5 — "Arena에서 보기" links straight to /arena/{id}.
+    if (newId) {
+      await expect(row.getByTestId(`arena-link-${newId}`)).toHaveAttribute(
+        "href",
+        `/arena/${newId}`,
+      );
+    }
 
     // featured toggle → star fills.
     await row.getByRole("button", { name: /Feature/ }).click();
