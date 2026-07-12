@@ -40,7 +40,10 @@ function toStr(v: unknown): string {
   return typeof v === "string" ? v : v == null ? "" : String(v);
 }
 
-export function parseAiContestants(text: string): AiContestantSuggestion[] {
+export function parseAiContestants(
+  text: string,
+  expectedCount: number = TOTAL_CONTESTANTS,
+): AiContestantSuggestion[] {
   const match = text.match(/\[[\s\S]*\]/);
   let parsed: unknown;
   try {
@@ -59,10 +62,11 @@ export function parseAiContestants(text: string): AiContestantSuggestion[] {
     );
   }
 
-  if (parsed.length !== TOTAL_CONTESTANTS) {
+  // Full fill expects 48; blank-only fill (B-2) requests just the missing count.
+  if (parsed.length !== expectedCount) {
     throw new ContestantParseError(
       "wrong_count",
-      `정확히 ${TOTAL_CONTESTANTS}명이 필요합니다 (받음: ${parsed.length}).`,
+      `정확히 ${expectedCount}명이 필요합니다 (받음: ${parsed.length}).`,
       parsed.length,
     );
   }

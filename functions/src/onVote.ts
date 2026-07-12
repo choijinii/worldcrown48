@@ -21,6 +21,7 @@ import { ALLOWED_ORIGINS } from "./cors";
 import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 import { decideParticipation, participationDocId } from "./core/participation";
 import { decideGuestVoteGuard, type GuestVoteFacts } from "./core/guestVoteGuard";
+import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
 
 /**
  * Guest Run server guard (HF-3 W3, AC7). For an anonymous caller, gather the two
@@ -92,9 +93,12 @@ export const onVote = onCall(
       throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
     }
     if (!checkRateLimit(uid, Date.now())) {
+      // #12: the message is a dev/log fallback — the client localizes off
+      // details.code (rate_limited), never off this string.
       throw new HttpsError(
         "resource-exhausted",
         "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+        { code: VOTE_ERROR_CODES.RATE_LIMITED },
       );
     }
 
@@ -160,9 +164,12 @@ export const onVote = onCall(
         tournamentId: doc.tournamentId,
       });
       if (decision.status === "limit_reached") {
+        // #12: was a hardcoded Korean message (leaked to en/es Voters). Now the
+        // client maps details.code=daily_limit → localized toast (ko/en/es).
         throw new HttpsError(
           "resource-exhausted",
-          "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
+          "daily participation limit reached",
+          { code: VOTE_ERROR_CODES.DAILY_LIMIT },
         );
       }
       // Writes: record the participation slot only when joining a NEW Tournament.

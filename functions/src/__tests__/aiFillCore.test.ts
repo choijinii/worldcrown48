@@ -83,4 +83,52 @@ describe("aiFillCore", () => {
       aiFillCore(validInput, { createMessage }),
     ).rejects.toBeInstanceOf(ContestantParseError);
   });
+
+  it("injects description + keywords as prompt hints when provided", async () => {
+    const createMessage = vi.fn(async () => fakeArray(48));
+    await aiFillCore(
+      { ...validInput, description: "글로벌 톱 스트라이커", keywords: ["goal", "speed"] },
+      { createMessage },
+    );
+    const prompt = createMessage.mock.calls[0][0];
+    expect(prompt).toContain("글로벌 톱 스트라이커");
+    expect(prompt).toContain("goal");
+    expect(prompt).toContain("speed");
+  });
+
+  describe("blank-only mode (existing[])", () => {
+    it("requests only the missing count and excludes existing names", async () => {
+      const createMessage = vi.fn(async () => fakeArray(1));
+      const existing = Array.from({ length: 47 }, (_, i) => `P${i + 1}`);
+      const result = await aiFillCore(
+        { ...validInput, existing },
+        { createMessage },
+      );
+      expect(result).toHaveLength(1); // only the 1 blank
+      const prompt = createMessage.mock.calls[0][0];
+      expect(prompt).toContain("P1"); // exclusion list injected
+      expect(prompt).toContain("47"); // already-have count referenced
+    });
+
+    it("rejects when there are no blanks to fill (existing >= 48)", async () => {
+      const createMessage = vi.fn(async () => fakeArray(48));
+      const existing = Array.from({ length: 48 }, (_, i) => `P${i + 1}`);
+      await expect(
+        aiFillCore({ ...validInput, existing }, { createMessage }),
+      ).rejects.toMatchObject({ reason: "invalid-argument" });
+      expect(createMessage).not.toHaveBeenCalled(); // cost guard
+    });
+  });
+
+  it("logs the original error via logError before throwing ai-failed", async () => {
+    const original = new Error("anthropic 500");
+    const createMessage = vi.fn(async () => {
+      throw original;
+    });
+    const logError = vi.fn();
+    await expect(
+      aiFillCore(validInput, { createMessage, logError }),
+    ).rejects.toMatchObject({ reason: "ai-failed" });
+    expect(logError).toHaveBeenCalledWith(expect.any(String), original);
+  });
 });

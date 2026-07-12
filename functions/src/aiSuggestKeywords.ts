@@ -1,60 +1,59 @@
 /**
- * aiFillContestants — callable Cloud Function (Domain 2 · The Lab, Step 1).
+ * aiSuggestKeywords — callable Cloud Function (Domain 2 · The Lab, STEP 1, B-2).
  *
- * Thin adapter around aiFillCore: it owns the Firebase/Anthropic wiring and
- * leaves all logic (validation, prompt, parsing) to the unit-tested core.
+ * Thin adapter around aiSuggestKeywordsCore: owns the Firebase/Anthropic wiring,
+ * leaves validation/prompt/parse to the unit-tested core. Mirrors the
+ * aiFillContestants conventions exactly (secret, CORS, per-uid rate limit, cost
+ * guard) — the ONLY differences are the Haiku model (cheap/fast for short output)
+ * and the returned shape.
  *
- *   request.data:  { title: string, category: Category }
- *   returns:       { contestants: AiContestantSuggestion[48] }
- *
- * Conventions mirrored from hashIp (index.ts):
- *   - Functions v2 callable, inherits global maxInstances=10 + Seoul region.
- *   - cors: ALLOWED_ORIGINS (shared list).
- *   - Secret via defineSecret — set with:
- *       firebase functions:secrets:set ANTHROPIC_API_KEY
- *     (NOT a .env file; matches the IP_HASH_SALT pattern.)
- *
- * Cost defense (handoff §9 trap #10): auth + per-uid rate limit run BEFORE the
- * secret is read or the model is called, so a flood spends no Claude tokens.
- * Per-minute in-memory limit (5/uid/min/instance). A cross-instance DAILY cap
- * (50/day) needs a Firestore counter and is tracked as a follow-up — noted in
- * the PR so it isn't silently dropped.
+ *   request.data:  { title: string, category: string, description?: string }
+ *   returns:       { keywords: string[8..12] }
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { logger } from "firebase-functions";
 import Anthropic from "@anthropic-ai/sdk";
 import { ALLOWED_ORIGINS } from "./cors";
-import { aiFillCore, AiFillError } from "./core/aiFillCore";
-import { ContestantParseError } from "./core/parseContestants";
-import { SONNET_MODEL } from "./core/models";
+import {
+  aiSuggestKeywordsCore,
+  SuggestKeywordsError,
+} from "./core/aiSuggestKeywordsCore";
+import { HAIKU_MODEL } from "./core/models";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
-const AI_MAX_TOKENS = 4096;
+const KW_MAX_TOKENS = 512;
 
-// Per-uid token bucket — 5 calls / uid / minute / instance (trap #10).
-const AI_RATE_LIMIT = 5;
-const AI_RATE_WINDOW_MS = 60_000;
+// Per-uid token bucket — 5 calls / uid / minute / instance (trap #10). Same
+// algorithm as aiFillContestants; kept separate so keyword + fill quotas don't
+// starve each other.
+const KW_RATE_LIMIT = 5;
+const KW_RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
 
-function checkUidRateLimit(uid: string, now: number): boolean {
+export function checkUidRateLimit(uid: string, now: number): boolean {
   const bucket = uidBuckets.get(uid);
-  if (!bucket || now - bucket.windowStart >= AI_RATE_WINDOW_MS) {
+  if (!bucket || now - bucket.windowStart >= KW_RATE_WINDOW_MS) {
     uidBuckets.set(uid, { count: 1, windowStart: now });
     return true;
   }
   bucket.count += 1;
-  return bucket.count <= AI_RATE_LIMIT;
+  return bucket.count <= KW_RATE_LIMIT;
 }
 
-export const aiFillContestants = onCall(
+/** Test-only — clears the per-instance buckets between cases. */
+export function __resetKwRateBucketsForTest(): void {
+  uidBuckets.clear();
+}
+
+export const aiSuggestKeywords = onCall(
   {
     secrets: [ANTHROPIC_API_KEY],
     cors: ALLOWED_ORIGINS,
-    timeoutSeconds: 60,
+    timeoutSeconds: 30,
   },
-  async (req): Promise<{ contestants: unknown[] }> => {
+  async (req): Promise<{ keywords: string[] }> => {
     const uid = req.auth?.uid;
     if (!uid) {
       throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
@@ -78,8 +77,8 @@ export const aiFillContestants = onCall(
     const anthropic = new Anthropic({ apiKey });
     const createMessage = async (prompt: string): Promise<string> => {
       const resp = await anthropic.messages.create({
-        model: SONNET_MODEL,
-        max_tokens: AI_MAX_TOKENS,
+        model: HAIKU_MODEL,
+        max_tokens: KW_MAX_TOKENS,
         messages: [{ role: "user", content: prompt }],
       });
       const block = resp.content[0];
@@ -87,20 +86,18 @@ export const aiFillContestants = onCall(
     };
 
     try {
-      const contestants = await aiFillCore(
+      const keywords = await aiSuggestKeywordsCore(
         {
           uid,
           title: req.data?.title,
           category: req.data?.category,
           description: req.data?.description,
-          keywords: req.data?.keywords,
-          existing: req.data?.existing,
         },
         { createMessage, logError: (msg, e) => logger.error(msg, e) },
       );
-      return { contestants };
+      return { keywords };
     } catch (e) {
-      if (e instanceof AiFillError) {
+      if (e instanceof SuggestKeywordsError) {
         const code =
           e.reason === "unauthenticated"
             ? "unauthenticated"
@@ -108,12 +105,6 @@ export const aiFillContestants = onCall(
               ? "invalid-argument"
               : "internal";
         throw new HttpsError(code, e.message);
-      }
-      if (e instanceof ContestantParseError) {
-        throw new HttpsError(
-          "internal",
-          `AI 추천 결과 처리 실패 (${e.reason}). 다시 시도해주세요.`,
-        );
       }
       throw new HttpsError("internal", "알 수 없는 오류. 다시 시도해주세요.");
     }

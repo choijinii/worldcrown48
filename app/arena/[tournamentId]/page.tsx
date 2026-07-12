@@ -19,6 +19,8 @@ import { getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
 import { useVoteGate } from "@/lib/voteGate";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/useT";
+import { voteErrorMessageKey } from "@/lib/voteErrorCodes";
 import { LoginModal, type LoginReason } from "@/components/auth/LoginModal";
 import type { Contestant } from "@/lib/types/tournament";
 import {
@@ -59,6 +61,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ArenaPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
+  const { t } = useT();
   const user = useAuthStore((s) => s.user);
   const uid = user?.uid;
   // Share/download require a real (non-anonymous) sign-in (AC-9/10).
@@ -124,19 +127,16 @@ export default function ArenaPage(): JSX.Element {
         if (code === "functions/permission-denied") {
           setModal("vote");
         } else {
-          showToast(
-            code === "functions/resource-exhausted"
-              ? "잠시 후 다시 시도해주세요."
-              : "투표에 실패했어요. 다시 시도해주세요.",
-            "error",
-          );
+          // #12: localize off the server's details.code (daily_limit /
+          // rate_limited) — no more hardcoded Korean for en/es Voters.
+          showToast(t(voteErrorMessageKey(e)), "error");
         }
       } finally {
         setSubmitting(false);
         setPickedId(null);
       }
     },
-    [tournamentId, submitting, checkCanVote, addVote, onVoteSuccess],
+    [tournamentId, submitting, checkCanVote, addVote, onVoteSuccess, t],
   );
 
   const loginModal = (

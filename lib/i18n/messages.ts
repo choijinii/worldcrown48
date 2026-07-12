@@ -189,6 +189,25 @@ export const MESSAGES = {
     es: "Ya completaste este Tournament con esta cuenta — aquí está tu registro anterior.",
   },
   "champion.returning.dismiss": { ko: "닫기", en: "Dismiss", es: "Cerrar" },
+
+  // ── Arena vote errors (Domain 3, castVote) — #12 3-language mapping ──
+  // Server sends a stable details.code; the client resolves the localized toast
+  // (no more hardcoded Korean from onVote). "Tournament" stays verbatim.
+  "arena.vote.dailyLimit": {
+    ko: "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
+    en: "You've joined all 5 Tournaments for today (5/5)",
+    es: "Ya has participado en los 5 Tournaments de hoy (5/5)",
+  },
+  "arena.vote.rateLimited": {
+    ko: "잠시 후 다시 시도해주세요.",
+    en: "Please try again in a moment.",
+    es: "Vuelve a intentarlo en un momento.",
+  },
+  "arena.vote.failed": {
+    ko: "투표에 실패했어요. 다시 시도해주세요.",
+    en: "Your vote didn't go through. Please try again.",
+    es: "No se registró tu voto. Inténtalo de nuevo.",
+  },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;

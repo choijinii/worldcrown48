@@ -44,6 +44,21 @@ describe("parseAiContestants (functions)", () => {
     ]);
   });
 
+  it("accepts an explicit expectedCount (blank-only fill requests fewer)", () => {
+    // 47칸 채우고 빈칸만 AI → 1명만 요청/파싱 (§8 edge).
+    expect(parseAiContestants(fakeArray(1), 1)).toHaveLength(1);
+    expect(parseAiContestants(fakeArray(5), 5)).toHaveLength(5);
+  });
+
+  it("wrong_count is measured against expectedCount, not always 48", () => {
+    try {
+      parseAiContestants(fakeArray(48), 1);
+    } catch (e) {
+      expect((e as ContestantParseError).reason).toBe("wrong_count");
+      expect((e as ContestantParseError).received).toBe(48);
+    }
+  });
+
   it("throws unparseable / not_array / wrong_count with reasons", () => {
     expect(() => parseAiContestants("nope")).toThrowError(ContestantParseError);
     try {
