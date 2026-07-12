@@ -184,7 +184,7 @@ export const MESSAGES = {
   // HF-3.1 W3 — shown once when a returning guest lands on a CONFLICT card (an
   // account that already finished this Tournament). "Tournament" stays verbatim.
   "champion.returning.banner": {
-    ko: "이 Tournament은 이미 이 계정으로 완주하셨어요 — 기존 기록을 보여드려요.",
+    ko: "이 Tournament는 이미 이 계정으로 완주하셨어요 — 기존 기록을 보여드려요.",
     en: "You've already finished this Tournament on this account — here's your existing record.",
     es: "Ya completaste este Tournament con esta cuenta — aquí está tu registro anterior.",
   },

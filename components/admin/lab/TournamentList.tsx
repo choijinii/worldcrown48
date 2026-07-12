@@ -10,6 +10,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   collection,
   doc,
@@ -159,6 +160,24 @@ export function TournamentList({
                   {r.category} · {r.status} · {r.totalContestants}명 · {fmt(r.createdAt)}
                 </div>
               </div>
+
+              <Link
+                href={`/arena/${r.id}`}
+                data-testid={`arena-link-${r.id}`}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  border: `1px solid ${lab.turquoise}`,
+                  background: "transparent",
+                  color: lab.turquoise,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Arena에서 보기 →
+              </Link>
 
               <button
                 type="button"

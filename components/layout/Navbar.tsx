@@ -99,15 +99,14 @@ export function Navbar(): JSX.Element {
           <LabIcon />
           <span>The Lab</span>
         </Link>
-        <button
-          type="button"
+        <Link
+          href="/account"
           className="wc-nav-item"
-          aria-disabled="true"
-          onClick={() => setSheetOpen(true)}
+          aria-current={pathname === "/account" ? "true" : undefined}
         >
           <LockerIcon />
           <span>Locker Room</span>
-        </button>
+        </Link>
         <Link
           href="/"
           className="wc-nav-cta"
