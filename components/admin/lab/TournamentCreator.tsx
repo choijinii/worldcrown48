@@ -17,6 +17,7 @@ import {
   collection,
   doc,
   serverTimestamp,
+  Timestamp,
   writeBatch,
 } from "firebase/firestore";
 import { getDb, getFunctionsInstance } from "@/lib/firebase";
@@ -136,9 +137,27 @@ export function TournamentCreator(): JSX.Element {
       const batch = writeBatch(db);
 
       const tRef = doc(collection(db, "tournaments"));
+      // TODO(B-2 Phase 3/4): replace this temporary wiring with real form state
+      // (keyword chips, description textarea, deadline picker, translated
+      // titleI18n). Schema (Phase 1) is in place; the STEP 1 UI lands next.
+      const nowMs = Date.now();
+      const deadlineMs = nowMs + 7 * 86_400_000;
       batch.set(tRef, {
-        ...buildTournamentDoc({ title, category, hostUid: uid }, validCategoryIds),
+        ...buildTournamentDoc(
+          {
+            title,
+            titleI18n: { ko: title, en: title, es: title },
+            description: { ko: "", en: "", es: "" },
+            keywords: [title.trim()],
+            category,
+            hostUid: uid,
+            deadlineMs,
+          },
+          validCategoryIds,
+          nowMs,
+        ),
         createdAt: serverTimestamp(),
+        tournamentDeadline: Timestamp.fromMillis(deadlineMs),
       });
 
       for (const c of buildContestantDocs(tRef.id, uid, contestants)) {

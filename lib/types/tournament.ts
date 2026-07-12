@@ -40,9 +40,27 @@ export interface TournamentSettings {
   showRanking: boolean;
 }
 
+/**
+ * A ko/en/es string bundle. B-2 (2026-07-11): title·description are translated
+ * once at publish (Haiku) and STORED here — consumption stays each module's job
+ * (same "store, don't consume" contract as `keywords`). All three slots are
+ * populated (the untranslated ones fall back to the original input), so a reader
+ * always has a value. `title` (the flat original) is kept for back-compat with
+ * every existing read site (Arena/Pitch/Launch/Crown) — this is ADDITIVE, not a
+ * migration. See handoff §3 / 대표 결정 #3.
+ */
+export interface LocalizedText {
+  ko: string;
+  en: string;
+  es: string;
+}
+
 export interface Tournament {
   id: string;
-  title: string; // max 50 chars
+  title: string; // max 50 chars — flat ORIGINAL input, unchanged for back-compat
+  titleI18n: LocalizedText; // B-2: additive 3-language title (translated at publish)
+  description: LocalizedText; // B-2: participant-scope blurb, 3 languages (may be empty strings)
+  keywords: string[]; // B-2: ≤12, each ≤30 chars — AI-fill hint + C-4 news + C-5 Fan Intelligence
   category: Category;
   status: TournamentStatus;
   hostUid: string;

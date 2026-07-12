@@ -4,10 +4,25 @@ import {
   buildContestantDocs,
 } from "@/lib/lab/tournamentDoc";
 
+const NOW = 1_752_000_000_000;
+const DAY = 86_400_000;
+
 const validInput = {
   title: "  Best Strikers 2026  ",
+  titleI18n: {
+    ko: "Best Strikers 2026",
+    en: "Best Strikers 2026",
+    es: "Best Strikers 2026",
+  },
+  description: {
+    ko: "최고의 공격수",
+    en: "The best strikers",
+    es: "Los mejores delanteros",
+  },
+  keywords: ["  striker ", "goal", "striker"], // trims + dedupes → 2
   category: "FOOTBALL",
   hostUid: "admin-uid-1",
+  deadlineMs: NOW + 7 * DAY,
 };
 
 // TX-0: category validity is checked against the loaded id list, not a tuple.
@@ -25,7 +40,7 @@ function drafts(n: number) {
 
 describe("buildTournamentDoc", () => {
   it("builds the canonical active Tournament document", () => {
-    const doc = buildTournamentDoc(validInput, VALID_IDS);
+    const doc = buildTournamentDoc(validInput, VALID_IDS, NOW);
     expect(doc).toMatchObject({
       title: "Best Strikers 2026", // trimmed
       category: "FOOTBALL",
@@ -33,30 +48,66 @@ describe("buildTournamentDoc", () => {
       hostUid: "admin-uid-1",
       currentRound: 1,
       totalContestants: 48,
-      tournamentDeadline: null,
       featured: false,
       settings: { aiNews: false, multiLang: false, showRanking: true },
     });
   });
 
+  it("stores the additive 3-language title + description + keywords", () => {
+    const doc = buildTournamentDoc(validInput, VALID_IDS, NOW);
+    expect(doc.title).toBe("Best Strikers 2026"); // flat original preserved
+    expect(doc.titleI18n).toEqual({
+      ko: "Best Strikers 2026",
+      en: "Best Strikers 2026",
+      es: "Best Strikers 2026",
+    });
+    expect(doc.description).toEqual({
+      ko: "최고의 공격수",
+      en: "The best strikers",
+      es: "Los mejores delanteros",
+    });
+    expect(doc.keywords).toEqual(["striker", "goal"]); // trimmed + deduped
+  });
+
+  it("passes through the validated deadline (caller stamps the Timestamp)", () => {
+    const doc = buildTournamentDoc(validInput, VALID_IDS, NOW);
+    expect(doc.tournamentDeadline).toBe(NOW + 7 * DAY);
+  });
+
   it("does not stamp id or createdAt (caller owns serverTimestamp)", () => {
-    const doc = buildTournamentDoc(validInput, VALID_IDS);
+    const doc = buildTournamentDoc(validInput, VALID_IDS, NOW);
     expect(doc).not.toHaveProperty("id");
     expect(doc).not.toHaveProperty("createdAt");
   });
 
   it("rejects an invalid category", () => {
     expect(() =>
-      buildTournamentDoc({ ...validInput, category: "NOT_A_CATEGORY" }, VALID_IDS),
+      buildTournamentDoc({ ...validInput, category: "NOT_A_CATEGORY" }, VALID_IDS, NOW),
     ).toThrow();
   });
 
   it("rejects an empty title", () => {
-    expect(() => buildTournamentDoc({ ...validInput, title: "   " }, VALID_IDS)).toThrow();
+    expect(() =>
+      buildTournamentDoc({ ...validInput, title: "   " }, VALID_IDS, NOW),
+    ).toThrow();
   });
 
   it("rejects a missing hostUid", () => {
-    expect(() => buildTournamentDoc({ ...validInput, hostUid: "" }, VALID_IDS)).toThrow();
+    expect(() =>
+      buildTournamentDoc({ ...validInput, hostUid: "" }, VALID_IDS, NOW),
+    ).toThrow();
+  });
+
+  it("rejects zero keywords (at least one required)", () => {
+    expect(() =>
+      buildTournamentDoc({ ...validInput, keywords: [] }, VALID_IDS, NOW),
+    ).toThrow();
+  });
+
+  it("rejects a past deadline", () => {
+    expect(() =>
+      buildTournamentDoc({ ...validInput, deadlineMs: NOW - 1 }, VALID_IDS, NOW),
+    ).toThrow();
   });
 });
 
