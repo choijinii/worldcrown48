@@ -390,7 +390,7 @@ LIVE · VOTE RATE · VS
 
 ---
 
-## 13. 신규 용어 — 대개편 (v1.7 추가, 2026-07-11 대표 확정)
+## 13. 신규 용어 — 대개편 (v1.7 추가, 2026-07-11 대표 확정 · v1.8 Tournament Keywords 추가)
 
 > ⛔ 기존 용어(Vote Count · Vote Rate · Round 체계)는 재정의하지 않는다. 아래는 전부 신규 용어다.
 > 상세 결정 경위: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
@@ -453,12 +453,23 @@ LIVE · VOTE RATE · VS
 | **구조** | 기존 라운드 경로(48→24→12→6→THE FINAL)의 **중간 진입** — 24강은 ROUND OF 24부터, 12강은 ROUND OF 12부터. 라운드명·전환 규칙 불변 |
 | **혼용 금지** | Tournament의 Contestant 수(48개 고정)와 혼동 금지 — Bracket Size는 Voter의 **1회 완주(run) 단위** 속성 |
 
+### Tournament Keywords
+
+| 항목 | 내용 |
+|---|---|
+| **English Term** | `Tournament Keywords` |
+| **한국어** | 키워드 |
+| **정의** | Tournament 생성 시 호스트가 입력하는 키워드 배열(최대 12개, 각 30자 이하). **3중 역할**: (a) AI 48명 추천 힌트 (b) C-4 뉴스 API 검색어 (c) C-5 Fan Intelligence 생성어. 저장은 B-2 스코프, 소비는 각 모듈 몫 |
+| **저장** | Tournament 문서 내 `keywords: string[]` (별도 컬렉션·인덱스 없음) |
+| **❌ 혼용 금지** | **태그·해시태그(#) 아님.** 표시·분류용 태그가 아니라 검색·추천 시드 키워드 |
+
 ---
 
 ## 변경 이력
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v1.8** | **2026-07-12** | **★ §13 Tournament Keywords 용어 등록** (B-2). 태그·해시태그와 구분 박제 · 3중 역할(AI 힌트/뉴스 검색/Fan Intelligence) · Tournament 문서 내 배열 저장 |
 | **v1.7** | **2026-07-11** | **★ §13 신규 — 대개편 용어 6종 등록** (Category Taxonomy · ANIME & WEBTOON · Voter Count · Crown Score · Ranking Scope Lock · Bracket Size). **Vote Count(득표 수) ≠ 점수(Crown Score) 구분 박제.** §2·§5에 v1.7 교차 참조 추가 (기존 정의 무변경) |
 | **v1.6** | **2026-07-08** | **★ §12 신규 — Guest Run 용어 등록 + 금지 표현(게스트 1표·세션 1회 투표) 박제** (HF-3, ADR-0008). "비로그인 1회"의 올바른 의미 = 토너먼트 1개 완주 |
 | **v1.5** | **2026-05-25** | **★ §11 신규 — 뉴스룸 개념 용어 추가** (Newsroom · Keyword News View · AI-Report News View · Fan Intelligence). 대표님 지시(Arena 2칼럼 + The Pitch 뉴스룸) 반영 |

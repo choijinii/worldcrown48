@@ -8,6 +8,7 @@
 "use client";
 
 import { validateTitle, TITLE_MAX } from "@/lib/lab/titleValidation";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface TitleInputProps {
@@ -16,6 +17,7 @@ interface TitleInputProps {
 }
 
 export function TitleInput({ value, onChange }: TitleInputProps): JSX.Element {
+  const { t } = useT();
   const v = validateTitle(value);
   const atCap = v.remaining <= 0;
 
@@ -30,15 +32,15 @@ export function TitleInput({ value, onChange }: TitleInputProps): JSX.Element {
           marginBottom: 8,
         }}
       >
-        Tournament 제목
+        {t("lab.title.label")}
       </span>
       <input
         type="text"
         value={value}
         maxLength={TITLE_MAX}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="예: Best Strikers of the Decade"
-        aria-label="Tournament 제목"
+        placeholder={t("lab.title.placeholder")}
+        aria-label={t("lab.title.label")}
         style={{
           width: "100%",
           padding: "12px 14px",

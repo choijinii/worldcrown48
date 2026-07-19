@@ -1,9 +1,44 @@
-> ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
-> 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
-> 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
-> 대체된 것: Lab 생성 플로우는 **5단계 개편**(B-2 v2.2, `outputs/handoffs-staging/B2-lab-flow-handoff-v2.2.md`) + 카테고리 데이터화(TX-0)로 대체 예정. B-2 완료 시 이 스펙 갱신됨
+> ✅ **2026-07-12 — B-2 완료: Lab 생성 플로우 5단계로 갱신됨** (ADR-0011).
+> 아래 "B-2 현행 플로우" 섹션이 현재의 진실이며, 그 뒤 레거시 2-step 명세는 **참고용 이력**이다.
+> 충돌 시 우선순위: `docs/adr/0011-b2-lab-flow.md` > `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md §13` > 이 문서 레거시 본문.
 
-# Lite Spec — #8 Admin Lab — Claude API 48명 추천 + 대진 생성
+---
+
+## 🟢 B-2 현행 플로우 (5단계, 2026-07-12 — ADR-0011)
+
+**핵심 원칙: AI = 옵션(helper), 관문 아님.** AI가 완전히 죽어 있어도 직접 입력만으로 발행 성공.
+
+```
+STEP 1 (제목·카테고리·설명·키워드·Deadline)
+  ①제목(필수·50자)  ②카테고리(필수 — TX-0 categories 데이터, 운영자는 전 status 선택)
+  ③설명(선택·참가 대상 서술)  ④키워드(필수·칩 UI · ✨AI 생성 + 직접 수정, ≤12개·각 ≤30자)
+  ⑤Tournament Deadline(필수 · 프리셋 3/7/14일·기본 7 · 과거 거부)
+  → [다음] : ①②④⑤ 충족 시 활성 (AI 성공 여부와 무관 — isStep1Ready)
+STEP 2 (48칸 그리드 · 채우기 4방식)
+  ✏️직접 입력 · ✨AI 48명 전체 · ✨빈칸만 AI(채운 칸 100% 보존) · 개별 수정
+  → Publish (48/48) → 내 Tournament 리스트 [Arena에서 보기 →]
+발행 시: title·description 1회 자동 번역(Haiku, ko/en/es) → titleI18n·description 저장(additive)
+```
+
+**컴포넌트 트리 (현행):**
+```
+<TournamentCreator>
+  STEP 1: <TitleInput/> <CategorySelect/> <DescriptionInput/> <KeywordChips/> <DeadlinePicker/> [다음]
+  STEP 2: <FillToolbar/> <ContestantGrid><ContestantEditor/></ContestantGrid> <PublishButton/>
+<TournamentList/>   # 각 행 "Arena에서 보기 →" (/arena/{id})
+```
+
+**스키마 확장(additive)**: `title:string`(원문 유지) + `titleI18n:{ko,en,es}` · `description:{ko,en,es}` · `keywords:string[]` · `tournamentDeadline`(유효 미래 시각). 상세 → ADR-0011.
+
+**Callable**: `aiSuggestKeywords`(Haiku, STEP1 ✨) · `translateTournamentMeta`(Haiku, 발행 시) · `aiFillContestants`(Sonnet, description·keywords·existing 입력 확장). 모델 상수 = `functions/src/core/models.ts`.
+
+**#12 참가 한도 3언어화**: `onVote`는 `details.code`(daily_limit/rate_limited)만 전달, 클라 `voteErrorMessageKey`가 i18n 토스트로 매핑(ko/en/es).
+
+**AI 모델 표기 정정**: 아래 레거시 "절대 규칙"의 `claude-sonnet-4-20250514`는 이력. 현행은 `models.ts` 상수(SONNET_MODEL=`claude-sonnet-4-6`, HAIKU_MODEL=`claude-haiku-4-5`)가 단일 진실.
+
+---
+
+# 📜 (레거시 이력) Lite Spec — #8 Admin Lab — Claude API 48명 추천 + 대진 생성
 
 > ⚠️ **[2026-05-25 정합성 정정]** 이 문서의 프레임워크·환경변수·폴더 구조·라우팅 표기 중 일부는 구버전(Vite + React Router)입니다. **WorldCrown48의 공식 스택은 Next.js 14 (App Router)입니다** — CLAUDE.md 불변 원칙 #8(스택 고정). 프레임워크·폴더 구조·라우팅의 단일 진실은 `WorldCrown48_ARCHITECTURE.md` + `WC48_CODING_CONTEXT_v1.md`입니다. 이 문서의 화면 구성·컴포넌트·기능 명세 자체는 유효합니다.
 

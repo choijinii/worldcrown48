@@ -12,17 +12,29 @@
  */
 import { isValidCategory } from "@/lib/lab/categories";
 import { validateTitle } from "@/lib/lab/titleValidation";
+import { validateKeywords } from "@/lib/lab/keywordsValidation";
+import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import {
   TOTAL_CONTESTANTS,
   type Category,
   type Contestant,
+  type LocalizedText,
   type Tournament,
 } from "@/lib/types/tournament";
 
 export interface TournamentInput {
+  /** Flat original title (validated ≤50). Kept for back-compat reads. */
   title: string;
+  /** Additive 3-language title (original in the source slot + translations). */
+  titleI18n: LocalizedText;
+  /** 3-language participant blurb (empty strings when the host skips it). */
+  description: LocalizedText;
+  /** Raw keyword chips — normalized + validated here (≥1, ≤12, each ≤30). */
+  keywords: string[];
   category: Category;
   hostUid: string;
+  /** Chosen deadline as epoch ms — must be strictly in the future. */
+  deadlineMs: number;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -43,6 +55,7 @@ export type ContestantDocData = Omit<Contestant, "id">;
 export function buildTournamentDoc(
   input: TournamentInput,
   validCategoryIds: readonly string[],
+  nowMs: number,
 ): TournamentDocData {
   const title = validateTitle(input.title);
   if (!title.isValid) {
@@ -58,13 +71,26 @@ export function buildTournamentDoc(
   if (!input.hostUid) {
     throw new Error("hostUid가 필요합니다.");
   }
+  const keywords = validateKeywords(input.keywords);
+  if (!keywords.isValid) {
+    throw new Error("키워드는 1~12개, 각 30자 이하여야 합니다.");
+  }
+  const deadline = validateDeadline(input.deadlineMs, nowMs);
+  if (!deadline.isValid) {
+    throw new Error("Tournament Deadline은 미래 시각이어야 합니다.");
+  }
 
   return {
     title: title.value,
+    titleI18n: input.titleI18n,
+    description: input.description,
+    keywords: keywords.values,
     category: input.category,
     status: "active",
     hostUid: input.hostUid,
-    tournamentDeadline: null,
+    // Pure/testable value — the caller stamps the real Firestore Timestamp
+    // (Timestamp.fromMillis) just as it stamps createdAt: serverTimestamp().
+    tournamentDeadline: input.deadlineMs,
     currentRound: 1,
     totalContestants: TOTAL_CONTESTANTS,
     settings: { aiNews: false, multiLang: false, showRanking: true },

@@ -13,6 +13,7 @@ import {
 } from "@/lib/lab/publishReady";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface PublishButtonProps {
@@ -26,6 +27,7 @@ export function PublishButton({
   busy,
   onClick,
 }: PublishButtonProps): JSX.Element {
+  const { t } = useT();
   const ready = isPublishReady(contestants) && !busy;
   const filled = countFilledContestants(contestants);
 
@@ -47,8 +49,8 @@ export function PublishButton({
       }}
     >
       {busy
-        ? "저장 중…"
-        : `토너먼트 생성 (${filled}/${TOTAL_CONTESTANTS})`}
+        ? t("lab.publish.busy")
+        : t("lab.publish.ready", { filled, total: TOTAL_CONTESTANTS })}
     </button>
   );
 }

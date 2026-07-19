@@ -1,9 +1,9 @@
 /**
  * Tournament title validation (Domain 2 · The Lab, Step 1).
  *
- * Drives both the live character counter and the AiFillButton enabled state.
- * Title is capped at 50 chars; whitespace-only is treated as empty so the
- * operator can't AI-fill a blank Tournament (AC Step1 #1).
+ * Drives both the live character counter and the STEP 1 "다음" gate (isStep1Ready).
+ * Title is capped at 50 chars; whitespace-only is treated as empty so a blank
+ * Tournament can't advance (AC Step1 #1).
  */
 export const TITLE_MAX = 50;
 
@@ -14,7 +14,7 @@ export interface TitleValidation {
   length: number;
   isEmpty: boolean;
   isTooLong: boolean;
-  /** Non-empty and within the cap. Gate for AiFillButton. */
+  /** Non-empty and within the cap. Gate for STEP 1 "다음". */
   isValid: boolean;
   /** TITLE_MAX - length; negative when over the cap. */
   remaining: number;

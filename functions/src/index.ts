@@ -153,6 +153,12 @@ export { linkSessionVote } from "./linkSessionVote";
 // B-1 The Lab — AI Fill (operator-only Tournament seeding).
 export { aiFillContestants } from "./aiFillContestants";
 
+// B-2 The Lab — AI keyword suggestion (STEP 1 ✨ button, Haiku).
+export { aiSuggestKeywords } from "./aiSuggestKeywords";
+
+// B-2 The Lab — publish-time title/description translation (Haiku, 1회).
+export { translateTournamentMeta } from "./translateTournamentMeta";
+
 // C-1 The Arena — vote engine.
 export { onVote } from "./onVote";
 export { advanceRound } from "./advanceRound";

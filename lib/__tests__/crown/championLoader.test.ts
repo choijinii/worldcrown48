@@ -12,6 +12,13 @@ import type { Contestant, Tournament } from "@/lib/types/tournament";
 const TOURNAMENT: Tournament = {
   id: "t1",
   title: "Strikers of the Century",
+  titleI18n: {
+    ko: "Strikers of the Century",
+    en: "Strikers of the Century",
+    es: "Strikers of the Century",
+  },
+  description: { ko: "", en: "", es: "" },
+  keywords: ["strikers"],
   category: "FOOTBALL",
   status: "active",
   hostUid: "host1",

@@ -11,6 +11,7 @@
 "use client";
 
 import { selectCategories, CATEGORY_STATUSES, type CategoryDoc } from "@/lib/taxonomy/category";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface CategorySelectProps {
@@ -31,6 +32,7 @@ export function CategorySelect({
   onChange,
   categories,
 }: CategorySelectProps): JSX.Element {
+  const { t, lang } = useT();
   // Operator sees all statuses, ordered by `order`.
   const options = selectCategories(categories, CATEGORY_STATUSES);
 
@@ -45,12 +47,12 @@ export function CategorySelect({
           marginBottom: 8,
         }}
       >
-        카테고리
+        {t("lab.category.label")}
       </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label="카테고리"
+        aria-label={t("lab.category.label")}
         disabled={options.length === 0}
         style={{
           width: "100%",
@@ -64,11 +66,13 @@ export function CategorySelect({
         }}
       >
         <option value="" disabled>
-          {options.length === 0 ? "카테고리를 불러오지 못했습니다" : "카테고리 선택"}
+          {options.length === 0
+            ? t("lab.category.loadError")
+            : t("lab.category.placeholder")}
         </option>
         {options.map((c) => (
           <option key={c.id} value={c.id} style={{ color: "#000" }}>
-            {c.name.ko} · {STATUS_LABEL[c.status]}
+            {c.name[lang] || c.name.en} · {STATUS_LABEL[c.status]}
           </option>
         ))}
       </select>
