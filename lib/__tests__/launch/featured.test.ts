@@ -42,6 +42,19 @@ describe("resolveFeaturedView", () => {
     expect(v.closesAt).toBeNull();
     expect(v.contestantsCount).toBe(48);
   });
+
+  it("carries titleI18n through for localized display (B-2.1)", () => {
+    const v = resolveFeaturedView("i18n", {
+      title: "테스트",
+      titleI18n: { ko: "테스트", en: "Test", es: "Prueba" },
+    });
+    expect(v.titleI18n).toEqual({ ko: "테스트", en: "Test", es: "Prueba" });
+  });
+
+  it("leaves titleI18n undefined for a legacy doc without it", () => {
+    const v = resolveFeaturedView("legacy", { title: "Legacy" });
+    expect(v.titleI18n).toBeUndefined();
+  });
 });
 
 describe("formatClosesAt", () => {

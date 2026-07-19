@@ -15,6 +15,7 @@ import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
+import { localizedTitle } from "@/lib/tournamentTitle";
 import {
   formatClosesAt,
   resolveFeaturedView,
@@ -24,7 +25,7 @@ import {
 export function FeaturedTournament() {
   const [tournament, setTournament] = useState<FeaturedView | null>(null);
   const [resolved, setResolved] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +71,7 @@ export function FeaturedTournament() {
         </span>{" "}
         {t("launch.featured.pill")}
       </div>
-      <h2 className="ft-title">{tournament.title}</h2>
+      <h2 className="ft-title">{localizedTitle(tournament, lang)}</h2>
       <div className="ft-meta">
         <span className="ft-meta-item">
           <span className="ft-meta-num">{tournament.contestantsCount ?? 48}</span>{" "}
