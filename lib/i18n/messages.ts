@@ -322,6 +322,7 @@ export const MESSAGES = {
     es: "Contestant {n} URL de imagen",
   },
   "lab.contestant.keywordHint": { ko: "Claude 추천 검색어", en: "Claude-suggested search term", es: "Término de búsqueda sugerido por Claude" },
+  "lab.contestant.clearAria": { ko: "Contestant {n} 지우기", en: "Clear Contestant {n}", es: "Vaciar Contestant {n}" },
 
   "lab.toast.keywordFail": {
     ko: "키워드 생성 실패. 직접 입력할 수 있어요.",

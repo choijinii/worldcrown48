@@ -38,12 +38,32 @@ export function ContestantEditor({
   const { t } = useT();
   const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
+  // The ✕ clears the WHOLE card (all fields, incl. the AI keyword hint) back to
+  // an empty slot. Shown whenever the card holds anything to clear.
+  const hasContent = [
+    contestant.name,
+    contestant.nationality,
+    contestant.position,
+    contestant.imageUrl,
+    contestant.imageSearchKeyword,
+  ].some((v) => v.trim() !== "");
+
+  function clearCard() {
+    onChange(index, {
+      name: "",
+      nationality: "",
+      position: "",
+      imageUrl: "",
+      imageSearchKeyword: "",
+    });
+  }
 
   return (
     <div
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       style={{
+        position: "relative",
         background: lab.surface,
         borderRadius: 5,
         border: isEmpty
@@ -54,6 +74,35 @@ export function ContestantEditor({
         flexDirection: "column",
       }}
     >
+      {hasContent && (
+        <button
+          type="button"
+          onClick={clearCard}
+          data-testid={`contestant-clear-${index}`}
+          aria-label={t("lab.contestant.clearAria", { n })}
+          title={t("lab.contestant.clearAria", { n })}
+          style={{
+            position: "absolute",
+            top: 4,
+            right: 4,
+            zIndex: 1,
+            width: 20,
+            height: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            border: "none",
+            background: "rgba(14,9,68,0.75)",
+            color: lab.textSub,
+            fontSize: 13,
+            lineHeight: 1,
+            cursor: "pointer",
+          }}
+        >
+          ✕
+        </button>
+      )}
       <div
         style={{
           aspectRatio: "1 / 1",
