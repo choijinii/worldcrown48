@@ -214,6 +214,9 @@ export const MESSAGES = {
   "lab.header.title": { ko: "Tournament 만들기", en: "Create Tournament", es: "Crear Tournament" },
   "lab.next": { ko: "다음 →", en: "Next →", es: "Siguiente →" },
   "lab.backToStep1": { ko: "← STEP 1 수정", en: "← Edit STEP 1", es: "← Editar STEP 1" },
+  "lab.step2.editMeta": { ko: "✏️ 제목·설명 수정", en: "✏️ Edit title & description", es: "✏️ Editar título y descripción" },
+  "lab.step2.editDone": { ko: "완료", en: "Done", es: "Hecho" },
+  "lab.step2.noDescription": { ko: "설명 없음", en: "No description", es: "Sin descripción" },
 
   "lab.title.label": { ko: "Tournament 제목", en: "Tournament Title", es: "Título del Tournament" },
   "lab.title.placeholder": {

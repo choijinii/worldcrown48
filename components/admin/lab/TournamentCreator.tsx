@@ -46,6 +46,7 @@ import { CategorySelect } from "./CategorySelect";
 import { DescriptionInput } from "./DescriptionInput";
 import { KeywordChips } from "./KeywordChips";
 import { DeadlinePicker } from "./DeadlinePicker";
+import { Step2Summary } from "./Step2Summary";
 import { ContestantGrid } from "./ContestantGrid";
 import { FillToolbar } from "./FillToolbar";
 import { PublishButton } from "./PublishButton";
@@ -368,6 +369,12 @@ export function TournamentCreator(): JSX.Element {
 
       {step === 2 && (
         <div style={{ display: "grid", gap: 24 }}>
+          <Step2Summary
+            title={title}
+            description={description}
+            onTitleChange={setTitle}
+            onDescriptionChange={setDescription}
+          />
           <div
             style={{
               display: "flex",
