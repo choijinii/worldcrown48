@@ -25,6 +25,7 @@ import { showToast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
 import { planFeaturedToggle } from "@/lib/lab/featuredToggle";
 import { sortByCreatedAtDesc } from "@/lib/lab/sortTournaments";
+import { useT } from "@/lib/i18n/useT";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
 
@@ -60,6 +61,7 @@ export function TournamentList({
   hostUid: string;
   refreshKey: number;
 }): JSX.Element {
+  const { t } = useT();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -81,11 +83,11 @@ export function TournamentList({
       if (process.env.NODE_ENV !== "production") {
         console.warn("[Lab] tournament list load failed:", err);
       }
-      showToast("목록을 불러오지 못했어요.", "error");
+      showToast(t("lab.list.toast.loadFail"), "error");
     } finally {
       setLoading(false);
     }
-  }, [hostUid]);
+  }, [hostUid, t]);
 
   useEffect(() => {
     void load();
@@ -105,7 +107,7 @@ export function TournamentList({
       void track("admin_lab_featured_toggle", { tournament_id: id });
       await load();
     } catch {
-      showToast("featured 변경에 실패했어요.", "error");
+      showToast(t("lab.list.toast.featuredFail"), "error");
     }
   }
 
@@ -121,26 +123,26 @@ export function TournamentList({
       await batch.commit();
       void track("admin_lab_delete", { tournament_id: id });
       setConfirmId(null);
-      showToast("삭제되었어요.", "success");
+      showToast(t("lab.list.toast.deleteSuccess"), "success");
       await load();
     } catch {
-      showToast("삭제에 실패했어요.", "error");
+      showToast(t("lab.list.toast.deleteFail"), "error");
     }
   }
 
   return (
     <section style={{ marginTop: 48, fontFamily: lab.font, color: lab.text }}>
       <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>
-        내 Tournament
+        {t("lab.list.title")}
       </h2>
 
       {loading ? (
         <div role="status" style={{ color: lab.textMuted, fontSize: 13 }}>
-          불러오는 중…
+          {t("lab.list.loading")}
         </div>
       ) : rows.length === 0 ? (
         <div style={{ color: lab.textMuted, fontSize: 13 }}>
-          아직 생성된 Tournament가 없습니다. 위에서 첫 토너먼트를 만들어보세요.
+          {t("lab.list.empty")}
         </div>
       ) : (
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
@@ -161,7 +163,9 @@ export function TournamentList({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{r.title}</div>
                 <div style={{ fontSize: 12, color: lab.textMuted }}>
-                  {r.category} · {r.status} · {r.totalContestants}명 · {fmt(r.createdAt)}
+                  {r.category} · {r.status} ·{" "}
+                  {t("lab.list.contestantsCount", { n: r.totalContestants })} ·{" "}
+                  {fmt(r.createdAt)}
                 </div>
               </div>
 
@@ -180,7 +184,7 @@ export function TournamentList({
                   whiteSpace: "nowrap",
                 }}
               >
-                Arena에서 보기 →
+                {t("lab.list.arenaLink")}
               </Link>
 
               <button
@@ -217,7 +221,7 @@ export function TournamentList({
                       cursor: "pointer",
                     }}
                   >
-                    삭제 확인
+                    {t("lab.list.deleteConfirm")}
                   </button>
                   <button
                     type="button"
@@ -232,14 +236,14 @@ export function TournamentList({
                       cursor: "pointer",
                     }}
                   >
-                    취소
+                    {t("lab.list.deleteCancel")}
                   </button>
                 </span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setConfirmId(r.id)}
-                  aria-label={`${r.title} 삭제`}
+                  aria-label={t("lab.list.deleteAria", { title: r.title })}
                   style={{
                     padding: "6px 10px",
                     borderRadius: 8,
@@ -250,7 +254,7 @@ export function TournamentList({
                     cursor: "pointer",
                   }}
                 >
-                  삭제
+                  {t("lab.list.delete")}
                 </button>
               )}
             </li>

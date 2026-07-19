@@ -337,6 +337,38 @@ export const MESSAGES = {
     en: "Save failed. Your data is kept — please try again.",
     es: "Error al guardar. Tus datos se conservan — inténtalo de nuevo.",
   },
+
+  // ── TournamentList ("내 Tournament") chrome — B-2 i18n (Tournament 제목 자체는
+  // 사용자 콘텐츠라 원문 유지; status 'active'는 LANGUAGE.md 고정 용어라 미번역). ──
+  "lab.list.title": { ko: "내 Tournament", en: "My Tournaments", es: "Mis Tournaments" },
+  "lab.list.loading": { ko: "불러오는 중…", en: "Loading…", es: "Cargando…" },
+  "lab.list.empty": {
+    ko: "아직 생성된 Tournament가 없습니다. 위에서 첫 토너먼트를 만들어보세요.",
+    en: "No Tournaments yet. Create your first one above.",
+    es: "Aún no hay Tournaments. Crea el primero arriba.",
+  },
+  "lab.list.contestantsCount": { ko: "{n}명", en: "{n} contestants", es: "{n} contestantes" },
+  "lab.list.arenaLink": { ko: "Arena에서 보기 →", en: "View in Arena →", es: "Ver en Arena →" },
+  "lab.list.delete": { ko: "삭제", en: "Delete", es: "Eliminar" },
+  "lab.list.deleteConfirm": { ko: "삭제 확인", en: "Confirm delete", es: "Confirmar" },
+  "lab.list.deleteCancel": { ko: "취소", en: "Cancel", es: "Cancelar" },
+  "lab.list.deleteAria": { ko: "{title} 삭제", en: "Delete {title}", es: "Eliminar {title}" },
+  "lab.list.toast.loadFail": {
+    ko: "목록을 불러오지 못했어요.",
+    en: "Couldn't load your Tournaments.",
+    es: "No se pudo cargar tus Tournaments.",
+  },
+  "lab.list.toast.featuredFail": {
+    ko: "featured 변경에 실패했어요.",
+    en: "Couldn't change the featured Tournament.",
+    es: "No se pudo cambiar el Tournament destacado.",
+  },
+  "lab.list.toast.deleteSuccess": { ko: "삭제되었어요.", en: "Deleted.", es: "Eliminado." },
+  "lab.list.toast.deleteFail": {
+    ko: "삭제에 실패했어요.",
+    en: "Delete failed.",
+    es: "No se pudo eliminar.",
+  },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;
