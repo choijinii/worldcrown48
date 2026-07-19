@@ -208,6 +208,135 @@ export const MESSAGES = {
     en: "Your vote didn't go through. Please try again.",
     es: "No se registró tu voto. Inténtalo de nuevo.",
   },
+
+  // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
+  // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.
+  "lab.header.title": { ko: "Tournament 만들기", en: "Create Tournament", es: "Crear Tournament" },
+  "lab.next": { ko: "다음 →", en: "Next →", es: "Siguiente →" },
+  "lab.backToStep1": { ko: "← STEP 1 수정", en: "← Edit STEP 1", es: "← Editar STEP 1" },
+
+  "lab.title.label": { ko: "Tournament 제목", en: "Tournament Title", es: "Título del Tournament" },
+  "lab.title.placeholder": {
+    ko: "예: Best Strikers of the Decade",
+    en: "e.g. Best Strikers of the Decade",
+    es: "ej. Best Strikers of the Decade",
+  },
+
+  "lab.category.label": { ko: "카테고리", en: "Category", es: "Categoría" },
+  "lab.category.placeholder": { ko: "카테고리 선택", en: "Select a category", es: "Selecciona una categoría" },
+  "lab.category.loadError": {
+    ko: "카테고리를 불러오지 못했습니다",
+    en: "Couldn't load categories",
+    es: "No se pudieron cargar las categorías",
+  },
+
+  "lab.description.label": { ko: "설명", en: "Description", es: "Descripción" },
+  "lab.description.optional": { ko: "선택", en: "optional", es: "opcional" },
+  "lab.description.placeholder": {
+    ko: "어떤 참가자들의 Tournament인가요? (예: 2020년 이후 데뷔한 글로벌 4세대 K-POP 아이돌)",
+    en: "Who competes in this Tournament? (e.g. global 4th-gen K-POP idols who debuted after 2020)",
+    es: "¿Quiénes compiten en este Tournament? (ej. idols de K-POP de 4.ª generación que debutaron tras 2020)",
+  },
+
+  "lab.keywords.label": { ko: "키워드", en: "Keywords", es: "Palabras clave" },
+  "lab.keywords.aiButton": { ko: "✨ AI 키워드 생성", en: "✨ Generate keywords", es: "✨ Generar palabras clave" },
+  "lab.keywords.aiButtonBusy": { ko: "✨ 생성 중…", en: "✨ Generating…", es: "✨ Generando…" },
+  "lab.keywords.placeholder": {
+    ko: "키워드 입력 후 Enter",
+    en: "Type a keyword, press Enter",
+    es: "Escribe una palabra clave y pulsa Enter",
+  },
+  "lab.keywords.addAria": { ko: "키워드 추가", en: "Add keyword", es: "Añadir palabra clave" },
+  "lab.keywords.removeAria": { ko: "{kw} 삭제", en: "Remove {kw}", es: "Eliminar {kw}" },
+  "lab.keywords.tooLong": {
+    ko: "키워드는 각 {max}자 이하여야 합니다.",
+    en: "Each keyword must be {max} characters or fewer.",
+    es: "Cada palabra clave debe tener {max} caracteres o menos.",
+  },
+  "lab.keywords.counter": {
+    ko: "{count}/{max} · 최소 1개 (AI 실패 시 직접 입력 가능)",
+    en: "{count}/{max} · at least 1 (type your own if AI fails)",
+    es: "{count}/{max} · al menos 1 (escríbela tú si la IA falla)",
+  },
+
+  "lab.deadline.label": { ko: "Tournament Deadline", en: "Tournament Deadline", es: "Tournament Deadline" },
+  "lab.deadline.preset": { ko: "{days}일 후", en: "in {days} days", es: "en {days} días" },
+  "lab.deadline.dateAria": {
+    ko: "Tournament Deadline 날짜",
+    en: "Tournament Deadline date",
+    es: "Fecha del Tournament Deadline",
+  },
+  "lab.deadline.missing": {
+    ko: "Deadline 날짜를 선택해주세요.",
+    en: "Please pick a Deadline date.",
+    es: "Selecciona una fecha de Deadline.",
+  },
+  "lab.deadline.past": {
+    ko: "Deadline은 미래 날짜여야 합니다.",
+    en: "The Deadline must be a future date.",
+    es: "El Deadline debe ser una fecha futura.",
+  },
+
+  "lab.fill.label": { ko: "채우기", en: "Fill", es: "Rellenar" },
+  "lab.fill.all": { ko: "✨ AI 48명 전체", en: "✨ AI all 48", es: "✨ IA los 48" },
+  "lab.fill.allBusy": { ko: "✨ 추천 중… (약 15초)", en: "✨ Generating… (~15s)", es: "✨ Generando… (~15s)" },
+  "lab.fill.blanks": { ko: "✨ 빈칸만 AI", en: "✨ AI blanks only", es: "✨ IA solo vacíos" },
+  "lab.fill.hint": {
+    ko: "✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요",
+    en: "✏️ You can also click a cell to type or edit it",
+    es: "✏️ También puedes hacer clic en una celda para escribir o editar",
+  },
+
+  "lab.publish.ready": {
+    ko: "토너먼트 생성 ({filled}/{total})",
+    en: "Create Tournament ({filled}/{total})",
+    es: "Crear Tournament ({filled}/{total})",
+  },
+  "lab.publish.busy": { ko: "저장 중…", en: "Saving…", es: "Guardando…" },
+
+  "lab.contestant.namePlaceholder": { ko: "#{n} 이름", en: "#{n} name", es: "#{n} nombre" },
+  "lab.contestant.nameAria": { ko: "Contestant {n} 이름", en: "Contestant {n} name", es: "Contestant {n} nombre" },
+  "lab.contestant.nationality": { ko: "국적", en: "Nationality", es: "Nacionalidad" },
+  "lab.contestant.nationalityAria": {
+    ko: "Contestant {n} 국적",
+    en: "Contestant {n} nationality",
+    es: "Contestant {n} nacionalidad",
+  },
+  "lab.contestant.position": { ko: "포지션", en: "Position", es: "Posición" },
+  "lab.contestant.positionAria": {
+    ko: "Contestant {n} 포지션",
+    en: "Contestant {n} position",
+    es: "Contestant {n} posición",
+  },
+  "lab.contestant.imageUrl": {
+    ko: "이미지 URL (라이선스 확인)",
+    en: "Image URL (check the license)",
+    es: "URL de imagen (verifica la licencia)",
+  },
+  "lab.contestant.imageUrlAria": {
+    ko: "Contestant {n} 이미지 URL",
+    en: "Contestant {n} image URL",
+    es: "Contestant {n} URL de imagen",
+  },
+  "lab.contestant.keywordHint": { ko: "Claude 추천 검색어", en: "Claude-suggested search term", es: "Término de búsqueda sugerido por Claude" },
+
+  "lab.toast.keywordFail": {
+    ko: "키워드 생성 실패. 직접 입력할 수 있어요.",
+    en: "Keyword generation failed. You can type them by hand.",
+    es: "Falló la generación de palabras clave. Puedes escribirlas a mano.",
+  },
+  "lab.toast.noBlanks": { ko: "빈칸이 없습니다.", en: "There are no blanks to fill.", es: "No hay celdas vacías." },
+  "lab.toast.fillFail": {
+    ko: "AI 추천 실패. 다시 시도하거나 직접 입력하세요.",
+    en: "AI fill failed. Retry or fill by hand.",
+    es: "Falló el relleno con IA. Reintenta o rellena a mano.",
+  },
+  "lab.toast.publishSuccess": { ko: "✓ 토너먼트 생성 완료", en: "✓ Tournament created", es: "✓ Tournament creado" },
+  "lab.toast.publishFail": {
+    ko: "저장 실패. 데이터는 그대로 유지됩니다. 다시 시도해주세요.",
+    en: "Save failed. Your data is kept — please try again.",
+    es: "Error al guardar. Tus datos se conservan — inténtalo de nuevo.",
+  },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;

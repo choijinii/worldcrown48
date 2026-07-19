@@ -19,4 +19,18 @@ describe("messages content (B-2 편승 · 오탈 정정)", () => {
       expect(MESSAGES[key].es).toBeTruthy();
     }
   });
+
+  it("has the Lab create-flow copy in all three languages (스코프 #8)", () => {
+    const labKeys = (Object.keys(MESSAGES) as (keyof typeof MESSAGES)[]).filter(
+      (k) => k.startsWith("lab."),
+    );
+    // The flow is substantial — make sure the block actually landed.
+    expect(labKeys.length).toBeGreaterThanOrEqual(30);
+    for (const key of labKeys) {
+      const entry = MESSAGES[key] as { ko: string; en: string; es?: string };
+      expect(entry.ko, `${key}.ko`).toBeTruthy();
+      expect(entry.en, `${key}.en`).toBeTruthy();
+      expect(entry.es, `${key}.es`).toBeTruthy();
+    }
+  });
 });

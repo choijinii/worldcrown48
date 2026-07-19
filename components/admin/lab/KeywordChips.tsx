@@ -16,6 +16,7 @@ import {
   KEYWORDS_MAX,
   KEYWORD_MAX_LEN,
 } from "@/lib/lab/keywordsValidation";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface KeywordChipsProps {
@@ -33,6 +34,7 @@ export function KeywordChips({
   onAiGenerate,
   aiBusy,
 }: KeywordChipsProps): JSX.Element {
+  const { t } = useT();
   const [draft, setDraft] = useState("");
   const v = validateKeywords(value);
   const atMax = v.count >= KEYWORDS_MAX;
@@ -70,7 +72,7 @@ export function KeywordChips({
         }}
       >
         <span style={{ fontSize: 12, fontWeight: 700, color: lab.textSub }}>
-          키워드 <span style={{ color: lab.gold }}>*</span>
+          {t("lab.keywords.label")} <span style={{ color: lab.gold }}>*</span>
         </span>
         <button
           type="button"
@@ -90,7 +92,7 @@ export function KeywordChips({
             opacity: aiBusy ? 0.6 : 1,
           }}
         >
-          {aiBusy ? "✨ 생성 중…" : "✨ AI 키워드 생성"}
+          {aiBusy ? t("lab.keywords.aiButtonBusy") : t("lab.keywords.aiButton")}
         </button>
       </div>
 
@@ -130,7 +132,7 @@ export function KeywordChips({
             <button
               type="button"
               onClick={() => removeAt(i)}
-              aria-label={`${kw} 삭제`}
+              aria-label={t("lab.keywords.removeAria", { kw })}
               style={{
                 border: "none",
                 background: "transparent",
@@ -153,8 +155,8 @@ export function KeywordChips({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={commitDraft}
-            placeholder={value.length === 0 ? "키워드 입력 후 Enter" : ""}
-            aria-label="키워드 추가"
+            placeholder={value.length === 0 ? t("lab.keywords.placeholder") : ""}
+            aria-label={t("lab.keywords.addAria")}
             style={{
               flex: 1,
               minWidth: 120,
@@ -178,8 +180,8 @@ export function KeywordChips({
         }}
       >
         {v.hasTooLong
-          ? `키워드는 각 ${KEYWORD_MAX_LEN}자 이하여야 합니다.`
-          : `${v.count}/${KEYWORDS_MAX} · 최소 1개 (AI 실패 시 직접 입력 가능)`}
+          ? t("lab.keywords.tooLong", { max: KEYWORD_MAX_LEN })
+          : t("lab.keywords.counter", { count: v.count, max: KEYWORDS_MAX })}
       </span>
     </div>
   );

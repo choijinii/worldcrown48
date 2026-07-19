@@ -12,6 +12,7 @@
 import { countFilledContestants } from "@/lib/lab/publishReady";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface FillToolbarProps {
@@ -27,6 +28,7 @@ export function FillToolbar({
   onFillAll,
   onFillBlanks,
 }: FillToolbarProps): JSX.Element {
+  const { t } = useT();
   const filled = countFilledContestants(contestants);
   const hasBlanks = filled < TOTAL_CONTESTANTS;
 
@@ -58,7 +60,8 @@ export function FillToolbar({
       }}
     >
       <span style={{ fontSize: 13, color: lab.textSub, fontWeight: 600 }}>
-        채우기 <span style={{ color: lab.textMuted }}>({filled}/{TOTAL_CONTESTANTS})</span>
+        {t("lab.fill.label")}{" "}
+        <span style={{ color: lab.textMuted }}>({filled}/{TOTAL_CONTESTANTS})</span>
       </span>
       <button
         type="button"
@@ -67,7 +70,7 @@ export function FillToolbar({
         data-testid="fill-all-button"
         style={btn(!busy)}
       >
-        {busy ? "✨ 추천 중… (약 15초)" : "✨ AI 48명 전체"}
+        {busy ? t("lab.fill.allBusy") : t("lab.fill.all")}
       </button>
       <button
         type="button"
@@ -76,11 +79,9 @@ export function FillToolbar({
         data-testid="fill-blanks-button"
         style={btn(!busy && hasBlanks)}
       >
-        ✨ 빈칸만 AI
+        {t("lab.fill.blanks")}
       </button>
-      <span style={{ fontSize: 12, color: lab.textMuted }}>
-        ✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요
-      </span>
+      <span style={{ fontSize: 12, color: lab.textMuted }}>{t("lab.fill.hint")}</span>
     </div>
   );
 }

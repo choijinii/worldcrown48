@@ -79,7 +79,7 @@ function toDraft(c: AiSuggestion): ContestantDraft {
 }
 
 export function TournamentCreator(): JSX.Element {
-  const { lang } = useT();
+  const { t, lang } = useT();
   const uid = useAuthStore((s) => s.user?.uid) ?? "";
   const [step, setStep] = useState<1 | 2>(1);
   const [title, setTitle] = useState("");
@@ -144,7 +144,7 @@ export function TournamentCreator(): JSX.Element {
       const code = (err as { code?: string }).code ?? "unknown";
       void track("admin_lab_ai_keywords_error", { category, error_code: code });
       // AC#2: AI is a helper, not a gate — the host can still type by hand.
-      showToast("키워드 생성 실패. 직접 입력할 수 있어요.", "error");
+      showToast(t("lab.toast.keywordFail"), "error");
     } finally {
       setKeywordBusy(false);
     }
@@ -176,7 +176,7 @@ export function TournamentCreator(): JSX.Element {
         ? grid.map((d) => d.name.trim()).filter(Boolean)
         : [];
     if (mode === "blanks" && existingNames.length >= TOTAL_CONTESTANTS) {
-      showToast("빈칸이 없습니다.", "info");
+      showToast(t("lab.toast.noBlanks"), "info");
       return;
     }
     setFilling(true);
@@ -220,7 +220,7 @@ export function TournamentCreator(): JSX.Element {
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
       void track("admin_lab_ai_fill_error", { category, mode, error_code: code });
-      showToast("AI 추천 실패. 다시 시도하거나 직접 입력하세요.", "error");
+      showToast(t("lab.toast.fillFail"), "error");
     } finally {
       setFilling(false);
     }
@@ -277,7 +277,7 @@ export function TournamentCreator(): JSX.Element {
 
       await batch.commit();
       void track("admin_lab_publish", { tournament_id: tRef.id, category });
-      showToast("✓ 토너먼트 생성 완료", "success");
+      showToast(t("lab.toast.publishSuccess"), "success");
 
       // Reset for the next Tournament; refresh the list.
       setStep(1);
@@ -291,7 +291,7 @@ export function TournamentCreator(): JSX.Element {
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
       void track("admin_lab_publish_error", { error_code: code });
-      showToast("저장 실패. 데이터는 그대로 유지됩니다. 다시 시도해주세요.", "error");
+      showToast(t("lab.toast.publishFail"), "error");
     } finally {
       setPublishing(false);
     }
@@ -320,7 +320,7 @@ export function TournamentCreator(): JSX.Element {
           DOMAIN 2 · THE LAB
         </p>
         <h1 style={{ margin: "6px 0 0", fontSize: 26, fontWeight: 800 }}>
-          Tournament 만들기
+          {t("lab.header.title")}
         </h1>
         <p style={{ margin: "6px 0 0", fontSize: 13, color: lab.textMuted }}>
           STEP {step} / 2
@@ -361,7 +361,7 @@ export function TournamentCreator(): JSX.Element {
               cursor: step1Ready ? "pointer" : "not-allowed",
             }}
           >
-            다음 →
+            {t("lab.next")}
           </button>
         </div>
       )}
@@ -390,7 +390,7 @@ export function TournamentCreator(): JSX.Element {
                 cursor: "pointer",
               }}
             >
-              ← STEP 1 수정
+              {t("lab.backToStep1")}
             </button>
             <PublishButton
               contestants={contestants}

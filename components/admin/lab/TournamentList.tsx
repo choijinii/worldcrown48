@@ -24,6 +24,7 @@ import { getDb } from "@/lib/firebase";
 import { showToast } from "@/lib/toast";
 import { track } from "@/lib/analytics";
 import { planFeaturedToggle } from "@/lib/lab/featuredToggle";
+import { sortByCreatedAtDesc } from "@/lib/lab/sortTournaments";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
 
@@ -71,7 +72,10 @@ export function TournamentList({
         query(collection(db, "tournaments"), where("hostUid", "==", hostUid)),
       );
       setRows(
-        snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Row, "id">) })),
+        // 최신 등록이 맨 위 (client sort — 신규 인덱스 불필요, 위 helper 주석 참고).
+        sortByCreatedAtDesc(
+          snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Row, "id">) })),
+        ),
       );
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {

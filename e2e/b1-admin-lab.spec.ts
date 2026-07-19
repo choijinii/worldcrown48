@@ -117,7 +117,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
   );
 
   test("operator reaches the console (gate allows admin)", async ({ page }) => {
-    await page.goto("/admin/lab");
+    await page.goto("/admin/lab?lang=ko"); // §7: E2E ?lang=ko 강제 (한국어 셀렉터 정합)
     await expect(
       page.getByRole("heading", { name: "Tournament 만들기" }),
     ).toBeVisible();
@@ -127,7 +127,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     page,
   }) => {
     await stubAiFill(page);
-    await page.goto("/admin/lab");
+    await page.goto("/admin/lab?lang=ko"); // §7: E2E ?lang=ko 강제 (한국어 셀렉터 정합)
 
     // STEP 1 — the 다음 button is the gate. It stays disabled until ①②④⑤ are met,
     // WITHOUT any AI call (핵심 AC#1: a hand-typed keyword is enough).

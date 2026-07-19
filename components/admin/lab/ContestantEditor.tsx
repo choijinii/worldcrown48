@@ -9,6 +9,7 @@
 "use client";
 
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface ContestantEditorProps {
@@ -34,6 +35,8 @@ export function ContestantEditor({
   contestant,
   onChange,
 }: ContestantEditorProps): JSX.Element {
+  const { t } = useT();
+  const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
 
   return (
@@ -74,37 +77,37 @@ export function ContestantEditor({
       <input
         value={contestant.name}
         onChange={(e) => onChange(index, { name: e.target.value })}
-        placeholder={`#${index + 1} 이름`}
-        aria-label={`Contestant ${index + 1} 이름`}
+        placeholder={t("lab.contestant.namePlaceholder", { n })}
+        aria-label={t("lab.contestant.nameAria", { n })}
         style={{ ...fieldStyle, fontWeight: 700, fontSize: 12 }}
       />
       <div style={{ display: "flex", gap: 4 }}>
         <input
           value={contestant.nationality}
           onChange={(e) => onChange(index, { nationality: e.target.value })}
-          placeholder="국적"
-          aria-label={`Contestant ${index + 1} 국적`}
+          placeholder={t("lab.contestant.nationality")}
+          aria-label={t("lab.contestant.nationalityAria", { n })}
           style={fieldStyle}
         />
         <input
           value={contestant.position}
           onChange={(e) => onChange(index, { position: e.target.value })}
-          placeholder="포지션"
-          aria-label={`Contestant ${index + 1} 포지션`}
+          placeholder={t("lab.contestant.position")}
+          aria-label={t("lab.contestant.positionAria", { n })}
           style={fieldStyle}
         />
       </div>
       <input
         value={contestant.imageUrl}
         onChange={(e) => onChange(index, { imageUrl: e.target.value })}
-        placeholder="이미지 URL (라이선스 확인)"
-        aria-label={`Contestant ${index + 1} 이미지 URL`}
+        placeholder={t("lab.contestant.imageUrl")}
+        aria-label={t("lab.contestant.imageUrlAria", { n })}
         style={fieldStyle}
       />
       {contestant.imageSearchKeyword && (
         <span
           style={{ marginTop: 4, fontSize: 10, color: lab.textMuted }}
-          title="Claude 추천 검색어"
+          title={t("lab.contestant.keywordHint")}
         >
           🔎 {contestant.imageSearchKeyword}
         </span>

@@ -7,6 +7,7 @@
  */
 "use client";
 
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 const DESCRIPTION_MAX = 300;
@@ -20,6 +21,7 @@ export function DescriptionInput({
   value,
   onChange,
 }: DescriptionInputProps): JSX.Element {
+  const { t } = useT();
   return (
     <label style={{ display: "block", fontFamily: lab.font }}>
       <span
@@ -31,14 +33,17 @@ export function DescriptionInput({
           marginBottom: 8,
         }}
       >
-        설명 <span style={{ color: lab.textMuted, fontWeight: 400 }}>· 선택</span>
+        {t("lab.description.label")}{" "}
+        <span style={{ color: lab.textMuted, fontWeight: 400 }}>
+          · {t("lab.description.optional")}
+        </span>
       </span>
       <textarea
         value={value}
         maxLength={DESCRIPTION_MAX}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="어떤 참가자들의 Tournament인가요? (예: 2020년 이후 데뷔한 글로벌 4세대 K-POP 아이돌)"
-        aria-label="Tournament 설명"
+        placeholder={t("lab.description.placeholder")}
+        aria-label={t("lab.description.label")}
         rows={3}
         style={{
           width: "100%",

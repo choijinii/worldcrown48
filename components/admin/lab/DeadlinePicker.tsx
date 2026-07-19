@@ -12,6 +12,7 @@ import {
   presetDeadlineMs,
   DEADLINE_PRESETS_DAYS,
 } from "@/lib/lab/deadlineValidation";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 interface DeadlinePickerProps {
@@ -43,6 +44,7 @@ export function DeadlinePicker({
   onChange,
   nowMs,
 }: DeadlinePickerProps): JSX.Element {
+  const { t } = useT();
   const v = validateDeadline(value, nowMs);
 
   return (
@@ -56,7 +58,7 @@ export function DeadlinePicker({
           marginBottom: 8,
         }}
       >
-        Tournament Deadline <span style={{ color: lab.gold }}>*</span>
+        {t("lab.deadline.label")} <span style={{ color: lab.gold }}>*</span>
       </span>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
@@ -81,7 +83,7 @@ export function DeadlinePicker({
                 fontFamily: lab.font,
               }}
             >
-              {days}일 후
+              {t("lab.deadline.preset", { days })}
             </button>
           );
         })}
@@ -92,7 +94,7 @@ export function DeadlinePicker({
         value={toDateInput(value)}
         min={toDateInput(nowMs)}
         onChange={(e) => onChange(fromDateInput(e.target.value))}
-        aria-label="Tournament Deadline 날짜"
+        aria-label={t("lab.deadline.dateAria")}
         style={{
           width: "100%",
           padding: "12px 14px",
@@ -114,9 +116,7 @@ export function DeadlinePicker({
             color: lab.crimson,
           }}
         >
-          {v.isMissing
-            ? "Deadline 날짜를 선택해주세요."
-            : "Deadline은 미래 날짜여야 합니다."}
+          {v.isMissing ? t("lab.deadline.missing") : t("lab.deadline.past")}
         </span>
       )}
     </div>
