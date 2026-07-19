@@ -14,6 +14,8 @@
  * closesAt, so the render can null-guard the "Closes …" segment.
  */
 
+import type { LocalizedText } from "@/lib/types/tournament";
+
 /** A Firestore Timestamp shape — only `.toDate()` is used. */
 export interface TimestampLike {
   toDate: () => Date;
@@ -22,6 +24,8 @@ export interface TimestampLike {
 export interface FeaturedView {
   id: string;
   title: string;
+  /** B-2.1: additive 3-language title, carried through so the hero can localize. */
+  titleI18n?: Partial<LocalizedText>;
   contestantsCount: number | null;
   closesAt: TimestampLike | null;
 }
@@ -40,9 +44,14 @@ export function resolveFeaturedView(
 ): FeaturedView {
   const rawCloses = data.tournamentDeadline ?? data.closesAt;
   const rawCount = data.totalContestants ?? data.contestantsCount;
+  const rawI18n = data.titleI18n;
   return {
     id,
     title: typeof data.title === "string" ? data.title : "",
+    titleI18n:
+      typeof rawI18n === "object" && rawI18n !== null
+        ? (rawI18n as Partial<LocalizedText>)
+        : undefined,
     contestantsCount: typeof rawCount === "number" ? rawCount : null,
     closesAt: isTimestampLike(rawCloses) ? rawCloses : null,
   };

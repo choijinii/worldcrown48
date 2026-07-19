@@ -19,9 +19,11 @@ import { useParams } from "next/navigation";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { useI18n } from "@/lib/i18n";
+import { localizedTitle } from "@/lib/tournamentTitle";
 import { RankingView, type RankState } from "@/components/ranking/RankingView";
 import { ModuleNav } from "@/components/arena/ModuleNav";
 import type { RankingCache } from "@/lib/ranking/rankingTypes";
+import type { LocalizedText } from "@/lib/types/tournament";
 
 const LABELS = {
   ko: {
@@ -79,6 +81,9 @@ export default function RankingPage(): JSX.Element {
   // undefined = still loading the first snapshot; null = no cache doc yet.
   const [cache, setCache] = useState<RankingCache | null | undefined>(undefined);
   const [title, setTitle] = useState("");
+  const [titleI18n, setTitleI18n] = useState<Partial<LocalizedText> | undefined>(
+    undefined,
+  );
   const [deadlineText, setDeadlineText] = useState<string | null>(null);
   // undefined = Tournament doc not loaded yet; null = no deadline field.
   const [deadlineMs, setDeadlineMs] = useState<number | null | undefined>(
@@ -106,6 +111,11 @@ export default function RankingPage(): JSX.Element {
       }
       const data = snap.data();
       setTitle((data.title as string) ?? "");
+      setTitleI18n(
+        typeof data.titleI18n === "object" && data.titleI18n !== null
+          ? (data.titleI18n as Partial<LocalizedText>)
+          : undefined,
+      );
       setDeadlineText(formatDeadline(data.tournamentDeadline));
       setDeadlineMs(deadlineMillis(data.tournamentDeadline));
     });
@@ -116,13 +126,14 @@ export default function RankingPage(): JSX.Element {
 
   const state = deriveState(cache, deadlineMs, Date.now());
   const entries = cache?.rankings ?? [];
+  const displayTitle = localizedTitle({ title, titleI18n }, lang);
 
   return (
     <>
       <ModuleNav tournamentId={tournamentId} />
       <RankingView
         state={state}
-        title={title}
+        title={displayTitle}
         deadlineText={deadlineText}
         entries={entries}
         labels={labels}

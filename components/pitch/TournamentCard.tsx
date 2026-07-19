@@ -17,6 +17,7 @@ import type { Tournament } from "@/lib/types/tournament";
 import { formatCloses, statusPillVariant } from "@/lib/pitch/trending";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
+import { localizedTitle } from "@/lib/tournamentTitle";
 
 function ArrowIcon() {
   return (
@@ -33,15 +34,16 @@ export interface TournamentCardProps {
 }
 
 export function TournamentCard({ tournament, position }: TournamentCardProps) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const closes = formatCloses(tournament.tournamentDeadline);
   const pill = statusPillVariant(tournament.status);
+  const displayTitle = localizedTitle(tournament, lang);
 
   return (
     <Link
       className="tcard"
       href={`/arena/${tournament.id}`}
-      aria-label={tournament.title}
+      aria-label={displayTitle}
       onClick={() =>
         track("a1_card_click", { tournamentId: tournament.id, position })
       }
@@ -63,7 +65,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
         <span className="tcard-vs">48</span>
       </div>
       <div className="tcard-body">
-        <div className="tcard-title">{tournament.title}</div>
+        <div className="tcard-title">{displayTitle}</div>
         <div className="tcard-meta">
           <span>{t("pitch.card.contestants")}</span>
           {closes && (
