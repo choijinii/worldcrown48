@@ -26,12 +26,15 @@ import { track } from "@/lib/analytics";
 import { planFeaturedToggle } from "@/lib/lab/featuredToggle";
 import { sortByCreatedAtDesc } from "@/lib/lab/sortTournaments";
 import { useT } from "@/lib/i18n/useT";
+import { localizedTitle } from "@/lib/tournamentTitle";
+import type { LocalizedText } from "@/lib/types/tournament";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
 
 interface Row {
   id: string;
   title: string;
+  titleI18n?: Partial<LocalizedText>;
   category: Category;
   status: string;
   totalContestants: number;
@@ -61,7 +64,7 @@ export function TournamentList({
   hostUid: string;
   refreshKey: number;
 }): JSX.Element {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -161,7 +164,9 @@ export function TournamentList({
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{r.title}</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>
+                  {localizedTitle(r, lang)}
+                </div>
                 <div style={{ fontSize: 12, color: lab.textMuted }}>
                   {r.category} · {r.status} ·{" "}
                   {t("lab.list.contestantsCount", { n: r.totalContestants })} ·{" "}
@@ -243,7 +248,7 @@ export function TournamentList({
                 <button
                   type="button"
                   onClick={() => setConfirmId(r.id)}
-                  aria-label={t("lab.list.deleteAria", { title: r.title })}
+                  aria-label={t("lab.list.deleteAria", { title: localizedTitle(r, lang) })}
                   style={{
                     padding: "6px 10px",
                     borderRadius: 8,

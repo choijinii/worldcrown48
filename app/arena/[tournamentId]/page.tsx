@@ -21,6 +21,7 @@ import { useVoteGate } from "@/lib/voteGate";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/useT";
 import { voteErrorMessageKey } from "@/lib/voteErrorCodes";
+import { localizedTitle } from "@/lib/tournamentTitle";
 import { LoginModal, type LoginReason } from "@/components/auth/LoginModal";
 import type { Contestant } from "@/lib/types/tournament";
 import {
@@ -61,7 +62,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ArenaPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
-  const { t } = useT();
+  const { t, lang } = useT();
   const user = useAuthStore((s) => s.user);
   const uid = user?.uid;
   // Share/download require a real (non-anonymous) sign-in (AC-9/10).
@@ -226,7 +227,7 @@ export default function ArenaPage(): JSX.Element {
       <ModuleNav tournamentId={tournamentId} />
       <div className={styles.arena} data-arena-surface="vs">
         <MatchView
-          title={tournament.title}
+          title={localizedTitle(tournament, lang)}
           left={left}
           right={right}
           pickedId={pickedId}
