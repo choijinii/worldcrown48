@@ -31,6 +31,8 @@ import admin from "firebase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   planTitleBackfill,
+  titleLangsNeedingBackfill,
+  hasHangul,
   mergeTitleI18n,
 } from "./backfill-title-i18n.lib.mjs";
 
@@ -41,18 +43,45 @@ const LANG_NAME = { ko: "Korean(한국어)", en: "English", es: "Spanish(españo
 const HELP = `backfill-title-i18n — heal titleI18n slots that fell back to the source (B-2.1)
 
   (no flag)   DRY-RUN: print the plan, make no model call, write nothing
+  --inspect   DUMP every doc's title + titleI18n{ko,en,es} + Hangul flags +
+              classification (no model call, no writes) — evidence for diagnosis
   --apply     re-translate affected slots (Haiku) and write titleI18n
   --help, -h  show this help
 `;
 
 function parseArgs(argv) {
-  const out = { apply: false, help: false };
+  const out = { apply: false, help: false, inspect: false };
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") out.help = true;
     else if (arg === "--apply") out.apply = true;
+    else if (arg === "--inspect") out.inspect = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return out;
+}
+
+function short(s, n = 60) {
+  const v = typeof s === "string" ? s : s == null ? "∅" : String(s);
+  return v.length > n ? `${v.slice(0, n)}…` : v;
+}
+
+/** One-line evidence dump for a single tournament (--inspect). */
+function describeDoc(t) {
+  const i18n = t.titleI18n && typeof t.titleI18n === "object" ? t.titleI18n : {};
+  const langs = titleLangsNeedingBackfill(t.title, t.titleI18n);
+  const slot = (l) => {
+    const v = i18n[l];
+    const flag = hasHangul(v) ? "🇰🇷" : v ? "  " : "∅ ";
+    return `${l}:${flag}"${short(v)}"`;
+  };
+  const verdict = langs.length ? `NEEDS[${langs.join(",")}]` : "ok";
+  return [
+    `  ${t.id}  ${verdict}`,
+    `    title: "${short(t.title)}"`,
+    `    ${slot("ko")}`,
+    `    ${slot("en")}`,
+    `    ${slot("es")}`,
+  ].join("\n");
 }
 
 function loadServiceAccount() {
@@ -131,6 +160,16 @@ async function main() {
     title: d.get("title"),
     titleI18n: d.get("titleI18n"),
   }));
+
+  if (opts.inspect) {
+    console.log(
+      `backfill-title-i18n --inspect: ${tournaments.length} tournaments\n` +
+        "  (🇰🇷 = slot still contains Hangul · ∅ = empty/missing)\n",
+    );
+    for (const t of tournaments) console.log(describeDoc(t) + "\n");
+    return;
+  }
+
   const plan = planTitleBackfill(tournaments);
 
   console.log(
