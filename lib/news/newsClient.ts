@@ -30,40 +30,15 @@ import {
   buildSlug,
   emptyLocalizedText,
   emptyLocalizedBlocks,
-  type ArticleDoc,
   type ArticleStatus,
   type ArticleTemplate,
   type Lang,
   type LocalizedText,
   type LocalizedBlocks,
 } from "./articleDoc";
+import { toArticleRecord as toRecord, type ArticleRecord } from "./articleRecord";
 
-export interface ArticleRecord extends Omit<ArticleDoc, "createdAt" | "publishedAt"> {
-  createdAtMs: number | null;
-  publishedAtMs: number | null;
-}
-
-function toMs(v: unknown): number | null {
-  return v && typeof (v as { toMillis?: () => number }).toMillis === "function"
-    ? (v as { toMillis: () => number }).toMillis()
-    : null;
-}
-
-function toRecord(id: string, data: Record<string, unknown>): ArticleRecord {
-  return {
-    slug: String(data.slug ?? id),
-    template: data.template as ArticleTemplate,
-    status: data.status as ArticleStatus,
-    title: (data.title as LocalizedText) ?? emptyLocalizedText(),
-    subhead: (data.subhead as LocalizedText) ?? emptyLocalizedText(),
-    body: (data.body as LocalizedBlocks) ?? emptyLocalizedBlocks(),
-    evidence: (data.evidence as ArticleDoc["evidence"]) ?? { asOf: "", stats: [] },
-    origin: data.origin as ArticleDoc["origin"],
-    tournamentId: data.tournamentId as string | undefined,
-    createdAtMs: toMs(data.createdAt),
-    publishedAtMs: toMs(data.publishedAt),
-  };
-}
+export type { ArticleRecord };
 
 /** Admin: live feed of ALL articles (any status), newest first. */
 export function subscribeAllArticles(

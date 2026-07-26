@@ -1,0 +1,92 @@
+/* NewsRail — 우측 뉴스뷰 (ND-1 §3 #11). 임시 마운트: ≥1024px 우측 고정 레일,
+   <1024px 하단 인라인 섹션. 건수 제한 없음(스크롤되는 만큼). */
+
+.rail {
+  --wc-gold: #fcd006;
+  --wc-ink: #1a1830;
+  --wc-ink-soft: #4a4763;
+  --wc-paper-line: #e4e1d6;
+  font-family: "Inter", "Pretendard", system-ui, sans-serif;
+  margin-top: 32px;
+}
+
+.head {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--wc-gold);
+  background: var(--wc-ink);
+  padding: 8px 12px;
+  border-radius: 6px 6px 0 0;
+}
+
+.list {
+  border: 1px solid var(--wc-paper-line);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+
+.item {
+  display: flex;
+  gap: 10px;
+  padding: 11px 12px;
+  text-decoration: none;
+  color: var(--wc-ink);
+  border-bottom: 1px solid var(--wc-paper-line);
+  align-items: flex-start;
+}
+.item:last-child {
+  border-bottom: none;
+}
+.item:hover {
+  background: rgba(252, 208, 6, 0.06);
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #241b4e, #14102b);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+.meta {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--wc-ink-soft);
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.empty {
+  padding: 20px 12px;
+  color: var(--wc-ink-soft);
+  font-size: 12px;
+  text-align: center;
+  border: 1px solid var(--wc-paper-line);
+  border-top: none;
+}
+
+/* ≥1024px: 우측 고정 레일 (임시 마운트) */
+@media (min-width: 1024px) {
+  .rail.docked {
+    position: fixed;
+    top: 84px;
+    right: 16px;
+    width: 288px;
+    max-height: calc(100vh - 108px);
+    overflow-y: auto;
+    margin-top: 0;
+    z-index: 30;
+  }
+}
