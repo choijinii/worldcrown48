@@ -173,3 +173,9 @@ export { scheduleRankingCache } from "./scheduleRankingCache";
 // Both re-verify ADMIN_UID server-side (defense-in-depth — handoff §9 trap #5).
 export { getAdminKpis } from "./getAdminKpis";
 export { listAdminAlerts } from "./listAdminAlerts";
+
+// ND-1 News Desk — 승인제 뉴스 팩토리. 모든 경로는 draft 생성까지만 (자동 발행 0건).
+export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수동/AI 초안)
+export { onTournamentOpened } from "./onTournamentOpened"; // Tournament 오픈 → 오픈 draft
+export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 결과 draft
+export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft

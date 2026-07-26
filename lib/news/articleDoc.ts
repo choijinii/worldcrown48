@@ -321,3 +321,58 @@ export function buildArticleDraft(
   if (input.tournamentId) doc.tournamentId = input.tournamentId;
   return doc;
 }
+
+// ── localized draft builder — for the pipeline that translates BEFORE saving ──
+export interface LocalizedArticleDraftInput {
+  slug: string;
+  template: ArticleTemplate;
+  origin: ArticleOrigin;
+  /** Which language the AI/operator authored in — validated as non-empty. */
+  sourceLang: Lang;
+  title: LocalizedText;
+  subhead: LocalizedText;
+  body: LocalizedBlocks;
+  evidence: Evidence;
+  tournamentId?: string;
+}
+
+/**
+ * Build a draft from ALREADY-localized fields (title/subhead/body in every slot).
+ * Used by the generation pipeline, which translates (translateArticleCore) before
+ * persisting so a draft lands 3-language. Still hard-codes `status:'draft'` (AC 1).
+ * Only the SOURCE-language slot must be present + valid — a not-yet-translated
+ * en/es slot may be empty (the renderer falls back to source at read time).
+ */
+export function buildLocalizedArticleDraft(
+  input: LocalizedArticleDraftInput,
+): Omit<ArticleDoc, "createdAt"> {
+  if (!isValidSlug(input.slug)) throw new Error(`invalid slug: ${input.slug}`);
+  if (!ARTICLE_TEMPLATES.includes(input.template)) {
+    throw new Error(`invalid template: ${input.template}`);
+  }
+  if (!ARTICLE_ORIGINS.includes(input.origin)) {
+    throw new Error(`invalid origin: ${input.origin}`);
+  }
+  if (!LANGS.includes(input.sourceLang)) {
+    throw new Error(`invalid sourceLang: ${input.sourceLang}`);
+  }
+  const srcTitle = input.title?.[input.sourceLang]?.trim() ?? "";
+  if (!srcTitle) throw new Error("source-language title is required");
+  const srcBody = input.body?.[input.sourceLang] ?? [];
+  const bodyCheck = validateBlocks(srcBody);
+  if (!bodyCheck.ok) throw new Error(`invalid source body: ${bodyCheck.error}`);
+
+  const doc: Omit<ArticleDoc, "createdAt"> = {
+    slug: input.slug,
+    template: input.template,
+    status: "draft",
+    title: input.title,
+    subhead: input.subhead,
+    body: input.body,
+    evidence: input.evidence,
+    origin: input.origin,
+    publishedAt: null,
+  };
+  if (input.tournamentId) doc.tournamentId = input.tournamentId;
+  return doc;
+}

@@ -13,6 +13,7 @@ import {
   ARTICLE_TEMPLATES,
   ARTICLE_ORIGINS,
   buildArticleDraft,
+  buildLocalizedArticleDraft,
   buildSlug,
   isValidSlug,
   canTransition,
@@ -22,6 +23,7 @@ import {
   emptyLocalizedBlocks,
   type ArticleBlock,
   type ArticleDraftInput,
+  type LocalizedArticleDraftInput,
 } from "../news/articleDoc";
 
 const validInput = (over: Partial<ArticleDraftInput> = {}): ArticleDraftInput => ({
@@ -157,6 +159,64 @@ describe("buildArticleDraft — always draft, never published (AC 1)", () => {
     for (const o of ARTICLE_ORIGINS) {
       expect(isDraftOnlyOrigin(o)).toBe(true);
     }
+  });
+});
+
+describe("buildLocalizedArticleDraft — 3-lang draft (translation already done, AC 8)", () => {
+  const locInput = (over: Partial<LocalizedArticleDraftInput> = {}): LocalizedArticleDraftInput => ({
+    slug: "20260722-a1b2c3",
+    template: "open",
+    origin: "manual_ai",
+    sourceLang: "ko",
+    title: { ko: "여름 차트", en: "Summer Chart", es: "Lista de verano" },
+    subhead: { ko: "48곡", en: "48 songs", es: "48 canciones" },
+    body: {
+      ko: [{ type: "lead", text: "리드" }],
+      en: [{ type: "lead", text: "lead" }],
+      es: [{ type: "lead", text: "entrada" }],
+    },
+    evidence: { asOf: "now", stats: [{ label: "C", value: "48" }] },
+    tournamentId: "t1",
+    ...over,
+  });
+
+  it("still produces a draft (never published)", () => {
+    const doc = buildLocalizedArticleDraft(locInput());
+    expect(doc.status).toBe("draft");
+    expect(doc.publishedAt).toBeNull();
+  });
+
+  it("carries all three language slots verbatim", () => {
+    const doc = buildLocalizedArticleDraft(locInput());
+    expect(doc.title).toEqual({ ko: "여름 차트", en: "Summer Chart", es: "Lista de verano" });
+    expect(doc.body.es[0]).toEqual({ type: "lead", text: "entrada" });
+  });
+
+  it("throws when the source-language slot is empty (nothing to publish)", () => {
+    expect(() =>
+      buildLocalizedArticleDraft(
+        locInput({ title: { ko: "  ", en: "x", es: "y" } }),
+      ),
+    ).toThrow();
+  });
+
+  it("throws when the source-language body is invalid/empty", () => {
+    expect(() =>
+      buildLocalizedArticleDraft(
+        locInput({ body: { ko: [], en: [{ type: "lead", text: "x" }], es: [] } }),
+      ),
+    ).toThrow();
+  });
+
+  it("tolerates a not-yet-translated slot (empty en/es) — fallback happens at render", () => {
+    const doc = buildLocalizedArticleDraft(
+      locInput({
+        title: { ko: "여름 차트", en: "", es: "" },
+        body: { ko: [{ type: "lead", text: "리드" }], en: [], es: [] },
+      }),
+    );
+    expect(doc.title.en).toBe("");
+    expect(doc.status).toBe("draft");
   });
 });
 
