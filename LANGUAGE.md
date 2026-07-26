@@ -465,10 +465,35 @@ LIVE · VOTE RATE · VS
 
 ---
 
+## 14. 신규 용어 — News Desk 뉴스 팩토리 (v1.9 추가, ND-1)
+
+> **§11(뉴스룸, v1.5)의 후계.** ND-1 News Desk는 §11의 Newsroom·AI-Report News View 개념을
+> **실제 돌아가는 승인제 시스템**으로 구현한 것이다. C4-newsroom lite-spec은 **스테일 — 구현 참조 금지**
+> (정합성 배너만 참조). 아래 용어가 후계 단일 진실.
+
+| **English Term** | **한국어** | **코드/DB명** | **정의** |
+| --- | --- | --- | --- |
+| **News Desk** | 뉴스 데스크 | `/admin/newsdesk` | 발행인(대표)이 AI 초안을 검토·편집·승인하는 승인제 뉴스 팩토리 콘솔. **자동 발행 없음.** |
+| **Article** | 기사 | `news` 컬렉션 | 발행 단위 문서. `slug`(고유·불변)·`template`·`status`·3언어 `title/subhead/body`·`evidence`·`origin`. |
+| **Article Status** | 기사 상태 | `status` | `draft`(초안) → `published`(발행) → `archived`(내림). 발행은 대표 조작만 (draft→published). |
+| **Article Template** | 기사 템플릿 | `template` | `open`(오픈)·`result`(결과)·`weekly`(주간 랭킹)·`column`(자유 칼럼) 4종. |
+| **Article Origin** | 기사 출처 | `origin` | 초안 생성 경로: `event_open`·`event_champion`·`cron_weekly`·`manual_ai`·`manual_blank`. 모두 **draft까지만**. |
+| **Body Block** | 본문 블록 | `body[lang]: Block[]` | 구조화 블록(`hero·lead·paragraph·stats·matchups·closer`) = 기준본 v3 지면 1:1. |
+| **Evidence** | 근거 스냅샷 | `evidence` | 기사 근거 수치 표 + 기준시각. 기사 문서 內 저장(원자적 동행). 교차검증의 시스템화. |
+| **AI-Report (v2.5)** | AI-리포트 | — | 기사 본문 블록 최하단 표기: "✦ AI-Report · 발행인이 검토·승인했습니다 · DATA {기준시각}" (8px·50%·골드 모노). ❌ "AI GENERATED" 폐기(원칙 #4). |
+| **NewsRail** | 뉴스뷰 레일 | `components/news/NewsRail` | 우측 뉴스뷰 — 독립·자기완결 컴포넌트. ND-1은 The Pitch 임시 마운트까지(상설 프레임은 Pitch 개편 스코프). |
+| **Contestant Media** | 컨테스턴트 미디어 | `Contestant.media` | 스왑 그릇(`image·embed·clip`). `imageUrl` 유지(하위호환). `clip`은 스키마 예약만 — 렌더 경로 없음. |
+
+**❌ 금지/주의:** 기사에 **Vote Count(절대 득표수) 절대 사용 금지** — 비율(%)·순위·Voter Count만.
+**전투 은유 금지**(§8 브랜드 언어 연장, newsPrompts 박제): 잔인한·앙숙·격돌·혈투·생존·왕좌·전력을 꺼내다·피해 갈 곳 없다. Match는 싸움이 아니라 "어느 쪽을 더 사랑하는지 고르는 순간".
+
+---
+
 ## 변경 이력
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v1.9** | **2026-07-26** | **★ §14 신규 — News Desk 뉴스 팩토리 용어 등록** (ND-1). News Desk·Article·Status·Template·Origin·Body Block·Evidence·AI-Report v2.5·NewsRail·Contestant Media. **§11(뉴스룸 v1.5)의 후계 · C4-newsroom 스테일 스펙 구현 금지** 박제. 기사 Vote Count 금지 + 전투 은유 금지 재확인 (기존 정의 무변경) |
 | **v1.8** | **2026-07-12** | **★ §13 Tournament Keywords 용어 등록** (B-2). 태그·해시태그와 구분 박제 · 3중 역할(AI 힌트/뉴스 검색/Fan Intelligence) · Tournament 문서 내 배열 저장 |
 | **v1.7** | **2026-07-11** | **★ §13 신규 — 대개편 용어 6종 등록** (Category Taxonomy · ANIME & WEBTOON · Voter Count · Crown Score · Ranking Scope Lock · Bracket Size). **Vote Count(득표 수) ≠ 점수(Crown Score) 구분 박제.** §2·§5에 v1.7 교차 참조 추가 (기존 정의 무변경) |
 | **v1.6** | **2026-07-08** | **★ §12 신규 — Guest Run 용어 등록 + 금지 표현(게스트 1표·세션 1회 투표) 박제** (HF-3, ADR-0008). "비로그인 1회"의 올바른 의미 = 토너먼트 1개 완주 |
@@ -494,4 +519,4 @@ LIVE · VOTE RATE · VS
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.7 (2026-07-11) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.9 (2026-07-26) | CONFIDENTIAL*

@@ -317,6 +317,27 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
+    // ── news (ND-1 News Desk) ──────────────────────────────────────
+    // 승인제 뉴스 팩토리. Public reads ONLY published articles (AC 5): a draft or
+    // archived doc must never be visible on /news, /news/[slug], or NewsRail. An
+    // operator holding the `admin` custom claim reads ANY status (초안 대기함).
+    //
+    // Write requires the admin claim — the console publishes/edits/내리기 directly
+    // (client), and the generateNewsDraft callable + triggers + cron write via the
+    // admin SDK (bypasses rules). A Voter must NEVER create or publish an article.
+    match /news/{slug} {
+      allow read: if resource.data.status == 'published'
+                  || (request.auth != null && request.auth.token.admin == true);
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ── news_generation (ND-1 rate-limit counter) ──────────────────
+    // Per-uid, per-KST-day draft counter. Written ONLY by the callable (admin SDK,
+    // bypasses rules). No client ever touches it — deny every client access.
+    match /news_generation/{docId} {
+      allow read, write: if false;
+    }
+
     // ── default deny ───────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
