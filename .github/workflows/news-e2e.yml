@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests (vitest — client: lib/news + lib/media)
+      - name: Unit tests (vitest — client lib/news + lib/media)
         run: npm run test:unit -- lib/__tests__/news.articleDoc.test.ts lib/__tests__/news.renderArticle.test.ts lib/__tests__/news.blockEdit.test.ts lib/__tests__/news.mediaSlot.test.ts
 
       - name: Functions unit tests (vitest — news cores)
