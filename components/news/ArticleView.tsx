@@ -13,6 +13,7 @@ import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { resolveArticleView } from "@/lib/news/renderArticle";
 import type { ArticleRecord } from "@/lib/news/articleRecord";
 import type { ArticleBlock } from "@/lib/news/articleDoc";
+import { MediaSlot } from "@/components/media/MediaSlot";
 import { AiReport } from "./AiReport";
 import styles from "./news.module.css";
 
@@ -41,7 +42,13 @@ function Block({ block, sectionLabel }: { block: ArticleBlock; sectionLabel: str
     case "hero":
       return (
         <figure className={styles.hero}>
-          {block.imageUrl ? (
+          {block.embed?.videoId ? (
+            <MediaSlot
+              media={{ type: "embed", embed: block.embed }}
+              imageUrl={block.imageUrl ?? ""}
+              alt={block.title}
+            />
+          ) : block.imageUrl ? (
             <img className={styles.heroImg} src={block.imageUrl} alt={block.title} />
           ) : (
             <div className={styles.heroBox}>

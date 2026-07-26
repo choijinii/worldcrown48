@@ -47,6 +47,12 @@ export interface HeroBlock {
   title: string;
   subtitle: string;
   imageUrl?: string;
+  /**
+   * ND-1 §3 #12 — optional YouTube embed for the hero (파사드 패턴). When present,
+   * the renderer shows MediaSlot's facade; imageUrl is the still fallback. Data
+   * field — kept verbatim across languages (never translated).
+   */
+  embed?: { videoId: string; start?: number; end?: number };
 }
 export interface LeadBlock {
   type: "lead";

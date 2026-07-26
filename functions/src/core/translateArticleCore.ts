@@ -26,6 +26,7 @@ export interface HeroBlock {
   title: string;
   subtitle: string;
   imageUrl?: string;
+  embed?: { videoId: string; start?: number; end?: number };
 }
 export interface LeadBlock {
   type: "lead";
@@ -142,6 +143,7 @@ function mergeBlock(src: ArticleBlock, reply: unknown): ArticleBlock | null {
         title: toStr(r.title).trim() || src.title,
         subtitle: toStr(r.subtitle).trim() || src.subtitle,
         ...(src.imageUrl ? { imageUrl: src.imageUrl } : {}),
+        ...(src.embed ? { embed: src.embed } : {}), // data — kept verbatim
       };
     case "stats": {
       const rItems = Array.isArray(r.items) ? (r.items as Record<string, unknown>[]) : [];
