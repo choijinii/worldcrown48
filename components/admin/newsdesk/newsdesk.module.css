@@ -1,0 +1,278 @@
+/* News Desk 콘솔 — 다크 오퍼레이터 테마 (ND-1 §3 #8). */
+
+.shell {
+  min-height: 100vh;
+  color: #f4f2ff;
+  font-family: Inter, "Pretendard", system-ui, sans-serif;
+  padding: 24px clamp(16px, 4vw, 48px) 64px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  flex-wrap: wrap;
+}
+.title {
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+}
+.title em {
+  font-style: normal;
+  color: #fcd006;
+}
+.sub {
+  font-size: 12px;
+  color: #b4add9;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col {
+  min-width: 0;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.panelLabel {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #fcd006;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* 초안 대기함 */
+.queueItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  color: #f4f2ff;
+  cursor: pointer;
+  font: inherit;
+}
+.queueItem:hover {
+  border-color: rgba(252, 208, 6, 0.4);
+}
+.queueItemActive {
+  border-color: #fcd006;
+  background: rgba(252, 208, 6, 0.08);
+}
+.queueTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.queueMeta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: #b4add9;
+  margin-top: 5px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.badgeDraft {
+  background: #4a4763;
+  color: #fff;
+}
+.badgePublished {
+  background: #fcd006;
+  color: #1a1830;
+}
+.badgeArchived {
+  background: rgba(255, 255, 255, 0.14);
+  color: #b4add9;
+}
+
+/* 폼 */
+.field {
+  margin-bottom: 12px;
+}
+.fieldLabel {
+  display: block;
+  font-size: 12px;
+  color: #b4add9;
+  margin-bottom: 6px;
+}
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: #fff;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 14px;
+}
+.textarea {
+  min-height: 72px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.dataField {
+  opacity: 0.55;
+}
+
+/* 언어 탭 */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tab {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: #b4add9;
+  cursor: pointer;
+}
+.tabActive {
+  background: #fcd006;
+  color: #1a1830;
+  border-color: #fcd006;
+  font-weight: 700;
+}
+.tabEmpty::after {
+  content: " ·";
+  color: #d7063a;
+}
+
+/* 블록 편집 */
+.block {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.blockType {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #fcd006;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 버튼 */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #f4f2ff;
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: rgba(252, 208, 6, 0.5);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btnPrimary {
+  background: #fcd006;
+  color: #1a1830;
+  border-color: #fcd006;
+}
+.btnDanger {
+  border-color: rgba(215, 6, 58, 0.6);
+  color: #ff9fb4;
+}
+.small {
+  font-size: 11px;
+  padding: 5px 10px;
+}
+
+/* 근거 스냅샷 표 */
+.evTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.evTable th,
+.evTable td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.evTable th {
+  color: #b4add9;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.evAsOf {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: #b4add9;
+  margin-top: 10px;
+}
+
+.empty {
+  color: #b4add9;
+  font-size: 13px;
+  padding: 24px 8px;
+  text-align: center;
+}
+.hint {
+  font-size: 11px;
+  color: #b4add9;
+  margin-top: 8px;
+  line-height: 1.5;
+}
