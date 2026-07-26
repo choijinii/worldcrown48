@@ -1,5 +1,12 @@
 name: ND-1 News Desk E2E (Playwright)
 
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API (by head SHA) — NOT a frozen ND1_PREVIEW_URL secret, which
+# would pin to one immutable deployment and silently test stale pre-fix code
+# ([[feedback_c2_preview_url_pinned]]; same trap that false-red'd a1-i18n). There is
+# NO ND1_PREVIEW_URL secret — do not create one. Resolving by head SHA guarantees we
+# test the exact commit under review.
+
 on:
   pull_request:
     branches: [main]
@@ -30,7 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      PREVIEW_URL: ${{ secrets.ND1_PREVIEW_URL }}
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
       TEST_UID: ${{ secrets.G1_TEST_ADMIN_UID }}
       TEST_EMAIL: ${{ secrets.G1_TEST_ADMIN_EMAIL }}
       FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
@@ -71,29 +79,47 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Wait for Vercel Preview
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -z "$PREVIEW_URL" ]; then
-            echo "ND1_PREVIEW_URL not set — skipping E2E wait/run."
-            exit 0
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
           fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
           HEADER_ARGS=()
           if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
             HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
           fi
           for i in {1..30}; do
             if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
-              echo "Preview reachable at $PREVIEW_URL"
-              exit 0
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
             fi
-            echo "Preview not ready (attempt $i) — sleeping 10s."
-            sleep 10
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
           done
-          echo "Preview never became reachable." >&2
-          exit 1
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright — nd1 spec only)
-        if: ${{ env.PREVIEW_URL != '' }}
         # Scope to ND-1's own spec (§11.5 — feedback-workflow-spec-scope) so this
         # job never runs another module's spec against the wrong preview.
         run: npm run test:e2e -- e2e/nd1-news-desk.spec.ts
