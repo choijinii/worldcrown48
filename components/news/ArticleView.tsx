@@ -9,7 +9,6 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/useT";
-import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { resolveArticleView } from "@/lib/news/renderArticle";
 import type { ArticleRecord } from "@/lib/news/articleRecord";
 import type { ArticleBlock } from "@/lib/news/articleDoc";
@@ -111,9 +110,7 @@ export function ArticleView({ article }: { article: ArticleRecord }): JSX.Elemen
 
   return (
     <div className={styles.page}>
-      <div className={styles.topbar}>
-        <LanguageToggle />
-      </div>
+      {/* 언어 토글은 전역 Navbar가 제공(중복 방지) — §14 한/영 토글. */}
       <div className={styles.sheet}>
         <header className={styles.masthead}>
           <div className={styles.brand}>

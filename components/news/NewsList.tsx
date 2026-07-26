@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/useT";
-import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import {
   subscribePublishedArticles,
   type ArticleRecord,
@@ -33,9 +32,7 @@ export function NewsList(): JSX.Element {
 
   return (
     <div className={styles.page}>
-      <div className={styles.topbar}>
-        <LanguageToggle />
-      </div>
+      {/* 언어 토글은 전역 Navbar가 제공(중복 방지) — §14 한/영 토글. */}
       <div className={styles.listWrap}>
         <h1 className={styles.listHead}>{t("news.list.title")}</h1>
         {articles.length === 0 ? (
