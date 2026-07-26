@@ -8,9 +8,9 @@
     "node": "20"
   },
   "scripts": {
-    "build": "node scripts/copy-crown.mjs && node scripts/copy-ranking.mjs && tsc",
+    "build": "node scripts/copy-crown.mjs && node scripts/copy-ranking.mjs && node scripts/copy-news.mjs && tsc",
     "build:watch": "tsc --watch",
-    "test": "node scripts/copy-ranking.mjs && vitest run",
+    "test": "node scripts/copy-ranking.mjs && node scripts/copy-news.mjs && vitest run",
     "serve": "npm run build && firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"

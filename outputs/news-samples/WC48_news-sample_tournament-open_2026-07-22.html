@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 — 뉴스 기사 샘플 (신규 Tournament 오픈)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --wc-gold:#FCD006;
+  --wc-crimson:#D7063A;
+  --wc-turquoise:#00A3B7;
+  --wc-twilight-deep:#14102B;
+  --wc-twilight:#1E1740;
+  --wc-ink:#1A1830;
+  --wc-ink-soft:#4A4763;
+  --wc-paper:#FBFAF6;
+  --wc-paper-line:#E4E1D6;
+  --radius-0:0; --radius-5:5px; --radius-pill:999px;
+  --font-ui:'Inter','Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --font-display:'Playfair Display','Pretendard',serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#EFEDE5;font-family:var(--font-ui);color:var(--wc-ink);line-height:1.7;}
+
+.sample-banner{background:var(--wc-turquoise);color:#fff;text-align:center;
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;padding:8px 16px;}
+
+.sheet{max-width:760px;margin:32px auto 64px;background:var(--wc-paper);
+  box-shadow:0 2px 24px rgba(20,16,43,.14);border-radius:var(--radius-0);overflow:hidden;}
+
+/* Masthead — 제호 */
+.masthead{display:flex;align-items:center;justify-content:space-between;
+  padding:20px 40px;border-bottom:3px solid var(--wc-ink);}
+.masthead .brand{display:flex;align-items:center;gap:10px;}
+.masthead .brand svg{display:block;}
+.masthead .brand-name{font-family:var(--font-ui);font-weight:800;font-size:20px;
+  letter-spacing:.02em;color:var(--wc-ink);}
+.masthead .brand-name em{font-style:normal;color:#B89A00;}
+.masthead .date{font-family:var(--font-mono);font-size:11px;color:var(--wc-ink-soft);letter-spacing:.08em;}
+
+/* Section rail */
+.rail{display:flex;gap:12px;align-items:center;padding:12px 40px;border-bottom:1px solid var(--wc-paper-line);}
+.rail .tag{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.14em;
+  background:var(--wc-ink);color:var(--wc-gold);padding:4px 10px;border-radius:var(--radius-0);}
+.rail .crumb{font-family:var(--font-mono);font-size:11px;color:var(--wc-ink-soft);letter-spacing:.08em;}
+
+/* Article */
+article{padding:36px 40px 0;}
+.headline{font-family:var(--font-display);font-weight:800;font-size:34px;line-height:1.3;
+  letter-spacing:-.01em;margin-bottom:10px;}
+.subhead{font-size:16px;color:var(--wc-ink-soft);margin-bottom:18px;line-height:1.6;}
+.byline{display:flex;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--wc-paper-line);
+  border-bottom:1px solid var(--wc-paper-line);margin-bottom:26px;}
+.byline .who{font-size:13px;font-weight:600;}
+.byline .when{font-family:var(--font-mono);font-size:11px;color:var(--wc-ink-soft);letter-spacing:.06em;}
+
+/* Hero graphic — 자체 제작 (권리 문제 0) */
+.hero{margin:0 0 10px;}
+.hero svg{width:100%;height:auto;display:block;border-radius:var(--radius-5);}
+.hero-caption{font-family:var(--font-mono);font-size:11px;color:var(--wc-ink-soft);
+  letter-spacing:.04em;margin:8px 0 30px;}
+
+article p{font-size:15.5px;margin-bottom:20px;}
+article p strong{font-weight:700;}
+
+/* Data box — 근거 데이터 */
+.databox{border:1.5px solid var(--wc-ink);border-radius:var(--radius-5);margin:28px 0;overflow:hidden;}
+.databox .db-head{background:var(--wc-ink);color:var(--wc-gold);font-family:var(--font-mono);
+  font-size:11px;font-weight:700;letter-spacing:.14em;padding:8px 14px;}
+.databox table{width:100%;border-collapse:collapse;}
+.databox td{padding:10px 14px;font-size:13.5px;border-bottom:1px solid var(--wc-paper-line);}
+.databox td.k{width:42%;color:var(--wc-ink-soft);font-weight:600;}
+.databox td.v{font-family:var(--font-mono);font-weight:500;}
+.databox tr:last-child td{border-bottom:none;}
+
+.cta{background:#F4F1E6;border-left:4px solid #B89A00;border-radius:var(--radius-0);
+  padding:16px 20px;margin:26px 0 34px;font-size:14.5px;}
+
+/* ✦ AI-Report — 기사 푸터 전용 (v2.4 Footer-Only Lock) */
+.article-footer{background:var(--wc-twilight-deep);padding:18px 40px;margin-top:8px;}
+.ai-report{font-family:var(--font-mono);font-size:12px;color:var(--wc-gold);
+  letter-spacing:.04em;line-height:1.8;}
+
+/* 발행 정보 — 신문법 표시사항 자리 */
+.imprint{background:var(--wc-twilight);padding:16px 40px 22px;
+  font-family:var(--font-mono);font-size:10.5px;color:#9A93C4;letter-spacing:.05em;line-height:2;}
+.imprint b{color:#CFC9EE;font-weight:500;}
+
+@media (max-width:640px){
+  .masthead,.rail,article,.article-footer,.imprint{padding-left:20px;padding-right:20px;}
+  .headline{font-size:26px;}
+}
+</style>
+</head>
+<body>
+
+<div class="sample-banner">SAMPLE MOCKUP — 가상 데이터로 제작된 시안입니다 · 실제 기사 아님</div>
+
+<div class="sheet">
+
+  <!-- 제호 (masthead) -->
+  <header class="masthead">
+    <div class="brand">
+      <!-- 임시 왕관 도형 — 실제 구현 시 공식 Crown SVG로 교체 -->
+      <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true">
+        <path d="M2 16 L4 5 L9 10 L13 2 L17 10 L22 5 L24 16 Z" fill="#FCD006" stroke="#1A1830" stroke-width="1.2"/>
+        <rect x="3" y="16" width="20" height="2.5" fill="#1A1830"/>
+      </svg>
+      <div class="brand-name">World<em>Crown</em>48</div>
+    </div>
+    <div class="date">2026-07-22 (WED) · KST</div>
+  </header>
+
+  <div class="rail">
+    <span class="tag">NEWS</span>
+    <span class="crumb">TOURNAMENT OPEN · K-POP</span>
+  </div>
+
+  <article>
+    <h1 class="headline">2026 서머 컴백 타이틀곡 48, 오늘 개막 — 여름의 왕좌를 가릴 Tournament가 열렸다</h1>
+    <p class="subhead">올여름 발표된 K-POP 타이틀곡 48곡이 한 무대에 올랐다. 전 세계 Voter의 선택이 시작된다.</p>
+
+    <div class="byline">
+      <span class="who">WorldCrown48 뉴스룸</span>
+      <span class="when">입력 2026-07-22 09:00 · 데이터 기준 2026-07-22 08:00</span>
+    </div>
+
+    <!-- 히어로 그래픽: 자체 제작 (저작권·초상권 문제 0) -->
+    <figure class="hero">
+      <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="신규 Tournament 오픈 발표 그래픽">
+        <defs>
+          <linearGradient id="tw" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1E1740"/>
+            <stop offset="1" stop-color="#14102B"/>
+          </linearGradient>
+        </defs>
+        <rect width="720" height="340" fill="url(#tw)"/>
+        <!-- 48-슬롯 모티프 -->
+        <g opacity="0.5">
+          <!-- 6 x 8 grid of slots -->
+          <g fill="none" stroke="#3A3168" stroke-width="1.4">
+            <rect x="60" y="212" width="60" height="60" rx="5"/><rect x="134" y="212" width="60" height="60" rx="5"/>
+            <rect x="208" y="212" width="60" height="60" rx="5"/><rect x="282" y="212" width="60" height="60" rx="5"/>
+            <rect x="356" y="212" width="60" height="60" rx="5"/><rect x="430" y="212" width="60" height="60" rx="5"/>
+            <rect x="504" y="212" width="60" height="60" rx="5"/><rect x="578" y="212" width="60" height="60" rx="5"/>
+          </g>
+          <g fill="none" stroke="#2C2554" stroke-width="1.2">
+            <rect x="96" y="286" width="48" height="34" rx="5"/><rect x="170" y="286" width="48" height="34" rx="5"/>
+            <rect x="244" y="286" width="48" height="34" rx="5"/><rect x="318" y="286" width="48" height="34" rx="5"/>
+            <rect x="392" y="286" width="48" height="34" rx="5"/><rect x="466" y="286" width="48" height="34" rx="5"/>
+            <rect x="540" y="286" width="48" height="34" rx="5"/>
+          </g>
+        </g>
+        <!-- 골드 슬롯 하이라이트 2개 (VS 모티프) -->
+        <rect x="282" y="212" width="60" height="60" rx="5" fill="none" stroke="#FCD006" stroke-width="2"/>
+        <rect x="356" y="212" width="60" height="60" rx="5" fill="none" stroke="#FCD006" stroke-width="2"/>
+        <text x="349" y="248" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#D7063A">VS</text>
+
+        <!-- 임시 왕관 도형 — 공식 Crown SVG 교체 자리 -->
+        <g transform="translate(334,52)">
+          <path d="M4 34 L9 10 L20 22 L26 4 L32 22 L43 10 L48 34 Z" fill="#FCD006"/>
+          <rect x="6" y="34" width="40" height="5" fill="#FCD006" opacity="0.85"/>
+        </g>
+
+        <text x="360" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace"
+              font-size="13" font-weight="700" letter-spacing="6" fill="#FCD006">NEW TOURNAMENT</text>
+        <text x="360" y="164" text-anchor="middle" font-family="'Playfair Display','Pretendard',serif"
+              font-size="30" font-weight="800" fill="#FFFFFF">2026 서머 컴백 타이틀곡 48</text>
+        <text x="360" y="192" text-anchor="middle" font-family="'Inter','Pretendard',sans-serif"
+              font-size="13" fill="#B4ADD9">48 CONTESTANTS · ROUND OF 48 → THE FINAL</text>
+      </svg>
+      <figcaption class="hero-caption">그래픽 = WorldCrown48 자체 제작 (샘플)</figcaption>
+    </figure>
+
+    <p><strong>올여름 K-POP 컴백 대전의 승자는 누구인가.</strong> WorldCrown48은 22일, 2026년 6~7월 발표된 K-POP 타이틀곡 48곡을 Contestant로 하는 신규 Tournament '2026 서머 컴백 타이틀곡 48'을 공개했다. 참여는 무료이며, 전 세계 어디서든 한국어·영어·스페인어로 참여할 수 있다.</p>
+
+    <p>이번 Tournament는 48곡이 1대1로 맞붙는 ROUND OF 48에서 시작해 24강, 12강, 6강을 거쳐 마지막 3곡 중 하나를 직접 선택하는 THE FINAL로 마무리된다. Voter는 자신만의 대진을 처음부터 끝까지 통과하며, 마지막 선택을 마치면 자신의 Champion이 새겨진 Crown Card를 받게 된다.</p>
+
+    <p>올해 여름 시즌은 걸그룹과 보이그룹의 컴백이 같은 주에 몰리며 어느 해보다 경쟁이 뜨거웠다는 평가를 받는다. 발매 첫 주 화제성 지표에서 선두권이 매주 뒤바뀐 만큼, 팬덤의 선택이 어디로 향할지가 이번 Tournament의 관전 포인트다.</p>
+
+    <div class="databox">
+      <div class="db-head">TOURNAMENT DATA</div>
+      <table>
+        <tr><td class="k">Tournament</td><td class="v">2026 서머 컴백 타이틀곡 48</td></tr>
+        <tr><td class="k">카테고리</td><td class="v">K-POP · MUSIC</td></tr>
+        <tr><td class="k">Contestants</td><td class="v">48곡 (2026년 6~7월 발표 타이틀곡)</td></tr>
+        <tr><td class="k">진행 방식</td><td class="v">ROUND OF 48 → 24 → 12 → 6 → THE FINAL</td></tr>
+        <tr><td class="k">Tournament Deadline</td><td class="v">2026-08-31 23:59 KST</td></tr>
+        <tr><td class="k">지원 언어</td><td class="v">KO · EN · ES</td></tr>
+      </table>
+    </div>
+
+    <p>Tournament 종료 후에는 전체 Voter의 선택을 집계한 최종 랭킹과 Champion이 발표되며, 결과 분석 기사가 본지를 통해 공개될 예정이다.</p>
+
+    <div class="cta">참여하기 — worldcrown48.com 에서 '2026 서머 컴백 타이틀곡 48'을 선택하면 바로 시작됩니다. 계정 없이 게스트로 1회 완주할 수 있습니다.</div>
+  </article>
+
+  <!-- ✦ AI-Report — 기사 푸터 전용 · 12px 골드 모노 (v2.4 Footer-Only Lock) -->
+  <div class="article-footer">
+    <div class="ai-report">✦ AI-Report — 이 기사는 WorldCrown48 투표 데이터를 기반으로 AI가 초안을 작성하고, 발행인이 검토·승인했습니다. 데이터 기준: 2026-07-22 08:00 KST (샘플·가상 데이터)</div>
+  </div>
+
+  <!-- 발행 정보 (신문법 표시사항 자리 — 등록 후 확정값 기입) -->
+  <div class="imprint">
+    <b>제호</b> WorldCrown48 &nbsp;·&nbsp; <b>발행인·편집인</b> ○○○ &nbsp;·&nbsp; <b>소재지</b> 대구광역시 ○○구 ○○로 00 &nbsp;·&nbsp; <b>등록번호</b> 대구, 아00000 (등록 후 기재) &nbsp;·&nbsp; <b>발행일</b> 2026-07-22<br>
+    본지 기사는 WorldCrown48 자체 투표 데이터를 취재원으로 하는 데이터 저널리즘 콘텐츠입니다. 기사 이미지는 자체 제작 그래픽을 사용합니다.
+  </div>
+
+</div>
+</body>
+</html>

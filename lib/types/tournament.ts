@@ -12,6 +12,7 @@
  * types are nominally different. We keep the field types structural here and
  * let the write-side builders stamp the concrete value (serverTimestamp()).
  */
+import type { ContestantMedia } from "@/lib/media/mediaSlot";
 
 /**
  * A Tournament category id (UPPER_SNAKE, e.g. "KPOP"). TX-0 (2026-07-11):
@@ -22,6 +23,10 @@
  * `lib/taxonomy/category.ts` (CategoryDoc). See LANGUAGE.md §13.
  */
 export type Category = string;
+
+// ND-1 §3 #12 — Contestant media swap grail (image·embed·clip). Type lives in the
+// pure lib/media/mediaSlot module (renderer + decision); re-exported on Contestant.
+export type { ContestantMedia };
 
 /** Exactly 48 Contestants per Tournament — the binary tree halves 48→24→12→6→FINAL. */
 export const TOTAL_CONTESTANTS = 48;
@@ -82,6 +87,12 @@ export interface Contestant {
   position: string;
   imageUrl: string; // operator-entered, license-checked (never auto-downloaded)
   imageSearchKeyword: string; // Claude-suggested search term only
+  /**
+   * ND-1 §3 #12 — OPTIONAL media swap grail (image | embed | clip). Additive &
+   * backward-compatible: absent `media` is treated as `image` (imageUrl). `clip`
+   * is schema-reservation only — no render path (see lib/media/mediaSlot.ts).
+   */
+  media?: ContestantMedia;
 }
 
 /**

@@ -373,6 +373,46 @@ export const MESSAGES = {
     en: "Delete failed.",
     es: "No se pudo eliminar.",
   },
+
+  // ── ND-1 News Desk (Domain: /news + /admin/newsdesk) ───────────────────
+  "newsdesk.error.dailyLimit": {
+    ko: "오늘 생성 한도(20건)를 모두 사용했어요. 내일 다시 시도해주세요.",
+    en: "You've hit today's draft limit (20). Try again tomorrow.",
+    es: "Has alcanzado el límite de hoy (20 borradores). Inténtalo mañana.",
+  },
+  "newsdesk.error.generateFailed": {
+    ko: "초안 생성에 실패했어요. 잠시 후 다시 시도해주세요.",
+    en: "Draft generation failed. Please try again shortly.",
+    es: "No se pudo generar el borrador. Inténtalo de nuevo pronto.",
+  },
+  "news.masthead.tagline": {
+    ko: "팬이 만드는 뉴스",
+    en: "News, made by fans",
+    es: "Noticias hechas por fans",
+  },
+  "news.rail.label": { ko: "뉴스", en: "NEWSROOM", es: "SALA DE PRENSA" },
+  "news.list.title": { ko: "뉴스", en: "Newsroom", es: "Sala de prensa" },
+  "news.list.empty": {
+    ko: "아직 발행된 기사가 없어요.",
+    en: "No published articles yet.",
+    es: "Aún no hay artículos publicados.",
+  },
+  "news.article.byline": {
+    ko: "WorldCrown48 뉴스룸",
+    en: "WorldCrown48 Newsroom",
+    es: "Redacción de WorldCrown48",
+  },
+  "news.article.notFound": {
+    ko: "기사를 찾을 수 없어요. 내려갔거나 아직 발행되지 않았습니다.",
+    en: "Article not found — it may be unpublished or taken down.",
+    es: "Artículo no encontrado — puede estar sin publicar o retirado.",
+  },
+  // ✦ AI-Report v2.5 문구 (3언어) — DATA {asOf} 는 렌더러가 붙임
+  "news.aiReport": {
+    ko: "✦ AI-Report · 발행인이 검토·승인했습니다",
+    en: "✦ AI-Report · reviewed & approved by the publisher",
+    es: "✦ AI-Report · revisado y aprobado por el editor",
+  },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC48 — Official Embed Demo v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,600;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-bg-void:#00001F; --color-bg-deep:#00003A; --color-bg-default:#0E0944;
+    --color-bg-soft:#241754; --color-bg-elevated:#362261;
+    --color-gold:#FCD006; --color-gold-hover:#E3BB05;
+    --color-gold-subtle:rgba(252,208,6,0.12); --color-gold-glow:rgba(252,208,6,0.25);
+    --color-aura:#EEDA7D; --color-crimson:#D7063A; --color-turquoise:#00A3B7;
+    --color-text:#F2F2F5; --color-text-sub:#B1B5C4; --color-text-muted:#484B67;
+    --color-border:#2D1C5A; --color-border-gold:rgba(252,208,6,0.30);
+    --radius-rect:0; --radius-border:5px; --radius-chip:999px;
+    --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-12:48px;
+    --font-ui:'Inter','Pretendard',sans-serif; --font-display:'Playfair Display',serif; --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--font-ui); color:var(--color-text); min-height:100vh;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, color-mix(in srgb, var(--color-gold) 9%, transparent) 0%, transparent 70%),
+      linear-gradient(180deg, var(--color-bg-deep) 0%, var(--color-bg-void) 100%);
+    padding:var(--space-12) var(--space-5);
+  }
+  .wrap{max-width:920px;margin:0 auto}
+  .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.18em;color:var(--color-gold);text-transform:uppercase;margin-bottom:var(--space-3)}
+  h1{font-family:var(--font-display);font-style:italic;font-weight:700;font-size:34px;color:var(--color-text);margin-bottom:var(--space-2)}
+  .sub{color:var(--color-text-sub);font-size:15px;line-height:1.6;margin-bottom:var(--space-8)}
+  .sub strong{color:var(--color-aura);font-weight:600}
+
+  .card{
+    background:var(--color-bg-default); border:1px solid var(--color-border);
+    border-radius:var(--radius-border); overflow:hidden; margin-bottom:var(--space-8);
+  }
+  .card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:var(--space-4) var(--space-5); border-bottom:1px solid var(--color-border);
+    background:var(--color-bg-soft);
+  }
+  .contestant{display:flex;align-items:center;gap:var(--space-3)}
+  .avatar{
+    width:44px;height:44px;border-radius:var(--radius-chip);
+    background:linear-gradient(135deg,var(--color-bg-elevated),var(--color-bg-soft));
+    border:1px solid var(--color-border-gold); display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:11px;color:var(--color-aura);
+  }
+  .c-name{font-weight:700;font-size:16px}
+  .c-name span{font-family:var(--font-mono);font-weight:400;font-size:11px;color:var(--color-text-sub);margin-left:8px;letter-spacing:.08em}
+  .chip{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    color:var(--color-gold);background:var(--color-gold-subtle);
+    border:1px solid var(--color-border-gold);border-radius:var(--radius-chip);
+    padding:5px 14px;
+  }
+  .embed-zone{position:relative;width:100%;aspect-ratio:16/9;background:var(--color-bg-void)}
+  .embed-zone iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .card-foot{
+    padding:var(--space-3) var(--space-5);
+    display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+  }
+  .src-note{font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);letter-spacing:.04em}
+  .src-note b{color:var(--color-turquoise);font-weight:500}
+
+  .lab{
+    background:var(--color-bg-default);border:1px dashed var(--color-border-gold);
+    border-radius:var(--radius-border);padding:var(--space-6) var(--space-5);margin-bottom:var(--space-8);
+  }
+  .lab h2{font-size:16px;font-weight:700;margin-bottom:var(--space-2)}
+  .lab p{font-size:13px;color:var(--color-text-sub);margin-bottom:var(--space-4);line-height:1.6}
+  .lab-row{display:flex;gap:var(--space-3);flex-wrap:wrap}
+  .lab input{
+    flex:1;min-width:260px;background:var(--color-bg-void);border:1px solid var(--color-border);
+    border-radius:var(--radius-border);color:var(--color-text);
+    font-family:var(--font-mono);font-size:13px;padding:12px 14px;outline:none;
+  }
+  .lab input:focus{border-color:var(--color-gold)}
+  .btn{
+    background:var(--color-gold);color:var(--color-bg-void);border:0;cursor:pointer;
+    font-family:var(--font-ui);font-weight:700;font-size:14px;letter-spacing:.02em;
+    padding:12px 28px;border-radius:var(--radius-border);
+    transition:transform .12s ease, background .12s ease;
+  }
+  .btn:hover{background:var(--color-gold-hover);transform:translateY(-1px)}
+  .err{font-family:var(--font-mono);font-size:12px;color:var(--color-crimson);margin-top:var(--space-2);display:none}
+
+  .legend{border-top:1px solid var(--color-border);padding-top:var(--space-6)}
+  .legend h3{font-family:var(--font-mono);font-size:12px;letter-spacing:.15em;color:var(--color-gold);margin-bottom:var(--space-4);text-transform:uppercase}
+  .legend ul{list-style:none}
+  .legend li{
+    font-size:13.5px;color:var(--color-text-sub);line-height:1.7;
+    padding-left:18px;position:relative;margin-bottom:var(--space-2);
+  }
+  .legend li::before{content:"";position:absolute;left:0;top:10px;width:6px;height:6px;background:var(--color-gold);border-radius:var(--radius-rect)}
+  .legend li b{color:var(--color-text);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">WorldCrown48 · Official Embed Demo v1</div>
+  <h1>Contestant Detail — Embed Slot</h1>
+  <p class="sub">
+    아래 영상은 WC48 서버에 <strong>단 1바이트도 저장되지 않습니다.</strong>
+    유튜브가 자기 서버에서 직접 재생하는 공식 플레이어를 우리 화면 안에 "창문"처럼 끼워 넣은 것 —
+    이것이 임베드(embed)입니다. 저작권자(채널 소유자)가 퍼가기를 허용한 영상만 이렇게 재생됩니다.
+  </p>
+
+  <!-- Contestant Detail Card with Embed Slot -->
+  <div class="card">
+    <div class="card-head">
+      <div class="contestant">
+        <div class="avatar">IMG</div>
+        <div class="c-name">데모 Contestant <span>OFFICIAL VIDEO</span></div>
+      </div>
+      <div class="chip">EMBED</div>
+    </div>
+    <div class="embed-zone">
+      <iframe id="player"
+        src="https://www.youtube-nocookie.com/embed/9bZkp7q19f0"
+        title="Official video embed"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+    <div class="card-foot">
+      <div class="src-note">SOURCE <b>youtube-nocookie.com</b> · 파일 미보유 · 재생/광고 수익은 원저작자에게</div>
+      <div class="src-note">데모 영상: officialpsy — 임베드 허용 확인됨</div>
+    </div>
+  </div>
+
+  <!-- Paste-and-Play Lab -->
+  <div class="lab">
+    <h2>직접 해보기 — 유튜브 주소를 붙여넣으세요</h2>
+    <p>공식 MV·직캠(M2, Studio CHOOM 등) 주소를 붙여넣고 버튼을 누르면 위 카드의 영상이 즉시 교체됩니다.
+       The Lab의 Contestant 편집 폼에 이 입력창 하나만 추가하면 — 그게 곧 프로덕션 적용입니다.</p>
+    <div class="lab-row">
+      <input id="url" type="text" placeholder="https://www.youtube.com/watch?v=..." spellcheck="false">
+      <button class="btn" onclick="swap()">임베드 교체</button>
+    </div>
+    <div class="err" id="err">유튜브 주소에서 영상 ID를 찾지 못했습니다. watch?v=... 또는 youtu.be/... 형식인지 확인해 주세요.</div>
+  </div>
+
+  <div class="legend">
+    <h3>Why this is the strongest card</h3>
+    <ul>
+      <li><b>합법</b> — 유튜브 약관이 허용하는 공식 퍼가기 방식. 저작권자가 임베드를 끄면 재생이 안 되는 것 자체가 "허락 시스템"이 작동한다는 뜻입니다.</li>
+      <li><b>최고 화질</b> — 원본 그대로. 우리가 화질을 관리할 필요도 없습니다.</li>
+      <li><b>저장 제로</b> — DMCA 삭제 요청이 와도 지울 파일이 없습니다. 링크 한 줄만 바꾸면 끝.</li>
+      <li><b>한계도 정직하게</b> — 48칸 투표 그리드의 썸네일 사진은 임베드로 대체 불가(무거움). 그리드는 CC/Level 2 사진, 임베드는 상세·응원·Crown Card 뒷면 슬롯용입니다.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  function swap(){
+    var v = document.getElementById('url').value.trim();
+    var err = document.getElementById('err');
+    var m = v.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if(!m){ err.style.display='block'; return; }
+    err.style.display='none';
+    document.getElementById('player').src = 'https://www.youtube-nocookie.com/embed/' + m[1];
+  }
+  document.getElementById('url').addEventListener('keydown', function(e){ if(e.key==='Enter') swap(); });
+</script>
+</body>
+</html>

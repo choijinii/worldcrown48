@@ -17,6 +17,7 @@ import { HeroSection } from "./HeroSection";
 import { TrendingFeed } from "./TrendingFeed";
 import { LabEntryCard } from "./LabEntryCard";
 import { NewsroomFeed } from "./NewsroomFeed";
+import { NewsRail } from "@/components/news/NewsRail";
 import "./pitch.css";
 
 export default function PitchPage() {
@@ -32,6 +33,9 @@ export default function PitchPage() {
         <TrendingFeed />
         <LabEntryCard />
         <NewsroomFeed />
+        {/* TODO(ND-TEMP-MOUNT): Pitch 개편 시 우측 상설 프레임으로 이사.
+            ND-1 임시 마운트 — ≥1024px 우측 고정 레일 + 모바일 하단 인라인. */}
+        <NewsRail docked />
         <p className="pitch-foot">WorldCrown48 · 48 Contestants · One Crown</p>
       </div>
     </main>
