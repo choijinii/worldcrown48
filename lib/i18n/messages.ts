@@ -413,6 +413,18 @@ export const MESSAGES = {
     en: "✦ AI-Report · reviewed & approved by the publisher",
     es: "✦ AI-Report · revisado y aprobado por el editor",
   },
+  // 기사 byline의 데이터 기준시각 라벨 (3언어) — {asOf} 보간
+  "news.article.dataAsOf": {
+    ko: "데이터 기준 {asOf}",
+    en: "Data as of {asOf}",
+    es: "Datos al {asOf}",
+  },
+  // 편집기 근거 스냅샷 패널 설명 (3언어)
+  "newsdesk.evidence.hint": {
+    ko: "AI가 기사 작성에 사용한 근거 수치입니다. 발행 전 기사 내용과 대조하세요.",
+    en: "The evidence figures the AI used to write this article. Cross-check them against the article before publishing.",
+    es: "Las cifras que la IA usó para redactar este artículo. Coteja con el artículo antes de publicar.",
+  },
 } as const satisfies Record<string, Entry>;
 
 export type MessageKey = keyof typeof MESSAGES;

@@ -33,7 +33,7 @@ const prompts: Record<string, string> = {
   column: buildColumnPrompt({ topic: "여름 플레이리스트의 심리학", digest: digestStub }),
 };
 
-describe("§5.5 지침 6항 — 4종 프롬프트 전부에 박제 (AC 9)", () => {
+describe("§5.5 지침 7항 — 4종 프롬프트 전부에 박제 (AC 9)", () => {
   // Each guidance item leaves a distinctive fingerprint the prompt must carry.
   const GUIDANCE_MARKERS = [
     "사용설명 금지", // 1
@@ -42,10 +42,11 @@ describe("§5.5 지침 6항 — 4종 프롬프트 전부에 박제 (AC 9)", () =
     "정서적 클로저", // 4
     "축제의 언어", // 5
     "Vote Count", // 6 (절대 득표수 금지)
+    "킥 비트", // 7 (클로저 직전 반전·콜백·의외의 강조)
   ];
 
   for (const [name, prompt] of Object.entries(prompts)) {
-    it(`${name} 프롬프트가 지침 6항 마커를 모두 포함한다`, () => {
+    it(`${name} 프롬프트가 지침 7항 마커를 모두 포함한다`, () => {
       for (const marker of GUIDANCE_MARKERS) {
         expect(prompt).toContain(marker);
       }
@@ -65,9 +66,10 @@ describe("§5.5 지침 6항 — 4종 프롬프트 전부에 박제 (AC 9)", () =
 });
 
 describe("NEWS_STYLE_GUIDE — 단일 진실", () => {
-  it("6개 지침 마커 + 전 금지어를 담는다", () => {
+  it("7개 지침 마커 + 전 금지어를 담는다", () => {
     for (const w of FORBIDDEN_WAR_WORDS) expect(NEWS_STYLE_GUIDE).toContain(w);
     expect(NEWS_STYLE_GUIDE).toContain("사용설명 금지");
+    expect(NEWS_STYLE_GUIDE).toContain("킥 비트"); // 지침 7 (반전·콜백·의외의 강조)
   });
 
   it("포함하는 금지어가 최소 8개(전투 은유 목록 전체)이다", () => {
