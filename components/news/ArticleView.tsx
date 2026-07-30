@@ -142,7 +142,9 @@ export function ArticleView({ article }: { article: ArticleRecord }): JSX.Elemen
           <div className={styles.byline}>
             <span className={styles.who}>{t("news.article.byline")}</span>
             {article.evidence.asOf ? (
-              <span className={styles.when}>데이터 기준 {article.evidence.asOf}</span>
+              <span className={styles.when}>
+                {t("news.article.dataAsOf", { asOf: article.evidence.asOf })}
+              </span>
             ) : null}
             {view.isFallback ? (
               <span className={styles.fallbackNote}>· original-language fallback</span>

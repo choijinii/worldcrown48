@@ -26,7 +26,11 @@ export function NewsDesk(): JSX.Element {
         setArticles(list);
         setError(null);
       },
-      () => setError("기사를 불러오지 못했어요. 운영자 권한/네트워크를 확인하세요."),
+      (e) => {
+        // 원본 에러를 콘솔에 남겨 진단 가능하게 (permission-denied vs failed-precondition 등).
+        console.error("[NewsDesk] 대기함 로드 실패:", e);
+        setError("기사를 불러오지 못했어요. 운영자 권한/네트워크를 확인하세요.");
+      },
     );
   }, []);
 

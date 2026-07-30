@@ -5,13 +5,16 @@
  */
 "use client";
 
+import { useT } from "@/lib/i18n/useT";
 import type { Evidence } from "@/lib/news/articleDoc";
 import styles from "./newsdesk.module.css";
 
 export function EvidencePanel({ evidence }: { evidence: Evidence }): JSX.Element {
+  const { t } = useT();
   return (
     <div className={styles.panel}>
       <div className={styles.panelLabel}>근거 스냅샷 · Evidence</div>
+      <p className={styles.hint}>{t("newsdesk.evidence.hint")}</p>
       {evidence.stats.length === 0 ? (
         <div className={styles.empty}>근거 수치 없음</div>
       ) : (

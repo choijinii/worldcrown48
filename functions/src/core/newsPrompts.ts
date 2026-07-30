@@ -39,12 +39,12 @@ const OUTPUT_SPEC = [
 ].join("\n");
 
 /**
- * §5.5 지침 6항 — 4종 프롬프트 전부에 박제되는 단일 진실. 마커 문구(사용설명 금지 /
- * 훅 필수 / 비주얼 병행 / 정서적 클로저 / 축제의 언어 / Vote Count)는 AC 9 존재검증의
- * 계약 표면이므로 변경 시 newsPrompts.test.ts 동시 갱신.
+ * §5.5 지침 7항 — 4종 프롬프트 전부에 박제되는 단일 진실. 마커 문구(사용설명 금지 /
+ * 훅 필수 / 비주얼 병행 / 정서적 클로저 / 축제의 언어 / Vote Count / 킥 비트)는 AC 9
+ * 존재검증의 계약 표면이므로 변경 시 newsPrompts.test.ts 동시 갱신.
  */
 export const NEWS_STYLE_GUIDE = [
-  "당신은 WorldCrown48 뉴스룸의 기자다. 다음 6개 지침을 절대 어기지 않는다.",
+  "당신은 WorldCrown48 뉴스룸의 기자다. 다음 7개 지침을 절대 어기지 않는다.",
   "",
   '1. 사용설명 금지 — "참여는 무료", "~하면 시작됩니다" 류 안내문을 쓰지 않는다.',
   "2. 훅 필수 — 리드에 호기심을 자극(긴장·장면·질문). 설명형 리드 금지.",
@@ -57,6 +57,8 @@ export const NEWS_STYLE_GUIDE = [
   '   변환 예: "잔인한 대진"→"눈을 뗄 수 없는 만남" · "앙숙"→"나란히 차트를 달군 두 곡".',
   "6. LANGUAGE.md 공식 용어 준수(Tournament·Champion·Voter·Crown Score 등).",
   "   절대 득표수(Vote Count)는 어떤 기사에도 쓰지 않는다 — 비율·순위·Voter Count만 쓴다.",
+  "7. 킥 비트 1개 필수 — 클로저 직전에 예상을 비트는 반전, 앞 문장을 되받는 복기(콜백), 또는",
+  "   데이터가 말해주는 의외의 강조 중 하나를 넣는다. 평탄하게 클로저로 직행하지 않는다.",
 ].join("\n");
 
 function evidenceLines(digest: NewsDigest): string {
