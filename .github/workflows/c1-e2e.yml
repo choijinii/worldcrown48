@@ -15,13 +15,15 @@ on:
       - 'e2e/c1-**'
       - 'playwright.config.ts'
       - 'package.json'
+      - '.github/workflows/c1-e2e.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      PREVIEW_URL: ${{ secrets.C1_PREVIEW_URL }}
+      # PREVIEW_URL은 아래 "Resolve … Preview URL" 스텝에서 head SHA로 해석(고정
+      # C1_PREVIEW_URL 시크릿 폐기 — frozen-preview 함정 회피, feedback-c2-preview-url-pinned).
       # global-setup reads TEST_UID (custom-token sign-in); the C-1 specs read
       # C1_TEST_UID for seeding. Both map to the same secret.
       TEST_UID: ${{ secrets.C1_TEST_UID }}
@@ -67,12 +69,34 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Wait for Vercel Preview
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -z "$PREVIEW_URL" ]; then
-            echo "C1_PREVIEW_URL not set — skipping E2E wait/run."
-            exit 0
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
           fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
           HEADER_ARGS=()
           if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
             HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
@@ -81,12 +105,11 @@ jobs:
             if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
               echo "Preview reachable at $PREVIEW_URL"; exit 0
             fi
-            echo "Preview not ready (attempt $i) — sleeping 10s."; sleep 10
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
           done
-          echo "Preview never became reachable." >&2; exit 1
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright)
-        if: ${{ env.PREVIEW_URL != '' }}
         # Scope to C-1's own specs (each workflow targets its own preview/secrets).
         run: npm run test:e2e -- e2e/c1-arena-flow.spec.ts e2e/c1-anon-gate.spec.ts
 
