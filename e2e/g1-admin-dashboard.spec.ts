@@ -12,7 +12,13 @@
  * Parked (test.skip) until a real G-1 preview + secrets exist — same pattern as
  * b1-admin-lab.spec.ts so CI stays green pre-merge.
  */
-import { expect, test, type Page } from "@playwright/test";
+import {
+  expect,
+  test,
+  type BrowserContextOptions,
+  type Page,
+} from "@playwright/test";
+import { readFileSync } from "node:fs";
 import type { KpiSnapshot } from "@/lib/admin/dashboard/types";
 
 let consoleErrors: string[] = [];
@@ -70,6 +76,35 @@ async function stubCallables(page: Page) {
   );
 }
 
+type StorageState = NonNullable<
+  Exclude<BrowserContextOptions["storageState"], string>
+>;
+
+/**
+ * A genuinely SIGNED-OUT storage state that still reaches a Protected preview.
+ *
+ * `browser.newContext()` INHERITS the config's `use.storageState`, so a bare
+ * `newContext()` is signed in as the operator — the gate card then never
+ * renders because /admin legitimately shows the dashboard. (Verified on
+ * Playwright 1.61: a cookie set only in `use.storageState` shows up in the
+ * "fresh" context.) So we must pass an explicit state.
+ *
+ * Firebase Auth persists in localStorage → `origins`; the Vercel Preview
+ * Protection bypass is the `_vercel_jwt` COOKIE primed by global-setup. Keep
+ * the cookies, drop the origins: signed out, but not staring at the 401 wall
+ * (which `storageState: undefined` or an empty state would produce).
+ */
+function signedOutState(): StorageState {
+  try {
+    const saved = JSON.parse(
+      readFileSync("tests/.auth/user.json", "utf8"),
+    ) as Partial<StorageState>;
+    return { cookies: saved.cookies ?? [], origins: [] };
+  } catch {
+    return { cookies: [], origins: [] }; // no global-setup state (local/unprotected)
+  }
+}
+
 test.use({ viewport: { width: 1600, height: 1000 } }); // ≥1440 primary
 
 test.beforeEach(async ({ page }) => {
@@ -98,7 +133,7 @@ test.describe("G-1 Admin Dashboard", () => {
   });
 
   test("non-authenticated /admin → needs-signin card", async ({ browser }) => {
-    const ctx = await browser.newContext(); // no storageState → signed out
+    const ctx = await browser.newContext({ storageState: signedOutState() });
     const page = await ctx.newPage();
     page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
     await page.goto((process.env.PREVIEW_URL ?? "") + "/admin");
@@ -123,14 +158,21 @@ test.describe("G-1 Admin Dashboard", () => {
 
   test("SiteMapSheet ☰ → Domain 6 is a live link (Coming soon cleared)", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /menu|메뉴|sitemap|☰/i }).first().click();
+    // The burger's accessible name is "Open site map" (Navbar.tsx) — a /sitemap/i
+    // pattern misses it (space), while /menu/i matches "Open user menu for …"
+    // and .first() then opened the USER dropdown, so the sheet never opened.
+    await page.getByRole("button", { name: /site map/i }).click();
     const adminLink = page.getByRole("link", { name: /Admin Dashboard/i });
     await expect(adminLink).toHaveAttribute("href", "/admin");
   });
 
   test("Dev Nav Cmd+Shift+D → Admin Dashboard link resolves to /admin", async ({ page }) => {
     await page.goto("/");
+    // The shortcut only ACTIVATES Dev Nav — it renders the ⚙️ FAB (DevNavFab).
+    // The domain links live in DevNavSheet, which opens on the FAB click.
+    // Same order as e2e/dev-nav.spec.ts.
     await page.keyboard.press("Meta+Shift+KeyD");
+    await page.getByTestId("dev-nav-fab").click();
     const link = page.getByRole("link", { name: /Admin Dashboard/i });
     await expect(link).toHaveAttribute("href", "/admin");
   });
