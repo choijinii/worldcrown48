@@ -30,6 +30,7 @@ import {
   selectCurrentRound,
   selectIsComplete,
 } from "@/lib/arena/voteStore";
+import { arenaScreenState } from "@/lib/arena/arenaScreen";
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { MatchView } from "@/components/arena/MatchView";
@@ -64,6 +65,7 @@ export default function ArenaPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
   const { t, lang } = useT();
   const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
   const uid = user?.uid;
   // Share/download require a real (non-anonymous) sign-in (AC-9/10).
   const canShare = Boolean(user && !user.isAnonymous);
@@ -149,14 +151,57 @@ export default function ArenaPage(): JSX.Element {
     />
   );
 
-  if (loading && !tournament) return <Center>불러오는 중…</Center>;
-  if (error === "not-found" || (!loading && !tournament))
+  // Which screen to show — pure, unit-tested in __tests__/arena/arenaScreen.
+  // Previously inline here, where an unresolved uid fell through to the
+  // not-found branch and flashed "찾을 수 없어요" on every entry (verdict §10.1).
+  const screen = arenaScreenState({
+    authLoading,
+    uid,
+    loading,
+    hasTournament: Boolean(tournament),
+    error,
+  });
+
+  if (screen === "loading") return <Center>{t("arena.load.loading")}</Center>;
+  if (screen === "not-found")
     return (
       <Center>
-        토너먼트를 찾을 수 없어요.&nbsp;
+        {t("arena.load.notFound")}&nbsp;
         <a href="/" style={{ color: "#fcd006" }}>
-          홈으로
+          {t("arena.load.home")}
         </a>
+      </Center>
+    );
+  if (screen === "load-failed")
+    return (
+      <Center>
+        <div>
+          <p style={{ marginBottom: 16 }}>{t("arena.load.failed")}</p>
+          <button
+            type="button"
+            // With a uid we can just re-run the load. Without one the failure
+            // is upstream (auth never resolved a user), so a reload is the only
+            // thing that can actually recover.
+            onClick={() =>
+              uid ? void loadTournament(tournamentId, uid) : window.location.reload()
+            }
+            style={{
+              background: "#fcd006",
+              color: "#0E0944",
+              border: "none",
+              borderRadius: 8,
+              padding: "10px 20px",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {t("arena.load.retry")}
+          </button>
+          &nbsp;
+          <a href="/" style={{ color: "#fcd006" }}>
+            {t("arena.load.home")}
+          </a>
+        </div>
       </Center>
     );
 

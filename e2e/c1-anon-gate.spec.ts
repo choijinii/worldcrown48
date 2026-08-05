@@ -132,7 +132,15 @@ test.describe("C-1 daily-participation gate — 6th NEW Tournament blocked", () 
     await page.goto(`/arena/${TID}?lang=ko`);
 
     // The match renders → the (authed) Voter loaded the 6th Tournament.
-    await expect(page.getByTestId("vote-left")).toContainText("P1");
+    //
+    // Assert that a match rendered, NOT which Contestant is on the left. This
+    // spec landed 2026-07-05 (HF-1), one day before HF-2 made the bracket a
+    // seeded random per Voter (ADR-0007), and it kept asserting "P1" — the
+    // order-based pairing that no longer exists. The left slot is now whatever
+    // this Voter's seed produces (a CI run showed P34), so the old assertion
+    // could only pass by luck. Which Contestant appears is incidental here;
+    // the subject under test is the daily-limit gate below.
+    await expect(page.getByTestId("vote-left")).toBeVisible();
 
     // First vote on this NEW Tournament is a 6th join → gated before onVote.
     await page.getByTestId("vote-left").click();
