@@ -33,8 +33,21 @@ import {
   type Firestore,
 } from "firebase/firestore";
 
-/** How long first render will wait for the create to ack before proceeding. */
-export const SEED_PERSIST_TIMEOUT_MS = 3_000;
+/**
+ * How long first render waits for the create to ack before proceeding.
+ *
+ * Deliberately short. The Arena only needs to KNOW the seed to render — it does
+ * not need it persisted, and the local cache below already makes an unconfirmed
+ * seed refresh-stable. The only thing this window buys is adopting the winner
+ * of a two-tab create race one render earlier; a rules/create-once rejection
+ * comes back within a single round trip, so a few hundred ms covers it.
+ *
+ * A first cut used 3s and it was plainly too long: with CI's slower reads the
+ * Arena still had not rendered inside the E2E's 5s budget (375/414px stayed on
+ * "Loading…"). Blocking a Voter's first paint on a write they do not need is
+ * the same mistake in miniature.
+ */
+export const SEED_PERSIST_TIMEOUT_MS = 400;
 
 export function bracketSeedDocId(uid: string, tournamentId: string): string {
   return `${uid}_${tournamentId}`;

@@ -125,28 +125,36 @@ async function loadInto(
   set: (partial: Partial<VoteState>) => void,
 ): Promise<void> {
   const db = getDb();
-  const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
+
+  // The three reads are independent, so issue them together instead of
+  // serially. They were sequential, which stacked three round trips before the
+  // Arena could paint — ~4.3s on a CI runner. Only the tournament read decides
+  // not-found; the other two are simply discarded in that case.
+  const [tSnap, cSnap, vSnap] = await Promise.all([
+    getDoc(doc(db, "tournaments", tournamentId)),
+    getDocs(
+      query(
+        collection(db, "contestants"),
+        where("tournamentId", "==", tournamentId),
+        orderBy("order"),
+      ),
+    ),
+    getDocs(
+      query(
+        collection(db, "votes"),
+        where("userId", "==", userId),
+        where("tournamentId", "==", tournamentId),
+      ),
+    ),
+  ]);
+
   if (!tSnap.exists()) throw NOT_FOUND;
   const tournament = { id: tSnap.id, ...tSnap.data() } as Tournament;
 
-  const cSnap = await getDocs(
-    query(
-      collection(db, "contestants"),
-      where("tournamentId", "==", tournamentId),
-      orderBy("order"),
-    ),
-  );
   const contestants = cSnap.docs.map(
     (d) => ({ id: d.id, ...d.data() }) as Contestant,
   );
 
-  const vSnap = await getDocs(
-    query(
-      collection(db, "votes"),
-      where("userId", "==", userId),
-      where("tournamentId", "==", tournamentId),
-    ),
-  );
   const votes: ArenaVote[] = vSnap.docs.map((d) => {
     const data = d.data() as {
       round: number;
