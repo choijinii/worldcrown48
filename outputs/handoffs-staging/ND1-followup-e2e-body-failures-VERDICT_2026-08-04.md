@@ -156,13 +156,11 @@ C-1 두 trace(`c1-anon-gate` retry1, `c1-arena-flow` 320px retry1) **모두 동�
 ### 앱 측 결함 (수정 대상)
 `loadOrCreateBracketSeed`는 **Arena 최초 렌더 경로에 놓인, 타임아웃도 폴백도 없는 블로킹 쓰기**다. Write 채널이 한 번 지연되면 Arena는 **"불러오는 중…"에서 영구 정지**하고 에러 표면조차 없다. 그리고 **모든 실제 Voter의 Tournament 첫 진입이 이 경로를 탄다.**
 
-### 수정 전 반드시 가를 갈래 (시크릿 필요 — 이번 세션에서 불가)
-- **(i) CI 러너 네트워크 한정**: Listen은 되고 Write 채널만 막힘 → prod는 무사. 그래도 앱 하드닝은 필요.
-- **(ii) 환경 무관 재현**: **Tournament 첫 진입 P0 프로덕션 버그.**
+### 갈래 판정 → **(i) CI 환경 한정으로 확정** (2026-08-05 실험 완료, §8)
+- **(i) CI 러너 네트워크 한정** ✅ — 정상 네트워크에서는 동일 경로가 전부 완료된다. prod는 무사.
+- **(ii) 환경 무관 재현** ❌ — 배제됨. **P0 프로덕션 버그 아님.**
 
-**판별 실험(권고):** 대표 로컬(비-CI 네트워크)에서 C-1 시크릿을 걸고
-`PREVIEW_URL=<현 프리뷰> npx playwright test e2e/c1-arena-flow.spec.ts -g "mobile 320"`
-→ 로컬 pass + CI fail = (i) · 둘 다 fail = **(ii), 즉시 P0 격상**.
+따라서 아래 수정은 **P0가 아니라 하드닝**이다. 다만 "Write 채널이 지연되면 Arena가 영구 정지하고 에러 표면이 없다"는 구조적 결함 자체는 그대로 유효하므로 수정 대상으로 남는다.
 
 ### 권고 수정 방향 (어느 갈래든 공통)
 seed를 **첫 렌더의 블로커에서 제외**한다. 택1:
@@ -197,8 +195,8 @@ Received string:    "P✓P21KR · FWVOTE LEFTP21"   ← HF-2 이전 코드의 �
 
 | PR | 모듈 | 내용 | 앱 변경 | 규모 | 상태 |
 |---|---|---|---|---|---|
-| **A** | G-1 | `e2e/g1-admin-dashboard.spec.ts` 3건: ① 쿠키만 남긴 컨텍스트 ② `/site map/i` locator ③ FAB 클릭 1줄 | **없음** | ~10줄 | **PR #51 오픈** (2026-08-04) — red→green 판정은 해당 PR의 G-1 E2E CI가 한다 |
-| **B** | C-1 | bracket seed를 첫 렌더 비블로킹으로 (앱) + 기존 4개 실패 테스트가 RED→GREEN | **있음** | ~30~60줄 + 단위 테스트 | **대기 — §4 판별 실험 먼저** |
+| **A** | G-1 | `e2e/g1-admin-dashboard.spec.ts` 3건: ① 쿠키만 남긴 컨텍스트 ② `/site map/i` locator ③ FAB 클릭 1줄 | **없음** | ~10줄 | ✅ **PR #51 머지** (2026-08-04) — G-1 E2E **7 passed** 확정 |
+| **B** | C-1 | bracket seed를 첫 렌더 비블로킹으로 (앱) + 기존 4개 실패 테스트가 RED→GREEN | **있음** | ~30~60줄 + 단위 테스트 | **착수 가능** — §8로 갈래 확정((i)). P0 아님, 하드닝 우선순위 |
 
 - PR A는 (b)/(c) 판정이라 **테스트만** 손대며, 3건 모두 "작성 이래 통과한 적 없는" 스펙 결함이다.
 - PR B는 (a) 판정 — 이미 존재하는 실패 테스트 4건이 그대로 RED이며, 수정 후 GREEN이 완료 조건이다.
@@ -209,5 +207,69 @@ Received string:    "P✓P21KR · FWVOTE LEFTP21"   ← HF-2 이전 코드의 �
 ## 7. 별건 관찰 (스코프 밖 — 대표 판단 요청)
 
 `/news`는 라우트로 존재하나(`app/news/page.tsx`, `app/news/[slug]/`) `lib/layout/domains.ts`의 `SITE_DOMAINS`에 없어 **사이트맵·내비 어디에서도 도달할 수 없다**. 인터넷신문 등록 심사와 연관될 수 있어 보고만 올린다. 이번 태스크에서 변경하지 않았다.
+
+---
+
+## 8. 판별 실험 결과 (2026-08-05, 대표 로컬 = 비-CI 네트워크)
+
+**결론: 갈래 (i) 확정 — CI 환경 한정. 프로덕션은 정상이다.**
+
+`FIREBASE_ADMIN_SDK_KEY`가 로컬에 없어(`.env.local`은 `vercel env pull` 산물이라 Firebase 값이 빈 문자열, 서비스계정은 GitHub Actions 시크릿 전용) 실패 스펙 자체는 돌릴 수 없었다. 대신 **앱의 실제 코드 경로**를 프로덕션 오리진에서 익명 Voter로 재현했다 — bracket seed가 없는 상태, 즉 실패 4건과 동일한 전제.
+
+### 8.1 `loadTournament` 5단계 전부 완료
+`lib/arena/voteStore.ts`의 await 순서를 그대로 복제(동일 컬렉션·동일 쿼리·동일 `experimentalForceLongPolling`):
+
+```
+✓ 1 getDoc tournaments/{tid}              64ms  exists=true
+✓ 2 getDocs contestants (where+orderBy)   76ms  count=48
+✓ 3 getDocs votes (userId+tournamentId)   64ms  count=0
+✓ 4 getDoc bracket_seeds                  55ms  exists=false
+✓ 5 setDoc bracket_seeds  ← 의심 지점      84ms  committed
+firestore net : Listen 45/45 | Write 4/4 (statuses 200,200,200,200)
+```
+**CI에서 status -1로 미완결이던 그 쓰기가 여기서는 84ms에 커밋된다.** Write 채널 4건 전부 200.
+
+### 8.2 실제 앱 화면도 정상 렌더
+`https://www.worldcrown48.com/arena/SR5EARcTglfP0tbXqWlT`를 신규 익명 Voter로 진입:
+```
+state timeline: not-found@282ms → loading@590ms → MATCH@996ms
+final: MATCH RENDERED — app path completed end to end
+firestore net : Listen 42/41 | Write 5/5
+```
+스크린샷에 매치가 완전히 렌더됨(Kazuha (LE SSERAFIM) vs Miyeon ((G)I-DLE), VOTE LEFT/RIGHT, 하단 `.vs-foot`의 "No Vote Rate %"). **약 1초 만에 완주한다.**
+
+### 8.3 정합성 확인
+`getDb()`가 Firestore 초기화의 유일한 진입점이고 경쟁하는 `getFirestore()` 호출이 없다(정적 확인). 즉 앱에 long-polling이 확실히 적용되며, 위 재현은 앱과 동일한 트랜스포트다. "`initializeFirestore` 실패 → 기본 WebChannel로 조용히 폴백" 가설은 **닫혔다**.
+
+### 8.4 이 판정이 바꾸는 것
+- PR B는 **P0가 아니다.** 프로덕션 Voter의 첫 진입은 정상 동작한다.
+- 그러나 §4의 구조적 결함(타임아웃·폴백·에러 표면 부재)은 유효하다 — CI에서 실제로 그 정지가 재현되고 있으므로, 하드닝하지 않으면 **C-1 E2E 4건은 계속 red로 남는다.**
+- 남은 미지수: CI 러너에서 Write 채널만 막히는 이유. 하드닝(타임아웃+폴백)을 넣으면 red는 해소되지만 원인 자체는 규명되지 않는다. 필요하면 CI에 Write 채널 응답 로깅 스텝을 임시로 넣어 별도 추적한다.
+
+---
+
+## 9. 실험이 프로덕션에 남긴 문서 — 정리 대상
+
+모두 **익명(anonymous) 계정**으로 생성됐다. `bracket_seeds`는 룰상 클라이언트 `delete`가 막혀 있어(`firestore.rules:238`) **관리자 SDK로만 삭제 가능**하다.
+
+| # | 경로 | 식별자 | 비고 |
+|---|---|---|---|
+| 1 | `bracket_seeds/{anonUid}_wcdiag-writeprobe-run1` | **tid 접미사 `wcdiag-writeprobe-run1`** — 고유 마커라 바로 찾을 수 있다 | 순수 진단용. 실제 Tournament와 무관 |
+| 2 | `bracket_seeds/obXUuTYcSGWezYTyySjC7NQiRfA3_SR5EARcTglfP0tbXqWlT` | 전체 id 확보됨 | 8.1 단계 재현 |
+| 3 | `bracket_seeds/{anonUid}_SR5EARcTglfP0tbXqWlT` × 2~3 | uid 미확보 | 8.2에서 **앱이 정상 동작하며** 만든 것 — 실제 게스트 트래픽과 구분 불가. 정리 불필요로 봐도 무방 |
+| 4 | `cookieConsents/{anonUid}` × 3 | uid 미확보 | 쿠키 동의 수락(대표 승인) 시 생성 |
+| 5 | Firebase Auth 익명 사용자 약 5개 | 2026-08-05 생성분 | 위 문서들의 소유자 |
+
+**정리 권고:** 1·2번만 지우면 충분하다. 3~5번은 정상 게스트 사용과 동일한 흔적이라 남겨도 무해하다. 1번은 `wcdiag-writeprobe-` 접두 tid로 검색하면 즉시 특정된다.
+
+---
+
+## 10. 실험 중 발견한 별건 2가지 (프로덕션, 스코프 밖)
+
+1. **Arena 진입 시 "토너먼트를 찾을 수 없어요"가 약 0.3초간 잘못 노출된다.**
+   `voteStore`의 초기 상태가 `loading:false, tournament:null`이고, `ArenaPage`의 로드 effect는 `if (uid)`로 게이팅돼 있다. 그래서 **인증이 해소되기 전 첫 페인트**에서 `!loading && !tournament` 분기가 참이 되어 not-found 화면이 먼저 뜬다(측정: `not-found@282ms → loading@590ms → MATCH@996ms`). 모든 Voter의 모든 Arena 진입에 해당하며, 인증이 느리면 더 오래 노출된다. 수정은 간단하다(초기 `loading:true` 또는 `uid===undefined`를 로딩으로 취급).
+
+2. **프로덕션에서 `hashIp` 콜러블이 CORS로 차단된다.**
+   `https://www.worldcrown48.com` 오리진에서 `Access to fetch at '…/hashIp' … blocked by CORS policy`. 저장소의 `functions/src/cors.ts`는 이미 `/^https:\/\/(www\.)?worldcrown48\.com$/`을 허용하고 주석에 이 버그를 정확히 기술하고 있다 → **수정본이 prod에 배포되지 않았다**(ND-1 메모리의 "pending 대표 deploy(func 4종)"와 일치). 동의 저장은 빈 IP 해시로 폴백하므로 치명적이지 않으나, 동의 감사 기록이 비어 있게 된다.
 
 *© 2026 WorldCrown48 | 판정 보고 | CONFIDENTIAL*
