@@ -85,56 +85,89 @@ export const useVoteStore = create<VoteState>((set, get) => ({
   loadTournament: async (tournamentId, userId) => {
     set({ loading: true, error: null });
     try {
-      const db = getDb();
-      const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
-      if (!tSnap.exists()) {
-        set({ loading: false, error: "not-found" });
-        return;
-      }
-      const tournament = { id: tSnap.id, ...tSnap.data() } as Tournament;
-
-      const cSnap = await getDocs(
-        query(
-          collection(db, "contestants"),
-          where("tournamentId", "==", tournamentId),
-          orderBy("order"),
-        ),
-      );
-      const contestants = cSnap.docs.map(
-        (d) => ({ id: d.id, ...d.data() }) as Contestant,
-      );
-
-      const vSnap = await getDocs(
-        query(
-          collection(db, "votes"),
-          where("userId", "==", userId),
-          where("tournamentId", "==", tournamentId),
-        ),
-      );
-      const votes: ArenaVote[] = vSnap.docs.map((d) => {
-        const data = d.data() as {
-          round: number;
-          matchId: string;
-          contestantId: string;
-        };
-        return {
-          round: data.round,
-          matchId: data.matchId,
-          contestantId: data.contestantId,
-        };
+      // Hard ceiling on the whole load. Firestore reads resolve when the
+      // backend answers; with no answer they simply stay pending, which is how
+      // the Arena ended up stuck on "불러오는 중…" forever (verdict §4). A
+      // bounded failure the Voter can retry beats an indefinite spinner.
+      await withTimeout(loadInto(tournamentId, userId, set), ARENA_LOAD_TIMEOUT_MS);
+    } catch (e) {
+      set({
+        loading: false,
+        error: e === NOT_FOUND ? "not-found" : "load-failed",
       });
-
-      // Per-Voter bracket seed (ADR-0007): created once on first entry, then
-      // immutable. linkSessionVote carries it across a guest→login so the
-      // bracket never reshuffles (§8 Edge #1).
-      const seed = await loadOrCreateBracketSeed(db, userId, tournamentId);
-
-      set({ tournament, contestants, votes, seed, loading: false, error: null });
-    } catch {
-      set({ loading: false, error: "load-failed" });
     }
   },
 }));
+
+/** Sentinel so the "no such tournament" case survives the timeout wrapper. */
+const NOT_FOUND = Symbol("not-found");
+
+/** Whole-load ceiling — see loadTournament. */
+export const ARENA_LOAD_TIMEOUT_MS = 15_000;
+
+async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<never>((_, rej) => {
+        timer = setTimeout(() => rej(new Error("arena load timed out")), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function loadInto(
+  tournamentId: string,
+  userId: string,
+  set: (partial: Partial<VoteState>) => void,
+): Promise<void> {
+  const db = getDb();
+  const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
+  if (!tSnap.exists()) throw NOT_FOUND;
+  const tournament = { id: tSnap.id, ...tSnap.data() } as Tournament;
+
+  const cSnap = await getDocs(
+    query(
+      collection(db, "contestants"),
+      where("tournamentId", "==", tournamentId),
+      orderBy("order"),
+    ),
+  );
+  const contestants = cSnap.docs.map(
+    (d) => ({ id: d.id, ...d.data() }) as Contestant,
+  );
+
+  const vSnap = await getDocs(
+    query(
+      collection(db, "votes"),
+      where("userId", "==", userId),
+      where("tournamentId", "==", tournamentId),
+    ),
+  );
+  const votes: ArenaVote[] = vSnap.docs.map((d) => {
+    const data = d.data() as {
+      round: number;
+      matchId: string;
+      contestantId: string;
+    };
+    return {
+      round: data.round,
+      matchId: data.matchId,
+      contestantId: data.contestantId,
+    };
+  });
+
+  // Per-Voter bracket seed (ADR-0007): created once on first entry, then
+  // immutable. linkSessionVote carries it across a guest→login so the bracket
+  // never reshuffles (§8 Edge #1). No longer blocks first render on the
+  // backend ack — see bracketSeed.resolveBracketSeed.
+  const seed = await loadOrCreateBracketSeed(db, userId, tournamentId);
+
+  set({ tournament, contestants, votes, seed, loading: false, error: null });
+}
 
 // ── Pure selectors (recompute the bracket from votes each call) ──────────
 

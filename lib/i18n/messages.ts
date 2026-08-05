@@ -190,6 +190,23 @@ export const MESSAGES = {
   },
   "champion.returning.dismiss": { ko: "닫기", en: "Dismiss", es: "Cerrar" },
 
+  // ── Arena load screens (Domain 3) ──
+  // These were hardcoded Korean in the page, so en/es Voters read Korean on
+  // entry. "Tournament" stays verbatim (LANGUAGE.md).
+  "arena.load.loading": { ko: "불러오는 중…", en: "Loading…", es: "Cargando…" },
+  "arena.load.notFound": {
+    ko: "Tournament를 찾을 수 없어요.",
+    en: "We couldn't find that Tournament.",
+    es: "No encontramos ese Tournament.",
+  },
+  "arena.load.failed": {
+    ko: "Tournament를 불러오지 못했어요. 연결을 확인하고 다시 시도해주세요.",
+    en: "We couldn't load this Tournament. Check your connection and try again.",
+    es: "No pudimos cargar este Tournament. Revisa tu conexión e inténtalo de nuevo.",
+  },
+  "arena.load.retry": { ko: "다시 시도", en: "Try again", es: "Reintentar" },
+  "arena.load.home": { ko: "홈으로", en: "Go home", es: "Ir al inicio" },
+
   // ── Arena vote errors (Domain 3, castVote) — #12 3-language mapping ──
   // Server sends a stable details.code; the client resolves the localized toast
   // (no more hardcoded Korean from onVote). "Tournament" stays verbatim.

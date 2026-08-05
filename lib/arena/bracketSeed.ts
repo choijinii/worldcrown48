@@ -9,8 +9,21 @@
  * linkSessionVote carry it across a guest→login so the bracket never
  * reshuffles (§8 Edge #1).
  *
- * This is Firestore I/O glue (like voteStore.loadTournament) — exercised by
- * E2E; the determinism it feeds is unit-tested in matches.test.ts.
+ * HARDENING (2026-08-05, verdict §4/§8). This used to `await setDoc(...)`
+ * before the Arena could render. `setDoc` resolves only when the backend acks,
+ * so a stalled Write channel left `loadTournament` pending forever and the
+ * Arena stuck on "불러오는 중…" with no error surface — reproduced in CI on
+ * every run since HF-2 (4 failing C-1 tests, 14 attempts, zero flakes).
+ *
+ * Now the write is raced against a timeout and the seed is returned either way.
+ * Correctness is preserved by caching the seed locally BEFORE the race: a
+ * refresh during the pending window reuses the same value instead of
+ * reshuffling an in-flight bracket, and whenever the server does hold a seed it
+ * always wins. The create-once rule still guarantees a single authoritative
+ * value across tabs and retries.
+ *
+ * The Firestore/Storage binding below is glue (covered by E2E); the decision
+ * logic is `resolveBracketSeed`, unit-tested in __tests__/arena/bracketSeed.
  */
 import {
   doc,
@@ -19,6 +32,9 @@ import {
   serverTimestamp,
   type Firestore,
 } from "firebase/firestore";
+
+/** How long first render will wait for the create to ack before proceeding. */
+export const SEED_PERSIST_TIMEOUT_MS = 3_000;
 
 export function bracketSeedDocId(uid: string, tournamentId: string): string {
   return `${uid}_${tournamentId}`;
@@ -31,29 +47,146 @@ export function randomSeed(): number {
   return buf[0];
 }
 
+/** Injected I/O so the decision logic stays pure and testable. */
+export interface SeedIO {
+  /** The authoritative server value, or null when the doc does not exist. */
+  read: () => Promise<number | null>;
+  /** Create-once write. Rejects if another writer won the race. */
+  create: (seed: number) => Promise<void>;
+  cacheGet: () => number | null;
+  cacheSet: (seed: number) => void;
+  cacheClear: () => void;
+  newSeed: () => number;
+  timeoutMs: number;
+}
+
+export interface SeedResult {
+  seed: number;
+  /** `pending-local` = usable now, not yet confirmed by the backend. */
+  source: "server" | "created" | "pending-local";
+}
+
 /**
- * Read the Voter's seed for this Tournament; create it once if absent. On a
- * two-tab create race the loser's create is rejected (create-once rule) — we
- * swallow it and re-read the winner's seed so both tabs converge on one value.
+ * Resolve the Voter's seed without ever blocking indefinitely.
+ *
+ * A `read` rejection propagates — that IS a load failure and the caller
+ * surfaces it. A `create` that stalls or fails does not: the locally cached
+ * seed is already refresh-stable, and the server reconciles on a later entry.
+ */
+export async function resolveBracketSeed(io: SeedIO): Promise<SeedResult> {
+  const existing = await io.read();
+  if (existing !== null) {
+    io.cacheClear();
+    return { seed: existing, source: "server" };
+  }
+
+  // Cache BEFORE the race — this is what keeps the bracket refresh-stable if
+  // the ack never arrives. Reuse a pending seed rather than minting a new one.
+  const seed = io.cacheGet() ?? io.newSeed();
+  io.cacheSet(seed);
+
+  const TIMEOUT = Symbol("timeout");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // Keep a handle on the write so a late rejection is never unhandled — the
+  // background write outlives this function by design.
+  const write = io.create(seed).then(
+    () => null,
+    (e: unknown) => e ?? new Error("create failed"),
+  );
+
+  const outcome = await Promise.race([
+    write,
+    new Promise<typeof TIMEOUT>((r) => {
+      timer = setTimeout(() => r(TIMEOUT), io.timeoutMs);
+    }),
+  ]);
+  if (timer) clearTimeout(timer);
+
+  // Still in flight: usable now, reconciled later.
+  if (outcome === TIMEOUT) return { seed, source: "pending-local" };
+
+  // Acked.
+  if (outcome === null) {
+    io.cacheClear();
+    return { seed, source: "created" };
+  }
+
+  // Rejected — most often the create-once rule rejecting the loser of a
+  // two-tab race. Adopt the winner's value if it is there.
+  const winner = await io.read().catch(() => null);
+  if (winner !== null) {
+    io.cacheClear();
+    return { seed: winner, source: "server" };
+  }
+  return { seed, source: "pending-local" };
+}
+
+/**
+ * localStorage key for a seed that has not been confirmed by the backend yet.
+ *
+ * Handoff §5 forbids localStorage for AUTH/SESSION markers; a bracket seed is
+ * neither — it is per-Tournament game state, and it needs to be shared across
+ * tabs precisely so a stalled write cannot hand two tabs different brackets
+ * (the duplicate-winner hazard ADR-0007 exists to prevent). It is cleared the
+ * moment the server holds the value.
+ */
+function cacheKey(uid: string, tournamentId: string): string {
+  return `wc48_bracket_seed_${bracketSeedDocId(uid, tournamentId)}`;
+}
+
+function browserCache(uid: string, tournamentId: string) {
+  const key = cacheKey(uid, tournamentId);
+  const ls = (): Storage | null => {
+    try {
+      return typeof window === "undefined" ? null : window.localStorage;
+    } catch {
+      return null; // Safari private mode / storage disabled
+    }
+  };
+  return {
+    cacheGet: (): number | null => {
+      const raw = ls()?.getItem(key);
+      if (!raw) return null;
+      const n = Number(raw);
+      return Number.isSafeInteger(n) ? n : null;
+    },
+    cacheSet: (seed: number): void => {
+      try {
+        ls()?.setItem(key, String(seed));
+      } catch {
+        // Quota/private mode — the seed is still returned, just not cached.
+      }
+    },
+    cacheClear: (): void => {
+      try {
+        ls()?.removeItem(key);
+      } catch {
+        /* ignore */
+      }
+    },
+  };
+}
+
+/**
+ * Read the Voter's seed for this Tournament; create it once if absent.
+ * Never blocks first render on the backend ack — see resolveBracketSeed.
  */
 export async function loadOrCreateBracketSeed(
   db: Firestore,
   uid: string,
   tournamentId: string,
+  timeoutMs: number = SEED_PERSIST_TIMEOUT_MS,
 ): Promise<number> {
   const ref = doc(db, "bracket_seeds", bracketSeedDocId(uid, tournamentId));
-
-  const snap = await getDoc(ref);
-  if (snap.exists()) return snap.data().seed as number;
-
-  const seed = randomSeed();
-  try {
-    await setDoc(ref, { seed, createdAt: serverTimestamp() });
-    return seed;
-  } catch {
-    // Lost the create race (another tab created it first) → adopt theirs.
-    const again = await getDoc(ref);
-    if (again.exists()) return again.data().seed as number;
-    throw new Error("bracket seed unavailable");
-  }
+  const result = await resolveBracketSeed({
+    read: async () => {
+      const snap = await getDoc(ref);
+      return snap.exists() ? (snap.data().seed as number) : null;
+    },
+    create: (seed) => setDoc(ref, { seed, createdAt: serverTimestamp() }),
+    newSeed: randomSeed,
+    timeoutMs,
+    ...browserCache(uid, tournamentId),
+  });
+  return result.seed;
 }
