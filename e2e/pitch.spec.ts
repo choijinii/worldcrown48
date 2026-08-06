@@ -98,7 +98,7 @@ test.describe("A-1 The Pitch", () => {
     }
   });
 
-  test("Phase F: ☰ opens SiteMapSheet (7 domains, 2 disabled), ESC closes", async ({ page }) => {
+  test("Phase F: ☰ opens SiteMapSheet (7 domains + Newsroom, 1 disabled), ESC closes", async ({ page }) => {
     await page.goto("/?lang=en");
     // One unified dark Navbar — no separate floating Pitch GNB component.
     await expect(page.locator(".pitch .gnb")).toHaveCount(0);
@@ -107,11 +107,14 @@ test.describe("A-1 The Pitch", () => {
     const sheet = page.getByRole("dialog", { name: "Site map" });
     await expect(sheet).toBeVisible();
 
-    // 7 domains, with Locker Room + Admin Dashboard disabled.
-    await expect(sheet.locator(".wc-sitemap-item")).toHaveCount(7);
-    await expect(sheet.locator('.wc-sitemap-item[aria-disabled="true"]')).toHaveCount(2);
+    // 7 domains + the Newsroom (non-domain, ND-1). Only Locker Room (4) is
+    // disabled — G-1 activated Domain 6, but this count was never updated.
+    await expect(sheet.locator(".wc-sitemap-item")).toHaveCount(8);
+    await expect(sheet.locator('.wc-sitemap-item[aria-disabled="true"]')).toHaveCount(1);
     await expect(sheet.getByText("The Pitch")).toBeVisible();
     await expect(sheet.getByText("Admin Dashboard")).toBeVisible();
+    // 인터넷신문 등록 심사 — the Newsroom must be reachable from the site map.
+    await expect(sheet.getByRole("link", { name: /Newsroom/i })).toHaveAttribute("href", "/news");
 
     await page.keyboard.press("Escape");
     await expect(sheet).toHaveCount(0);

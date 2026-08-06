@@ -12,7 +12,7 @@
 
 import Link from "next/link";
 import FocusTrap from "focus-trap-react";
-import { SITE_DOMAINS } from "@/lib/layout/domains";
+import { SITE_DOMAINS, siteMapEyebrow } from "@/lib/layout/domains";
 
 export interface SiteMapSheetProps {
   isOpen: boolean;
@@ -62,22 +62,22 @@ export function SiteMapSheet({ isOpen, onClose }: SiteMapSheetProps): JSX.Elemen
             {SITE_DOMAINS.map((d) =>
               d.href ? (
                 <Link
-                  key={d.n}
+                  key={d.name}
                   className="wc-sitemap-item"
                   href={d.href}
                   onClick={onClose}
                 >
-                  <span className="wc-sitemap-dom">Domain {d.n}</span>
+                  <span className="wc-sitemap-dom">{siteMapEyebrow(d)}</span>
                   <span className="wc-sitemap-name">{d.name}</span>
                   <span className="wc-sitemap-desc">{d.desc}</span>
                 </Link>
               ) : (
                 <div
-                  key={d.n}
+                  key={d.name}
                   className="wc-sitemap-item"
                   aria-disabled="true"
                 >
-                  <span className="wc-sitemap-dom">Domain {d.n}</span>
+                  <span className="wc-sitemap-dom">{siteMapEyebrow(d)}</span>
                   <span className="wc-sitemap-name">
                     {d.name} <span className="wc-sitemap-soon">Coming soon</span>
                   </span>
