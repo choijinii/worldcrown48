@@ -7,6 +7,14 @@ name: C-3 Ranking E2E (Playwright)
 #   · test:unit covers lib/__tests__/ranking (50 tests added in Phase A).
 #   · test:rules covers tests/rules/ranking-rules.test.ts (Phase C rules).
 #   · test:e2e runs ONLY e2e/c3-ranking.spec.ts (Phase D).
+#
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API (by head SHA) — NOT a frozen C3_PREVIEW_URL secret
+# ([[feedback_c2_preview_url_pinned]]). That secret was never provisioned, so the
+# old `if [ -z "$PREVIEW_URL" ]` guard exited 0 and this job reported GREEN while
+# running ZERO E2E tests. Resolving per-commit removes both failure modes: no
+# stale target, and no silent skip. There is NO C3_PREVIEW_URL secret — do not
+# create one.
 
 on:
   pull_request:
@@ -37,7 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      PREVIEW_URL: ${{ secrets.C3_PREVIEW_URL }}
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
       # global-setup reads TEST_UID (custom-token sign-in); the C-3 spec reads
       # C3_TEST_UID for seeding. Both map to the same secret.
       TEST_UID: ${{ secrets.C3_TEST_UID }}
@@ -90,12 +99,34 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Wait for Vercel Preview
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -z "$PREVIEW_URL" ]; then
-            echo "C3_PREVIEW_URL not set — skipping E2E wait/run."
-            exit 0
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
           fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
           HEADER_ARGS=()
           if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
             HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
@@ -104,12 +135,11 @@ jobs:
             if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
               echo "Preview reachable at $PREVIEW_URL"; exit 0
             fi
-            echo "Preview not ready (attempt $i) — sleeping 10s."; sleep 10
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
           done
-          echo "Preview never became reachable." >&2; exit 1
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright) — C-3 only
-        if: ${{ env.PREVIEW_URL != '' }}
         # Scope to C-3's own spec ([[feedback-workflow-spec-scope]]).
         run: npm run test:e2e -- e2e/c3-ranking.spec.ts
 
