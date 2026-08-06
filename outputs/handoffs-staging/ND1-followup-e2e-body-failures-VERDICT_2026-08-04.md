@@ -196,7 +196,7 @@ Received string:    "P✓P21KR · FWVOTE LEFTP21"   ← HF-2 이전 코드의 �
 | PR | 모듈 | 내용 | 앱 변경 | 규모 | 상태 |
 |---|---|---|---|---|---|
 | **A** | G-1 | `e2e/g1-admin-dashboard.spec.ts` 3건: ① 쿠키만 남긴 컨텍스트 ② `/site map/i` locator ③ FAB 클릭 1줄 | **없음** | ~10줄 | ✅ **PR #51 머지** (2026-08-04) — G-1 E2E **7 passed** 확정 |
-| **B** | C-1 | bracket seed를 첫 렌더 비블로킹으로 (앱) + 기존 4개 실패 테스트가 RED→GREEN | **있음** | ~30~60줄 + 단위 테스트 | **착수 가능** — §8로 갈래 확정((i)). P0 아님, 하드닝 우선순위 |
+| **B** | C-1 | bracket seed를 첫 렌더 비블로킹으로 (앱) + 기존 4개 실패 테스트가 RED→GREEN | **있음** | ~30~60줄 + 단위 테스트 | ✅ **PR #54 머지** (2026-08-05) — C-1 E2E **6 passed / 0 failed**. 상세는 §11 |
 
 - PR A는 (b)/(c) 판정이라 **테스트만** 손대며, 3건 모두 "작성 이래 통과한 적 없는" 스펙 결함이다.
 - PR B는 (a) 판정 — 이미 존재하는 실패 테스트 4건이 그대로 RED이며, 수정 후 GREEN이 완료 조건이다.
@@ -257,8 +257,8 @@ firestore net : Listen 42/41 | Write 5/5
 | 1 | `bracket_seeds/{anonUid}_wcdiag-writeprobe-run1` | **tid 접미사 `wcdiag-writeprobe-run1`** — 고유 마커라 바로 찾을 수 있다 | 순수 진단용. 실제 Tournament와 무관 |
 | 2 | `bracket_seeds/obXUuTYcSGWezYTyySjC7NQiRfA3_SR5EARcTglfP0tbXqWlT` | 전체 id 확보됨 | 8.1 단계 재현 |
 | 3 | `bracket_seeds/{anonUid}_SR5EARcTglfP0tbXqWlT` × 2~3 | uid 미확보 | 8.2에서 **앱이 정상 동작하며** 만든 것 — 실제 게스트 트래픽과 구분 불가. 정리 불필요로 봐도 무방 |
-| 4 | `cookieConsents/{anonUid}` × 3 | uid 미확보 | 쿠키 동의 수락(대표 승인) 시 생성 |
-| 5 | Firebase Auth 익명 사용자 약 5개 | 2026-08-05 생성분 | 위 문서들의 소유자 |
+| 4 | `cookieConsents/{anonUid}` × 4 | uid 미확보 | 쿠키 동의 수락(대표 승인) 시 생성. 3건은 §8 재현, 1건은 §10.2 hashIp 수정 후 재검증 |
+| 5 | Firebase Auth 익명 사용자 약 6개 | 2026-08-05 생성분 | 위 문서들의 소유자 |
 
 **정리 권고:** 1·2번만 지우면 충분하다. 3~5번은 정상 게스트 사용과 동일한 흔적이라 남겨도 무해하다. 1번은 `wcdiag-writeprobe-` 접두 tid로 검색하면 즉시 특정된다.
 
@@ -269,7 +269,40 @@ firestore net : Listen 42/41 | Write 5/5
 1. **Arena 진입 시 "토너먼트를 찾을 수 없어요"가 약 0.3초간 잘못 노출된다.**
    `voteStore`의 초기 상태가 `loading:false, tournament:null`이고, `ArenaPage`의 로드 effect는 `if (uid)`로 게이팅돼 있다. 그래서 **인증이 해소되기 전 첫 페인트**에서 `!loading && !tournament` 분기가 참이 되어 not-found 화면이 먼저 뜬다(측정: `not-found@282ms → loading@590ms → MATCH@996ms`). 모든 Voter의 모든 Arena 진입에 해당하며, 인증이 느리면 더 오래 노출된다. 수정은 간단하다(초기 `loading:true` 또는 `uid===undefined`를 로딩으로 취급).
 
-2. **프로덕션에서 `hashIp` 콜러블이 CORS로 차단된다.**
-   `https://www.worldcrown48.com` 오리진에서 `Access to fetch at '…/hashIp' … blocked by CORS policy`. 저장소의 `functions/src/cors.ts`는 이미 `/^https:\/\/(www\.)?worldcrown48\.com$/`을 허용하고 주석에 이 버그를 정확히 기술하고 있다 → **수정본이 prod에 배포되지 않았다**(ND-1 메모리의 "pending 대표 deploy(func 4종)"와 일치). 동의 저장은 빈 IP 해시로 폴백하므로 치명적이지 않으나, 동의 감사 기록이 비어 있게 된다.
+2. **프로덕션에서 `hashIp` 콜러블이 차단된다 → 2026-08-05 해소.**
+
+   증상은 `https://www.worldcrown48.com` 오리진에서 `Access to fetch at '…/hashIp' … blocked by CORS policy` 였다.
+
+   > **정정:** 최초 진단은 "`cors.ts` 수정본 미배포"였으나 **틀렸다.** 콜러블 간 상태코드를 비교하니 `hashIp`만 **403**(Google Frontend HTML, 함수 도달 전 차단)이고 `linkSessionVote`·`onVote`·`getAdminKpis`·`aiSuggestKeywords`는 전부 **401**(함수 도달 후 인증 거부)이었다. 즉 `hashIp`에만 미인증 호출 권한(`allUsers` → `roles/run.invoker`)이 없었고, 403 페이지에 CORS 헤더가 없어 브라우저가 CORS 오류로 보고한 것이다. `hashIp` 재배포로도 고쳐지지 않았다 — firebase CLI는 이 바인딩을 함수 *생성* 시에만 설정한다(배포 로그: `updating … function hashIp`).
+
+   **해소:** 대표가 Cloud Run 공개 액세스를 허용. 런타임 검증(P3) —
+   - preflight `204` + `access-control-allow-origin: https://www.worldcrown48.com`
+   - `POST` `200` + 실제 `ipHash` 반환
+   - 실제 브라우저 동의 플로우: `hashIp` POST 200, CORS·콘솔 에러 0건
+
+   부수 확증: preflight가 www 오리진을 정확히 반환하므로 **`cors.ts` 허용목록은 처음부터 옳았고 배포도 돼 있었다.** 원인은 IAM 단독이었다. 이제 동의 저장이 빈 해시 폴백이 아니라 실제 IP 해시로 기록된다.
+
+---
+
+## 11. PR B 결과 (2026-08-05, PR #54 머지)
+
+**C-1 E2E 6 passed / 0 failed** — §4의 실패 4건 전부 해소. §10.1(not-found 오노출)은 같은 렌더 가드라 함께 처리했다.
+
+### 들어간 것
+1. **bracket seed가 첫 렌더를 막지 않는다** — create를 타임아웃과 레이스하고, 레이스 *이전에* seed를 로컬 캐시해 미확정 구간 새로고침에도 대진이 재셔플되지 않게 했다(서버에 값이 있으면 항상 서버 우선, create-once가 단일 권위값 보장).
+2. **전체 로드 상한 15s** — 무한 스피너 대신 재시도 가능한 실패.
+3. **not-found 오노출 제거 + 에러 표면 분리** — 판정을 순수 함수 `arenaScreenState`로 분리해 단위 테스트로 고정, `load-failed`에 "다시 시도" 제공.
+4. **로딩·에러 문구 3언어화** — 기존 하드코딩 한국어라 en/es Voter가 한국어를 읽고 있었다.
+
+### 1차 CI가 드러낸 것 — 지연 (후속 커밋 2건)
+mobile 320px만 green이고 375·414px·anon-gate는 red였는데, 실패 시점 DOM이 `Loading…` 이었다. **무한 정지는 해소됐고 남은 건 순수 지연**(5s 단언 예산 초과)이라는 뜻이다.
+- `loadTournament`의 읽기 3건을 `Promise.all`로 병렬화. 서로 독립인데 순차 await로 왕복 3번을 쌓고 있었다(CI 실측 ~4.3s). → 320px 6.4s→3.7s
+- `SEED_PERSIST_TIMEOUT_MS` 3000 → 400. **3초는 근거 없이 길었다.** Arena는 seed를 *알기만* 하면 렌더되고 영속화는 필요 없다.
+
+### anon-gate는 (b) 스펙 노후였다
+하드닝 후 이 테스트의 DOM은 매치를 정상 렌더했다: `button "P P34 KR · FW VOTE LEFT P34"`. 남은 실패 원인은 스펙이 좌측 후보를 `"P1"`으로 하드코딩한 것. 이 스펙은 2026-07-05(HF-1) 작성이고 **하루 뒤** HF-2가 대진을 Voter별 시드 난수로 바꿨는데(ADR-0007) 순서 기반 시절 단언이 남아 **우연히만 통과할 수 있었다**. 형제 스펙 `c1-arena-flow`는 `E2E_SEED`를 고정하고 기대값을 계산한다. 주제가 daily-limit 게이트이므로 "매치가 렌더됐다"만 단언하도록 고쳤다.
+
+### 남은 것
+CI 러너에서 **Write 채널만 막히는 원인 자체는 규명되지 않았다.** 하드닝은 증상(무한 정지)을 없앨 뿐이다 → **issue #55**로 분리.
 
 *© 2026 WorldCrown48 | 판정 보고 | CONFIDENTIAL*
