@@ -3,10 +3,16 @@ name: dev-visual-aid E2E (Playwright)
 # Patterned on c3-e2e.yml ([[feedback-workflow-spec-scope]]):
 #   · Scoped to this module's files so other modules don't false-red.
 #   · test:unit covers the pure logic (locale + dev nav + seed-preview CLI).
-#   · E2E is GATED on PREVIEW_URL — skipped (not failed) until the
-#     DEV_VISUAL_AID_PREVIEW_URL secret + Vercel Preview are provisioned by 대표.
 #   · No emulator/rules/functions steps: this module adds no Firestore rules
 #     and no Cloud Functions (seed-preview.mjs is an operator script, not a fn).
+#
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API (by head SHA) — NOT a frozen DEV_VISUAL_AID_PREVIEW_URL
+# secret ([[feedback_c2_preview_url_pinned]]). That secret was never provisioned,
+# so the old "E2E is GATED on PREVIEW_URL — skipped (not failed)" design exited 0
+# and this job reported GREEN while running ZERO E2E tests. Resolving per-commit
+# removes both failure modes: no stale target, and no silent skip. There is NO
+# DEV_VISUAL_AID_PREVIEW_URL secret — do not create one.
 
 on:
   pull_request:
@@ -33,9 +39,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
-      PREVIEW_URL: ${{ secrets.DEV_VISUAL_AID_PREVIEW_URL }}
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
       TEST_UID: ${{ secrets.DEV_VISUAL_AID_TEST_UID }}
       FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
       NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -64,12 +71,34 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Wait for Vercel Preview (skip if secret unset)
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -z "$PREVIEW_URL" ]; then
-            echo "DEV_VISUAL_AID_PREVIEW_URL not set — skipping E2E."
-            exit 0
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
           fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
           HEADER_ARGS=()
           if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
             HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
@@ -78,12 +107,11 @@ jobs:
             if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
               echo "Preview reachable at $PREVIEW_URL"; exit 0
             fi
-            echo "Preview not ready (attempt $i) — sleeping 10s."; sleep 10
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
           done
-          echo "Preview never became reachable." >&2; exit 1
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright) — dev-visual-aid specs only
-        if: ${{ env.PREVIEW_URL != '' }}
         run: npm run test:e2e -- e2e/language-toggle.spec.ts e2e/dev-nav.spec.ts e2e/dev-nav-mobile-320.spec.ts
 
       - name: Upload Playwright HTML report
