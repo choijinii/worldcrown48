@@ -5,13 +5,13 @@
  * repo's node-env Vitest, matching the convention of every other module:
  * pure logic in `lib/`, UI verified by Playwright E2E.
  *
- * Extensibility (ADR-0007): adding Español at MVP2 is `SUPPORTED_LOCALES`
- * + `LOCALE_META` edits only — the toggle component reads from these.
+ * Extensibility (ADR-0007): adding a locale is `SUPPORTED_LOCALES` + `LOCALE_META`
+ * edits only — the toggle component reads from these.
  */
 
 import type { Lang } from "./cookieConsent";
 
-/** Locales shipped, in display order. `'es'` joins at MVP2 (A1-i18n completion). */
+/** Locales shipped, in display order. All three are live: `'es'` since 2026-07 (A1-i18n). */
 export const SUPPORTED_LOCALES: readonly Lang[] = ["ko", "en", "es"] as const;
 
 /** Display metadata for each locale. `label` = full name, `abbrev` = trigger glyph text. */

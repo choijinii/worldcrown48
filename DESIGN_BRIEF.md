@@ -1,4 +1,5 @@
 # WorldCrown48 — DESIGN_BRIEF.md
+# v1.5 — 2026-08-08 (AI-Report v2.5 Footer-Only Lock 동기화)
 # v1.4 — 2026-07-11 (대개편 반영: Bracket Size · Crown Score 랭킹 지표 · Ranking Scope Lock)
 # Claude Design 전용 진입점 (Single Entry Point)
 
@@ -56,7 +57,8 @@ Voter마다 라운드 진행 속도가 다르기 때문에 전역 라운드 타�
 
 ```
 ❌ 절대 금지: "AI GENERATED"  /  "AI"  /  "AI Generated"
-✅ 반드시 사용: "● AI-Report"  (11px, #FCD006, .ai-report-badge)
+❌ 절대 금지(v2.5 폐기): "● AI-Report" 11px 카드 배지 — 카드·목록·Crown Card 어디에도 배지 없음
+✅ 반드시 사용: "✦ AI-Report"  — 기사 푸터 1곳 전용 (Footer-Only Lock, 8px·50%, 골드 모노)
 ```
 
 ### ❌ 오류 3 (NEW · 2026-05-27): Arena 화면에 시간·날짜·투표 횟수 표시 ← 반복 발생 중
@@ -95,7 +97,7 @@ Voter마다 라운드 진행 속도가 다르기 때문에 전역 라운드 타�
    - Contestant 이름·이미지
    - "VOTE LEFT" / "VOTE RIGHT" 버튼 (MagneticButton)
    - Tournament Deadline (예: "Tournament ends · May 31")
-   - "● AI-Report" 배지 (뉴스 카드에만)
+   - (뉴스 카드 AI 배지 없음 — AI-Report는 기사 푸터 1곳 전용, v2.5 Footer-Only Lock)
    - (선택) 시각적 미니 인디케이터 — 텍스트 없는 progress dot 정도
 
 ❌ Arena VS Battle 화면에서 절대 금지:
@@ -172,7 +174,8 @@ Tier 3 (도메인 구현 시):
 | LIVE 배지 (TournamentCard) | Tournament는 Voter 혼자 진행. LIVE = 다중 동시 참여 오해 유발 | 배지 완전 제거 |
 | 브래킷 목록에서 Match 직접 선택 UI | Voter는 Match를 선택할 수 없음, 순서대로만 진행 | 현재 Match 1개만 표시. 브래킷 조회는 별도 뷰 |
 | 결승(THE FINAL)을 1v1 Match 2개로 분리 | THE FINAL = 3명 동시 표시, 1명 직접 선택 | `FinalPickView` — 3개 카드 동시 표시 |
-| `AI GENERATED` / `AI` 배지 | CLAUDE.md v1.2 불변 원칙 #4 위반 | `● AI-Report` (11px 골드, .ai-report-badge) |
+| `AI GENERATED` / `AI` 배지 | CLAUDE.md 불변 원칙 #4 위반 | `✦ AI-Report` — 기사 푸터 1곳 전용 (v2.5, 8px·50%) |
+| `● AI-Report` 11px 카드 배지 | v2.5 Footer-Only Lock으로 폐기 (2026-07-22) | 카드에 배지 없음. 기사 푸터 `✦ AI-Report` 1곳만 |
 | `Crown odds` / `projected winner` | 예측·베팅 연상 → 서비스 정체성 위반 | 팬 선택 중심 언어 ("Fans are making their voice heard") |
 | `In Progress` 토너먼트 상태 | 유효 상태 아님 | `active` 사용 |
 | `#05070A` 등 v1 구버전 컬러 | v2.3 팔레트로 교체됨 | 위 토큰 참조 |
@@ -184,22 +187,24 @@ Tier 3 (도메인 구현 시):
 
 ---
 
-## 📐 AI-Report 배지 규격 (불변 원칙 #4)
+## 📐 AI-Report 표기 규격 v2.5 (불변 원칙 #4)
+
+**Footer-Only Lock** — AI-Report 표기는 **기사 본문 블록 최하단 1곳에만** 등장한다.
+카드·목록·Crown Card·Lab·Policy·Locker Room 어디에도 AI 배지를 넣지 않는다.
 
 ```css
-/* 카드 바이라인 — .ai-report-badge */
+/* 기사 본문 블록 최하단 — 유일한 AI-Report 표기 위치 */
 font-family: var(--font-mono);
-font-size: 11px;
+font-size: 8px;
 color: var(--color-gold);   /* #FCD006 */
-letter-spacing: 0.14em;
-text-transform: uppercase;
-/* 내용: "● AI-Report" */
-
-/* 기사 본문 하단 인라인 블록 */
-font-size: 12px;
-color: var(--color-gold);
-/* 내용: "✦ AI-Report" */
+opacity: 0.5;
+/* 내용: "✦ AI-Report · 발행인이 검토·승인했습니다 · DATA {기준시각}" */
 ```
+
+> ⛔ **폐기(v2.5, 2026-07-22)**: 아래 구버전 규격은 더 이상 유효하지 않다 — 참조 금지.
+> `.ai-report-badge` 카드 바이라인 `● AI-Report` (11px·letter-spacing 0.14em·uppercase) ·
+> 기사 본문 인라인 블록 `✦ AI-Report` (12px) · "2중 표기 의무".
+> 단일 진실 = `LANGUAGE.md §14` · `docs/design/WC48_DESIGN_SYSTEM_v2.4.md`(Footer-Only Lock)
 
 ---
 
@@ -275,8 +280,9 @@ Domain 0(Launch Pad) UI 작업 시 반드시 아래 패턴을 적용하세요.
 - [ ] 구현 도메인 테마(다크/라이트) 확인
 - [ ] 금지 패턴 목록 확인
 - [ ] WC48_DESIGN_SYSTEM_v2.3.md (최신) 참조 — `_archive/` 버전 아님
-- [ ] AI-Report 배지 규격 확인 ("AI GENERATED" 아님)
+- [ ] AI-Report 표기 규격 v2.5 확인 (✦ · 기사 푸터 1곳 전용 · 8px·50%. 카드 배지 없음)
 
 ---
 
-*© 2026 WorldCrown48 | DESIGN_BRIEF.md v1.4 (2026-07-11) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | DESIGN_BRIEF.md v1.5 (2026-08-08) | CONFIDENTIAL*
+*v1.5 (2026-08-08): AI-Report 규격을 v2.5 Footer-Only Lock으로 교체 — 구버전 11px 카드 배지 규격 폐기 표시*

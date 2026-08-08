@@ -58,9 +58,11 @@ When the user invokes this skill:
 
 ## Hard Rules — never relax without the owner's say-so
 
-- AI-generated content **must** carry the `● AI-Report` badge (NOT "AI GENERATED" — v1.2 rule).
-  Card badge: `● AI-Report` (11px, `--color-gold`, `.ai-report-badge` class)
-  Article body: `✦ AI-Report` (12px, `--color-gold`, inline block)
+- AI-Report disclosure is **Footer-Only Lock** (v2.5, 2026-07-22) — NOT "AI GENERATED", NOT a card badge.
+  One place only: the very bottom of the article body block —
+  `✦ AI-Report · 발행인이 검토·승인했습니다 · DATA {timestamp}` (8px, 50% opacity, `--color-gold`, mono).
+  ⛔ Retired: the `● AI-Report` 11px card badge / `.ai-report-badge` and the 12px inline article block.
+  No AI badge on cards, lists, Crown Card, Lab, Policy, or Locker Room.
 - Show **vote rate %** only — never raw vote counts. Vote rate is visible on **Ranking screens only**. NEVER on VS Battle / voting screens.
 - No "FIFA" / no "Official".
 - No `#000000` in dark surfaces; use `#00003A` (--color-bg-deep).
@@ -184,7 +186,7 @@ Example: `"🎉 ROUND OF 24 BEGINS"` shown only at the transition moment, never 
 - [ ] 3종 Feature Card 인터랙션 동작
 - [ ] Philosophy Section ScrollTrigger 동작
 - [ ] Sticky Stacking 3카드 pin-on-scroll 동작
-- [ ] `● AI-Report` 배지 (NOT "AI GENERATED")
+- [ ] AI-Report 표기 = v2.5 Footer-Only Lock (`✦ AI-Report` 기사 푸터 1곳·8px·50%). 카드 배지 0개, "AI GENERATED" 0건
 - [ ] v2.3 컬러 토큰 사용 (v1 코드 없음)
 - [ ] `prefers-reduced-motion` 대응
 
