@@ -46,17 +46,17 @@ Cookies that are necessary for the Service to operate. Without these cookies, lo
 
 ### FUNCTIONAL (default ON)
 
-Cookies for convenience features and personalization. The Service still works if you turn these off, but some features (recently viewed Tournaments, Voter nickname autofill) will reset every visit.
+Cookies for convenience features and personalization. The Service still works if you turn these off, but some features (recently viewed Tournaments, Fan nickname autofill) will reset every visit.
 
 | Cookie (example) | Purpose | Retention |
 |---|---|---|
 | `wc48_recent` | Recently viewed Tournaments | 30 days |
-| `wc48_nickname` | Voter nickname autofill | 12 months |
+| `wc48_nickname` | Fan nickname autofill | 12 months |
 | `wc48_theme` | UI preferences | 12 months |
 
 ### ANALYTICS (default ON)
 
-Anonymous aggregation of which Tournaments are popular and where Voters drop off. **No personally identifying information is stored, and IP addresses are hashed.**
+Anonymous aggregation of which Tournaments are popular and where fans drop off. **No personally identifying information is stored, and IP addresses are hashed.**
 
 | Provider | Purpose | Retention |
 |---|---|---|
