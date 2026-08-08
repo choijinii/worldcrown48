@@ -12,6 +12,7 @@
  *     closer{text}
  */
 import type { NewsDigest } from "./newsDigestCore";
+import { UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
 
 /** 전투 은유 금지어 — §5.5 #5. Match 는 싸움이 아니라 애정을 고르는 순간. */
 export const FORBIDDEN_WAR_WORDS = [
@@ -66,7 +67,8 @@ export const NEWS_STYLE_GUIDE = [
   '   매치는 싸움이 아니라 "어느 쪽을 더 사랑하는지 고르는 순간". 애정·자랑·발견·설렘의 언어를 쓴다.',
   '   변환 예: "잔인한 대진"→"눈을 뗄 수 없는 만남" · "앙숙"→"나란히 차트를 달군 두 곡".',
   "6. LANGUAGE.md 공식 용어 준수. 고유명사는 모든 언어에서 영문 원형 그대로 쓴다 —",
-  "   WorldCrown48 · Tournament · Contestant · Match · Champion · Crown · Crown Card · Crown Score.",
+  // 번역 프롬프트와 같은 목록을 쓴다 — 두 곳에 손으로 적어두면 갈라진다.
+  `   ${UNTRANSLATABLE_PROPER_NOUNS.join(" · ")}.`,
   '   한글 음차 금지: "토너먼트"·"컨테스턴트"·"매치"·"월드크라운"으로 바꿔 쓰지 않는다.',
   '   단, 참여자를 부르는 지칭만은 표시 용어를 쓴다 — "팬"(ko) / "fan(s)"(en·es).',
   '   지칭에 한해 "Voter"라고 쓰지 않는다 — 위 고유명사 목록과 혼동하지 말 것.',

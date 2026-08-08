@@ -15,7 +15,15 @@
  * Block types MUST stay structurally in sync with lib/news/articleDoc.ts (functions
  * cannot import root lib/ — rootDir=src; duplicated by project precedent, like
  * voteErrorCodes / Category / cors).
+ *
+ * 표시 용어 (2026-08-08 대표 결정 B): the prompt carries TRANSLATION_GLOSSARY. Fixing
+ * newsPrompts alone was not enough — the ko source said "팬" and the translator turned
+ * it into es "aficionados", because a display term is a per-target decision, not a
+ * property of the source text. See core/displayTerms.ts for why the counter-examples
+ * in that glossary are load-bearing.
  */
+
+import { TRANSLATION_GLOSSARY } from "./displayTerms";
 
 export type Lang = "ko" | "en" | "es";
 const LANGS: Lang[] = ["ko", "en", "es"];
@@ -103,6 +111,10 @@ export function buildArticleTranslatePrompt(
     `다음 뉴스 기사를 ${LANG_NAME[target]}(${target})로 자연스럽게 번역해줘.`,
     "블록 구조(type·순서·개수)를 그대로 유지하고, 텍스트 필드만 번역한다.",
     "수치(stats.n)와 고유명사(matchups group/title)는 원문 데이터 그대로 둔다.",
+    "",
+    // 표시 용어는 소스 언어에서만 정해지지 않는다 — 번역문에서도 고정해야 한다.
+    // 이 블록이 없으면 ko "팬"이 es 에서 "aficionados"로 흐른다 (2026-08-08 실측).
+    TRANSLATION_GLOSSARY,
     "",
     `제목: ${JSON.stringify(input.title)}`,
     `부제: ${JSON.stringify(input.subhead)}`,
