@@ -14,6 +14,7 @@ import {
   NEWS_STYLE_GUIDE,
   FORBIDDEN_WAR_WORDS,
 } from "../core/newsPrompts";
+import { UNTRANSLATABLE_PROPER_NOUNS } from "../core/displayTerms";
 
 const digestStub = {
   asOf: "2026-07-22 08:00 KST",
@@ -101,15 +102,8 @@ describe("표시 용어(Display Term) 층 — 독자 지칭은 팬/Fan (2026-08-
 describe("§10 번역 불가 고유명사 보존 — 표시 용어 일반화 방지 (2026-08-08 회귀)", () => {
   // 실측: 지칭 규칙만 있던 판이 Tournament→"토너먼트", WorldCrown48→"월드크라운" 음차를
   // 유발했다. 고유명사 보존 지시가 지칭 규칙보다 먼저 나와야 한다.
-  const PROPER_NOUNS = [
-    "WorldCrown48",
-    "Tournament",
-    "Contestant",
-    "Match",
-    "Champion",
-    "Crown Card",
-    "Crown Score",
-  ];
+  // 작성 프롬프트와 번역 프롬프트가 같은 목록을 쓰는지 — 갈라지면 한쪽만 음차된다.
+  const PROPER_NOUNS = UNTRANSLATABLE_PROPER_NOUNS;
 
   for (const [name, prompt] of Object.entries(prompts)) {
     it(`${name} 프롬프트가 영문 원형 유지 고유명사를 나열한다`, () => {
