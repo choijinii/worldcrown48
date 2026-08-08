@@ -318,11 +318,11 @@ function FunctionalRow({
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
-            최근 본 Tournament, 선호 언어, Voter 닉네임 자동 채움 등 편의
+            최근 본 Tournament, 선호 언어, 팬 닉네임 자동 채움 등 편의
             기능을 위한 쿠키입니다. 끄면 일부 편의 기능이 매번 초기화됩니다.
           </span>
           <span className="ml-en">
-            Recently viewed Tournaments, preferred language, Voter nickname
+            Recently viewed Tournaments, preferred language, Fan nickname
             autofill. Turning these off resets those preferences every visit.
           </span>
         </div>
@@ -366,7 +366,7 @@ function AnalyticsRow({
           </span>
           <span className="ml-en">
             Anonymous aggregation of which Tournaments are popular and where
-            Voters drop off. No personally identifying data is stored.
+            fans drop off. No personally identifying data is stored.
           </span>
         </div>
       </div>
