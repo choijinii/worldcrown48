@@ -65,6 +65,34 @@ describe("§5.5 지침 7항 — 4종 프롬프트 전부에 박제 (AC 9)", () =
   }
 });
 
+describe("표시 용어(Display Term) 층 — 독자 지칭은 팬/Fan (2026-08-06 대표 확정)", () => {
+  // LANGUAGE.md §1 표시 용어: 코드·DB의 Voter는 불변, 독자에게 보이는 지칭만 팬/Fan.
+  const DISPLAY_TERM_MARKERS = [
+    "표시 용어", // 층 자체의 이름
+    '"팬"', // ko 지칭
+    "fan", // en·es 지칭
+    "참여 팬 수(Fan Count)", // Voter Count 의 기사 표기
+  ];
+
+  for (const [name, prompt] of Object.entries(prompts)) {
+    it(`${name} 프롬프트가 표시 용어 지침을 담는다`, () => {
+      for (const marker of DISPLAY_TERM_MARKERS) {
+        expect(prompt).toContain(marker);
+      }
+    });
+  }
+
+  it("Voter Count 를 기사 지표 표기로 지시하지 않는다", () => {
+    expect(NEWS_STYLE_GUIDE).not.toContain("Voter Count");
+  });
+
+  it("Voter 는 '쓰지 않는다' 금지 지시로만 등장한다", () => {
+    // 프롬프트에서 Voter 가 나오는 유일한 자리 = 독자 노출 금지 지시.
+    expect(NEWS_STYLE_GUIDE).toContain('"Voter"라고 쓰지 않는다');
+    expect(NEWS_STYLE_GUIDE.match(/Voter/g)).toHaveLength(1);
+  });
+});
+
 describe("NEWS_STYLE_GUIDE — 단일 진실", () => {
   it("7개 지침 마커 + 전 금지어를 담는다", () => {
     for (const w of FORBIDDEN_WAR_WORDS) expect(NEWS_STYLE_GUIDE).toContain(w);

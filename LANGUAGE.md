@@ -24,11 +24,29 @@
 
 ⚠️ 가장 중요한 구분입니다. 세 역할을 절대 혼용하지 마세요.
 
-| **한국어** | **English (공식)** | **코드 변수명** | **정의** |
-| --- | --- | --- | --- |
-| 시스템 관리자 | **System Admin** | role: 'admin' | 월크48 플랫폼 전체를 운영·관리하는 사람. DB 접근, 유저 관리, 플랫폼 설정 등 최상위 권한 보유. MVP에서는 대표님 본인. |
-| **대진을 만든자** | **Tournament Host** | role: 'host' | **대진(Tournament)을 생성하고 운영하는 사람.** 본인이 만든 대진의 Tournament Deadline 설정, 대진 공개/비공개 권한 보유. MVP에서는 System Admin만 Host가 될 수 있음. MVP 이후 일반 유저도 Host가 될 수 있도록 확장 예정. |
-| 투표 참여자 | **Voter** | role: 'voter' | 대진에 참여하여 투표하는 일반 사용자. 계정당 1일 5회 투표 가능. |
+| **한국어** | **English (공식)** | **코드 변수명** | **표시 용어(Display) ko / en / es** | **정의** |
+| --- | --- | --- | --- | --- |
+| 시스템 관리자 | **System Admin** | role: 'admin' | (독자 노출 없음 — 관리자 전용) | 월크48 플랫폼 전체를 운영·관리하는 사람. DB 접근, 유저 관리, 플랫폼 설정 등 최상위 권한 보유. MVP에서는 대표님 본인. |
+| **대진을 만든자** | **Tournament Host** | role: 'host' | (미확정 — 다음 결정 세션 이월) | **대진(Tournament)을 생성하고 운영하는 사람.** 본인이 만든 대진의 Tournament Deadline 설정, 대진 공개/비공개 권한 보유. MVP에서는 System Admin만 Host가 될 수 있음. MVP 이후 일반 유저도 Host가 될 수 있도록 확장 예정. |
+| 투표 참여자 | **Voter** | role: 'voter' | **팬 / Fan / Fan** | 대진에 참여하여 투표하는 일반 사용자. 계정당 1일 5회 투표 가능. |
+
+### 표시 용어(Display Term) 층 — v2.0 (2026-08-06 대표 확정)
+
+> **정의를 바꾸는 것이 아니다.** 공식 용어(English Term)·코드 변수명·DB 필드는 위 표 그대로 불변이며
+> (RULE 1), **독자에게 보이는 텍스트에서만** 아래 표시 용어로 부른다. 즉 한 개념에 두 층이 있다:
+> 시스템 층(`Voter`, `voterId`, `role:'voter'`) / 표시 층(팬 · Fan).
+
+| 적용 | 규칙 |
+| --- | --- |
+| **적용 대상** | 독자·사용자가 읽는 모든 텍스트 — 뉴스 기사 본문, 동의창·안내 문구 등 |
+| **비적용(원어 유지)** | 코드 식별자·DB 필드·컬렉션명(`voterId`·`role:'voter'`·`voter_*`), 코드 주석, 관리자 전용 화면(Admin Dashboard KPI 카드), 문서의 공식 용어 표기 |
+| **⚠️ 의도된 예외** | 닉네임이 없는 사용자의 **기본 표시 이름은 "Voter" 유지** (브랜드 중립 임시 명찰 — 대표 결정). `UserDropdown`·`UserAvatar` 기본값이 여기에 해당 |
+| **원어 유지 고유명사** | Tournament · Contestant · Match · Champion · Crown Card 등 §10 번역 불가 목록은 그대로 노출 (이 층의 적용 대상 아님) |
+
+**지표 표기:** `Voter Count`(§13, 참여자 수)의 **기사·독자 노출 표기 = "참여 팬 수" / "Fan Count"**.
+예: "1,200명의 팬이 함께했다". 개념 정의와 필드명은 §13 그대로 불변.
+
+**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx`.
 
 ### 역할 간 관계 (MVP 기준)
 
@@ -421,6 +439,7 @@ LIVE · VOTE RATE · VS
 | **한국어** | 참여자 수 |
 | **정의** | **Tournament에 참여한 Voter의 수.** Vote Count(득표 수)와 **완전히 별개 개념** — 혼용 절대 금지 |
 | **노출 정책** | 노출 허용. The Pitch에서는 배지(HOT·NEW)+순위 우선, 임계치(예: 1,000명) 초과 시 수치 해금. "1,000 Voters 모으기" 등 이벤트 소재로 활용 가능 |
+| **표시 용어 (v2.0 추가)** | 독자 노출 표기 = **"참여 팬 수" / "Fan Count"** (§1 표시 용어 층). 개념·필드명은 위 정의 그대로 불변 |
 
 ### Crown Score
 
@@ -487,12 +506,15 @@ LIVE · VOTE RATE · VS
 **❌ 금지/주의:** 기사에 **Vote Count(절대 득표수) 절대 사용 금지** — 비율(%)·순위·Voter Count만.
 **전투 은유 금지**(§8 브랜드 언어 연장, newsPrompts 박제): 잔인한·앙숙·격돌·혈투·생존·왕좌·전력을 꺼내다·피해 갈 곳 없다. Match는 싸움이 아니라 "어느 쪽을 더 사랑하는지 고르는 순간".
 
+> **v2.0 표시 용어 적용(2026-08-06):** 위 "Voter Count"는 개념명이다. **기사 본문의 표기는 "참여 팬 수" / "Fan Count"** 이며, 기사에서 참여자를 지칭할 때는 "팬"(ko) / "fan(s)"(en·es)을 쓰고 "Voter"라고 쓰지 않는다 — §1 표시 용어 층. 개념 정의는 위 문장 그대로 불변.
+
 ---
 
 ## 변경 이력
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v2.0** | **2026-08-06** | **★ §1 표시 용어(Display Term) 층 도입 — 정의 변경 없음.** Voter의 독자 노출 지칭 = 팬 / Fan / Fan. Voter Count의 기사 표기 = 참여 팬 수 / Fan Count (§13 행 추가). 코드 식별자·DB 필드·관리자 화면·기본 표시 이름 "Voter"는 불변(의도된 예외 박제). 기존 정의 문장 수정·삭제 0건 — 열·행·절 추가만 |
 | **v1.9** | **2026-07-26** | **★ §14 신규 — News Desk 뉴스 팩토리 용어 등록** (ND-1). News Desk·Article·Status·Template·Origin·Body Block·Evidence·AI-Report v2.5·NewsRail·Contestant Media. **§11(뉴스룸 v1.5)의 후계 · C4-newsroom 스테일 스펙 구현 금지** 박제. 기사 Vote Count 금지 + 전투 은유 금지 재확인 (기존 정의 무변경) |
 | **v1.8** | **2026-07-12** | **★ §13 Tournament Keywords 용어 등록** (B-2). 태그·해시태그와 구분 박제 · 3중 역할(AI 힌트/뉴스 검색/Fan Intelligence) · Tournament 문서 내 배열 저장 |
 | **v1.7** | **2026-07-11** | **★ §13 신규 — 대개편 용어 6종 등록** (Category Taxonomy · ANIME & WEBTOON · Voter Count · Crown Score · Ranking Scope Lock · Bracket Size). **Vote Count(득표 수) ≠ 점수(Crown Score) 구분 박제.** §2·§5에 v1.7 교차 참조 추가 (기존 정의 무변경) |
@@ -519,4 +541,4 @@ LIVE · VOTE RATE · VS
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v1.9 (2026-07-26) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v2.0 (2026-08-06) | CONFIDENTIAL*
