@@ -16,17 +16,17 @@
 ## ⛔ 절대 규칙
 
 ```
-✅ AI-Report 2중 표기 의무
-   - 카드 목록: "● AI-Report" 배지 (11px, 골드 #FCD006)
-   - 기사 본문: "✦ AI-Report" 인라인 블록 (12px, 골드 배경)
+✅ AI-Report 표기 = v2.5 — 기사 푸터 1곳 전용 (Footer-Only Lock)
+   - 기사 본문 블록 최하단: "✦ AI-Report · 발행인이 검토·승인했습니다 · DATA {기준시각}" (8px·50%·골드 모노)
    - HTML 메타태그: <meta name="content-type" content="ai-report" /> (EU AI Act Art.50)
 ⛔ "AI GENERATED" 표기 절대 금지 — 폐기 완료. "AI-Report"만 사용
+⛔ 카드 목록 "● AI-Report" 11px 배지 = 폐기(v2.5). 2중 표기 의무는 Footer-Only Lock으로 대체됨
 ✅ 기사 근거 = 월크48 실제 팬 투표 데이터(ranking_cache)만. 외부 학습데이터 추측 금지
 ✅ 관리자 승인 없이 게시 금지 — status=published 전 reviewedBy(관리자 uid) 필수
 ⛔ Vote Count(절대 수치) 본문 노출 금지 — Vote Rate(%)만 허용
 ⛔ 우승자 예측·실제 경기 결과 언급 금지 (서비스 정체성)
 ✅ 다크 테마 (Domain 3 = bg-wc-bg-deep) · 반응형 3화면(375 / 768 / 1440)
-✅ 다국어: ko + en 동시 생성 (MVP 1·1.5). es는 MVP 2
+✅ 다국어: ko + en + es 3언어 동시 생성 (2026-07-01 결정 — 뉴스 파이프라인 3언어 라이브)
 ```
 
 ---

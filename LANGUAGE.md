@@ -46,7 +46,15 @@
 **지표 표기:** `Voter Count`(§13, 참여자 수)의 **기사·독자 노출 표기 = "참여 팬 수" / "Fan Count"**.
 예: "1,200명의 팬이 함께했다". 개념 정의와 필드명은 §13 그대로 불변.
 
-**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx`.
+**es 지칭 고정 (2026-08-08 대표 확정 — B안):** 스페인어 독자 지칭은 **"fan / fans" 고정**이다.
+번역 층이 `aficionados`·`votantes` 등 현지 동의어로 옮기지 않는다 — 3언어에서 같은 단어로 읽히는 것이 목적.
+(구현: `lib/displayTerms.ts` + 번역 프롬프트 용어집 박제 — PR #64)
+
+**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `lib/displayTerms.ts`.
+
+**미결 2건 (기록만 — 이 절의 정의는 무변경):**
+- ① 발행 기사 `20260726-3fb980` ko 문단의 **기존 오타 "어떤 한글로 는"** — 표시 용어 백필과 무관한 선재 오타. 수정 여부 **대표 판단 대기**.
+- ② **약관·커뮤니티 가이드라인·개인정보 정책 원문의 "Voter"는 계약 당사자 정의어로 의도적 유지**. 표시 용어 층을 적용하지 않는다. 변경은 법적 검토(G-LEGAL) 영역.
 
 ### 역할 간 관계 (MVP 기준)
 
@@ -514,6 +522,7 @@ LIVE · VOTE RATE · VS
 
 | **버전** | **날짜** | **주요 변경** |
 | --- | --- | --- |
+| **v2.1** | **2026-08-08** | **§1 표시 용어 층에 es 지칭 고정 결정 기록 (추가만 — 정의 변경 0건).** 스페인어 독자 지칭 = **"fan / fans" 고정**, 번역 층이 `aficionados`·`votantes`로 옮기지 않음 (대표 확정 B안, 구현 PR #64 `lib/displayTerms.ts`). 미결 2건 각주 등록: 기사 `3fb980` 선재 오타(대표 판단 대기) · 정책 원문 "Voter"는 계약 당사자 정의어로 의도적 유지(G-LEGAL 영역) |
 | **v2.0** | **2026-08-06** | **★ §1 표시 용어(Display Term) 층 도입 — 정의 변경 없음.** Voter의 독자 노출 지칭 = 팬 / Fan / Fan. Voter Count의 기사 표기 = 참여 팬 수 / Fan Count (§13 행 추가). 코드 식별자·DB 필드·관리자 화면·기본 표시 이름 "Voter"는 불변(의도된 예외 박제). 기존 정의 문장 수정·삭제 0건 — 열·행·절 추가만 |
 | **v1.9** | **2026-07-26** | **★ §14 신규 — News Desk 뉴스 팩토리 용어 등록** (ND-1). News Desk·Article·Status·Template·Origin·Body Block·Evidence·AI-Report v2.5·NewsRail·Contestant Media. **§11(뉴스룸 v1.5)의 후계 · C4-newsroom 스테일 스펙 구현 금지** 박제. 기사 Vote Count 금지 + 전투 은유 금지 재확인 (기존 정의 무변경) |
 | **v1.8** | **2026-07-12** | **★ §13 Tournament Keywords 용어 등록** (B-2). 태그·해시태그와 구분 박제 · 3중 역할(AI 힌트/뉴스 검색/Fan Intelligence) · Tournament 문서 내 배열 저장 |
@@ -541,4 +550,4 @@ LIVE · VOTE RATE · VS
 
 ---
 
-*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v2.0 (2026-08-06) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v2.1 (2026-08-08) | CONFIDENTIAL*

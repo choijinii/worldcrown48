@@ -1,6 +1,6 @@
 # WorldCrown48 Design System
 
-> ⚠️ **[2026-05-25 정합성 정정]** 이 문서는 구버전 디자인 시스템(v2.1) 기준으로 작성되어 현행과 불일치합니다. 디자인 토큰의 단일 진실은 `docs/design/WC48_DESIGN_SYSTEM_v2.3.md`, AI 배지는 "● AI-Report"입니다. 이 문서를 디자인 작업 기준으로 삼지 마세요.
+> ⚠️ **[2026-08-08 정합성 정정 — 2026-05-25 배너 갱신]** 이 문서는 구버전 디자인 시스템(v2.1) 기준으로 작성되어 현행과 불일치합니다. 디자인 토큰의 단일 진실은 `docs/design/WC48_DESIGN_SYSTEM_v2.3.md`이며, **AI-Report 표기는 v2.5 Footer-Only Lock** — "✦ AI-Report"를 **기사 푸터 1곳에만**(8px·50%·골드 모노) 씁니다. 구 배너가 안내하던 "● AI-Report" 카드 배지는 **폐기**되었습니다. 이 문서를 디자인 작업 기준으로 삼지 마세요.
 
 **Brand:** WorldCrown48 (월드크라운 48, "WC48")
 **Tagline:** AI 기반 글로벌 팬덤 데이터 생성 및 뉴스 생성 플랫폼
@@ -30,7 +30,7 @@ Domains 0–3 use the dark **Twilight Stadium** palette (Deep Osidian → Twilig
 Domains 4–6 use a light surface theme on the same brand tokens.
 
 Mandatory product rules from the spec — they appear in every artifact:
-- AI-generated content always carries an **● AI-Report** badge (JetBrains Mono, 10/14).
+- ~~AI-generated content always carries an **● AI-Report** badge (JetBrains Mono, 10/14).~~ ⛔ **Retired (v2.5, 2026-07-22)** — Footer-Only Lock: `✦ AI-Report` appears **once**, at the very bottom of the article body (8px, 50% opacity). No badge on cards.
 - We **never** show vote counts — only vote rate (%).
 - "FIFA" and "Official" are off-limits (replace with "Football" / "World's Greatest…").
 - Rounds advance automatically (`advanceRound()`); hosts never trigger transitions.
@@ -70,7 +70,7 @@ Headline patterns (lifted from the spec):
 - `Pick a tournament. Cast your first vote.` — Domain 1 hero
 - `48 strong · Round 7/24`         — match progress
 - `CHAMPION · ROUND 24/24`         — Crown Card eyebrow
-- `● ● AI-Report`                 — mandatory badge
+- ~~`● AI-Report`~~ ⛔ retired (v2.5) → `✦ AI-Report` — article footer only, once
 
 ---
 
