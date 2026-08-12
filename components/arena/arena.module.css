@@ -3,23 +3,26 @@
    .vs-* / .rt-* / .final-* so the components match the design 1:1. Container
    queries in the wireframe become viewport media queries here. */
 
+/* The short names below are a local alias layer over the globals.css ledger —
+   the wireframe's vocabulary (--gold, --text) kept so the .vs- and .rt- rules
+   read like the design, while the values live in one place (TOK-1). */
 .arena {
-  --bg-void: #00001f;
-  --bg-deep: #00003a;
-  --bg-default: #0e0944;
-  --bg-soft: #241754;
-  --bg-elevated: #362261;
-  --gold: #fcd006;
-  --gold-glow: rgba(252, 208, 6, 0.25);
-  --gold-subtle: rgba(252, 208, 6, 0.12);
-  --gold-hover: #e3bb05;
-  --aura: #eeda7d;
-  --crimson: #d7063a;
-  --turquoise: #00a3b7;
-  --text: #f2f2f5;
-  --text-sub: #b1b5c4;
-  --text-muted: #484b67;
-  --border: #2d1c5a;
+  --bg-void: var(--color-bg-void);
+  --bg-deep: var(--color-bg-deep);
+  --bg-default: var(--color-bg-default);
+  --bg-soft: var(--color-bg-soft);
+  --bg-elevated: var(--color-bg-elevated);
+  --gold: var(--color-gold);
+  --gold-glow: var(--color-gold-glow);
+  --gold-subtle: var(--color-gold-subtle);
+  --gold-hover: var(--color-gold-hover);
+  --aura: var(--color-aura);
+  --crimson: var(--color-crimson);
+  --turquoise: var(--color-turquoise);
+  --text: var(--color-text);
+  --text-sub: var(--color-text-sub);
+  --text-muted: var(--color-text-muted);
+  --border: var(--color-border);
   --border-gold: rgba(252, 208, 6, 0.3);
   --radius: 5px;
   --font-sans: "Inter", "Pretendard", system-ui, sans-serif;

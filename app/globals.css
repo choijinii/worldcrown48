@@ -41,6 +41,25 @@
   --color-text: #F2F2F5;
   --color-text-sub: #B1B5C4;
   --color-text-muted: #484B67;
+  --color-white: #FFFFFF;   /* 순백 — 다크 면 위 최대 대비. --color-text(#F2F2F5)와 별개 값 */
+
+  /* news print surface — 뉴스 지면 팔레트 (TOK-1 W3)
+     기사 본문은 다크 앱 안의 '지면'이라 자체 명암 체계를 가진다. 값은 기존
+     news.module.css / NewsRail.module.css의 --wc-* 를 그대로 옮긴 것. */
+  --color-paper: #FBFAF6;
+  --color-paper-soft: #EFEDE5;
+  --color-paper-line: #E4E1D6;
+  --color-ink: #1A1830;
+  --color-ink-soft: #4A4763;
+  --color-gold-ink: #B89A00;      /* 밝은 지면 위 골드 — 대비 확보용 어두운 금 */
+  --color-twilight-soft: #241B4E; /* 히어로 그라디언트 시작 */
+  --color-twilight: #1E1740;      /* 〃 중간 */
+  --color-twilight-deep: #14102B; /* 〃 끝 */
+
+  /* editorial chrome — 뉴스데스크 편집 UI (TOK-1 W3) */
+  --color-chrome-text: #F4F2FF;
+  --color-chrome-text-sub: #B4ADD9;
+  --color-chrome-rose: #FF9FB4;   /* 다크 면 위 위험 표시 — crimson은 대비 부족 */
 
   /* Borders / shadows */
   --color-border: #2D1C5A;

@@ -11,7 +11,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #00001f;
+  background: var(--color-bg-void);
   border-radius: 5px;
   overflow: hidden;
 }
@@ -32,7 +32,7 @@
   border: 0;
   padding: 0;
   cursor: pointer;
-  background: #00001f;
+  background: var(--color-bg-void);
 }
 
 .thumb {
@@ -51,7 +51,7 @@
   height: 56px;
   border-radius: 999px;
   background: rgba(252, 208, 6, 0.92);
-  color: #00001f;
+  color: var(--color-bg-void);
   font-size: 20px;
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: #fcd006;
+  color: var(--color-gold);
   background: rgba(252, 208, 6, 0.12);
   border: 1px solid rgba(252, 208, 6, 0.3);
   border-radius: 999px;
