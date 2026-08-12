@@ -62,7 +62,7 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
             fontFamily: "Inter, system-ui, sans-serif",
             fontSize: 14,
             fontWeight: 600,
-            color: "var(--color-text-light, #0E0944)",
+            color: "var(--color-text-light)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -103,7 +103,7 @@ function AvatarRing({ user, size }: { user: User; size: number }): JSX.Element {
         height: size,
         padding: ringWidth,
         borderRadius: "50%",
-        background: "var(--color-gold, #FCD006)",
+        background: "var(--color-gold)",
         flexShrink: 0,
       }}
     >
@@ -130,8 +130,8 @@ function AvatarRing({ user, size }: { user: User; size: number }): JSX.Element {
             width: innerSize,
             height: innerSize,
             borderRadius: "50%",
-            background: "#0E0944",
-            color: "var(--color-gold, #FCD006)",
+            background: "var(--color-bg-default)",
+            color: "var(--color-gold)",
             fontFamily: "Inter, system-ui, sans-serif",
             fontWeight: 700,
             fontSize: innerSize * 0.42,

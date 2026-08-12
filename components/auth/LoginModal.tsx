@@ -107,12 +107,12 @@ export function LoginModal({
           style={{
             width: "100%",
             maxWidth: 420,
-            background: "#FFFFFF",
+            background: "var(--color-surface-light)",
             borderRadius: 20,
             padding: 28,
             boxShadow: "0 24px 60px rgba(14,9,68,0.22)",
             fontFamily: "Inter, system-ui, sans-serif",
-            color: "#0E0944",
+            color: "var(--color-text-light)",
             textAlign: "center",
           }}
         >
@@ -127,7 +127,7 @@ export function LoginModal({
               style={{
                 margin: "8px 0 24px",
                 fontSize: 13,
-                color: "#3A4570",
+                color: "var(--color-text-sub-light)",
                 lineHeight: 1.5,
               }}
             >
@@ -138,7 +138,7 @@ export function LoginModal({
               style={{
                 margin: "8px 0 24px",
                 fontSize: 13,
-                color: "#3A4570",
+                color: "var(--color-text-sub-light)",
                 lineHeight: 1.5,
               }}
             >
@@ -160,9 +160,9 @@ export function LoginModal({
                 justifyContent: "center",
                 padding: "12px 16px",
                 borderRadius: 12,
-                border: "1px solid #D4DCE3",
-                background: "#FFFFFF",
-                color: "#0E0944",
+                border: "1px solid var(--color-border-light)",
+                background: "var(--color-surface-light)",
+                color: "var(--color-text-light)",
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 600,
                 fontSize: 14,
@@ -186,7 +186,7 @@ export function LoginModal({
               borderRadius: 12,
               border: "none",
               background: "transparent",
-              color: "#3A4570",
+              color: "var(--color-text-sub-light)",
               fontFamily: "Inter, system-ui, sans-serif",
               fontSize: 13,
               cursor: busy ? "wait" : "pointer",

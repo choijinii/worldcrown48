@@ -7,7 +7,7 @@
  * exactly once: it reads + clears on mount, so a page refresh (no re-navigation)
  * shows nothing. Rendered unconditionally by the Champion page — it self-gates.
  *
- * Copy is catalog-driven (lib/i18n). Crown Gold (#FCD006) is the only accent
+ * Copy is catalog-driven (lib/i18n). Crown Gold (--color-gold) is the only accent
  * (원칙 #2); it floats above the in-flow Crown stage via a fixed banner.
  */
 "use client";
@@ -47,16 +47,16 @@ export function ReturningCardBanner({ tournamentId }: { tournamentId: string }):
         gap: 12,
         padding: "12px 16px",
         borderRadius: 12,
-        border: "1px solid #fcd006",
+        border: "1px solid var(--color-gold)",
         background: "rgba(18,18,22,0.94)",
-        color: "#f2f2f5",
+        color: "var(--color-text)",
         fontFamily: "Inter, system-ui, sans-serif",
         fontSize: 13,
         lineHeight: 1.4,
         boxShadow: "0 8px 28px rgba(0,0,0,0.45)",
       }}
     >
-      <span aria-hidden="true" style={{ color: "#fcd006", fontSize: 15 }}>♛</span>
+      <span aria-hidden="true" style={{ color: "var(--color-gold)", fontSize: 15 }}>♛</span>
       <span style={{ flex: 1 }}>{t("champion.returning.banner")}</span>
       <button
         type="button"
@@ -66,7 +66,7 @@ export function ReturningCardBanner({ tournamentId }: { tournamentId: string }):
           flexShrink: 0,
           background: "transparent",
           border: "none",
-          color: "#9a9aa5",
+          color: "var(--color-text-dim)",
           cursor: "pointer",
           fontSize: 16,
           lineHeight: 1,

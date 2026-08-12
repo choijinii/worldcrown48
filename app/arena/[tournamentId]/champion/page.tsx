@@ -31,7 +31,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#f2f2f5",
+        color: "var(--color-text)",
         fontFamily: "Inter, system-ui, sans-serif",
         textAlign: "center",
         padding: 24,
@@ -63,7 +63,7 @@ export default function ChampionPage(): JSX.Element {
     return (
       <Center>
         아직 확정된 Champion이 없어요.&nbsp;
-        <a href={`/arena/${tournamentId}`} style={{ color: "#fcd006" }}>
+        <a href={`/arena/${tournamentId}`} style={{ color: "var(--color-gold)" }}>
           The Arena로
         </a>
       </Center>

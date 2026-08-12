@@ -10,7 +10,7 @@ export function LaunchHero() {
   const { t } = useT();
   return (
     <section className="hero" aria-label="Launch hero">
-      {/* Registered crown mark — inline for the colour anchor (#FCD006). */}
+      {/* Registered crown mark — inline for the colour anchor (Crown Gold). */}
       <svg
         className="hero-crown"
         viewBox="0 0 143.938 134.878"

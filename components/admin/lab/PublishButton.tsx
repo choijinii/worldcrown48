@@ -41,7 +41,7 @@ export function PublishButton({
         borderRadius: 12,
         border: "none",
         background: ready ? lab.gold : lab.surfaceElev,
-        color: ready ? "#0E0944" : lab.textMuted,
+        color: ready ? "var(--color-bg-default)" : lab.textMuted,
         fontWeight: 800,
         fontSize: 15,
         fontFamily: lab.font,

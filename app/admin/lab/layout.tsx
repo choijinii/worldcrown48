@@ -13,7 +13,7 @@ export default function LabLayout({
   children: ReactNode;
 }): JSX.Element {
   return (
-    <div data-theme="dark" style={{ minHeight: "100vh", background: "#0E0944" }}>
+    <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-default)" }}>
       {children}
     </div>
   );

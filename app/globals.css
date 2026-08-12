@@ -42,6 +42,8 @@
   --color-text-sub: #B1B5C4;
   --color-text-muted: #484B67;
   --color-white: #FFFFFF;   /* 순백 — 다크 면 위 최대 대비. --color-text(#F2F2F5)와 별개 값 */
+  --color-black: #000000;   /* 네이티브 컨트롤(select option 등) 기본 잉크 */
+  --color-text-dim: #9A9AA5; /* 중립 그레이 오버레이 위 보조 텍스트 (Crown 복귀 배너) */
 
   /* news print surface — 뉴스 지면 팔레트 (TOK-1 W3)
      기사 본문은 다크 앱 안의 '지면'이라 자체 명암 체계를 가진다. 값은 기존
@@ -435,15 +437,23 @@ input { font: inherit; }
 
 /* ════════════════════════════════════════════════════════════════════
    Domain 5 · Policy Hub — Twilight Stadium LIGHT theme
-   Scope: [data-theme="light"], .domain-policy
+   Scope: [data-theme="light"], .domain-policy, .domain-locker
    Source: docs/design/WC48_DESIGN_SYSTEM_v2.4.md §AI-Report + handoff §6.
-   Do NOT spread these onto :root — that would collide with Domain 0~3 dark.
-   The dark tokens above stay default; the light tokens below activate
-   only inside the scoped wrapper.
+
+   정의는 전역(:root), 적용만 스코프 — TOK-1에서 분리.
+   이전 주석은 "Do NOT spread these onto :root — 다크와 충돌한다"였는데,
+   실제로는 충돌하지 않는다. 이름이 --color-text vs --color-text-light 처럼
+   전부 다르기 때문이다. 충돌하는 건 아래 background/color '적용' 두 줄뿐이고,
+   그건 여전히 스코프 안에 있다.
+
+   정의를 :root로 올린 이유: 네비바 드롭다운·모달처럼 **다크 트리 안에 뜨는
+   밝은 표면**이 `var(--color-text-light)` 식으로 hex 폴백을 달고
+   있었다. 토큰이 스코프 밖이라 폴백이 실제로 렌더되던 것 — 즉 하드코딩이
+   구조적으로 강제되고 있었다. 정의가 전역이면 폴백이 필요 없다.
+   (승격 전후 색상 동일함은 폴백 32곳 전수 대조로 확인 — 전부 원장 값과 일치)
    ════════════════════════════════════════════════════════════════════ */
-[data-theme="light"],
-.domain-policy,
-.domain-locker {
+:root {
+  /* Light surface group — 정의는 여기, 적용은 아래 스코프에서 */
   /* Backgrounds */
   --color-bg-light: #F2F2F5;
   --color-surface-light: #FFFFFF;
@@ -467,7 +477,11 @@ input { font: inherit; }
   --shadow-gnb: 0 10px 30px rgba(36, 23, 84, 0.10);
   --shadow-modal: 0 24px 60px rgba(14, 9, 68, 0.22);
   --shadow-banner: 0 -8px 30px rgba(14, 9, 68, 0.10);
+}
 
+[data-theme="light"],
+.domain-policy,
+.domain-locker {
   background: var(--color-bg-light);
   color: var(--color-text-light);
 }

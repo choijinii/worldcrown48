@@ -59,7 +59,7 @@ export default function AccountPage(): JSX.Element {
           margin: "0 auto",
           padding: "64px 24px",
           fontFamily: "Inter, system-ui, sans-serif",
-          color: "var(--color-text-sub-light, #3A4570)",
+          color: "var(--color-text-sub-light)",
         }}
       >
         <div role="status">{lang === "ko" ? "확인 중…" : "Loading…"}</div>
@@ -76,7 +76,7 @@ export default function AccountPage(): JSX.Element {
         margin: "0 auto",
         padding: "64px 24px",
         fontFamily: "Inter, system-ui, sans-serif",
-        color: "var(--color-text-light, #0E0944)",
+        color: "var(--color-text-light)",
       }}
     >
       <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800 }}>
@@ -85,7 +85,7 @@ export default function AccountPage(): JSX.Element {
       <p
         style={{
           margin: "8px 0 32px",
-          color: "var(--color-text-sub-light, #3A4570)",
+          color: "var(--color-text-sub-light)",
           fontSize: 14,
         }}
       >
@@ -94,8 +94,8 @@ export default function AccountPage(): JSX.Element {
 
       <section
         style={{
-          background: "#FFFFFF",
-          border: "1px solid var(--color-border-light, #D4DCE3)",
+          background: "var(--color-surface-light)",
+          border: "1px solid var(--color-border-light)",
           borderRadius: 16,
           padding: 24,
           marginBottom: 24,
@@ -111,8 +111,8 @@ export default function AccountPage(): JSX.Element {
 
       <section
         style={{
-          background: "#FFFFFF",
-          border: "1px solid var(--color-border-light, #D4DCE3)",
+          background: "var(--color-surface-light)",
+          border: "1px solid var(--color-border-light)",
           borderRadius: 16,
           padding: 24,
         }}
@@ -123,7 +123,7 @@ export default function AccountPage(): JSX.Element {
         <p
           style={{
             margin: "6px 0 16px",
-            color: "var(--color-text-sub-light, #3A4570)",
+            color: "var(--color-text-sub-light)",
             fontSize: 13,
           }}
         >
@@ -135,9 +135,9 @@ export default function AccountPage(): JSX.Element {
           style={{
             padding: "10px 16px",
             borderRadius: 10,
-            border: "1px solid #D7063A",
+            border: "1px solid var(--color-crimson)",
             background: "transparent",
-            color: "#D7063A",
+            color: "var(--color-crimson)",
             fontFamily: "Inter, system-ui, sans-serif",
             fontWeight: 600,
             fontSize: 13,
@@ -165,10 +165,10 @@ function Row({ label, value }: { label: string; value: string }): JSX.Element {
         alignItems: "baseline",
         gap: 12,
         padding: "10px 0",
-        borderBottom: "1px solid var(--color-border-soft, #E6EAF0)",
+        borderBottom: "1px solid var(--color-border-soft)",
       }}
     >
-      <div style={{ fontSize: 13, color: "var(--color-text-sub-light, #3A4570)" }}>
+      <div style={{ fontSize: 13, color: "var(--color-text-sub-light)" }}>
         {label}
       </div>
       <div

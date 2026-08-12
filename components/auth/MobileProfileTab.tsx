@@ -74,8 +74,8 @@ export function MobileProfileTab(): JSX.Element {
           height: TAB_SIZE,
           borderRadius: "50%",
           padding: 2,
-          border: signedIn ? "none" : "1px solid var(--color-gold, #FCD006)",
-          background: signedIn ? "var(--color-gold, #FCD006)" : "transparent",
+          border: signedIn ? "none" : "1px solid var(--color-gold)",
+          background: signedIn ? "var(--color-gold)" : "transparent",
           cursor: busy ? "wait" : "pointer",
         }}
       >
@@ -131,8 +131,8 @@ function ProfileImg({ user, size }: { user: User; size: number }): JSX.Element {
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "#0E0944",
-        color: "var(--color-gold, #FCD006)",
+        background: "var(--color-bg-default)",
+        color: "var(--color-gold)",
         fontFamily: "Inter, system-ui, sans-serif",
         fontWeight: 700,
         fontSize: size * 0.42,
@@ -150,7 +150,7 @@ function UserGlyph(): JSX.Element {
       height="18"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="var(--color-gold, #FCD006)"
+      stroke="var(--color-gold)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

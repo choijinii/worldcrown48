@@ -58,7 +58,7 @@ export function Step2Summary({
               borderRadius: 8,
               border: "none",
               background: lab.gold,
-              color: "#0E0944",
+              color: "var(--color-bg-default)",
               fontWeight: 700,
               fontSize: 13,
               fontFamily: lab.font,

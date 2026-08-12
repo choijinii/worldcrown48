@@ -1,4 +1,65 @@
 {
-  "$comment": "TOK-1 W4 · ADR-TOK-3 — 외부 브랜드 색만 예외. file+hex 쌍으로 좁게 등록하고 reason을 반드시 적는다. 우리 팔레트 색은 여기 들어올 수 없다 — app/globals.css 토큰을 쓴다.",
-  "entries": []
+  "$comment": "TOK-1 W4 — 가드 예외. file+hex 쌍으로 좁게 등록하고 reason을 반드시 적는다. 우리 팔레트 색을 편의로 넣는 곳이 아니다: 토큰화가 '불가능'하거나 ADR이 스윕 대상에서 뺀 것만 들어온다.",
+  "entries": [
+    {
+      "file": "components/auth/SignInButton.tsx",
+      "hex": "#4285F4",
+      "reason": "brand-fixed: Google 로고 blue — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/SignInButton.tsx",
+      "hex": "#34A853",
+      "reason": "brand-fixed: Google 로고 green — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/SignInButton.tsx",
+      "hex": "#FBBC05",
+      "reason": "brand-fixed: Google 로고 yellow — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/SignInButton.tsx",
+      "hex": "#EA4335",
+      "reason": "brand-fixed: Google 로고 red — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/LoginModal.tsx",
+      "hex": "#4285F4",
+      "reason": "brand-fixed: Google 로고 blue — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/LoginModal.tsx",
+      "hex": "#34A853",
+      "reason": "brand-fixed: Google 로고 green — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/LoginModal.tsx",
+      "hex": "#FBBC05",
+      "reason": "brand-fixed: Google 로고 yellow — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/auth/LoginModal.tsx",
+      "hex": "#EA4335",
+      "reason": "brand-fixed: Google 로고 red — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
+    },
+    {
+      "file": "components/launch/LaunchHero.tsx",
+      "hex": "#FCD006",
+      "reason": "로고 마크 SVG — ADR-TOK-4가 로고 SVG를 스윕 대상에서 제외. 크라운 마크는 브랜드 자산이라 테마를 따라 변하지 않는다"
+    },
+    {
+      "file": "components/admin/dashboard/VoteSpeedChart.tsx",
+      "hex": "#FCD006",
+      "reason": "Recharts stroke/fill — SVG presentation attribute, var() 브라우저 편차 리스크, 후속 킥에서 재검토"
+    },
+    {
+      "file": "components/admin/dashboard/VoteSpeedChart.tsx",
+      "hex": "#E6EAF0",
+      "reason": "Recharts CartesianGrid stroke — SVG presentation attribute, var() 브라우저 편차 리스크, 후속 킥에서 재검토"
+    },
+    {
+      "file": "components/admin/dashboard/VoteSpeedChart.tsx",
+      "hex": "#8C99B3",
+      "reason": "Recharts axis tick fill — SVG presentation attribute, var() 브라우저 편차 리스크, 후속 킥에서 재검토"
+    }
+  ]
 }
