@@ -1,0 +1,4 @@
+{
+  "$comment": "TOK-1 W4 · ADR-TOK-3 — 외부 브랜드 색만 예외. file+hex 쌍으로 좁게 등록하고 reason을 반드시 적는다. 우리 팔레트 색은 여기 들어올 수 없다 — app/globals.css 토큰을 쓴다.",
+  "entries": []
+}
