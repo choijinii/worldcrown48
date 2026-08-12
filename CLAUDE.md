@@ -53,6 +53,7 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 |---|------|------|
 | 1 | 듀얼 테마 | Domain 0~3 = 다크, Domain 4~6 = 라이트. 팔레트 상세 → docs/design/colors_and_type.css |
 | 2 | Crown Gold | 포인트 컬러 #FCD006만 (로고 v3.0 기준). 형광 노랑·그린 금지 |
+| 2-1 | 색은 토큰만 | **컴포넌트에 raw hex 금지, `var(--color-…)` 토큰만 사용.** 값의 단일 진실 = `app/globals.css`. 외부 브랜드 색 등 예외는 `scripts/hex-allowlist.json`에 사유와 함께 등록 (가드: `npm run check:hex` · CI: hex-guard.yml) |
 | 3 | 글로벌 | 한국적 요소 금지. 글로벌 MZ Sporty 럭셔리 |
 | 4 | AI-Report | 표기: "✦ AI-Report" — 기사 푸터 1곳 전용(Footer-Only Lock), 8px·50%. "AI GENERATED"·카드 배지 완전 폐기 (v2.5, 2026-07-22) |
 | 5 | FIFA 금지 | "FIFA"·"Official" 표기 금지 |

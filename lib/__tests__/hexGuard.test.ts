@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 import {
   findHex,
   filterAllowlisted,
+  findUnusedAllowlist,
   isScannedPath,
   scanContent,
 } from "../../scripts/check-hardcoded-hex.lib.mjs";
@@ -177,5 +178,49 @@ describe("filterAllowlisted — ADR-TOK-3 third-party brand colours", () => {
     const v = [{ file: "a.tsx", line: 1, column: 1, hex: "#fff" }];
     expect(filterAllowlisted(v, { entries: [] })).toHaveLength(1);
     expect(filterAllowlisted(v, undefined)).toHaveLength(1);
+  });
+});
+
+describe("findUnusedAllowlist — the exception list must not rot", () => {
+  // An exception that no longer matches anything is a stale claim: the colour
+  // was tokenised or the file moved, and the entry now silently widens the
+  // guard's blind spot. Surfacing it keeps the list honest.
+  const entry = {
+    file: "components/auth/SignInButton.tsx",
+    hex: "#FBBC05",
+    reason: "brand-fixed",
+  };
+
+  it("reports an entry that matches no violation", () => {
+    expect(findUnusedAllowlist([], { entries: [entry] })).toEqual([entry]);
+  });
+
+  it("reports nothing when the entry is still doing work", () => {
+    const found = [
+      {
+        file: "components/auth/SignInButton.tsx",
+        line: 9,
+        column: 5,
+        hex: "#FBBC05",
+      },
+    ];
+    expect(findUnusedAllowlist(found, { entries: [entry] })).toEqual([]);
+  });
+
+  it("matches case-insensitively, like filterAllowlisted does", () => {
+    const found = [
+      {
+        file: "components/auth/SignInButton.tsx",
+        line: 9,
+        column: 5,
+        hex: "#fbbc05",
+      },
+    ];
+    expect(findUnusedAllowlist(found, { entries: [entry] })).toEqual([]);
+  });
+
+  it("handles an empty or missing allowlist", () => {
+    expect(findUnusedAllowlist([], { entries: [] })).toEqual([]);
+    expect(findUnusedAllowlist([], undefined)).toEqual([]);
   });
 });

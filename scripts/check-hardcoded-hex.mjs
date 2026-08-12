@@ -23,6 +23,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   filterAllowlisted,
+  findUnusedAllowlist,
   formatReport,
   isScannedPath,
   scanContent,
@@ -73,9 +74,12 @@ const all = files.flatMap((rel) =>
   scanContent(rel, readFileSync(path.join(REPO_ROOT, rel), "utf8")),
 );
 const violations = filterAllowlisted(all, allowlist);
+const unused = findUnusedAllowlist(all, allowlist);
 
 if (args.has("--json")) {
-  console.log(JSON.stringify({ scanned: files.length, violations }, null, 2));
+  console.log(
+    JSON.stringify({ scanned: files.length, violations, unused }, null, 2),
+  );
 } else if (args.has("--summary")) {
   const fileCount = new Set(violations.map((v) => v.file)).size;
   console.log(
@@ -96,4 +100,13 @@ if (args.has("--json")) {
   console.log(`✓ no hardcoded hex colours (scanned ${files.length} files)`);
 }
 
-process.exit(violations.length > 0 && !args.has("--json") && !args.has("--summary") ? 1 : 0);
+if (unused.length > 0 && !args.has("--json")) {
+  console.error(
+    `\n✗ ${unused.length} stale allowlist entr(ies) — they match nothing any more:`,
+  );
+  for (const e of unused) console.error(`  ${e.file}  ${e.hex}  (${e.reason})`);
+  console.error("  Delete them from scripts/hex-allowlist.json.");
+}
+
+const failed = violations.length > 0 || unused.length > 0;
+process.exit(failed && !args.has("--json") && !args.has("--summary") ? 1 : 0);
