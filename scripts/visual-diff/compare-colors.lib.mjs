@@ -6,6 +6,14 @@
  */
 
 /**
+ * @typedef {Object.<string, string>} SnapshotRow
+ *   One element: `p` (DOM path), `t` (tag), plus one entry per colour property.
+ * @typedef {{path: string, prop: string, base: string, head: string}} ColourDiff
+ * @typedef {{comparable: boolean, reason?: string, count?: number, diffs: ColourDiff[]}} RouteResult
+ * @typedef {RouteResult & {route: string}} NamedRouteResult
+ */
+
+/**
  * Every computed property a colour change can move.
  *
  * `boxShadow` and `backgroundImage` are here because they carry colours inside
@@ -35,10 +43,10 @@ export const COLOUR_PROPS = [
  * pile of differences — the elements no longer line up, so every subsequent
  * comparison would be noise.
  *
- * @param {object[]} base snapshot rows from the reference build
- * @param {object[]} head snapshot rows from the branch under test
+ * @param {SnapshotRow[]} base snapshot rows from the reference build
+ * @param {SnapshotRow[]} head snapshot rows from the branch under test
  * @param {string[]} [props]
- * @returns {{comparable: boolean, reason?: string, count?: number, diffs: object[]}}
+ * @returns {RouteResult}
  */
 export function diffSnapshots(base, head, props = COLOUR_PROPS) {
   if (base.length !== head.length) {
@@ -49,6 +57,7 @@ export function diffSnapshots(base, head, props = COLOUR_PROPS) {
     };
   }
 
+  /** @type {ColourDiff[]} */
   const diffs = [];
   for (let i = 0; i < base.length; i++) {
     const b = base[i];
@@ -76,7 +85,7 @@ export function diffSnapshots(base, head, props = COLOUR_PROPS) {
  * nothing, and silently skipping it would hide a regression on the very page
  * that failed to load.
  *
- * @param {{route: string, comparable: boolean, count?: number, diffs: object[]}[]} results
+ * @param {NamedRouteResult[]} results
  */
 export function summarise(results) {
   const skipped = results.filter((r) => !r.comparable).length;
