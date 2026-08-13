@@ -1,7 +1,7 @@
 /**
  * AdminAuthGuardLight — operator-only gate for /admin (Domain 6, LIGHT theme).
  *
- * G-1 handoff §9 trap #1: B-1's AdminAuthGuard is DARK (background #0E0944).
+ * G-1 handoff §9 trap #1: B-1's AdminAuthGuard is DARK (background --color-bg-default).
  * Reusing it on the light dashboard would flash dark. So we reuse ONLY the
  * unit-tested pure decision `adminGateState` (lib/lab/adminGate) and render a
  * light-token gate here. Same four states, same fail-closed security.

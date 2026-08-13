@@ -31,8 +31,8 @@ export function DevNavSheet({ open, onClose }: DevNavSheetProps): JSX.Element {
         width: 240,
         padding: 8,
         borderRadius: 14,
-        background: "var(--color-bg-elevated, #1a1340)",
-        border: "1px solid var(--color-gold, #FCD006)",
+        background: "var(--color-bg-elevated)",
+        border: "1px solid var(--color-gold)",
         boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
         fontFamily: "Inter, system-ui, sans-serif",
         // CSS-only enter/exit.
@@ -47,7 +47,7 @@ export function DevNavSheet({ open, onClose }: DevNavSheetProps): JSX.Element {
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
           fontSize: 10,
           letterSpacing: "0.18em",
-          color: "var(--color-gold, #FCD006)",
+          color: "var(--color-gold)",
           padding: "8px 10px 6px",
         }}
       >
@@ -102,8 +102,8 @@ function rowStyle(disabled: boolean): React.CSSProperties {
     fontWeight: 600,
     textDecoration: "none",
     color: disabled
-      ? "var(--color-text-muted, #8b86a8)"
-      : "var(--color-text, #F4F2FB)",
+      ? "var(--color-text-muted)"
+      : "var(--color-text)",
     cursor: disabled ? "not-allowed" : "pointer",
   };
 }

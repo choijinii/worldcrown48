@@ -3,7 +3,7 @@
  *
  * Recharts uses `window` internally, so it MUST be loaded via next/dynamic
  * { ssr: false } (handoff §9 trap #6) — the dynamic boundary lives in
- * DashboardMain. Line/area stroke = Crown Gold #FCD006 (불변 원칙 #2), area
+ * DashboardMain. Line/area stroke = Crown Gold --color-gold (불변 원칙 #2), area
  * gradient gold 0.32→0. 1H/24H/7D: only 24H works this PR; the rest are
  * disabled with a "later" tooltip.
  *
@@ -117,7 +117,7 @@ export function VoteSpeedChart({ chart }: VoteSpeedChartProps): JSX.Element {
                 <Tooltip
                   formatter={(value: number | string) => [`${n(Number(value))} ${t.perHr}`, t.side]}
                   labelFormatter={(label: number | string) => hhmm(Number(label))}
-                  contentStyle={{ background: "#0E0944", border: "none", borderRadius: 5, color: "#fff", fontFamily: "var(--font-mono)", fontSize: 11 }}
+                  contentStyle={{ background: "var(--color-bg-default)", border: "none", borderRadius: 5, color: "var(--color-white)", fontFamily: "var(--font-mono)", fontSize: 11 }}
                 />
                 <Area type="monotone" dataKey="votes" stroke={GOLD} strokeWidth={2.5} fill="url(#vs-grad)" />
               </AreaChart>

@@ -74,7 +74,7 @@ export function Toaster(): JSX.Element | null {
                 : t.variant === "success"
                   ? "rgba(0,163,183,0.95)"
                   : "rgba(14,9,68,0.95)",
-            color: "#FFFFFF",
+            color: "var(--color-white)",
             fontFamily: "Inter, system-ui, sans-serif",
             fontSize: 14,
             lineHeight: 1.4,
@@ -95,7 +95,7 @@ export function Toaster(): JSX.Element | null {
               border: "none",
               borderRadius: 8,
               background: "rgba(255,255,255,0.16)",
-              color: "#FFFFFF",
+              color: "var(--color-white)",
               fontSize: 16,
               lineHeight: 1,
               cursor: "pointer",

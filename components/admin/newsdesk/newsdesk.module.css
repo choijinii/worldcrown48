@@ -2,7 +2,7 @@
 
 .shell {
   min-height: 100vh;
-  color: #f4f2ff;
+  color: var(--color-chrome-text);
   font-family: Inter, "Pretendard", system-ui, sans-serif;
   padding: 24px clamp(16px, 4vw, 48px) 64px;
   max-width: 1400px;
@@ -25,11 +25,11 @@
 }
 .title em {
   font-style: normal;
-  color: #fcd006;
+  color: var(--color-gold);
 }
 .sub {
   font-size: 12px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   font-family: "JetBrains Mono", monospace;
 }
 
@@ -60,7 +60,7 @@
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
   letter-spacing: 0.14em;
-  color: #fcd006;
+  color: var(--color-gold);
   margin-bottom: 12px;
   text-transform: uppercase;
 }
@@ -75,7 +75,7 @@
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 8px;
-  color: #f4f2ff;
+  color: var(--color-chrome-text);
   cursor: pointer;
   font: inherit;
 }
@@ -83,7 +83,7 @@
   border-color: rgba(252, 208, 6, 0.4);
 }
 .queueItemActive {
-  border-color: #fcd006;
+  border-color: var(--color-gold);
   background: rgba(252, 208, 6, 0.08);
 }
 .queueTitle {
@@ -94,7 +94,7 @@
 .queueMeta {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   margin-top: 5px;
   display: flex;
   gap: 8px;
@@ -111,16 +111,16 @@
   text-transform: uppercase;
 }
 .badgeDraft {
-  background: #4a4763;
-  color: #fff;
+  background: var(--color-ink-soft);
+  color: var(--color-white);
 }
 .badgePublished {
-  background: #fcd006;
-  color: #1a1830;
+  background: var(--color-gold);
+  color: var(--color-ink);
 }
 .badgeArchived {
   background: rgba(255, 255, 255, 0.14);
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
 }
 
 /* 폼 */
@@ -130,7 +130,7 @@
 .fieldLabel {
   display: block;
   font-size: 12px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   margin-bottom: 6px;
 }
 .input,
@@ -140,7 +140,7 @@
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 6px;
-  color: #fff;
+  color: var(--color-white);
   padding: 9px 11px;
   font: inherit;
   font-size: 14px;
@@ -168,18 +168,18 @@
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: transparent;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   cursor: pointer;
 }
 .tabActive {
-  background: #fcd006;
-  color: #1a1830;
-  border-color: #fcd006;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  border-color: var(--color-gold);
   font-weight: 700;
 }
 .tabEmpty::after {
   content: " ·";
-  color: #d7063a;
+  color: var(--color-crimson);
 }
 
 /* 블록 편집 */
@@ -193,7 +193,7 @@
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: #fcd006;
+  color: var(--color-gold);
   text-transform: uppercase;
   margin-bottom: 8px;
   display: flex;
@@ -215,7 +215,7 @@
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: transparent;
-  color: #f4f2ff;
+  color: var(--color-chrome-text);
   cursor: pointer;
 }
 .btn:hover {
@@ -226,13 +226,13 @@
   cursor: not-allowed;
 }
 .btnPrimary {
-  background: #fcd006;
-  color: #1a1830;
-  border-color: #fcd006;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  border-color: var(--color-gold);
 }
 .btnDanger {
   border-color: rgba(215, 6, 58, 0.6);
-  color: #ff9fb4;
+  color: var(--color-chrome-rose);
 }
 .small {
   font-size: 11px;
@@ -252,7 +252,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .evTable th {
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.1em;
@@ -260,19 +260,19 @@
 .evAsOf {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   margin-top: 10px;
 }
 
 .empty {
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   font-size: 13px;
   padding: 24px 8px;
   text-align: center;
 }
 .hint {
   font-size: 11px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   margin-top: 8px;
   line-height: 1.5;
 }

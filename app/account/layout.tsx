@@ -14,7 +14,7 @@ export default function AccountLayout({
   children: ReactNode;
 }) {
   return (
-    <div data-theme="light" className="domain-locker" style={{ minHeight: "100vh", background: "var(--color-bg-light, #F2F2F5)" }}>
+    <div data-theme="light" className="domain-locker" style={{ minHeight: "100vh", background: "var(--color-bg-light)" }}>
       {children}
     </div>
   );

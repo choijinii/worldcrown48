@@ -50,7 +50,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#f2f2f5",
+        color: "var(--color-text)",
         fontFamily: "Inter, system-ui, sans-serif",
         textAlign: "center",
         padding: 24,
@@ -167,7 +167,7 @@ export default function ArenaPage(): JSX.Element {
     return (
       <Center>
         {t("arena.load.notFound")}&nbsp;
-        <a href="/" style={{ color: "#fcd006" }}>
+        <a href="/" style={{ color: "var(--color-gold)" }}>
           {t("arena.load.home")}
         </a>
       </Center>
@@ -186,8 +186,8 @@ export default function ArenaPage(): JSX.Element {
               uid ? void loadTournament(tournamentId, uid) : window.location.reload()
             }
             style={{
-              background: "#fcd006",
-              color: "#0E0944",
+              background: "var(--color-gold)",
+              color: "var(--color-bg-default)",
               border: "none",
               borderRadius: 8,
               padding: "10px 20px",
@@ -198,7 +198,7 @@ export default function ArenaPage(): JSX.Element {
             {t("arena.load.retry")}
           </button>
           &nbsp;
-          <a href="/" style={{ color: "#fcd006" }}>
+          <a href="/" style={{ color: "var(--color-gold)" }}>
             {t("arena.load.home")}
           </a>
         </div>

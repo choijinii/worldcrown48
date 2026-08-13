@@ -156,12 +156,12 @@ export function DeleteAccountModal({
           style={{
             width: "100%",
             maxWidth: 480,
-            background: "#FFFFFF",
+            background: "var(--color-surface-light)",
             borderRadius: 20,
             padding: 24,
             boxShadow: "0 24px 60px rgba(14,9,68,0.22)",
             fontFamily: "Inter, system-ui, sans-serif",
-            color: "#0E0944",
+            color: "var(--color-text-light)",
           }}
         >
           {/* Header */}
@@ -172,7 +172,7 @@ export function DeleteAccountModal({
             >
               {t.titleKo}
             </h2>
-            <div style={{ fontSize: 13, color: "#3A4570", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--color-text-sub-light)", marginTop: 4 }}>
               {t.titleEn}
             </div>
           </div>
@@ -187,17 +187,17 @@ export function DeleteAccountModal({
               marginBottom: 16,
             }}
           >
-            <div style={{ fontWeight: 600, color: "#D7063A", fontSize: 14 }}>
+            <div style={{ fontWeight: 600, color: "var(--color-crimson)", fontSize: 14 }}>
               {t.warningHead}
             </div>
-            <div style={{ fontSize: 13, color: "#3A4570", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--color-text-sub-light)", marginTop: 4 }}>
               {t.warningSub}
             </div>
           </div>
 
           {/* Delete items */}
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#3A4570", marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-sub-light)", marginBottom: 6 }}>
               {t.deleteListLabel}
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 13, lineHeight: 1.6 }}>
@@ -212,14 +212,14 @@ export function DeleteAccountModal({
             style={{
               padding: "10px 12px",
               borderRadius: 10,
-              background: "#F2F2F5",
+              background: "var(--color-bg-light)",
               marginBottom: 16,
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#3A4570", marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-sub-light)", marginBottom: 6 }}>
               {t.preserveListLabel}
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 12, color: "#3A4570", lineHeight: 1.6 }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 12, color: "var(--color-text-sub-light)", lineHeight: 1.6 }}>
               {t.preserveItems.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
@@ -229,7 +229,7 @@ export function DeleteAccountModal({
           {/* Confirm input */}
           <label
             htmlFor="delete-confirm-input"
-            style={{ display: "block", fontSize: 13, marginBottom: 6, color: "#3A4570" }}
+            style={{ display: "block", fontSize: 13, marginBottom: 6, color: "var(--color-text-sub-light)" }}
           >
             {t.inputPrompt}
           </label>
@@ -247,7 +247,7 @@ export function DeleteAccountModal({
               boxSizing: "border-box",
               padding: "10px 12px",
               borderRadius: 8,
-              border: "1px solid #D4DCE3",
+              border: "1px solid var(--color-border-light)",
               fontFamily: "JetBrains Mono, monospace",
               fontSize: 14,
               marginBottom: 20,
@@ -264,9 +264,9 @@ export function DeleteAccountModal({
               style={{
                 padding: "10px 18px",
                 borderRadius: 10,
-                border: "1px solid #D4DCE3",
+                border: "1px solid var(--color-border-light)",
                 background: "transparent",
-                color: "#0E0944",
+                color: "var(--color-text-light)",
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 600,
                 fontSize: 13,
@@ -283,8 +283,8 @@ export function DeleteAccountModal({
                 padding: "10px 18px",
                 borderRadius: 10,
                 border: "none",
-                background: canDelete ? "#D7063A" : "rgba(215,6,58,0.4)",
-                color: "#FFFFFF",
+                background: canDelete ? "var(--color-crimson)" : "rgba(215,6,58,0.4)",
+                color: "var(--color-white)",
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 700,
                 fontSize: 13,
@@ -303,7 +303,7 @@ export function DeleteAccountModal({
                     height: 14,
                     borderRadius: "50%",
                     border: "2px solid rgba(255,255,255,0.4)",
-                    borderTopColor: "#FFFFFF",
+                    borderTopColor: "var(--color-white)",
                     animation: "wc-spin 0.7s linear infinite",
                   }}
                 />

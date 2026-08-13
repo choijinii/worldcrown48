@@ -4,11 +4,11 @@
    확보. 우측 상설 프레임 본격 재디자인은 Pitch 개편(대개편) 스코프 — TODO(ND-TEMP-MOUNT). */
 
 .rail {
-  --wc-gold: #fcd006;
-  --wc-ink: #1a1830;
-  --wc-ink-soft: #4a4763;
-  --wc-paper: #fbfaf6;
-  --wc-paper-line: #e4e1d6;
+  --wc-gold: var(--color-gold);
+  --wc-ink: var(--color-ink);
+  --wc-ink-soft: var(--color-ink-soft);
+  --wc-paper: var(--color-paper);
+  --wc-paper-line: var(--color-paper-line);
   font-family: "Inter", "Pretendard", system-ui, sans-serif;
   margin-top: 32px;
 }
@@ -54,7 +54,7 @@
   border-radius: 5px;
   object-fit: cover;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #241b4e, #14102b);
+  background: linear-gradient(135deg, var(--color-twilight-soft), var(--color-twilight-deep));
 }
 
 .title {

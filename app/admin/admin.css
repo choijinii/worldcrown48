@@ -13,29 +13,18 @@
  */
 
 .wc-admin {
-  /* Surfaces */
-  --color-bg-light:        #F2F2F5;
-  --color-surface-light:   #FFFFFF;
-  --color-surface-soft:    #F8F8FB;
-  /* Text */
-  --color-text-light:      #0E0944;
-  --color-text-sub-light:  #3A4570;
-  --color-text-muted-light:#8C99B3;
-  /* Borders */
-  --color-border-light:    #D4DCE3;
-  --color-border-soft:     #E6EAF0;
-  /* Brand */
-  --color-royal:           #241754;
-  --color-deep-twil:       #0E0944;
-  --color-gold:            #FCD006;
-  --color-gold-hover:      #E3BB05;
-  --color-gold-bright:     #FBB03B;
+  /* Surfaces · Text · Borders · Brand — no local copies (TOK-1).
+     This block used to restate --color-bg-light … --color-turquoise with the
+     same names and the same values app/globals.css already defines. A second
+     ledger is exactly what makes a theme swap expensive, so the copies are
+     gone: the layout element carries both `.wc-admin` and `data-theme="light"`,
+     so the light group (globals.css) lands here, and the brand colours come
+     from :root. Only the values globals does NOT define stay below. */
+
+  /* Severity tints — admin-only, no globals equivalent */
   --color-gold-subtle:     rgba(252,208,6,0.12);
   --color-gold-glow:       rgba(252,208,6,0.25);
-  /* Severity */
-  --color-crimson:         #D7063A;
   --color-crimson-subtle:  rgba(215,6,58,0.10);
-  --color-turquoise:       #00A3B7;
   --color-turquoise-subtle:rgba(0,163,183,0.10);
   --color-amber-subtle:    rgba(251,176,59,0.14);
   /* Shadow / radius */

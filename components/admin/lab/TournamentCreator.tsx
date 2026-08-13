@@ -355,7 +355,7 @@ export function TournamentCreator(): JSX.Element {
               borderRadius: 12,
               border: "none",
               background: step1Ready ? lab.gold : lab.surfaceElev,
-              color: step1Ready ? "#0E0944" : lab.textMuted,
+              color: step1Ready ? "var(--color-bg-default)" : lab.textMuted,
               fontWeight: 800,
               fontSize: 15,
               fontFamily: lab.font,

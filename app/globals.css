@@ -41,6 +41,27 @@
   --color-text: #F2F2F5;
   --color-text-sub: #B1B5C4;
   --color-text-muted: #484B67;
+  --color-white: #FFFFFF;   /* 순백 — 다크 면 위 최대 대비. --color-text(#F2F2F5)와 별개 값 */
+  --color-black: #000000;   /* 네이티브 컨트롤(select option 등) 기본 잉크 */
+  --color-text-dim: #9A9AA5; /* 중립 그레이 오버레이 위 보조 텍스트 (Crown 복귀 배너) */
+
+  /* news print surface — 뉴스 지면 팔레트 (TOK-1 W3)
+     기사 본문은 다크 앱 안의 '지면'이라 자체 명암 체계를 가진다. 값은 기존
+     news.module.css / NewsRail.module.css의 --wc-* 를 그대로 옮긴 것. */
+  --color-paper: #FBFAF6;
+  --color-paper-soft: #EFEDE5;
+  --color-paper-line: #E4E1D6;
+  --color-ink: #1A1830;
+  --color-ink-soft: #4A4763;
+  --color-gold-ink: #B89A00;      /* 밝은 지면 위 골드 — 대비 확보용 어두운 금 */
+  --color-twilight-soft: #241B4E; /* 히어로 그라디언트 시작 */
+  --color-twilight: #1E1740;      /* 〃 중간 */
+  --color-twilight-deep: #14102B; /* 〃 끝 */
+
+  /* editorial chrome — 뉴스데스크 편집 UI (TOK-1 W3) */
+  --color-chrome-text: #F4F2FF;
+  --color-chrome-text-sub: #B4ADD9;
+  --color-chrome-rose: #FF9FB4;   /* 다크 면 위 위험 표시 — crimson은 대비 부족 */
 
   /* Borders / shadows */
   --color-border: #2D1C5A;
@@ -416,15 +437,23 @@ input { font: inherit; }
 
 /* ════════════════════════════════════════════════════════════════════
    Domain 5 · Policy Hub — Twilight Stadium LIGHT theme
-   Scope: [data-theme="light"], .domain-policy
+   Scope: [data-theme="light"], .domain-policy, .domain-locker
    Source: docs/design/WC48_DESIGN_SYSTEM_v2.4.md §AI-Report + handoff §6.
-   Do NOT spread these onto :root — that would collide with Domain 0~3 dark.
-   The dark tokens above stay default; the light tokens below activate
-   only inside the scoped wrapper.
+
+   정의는 전역(:root), 적용만 스코프 — TOK-1에서 분리.
+   이전 주석은 "Do NOT spread these onto :root — 다크와 충돌한다"였는데,
+   실제로는 충돌하지 않는다. 이름이 --color-text vs --color-text-light 처럼
+   전부 다르기 때문이다. 충돌하는 건 아래 background/color '적용' 두 줄뿐이고,
+   그건 여전히 스코프 안에 있다.
+
+   정의를 :root로 올린 이유: 네비바 드롭다운·모달처럼 **다크 트리 안에 뜨는
+   밝은 표면**이 `var(--color-text-light)` 식으로 hex 폴백을 달고
+   있었다. 토큰이 스코프 밖이라 폴백이 실제로 렌더되던 것 — 즉 하드코딩이
+   구조적으로 강제되고 있었다. 정의가 전역이면 폴백이 필요 없다.
+   (승격 전후 색상 동일함은 폴백 32곳 전수 대조로 확인 — 전부 원장 값과 일치)
    ════════════════════════════════════════════════════════════════════ */
-[data-theme="light"],
-.domain-policy,
-.domain-locker {
+:root {
+  /* Light surface group — 정의는 여기, 적용은 아래 스코프에서 */
   /* Backgrounds */
   --color-bg-light: #F2F2F5;
   --color-surface-light: #FFFFFF;
@@ -442,8 +471,16 @@ input { font: inherit; }
   /* Text anchor (Twilight Indigo) */
   --color-royal: #241754;
   --color-deep-twil: #0E0944;
+}
 
-  /* Shadows */
+[data-theme="light"],
+.domain-policy,
+.domain-locker {
+  /* 그림자는 스코프에 남는다 — 색 토큰과 달리 '미정의'가 기능하고 있다.
+     navbar.css·pitch.css가 다크 트리에서 `box-shadow: var(--shadow-gnb)`를
+     쓰는데, 토큰이 없어 선언이 무효화되면서 그림자 없음이 된다. 그게 현재의
+     다크 네비바 모습이다. :root로 올리면 없던 그림자가 생긴다 —
+     실제로 첫 시도에서 그렇게 됐고 런타임 색상 대조가 잡아냈다. */
   --shadow-light: 0 1px 2px rgba(36, 23, 84, 0.06), 0 8px 24px rgba(36, 23, 84, 0.06);
   --shadow-gnb: 0 10px 30px rgba(36, 23, 84, 0.10);
   --shadow-modal: 0 24px 60px rgba(14, 9, 68, 0.22);

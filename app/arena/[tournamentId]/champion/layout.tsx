@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 export default function ChampionLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
-    <div data-arena-root style={{ minHeight: "100vh", background: "#00001f" }}>
+    <div data-arena-root style={{ minHeight: "100vh", background: "var(--color-bg-void)" }}>
       <style>{`
         body:has([data-arena-root]) .gnb,
         body:has([data-arena-root]) .policy-footer-row { display: none !important; }

@@ -86,8 +86,8 @@ export function UserDropdown({
           minWidth: 260,
           padding: 8,
           borderRadius: 16,
-          background: "#FFFFFF",
-          border: "1px solid var(--color-border-light, #D4DCE3)",
+          background: "var(--color-white)",
+          border: "1px solid var(--color-border-light)",
           boxShadow: "0 24px 60px rgba(14,9,68,0.22)",
           zIndex: 100,
         }}
@@ -99,7 +99,7 @@ export function UserDropdown({
             alignItems: "center",
             gap: 12,
             padding: "12px 12px 16px",
-            borderBottom: "1px solid var(--color-border-soft, #E6EAF0)",
+            borderBottom: "1px solid var(--color-border-soft)",
           }}
         >
           <AvatarThumb user={user} size={48} />
@@ -109,7 +109,7 @@ export function UserDropdown({
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 600,
                 fontSize: 14,
-                color: "var(--color-text-light, #0E0944)",
+                color: "var(--color-text-light)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -122,7 +122,7 @@ export function UserDropdown({
                 style={{
                   fontFamily: "Inter, system-ui, sans-serif",
                   fontSize: 12,
-                  color: "var(--color-text-sub-light, #3A4570)",
+                  color: "var(--color-text-sub-light)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -153,7 +153,7 @@ export function UserDropdown({
           </button>
           <div
             role="separator"
-            style={{ height: 1, background: "var(--color-border-soft, #E6EAF0)", margin: "8px 0" }}
+            style={{ height: 1, background: "var(--color-border-soft)", margin: "8px 0" }}
           />
           <button
             type="button"
@@ -177,7 +177,7 @@ function menuItemStyle(): React.CSSProperties {
     border: "none",
     borderRadius: 8,
     background: "transparent",
-    color: "var(--color-text-light, #0E0944)",
+    color: "var(--color-text-light)",
     fontFamily: "Inter, system-ui, sans-serif",
     fontSize: 14,
     fontWeight: 500,
@@ -215,8 +215,8 @@ function AvatarThumb({ user, size }: { user: User; size: number }): JSX.Element 
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "#0E0944",
-        color: "var(--color-gold, #FCD006)",
+        background: "var(--color-bg-default)",
+        color: "var(--color-gold)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

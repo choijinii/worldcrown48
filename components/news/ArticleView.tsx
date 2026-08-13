@@ -117,11 +117,11 @@ export function ArticleView({ article }: { article: ArticleRecord }): JSX.Elemen
             <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true">
               <path
                 d="M2 16 L4 5 L9 10 L13 2 L17 10 L22 5 L24 16 Z"
-                fill="#FCD006"
-                stroke="#1A1830"
+                fill="var(--color-gold)"
+                stroke="var(--color-ink)"
                 strokeWidth="1.2"
               />
-              <rect x="3" y="16" width="20" height="2.5" fill="#1A1830" />
+              <rect x="3" y="16" width="20" height="2.5" fill="var(--color-ink)" />
             </svg>
             <Link href="/news" className={styles.brandName}>
               World<em>Crown</em>48

@@ -71,7 +71,7 @@ export function CategorySelect({
             : t("lab.category.placeholder")}
         </option>
         {options.map((c) => (
-          <option key={c.id} value={c.id} style={{ color: "#000" }}>
+          <option key={c.id} value={c.id} style={{ color: "var(--color-black)" }}>
             {c.name[lang] || c.name.en} · {STATUS_LABEL[c.status]}
           </option>
         ))}

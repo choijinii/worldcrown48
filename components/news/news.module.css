@@ -3,19 +3,19 @@
    closer · ✦ AI-Report v2.5(8px·50%·골드 모노). */
 
 .page {
-  --wc-gold: #fcd006;
-  --wc-crimson: #d7063a;
-  --wc-turquoise: #00a3b7;
-  --wc-twilight-deep: #14102b;
-  --wc-twilight: #1e1740;
-  --wc-ink: #1a1830;
-  --wc-ink-soft: #4a4763;
-  --wc-paper: #fbfaf6;
-  --wc-paper-line: #e4e1d6;
+  --wc-gold: var(--color-gold);
+  --wc-crimson: var(--color-crimson);
+  --wc-turquoise: var(--color-turquoise);
+  --wc-twilight-deep: var(--color-twilight-deep);
+  --wc-twilight: var(--color-twilight);
+  --wc-ink: var(--color-ink);
+  --wc-ink-soft: var(--color-ink-soft);
+  --wc-paper: var(--color-paper);
+  --wc-paper-line: var(--color-paper-line);
   --font-ui: "Inter", "Pretendard", -apple-system, "Apple SD Gothic Neo", sans-serif;
   --font-display: "Playfair Display", "Pretendard", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  background: #efede5;
+  background: var(--color-paper-soft);
   min-height: 100vh;
   font-family: var(--font-ui);
   color: var(--wc-ink);
@@ -52,7 +52,7 @@
 }
 .brandName em {
   font-style: normal;
-  color: #b89a00;
+  color: var(--color-gold-ink);
 }
 .date {
   font-family: var(--font-mono);
@@ -144,7 +144,7 @@
   position: relative;
   border-radius: 5px;
   overflow: hidden;
-  background: linear-gradient(180deg, #241b4e 0%, #1e1740 55%, #14102b 100%);
+  background: linear-gradient(180deg, var(--color-twilight-soft) 0%, var(--color-twilight) 55%, var(--color-twilight-deep) 100%);
   padding: 44px 28px 36px;
   text-align: center;
 }
@@ -159,12 +159,12 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(22px, 5vw, 31px);
-  color: #fff;
+  color: var(--color-white);
   margin: 14px 0 8px;
 }
 .heroSub {
   font-size: 13px;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
 }
 .heroCaption {
   font-family: var(--font-mono);
@@ -186,7 +186,7 @@
   float: left;
   line-height: 0.9;
   padding: 6px 10px 0 0;
-  color: #b89a00;
+  color: var(--color-gold-ink);
 }
 
 /* 스탯 타일 */
@@ -213,7 +213,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
   margin-top: 7px;
 }
 
@@ -223,7 +223,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
-  color: #b89a00;
+  color: var(--color-gold-ink);
   margin: 34px 0 14px;
   display: flex;
   align-items: center;
@@ -251,13 +251,13 @@
 }
 .muSide {
   padding: 16px 18px;
-  color: #fff;
+  color: var(--color-white);
 }
 .muG {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: #b4add9;
+  color: var(--color-chrome-text-sub);
 }
 .muT {
   font-family: var(--font-display);
@@ -339,7 +339,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: #b89a00;
+  color: var(--color-gold-ink);
   text-transform: uppercase;
 }
 .listTitle {
