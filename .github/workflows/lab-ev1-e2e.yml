@@ -1,0 +1,140 @@
+name: LAB-EV-1 임베드 검수기 E2E (Playwright)
+
+# 검수기 모달·LoopPlayer·슬롯 미세조정의 임계 경로. 유튜브 콜러블 2종은 spec에서
+# page.route로 stub하므로 이 잡은 유튜브 API 쿼터를 한 유닛도 쓰지 않는다.
+#
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API (by head SHA) — 고정 프리뷰 시크릿은 만들지 않는다
+# ([[feedback_c2_preview_url_pinned]]: 얼어붙은 URL은 엉뚱한 코드를 테스트하고도
+# green을 준다). E2E 실행은 자기 spec 하나로만 좁힌다
+# ([[feedback_workflow_spec_scope]]).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/admin/lab/**'
+      - 'components/embed/**'
+      - 'lib/embed/**'
+      - 'lib/lab/**'
+      - 'functions/src/**'
+      - 'lib/i18n/messages.ts'
+      - 'e2e/lab-ev1-embed-inspector.spec.ts'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - '.github/workflows/lab-ev1-e2e.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
+      # The E2E operator account — its uid MUST equal the preview's
+      # NEXT_PUBLIC_ADMIN_UID or AdminAuthGuard redirects away.
+      # 검수기도 같은 Lab 콘솔·같은 운영자 계정이라 B1_* 시크릿을 그대로 쓴다
+      # (새 시크릿을 만들면 둘이 어긋나는 날 원인을 못 찾는다).
+      TEST_UID: ${{ secrets.B1_TEST_ADMIN_UID }}
+      TEST_EMAIL: ${{ secrets.B1_TEST_ADMIN_EMAIL }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Firestore emulator needs a JRE.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install firebase-tools (emulator runner)
+        run: npm i -g firebase-tools
+
+      - name: Unit tests (vitest)
+        run: npm run test:unit
+
+      - name: Functions unit tests (vitest)
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
+      - name: Firestore Rules tests (emulator)
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
+          fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
+
+      - name: E2E (Playwright)
+        # Scope to B-1's own spec so this job never runs D-1's spec (and vice
+        # versa) — each workflow targets a different preview/secrets.
+        run: npm run test:e2e -- e2e/lab-ev1-embed-inspector.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-ev1-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-ev1-playwright-traces
+          path: test-results/
+          retention-days: 14
