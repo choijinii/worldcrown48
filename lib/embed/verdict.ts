@@ -28,6 +28,8 @@ export interface YouTubeApiItem {
   snippet?: {
     title?: string;
     channelTitle?: string;
+    /** 챕터 추천(W2 ②층)의 재료 — videos.list part=snippet에 함께 온다. */
+    description?: string;
     liveBroadcastContent?: string;
     thumbnails?: Record<string, { url?: string } | undefined>;
   };

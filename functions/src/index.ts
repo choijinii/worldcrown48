@@ -179,3 +179,7 @@ export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수�
 export { onTournamentOpened } from "./onTournamentOpened"; // Tournament 오픈 → 오픈 draft
 export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 결과 draft
 export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft
+
+// LAB-EV-1 유튜브 임베드 검수기 — 어드민 전용(ADR-EV-7), 키는 서버에만(ADR-EV-5).
+export { validateYouTubeLinks } from "./validateYouTubeLinks"; // 링크 일괄 검증 (≤50/콜)
+export { recommendKillingPart } from "./recommendKillingPart"; // 킬링파트 추천 3층
