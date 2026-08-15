@@ -305,7 +305,9 @@ export function YouTubeInspectorModal({
                         : t("lab.embed.rowLabel", { n: row.index })}
                     </span>
 
-                    {verdict?.thumbnailUrl && (
+                    {/* 존재하지 않는 영상의 썸네일 URL은 404다 — 깨진 이미지
+                        아이콘을 그리느니 자리를 비운다(콘솔 오류도 함께 사라진다). */}
+                    {verdict?.exists && verdict.thumbnailUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={verdict.thumbnailUrl}
