@@ -391,6 +391,12 @@ export const MESSAGES = {
     es: "No se pudo eliminar.",
   },
 
+  "lab.list.videoAlert": {
+    ko: "영상 {n}개 재생 불가",
+    en: "{n} videos cannot play",
+    es: "{n} videos no se reproducen",
+  },
+
   // ── LAB-EV-1 유튜브 임베드 검수기 (어드민 전용 · ADR-EV-7) ──────────────
   "lab.embed.open": {
     ko: "🎬 유튜브 검수기 일괄 입력",

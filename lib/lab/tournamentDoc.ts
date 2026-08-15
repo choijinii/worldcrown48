@@ -14,6 +14,8 @@ import { isValidCategory } from "@/lib/lab/categories";
 import { validateTitle } from "@/lib/lab/titleValidation";
 import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
+import { LOOP_SECONDS } from "@/lib/embed/constants";
+import type { ContestantMedia } from "@/lib/media/mediaSlot";
 import {
   TOTAL_CONTESTANTS,
   type Category,
@@ -113,6 +115,28 @@ export function buildTournamentDoc(
   };
 }
 
+/**
+ * LAB-EV-1 W6 — 영상이 붙은 draft를 기존 `media` 그레일(ND-1 §3 #12)에 싣는다.
+ *
+ * 킥은 flat 필드(videoId·videoStartSec…)를 적었지만, 같은 개념의 저장소가 이미
+ * `media.embed`로 존재한다(MediaSlot이 그걸 읽어 파사드를 렌더한다). 병렬 스키마를
+ * 하나 더 만들면 "검수기는 채웠는데 카드는 못 읽는" 두 진실이 생기므로, **추가만**
+ * 한다는 RULE 2에 맞춰 EmbedMedia를 확장해 재사용한다. Contestant를 읽는 기존
+ * 코드는 전부 무영향(media 부재 = image).
+ */
+function mediaOf(d: ContestantDraft): ContestantMedia | undefined {
+  if (!d.videoId) return undefined;
+  return {
+    type: "embed",
+    embed: {
+      videoId: d.videoId,
+      start: d.videoStartSec ?? 0,
+      end: d.videoEndSec ?? (d.videoStartSec ?? 0) + LOOP_SECONDS,
+      sourceUrl: d.videoSourceUrl ?? "",
+    },
+  };
+}
+
 export function buildContestantDocs(
   tournamentId: string,
   hostUid: string,
@@ -123,14 +147,19 @@ export function buildContestantDocs(
       `정확히 ${TOTAL_CONTESTANTS}명이 필요합니다 (받음: ${drafts.length}).`,
     );
   }
-  return drafts.map((d, i) => ({
-    tournamentId,
-    hostUid,
-    order: i + 1,
-    name: d.name,
-    nationality: d.nationality,
-    position: d.position,
-    imageUrl: d.imageUrl,
-    imageSearchKeyword: d.imageSearchKeyword,
-  }));
+  return drafts.map((d, i) => {
+    const media = mediaOf(d);
+    return {
+      tournamentId,
+      hostUid,
+      order: i + 1,
+      name: d.name,
+      nationality: d.nationality,
+      position: d.position,
+      imageUrl: d.imageUrl,
+      imageSearchKeyword: d.imageSearchKeyword,
+      // undefined 필드를 그대로 넘기면 Firestore가 거부한다 — 있을 때만 싣는다.
+      ...(media ? { media } : {}),
+    };
+  });
 }

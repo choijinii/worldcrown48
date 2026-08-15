@@ -15,12 +15,33 @@
 
 export type MediaKind = "image" | "embed" | "clip";
 
+/**
+ * LAB-EV-1: 검수기가 남기는 마지막 판정. 주간 재검증 크론(W7)이 갱신하고 Lab
+ * 목록의 ⚠️ 배지가 이걸 읽는다. `embeddable=false`면 링크를 갈아야 한다.
+ */
+export interface EmbedStatus {
+  embeddable: boolean;
+  /** pass · warn · blocked (lib/embed/verdict의 LinkStatus와 같은 값). */
+  status: string;
+  reasons: string[];
+  /** epoch ms. */
+  checkedAt: number;
+}
+
 export interface EmbedMedia {
   videoId: string;
   /** 시작 초 (선택). */
   start?: number;
-  /** 종료 초 (선택 — clip 예약용, embed 파사드는 미사용). */
+  /** 종료 초 (선택 — LAB-EV-1의 10초 루프 끝점 · clip 예약 겸용). */
   end?: number;
+  /**
+   * LAB-EV-1 W6 — 출처 원본 watch URL(ADR-EV-3 출처 칩·[원본 열기]).
+   * videoId로 다시 만들 수 있지만, 운영자가 검수한 시점의 시작 초가 박힌 URL을
+   * 그대로 남겨두면 "무엇을 보고 통과시켰는지"가 문서에 남는다.
+   */
+  sourceUrl?: string;
+  /** LAB-EV-1 W6 — 최근 검증 결과(크론이 갱신). */
+  status?: EmbedStatus;
 }
 
 export interface ContestantMedia {
