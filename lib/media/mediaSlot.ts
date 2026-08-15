@@ -41,19 +41,16 @@ export type MediaRenderDecision =
   | { render: "embed"; facade: EmbedFacade }
   | { render: "none" };
 
-const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
-const URL_ID_RE =
-  /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
-
-export function isValidVideoId(id: unknown): boolean {
-  return typeof id === "string" && VIDEO_ID_RE.test(id);
-}
-
-/** Pull the 11-char id out of a watch/youtu.be/shorts/embed URL, or null. */
-export function extractVideoId(url: string): string | null {
-  const m = url.match(URL_ID_RE);
-  return m ? m[1] : null;
-}
+/**
+ * LAB-EV-1: id 판정·추출은 `lib/embed/youtubeUrl` 하나만 쓴다. 검수기(48개 일괄
+ * 검증)와 카드 렌더가 서로 다른 정규식을 들고 있으면 "검수기는 통과라는데 카드가
+ * 안 나온다"가 생긴다. 여기서는 기존 이름(계약)만 유지한 채 위임한다.
+ */
+export {
+  isValidVideoId,
+  extractVideoIdFromUrl as extractVideoId,
+} from "@/lib/embed/youtubeUrl";
+import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 
 /** Build the facade (nocookie · lazy · mute · start) for an embed. */
 export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
