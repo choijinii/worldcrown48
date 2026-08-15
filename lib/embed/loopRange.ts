@@ -67,6 +67,22 @@ export function buildWatchUrl(videoId: string, startSec?: number): string {
   return typeof startSec === "number" && startSec > 0 ? `${base}&t=${Math.floor(startSec)}s` : base;
 }
 
+/**
+ * 지금 재생 위치가 구간을 벗어났는가 — LoopPlayer의 되감기 판정.
+ *
+ * `end` 파라미터만 믿으면 유튜브가 재생을 "정지"시킨 뒤 ENDED가 오기까지 한 박자
+ * 검은 화면이 생긴다. 끝에 닿기 직전(guard)에 미리 되감아야 이음매가 안 보인다.
+ * 앞으로 튄 경우(사용자 조작·버퍼링 점프)도 되감기 대상이다.
+ */
+export function shouldLoopBack(
+  currentSec: number,
+  range: LoopRange,
+  guardSec = 0.3,
+): boolean {
+  if (currentSec >= range.endSec - guardSec) return true;
+  return currentSec < range.startSec - 1;
+}
+
 /** 썸네일 폴백(에러 2·5·100·101·150 · 판정 리스트 미리보기 공용). */
 export function buildThumbnailUrl(videoId: string): string {
   return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;

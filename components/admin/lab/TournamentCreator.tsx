@@ -39,8 +39,13 @@ import { translateMeta } from "@/lib/lab/translateMeta";
 import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
+import { applyVideoAssignments, clearVideo, retimeDraft } from "@/lib/lab/videoDraft";
+import type { SlotAssignment } from "@/lib/embed/parseBatch";
+import type { LinkVerdict } from "@/lib/embed/verdict";
 import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
+import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
+import { SlotVideoTuner } from "./SlotVideoTuner";
 import { TitleInput } from "./TitleInput";
 import { CategorySelect } from "./CategorySelect";
 import { DescriptionInput } from "./DescriptionInput";
@@ -98,6 +103,9 @@ export function TournamentCreator(): JSX.Element {
   const [keywordBusy, setKeywordBusy] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [listRefresh, setListRefresh] = useState(0);
+  // LAB-EV-1: 검수기 모달 + 슬롯 미세조정(열린 슬롯 index, 닫힘이면 null).
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [tuningIndex, setTuningIndex] = useState<number | null>(null);
 
   // TX-0: categories are DATA — fetch the `categories` collection once (module
   // cached) and drive the dropdown + the data-driven validation from it.
@@ -225,6 +233,35 @@ export function TournamentCreator(): JSX.Element {
     } finally {
       setFilling(false);
     }
+  }
+
+  /**
+   * LAB-EV-1 W4 — 검수 통과분을 슬롯 01..N에 얹는다. 차단 판정은 순수 층
+   * (applyVideoAssignments)이 걸러내므로 여기서 다시 검사하지 않는다.
+   */
+  function applyVideoSlots(assignments: SlotAssignment[], verdicts: LinkVerdict[]) {
+    setContestants((prev) =>
+      applyVideoAssignments(prev, assignments, verdicts, TOTAL_CONTESTANTS, emptyDraft),
+    );
+  }
+
+  function retimeSlot(index: number, startSec: number, durationSec: number | null) {
+    setContestants((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = retimeDraft(next[index], startSec, durationSec);
+      return next;
+    });
+  }
+
+  function removeSlotVideo(index: number) {
+    setContestants((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = clearVideo(next[index]);
+      return next;
+    });
+    setTuningIndex(null);
   }
 
   function updateContestant(index: number, patch: Partial<ContestantDraft>) {
@@ -405,17 +442,56 @@ export function TournamentCreator(): JSX.Element {
               onClick={publish}
             />
           </div>
-          <FillToolbar
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <FillToolbar
+              contestants={contestants}
+              busy={filling}
+              onFillAll={() => fillWithAI("all")}
+              onFillBlanks={() => fillWithAI("blanks")}
+            />
+            <button
+              type="button"
+              onClick={() => setInspectorOpen(true)}
+              data-testid="lab-open-embed-inspector"
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: `1px solid ${lab.border}`,
+                background: "transparent",
+                color: lab.textSub,
+                fontSize: 13,
+                fontFamily: lab.font,
+                cursor: "pointer",
+              }}
+            >
+              {t("lab.embed.open")}
+            </button>
+          </div>
+          <ContestantGrid
             contestants={contestants}
-            busy={filling}
-            onFillAll={() => fillWithAI("all")}
-            onFillBlanks={() => fillWithAI("blanks")}
+            onChange={updateContestant}
+            onTune={setTuningIndex}
           />
-          <ContestantGrid contestants={contestants} onChange={updateContestant} />
         </div>
       )}
 
       {uid && <TournamentList hostUid={uid} refreshKey={listRefresh} />}
+
+      {/* LAB-EV-1 — 검수기(W4)와 슬롯 미세조정(W5). 둘 다 STEP 2 전용. */}
+      <YouTubeInspectorModal
+        isOpen={inspectorOpen}
+        onClose={() => setInspectorOpen(false)}
+        onApply={applyVideoSlots}
+      />
+      {tuningIndex !== null && contestants[tuningIndex]?.videoId && (
+        <SlotVideoTuner
+          index={tuningIndex}
+          draft={contestants[tuningIndex]}
+          onRetime={(startSec, durationSec) => retimeSlot(tuningIndex, startSec, durationSec)}
+          onRemove={() => removeSlotVideo(tuningIndex)}
+          onClose={() => setTuningIndex(null)}
+        />
+      )}
     </main>
   );
 }

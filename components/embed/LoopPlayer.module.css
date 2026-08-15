@@ -1,0 +1,92 @@
+/**
+ * LoopPlayer — 1:1 크롭 · 클릭 차단 · 출처 칩 (LAB-EV-1 W3 · ADR-EV-3).
+ *
+ * 색은 토큰만 쓴다(불변 원칙 #2-1). 16:9 영상을 1:1 카드에 넣는 방법은
+ * "가로를 177.78%로 늘리고 가운데 정렬" — 세로가 꽉 차고 좌우가 잘린다.
+ */
+
+.frame {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--color-bg-soft);
+}
+
+/* 16:9 → 1:1 중앙 크롭. 100 * 16 / 9 = 177.78% */
+.stage {
+  position: absolute;
+  inset: 0;
+  /* ADR-EV-3: 카드 위 영상은 조작 대상이 아니다 — 클릭은 카드가 받는다. */
+  pointer-events: none;
+}
+
+.stage > * {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 177.78%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  border: 0;
+}
+
+.stage iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* 선택적 색감 훅 — 시안 트랙이 값을 정하기 전까지 아주 옅게만. */
+.saturate .stage {
+  filter: saturate(1.12) contrast(1.02);
+}
+
+.thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 폴백 안내 — 썸네일 위 얇은 띠. */
+.fallbackNote {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 4px 6px;
+  background: var(--color-bg-void);
+  color: var(--color-text-sub);
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0.92;
+}
+
+/* ADR-EV-3: 클릭 가능한 출처 칩 — 원본으로 나가는 유일한 통로. */
+.sourceChip {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--color-bg-void);
+  color: var(--color-text-sub);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.sourceChip:hover,
+.sourceChip:focus-visible {
+  color: var(--color-text);
+  opacity: 1;
+}

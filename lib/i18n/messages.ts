@@ -391,6 +391,190 @@ export const MESSAGES = {
     es: "No se pudo eliminar.",
   },
 
+  // ── LAB-EV-1 유튜브 임베드 검수기 (어드민 전용 · ADR-EV-7) ──────────────
+  "lab.embed.open": {
+    ko: "🎬 유튜브 검수기 일괄 입력",
+    en: "🎬 YouTube batch inspector",
+    es: "🎬 Inspector por lotes de YouTube",
+  },
+  "lab.embed.title": {
+    ko: "유튜브 임베드 검수기",
+    en: "YouTube embed inspector",
+    es: "Inspector de embeds de YouTube",
+  },
+  "lab.embed.subtitle": {
+    ko: "줄당 링크 1개. 통과한 링크는 10초 무음 루프로 슬롯에 들어갑니다.",
+    en: "One link per line. Passing links become 10-second silent loops in the slots.",
+    es: "Un enlace por línea. Los enlaces válidos entran como bucles silenciosos de 10 segundos.",
+  },
+  "lab.embed.sizeTab": { ko: "{n}강", en: "{n} slots", es: "{n} espacios" },
+  "lab.embed.sizeAria": {
+    ko: "브래킷 규모 {n}",
+    en: "Bracket size {n}",
+    es: "Tamaño de bracket {n}",
+  },
+  "lab.embed.placeholder": {
+    ko: "https://www.youtube.com/watch?v=…\nhttps://youtu.be/…?t=90\n(줄당 1개, 최대 {n}개)",
+    en: "https://www.youtube.com/watch?v=…\nhttps://youtu.be/…?t=90\n(one per line, up to {n})",
+    es: "https://www.youtube.com/watch?v=…\nhttps://youtu.be/…?t=90\n(uno por línea, hasta {n})",
+  },
+  "lab.embed.validate": {
+    ko: "검수 및 자동 채우기",
+    en: "Inspect & auto-fill",
+    es: "Inspeccionar y rellenar",
+  },
+  "lab.embed.validating": { ko: "검수 중…", en: "Inspecting…", es: "Inspeccionando…" },
+  "lab.embed.close": { ko: "닫기", en: "Close", es: "Cerrar" },
+  "lab.embed.counter": {
+    ko: "{parsed}/{limit}줄 · 문제 {failed}줄",
+    en: "{parsed}/{limit} lines · {failed} with problems",
+    es: "{parsed}/{limit} líneas · {failed} con problemas",
+  },
+  "lab.embed.empty": {
+    ko: "링크를 한 줄에 하나씩 붙여넣으세요.",
+    en: "Paste one link per line.",
+    es: "Pega un enlace por línea.",
+  },
+  "lab.embed.rowLabel": { ko: "{n}번 링크", en: "Link {n}", es: "Enlace {n}" },
+  "lab.embed.slotLabel": { ko: "슬롯 {n}", en: "Slot {n}", es: "Espacio {n}" },
+  "lab.embed.status.pass": { ko: "통과", en: "Pass", es: "Válido" },
+  "lab.embed.status.warn": { ko: "경고", en: "Warning", es: "Aviso" },
+  "lab.embed.status.blocked": { ko: "차단", en: "Blocked", es: "Bloqueado" },
+  "lab.embed.reason.notFound": {
+    ko: "존재하지 않는 영상 · 교체 필요",
+    en: "Video does not exist · replace it",
+    es: "El video no existe · reemplázalo",
+  },
+  "lab.embed.reason.notEmbeddable": {
+    ko: "외부 재생 불가 · 교체 필요",
+    en: "Embedding disabled by the owner · replace it",
+    es: "El propietario desactivó el embed · reemplázalo",
+  },
+  "lab.embed.reason.private": {
+    ko: "비공개 영상 · 교체 필요",
+    en: "Private video · replace it",
+    es: "Video privado · reemplázalo",
+  },
+  "lab.embed.reason.regionBlocked": {
+    ko: "지역 차단: {countries}",
+    en: "Blocked in: {countries}",
+    es: "Bloqueado en: {countries}",
+  },
+  "lab.embed.reason.regionLimited": {
+    ko: "허용 지역만: {countries}",
+    en: "Allowed only in: {countries}",
+    es: "Permitido solo en: {countries}",
+  },
+  "lab.embed.reason.ageRestricted": {
+    ko: "연령제한 · 임베드에서 막힐 수 있어 교체 권장",
+    en: "Age-restricted · may not play embedded, replacing is safer",
+    es: "Restringido por edad · puede no reproducirse incrustado",
+  },
+  "lab.embed.reason.live": {
+    ko: "라이브 스트림 · 루프에 맞지 않음",
+    en: "Live stream · not suitable for a loop",
+    es: "Transmisión en vivo · no sirve para un bucle",
+  },
+  "lab.embed.reason.tooShort": {
+    ko: "10초보다 짧은 영상",
+    en: "Shorter than 10 seconds",
+    es: "Dura menos de 10 segundos",
+  },
+  "lab.embed.reason.duplicate": {
+    ko: "{n}번 링크와 중복",
+    en: "Duplicate of link {n}",
+    es: "Duplicado del enlace {n}",
+  },
+  "lab.embed.reason.overLimit": {
+    ko: "정원 {limit}개를 넘었습니다",
+    en: "Beyond the {limit}-link limit",
+    es: "Supera el límite de {limit}",
+  },
+  "lab.embed.reason.notYouTube": {
+    ko: "유튜브 링크가 아닙니다",
+    en: "Not a YouTube link",
+    es: "No es un enlace de YouTube",
+  },
+  "lab.embed.reason.noVideoId": {
+    ko: "영상 ID를 찾을 수 없습니다 (채널·재생목록 링크?)",
+    en: "No video id found (channel or playlist link?)",
+    es: "No se encontró el id del video (¿canal o lista?)",
+  },
+  "lab.embed.reason.notALink": {
+    ko: "링크가 아닙니다",
+    en: "Not a link",
+    es: "No es un enlace",
+  },
+  "lab.embed.applied": {
+    ko: "✓ {n}개 슬롯에 영상을 넣었어요.",
+    en: "✓ Video added to {n} slots.",
+    es: "✓ Video añadido a {n} espacios.",
+  },
+  "lab.embed.error.permission": {
+    ko: "검수기는 운영자 전용입니다.",
+    en: "The inspector is operator-only.",
+    es: "El inspector es solo para operadores.",
+  },
+  "lab.embed.error.quota": {
+    ko: "유튜브 API 하루 한도를 모두 썼어요. 잠시 후 나눠서 다시 시도해주세요.",
+    en: "The YouTube API daily quota is used up. Try again later in smaller batches.",
+    es: "Se agotó la cuota diaria de la API de YouTube. Inténtalo más tarde por lotes.",
+  },
+  "lab.embed.error.failed": {
+    ko: "검수에 실패했어요. 다시 시도해주세요.",
+    en: "Inspection failed. Please try again.",
+    es: "La inspección falló. Inténtalo de nuevo.",
+  },
+  "lab.embed.tuner.open": { ko: "🎬 영상", en: "🎬 Video", es: "🎬 Video" },
+  "lab.embed.tuner.title": {
+    ko: "슬롯 {n} · 영상 미세조정",
+    en: "Slot {n} · fine-tune the loop",
+    es: "Espacio {n} · ajustar el bucle",
+  },
+  "lab.embed.tuner.loop": {
+    ko: "{start}초 ~ {end}초 · 무음 루프",
+    en: "{start}s – {end}s · silent loop",
+    es: "{start}s – {end}s · bucle silencioso",
+  },
+  "lab.embed.tuner.start": { ko: "시작점", en: "Start", es: "Inicio" },
+  "lab.embed.tuner.back": { ko: "−1초", en: "−1s", es: "−1s" },
+  "lab.embed.tuner.forward": { ko: "+1초", en: "+1s", es: "+1s" },
+  "lab.embed.tuner.openOriginal": {
+    ko: "원본 열기 ↗",
+    en: "Open original ↗",
+    es: "Abrir original ↗",
+  },
+  "lab.embed.tuner.hint": {
+    ko: "원본의 '가장 많이 다시 본 구간' 그래프를 눈으로 확인하고 시작점을 정하세요.",
+    en: "Check the original's most-replayed graph by eye, then set the start point.",
+    es: "Mira el gráfico de lo más repetido en el original y fija el inicio.",
+  },
+  "lab.embed.tuner.suggest": {
+    ko: "✨ 킬링파트 추천",
+    en: "✨ Suggest the hook",
+    es: "✨ Sugerir el momento clave",
+  },
+  "lab.embed.tuner.suggesting": { ko: "추천 받는 중…", en: "Suggesting…", es: "Sugiriendo…" },
+  "lab.embed.tuner.source.comments": {
+    ko: "댓글 {n}개",
+    en: "{n} comments",
+    es: "{n} comentarios",
+  },
+  "lab.embed.tuner.source.chapters": { ko: "챕터", en: "Chapter", es: "Capítulo" },
+  "lab.embed.tuner.source.heuristic": { ko: "기본값", en: "Default", es: "Predeterminado" },
+  "lab.embed.tuner.commentsOff": {
+    ko: "댓글이 꺼진 영상이라 챕터·기본값으로 추천했어요.",
+    en: "Comments are off, so the suggestion comes from chapters or the default.",
+    es: "Los comentarios están desactivados: la sugerencia viene de capítulos o del valor por defecto.",
+  },
+  "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
+  "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
+  "lab.embed.tuner.blockedNote": {
+    ko: "재생이 막힌 영상입니다. 링크를 교체해주세요.",
+    en: "This video cannot play here. Replace the link.",
+    es: "Este video no puede reproducirse aquí. Reemplaza el enlace.",
+  },
+
   // ── ND-1 News Desk (Domain: /news + /admin/newsdesk) ───────────────────
   "newsdesk.error.dailyLimit": {
     ko: "오늘 생성 한도(20건)를 모두 사용했어요. 내일 다시 시도해주세요.",

@@ -14,11 +14,14 @@ import { ContestantEditor } from "./ContestantEditor";
 interface ContestantGridProps {
   contestants: ContestantDraft[];
   onChange: (index: number, patch: Partial<ContestantDraft>) => void;
+  /** LAB-EV-1 W5 — 영상이 붙은 슬롯의 미세조정 열기. */
+  onTune?: (index: number) => void;
 }
 
 export function ContestantGrid({
   contestants,
   onChange,
+  onTune,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -44,6 +47,7 @@ export function ContestantGrid({
             }
           }
           onChange={onChange}
+          onTune={onTune}
         />
       ))}
     </div>

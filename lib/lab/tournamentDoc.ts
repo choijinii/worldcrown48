@@ -40,13 +40,28 @@ export interface TournamentInput {
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
 export type TournamentDocData = Omit<Tournament, "id" | "createdAt">;
 
-/** Operator-editable Contestant row before order/tournamentId are assigned. */
+/**
+ * Operator-editable Contestant row before order/tournamentId are assigned.
+ *
+ * LAB-EV-1: the video fields are OPTIONAL and ADDITIVE — a Contestant can carry a
+ * licensed still, a 10-second embed loop, or both (킥 W6 "기존 imageUrl과 공존").
+ * They are written into the existing `media` grail at publish time, never as a
+ * parallel schema (see buildContestantDocs).
+ */
 export interface ContestantDraft {
   name: string;
   nationality: string;
   position: string;
   imageUrl: string;
   imageSearchKeyword: string;
+  /** 11자 YouTube id — 검수기(LAB-EV-1)가 채운다. */
+  videoId?: string;
+  /** 루프 시작 초. */
+  videoStartSec?: number;
+  /** 루프 끝 초 (기본 start+10 · ADR-EV-1). */
+  videoEndSec?: number;
+  /** [원본 열기]·출처 칩이 가리키는 watch URL (ADR-EV-3). */
+  videoSourceUrl?: string;
 }
 
 /** A Contestant doc minus the Firestore-owned `id`. */
