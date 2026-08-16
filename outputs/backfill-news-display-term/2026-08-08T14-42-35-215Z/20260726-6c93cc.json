@@ -1,0 +1,139 @@
+{
+  "id": "20260726-6c93cc",
+  "slug": "20260726-6c93cc",
+  "template": "weekly",
+  "title": {
+    "ko": "11개 Tournament가 동시 진행 중, '테스트3'이 순간의 애정을 독점하다",
+    "en": "11 Tournaments Running Simultaneously, 'test3' Monopolizes the Moment's Affection",
+    "es": "11 Tournament en progreso simultáneo, 'test3' monopoliza el afecto del momento"
+  },
+  "subhead": {
+    "ko": "이번 주 최고 열기는 10.9%—한 Contestant를 향한 Voter들의 선택이 집중되는 순간",
+    "en": "This Week's Highest Momentum at 10.9%—A Moment When Voters' Choices Converge on a Single Contestant",
+    "es": "El fervor máximo de esta semana es 10.9%—un instante donde las elecciones de los Voter se concentran en un solo Contestant"
+  },
+  "body": {
+    "ko": [
+      {
+        "type": "hero",
+        "kicker": "주간 랭킹 동향",
+        "title": "순간의 반짝임이 가장 예쁘다",
+        "subtitle": "지금 이 시각, 누군가를 사랑하기로 결심하는 Voter들의 이야기"
+      },
+      {
+        "type": "lead",
+        "text": "현재 11개의 Tournament가 동시다발적으로 진행 중이며, 그 속에서 한 Contestant가 눈부신 순간을 맞이했다. 바로 테스트3—10.9%의 열기가 쏠려 있는 이곳, Voter들의 마음이 어디로 향하고 있는지 한눈에 읽힌다."
+      },
+      {
+        "type": "stats",
+        "items": [
+          {
+            "n": "11",
+            "l": "동시 진행 중인 Tournament"
+          },
+          {
+            "n": "10.9%",
+            "l": "이번 주 최고 Momentum (테스트3)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "여러 Tournament가 펼쳐지는 가운데, 테스트3가 모인 Voter들의 선택 속에서 가장 강렬한 신호를 보내고 있다. 이것은 누가 더 강한지를 묻는 게 아니라, 지금 이 순간 누구를 더 사랑하고 싶은지를 고르는 Voter들의 진심이 모인 결과다. 한 주의 시간 속에서 이렇게 선명하게 집중되는 애정은 드물다."
+      },
+      {
+        "type": "closer",
+        "text": "열기의 중심에는 항상 누군가를 '선택하고 싶은' 마음이 있다—이것이 Crown Score가 빛나는 순간이다."
+      }
+    ],
+    "en": [
+      {
+        "type": "hero",
+        "kicker": "Weekly Ranking Trends",
+        "title": "A Fleeting Sparkle Is the Most Beautiful",
+        "subtitle": "Right Now, This Very Moment—Stories of Voters Making the Decision to Love Someone"
+      },
+      {
+        "type": "lead",
+        "text": "Currently, 11 Tournaments are running simultaneously, and within them, a single Contestant has reached a dazzling moment. It is test3—with 10.9% of momentum concentrated here, one can immediately see where the Voters' hearts are directing their affection."
+      },
+      {
+        "type": "stats",
+        "items": [
+          {
+            "n": "11",
+            "l": "Tournaments Running Simultaneously"
+          },
+          {
+            "n": "10.9%",
+            "l": "This Week's Highest Momentum (test3)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "As multiple Tournaments unfold, test3 is sending the most intense signal within the gathered Voters' choices. This is not about asking who is stronger, but rather the result of Voters' sincere hearts coming together to choose who they wish to love more right now. Such sharply concentrated affection within a single week is rare."
+      },
+      {
+        "type": "closer",
+        "text": "At the center of this momentum, there is always the desire to 'choose' someone—this is the moment when Crown Score shines brightest."
+      }
+    ],
+    "es": [
+      {
+        "type": "hero",
+        "kicker": "Tendencias de Ranking Semanal",
+        "title": "El brillo momentáneo es lo más hermoso",
+        "subtitle": "En este instante, la historia de los Voter que deciden amar a alguien"
+      },
+      {
+        "type": "lead",
+        "text": "Actualmente, 11 Tournament están en progreso simultáneo, y en medio de ellos, un Contestant está viviendo un momento deslumbrante. Es test3—donde el fervor del 10.9% se concentra, y se puede leer claramente hacia dónde se dirigen los corazones de los Voter."
+      },
+      {
+        "type": "stats",
+        "items": [
+          {
+            "n": "11",
+            "l": "Tournament en progreso simultáneo"
+          },
+          {
+            "n": "10.9%",
+            "l": "Momentum máximo de esta semana (test3)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Mientras múltiples Tournament se desarrollan, test3 está enviando la señal más intensa entre las elecciones de los Voter reunidos. Esto no se trata de preguntarse quién es más fuerte, sino que es el resultado de los sentimientos genuinos de los Voter eligiendo a quién desean amar más en este preciso momento. Es raro ver una concentración de afecto tan clara en el transcurso de una semana."
+      },
+      {
+        "type": "closer",
+        "text": "En el centro del fervor siempre hay un corazón que quiere 'elegir' a alguien—este es el instante en que el Crown Score brilla."
+      }
+    ]
+  },
+  "evidence": {
+    "asOf": "2026-07-26 22:53 KST",
+    "stats": [
+      {
+        "label": "ACTIVE TOURNAMENTS",
+        "value": "11"
+      },
+      {
+        "label": "TOP MOMENTUM",
+        "value": "10.9%"
+      }
+    ]
+  },
+  "origin": "manual_ai",
+  "createdAt": {
+    "_seconds": 1785074007,
+    "_nanoseconds": 792000000
+  },
+  "publishedAt": {
+    "_seconds": 1785079701,
+    "_nanoseconds": 35000000
+  },
+  "status": "published"
+}
