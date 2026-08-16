@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildTournamentDoc,
   buildContestantDocs,
+  type ContestantDraft,
 } from "@/lib/lab/tournamentDoc";
 
 const NOW = 1_752_000_000_000;
@@ -28,7 +29,7 @@ const validInput = {
 // TX-0: category validity is checked against the loaded id list, not a tuple.
 const VALID_IDS = ["FOOTBALL", "KPOP", "ANIME_WEBTOON", "HOLLYWOOD"];
 
-function drafts(n: number) {
+function drafts(n: number): ContestantDraft[] {
   return Array.from({ length: n }, (_, i) => ({
     name: `P${i + 1}`,
     nationality: "KR",
@@ -132,5 +133,51 @@ describe("buildContestantDocs", () => {
   it("rejects when not exactly 48 contestants", () => {
     expect(() => buildContestantDocs("t1", "host-1", drafts(47))).toThrow();
     expect(() => buildContestantDocs("t1", "host-1", drafts(49))).toThrow();
+  });
+
+  // ── LAB-EV-1 W6 — 영상은 기존 media 그레일에 실린다 (병렬 스키마 금지) ──
+  describe("영상 필드 (LAB-EV-1)", () => {
+    const withVideo = () => {
+      const all = drafts(48);
+      all[0] = {
+        ...all[0],
+        videoId: "9bZkp7q19f0",
+        videoStartSec: 90,
+        videoEndSec: 100,
+        videoSourceUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0&t=90s",
+      };
+      return all;
+    };
+
+    it("videoId가 있으면 media.embed로 싣는다 (ND-1 그레일 재사용)", () => {
+      const docs = buildContestantDocs("t1", "host-1", withVideo());
+      expect(docs[0].media).toEqual({
+        type: "embed",
+        embed: {
+          videoId: "9bZkp7q19f0",
+          start: 90,
+          end: 100,
+          sourceUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0&t=90s",
+        },
+      });
+    });
+
+    it("영상이 없으면 media 키 자체가 없다 (Firestore는 undefined를 거부한다)", () => {
+      const docs = buildContestantDocs("t1", "host-1", drafts(48));
+      expect("media" in docs[0]).toBe(false);
+    });
+
+    it("imageUrl과 공존한다 — 영상은 추가 필드지 대체가 아니다", () => {
+      const docs = buildContestantDocs("t1", "host-1", withVideo());
+      expect(docs[0].imageUrl).toBe("https://img/0.jpg");
+      expect(docs[0].media?.type).toBe("embed");
+    });
+
+    it("끝점이 비면 시작+10초로 채운다 (ADR-EV-1)", () => {
+      const all = drafts(48);
+      all[0] = { ...all[0], videoId: "9bZkp7q19f0", videoStartSec: 30 };
+      const docs = buildContestantDocs("t1", "host-1", all);
+      expect(docs[0].media?.embed?.end).toBe(40);
+    });
   });
 });

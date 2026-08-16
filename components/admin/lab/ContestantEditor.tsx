@@ -9,6 +9,7 @@
 "use client";
 
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
+import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
@@ -16,6 +17,8 @@ interface ContestantEditorProps {
   index: number;
   contestant: ContestantDraft;
   onChange: (index: number, patch: Partial<ContestantDraft>) => void;
+  /** LAB-EV-1: 영상이 붙은 슬롯의 미세조정 열기. 없으면 버튼을 숨긴다. */
+  onTune?: (index: number) => void;
 }
 
 const fieldStyle: React.CSSProperties = {
@@ -34,10 +37,15 @@ export function ContestantEditor({
   index,
   contestant,
   onChange,
+  onTune,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
+  // LAB-EV-1: 영상만 있는 슬롯도 그리드에서 비어 보이면 안 된다 — 유튜브 썸네일을
+  // 미리보기로 쓴다(imageUrl은 건드리지 않는다. 라이선스된 스틸의 자리다).
+  const videoId = contestant.videoId ?? "";
+  const previewUrl = contestant.imageUrl || (videoId ? buildThumbnailUrl(videoId) : "");
   // The ✕ clears the WHOLE card (all fields, incl. the AI keyword hint) back to
   // an empty slot. Shown whenever the card holds anything to clear.
   const hasContent = [
@@ -108,9 +116,7 @@ export function ContestantEditor({
           aspectRatio: "1 / 1",
           borderRadius: 4,
           background: lab.surfaceElev,
-          backgroundImage: contestant.imageUrl
-            ? `url(${contestant.imageUrl})`
-            : undefined,
+          backgroundImage: previewUrl ? `url(${previewUrl})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "flex",
@@ -118,9 +124,34 @@ export function ContestantEditor({
           justifyContent: "center",
           color: lab.textMuted,
           fontSize: 22,
+          position: "relative",
         }}
       >
-        {!contestant.imageUrl && (isEmpty ? "+" : "🏆")}
+        {!previewUrl && (isEmpty ? "+" : "🏆")}
+        {videoId && onTune && (
+          <button
+            type="button"
+            onClick={() => onTune(index)}
+            data-testid={`contestant-tune-${index}`}
+            aria-label={t("lab.embed.tuner.title", { n })}
+            style={{
+              position: "absolute",
+              left: 4,
+              bottom: 4,
+              padding: "2px 6px",
+              borderRadius: 999,
+              border: `1px solid ${lab.border}`,
+              background: "rgba(0,0,31,0.72)",
+              color: lab.gold,
+              fontSize: 10,
+              fontWeight: 700,
+              fontFamily: lab.font,
+              cursor: "pointer",
+            }}
+          >
+            {t("lab.embed.tuner.open")}
+          </button>
+        )}
       </div>
 
       <input

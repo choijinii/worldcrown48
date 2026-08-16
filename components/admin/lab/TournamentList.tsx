@@ -40,6 +40,11 @@ interface Row {
   totalContestants: number;
   featured: boolean;
   createdAt?: Timestamp;
+  /**
+   * LAB-EV-1 W7 — 주간 재검증 크론이 남기는 요약. 목록에서 Contestant 48개를
+   * 다시 읽지 않고도 ⚠️를 띄우기 위해 Tournament 문서에 얹혀 있다.
+   */
+  videoAlert?: { failed?: number; warned?: number; checkedAt?: number };
 }
 
 const kst = new Intl.DateTimeFormat("en-CA", {
@@ -166,6 +171,15 @@ export function TournamentList({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>
                   {localizedTitle(r, lang)}
+                  {(r.videoAlert?.failed ?? 0) > 0 && (
+                    <span
+                      data-testid={`video-alert-${r.id}`}
+                      title={t("lab.list.videoAlert", { n: r.videoAlert?.failed ?? 0 })}
+                      style={{ marginLeft: 8, color: lab.crimson, fontSize: 12, fontWeight: 700 }}
+                    >
+                      ⚠️ {t("lab.list.videoAlert", { n: r.videoAlert?.failed ?? 0 })}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: 12, color: lab.textMuted }}>
                   {r.category} · {r.status} ·{" "}

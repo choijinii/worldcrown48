@@ -15,12 +15,33 @@
 
 export type MediaKind = "image" | "embed" | "clip";
 
+/**
+ * LAB-EV-1: 검수기가 남기는 마지막 판정. 주간 재검증 크론(W7)이 갱신하고 Lab
+ * 목록의 ⚠️ 배지가 이걸 읽는다. `embeddable=false`면 링크를 갈아야 한다.
+ */
+export interface EmbedStatus {
+  embeddable: boolean;
+  /** pass · warn · blocked (lib/embed/verdict의 LinkStatus와 같은 값). */
+  status: string;
+  reasons: string[];
+  /** epoch ms. */
+  checkedAt: number;
+}
+
 export interface EmbedMedia {
   videoId: string;
   /** 시작 초 (선택). */
   start?: number;
-  /** 종료 초 (선택 — clip 예약용, embed 파사드는 미사용). */
+  /** 종료 초 (선택 — LAB-EV-1의 10초 루프 끝점 · clip 예약 겸용). */
   end?: number;
+  /**
+   * LAB-EV-1 W6 — 출처 원본 watch URL(ADR-EV-3 출처 칩·[원본 열기]).
+   * videoId로 다시 만들 수 있지만, 운영자가 검수한 시점의 시작 초가 박힌 URL을
+   * 그대로 남겨두면 "무엇을 보고 통과시켰는지"가 문서에 남는다.
+   */
+  sourceUrl?: string;
+  /** LAB-EV-1 W6 — 최근 검증 결과(크론이 갱신). */
+  status?: EmbedStatus;
 }
 
 export interface ContestantMedia {
@@ -41,19 +62,16 @@ export type MediaRenderDecision =
   | { render: "embed"; facade: EmbedFacade }
   | { render: "none" };
 
-const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
-const URL_ID_RE =
-  /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
-
-export function isValidVideoId(id: unknown): boolean {
-  return typeof id === "string" && VIDEO_ID_RE.test(id);
-}
-
-/** Pull the 11-char id out of a watch/youtu.be/shorts/embed URL, or null. */
-export function extractVideoId(url: string): string | null {
-  const m = url.match(URL_ID_RE);
-  return m ? m[1] : null;
-}
+/**
+ * LAB-EV-1: id 판정·추출은 `lib/embed/youtubeUrl` 하나만 쓴다. 검수기(48개 일괄
+ * 검증)와 카드 렌더가 서로 다른 정규식을 들고 있으면 "검수기는 통과라는데 카드가
+ * 안 나온다"가 생긴다. 여기서는 기존 이름(계약)만 유지한 채 위임한다.
+ */
+export {
+  isValidVideoId,
+  extractVideoIdFromUrl as extractVideoId,
+} from "@/lib/embed/youtubeUrl";
+import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 
 /** Build the facade (nocookie · lazy · mute · start) for an embed. */
 export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
