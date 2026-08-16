@@ -2,20 +2,22 @@
 /**
  * golden-ai-fill — AI-1 §5 A 골든 테스트 + A-2 측정 (실제 Claude API 호출).
  *
- * 한 번 실행으로 3조건 × 3회 = **9회** 호출하고 표로 비교한다.
+ * 2차(2026-08-16). 한 번 실행으로 3조건 × 3회 = **9회** 호출하고 표로 비교한다.
  *
- *   (a) sonnet5-json  — Sonnet 5 + 현행 JSON 포맷   ← 합격선(§6 Auto-STOP) 판정 대상
- *   (b) sonnet5-csv   — Sonnet 5 + "이름|국적|포지션" CSV 압축 포맷 (측정용 임시 파서)
- *   (c) haiku-json    — Haiku 4.5 + 현행 JSON 포맷
+ *   (d) Sonnet 4.6 + **옛 프롬프트 스냅샷**  ← H4 대조군 (허구가 업그레이드 탓인가?)
+ *   (a) Sonnet 5   + 수정된 프롬프트         ← 합격선(§6 Auto-STOP) 판정 대상
+ *   (c) Haiku 4.5  + 수정된 프롬프트         ← 비교군
  *
- * (a)만 합격/불합격을 가른다 — 모델 업그레이드가 기존 프롬프트·파서를 수정 없이
- * 통과하는지(RULE R1)를 보는 골든 테스트다. (b)(c)는 **데이터**일 뿐이라 실패해도
- * 표에 그대로 찍고 종료 코드에 반영하지 않는다. 포맷·모델 전환은 대표 결정 사항이고
- * 이 스크립트는 프로덕션 경로를 바꾸지 않는다.
+ * (a)만 합격/불합격을 가른다. (d)(c)는 **데이터**일 뿐이라 실패해도 표에 그대로 찍고
+ * 종료 코드에 반영하지 않는다. 모델 전환은 대표 결정 사항이고 이 스크립트는 프로덕션
+ * 경로를 바꾸지 않는다.
  *
  * (a)(c)는 프로덕션 프롬프트(buildPrompt)와 프로덕션 파서(parseAiContestants)를
  * 컴파일 산출물에서 그대로 가져다 쓴다 — 통과 = 콜러블 통과.
- * (b)는 이 파일 안의 임시 프롬프트·임시 파서를 쓴다(프로덕션 무영향).
+ * (d)만 이 파일 안에 얼려 둔 옛 프롬프트 문자열을 쓴다(1차와 동일 조건 재현용).
+ *
+ * 1차에서 측정한 (b) CSV 압축 포맷은 대표 기각으로 제거했다 — 3회 중 0회 통과였고
+ * imageSearchKeyword가 빠지는 손실도 있었다. 기록은 최종 보고 D블록에 남는다.
  *
  * 실행:
  *   cd functions && npm run build
@@ -42,17 +44,22 @@ const NAME_SAMPLE = 10; // 실존 여부 눈검사용 — 각 조건 1회차에�
  *   claude-haiku-4-5: $1 / input MTok, $5  / output MTok
  *   claude-sonnet-4-6(직전 프로덕션): $3 / $15 — 이전/이후 비교용
  */
+const PREV_SONNET_MODEL = "claude-sonnet-4-6"; // AI-1 직전 프로덕션 모델 (H4 대조군)
+const PREV_SONNET_PRICE = { in: 3, out: 15 };
 const PRICE = {
   [SONNET_MODEL]: { in: 2, out: 10 },
   [HAIKU_MODEL]: { in: 1, out: 5 },
+  [PREV_SONNET_MODEL]: PREV_SONNET_PRICE,
 };
-const PREV_SONNET_PRICE = { in: 3, out: 15 };
 
 /** 환율은 문서 실측 대상이 아니다 — 가정치이고 env로 덮어쓸 수 있다. */
 const USD_KRW = Number(process.env.USD_KRW) > 0 ? Number(process.env.USD_KRW) : 1417;
 
+// AI-1 2차: 제목에서 연도 제거 (대표 결정 ④). "글로벌"·"전 세계에서 활동 중인"은
+// 일부러 남겼다 — 실제 운영자가 칠 법한 문구이고, 이걸 두고도 실존 인물이 나와야
+// 프롬프트 수정이 진짜 효과를 낸 것이다.
 const FIXTURE = {
-  title: "2026 글로벌 K-POP 보컬 킹",
+  title: "글로벌 K-POP 보컬 킹",
   category: "KPOP",
   description: "전 세계에서 활동 중인 K-POP 보컬리스트",
   keywords: [],
@@ -60,65 +67,45 @@ const FIXTURE = {
   count: TOTAL_CONTESTANTS,
 };
 
-// ── (b) 전용 임시 자산 — 프로덕션 아님 ────────────────────────────────
 /**
- * CSV 압축 포맷 프롬프트. 현행 JSON과 **규칙은 같게** 두고 출력 형식만 바꾼다
- * (토큰 차이가 형식에서만 나오게 하려고).
+ * 1차 골든에서 실제로 나갔던 프롬프트 **전문 스냅샷** (수정 전 buildPrompt + 당시 픽스처).
  *
- * ⚠ 현행 JSON의 imageSearchKeyword 필드가 이 포맷에는 없다 — 이미지 소싱 힌트가
- *   사라진다는 뜻이라 단순 토큰 절감으로만 비교하면 안 된다. 표 아래 각주로 뜬다.
+ * H4 대조군 전용이다. buildPrompt를 고친 지금 조건 (d)가 새 프롬프트를 쓰면
+ * "4.6이 옛 프롬프트로 실존 인물을 냈는가"라는 질문에 답할 수 없다. 그래서 문자열로
+ * 얼려 둔다 — 1차 (a)와 **모델만 다르고 나머지는 완전히 동일한** 비교가 된다.
+ * 절대 수정하지 말 것.
  */
-function buildCsvPrompt(opts) {
-  const { title, category, description, count } = opts;
-  const lines = [
-    `다음 Tournament 제목과 카테고리에 맞는 Contestant ${count}명을 추천해줘.`,
-    `제목: "${title}"`,
-    `카테고리: ${category}`,
-  ];
-  if (description && description.trim()) {
-    lines.push(`설명(참가 대상): ${description.trim()}`);
-  }
-  lines.push(
-    "",
-    "출력 형식: 한 줄에 한 명, 파이프(|)로 구분. 헤더·번호·설명·코드펜스 없이 줄만.",
-    "이름|국적|포지션",
-    "",
-    "규칙:",
-    `- 정확히 ${count}명`,
-    "- 퍼포먼스 기반 공개 데이터만 사용",
-    "- 미성년자 금지",
-    "- 카테고리에 맞는 활동 영역 (포지션)",
-    "- 한국적 요소에 치우치지 말 것 (글로벌 MZ)",
-  );
-  return lines.join("\n");
-}
-
-/** CSV 임시 파서. 프로덕션 parseContestants와 동일한 관용도(코드펜스 제거)만 흉내낸다. */
-export function parseCsvContestants(text, count) {
-  const cleaned = String(text ?? "")
-    .replace(/```[a-zA-Z]*\n?/g, "")
-    .replace(/```/g, "");
-  const rows = cleaned
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0 && l.includes("|"))
-    .map((l) => l.split("|").map((c) => c.trim()))
-    .filter((cells) => cells.length === 3 && cells[0].length > 0)
-    // 모델이 헤더를 붙였을 때 한 줄 버림
-    .filter((cells) => !(cells[0] === "이름" && cells[1] === "국적"));
-
-  if (rows.length < count) {
-    throw new Error(`CSV 행 부족: ${rows.length}/${count}`);
-  }
-  return rows.slice(0, count).map(([name, nationality, position]) => ({
-    name,
-    nationality,
-    position,
-  }));
-}
+const LEGACY_PROMPT = [
+  "다음 Tournament 제목과 카테고리에 맞는 Contestant 48명을 추천해줘.",
+  '제목: "2026 글로벌 K-POP 보컬 킹"',
+  "카테고리: KPOP",
+  "설명(참가 대상): 전 세계에서 활동 중인 K-POP 보컬리스트",
+  "",
+  "각 Contestant를 JSON 배열로 반환:",
+  '[{ "name": string, "nationality": string, "position": string, "imageSearchKeyword": string }]',
+  "",
+  "규칙:",
+  "- 정확히 48명",
+  "- 퍼포먼스 기반 공개 데이터만 사용",
+  "- 미성년자 금지",
+  "- 카테고리에 맞는 활동 영역 (position 필드)",
+  "- 한국적 요소에 치우치지 말 것 (글로벌 MZ)",
+].join("\n");
 
 // ── 조건 정의 ────────────────────────────────────────────────────────
 const CONDITIONS = [
+  {
+    // H4 대조군 — 옛 프롬프트 그대로 4.6에 던진다. 1차 (a)(Sonnet5+옛 프롬프트)와
+    // 짝을 이뤄 "허구가 업그레이드 탓인가, 원래 있던 결함인가"를 가른다.
+    // thinking은 **보내지 않는다** — AI-1 이전 프로덕션이 그랬던 그대로의 재현.
+    key: "d",
+    label: "(d) Sonnet4.6 · 옛프롬프트",
+    model: PREV_SONNET_MODEL,
+    thinking: null,
+    gating: false,
+    prompt: () => LEGACY_PROMPT,
+    parse: (text) => parseAiContestants(text, TOTAL_CONTESTANTS),
+  },
   {
     key: "a",
     label: "(a) Sonnet5 · JSON",
@@ -127,15 +114,6 @@ const CONDITIONS = [
     gating: true, // 이 조건만 종료 코드를 가른다
     prompt: () => buildPrompt(FIXTURE),
     parse: (text) => parseAiContestants(text, TOTAL_CONTESTANTS),
-  },
-  {
-    key: "b",
-    label: "(b) Sonnet5 · CSV",
-    model: SONNET_MODEL,
-    thinking: SONNET_THINKING,
-    gating: false,
-    prompt: () => buildCsvPrompt(FIXTURE),
-    parse: (text) => parseCsvContestants(text, TOTAL_CONTESTANTS),
   },
   {
     key: "c",
@@ -194,6 +172,7 @@ async function runOnce(anthropic, cond) {
     usage: { input_tokens: 0, output_tokens: 0 },
     stopReason: "",
     names: [],
+    rawCount: null, // 모델이 실제로 준 항목 수 (중복 제거·절단 전) — 과다 요청이 먹었는지 확인용
   };
 
   try {
@@ -210,19 +189,29 @@ async function runOnce(anthropic, cond) {
     const block = resp.content[0];
     const text = block && block.type === "text" ? block.text : "";
 
+    // 모델이 실제로 준 개수 — 파서가 절단하기 전 값. 과다 요청이 먹혔는지 본다.
+    try {
+      const arr = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] ?? text);
+      if (Array.isArray(arr)) result.rawCount = arr.length;
+    } catch {
+      /* 원본 개수는 참고값이라 실패해도 무시 */
+    }
+
     const contestants = cond.parse(text);
     result.names = contestants.map((c) => String(c.name ?? "").trim());
+    const raw = result.rawCount === null ? "?" : result.rawCount;
 
     if (contestants.length !== TOTAL_CONTESTANTS) {
+      // 파서는 46~47명을 통과시키지만, 골든 합격선은 킥 DoD대로 48명이다.
       result.verdict = "FAIL";
-      result.detail = `${contestants.length}명 (기대 ${TOTAL_CONTESTANTS})`;
+      result.detail = `${contestants.length}명 (기대 ${TOTAL_CONTESTANTS}, 원본 ${raw}개)`;
     } else {
       const dupes = result.names.filter((n, i) => result.names.indexOf(n) !== i);
       if (dupes.length > 0) {
         result.verdict = "FAIL";
         result.detail = `중복 ${dupes.length}건: ${[...new Set(dupes)].join(", ")}`;
       } else {
-        result.detail = "48명 · 중복 0";
+        result.detail = `48명 · 중복 0 · 원본 ${raw}개`;
       }
     }
     if (result.stopReason === "max_tokens") {
@@ -253,7 +242,7 @@ async function main() {
   console.log("AI-1 골든 테스트 + A-2 측정");
   console.log(`조건 3 × ${RUNS}회 = ${CONDITIONS.length * RUNS}회 호출 · max_tokens ${MAX_TOKENS}`);
   console.log(`환율 가정 USD_KRW=${USD_KRW} (env로 조정 가능)`);
-  console.log(`합격 판정 대상: (a)만 — (b)(c)는 측정 데이터\n`);
+  console.log(`합격 판정 대상: (a)만 — (d)(c)는 측정 데이터\n`);
 
   const perCondition = [];
 
@@ -331,8 +320,9 @@ async function main() {
   }
 
   console.log(
-    "\n※ (b) CSV 포맷에는 현행 JSON의 imageSearchKeyword가 없다 — 이미지 소싱 힌트가\n" +
-      "   사라지므로 토큰 절감만으로 비교하면 안 된다 (전환은 대표 결정 사항).",
+    "\n※ 눈검사 포인트 — 위 이름 10개가 **실존 아티스트**인지 조건별로 확인할 것.\n" +
+      "   (d)가 실존이면 허구는 Sonnet 5 업그레이드가 만든 회귀,\n" +
+      "   (d)도 허구면 옛 프롬프트에 원래 있던 결함을 업그레이드가 드러낸 것이다.",
   );
   console.log("※ 환율은 가정치다. 단가만 docs.claude.com 실측(2026-08-16).");
 

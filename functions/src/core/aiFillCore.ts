@@ -79,10 +79,20 @@ export interface BuildPromptOptions {
   count: number;
 }
 
+/**
+ * 과다 요청 폭 (AI-1). 필요한 수보다 2~4명 더 달라고 하고, 파서가 중복 제거 후
+ * 앞에서부터 정확히 count명을 취한다. 골든 1차에서 "정확히 N명"이 자주 빗나가
+ * (49·47명) 응답 전체가 버려졌던 것에 대한 대표 결정.
+ */
+const OVER_REQUEST_MIN = 2;
+const OVER_REQUEST_MAX = 4;
+
 export function buildPrompt(opts: BuildPromptOptions): string {
   const { title, category, description, keywords, existing, count } = opts;
+  const askMin = count + OVER_REQUEST_MIN;
+  const askMax = count + OVER_REQUEST_MAX;
   const lines = [
-    `다음 Tournament 제목과 카테고리에 맞는 Contestant ${count}명을 추천해줘.`,
+    `다음 Tournament 제목과 카테고리에 맞는 Contestant를 ${askMin}~${askMax}명 추천해줘.`,
     `제목: "${title}"`,
     `카테고리: ${category}`,
   ];
@@ -103,11 +113,17 @@ export function buildPrompt(opts: BuildPromptOptions): string {
     `[{ "name": string, "nationality": string, "position": string, "imageSearchKeyword": string }]`,
     "",
     "규칙:",
-    `- 정확히 ${count}명`,
+    `- ${askMin}~${askMax}명 (서버가 앞에서부터 ${count}명만 채택하니 확실한 인물부터 순서대로)`,
+    "- 실존 인물만. 가상·합성 인물을 지어내지 말 것",
+    "- 같은 인물을 두 번 넣지 말 것",
     "- 퍼포먼스 기반 공개 데이터만 사용",
     "- 미성년자 금지",
     "- 카테고리에 맞는 활동 영역 (position 필드)",
-    "- 한국적 요소에 치우치지 말 것 (글로벌 MZ)",
+    // AI-1: 이전 문구 "한국적 요소에 치우치지 말 것 (글로벌 MZ)"는 불변 원칙 #3
+    // (디자인·브랜딩 규칙)을 로스터 구성에 잘못 적용한 것이었다. Sonnet 5가 이걸
+    // 문자 그대로 따르면서 실존 K-POP 아티스트(대부분 한국인)를 피하려다 인물을
+    // 지어냈다 — 골든 1차에서 확인. 국적 규칙은 카테고리에 종속시킨다.
+    "- 카테고리에 실제로 속한 인물이면 국적을 가리지 말 것 (K-POP이면 한국인 아티스트를 피하지 말 것). 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",
   );
   return lines.join("\n");
 }
