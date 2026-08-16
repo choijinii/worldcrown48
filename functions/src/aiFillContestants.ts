@@ -14,24 +14,34 @@
  *       firebase functions:secrets:set ANTHROPIC_API_KEY
  *     (NOT a .env file; matches the IP_HASH_SALT pattern.)
  *
- * Cost defense (handoff §9 trap #10): auth + per-uid rate limit run BEFORE the
- * secret is read or the model is called, so a flood spends no Claude tokens.
- * Per-minute in-memory limit (5/uid/min/instance). A cross-instance DAILY cap
- * (50/day) needs a Firestore counter and is tracked as a follow-up — noted in
- * the PR so it isn't silently dropped.
+ * Cost defense (handoff §9 trap #10): 어드민 판정 + rate limit이 시크릿을 읽거나
+ * 모델을 부르기 전에 끝나므로, 실패한 요청은 Claude 토큰을 1개도 쓰지 않는다.
+ * 3층으로 쌓는다 (AI-1):
+ *   requireAdmin → 5회/분(인스턴스 메모리, 연타 방지) → 50회/일(Firestore, 지출 상한)
+ *
+ * AI-1 (2026-08-16): 편집기 콘솔은 어드민 전용이다 — requireAdmin이 **첫 줄**에서
+ * 돈다(LAB-EV-1 검수 콜러블 2종과 같은 유틸). B-2 이래 열려 있던 "교차 인스턴스
+ * 일일 캡은 후속" 주석은 consumeAiDailyQuota로 닫혔다.
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { logger } from "firebase-functions";
 import Anthropic from "@anthropic-ai/sdk";
 import { ALLOWED_ORIGINS } from "./cors";
+import { requireAdmin } from "./core/requireAdmin";
+import { consumeAiDailyQuota } from "./aiQuota";
 import { aiFillCore, AiFillError } from "./core/aiFillCore";
 import { ContestantParseError } from "./core/parseContestants";
-import { SONNET_MODEL } from "./core/models";
+import { SONNET_MODEL, SONNET_THINKING } from "./core/models";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
-const AI_MAX_TOKENS = 4096;
+/**
+ * 4096 → 8192 (AI-1). 48명 JSON은 4096에 들어가지만 여유가 없었고, LAB-EV-2가
+ * 여기에 URL·메타데이터를 얹는다. thinking을 명시적으로 껐으므로(SONNET_THINKING)
+ * 이 상한은 전부 응답 몫이다.
+ */
+const AI_MAX_TOKENS = 8192;
 
 // Per-uid token bucket — 5 calls / uid / minute / instance (trap #10).
 const AI_RATE_LIMIT = 5;
@@ -50,15 +60,13 @@ function checkUidRateLimit(uid: string, now: number): boolean {
 
 export const aiFillContestants = onCall(
   {
-    secrets: [ANTHROPIC_API_KEY],
+    secrets: [ANTHROPIC_API_KEY, "ADMIN_UID"],
     cors: ALLOWED_ORIGINS,
     timeoutSeconds: 60,
   },
   async (req): Promise<{ contestants: unknown[] }> => {
-    const uid = req.auth?.uid;
-    if (!uid) {
-      throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
-    }
+    requireAdmin(req.auth?.uid, process.env.ADMIN_UID);
+    const uid = req.auth!.uid;
 
     if (!checkUidRateLimit(uid, Date.now())) {
       throw new HttpsError(
@@ -66,6 +74,9 @@ export const aiFillContestants = onCall(
         "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
       );
     }
+
+    // 교차 인스턴스 일일 상한 — 시크릿을 읽기 전에 건다.
+    await consumeAiDailyQuota("aiFillContestants");
 
     const apiKey = ANTHROPIC_API_KEY.value();
     if (!apiKey) {
@@ -80,7 +91,16 @@ export const aiFillContestants = onCall(
       const resp = await anthropic.messages.create({
         model: SONNET_MODEL,
         max_tokens: AI_MAX_TOKENS,
+        // 생략하면 Sonnet 5는 adaptive thinking이 켜진다 — 명시적으로 끈다. 근거: core/models.ts
+        thinking: SONNET_THINKING,
         messages: [{ role: "user", content: prompt }],
+      });
+      // 비용 실측용 — 프롬프트 전문은 남기지 않는다(RULE R2). 토큰 수만.
+      logger.info("aiFillContestants usage", {
+        model: SONNET_MODEL,
+        inputTokens: resp.usage?.input_tokens,
+        outputTokens: resp.usage?.output_tokens,
+        stopReason: resp.stop_reason,
       });
       const block = resp.content[0];
       return block && block.type === "text" ? block.text : "";

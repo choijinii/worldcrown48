@@ -338,6 +338,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── ai_usage (AI-1 편집기 AI 일일 상한 카운터) ──────────────────
+    // KST 하루치 AI 호출 카운터(문서 id = YYYY-MM-DD). 어드민 콜러블만 admin SDK로
+    // 쓴다(룰 우회). 클라이언트가 읽거나 리셋하면 상한이 무의미해지므로 전면 거부.
+    match /ai_usage/{docId} {
+      allow read, write: if false;
+    }
+
     // ── default deny ───────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

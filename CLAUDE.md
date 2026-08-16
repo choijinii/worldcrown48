@@ -10,8 +10,9 @@
 
 ---
 
-# WorldCrown48 — CLAUDE.md v2.4 (핵심 압축판)
+# WorldCrown48 — CLAUDE.md v2.5 (핵심 압축판)
 # 에이전트 진입점 — 가장 먼저 읽는 파일
+# v2.5 (2026-08-16): AI 스택 실측 정정 (모델 ID 2개 + 단일 소스 models.ts)
 # v2.4 (2026-08-13): 기술 스택 표 실측 동기화 + 색 토큰 규칙(불변 원칙 #2-1)
 # v2.3 (2026-08-08): 확정 결정 동기화 — AI-Report v2.5 · 3언어 라이브 · 표시 용어 층 · Stale-Doc Guard
 # v2.2 (2026-07-11): 대개편 반영 — Taxonomy·Bracket Size·Crown Score·Ranking Scope Lock
@@ -95,7 +96,9 @@ ROUND OF 48 (24 Match) → ROUND OF 24 (12 Match) → ROUND OF 12 (6 Match)
 상태:       Zustand 5
 차트:       Recharts 2
 백엔드:     Firebase (Firestore + Realtime DB + Auth + Cloud Functions)
-AI:         Claude API (claude-sonnet-4-20250514)
+AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core/models.ts
+            · SONNET = claude-sonnet-5   (48명 채우기 · thinking 비활성 명시)
+            · HAIKU  = claude-haiku-4-5  (키워드 · 번역 · 뉴스 초안)
 호스팅:     Vercel (프론트) + Firebase (백엔드) + Cloudflare
 도메인:     worldcrown48.com
 ```
@@ -197,6 +200,7 @@ AI:         Claude API (claude-sonnet-4-20250514)
 
 | 버전 | 날짜 | 주요 변경 |
 |------|------|-----------|
+| **v2.5** | **2026-08-16** | **★ AI 스택 실측 정정 (AI-1).** 기술 스택 표 AI 줄이 `claude-sonnet-4-20250514`로 적혀 있었으나 코드에 없는 모델이었다(Stale-Doc Guard 재발). 실측 모델 2개(`claude-sonnet-5` · `claude-haiku-4-5`) + **단일 소스 = `functions/src/core/models.ts`** 명시. Sonnet 4.6 → 5 업그레이드는 ID 교체 + thinking 명시 비활성(생략 시 adaptive 자동 ON) 동반 |
 | **v2.4** | **2026-08-13** | **★ 기술 스택 표 실측 동기화 (TOK-1).** Tailwind·Shadcn/UI·framer-motion 제거 — package.json에 없는데 v2.3까지 적혀 있었다(Stale-Doc Guard 사고 재발). 실제 스타일 층(CSS 변수 + CSS Modules + inline style)·애니메이션(CSS)·npm 명시 + "없는 것" 경고 블록 신설 · 불변 원칙 **#2-1 색은 토큰만**(raw hex 금지 · 가드 check-hex) 추가 |
 | **v2.3** | **2026-08-08** | **★ 확정 결정 ↔ 문서 동기화 (stale 일소).** 불변 원칙 #4 = AI-Report **v2.5**(✦·푸터 전용·8px·50%)로 교체 · MVP 표 각주로 **3언어 라이브**(2026-07-01) 명시 · 필수 용어 표에 **표시 용어 층**(팬/Fan) 각주 · Voters 이벤트 카피 "1,000 팬 모으기" · 문서 체계 `CONTEXT.md`→`CONTEXT_v0_6.md` 정정 · **Stale-Doc Guard 절 신설** |
 | v2.2 | 2026-07-11 | 대개편 반영 — Category Taxonomy · Bracket Size · Crown Score · Ranking Scope Lock |

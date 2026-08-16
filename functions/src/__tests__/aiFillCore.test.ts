@@ -77,8 +77,9 @@ describe("aiFillCore", () => {
     ).rejects.toMatchObject({ reason: "ai-failed" });
   });
 
-  it("propagates a ContestantParseError when the model returns the wrong count", async () => {
-    const createMessage = vi.fn(async () => fakeArray(47));
+  // AI-1: 47명은 이제 허용 범위(floor 46)다 — floor 아래인 45명으로 내려서 검사한다.
+  it("propagates a ContestantParseError when the model returns too few", async () => {
+    const createMessage = vi.fn(async () => fakeArray(45));
     await expect(
       aiFillCore(validInput, { createMessage }),
     ).rejects.toBeInstanceOf(ContestantParseError);
