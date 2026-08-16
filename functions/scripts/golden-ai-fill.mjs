@@ -124,6 +124,19 @@ const CONDITIONS = [
     prompt: () => buildPrompt(FIXTURE),
     parse: (text) => parseAiContestants(text, TOTAL_CONTESTANTS),
   },
+  {
+    // N 파라미터화 확인 — buildPrompt·parseAiContestants가 48 말고도 도는지.
+    // 값싼 Haiku로 1회만. 프로덕션 콜러블은 아직 N을 받지 않는다(대표 확인 대기).
+    key: "e",
+    label: "(e) Haiku4.5 · N=12",
+    model: HAIKU_MODEL,
+    thinking: null,
+    gating: false,
+    runs: 1,
+    count: 12,
+    prompt: () => buildPrompt({ ...FIXTURE, count: 12 }),
+    parse: (text) => parseAiContestants(text, 12),
+  },
 ];
 
 // ── 유틸 ─────────────────────────────────────────────────────────────
@@ -197,21 +210,22 @@ async function runOnce(anthropic, cond) {
       /* 원본 개수는 참고값이라 실패해도 무시 */
     }
 
+    const want = cond.count ?? TOTAL_CONTESTANTS;
     const contestants = cond.parse(text);
     result.names = contestants.map((c) => String(c.name ?? "").trim());
     const raw = result.rawCount === null ? "?" : result.rawCount;
 
-    if (contestants.length !== TOTAL_CONTESTANTS) {
-      // 파서는 46~47명을 통과시키지만, 골든 합격선은 킥 DoD대로 48명이다.
+    if (contestants.length !== want) {
+      // 파서는 N-2까지 통과시키지만, 골든 합격선은 킥 DoD대로 정확히 N이다.
       result.verdict = "FAIL";
-      result.detail = `${contestants.length}명 (기대 ${TOTAL_CONTESTANTS}, 원본 ${raw}개)`;
+      result.detail = `${contestants.length}명 (기대 ${want}, 원본 ${raw}개)`;
     } else {
       const dupes = result.names.filter((n, i) => result.names.indexOf(n) !== i);
       if (dupes.length > 0) {
         result.verdict = "FAIL";
         result.detail = `중복 ${dupes.length}건: ${[...new Set(dupes)].join(", ")}`;
       } else {
-        result.detail = `48명 · 중복 0 · 원본 ${raw}개`;
+        result.detail = `${want}명 · 중복 0 · 원본 ${raw}개`;
       }
     }
     if (result.stopReason === "max_tokens") {
@@ -240,7 +254,8 @@ async function main() {
   const anthropic = new Anthropic({ apiKey });
 
   console.log("AI-1 골든 테스트 + A-2 측정");
-  console.log(`조건 3 × ${RUNS}회 = ${CONDITIONS.length * RUNS}회 호출 · max_tokens ${MAX_TOKENS}`);
+  const totalCalls = CONDITIONS.reduce((a, c) => a + (c.runs ?? RUNS), 0);
+  console.log(`조건 ${CONDITIONS.length}개 · 총 ${totalCalls}회 호출 · max_tokens ${MAX_TOKENS}`);
   console.log(`환율 가정 USD_KRW=${USD_KRW} (env로 조정 가능)`);
   console.log(`합격 판정 대상: (a)만 — (d)(c)는 측정 데이터\n`);
 
@@ -249,7 +264,8 @@ async function main() {
   for (const cond of CONDITIONS) {
     console.log(`── ${cond.label} · ${cond.model} ──`);
     const runs = [];
-    for (let i = 1; i <= RUNS; i++) {
+    const condRuns = cond.runs ?? RUNS;
+    for (let i = 1; i <= condRuns; i++) {
       const r = await runOnce(anthropic, cond);
       runs.push(r);
       const price = PRICE[cond.model];
@@ -287,11 +303,12 @@ async function main() {
     base > 0 ? `${(((now - base) / base) * 100).toFixed(1)}%` : "—(기준값 없음)";
 
   printTable(
-    ["조건", "모델", "통과", "입력토큰", "출력토큰", "건당($)", "건당(원)", "소요(s)"],
+    ["조건", "모델", "N", "통과", "입력토큰", "출력토큰", "건당($)", "건당(원)", "소요(s)"],
     summary.map((s) => [
       s.cond.label,
       s.cond.model,
-      `${s.passes}/${RUNS}`,
+      String(s.cond.count ?? TOTAL_CONTESTANTS),
+      `${s.passes}/${s.runs.length}`,
       Math.round(s.inTok).toLocaleString(),
       Math.round(s.outTok).toLocaleString(),
       usd(s.cost),
@@ -328,15 +345,15 @@ async function main() {
 
   // ── 종료 코드: (a)만 판정 ──
   const gating = summary.filter((s) => s.cond.gating);
-  const gatingFails = gating.reduce((a, s) => a + (RUNS - s.passes), 0);
+  const gatingFails = gating.reduce((a, s) => a + (s.runs.length - s.passes), 0);
   if (gatingFails > 0) {
     console.error(
-      `\n골든 테스트 실패 — (a) ${RUNS - gating[0].passes}/${RUNS}회 실패. AI-1 §6 Auto-STOP 조건.\n` +
+      `\n골든 테스트 실패 — (a) ${gating[0].runs.length - gating[0].passes}/${gating[0].runs.length}회 실패. AI-1 §6 Auto-STOP 조건.\n` +
         `대표 결정 필요 (thinking 활성 / max_tokens 상향 / 프롬프트 미세조정 중 택1).`,
     );
     process.exit(1);
   }
-  console.log("\n골든 테스트 통과 — (a) 3회 연속 파싱 성공 · 48명 · 중복 0.");
+  console.log(`\n골든 테스트 통과 — (a) ${gating[0].runs.length}회 연속 파싱 성공 · ${TOTAL_CONTESTANTS}명 · 중복 0.`);
 }
 
 // 직접 실행할 때만 돈다 — 위 임시 파서를 import해서 따로 검증할 수 있게.
