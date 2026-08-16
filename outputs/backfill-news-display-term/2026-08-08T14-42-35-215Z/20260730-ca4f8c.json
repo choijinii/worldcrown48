@@ -1,0 +1,127 @@
+{
+  "id": "20260730-ca4f8c",
+  "slug": "20260730-ca4f8c",
+  "template": "column",
+  "title": {
+    "ko": "한 곡이 여름을 결정한다",
+    "en": "One Song Decides Your Summer",
+    "es": "Una canción determina el verano"
+  },
+  "subhead": {
+    "ko": "플레이리스트를 채우는 순간, 당신은 이미 선택하고 있다",
+    "en": "The moment you fill a playlist, you're already making a choice",
+    "es": "En el momento en que llenas tu playlist, ya estás eligiendo"
+  },
+  "body": {
+    "ko": [
+      {
+        "type": "hero",
+        "kicker": "자유 칼럼",
+        "title": "한 곡이 여름을 결정한다",
+        "subtitle": "플레이리스트를 채우는 순간, 당신은 이미 선택하고 있다"
+      },
+      {
+        "type": "lead",
+        "text": "휴대폰을 집어 드는 순간, 손가락은 이미 알고 있다. 어느 곡을 누를지. 지난여름 당신을 웃게 했던 그 노래인지, 아니면 이번엔 다른 걸 걸어볼까 하는 설렘인지. 플레이리스트를 만드는 행위는 단순한 음악 선택이 아니다. 그것은 '지금 이 순간의 나를 어떻게 정의할 것인가'라는 질문에 답하는 과정이다."
+      },
+      {
+        "type": "paragraph",
+        "text": "여름 플레이리스트의 심리학은 계절 그 이상의 것을 말한다. 우리가 무더위 속에서 특정 곡들을 자꾸만 틀게 되는 이유는, 그 음악이 '지금 우리가 되고 싶은 사람'을 반영하기 때문이다. 신나는 리듬의 곡을 고르는 사람은 스스로를 축제의 중심으로 그리고, 차분한 멜로디를 찾는 사람은 자신 안의 고요함을 발견하려 한다."
+      },
+      {
+        "type": "paragraph",
+        "text": "플레이리스트 큐레이션은 자기 사랑의 언어다. 한 곡 한 곡을 골라 담는 과정에서 우리는 자신이 무엇을 소중히 여기는지, 어떤 기분으로 하루를 마감하고 싶은지를 조용히 선언한다. 여름밤 창문을 열고 흘러나오는 그 노래는, 누군가의 취향이 아니라 누군가의 진심이다."
+      },
+      {
+        "type": "paragraph",
+        "text": "흥미로운 점은, 같은 계절을 보내는 수백만의 Voter가 만드는 플레이리스트가 결코 같지 않다는 것이다. 각자의 여름은 각자의 곡으로 채워진다. 그 다양함 속에서 우리는 '나만의 여름'을 찾는다."
+      },
+      {
+        "type": "paragraph",
+        "text": "여름 플레이리스트를 꾸리는 것은 결코 유행을 따르는 일이 아니다. 그것은 '이번 여름, 나는 이렇게 울고 웃고 싶다'는 개인적인 선언이자, 동시에 같은 계절을 함께하는 누군가와 공감의 순간을 나누는 일이다. 한 곡 한 곡이 모여 만들어진 플레이리스트는, 결국 당신이 이 여름을 어떻게 기억할 것인가를 결정한다."
+      },
+      {
+        "type": "closer",
+        "text": "당신의 플레이리스트가 곧, 당신의 여름이 된다."
+      }
+    ],
+    "en": [
+      {
+        "type": "hero",
+        "kicker": "Free Column",
+        "title": "One Song Decides Your Summer",
+        "subtitle": "The moment you fill a playlist, you're already making a choice"
+      },
+      {
+        "type": "lead",
+        "text": "The moment you pick up your phone, your fingers already know. Which song to play. Was it that song that made you laugh last summer, or the thrill of trying something different this time? Creating a playlist is not simply choosing music. It's the process of answering the question: 'How do I define who I am in this moment?'"
+      },
+      {
+        "type": "paragraph",
+        "text": "The psychology of a summer playlist speaks to more than just the season. The reason we keep playing certain songs in the heat is because that music reflects 'who we want to be right now.' People who choose upbeat, rhythmic songs picture themselves at the center of a festival, while those seeking calm melodies are searching for stillness within themselves."
+      },
+      {
+        "type": "paragraph",
+        "text": "Curating a playlist is a language of self-love. In the process of selecting song after song, we quietly declare what we cherish, and what mood we want to end our day with. That song flowing through an open window on a summer night isn't someone's taste—it's someone's sincerity."
+      },
+      {
+        "type": "paragraph",
+        "text": "What's interesting is that playlists created by millions of Voters spending the same season are never the same. Each person's summer is filled with their own songs. Within that diversity, we find 'our own summer.'"
+      },
+      {
+        "type": "paragraph",
+        "text": "Building a summer playlist is never about following trends. It's a personal declaration that says 'This summer, I want to cry and laugh this way,' and at the same time, it's an opportunity to share a moment of connection with someone else experiencing the same season. A playlist made up of song after song ultimately determines how you'll remember this summer."
+      },
+      {
+        "type": "closer",
+        "text": "Your playlist becomes your summer."
+      }
+    ],
+    "es": [
+      {
+        "type": "hero",
+        "kicker": "Columna libre",
+        "title": "Una canción determina el verano",
+        "subtitle": "En el momento en que llenas tu playlist, ya estás eligiendo"
+      },
+      {
+        "type": "lead",
+        "text": "En el momento en que tomas tu teléfono, tus dedos ya lo saben. Qué canción tocar. Si es esa canción que te hizo sonreír el verano pasado, o la emoción de probar algo diferente esta vez. El acto de crear una playlist no es una simple selección musical. Es un proceso de responder a la pregunta: '¿Cómo definiré quién soy en este momento?'"
+      },
+      {
+        "type": "paragraph",
+        "text": "La psicología de la playlist de verano va más allá de la estación. La razón por la que seguimos reproduciendo ciertas canciones bajo el calor abrasador es porque esa música refleja 'quién queremos ser ahora'. Quienes eligen canciones con ritmos alegres se imaginan a sí mismos en el centro de la fiesta, mientras que quienes buscan melodías tranquilas intentan descubrir la calma dentro de sí mismos."
+      },
+      {
+        "type": "paragraph",
+        "text": "La curaduría de playlists es el lenguaje del amor propio. En el proceso de elegir canción tras canción, declaramos silenciosamente qué valoramos, con qué sentimiento queremos terminar el día. Esa canción que fluye por la ventana en una noche de verano no es el gusto de alguien, sino la sinceridad de alguien."
+      },
+      {
+        "type": "paragraph",
+        "text": "Lo interesante es que las playlists creadas por millones de Voters que pasan la misma estación nunca son iguales. Cada verano se llena con sus propias canciones. Dentro de esa diversidad, encontramos 'nuestro verano'."
+      },
+      {
+        "type": "paragraph",
+        "text": "Crear una playlist de verano nunca es seguir una tendencia. Es una declaración personal que dice 'así es como quiero llorar y reír este verano', y al mismo tiempo, es compartir un momento de empatía con alguien que pasa la misma estación. La playlist creada por canción tras canción, finalmente, determina cómo recordarás este verano."
+      },
+      {
+        "type": "closer",
+        "text": "Tu playlist se convierte en tu verano."
+      }
+    ]
+  },
+  "evidence": {
+    "asOf": "2026-07-30 22:37 KST",
+    "stats": []
+  },
+  "origin": "manual_ai",
+  "createdAt": {
+    "_seconds": 1785418689,
+    "_nanoseconds": 436000000
+  },
+  "publishedAt": {
+    "_seconds": 1785418801,
+    "_nanoseconds": 114000000
+  },
+  "status": "published"
+}

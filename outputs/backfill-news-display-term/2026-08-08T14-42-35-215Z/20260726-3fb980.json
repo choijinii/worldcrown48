@@ -1,0 +1,151 @@
+{
+  "id": "20260726-3fb980",
+  "slug": "20260726-3fb980",
+  "template": "weekly",
+  "title": {
+    "ko": "이번 주, 11개 Tournament가 품은 변화의 물결",
+    "en": "This Week, 11 Tournaments Carry a Wave of Change",
+    "es": "Esta semana, 11 Tournament traen una ola de cambio"
+  },
+  "subhead": {
+    "ko": "눈에 띄는 상승세와 함께 Voter들의 선택이 모여지는 중",
+    "en": "Voter Choices Converge Amid Notable Upward Momentum",
+    "es": "Los votantes se reúnen con un aumento notable en las opciones"
+  },
+  "evidence": {
+    "asOf": "2026-07-26 22:52 KST",
+    "stats": [
+      {
+        "label": "ACTIVE TOURNAMENTS",
+        "value": "11"
+      },
+      {
+        "label": "TOP MOMENTUM",
+        "value": "10.9%"
+      }
+    ]
+  },
+  "origin": "manual_ai",
+  "createdAt": {
+    "_seconds": 1785073972,
+    "_nanoseconds": 588000000
+  },
+  "body": {
+    "en": [
+      {
+        "title": "Momentary Passion Moves the Charts",
+        "kicker": "WEEKLY MOMENTUM",
+        "subtitle": "Fourth Week of July, Vivid Scenes from 11 Tournaments",
+        "type": "hero"
+      },
+      {
+        "text": "Different names now brighten the top of the rankings compared to this time last week. Test3 stands out with a steep rise of 10.9%, as voters across the nation discover new affection.",
+        "type": "lead"
+      },
+      {
+        "text": "The 11 Tournaments currently in progress each move to their own rhythm. Some Contestants enjoy steady support, while others shake the charts with sudden attention. This is the true meaning of Crown Score. Behind the numbers lies the heart of each individual Voter.",
+        "type": "paragraph"
+      },
+      {
+        "items": [
+          {
+            "l": "Number of Tournaments in Progress",
+            "n": "11"
+          },
+          {
+            "l": "TOP MOMENTUM (Test3)",
+            "n": "10.9%"
+          }
+        ],
+        "type": "stats"
+      },
+      {
+        "text": "Test3's movements this week are more than mere advancement. It is a signal that a wave of new discovery and empathy is rising among Voters. Examining the detailed status of each Tournament reveals clearly how many hearts each Contestant has gathered.",
+        "type": "paragraph"
+      },
+      {
+        "text": "The rankings updated each week are a record of Voters' unpredictable love, and within them, some rise like stars while others shine deeply.",
+        "type": "closer"
+      }
+    ],
+    "ko": [
+      {
+        "subtitle": "7월 넷째 주, 11개 Tournament의 생생한 현장",
+        "type": "hero",
+        "title": "순간의 열정이 차트를 움직인다",
+        "kicker": "WEEKLY MOMENTUM"
+      },
+      {
+        "text": "지난 주 이맘때와는 다른 이름이 순위표 상단을 밝히고 있다. 테스트3이 10.9%의 가파른 상승세로 눈길을 끌며, 전국의 Voter들이 새로운 애정을 발견해내고 있는 중이다.",
+        "type": "lead"
+      },
+      {
+        "text": "현재 진행 중인 11개의 Tournament는 각각 다른 리듬으로 움직이고 있다. 어떤 한글로 는 꾸준히 사랑받고 있고, 어떤 이름은 갑작스러운 관심으로 차트를 뒤흔들고 있다. 이것이 바로 Crown Score의 진정한 의미다. 숫자 너머에는 Voter 한 명 한 명의 마음이 담겨 있다.",
+        "type": "paragraph"
+      },
+      {
+        "items": [
+          {
+            "l": "진행 중인 Tournament 수",
+            "n": "11"
+          },
+          {
+            "l": "TOP MOMENTUM (테스트3)",
+            "n": "10.9%"
+          }
+        ],
+        "type": "stats"
+      },
+      {
+        "text": "테스트3의 이번 주 행보는 단순한 상승이 아니다. Voter들 사이에서 새로운 발견과 공감의 물결이 일고 있다는 신호다. Tournament의 세부 현황들을 살펴보면, 각 Contestant가 얼마나 많은 마음을 모으고 있는지 선명하게 드러난다.",
+        "type": "paragraph"
+      },
+      {
+        "text": "매주 갱신되는 순위표는 Voter들의 예측 불가능한 사랑의 기록이며, 그 속에서 누군가는 별처럼 떠오르고 누군가는 깊게 빛나고 있다.",
+        "type": "closer"
+      }
+    ],
+    "es": [
+      {
+        "type": "hero",
+        "subtitle": "Cuarta semana de julio, escenas vívidas de 11 Tournament",
+        "kicker": "WEEKLY MOMENTUM",
+        "title": "La pasión del momento mueve el gráfico"
+      },
+      {
+        "text": "A diferencia de hace una semana, nuevos nombres brillan en la parte superior de la tabla de clasificación. Test3 destaca con un aumento pronunciado del 10.9%, y los votantes de todo el país están descubriendo un nuevo afecto.",
+        "type": "lead"
+      },
+      {
+        "text": "Los 11 Tournament actualmente en progreso se mueven cada uno con un ritmo diferente. Algunos Contestant disfrutan de un apoyo consistente, mientras que otros nombres agitan el gráfico con un interés repentino. Este es el verdadero significado de Crown Score. Detrás de los números está el corazón de cada Voter.",
+        "type": "paragraph"
+      },
+      {
+        "items": [
+          {
+            "l": "Número de Tournament en progreso",
+            "n": "11"
+          },
+          {
+            "l": "TOP MOMENTUM (Test3)",
+            "n": "10.9%"
+          }
+        ],
+        "type": "stats"
+      },
+      {
+        "text": "El desempeño de Test3 esta semana no es un simple aumento. Es una señal de que entre los Voter está surgiendo una onda de nuevo descubrimiento y resonancia. Al examinar el estado detallado del Tournament, queda claro cuántos corazones está reuniendo cada Contestant.",
+        "type": "paragraph"
+      },
+      {
+        "text": "La tabla de clasificación que se actualiza cada semana es un registro impredecible del amor de los Voter, en el que alguien brilla como una estrella y alguien más brilla profundamente.",
+        "type": "closer"
+      }
+    ]
+  },
+  "publishedAt": {
+    "_seconds": 1785413267,
+    "_nanoseconds": 907000000
+  },
+  "status": "published"
+}

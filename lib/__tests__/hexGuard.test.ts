@@ -96,6 +96,12 @@ describe("isScannedPath — path exclusion (ADR-TOK-4)", () => {
     expect(isScannedPath(".next/static/a.css")).toBe(false);
   });
 
+  it("skips agent worktrees — 리포 자신의 옛 사본이라 이미 고친 위반이 되살아난다", () => {
+    // 로컬에서만 존재하는 트리라, 훑으면 CI(fresh checkout)와 결과가 갈린다.
+    expect(isScannedPath(".claude/worktrees/foo/app/globals.css")).toBe(false);
+    expect(isScannedPath(".claude/worktrees/foo/components/auth/LoginModal.tsx")).toBe(false);
+  });
+
   it("skips extensions outside the sweep scope", () => {
     expect(isScannedPath("README.md")).toBe(false);
     expect(isScannedPath("components/admin/lab/theme.ts")).toBe(false);

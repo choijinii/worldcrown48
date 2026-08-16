@@ -35,6 +35,9 @@ const ALLOWLIST_PATH = path.join(REPO_ROOT, "scripts", "hex-allowlist.json");
 /** Directories never worth descending into (cheaper than filtering per file). */
 const SKIP_DIRS = new Set([
   ".git",
+  // 에이전트 워크트리(리포 자신의 옛 사본) — isScannedPath도 같이 막지만,
+  // 디렉터리째 건너뛰어야 수천 파일 stat 비용을 아낀다.
+  ".claude",
   ".next",
   "node_modules",
   "coverage",
