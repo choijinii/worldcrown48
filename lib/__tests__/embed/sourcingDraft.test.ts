@@ -22,13 +22,24 @@ import {
   EMPTY_TALLY,
   toSourcingStates,
 } from "@/lib/lab/sourcingDraft";
-import { runSourcingBatches, type SourcingCall } from "@/lib/lab/autoSource";
+import {
+  runSourcingBatches,
+  type SourcingCall,
+  type SourcingCallPayload,
+} from "@/lib/lab/autoSource";
 import {
   sourcingBadgeTone,
   sourcingReasonMessage,
   sourcingStatusMessage,
 } from "@/lib/lab/sourcingMessages";
-import { MESSAGES } from "@/lib/i18n/messages";
+import { MESSAGES, type MessageKey } from "@/lib/i18n/messages";
+
+/**
+ * MESSAGES는 항목마다 리터럴 타입이 달라 `MESSAGES[key].es`가 유니온에서 깨진다
+ * (es가 실제로 없는 항목이 카탈로그에 있다). 사전 형태로 좁혀 읽고, **내가 추가한
+ * 키에 3언어가 다 있는지**를 이 테스트가 지킨다.
+ */
+const CATALOG = MESSAGES as Record<MessageKey, { ko: string; en: string; es?: string }>;
 
 function emptyDraft(): ContestantDraft {
   return { name: "", nationality: "", position: "", imageUrl: "", imageSearchKeyword: "" };
@@ -184,7 +195,7 @@ describe("runSourcingBatches", () => {
   const targets = Array.from({ length: 20 }, (_, i) => ({ index: i, name: `n${i}` }));
 
   it("배치를 순차 호출하며 진행률을 올린다", async () => {
-    const call: SourcingCall = vi.fn(async (payload) =>
+    const call: SourcingCall = vi.fn(async (payload: SourcingCallPayload) =>
       batchOf(payload.targets.map((t, i) => suggested(t.index, `v${t.index}${i}`.padEnd(11, "x")))),
     );
     const progress: number[] = [];
@@ -203,7 +214,7 @@ describe("runSourcingBatches", () => {
 
   it("앞 배치가 고른 영상을 다음 배치의 회피 목록에 실어 보낸다", async () => {
     const seen: string[][] = [];
-    const call: SourcingCall = vi.fn(async (payload) => {
+    const call: SourcingCall = vi.fn(async (payload: SourcingCallPayload) => {
       seen.push(payload.excludeVideoIds ?? []);
       return batchOf([suggested(payload.targets[0].index, "sharedvideo")]);
     });
@@ -219,7 +230,7 @@ describe("runSourcingBatches", () => {
   it("중간 실패는 앞선 결과를 버리지 않는다 (부분 결과 보존)", async () => {
     let call = 0;
     const applied: SourcingResult[] = [];
-    const failing: SourcingCall = vi.fn(async (payload) => {
+    const failing: SourcingCall = vi.fn(async (payload: SourcingCallPayload) => {
       call += 1;
       if (call === 2) throw Object.assign(new Error("quota"), { code: "resource-exhausted" });
       return batchOf(payload.targets.map((t) => suggested(t.index, `v${t.index}`.padEnd(11, "x"))));
@@ -283,14 +294,14 @@ describe("sourcingMessages — 3언어 커버리지", () => {
 
   it("모든 상태·사유에 ko/en/es 문구가 있다", () => {
     for (const status of statuses) {
-      const key = sourcingStatusMessage(status).key;
-      expect(MESSAGES[key]).toBeDefined();
-      expect(MESSAGES[key].ko && MESSAGES[key].en && MESSAGES[key].es).toBeTruthy();
+      const entry = CATALOG[sourcingStatusMessage(status).key];
+      expect(entry).toBeDefined();
+      expect(entry.ko && entry.en && entry.es).toBeTruthy();
     }
     for (const reason of reasons) {
       const msg = sourcingReasonMessage({ status: "manual", reason });
       expect(msg).not.toBeNull();
-      const entry = MESSAGES[msg!.key];
+      const entry = CATALOG[msg!.key];
       expect(entry.ko && entry.en && entry.es).toBeTruthy();
     }
   });
