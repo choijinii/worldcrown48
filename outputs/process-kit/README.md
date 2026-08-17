@@ -69,7 +69,7 @@
 1. **`CLAUDE.md` 작성** — `CLAUDE.md.skeleton` 복사 → 실행 AI에게 "이 표를 리포 실측으로 채워라"고 시킨다. **"없는 것" 블록이 이 문서의 핵심이다** — 문서에 있다고 적힌 라이브러리가 실제로 없으면 실행 AI가 그 함정에 그대로 빠진다.
 2. **테스트 기반선 green 확인** — 지금 상태에서 테스트가 전부 통과하는지. 킥은 여기에 "추가만" 한다.
 3. **가드 1개 CI 편입** — `guard/` 를 `scripts/guard/` 로 복사, 규칙 1개라도 넣고 `guard/ci.example.yml` 을 `.github/workflows/` 에 설치.
-4. **`predeploy-guard`** — `predeploy-guard.example.sh` 를 `scripts/` 로 복사, 배포 파이프라인 앞단(예: `firebase.json` 의 predeploy 훅, `package.json` 의 predeploy 스크립트)에 연결.
+4. **`predeploy-guard`** — `predeploy-guard.example.sh` 를 `scripts/` 로 복사, 배포 파이프라인 앞단(`package.json` 의 `predeploy` 스크립트, 배포 도구의 predeploy 훅, CI의 배포 스텝 직전)에 연결.
 5. **Secrets 경로 정하기** — API 키는 서버 금고에만. 리포·클라이언트 코드·채팅에 절대 노출 금지.
 6. **워크트리 관행** — 킥마다 `~/Projects/{{REPO}}-<킥코드>` 워크트리. 본 폴더는 항상 깨끗한 `{{MAIN_BRANCH}}`.
 7. **PR 템플릿 설치** — `PR_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`.
@@ -104,9 +104,9 @@ Auto-STOP이 2~3회 발동하는 정도의 크기. 하루 안에 프로덕션까
 | `{{TEST_CMD}}` | 단위 테스트 | `npm test` |
 | `{{BUILD_CMD}}` | 빌드 | `npm run build` |
 | `{{GUARD_CMD}}` | 가드 실행 | `npm run check:rules` |
-| `{{DEPLOY_CMD}}` | 배포 | `firebase deploy` |
+| `{{DEPLOY_CMD}}` | 배포 | `npm run deploy` |
 | `{{NODE_VERSION}}` | CI Node 버전 | `20` |
-| `{{KICK_CODE}}` | 킥 식별자 | `TOK-1` |
+| `{{KICK_CODE}}` | 킥 식별자 | `AUTH-1` |
 | `{{DATE}}` | 날짜 | `2026-08-16` |
 
 치환 후 남은 게 없는지 확인:

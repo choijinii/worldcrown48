@@ -10,9 +10,9 @@
 #   1. scripts/predeploy-guard.sh 로 복사하고 실행 권한: chmod +x scripts/predeploy-guard.sh
 #   2. 자리표시자 {{MAIN_BRANCH}} 를 채운다.
 #   3. 배포 파이프라인의 **맨 앞**에 연결한다:
-#      · package.json:  "predeploy": "bash scripts/predeploy-guard.sh"
-#      · firebase.json: functions/firestore 의 predeploy 훅 첫 줄
-#      · Makefile/CI:   배포 스텝 직전
+#      · package.json:   "predeploy": "bash scripts/predeploy-guard.sh"
+#      · 배포 도구의 훅: predeploy/prehook 목록의 첫 줄
+#      · Makefile / CI:  배포 스텝 직전
 #      실패(exit 1) 시 배포 단계가 중단되므로 옛 코드가 올라가지 않는다.
 #
 # ── 주의 ──

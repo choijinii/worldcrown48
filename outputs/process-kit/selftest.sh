@@ -247,6 +247,37 @@ validate_yaml "$KIT_DIR/guard/ci.example.yml" "치환 전 원본"
 validate_yaml "$YML" "자리표시자 치환 후"
 
 # ─────────────────────────────────────────────────────────────
+say "7. visual-diff 하네스"
+# ─────────────────────────────────────────────────────────────
+# CLI는 playwright를 import한다 — 킷 셀프테스트에 브라우저 의존성을 끌어들이지
+# 않기 위해, 여기서는 문법만 검사하고 순수 층은 실제로 돌린다.
+for f in compare-colors.example.mjs compare-colors.lib.example.mjs; do
+  OUTV="$(node --check "$KIT_DIR/harness/visual-diff/$f" 2>&1)"; CODEV=$?
+  [ "$CODEV" = "0" ] && ok "$f 문법 통과" || bad "$f 문법 오류" "$OUTV"
+done
+
+OUTL="$(node --input-type=module -e '
+  const m = await import(process.argv[1]);
+  const A = [{p:"body",color:"rgb(0, 0, 0)",boxShadow:"none"}];
+  const B = [{p:"body",color:"rgb(0, 0, 0)",boxShadow:"none"}];
+  const C = [{p:"body",color:"rgb(0, 0, 0)",boxShadow:"0 1px 2px rgb(0,0,0)"}];
+  const props = ["color","boxShadow"];
+  const same = m.diffSnapshots(A, B, props);
+  if (!same.comparable || same.diffs.length !== 0) throw new Error("같은 스냅샷인데 차이가 났다");
+  // 없던 그림자가 생기는 회귀 — 이 하네스의 존재 이유
+  const shadow = m.diffSnapshots(A, C, props);
+  if (shadow.diffs.length !== 1 || shadow.diffs[0].prop !== "boxShadow")
+    throw new Error("그림자 회귀를 못 잡았다: " + JSON.stringify(shadow));
+  // 구조가 어긋나면 비교 불가 = 실패로 센다 (통과가 아니다)
+  const mismatch = m.diffSnapshots(A, [...A, ...A], props);
+  if (mismatch.comparable) throw new Error("노드 수 불일치를 비교 가능으로 판정했다");
+  const t = m.summarise([{route:"/", ...mismatch}]);
+  if (t.ok) throw new Error("비교 불가가 있는데 ok=true");
+  console.log("diffSnapshots·summarise 4케이스 OK");
+' "$KIT_DIR/harness/visual-diff/compare-colors.lib.example.mjs" 2>&1)"; CODEL=$?
+[ "$CODEL" = "0" ] && ok "대조 로직 — $OUTL" || bad "대조 로직 실패" "$OUTL"
+
+# ─────────────────────────────────────────────────────────────
 say ""
 say "결과: ✅ $PASS · ❌ $FAIL · ⏭ $SKIP"
 [ "$FAIL" = "0" ] || exit 1
