@@ -31,8 +31,23 @@ const files = [
   "verdict.ts",
 ];
 
+/**
+ * LAB-EV-2 — 자동 소싱 코어는 `lib/embed/sourcing/`에 있고(R3 "새 로직은 여기에"),
+ * 상대 경로로 상위의 constants·killingPart·verdict를 참조한다. 그 구조를 그대로
+ * 미러링해야 functions 쪽에서도 `../constants`가 맞는다.
+ */
+const sourcingFiles = ["types.ts", "quota.ts", "searchQuery.ts", "relevance.ts", "pipeline.ts"];
+
 for (const file of files) {
   copyFileSync(join(libEmbed, file), join(dest, file));
 }
 
-console.log(`[copy-embed] mirrored lib/embed/{${files.length} files} → functions/src/_embed`);
+mkdirSync(join(dest, "sourcing"), { recursive: true });
+for (const file of sourcingFiles) {
+  copyFileSync(join(libEmbed, "sourcing", file), join(dest, "sourcing", file));
+}
+
+console.log(
+  `[copy-embed] mirrored lib/embed/{${files.length} files} + sourcing/{${sourcingFiles.length} files}` +
+    ` → functions/src/_embed`,
+);
