@@ -11,6 +11,12 @@
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 import { useT } from "@/lib/i18n/useT";
+import type { SlotSourcingState } from "@/lib/lab/sourcingDraft";
+import {
+  sourcingBadgeTone,
+  sourcingReasonMessage,
+  sourcingStatusMessage,
+} from "@/lib/lab/sourcingMessages";
 import { lab } from "./theme";
 
 interface ContestantEditorProps {
@@ -19,7 +25,20 @@ interface ContestantEditorProps {
   onChange: (index: number, patch: Partial<ContestantDraft>) => void;
   /** LAB-EV-1: 영상이 붙은 슬롯의 미세조정 열기. 없으면 버튼을 숨긴다. */
   onTune?: (index: number) => void;
+  /** LAB-EV-2: 자동 소싱 결과 배지(제안·수동 필요·실존 의심). 없으면 안 그린다. */
+  sourcing?: SlotSourcingState;
+  /** LAB-EV-2: 이 슬롯만 캐시 우회 재검색. 소싱을 돌린 적 있을 때만 넘어온다. */
+  onRefreshVideo?: (index: number) => void;
+  /** 이 슬롯이 재검색 중. */
+  refreshing?: boolean;
 }
+
+/** 팔레트에 초록이 없다 — 검수기(LAB-EV-1)와 같은 색 역할을 쓴다. */
+const TONE_COLOR = {
+  ok: lab.turquoise,
+  danger: lab.crimson,
+  warn: lab.gold,
+} as const;
 
 const fieldStyle: React.CSSProperties = {
   width: "100%",
@@ -38,6 +57,9 @@ export function ContestantEditor({
   contestant,
   onChange,
   onTune,
+  sourcing,
+  onRefreshVideo,
+  refreshing = false,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const n = index + 1;
@@ -191,6 +213,59 @@ export function ContestantEditor({
         >
           🔎 {contestant.imageSearchKeyword}
         </span>
+      )}
+
+      {/* LAB-EV-2 — 소싱 결과. "왜 안 됐는지"가 칸 안에 남아야 운영자가 조치한다. */}
+      {sourcing && (
+        <div
+          data-testid={`contestant-sourcing-${index}`}
+          data-sourcing-status={sourcing.status}
+          style={{ marginTop: 6, display: "grid", gap: 3 }}
+        >
+          <span
+            style={{
+              justifySelf: "start",
+              padding: "1px 6px",
+              borderRadius: 999,
+              border: `1px solid ${TONE_COLOR[sourcingBadgeTone(sourcing.status)]}`,
+              color: TONE_COLOR[sourcingBadgeTone(sourcing.status)],
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {t(sourcingStatusMessage(sourcing.status).key)}
+          </span>
+          {(() => {
+            const reason = sourcingReasonMessage(sourcing);
+            return reason ? (
+              <span style={{ fontSize: 9, color: lab.textMuted, lineHeight: 1.4 }}>
+                {t(reason.key)}
+              </span>
+            ) : null;
+          })()}
+          {onRefreshVideo && (
+            <button
+              type="button"
+              onClick={() => onRefreshVideo(index)}
+              disabled={refreshing}
+              data-testid={`contestant-refresh-${index}`}
+              style={{
+                justifySelf: "start",
+                padding: "2px 7px",
+                borderRadius: 999,
+                border: `1px solid ${lab.border}`,
+                background: "transparent",
+                color: lab.textSub,
+                fontSize: 9,
+                fontFamily: lab.font,
+                cursor: refreshing ? "not-allowed" : "pointer",
+              }}
+            >
+              {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

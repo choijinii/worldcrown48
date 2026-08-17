@@ -20,7 +20,7 @@ import {
   AI_ERROR_CODES,
   aiUsageDocId,
   decideAiCall,
-  resolveAiDailyLimit,
+  resolveAiDailyLimitFor,
   type AiCallKind,
 } from "./core/aiDailyLimit";
 
@@ -31,7 +31,7 @@ export const AI_USAGE_COLLECTION = "ai_usage";
  * (details.code = 'ai_daily_limit' — 클라이언트 i18n 계약)
  */
 export async function consumeAiDailyQuota(kind: AiCallKind): Promise<void> {
-  const limit = resolveAiDailyLimit(process.env.AI_DAILY_LIMIT);
+  const limit = resolveAiDailyLimitFor(kind, process.env.AI_DAILY_LIMIT);
   const ref = adminDb
     .collection(AI_USAGE_COLLECTION)
     .doc(aiUsageDocId(kstDate()));

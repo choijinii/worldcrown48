@@ -581,6 +581,110 @@ export const MESSAGES = {
     es: "Este video no puede reproducirse aquí. Reemplaza el enlace.",
   },
 
+  // ── LAB-EV-2 자동 영상 소싱 (STEP 2) ───────────────────────────────────
+  "lab.source.open": {
+    ko: "🔍 영상 자동 소싱",
+    en: "🔍 Auto-source videos",
+    es: "🔍 Buscar videos automáticamente",
+  },
+  "lab.source.busy": {
+    ko: "소싱 중… {done}/{total}",
+    en: "Sourcing… {done}/{total}",
+    es: "Buscando… {done}/{total}",
+  },
+  "lab.source.hint": {
+    ko: "이름과 검색어 힌트로 유튜브를 찾아 검수한 뒤 슬롯에 제안합니다. 생성은 직접 누르세요.",
+    en: "Finds and inspects YouTube videos from each name, then proposes them per slot. You still press Create.",
+    es: "Busca e inspecciona videos de YouTube por nombre y los propone en cada espacio. Tú pulsas Crear.",
+  },
+  "lab.source.noTargets": {
+    ko: "이름이 채워진 칸이 없습니다. 먼저 후보를 채워주세요.",
+    en: "No named slots yet. Fill in contestants first.",
+    es: "Aún no hay espacios con nombre. Rellena los contestants primero.",
+  },
+  "lab.source.confirm.title": {
+    ko: "영상 자동 소싱을 시작할까요?",
+    en: "Start auto-sourcing videos?",
+    es: "¿Iniciar la búsqueda automática de videos?",
+  },
+  "lab.source.confirm.slots": {
+    ko: "대상 {n}칸 (캐시 적중 {cached}칸은 검색 없이 처리)",
+    en: "{n} slots ({cached} already cached — no search needed)",
+    es: "{n} espacios ({cached} en caché — sin búsqueda)",
+  },
+  "lab.source.confirm.quota": {
+    ko: "예상 검색 {searches}회 · 오늘 남은 검색 {remaining}회 (태평양시 자정 초기화)",
+    en: "~{searches} searches · {remaining} left today (resets midnight PT)",
+    es: "~{searches} búsquedas · quedan {remaining} hoy (se reinicia a medianoche PT)",
+  },
+  "lab.source.confirm.run": { ko: "소싱 시작", en: "Start sourcing", es: "Empezar" },
+  "lab.source.confirm.cancel": { ko: "취소", en: "Cancel", es: "Cancelar" },
+  "lab.source.confirm.loading": {
+    ko: "사용량 확인 중…",
+    en: "Checking quota…",
+    es: "Comprobando cuota…",
+  },
+  "lab.source.done": {
+    ko: "✓ 제안 {suggested} · 수동 필요 {manual} · 실존 의심 {unknown} (검색 {searches}회)",
+    en: "✓ {suggested} proposed · {manual} need manual · {unknown} unverified ({searches} searches)",
+    es: "✓ {suggested} propuestos · {manual} manuales · {unknown} sin verificar ({searches} búsquedas)",
+  },
+  "lab.source.stopped": {
+    ko: "{remaining}칸을 남기고 중단됐습니다. 지금까지의 결과는 그대로 있습니다.",
+    en: "Stopped with {remaining} slots left. Everything sourced so far is kept.",
+    es: "Se detuvo con {remaining} espacios pendientes. Lo ya obtenido se conserva.",
+  },
+  "lab.source.error.permission": {
+    ko: "운영자 권한이 필요합니다.",
+    en: "Operator permission required.",
+    es: "Se requiere permiso de operador.",
+  },
+  "lab.source.error.quota": {
+    ko: "오늘 남은 유튜브 검색 횟수가 부족합니다. 태평양시 자정에 초기화됩니다.",
+    en: "Not enough YouTube search quota left today. It resets at midnight PT.",
+    es: "No queda cuota de búsqueda de YouTube hoy. Se reinicia a medianoche PT.",
+  },
+  "lab.source.error.failed": {
+    ko: "영상 소싱에 실패했습니다. 다시 시도해주세요.",
+    en: "Video sourcing failed. Please try again.",
+    es: "La búsqueda de videos falló. Inténtalo de nuevo.",
+  },
+  "lab.source.badge.suggested": { ko: "제안", en: "Proposed", es: "Propuesto" },
+  "lab.source.badge.manual": { ko: "수동 필요", en: "Needs manual", es: "Manual" },
+  "lab.source.badge.unknown": { ko: "실존 의심", en: "Unverified", es: "Sin verificar" },
+  "lab.source.reason.noResults": {
+    ko: "검색 결과 0건 — 실존하지 않는 인물일 수 있습니다",
+    en: "No search results — this person may not exist",
+    es: "Sin resultados — puede que esta persona no exista",
+  },
+  "lab.source.reason.allBlocked": {
+    ko: "후보 영상이 모두 재생 불가(임베드 차단·비공개)",
+    en: "Every candidate is blocked (not embeddable or private)",
+    es: "Todos los candidatos están bloqueados (no incrustables o privados)",
+  },
+  "lab.source.reason.notRelevant": {
+    ko: "이 후보의 영상으로 볼 만한 결과가 없습니다",
+    en: "No result looked like this contestant's video",
+    es: "Ningún resultado parecía el video de este contestant",
+  },
+  "lab.source.reason.allDuplicate": {
+    ko: "후보 영상이 이미 다른 칸에 쓰였습니다",
+    en: "Every candidate is already used in another slot",
+    es: "Todos los candidatos ya se usan en otro espacio",
+  },
+  "lab.source.reason.searchFailed": {
+    ko: "검색에 실패했습니다 — 이 칸만 다시 시도해주세요",
+    en: "Search failed — retry this slot",
+    es: "La búsqueda falló — reintenta este espacio",
+  },
+  "lab.source.refresh": { ko: "새 영상 찾기", en: "Find another", es: "Buscar otro" },
+  "lab.source.refreshing": { ko: "찾는 중…", en: "Searching…", es: "Buscando…" },
+  "lab.source.refreshEmpty": {
+    ko: "다른 후보를 찾지 못했습니다.",
+    en: "No other candidate found.",
+    es: "No se encontró otro candidato.",
+  },
+
   // ── ND-1 News Desk (Domain: /news + /admin/newsdesk) ───────────────────
   "newsdesk.error.dailyLimit": {
     ko: "오늘 생성 한도(20건)를 모두 사용했어요. 내일 다시 시도해주세요.",

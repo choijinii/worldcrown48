@@ -184,3 +184,7 @@ export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 
 export { validateYouTubeLinks } from "./validateYouTubeLinks"; // 링크 일괄 검증 (≤50/콜)
 export { recommendKillingPart } from "./recommendKillingPart"; // 킬링파트 추천 3층
 export { scheduleEmbedRecheck } from "./scheduleEmbedRecheck"; // 월 05:00 KST 주간 재검증
+
+// LAB-EV-2 자동 영상 소싱 — 이름 → 검색 → 검수(LAB-EV-1 재사용) → 슬롯 "제안".
+// 토너먼트 생성은 사람이 누른다(R6 — 자동 발행 0건).
+export { autoSourceVideos, refreshSlotVideo } from "./autoSourceVideos";

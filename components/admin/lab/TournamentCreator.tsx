@@ -40,10 +40,21 @@ import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import { applyVideoAssignments, clearVideo, retimeDraft } from "@/lib/lab/videoDraft";
+import {
+  applySourcingResults,
+  collectExcludedVideoIds,
+  toSourcingStates,
+  type SourcingStates,
+} from "@/lib/lab/sourcingDraft";
+import { refreshSlotVideo } from "@/lib/lab/autoSource";
+import { inspectErrorCode } from "@/lib/lab/inspectYouTube";
+import { sourcingErrorMessage } from "@/lib/lab/sourcingMessages";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkVerdict } from "@/lib/embed/verdict";
+import type { SourcingBatchSummary } from "@/lib/embed/sourcing/types";
 import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
+import { AutoSourceBar } from "./AutoSourceBar";
 import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
 import { SlotVideoTuner } from "./SlotVideoTuner";
 import { TitleInput } from "./TitleInput";
@@ -106,6 +117,9 @@ export function TournamentCreator(): JSX.Element {
   // LAB-EV-1: 검수기 모달 + 슬롯 미세조정(열린 슬롯 index, 닫힘이면 null).
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [tuningIndex, setTuningIndex] = useState<number | null>(null);
+  // LAB-EV-2: 슬롯별 소싱 배지(제안·수동 필요·실존 의심). 화면 전용 — 발행되지 않는다.
+  const [sourcingStates, setSourcingStates] = useState<SourcingStates>({});
+  const [refreshingIndex, setRefreshingIndex] = useState<number | null>(null);
 
   // TX-0: categories are DATA — fetch the `categories` collection once (module
   // cached) and drive the dropdown + the data-driven validation from it.
@@ -245,6 +259,54 @@ export function TournamentCreator(): JSX.Element {
     );
   }
 
+  /**
+   * LAB-EV-2 — 소싱 배치 1회분을 그리드에 얹는다. 배치마다 즉시 반영해야 중간에
+   * 쿼터가 끊겨도 앞선 배치의 결과가 남는다(runSourcingBatches의 부분 결과 계약).
+   */
+  function applySourcingBatch(batch: SourcingBatchSummary) {
+    setContestants(
+      (prev) =>
+        applySourcingResults(prev, batch.results, TOTAL_CONTESTANTS, emptyDraft).drafts,
+    );
+    setSourcingStates((states) => ({ ...states, ...toSourcingStates(batch.results) }));
+  }
+
+  /** 슬롯 1개 캐시 우회 재검색 — 제안된 영상이 마음에 안 들 때(DoD). */
+  async function refreshSlot(index: number) {
+    if (refreshingIndex !== null) return;
+    const draft = contestants[index];
+    const name = (draft?.name ?? "").trim();
+    if (!name) return;
+
+    setRefreshingIndex(index);
+    try {
+      const hint = (draft.imageSearchKeyword ?? "").trim();
+      const batch = await refreshSlotVideo({
+        targets: [hint ? { index, name, searchHint: hint } : { index, name }],
+        categoryKeywords: keywords,
+        // 지금 붙어 있는 영상도 회피 목록에 넣는다 — 안 그러면 같은 걸 다시 준다.
+        excludeVideoIds: [
+          ...collectExcludedVideoIds(contestants, [index]),
+          ...(draft.videoId ? [draft.videoId] : []),
+        ],
+      });
+      applySourcingBatch(batch);
+      if (batch.results[0]?.status !== "suggested") {
+        showToast(t("lab.source.refreshEmpty"), "info");
+      }
+      void track("admin_lab_source_refresh", {
+        status: batch.results[0]?.status ?? "unknown",
+        search_calls: batch.spent.searchCalls,
+      });
+    } catch (err) {
+      const code = inspectErrorCode(err);
+      showToast(t(sourcingErrorMessage(code).key), "error");
+      void track("admin_lab_source_refresh_error", { error_code: code });
+    } finally {
+      setRefreshingIndex(null);
+    }
+  }
+
   function retimeSlot(index: number, startSec: number, durationSec: number | null) {
     setContestants((prev) => {
       const next = [...prev];
@@ -325,6 +387,7 @@ export function TournamentCreator(): JSX.Element {
       setKeywords([]);
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
       setContestants([]);
+      setSourcingStates({});
       setListRefresh((n) => n + 1);
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
@@ -466,11 +529,22 @@ export function TournamentCreator(): JSX.Element {
             >
               {t("lab.embed.open")}
             </button>
+            {/* LAB-EV-2 — 손으로 링크를 붙이는 검수기 옆에 자동 소싱을 둔다.
+                둘 다 같은 검증(LAB-EV-1)을 통과한 영상만 슬롯에 넣는다. */}
+            <AutoSourceBar
+              contestants={contestants}
+              keywords={keywords}
+              onBatch={applySourcingBatch}
+              disabled={filling || publishing}
+            />
           </div>
           <ContestantGrid
             contestants={contestants}
             onChange={updateContestant}
             onTune={setTuningIndex}
+            sourcing={sourcingStates}
+            onRefreshVideo={(index) => void refreshSlot(index)}
+            refreshingIndex={refreshingIndex}
           />
         </div>
       )}

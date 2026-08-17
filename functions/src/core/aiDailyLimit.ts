@@ -37,7 +37,29 @@ export type AiErrorCode = (typeof AI_ERROR_CODES)[keyof typeof AI_ERROR_CODES];
  * 일부러 분리해 둔 이유("keyword + fill quotas don't starve each other",
  * aiSuggestKeywords.ts)와 같은 근거로 종류별 필드로 나눈다. 문서 1개/일은 유지.
  */
-export type AiCallKind = "aiFillContestants" | "aiSuggestKeywords";
+export type AiCallKind =
+  | "aiFillContestants"
+  | "aiSuggestKeywords"
+  /** LAB-EV-2 §5 B — 영상 자동 소싱 배치(≤8명). 콜 **횟수** 캡이다. */
+  | "autoSourceVideos"
+  /** LAB-EV-2 — 슬롯 1개 캐시 우회 재검색. */
+  | "refreshSlotVideo";
+
+/**
+ * 종류별 기본 상한 (LAB-EV-2 §5 B "예 20/일").
+ *
+ * 여기 항목이 있으면 `AI_DAILY_LIMIT` 환경변수보다 **우선**한다. 소싱은 편집기 AI와
+ * 성격이 다르기 때문이다: 값싼 Haiku 판정 1콜을 쓰지만 그 뒤에 YouTube search 콜이
+ * 붙고, search 버킷은 하루 100콜뿐이다(sourcing/quota.ts). 공통 상한 50을 그대로
+ * 물려주면 이 캡이 아무것도 막지 않는 장식이 된다.
+ *
+ * 48명 = 6배치. 20이면 하루 3회 풀 실행 + 여유 — search 버킷(하루 2개 토너먼트)이
+ * 먼저 걸리도록 일부러 그보다 헐겁게 잡았다. 이 캡은 폭주 방어이지 주 가드가 아니다.
+ */
+export const AI_DAILY_LIMIT_BY_KIND: Partial<Record<AiCallKind, number>> = {
+  autoSourceVideos: 20,
+  refreshSlotVideo: 30,
+};
 
 export type AiCallDecision = { status: "allowed" } | { status: "limit_reached" };
 
@@ -63,6 +85,18 @@ export function resolveAiDailyLimit(
   const n = Number(raw);
   if (!Number.isInteger(n) || n <= 0) return fallback;
   return n;
+}
+
+/**
+ * 종류별 실효 상한. 종류별 기본값이 있으면 그것이 이기고, 없으면 기존처럼
+ * `AI_DAILY_LIMIT` 환경변수(없으면 공통 기본)를 쓴다 — 기존 두 종류는 무영향.
+ */
+export function resolveAiDailyLimitFor(
+  kind: AiCallKind,
+  raw: string | undefined | null,
+): number {
+  const perKind = AI_DAILY_LIMIT_BY_KIND[kind];
+  return perKind !== undefined ? perKind : resolveAiDailyLimit(raw);
 }
 
 /** 오늘 이미 countToday번 썼을 때 다음 호출을 허용할지. */
