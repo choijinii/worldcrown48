@@ -1,0 +1,49 @@
+{
+  "$comment": "규칙 가드 설정 예시. rules.json 으로 복사해 자기 규칙으로 바꾼다. 규칙은 '리뷰로 매번 잡을 수 없는 불변식'만 넣는다 — 취향은 린터로, 불변식은 여기로.",
+
+  "scan": {
+    "$comment": "전역 스캔 범위. excludePrefixes 는 리포 루트 기준 접두사이며, 트리째 건너뛴다. 에이전트/도구가 만드는 워크트리 폴더를 반드시 넣는다 — 리포 자신의 옛 사본이라 이미 고친 파일의 과거 버전이 위반으로 다시 잡힌다.",
+    "extensions": [".ts", ".tsx", ".js", ".jsx", ".css"],
+    "excludePrefixes": [
+      "docs/",
+      "public/",
+      "outputs/",
+      "node_modules/",
+      "dist/",
+      "build/",
+      ".next/",
+      "coverage/",
+      ".claude/"
+    ]
+  },
+
+  "rules": [
+    {
+      "id": "no-raw-colour-literal",
+      "$comment": "값의 단일 소스 원칙. 컴포넌트는 토큰 이름을 들고, 값 자체는 한 파일에만 산다. 3·4·6·8자리만 색이다 — 길이 대안을 긴 것부터 쓰고 \\b 를 붙여야 5·7자리 문자열(#added 같은 것)이 오탐되지 않는다. 남는 오탐 하나: 주석의 이슈 참조 `#123` 은 3자리 hex와 구별되지 않는다. 3자리 대안을 빼거나 그 줄을 allowlist에 넣는다.",
+      "pattern": "#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\\b",
+      "flags": "g",
+      "extensions": [".tsx", ".jsx", ".css"],
+      "exemptFiles": ["src/styles/tokens.css"],
+      "message": "색 값은 src/styles/tokens.css 에만. 컴포넌트에서는 var(--…) 토큰을 쓰세요."
+    },
+    {
+      "id": "no-todo-without-owner",
+      "$comment": "두 번째 규칙은 '규칙이 여러 개일 때 어떻게 보이는지' 보여주려고 넣었다. 주인 없는 TODO는 아무도 안 고친다.",
+      "pattern": "TODO(?!\\()",
+      "flags": "g",
+      "extensions": [".ts", ".tsx", ".js", ".jsx"],
+      "message": "TODO 에는 주인을 답니다: TODO(이름, 언제까지 또는 이슈번호)."
+    }
+  ],
+
+  "$allowlistExample": {
+    "$comment": "allowlist 항목의 모양. 예외는 rule+file+match 3종 세트로 좁게 등록한다 — 파일 전체 면제는 무관한 새 위반까지 통과시킨다. reason 은 필수: 사유 없는 예외는 6개월 뒤 아무도 못 지운다. 실제 항목은 아래 allowlist 배열에 넣는다.",
+    "rule": "no-raw-colour-literal",
+    "file": "src/components/SignInButton.tsx",
+    "match": "#4285F4",
+    "reason": "서드파티 브랜드 팔레트 — 우리 테마를 따라 변하면 안 되는 값"
+  },
+
+  "allowlist": []
+}
