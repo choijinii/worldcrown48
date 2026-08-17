@@ -70,6 +70,27 @@ export function chunkTargets(targets: SourcingTarget[], size: number): SourcingT
 }
 
 /**
+ * 배지를 떼어낸 새 상태.
+ *
+ * 배지는 "이 칸의 **이 인물**에 대해 소싱이 이렇게 끝났다"는 말이다. 칸의 내용이
+ * 바뀌면(AI 재채우기·카드 비우기·영상 빼기) 그 말은 즉시 거짓이 된다 — 인물이
+ * 교체됐는데 "제안"이 남아 있으면 운영자는 있지도 않은 영상을 믿는다.
+ */
+export function dropSourcingStates(
+  states: SourcingStates,
+  indexes: readonly number[],
+): SourcingStates {
+  if (indexes.length === 0) return states;
+  const drop = new Set(indexes);
+  const next: SourcingStates = {};
+  for (const key of Object.keys(states)) {
+    const index = Number(key);
+    if (!drop.has(index)) next[index] = states[index];
+  }
+  return next;
+}
+
+/**
  * 결과 → 배지 상태만. 그리드 주입(아래)과 분리해 둔 건 React state 두 개를 각자의
  * updater 안에서 갱신하기 위해서다 — 한 updater 안에서 다른 setState를 부르면
  * StrictMode의 이중 호출에 얹혀 간다.

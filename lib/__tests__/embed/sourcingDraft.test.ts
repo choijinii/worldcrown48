@@ -19,6 +19,7 @@ import {
   buildSourcingTargets,
   chunkTargets,
   collectExcludedVideoIds,
+  dropSourcingStates,
   EMPTY_TALLY,
   toSourcingStates,
 } from "@/lib/lab/sourcingDraft";
@@ -182,6 +183,19 @@ describe("applySourcingResults", () => {
     );
     expect(next).toHaveLength(TOTAL_CONTESTANTS);
     expect(next.some((d) => d.videoId)).toBe(false);
+  });
+
+  it("배지는 칸 내용이 바뀌면 떨어진다 (배지가 거짓말하면 안 된다)", () => {
+    const states = toSourcingStates([
+      suggested(0, "aaaaaaaaaaa"),
+      { index: 1, status: "manual", reason: "all-blocked", attempted: 3, cacheHit: false, ambiguous: 0 },
+      { index: 2, status: "unknown-person", reason: "no-results", attempted: 0, cacheHit: false, ambiguous: 0 },
+    ]);
+    expect(Object.keys(dropSourcingStates(states, [0, 2]))).toEqual(["1"]);
+    // 아무것도 안 지우면 같은 참조를 그대로 돌려준다(불필요한 리렌더 방지).
+    expect(dropSourcingStates(states, [])).toBe(states);
+    // 없는 index를 지워도 안전하다.
+    expect(Object.keys(dropSourcingStates(states, [99]))).toHaveLength(3);
   });
 
   it("제안에는 사유가 없다", () => {
