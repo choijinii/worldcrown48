@@ -99,6 +99,8 @@ interface Plan {
   /** 규칙 통과 + AI 통과 후보를 검색 순서대로 (최대 CANDIDATE_ATTEMPTS). */
   attempts: SearchCandidate[];
   ambiguous: number;
+  /** videoId → 감점을 부른 부정 키워드 (AI-2). 배정된 영상 것만 결과에 실린다. */
+  demoted: Map<string, string[]>;
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -140,6 +142,7 @@ export async function sourceBatch(
     cacheHit: false,
     attempts: [],
     ambiguous: 0,
+    demoted: new Map<string, string[]>(),
   }));
   for (const plan of plans) {
     plan.cacheKey = plan.query ? searchCacheKey(plan.query) : "";
@@ -204,19 +207,31 @@ export async function sourceBatch(
     const relevant: SearchCandidate[] = [];
     const maybe: SearchCandidate[] = [];
 
+    // AI-2: 후보를 전부 채점한다(순수 계산 · API 0콜 · 최대 SEARCH_MAX_RESULTS건).
+    // 예전엔 통과 후보 3개를 채우면 끊었다 — 그러면 앞 3개가 전부 논란 영상일 때
+    // 뒤에 있는 정상 무대를 아예 못 본다. 감점이 순위를 바꾸려면 다 봐야 한다.
     for (const candidate of fresh) {
-      if (relevant.length >= CANDIDATE_ATTEMPTS) break;
-      const { verdict } = judgeRelevance(candidate, plan.target);
+      const { verdict, demotedTerms } = judgeRelevance(candidate, plan.target);
+      if (demotedTerms.length > 0) plan.demoted.set(candidate.videoId, demotedTerms);
       if (verdict === "relevant") relevant.push(candidate);
-      else if (verdict === "ambiguous" && maybe.length < CANDIDATE_ATTEMPTS) {
-        maybe.push(candidate);
-      }
+      else if (verdict === "ambiguous") maybe.push(candidate);
     }
 
-    plan.attempts = relevant;
+    // 감점된 후보는 **뒤로**. 점수 전체로 정렬하지 않는 건 유튜브의 관련성 순서가
+    // 그 자체로 정보이기 때문이다 — 감점분만 뒤로 미는 안정 분할이면 나머지 순서는
+    // 그대로다. 감점 점수는 relevant/ambiguous 경계를 가르는 쪽에서 이미 일한다.
+    const cleanFirst = (list: SearchCandidate[]): SearchCandidate[] => [
+      ...list.filter((c) => !plan.demoted.has(c.videoId)),
+      ...list.filter((c) => plan.demoted.has(c.videoId)),
+    ];
+
+    plan.attempts = cleanFirst(relevant).slice(0, CANDIDATE_ATTEMPTS);
+    const maybeTop = cleanFirst(maybe).slice(0, CANDIDATE_ATTEMPTS);
+    maybe.length = 0;
+    maybe.push(...maybeTop);
     plan.ambiguous = maybe.length;
     // 규칙 통과분만으로 3후보가 안 차면 애매한 것들을 모델에 묻는다.
-    if (relevant.length < CANDIDATE_ATTEMPTS && maybe.length > 0) {
+    if (plan.attempts.length < CANDIDATE_ATTEMPTS && maybe.length > 0) {
       ambiguousByPlan.set(plan, maybe);
       for (const c of maybe) {
         ambiguousItems.push({
@@ -283,10 +298,12 @@ export async function sourceBatch(
       if (!verdict || verdict.status === "blocked") continue;
 
       used.add(candidate.videoId);
+      const demotedTerms = plan.demoted.get(candidate.videoId);
       return {
         index: target.index,
         status: "suggested",
         verdict,
+        ...(demotedTerms && demotedTerms.length > 0 ? { demotedTerms } : {}),
         // 정밀 킬링파트는 슬롯 미세조정에서 1클릭(LAB-EV-1 W2) — 여기서 48번 더
         // 부르면 commentThreads가 48유닛·48콜이고 60s 예산도 위태롭다.
         startSec: heuristicStartSec(verdict.durationSec),

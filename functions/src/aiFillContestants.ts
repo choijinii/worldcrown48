@@ -116,7 +116,12 @@ export const aiFillContestants = onCall(
           keywords: req.data?.keywords,
           existing: req.data?.existing,
         },
-        { createMessage, logError: (msg, e) => logger.error(msg, e) },
+        {
+          createMessage,
+          logError: (msg, e) => logger.error(msg, e),
+          // AI-2: 검증기가 버린 항목 요약. 오탐이 프로덕션에서만 드러날 때 여기가 창이다.
+          logInfo: (msg) => logger.info(msg),
+        },
       );
       return { contestants };
     } catch (e) {

@@ -31,6 +31,11 @@ import {
   buildRelevancePrompt,
   hasChannelHint,
   judgeRelevance,
+  findNegativeTerms,
+  NEGATIVE_PENALTY,
+  PENALTY_FLOOR,
+  THRESHOLD_IRRELEVANT,
+  THRESHOLD_RELEVANT,
   parseRelevanceResponse,
 } from "@/lib/embed/sourcing/relevance";
 import { sourceBatch, type SourcingDeps } from "@/lib/embed/sourcing/pipeline";
@@ -266,6 +271,62 @@ describe("relevance — 규칙 판정", () => {
     expect(r.verdict).toBe("ambiguous");
   });
 
+  /**
+   * AI-2 (2026-08-18) — 부정 키워드 감점.
+   * "이 인물의 영상인가"는 예인데 "대회 카드에 걸 영상인가"는 아닌 것들을 뒤로 민다.
+   */
+  it("논란·해명 영상은 감점돼 정상 무대보다 뒤로 밀린다", () => {
+    const clean = judgeRelevance(
+      { title: "BLACKPINK JISOO Solo Stage", channelTitle: "Some Fan Channel" },
+      JISOO,
+    );
+    const demoted = judgeRelevance(
+      { title: "BLACKPINK JISOO 학폭 논란 해명 영상", channelTitle: "Some Fan Channel" },
+      JISOO,
+    );
+    expect(demoted.demotedTerms).toContain("논란");
+    expect(demoted.score).toBeLessThan(clean.score);
+    expect(clean.demotedTerms).toEqual([]);
+  });
+
+  it("감점은 제외가 아니다 — 통과선을 넘던 후보는 irrelevant로 안 떨어진다", () => {
+    const demoted = judgeRelevance(
+      { title: "JISOO 탈퇴 해명", channelTitle: "Random Uploads" },
+      JISOO,
+    );
+    expect(demoted.verdict).not.toBe("irrelevant");
+    expect(demoted.score).toBeGreaterThan(THRESHOLD_IRRELEVANT);
+    expect(demoted.score).toBeGreaterThanOrEqual(PENALTY_FLOOR);
+  });
+
+  it("원래 무관한 영상은 감점이 있어도 그대로 무관이다", () => {
+    const r = judgeRelevance(
+      { title: "오늘의 연예계 논란 정리", channelTitle: "Gossip Daily" },
+      JISOO,
+    );
+    expect(r.verdict).toBe("irrelevant");
+  });
+
+  it("감점 폭은 만점 이름 일치를 딱 ambiguous까지만 내린다", () => {
+    // 더 키우면 정상 무대까지 밀려난다(§6 Auto-STOP — 감점 폭 조정 조건).
+    expect(THRESHOLD_RELEVANT - NEGATIVE_PENALTY).toBeGreaterThan(THRESHOLD_IRRELEVANT);
+  });
+
+  it("영어 부정 키워드도 잡는다", () => {
+    expect(findNegativeTerms("JISOO apology statement")).toContain("apology");
+    expect(findNegativeTerms("BTS Jin scandal explained")).toContain("scandal");
+  });
+
+  it("정상 무대 제목에는 감점이 없다", () => {
+    for (const title of [
+      "BLACKPINK JISOO - FLOWER Stage",
+      "NMIXX Sullyoon fancam",
+      "임영웅 무대 모음",
+    ]) {
+      expect(findNegativeTerms(title)).toEqual([]);
+    }
+  });
+
   it("공식·방송사 채널 힌트를 부분일치로 잡는다", () => {
     expect(hasChannelHint("Mnet K-POP")).toBe(true);
     expect(hasChannelHint("KBS WORLD TV")).toBe(true);
@@ -316,6 +377,36 @@ describe("sourceBatch", () => {
     expect(out.results[0].verdict?.videoId).toBe("vid00000001");
     expect(out.results[0].startSec).toBeGreaterThanOrEqual(0);
     expect(out.spent).toEqual({ searchCalls: 1, units: 2 }); // search 1 + videos.list 1
+  });
+
+  // AI-2: 감점이 순위에 실제로 먹히는지 — 규칙 단위 테스트가 아니라 배정 결과로.
+  it("정상 무대가 있으면 논란 영상보다 먼저 배정된다 (감점의 목적)", async () => {
+    const deps = makeDeps({
+      search: vi.fn(async () => [
+        candidate(1, { title: "BLACKPINK JISOO 학폭 논란 해명", channelTitle: "Gossip" }),
+        candidate(2), // 정상 무대
+      ]),
+    });
+    const out = await sourceBatch({ targets: [JISOO], nowMs: 1 }, deps);
+    expect(out.results[0].verdict?.videoId).toBe("vid00000002");
+    expect(out.results[0].demotedTerms).toBeUndefined();
+  });
+
+  it("논란 영상뿐이면 제외하지 않고 얹되 감점 사유를 실어 보낸다", async () => {
+    const deps = makeDeps({
+      search: vi.fn(async () => [
+        candidate(1, { title: "BLACKPINK JISOO 탈퇴 해명 영상", channelTitle: "Gossip" }),
+      ]),
+      // 규칙이 못 가르면(감점으로 ambiguous) 모델이 "그 인물 맞다"고 답하는 경로.
+      judgeAmbiguous: vi.fn(async (items) => {
+        const m = new Map<string, boolean>();
+        for (const it of items) m.set(it.key, true);
+        return m;
+      }),
+    });
+    const out = await sourceBatch({ targets: [JISOO], nowMs: 1 }, deps);
+    expect(out.results[0].status).toBe("suggested");
+    expect(out.results[0].demotedTerms).toEqual(expect.arrayContaining(["탈퇴"]));
   });
 
   it("캐시 적중이면 search.list를 아예 안 부른다 (유닛 ≈0)", async () => {

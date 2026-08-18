@@ -50,6 +50,16 @@ export function sourcingErrorMessage(code: InspectErrorCode): Message {
 }
 
 /**
+ * 감점 툴팁 (AI-2). 감점된 영상이 실제로 슬롯에 얹혔을 때만 문구가 나온다 —
+ * 감점만 되고 다른 영상이 들어갔으면 운영자가 알 필요가 없다.
+ */
+export function sourcingDemotedMessage(state: SlotSourcingState): Message | null {
+  const terms = state.demotedTerms ?? [];
+  if (terms.length === 0) return null;
+  return { key: "lab.source.demoted", vars: { terms: terms.join(", ") } };
+}
+
+/**
  * 배지 색 역할 — 팔레트에 초록이 없다(LAB-EV-1 검수기와 같은 언어).
  *   제안 = turquoise · 수동 필요 = crimson · 실존 의심 = gold(경고)
  */

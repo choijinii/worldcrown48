@@ -677,6 +677,12 @@ export const MESSAGES = {
     en: "Search failed — retry this slot",
     es: "La búsqueda falló — reintenta este espacio",
   },
+  // AI-2: 감점된 영상이 실제로 슬롯에 얹혔을 때만 뜨는 배지 툴팁.
+  "lab.source.demoted": {
+    ko: "감점: 논란 키워드({terms}) — 다른 영상이 없어 이 영상이 들어갔습니다. 확인하세요",
+    en: "Demoted: sensitive keyword ({terms}) — no cleaner video was found. Please review",
+    es: "Penalizado: palabra sensible ({terms}) — no se encontró otro video. Revísalo",
+  },
   "lab.source.refresh": { ko: "새 영상 찾기", en: "Find another", es: "Buscar otro" },
   "lab.source.refreshing": { ko: "찾는 중…", en: "Searching…", es: "Buscando…" },
   "lab.source.refreshEmpty": {

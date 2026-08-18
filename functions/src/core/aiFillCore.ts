@@ -21,6 +21,7 @@ import {
   parseAiContestants,
   TOTAL_CONTESTANTS,
   type AiContestantSuggestion,
+  type DiscardedContestant,
 } from "./parseContestants";
 
 /** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
@@ -61,6 +62,12 @@ export interface AiFillDeps {
    * of being swallowed by the generic ai-failed message.
    */
   logError?: (message: string, err: unknown) => void;
+  /**
+   * 폐기 요약 로거 (AI-2). 검증기가 버린 항목을 서버 로그에 남긴다 — 오탐이
+   * 프로덕션에서만 드러날 때 골든을 다시 돌리지 않고 확인할 수 있는 유일한 창이다.
+   * R6: 프롬프트 전문·키는 절대 넣지 않는다. 폐기 항목의 이름·힌트·사유까지만.
+   */
+  logInfo?: (message: string) => void;
 }
 
 function toStringArray(v: unknown): string[] {
@@ -124,6 +131,24 @@ export function buildPrompt(opts: BuildPromptOptions): string {
     // 문자 그대로 따르면서 실존 K-POP 아티스트(대부분 한국인)를 피하려다 인물을
     // 지어냈다 — 골든 1차에서 확인. 국적 규칙은 카테고리에 종속시킨다.
     "- 카테고리에 실제로 속한 인물이면 국적을 가리지 말 것 (K-POP이면 한국인 아티스트를 피하지 말 것). 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",
+    // AI-2 ⑥ 명단 적격성. 2026-08-17 스모크에서 모델이 힌트 칸에 스스로 "활동중단"
+    // 이라 적어 놓고도 그 인물을 명단에 넣었다 — 판단 재료는 있는데 기준이 없었다.
+    // 서버에 논란 인물 DB는 없다(범위 밖). 모델 지식 + 소싱 감점 + 운영자 검수 3중.
+    "- 탈퇴했거나 활동을 중단했거나, 학교폭력·범죄 등 중대한 사회적 논란이 있는 인물은 제외할 것. 지금 이 카테고리에서 활동 중이고 팬 투표 대회에 올려도 논란이 없을 인물만 넣는다. 확신이 없으면 뺀다",
+  );
+  // AI-2 ② 힌트 칸 계약. 이 칸은 LAB-EV-2 자동 소싱이 **그대로 유튜브 검색창에
+  // 넣는 문자열**이다(§3 OUT "검색어 AI 재작성 금지"). 계약이 없던 탓에 모델이
+  // 확신 없는 인물의 검색어 자리에 자기 메모를 흘렸다 — EVIDENCE_AI-2 6/6.
+  // 규칙 목록에서 떼어 별도 블록으로 둔다: 필드 하나에 대한 형식 계약이라
+  // 명단 규칙 사이에 끼면 묻힌다.
+  lines.push(
+    "",
+    "imageSearchKeyword 규칙:",
+    "- 이 칸은 유튜브 검색창에 그대로 붙여 넣을 검색어다. 메모장이 아니다",
+    "- 형식: 그룹·소속명 + 활동명 (필요하면 stage 또는 performance), 최대 6단어. 그 인물의 영상이 실제로 검색되는 표기를 쓴다",
+    '- 예시 형식: "<그룹명> <활동명> stage"',
+    "- 메모·설명·의문·확인 요청·괄호 주석·물음표를 절대 넣지 말 것. \"X 아님 Y 확인\" 같은 문자열은 검색어가 아니다",
+    "- 이 칸에 쓸 검색어를 확신할 수 없으면 그 인물을 목록에서 빼라. 요청 인원보다 여유 있게 요청했으니 빠져도 된다",
   );
   return lines.join("\n");
 }
@@ -177,5 +202,18 @@ export async function aiFillCore(
 
   // parseAiContestants throws ContestantParseError on bad/short output; the
   // onCall wrapper maps that to HttpsError('internal') with a retry hint.
-  return parseAiContestants(text, count);
+  // AI-2: 검증기가 버린 항목은 요약 한 줄로 남긴다(R6 — 이름·힌트·사유까지만).
+  const discarded: DiscardedContestant[] = [];
+  const contestants = parseAiContestants(text, count, {
+    onDiscard: (item) => discarded.push(item),
+  });
+  if (discarded.length > 0) {
+    deps.logInfo?.(
+      `aiFillCore discarded ${discarded.length} item(s): ` +
+        discarded
+          .map((d) => `[${d.reason}] ${d.name} 🔎${d.imageSearchKeyword}`)
+          .join(" | "),
+    );
+  }
+  return contestants;
 }

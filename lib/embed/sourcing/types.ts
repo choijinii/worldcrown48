@@ -70,6 +70,11 @@ export interface SourcingResult {
   verdict?: LinkVerdict;
   /** suggested일 때의 루프 시작 초(휴리스틱). 정밀 추천은 슬롯 미세조정에서. */
   startSec?: number;
+  /**
+   * 배정된 영상이 부정 키워드로 감점된 경우 그 키워드 (AI-2). 배지 툴팁에 실린다 —
+   * "제안"이 떴는데 사실 논란 영상뿐이었다는 걸 운영자가 알아야 검수가 산다.
+   */
+  demotedTerms?: string[];
   /** suggested가 아닐 때의 사유. */
   reason?: SourcingFailureReason;
   /** 실제로 검사한 후보 수 (0 = 검색 0건). */
