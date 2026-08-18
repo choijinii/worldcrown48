@@ -43,6 +43,7 @@ import { applyVideoAssignments, clearVideo, retimeDraft } from "@/lib/lab/videoD
 import {
   applySourcingResults,
   collectExcludedVideoIds,
+  dropSourcingStates,
   toSourcingStates,
   type SourcingStates,
 } from "@/lib/lab/sourcingDraft";
@@ -226,13 +227,21 @@ export function TournamentCreator(): JSX.Element {
 
       if (mode === "all") {
         setContestants(incoming);
+        // LAB-EV-2 — 인물이 통째로 바뀌었다. 옛 소싱 배지를 남기면 "제안"이라
+        // 써 있는 칸에 다른 사람이 앉아 있게 된다.
+        setSourcingStates({});
       } else {
         // Fill only the empty slots, preserving every named cell (AC#3).
         let k = 0;
-        const merged = grid.map((d) =>
-          d.name.trim() || k >= incoming.length ? d : incoming[k++],
-        );
+        const filledIndexes: number[] = [];
+        const merged = grid.map((d, i) => {
+          if (d.name.trim() || k >= incoming.length) return d;
+          filledIndexes.push(i);
+          return incoming[k++];
+        });
         setContestants(merged);
+        // 새로 채워진 칸만 배지를 떼어낸다 — 손대지 않은 칸의 결과는 유효하다.
+        setSourcingStates((states) => dropSourcingStates(states, filledIndexes));
       }
       void track("admin_lab_ai_fill_success", {
         category,
@@ -323,10 +332,16 @@ export function TournamentCreator(): JSX.Element {
       next[index] = clearVideo(next[index]);
       return next;
     });
+    // 영상을 뺐으면 "제안"은 더 이상 참이 아니다(LAB-EV-2).
+    setSourcingStates((states) => dropSourcingStates(states, [index]));
     setTuningIndex(null);
   }
 
   function updateContestant(index: number, patch: Partial<ContestantDraft>) {
+    // 이름을 지우면 그 칸은 다른 사람의 자리가 된다 — 배지도 함께 뗀다(LAB-EV-2).
+    if (patch.name !== undefined && patch.name.trim() === "") {
+      setSourcingStates((states) => dropSourcingStates(states, [index]));
+    }
     setContestants((prev) => {
       const next =
         prev.length === TOTAL_CONTESTANTS
