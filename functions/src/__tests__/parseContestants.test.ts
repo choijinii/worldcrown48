@@ -6,6 +6,12 @@ import {
   HINT_MAX_LENGTH,
   isPollutedHint,
   normalizeNameKey,
+  inferTeamTokens,
+  judgeSameContestant,
+  affiliationContradicts,
+  parentheticalContradictsHint,
+  hintTokenSet,
+  type ContestantNotice,
   type DiscardedContestant,
 } from "../core/parseContestants";
 
@@ -124,15 +130,15 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
     }
   });
 
+  // AI-2.1: "개수만 채운 응답"의 판정 기준이 이름에서 **힌트**로 옮겨졌다.
+  // 이름도 힌트도 같으면 여전히 같은 인물로 접혀 floor에 걸린다.
   it("중복 제거 후 floor 미만이면 실패한다 (개수만 채운 응답을 거른다)", () => {
-    // 48개지만 실제 인물은 3명 — 중복으로 개수만 맞춘 응답.
-    // 힌트는 항목마다 다르게 둔다: 이 테스트가 재려는 건 **이름** 중복이다.
     const padded = JSON.stringify(
       Array.from({ length: 48 }, (_, i) => ({
         name: `Player ${(i % 3) + 1}`,
         nationality: "KR",
         position: "FW",
-        imageSearchKeyword: `x${i + 1}`,
+        imageSearchKeyword: `group${(i % 3) + 1} player${(i % 3) + 1} stage`,
       })),
     );
     try {
@@ -142,6 +148,21 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
       expect((e as ContestantParseError).reason).toBe("wrong_count");
       expect((e as ContestantParseError).received).toBe(3);
     }
+  });
+
+  it("이름만 같고 힌트가 다르면 이제 버리지 않는다 — 전부 검수 플래그로 넘긴다", () => {
+    const notices: ContestantNotice[] = [];
+    const rows = Array.from({ length: 6 }, (_, i) => ({
+      name: "Player 1", // 전부 같은 이름
+      nationality: "KR",
+      position: "FW",
+      imageSearchKeyword: `teamx member${i + 1} stage`, // 인물 토큰은 제각각
+    }));
+    const out = parseAiContestants(JSON.stringify(rows), 6, {
+      onNotice: (n) => notices.push(n),
+    });
+    expect(out).toHaveLength(6);
+    expect(notices.filter((n) => n.flag === "name-hint-mismatch")).toHaveLength(5);
   });
 
   it("스키마는 불변이다 — 필드 4개 그대로 (RULE R1)", () => {
@@ -244,7 +265,7 @@ describe("parseAiContestants — AI-2 폐기·중복 파이프라인", () => {
     expect(out.map((c) => c.name)).toEqual(["지수"]);
   });
 
-  it("증거의 설윤 중복을 하나로 접는다 — 오염분이 먼저 빠지고 정상분이 남는다", () => {
+  it("증거의 설윤 중복 — 오염분은 빠지고 정상분이 남는다", () => {
     const text = JSON.stringify([
       item("설윤", "NewJeans Sullyoon 아님 Hyein 확인"), // 슬롯 11 (오염 + 소속 오기)
       item("지수", "BLACKPINK Jisoo stage"),
@@ -254,13 +275,14 @@ describe("parseAiContestants — AI-2 폐기·중복 파이프라인", () => {
     expect(out.map((c) => c.name)).toEqual(["지수", "설윤(엔믹스)"]);
   });
 
-  it("정규화한 힌트가 같으면 이름 표기가 달라도 중복이다", () => {
+  it("정규화한 힌트가 같으면 이름 표기가 달라도 같은 인물로 병합한다", () => {
     const text = JSON.stringify([
       item("Sullyoon", "NMIXX Sullyoon stage"),
       item("설윤", "nmixx  sullyoon  STAGE"),
       item("지수", "BLACKPINK Jisoo stage"),
     ]);
-    const out = parseAiContestants(text, 2);
+    // 3개를 요청해도 둘이 접혀 2명이 나온다(floor = 3 - 2 = 1 이라 통과).
+    const out = parseAiContestants(text, 3);
     expect(out.map((c) => c.name)).toEqual(["Sullyoon", "지수"]);
   });
 
@@ -319,5 +341,210 @@ describe("parseAiContestants — AI-2 폐기·중복 파이프라인", () => {
       "nationality",
       "position",
     ]);
+  });
+});
+
+/**
+ * AI-2.1 (2026-08-19) — "버리지 말고 가려내라" (대표 결정).
+ *
+ * 1차 골든이 실측으로 보여준 것: 이름만 보고 병합하면 `김채원`(LE SSERAFIM) 뒤에
+ * 온 `김채원(허윤진)`·`김채원(위클리)`가 사라진다 — 빠진 건 허윤진과 이재희다.
+ */
+describe("inferTeamTokens — 소속 낱말을 응답 자체에서 뽑는다 (①의 재료)", () => {
+  const roster = [
+    { name: "김채원", imageSearchKeyword: "LE SSERAFIM Chaewon stage" },
+    { name: "허윤진", imageSearchKeyword: "LE SSERAFIM Yunjin stage" },
+    { name: "홍은채", imageSearchKeyword: "LE SSERAFIM Eunchae stage" },
+    { name: "카리나", imageSearchKeyword: "aespa Karina stage" },
+    { name: "윈터", imageSearchKeyword: "aespa Winter stage" },
+  ];
+
+  it("두 사람 이상의 힌트에 나오면 팀 토큰이다", () => {
+    const teams = inferTeamTokens(roster);
+    expect(teams.has("sserafim")).toBe(true);
+    expect(teams.has("aespa")).toBe(true);
+  });
+
+  it("한 사람에게만 나오는 낱말은 인물 토큰으로 남긴다", () => {
+    const teams = inferTeamTokens(roster);
+    for (const person of ["chaewon", "yunjin", "eunchae", "karina", "winter"]) {
+      expect(teams.has(person)).toBe(false);
+    }
+  });
+
+  it("stage·performance 같은 보조어는 애초에 토큰이 아니다", () => {
+    expect(hintTokenSet("LE SSERAFIM Yunjin stage")).toEqual(["le", "sserafim", "yunjin"]);
+  });
+});
+
+describe("judgeSameContestant — 이름이 겹칠 때 힌트로 가른다", () => {
+  const teams = new Set(["sserafim", "le", "weeekly", "nmixx", "newjeans", "aespa"]);
+
+  it("① 소속이 다르면 동명이인 — 둘 다 남긴다 (김채원: LE SSERAFIM vs Weeekly)", () => {
+    const j = judgeSameContestant(
+      { imageSearchKeyword: "LE SSERAFIM Chaewon stage" },
+      { imageSearchKeyword: "Weeekly Kim Zaehee stage" },
+      teams,
+    );
+    expect(j.verdict).toBe("different");
+    expect(j.detail).toContain("동명이인");
+  });
+
+  it("② 소속이 같고 인물이 다르면 둘 다 남긴다 (LE SSERAFIM Chaewon vs Yunjin)", () => {
+    const j = judgeSameContestant(
+      { imageSearchKeyword: "LE SSERAFIM Chaewon stage" },
+      { imageSearchKeyword: "LE SSERAFIM Yunjin stage" },
+      teams,
+    );
+    expect(j.verdict).toBe("different");
+    expect(j.personTokens).toContain("yunjin");
+  });
+
+  it("② 소속·인물이 모두 같으면 동일 인물로 병합한다 (NMIXX Sullyoon 2건)", () => {
+    const j = judgeSameContestant(
+      { imageSearchKeyword: "NMIXX Sullyoon stage" },
+      { imageSearchKeyword: "nmixx sullyoon performance" },
+      teams,
+    );
+    expect(j.verdict).toBe("same");
+  });
+
+  it("③ 인물은 같은데 소속이 다르면 못 가린 것으로 본다 — 소속 오기일 수 있다", () => {
+    const j = judgeSameContestant(
+      { imageSearchKeyword: "NewJeans Sullyoon" },
+      { imageSearchKeyword: "NMIXX Sullyoon" },
+      teams,
+    );
+    expect(j.verdict).toBe("unsure");
+    expect(j.detail).toContain("소속이 다르다");
+  });
+
+  it("③ 힌트에 팀 이름만 있으면 못 가린다", () => {
+    const j = judgeSameContestant(
+      { imageSearchKeyword: "LE SSERAFIM stage" },
+      { imageSearchKeyword: "LE SSERAFIM performance" },
+      teams,
+    );
+    expect(j.verdict).toBe("unsure");
+  });
+
+  it("③ 힌트가 비어 있으면 못 가린다", () => {
+    expect(
+      judgeSameContestant({ imageSearchKeyword: "" }, { imageSearchKeyword: "aespa Karina" }, teams)
+        .verdict,
+    ).toBe("unsure");
+  });
+});
+
+describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1)", () => {
+  const row = (name: string, hint: string, position = "") => ({
+    name,
+    nationality: "KR",
+    position,
+    imageSearchKeyword: hint,
+  });
+
+  /** 팀 토큰이 뽑히도록 같은 그룹 멤버를 여럿 깔아 준다(실제 48명 응답의 조건). */
+  const roster = [
+    row("김채원", "LE SSERAFIM Chaewon stage"),
+    row("사쿠라", "LE SSERAFIM Sakura stage"),
+    row("카즈하", "LE SSERAFIM Kazuha stage"),
+    row("이수진", "Weeekly Lee Soojin stage"),
+    row("신지윤", "Weeekly Shin Jiyoon stage"),
+  ];
+
+  it("동명이인은 둘 다 살아남는다 — 골든이 잃었던 이재희가 돌아온다", () => {
+    const text = JSON.stringify([...roster, row("김채원(위클리)", "Weeekly Kim Zaehee stage")]);
+    const out = parseAiContestants(text, 6);
+    expect(out.map((c) => c.name)).toContain("김채원(위클리)");
+    expect(out).toHaveLength(6);
+  });
+
+  it("같은 팀의 다른 인물도 둘 다 살아남는다 — 허윤진이 돌아온다", () => {
+    const notices: ContestantNotice[] = [];
+    const text = JSON.stringify([...roster, row("김채원(허윤진)", "LE SSERAFIM Yunjin stage")]);
+    const out = parseAiContestants(text, 6, { onNotice: (n) => notices.push(n) });
+
+    expect(out.map((c) => c.name)).toContain("김채원(허윤진)");
+    // 이름은 겹치는데 다른 인물이다 → 이름 칸이 틀렸다는 신호를 남긴다(요구 2).
+    const flagged = notices.find((n) => n.flag === "name-hint-mismatch");
+    expect(flagged?.name).toBe("김채원(허윤진)");
+    expect(flagged?.suggestedNameTokens).toContain("yunjin"); // 정정 후보
+    expect(flagged?.index).toBe(5); // 슬롯 6
+  });
+
+  it("같은 인물이 확인될 때만 병합한다", () => {
+    const discarded: DiscardedContestant[] = [];
+    const text = JSON.stringify([
+      row("설윤", "NMIXX Sullyoon stage"),
+      row("지우", "NMIXX Jiwoo stage"),
+      row("배이", "NMIXX Bae stage"),
+      row("설윤(엔믹스)", "NMIXX Sullyoon performance"),
+    ]);
+    const out = parseAiContestants(text, 4, { onDiscard: (d) => discarded.push(d) });
+    expect(out.map((c) => c.name)).toEqual(["설윤", "지우", "배이"]);
+    expect(discarded.map((d) => d.reason)).toEqual(["duplicate-merged"]);
+    expect(discarded[0].detail).toContain("인물 토큰이 일치");
+  });
+
+  it("못 가리면 둘 다 남기고 '중복 의심'을 단다", () => {
+    const notices: ContestantNotice[] = [];
+    const text = JSON.stringify([
+      row("설윤", "NewJeans Sullyoon"),
+      row("혜인", "NewJeans Hyein stage"),
+      row("다니엘", "NewJeans Danielle stage"),
+      row("지우", "NMIXX Jiwoo stage"),
+      row("배이", "NMIXX Bae stage"),
+      row("설윤(엔믹스)", "NMIXX Sullyoon"),
+    ]);
+    const out = parseAiContestants(text, 6, { onNotice: (n) => notices.push(n) });
+
+    expect(out).toHaveLength(6); // 둘 다 남았다
+    const suspect = notices.find((n) => n.flag === "duplicate-suspect");
+    expect(suspect?.name).toBe("설윤(엔믹스)");
+    expect(suspect?.pairedIndex).toBe(0);
+    // 같은 인물이 두 소속으로 오르면 그 인물 토큰이 팀으로 오분류될 수 있다
+    // (inferTeamTokens 한계 ②). 그래도 결론은 같다 — 조용히 병합하지 않는다.
+    expect(suspect?.detail).toMatch(/소속이 다르다|가릴 수 없다/);
+  });
+
+  it("병합할 때 소속이 힌트와 어긋나는 쪽을 접는다 (일관된 쪽 유지)", () => {
+    // 증거 슬롯 11의 모양 그대로다: 이름 설윤 · position "NewJeans 메인댄서" ·
+    // 실제로는 NMIXX. NewJeans 멤버가 함께 실려 있어야 `newjeans`가 팀 낱말로
+    // 인식되고, 그래야 "소속이 힌트와 어긋난다"를 말할 수 있다(실제 48명 응답의 조건).
+    const text = JSON.stringify([
+      row("설윤", "NMIXX Sullyoon stage", "NewJeans 메인댄서"), // 소속 오기
+      row("혜인", "NewJeans Hyein stage", "NewJeans 막내"),
+      row("다니엘", "NewJeans Danielle stage", "NewJeans 보컬"),
+      row("지우", "NMIXX Jiwoo stage", "NMIXX 메인댄서"),
+      row("배이", "NMIXX Bae stage", "NMIXX 리더"),
+      row("설윤(엔믹스)", "NMIXX Sullyoon stage", "NMIXX 메인보컬"), // 일관됨
+    ]);
+    const out = parseAiContestants(text, 6);
+    expect(out[0].name).toBe("설윤(엔믹스)");
+    expect(out[0].position).toBe("NMIXX 메인보컬");
+  });
+
+  it("한국어 직책만 있는 position은 모순이 아니다 (정보 없음)", () => {
+    const teams = new Set(["nmixx"]);
+    expect(
+      affiliationContradicts(
+        { position: "메인보컬", imageSearchKeyword: "NMIXX Sullyoon" },
+        teams,
+      ),
+    ).toBe(false);
+    expect(
+      affiliationContradicts(
+        { position: "NewJeans 메인댄서", imageSearchKeyword: "NMIXX Sullyoon" },
+        new Set(["nmixx", "newjeans"]),
+      ),
+    ).toBe(true);
+  });
+
+  it("이름 괄호가 라틴 문자로 힌트와 어긋나면 겹치는 상대가 없어도 알린다", () => {
+    expect(parentheticalContradictsHint("설윤(NMIXX)", "NewJeans Sullyoon")).toBe(true);
+    expect(parentheticalContradictsHint("설윤(NMIXX)", "NMIXX Sullyoon")).toBe(false);
+    // 한글 괄호는 로마자 힌트와 문자가 달라 여기서 판단하지 않는다.
+    expect(parentheticalContradictsHint("김채원(허윤진)", "LE SSERAFIM Yunjin")).toBe(false);
   });
 });

@@ -21,6 +21,7 @@ import {
   parseAiContestants,
   TOTAL_CONTESTANTS,
   type AiContestantSuggestion,
+  type ContestantNotice,
   type DiscardedContestant,
 } from "./parseContestants";
 
@@ -204,14 +205,37 @@ export async function aiFillCore(
   // onCall wrapper maps that to HttpsError('internal') with a retry hint.
   // AI-2: 검증기가 버린 항목은 요약 한 줄로 남긴다(R6 — 이름·힌트·사유까지만).
   const discarded: DiscardedContestant[] = [];
+  const notices: ContestantNotice[] = [];
   const contestants = parseAiContestants(text, count, {
     onDiscard: (item) => discarded.push(item),
+    onNotice: (item) => notices.push(item),
   });
   if (discarded.length > 0) {
     deps.logInfo?.(
       `aiFillCore discarded ${discarded.length} item(s): ` +
         discarded
-          .map((d) => `[${d.reason}] ${d.name} 🔎${d.imageSearchKeyword}`)
+          .map(
+            (d) =>
+              `[${d.reason}] ${d.name} 🔎${d.imageSearchKeyword}` +
+              (d.detail ? ` — ${d.detail}` : ""),
+          )
+          .join(" | "),
+    );
+  }
+  // AI-2.1: 버리지 않고 남긴 검수 플래그. 슬롯 번호를 함께 남겨 운영자가
+  // 그리드에서 바로 찾을 수 있게 한다(index + 1 = 화면의 슬롯 번호).
+  if (notices.length > 0) {
+    deps.logInfo?.(
+      `aiFillCore review flags ${notices.length}: ` +
+        notices
+          .map(
+            (n) =>
+              `[${n.flag}] 슬롯 ${n.index + 1} ${n.name} 🔎${n.imageSearchKeyword}` +
+              (n.suggestedNameTokens?.length
+                ? ` (정정 후보: ${n.suggestedNameTokens.join(" ")})`
+                : "") +
+              ` — ${n.detail}`,
+          )
           .join(" | "),
     );
   }

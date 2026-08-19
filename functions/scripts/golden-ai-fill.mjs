@@ -254,6 +254,10 @@ async function runOnce(anthropic, cond) {
     finalBlankHints: 0,
     /** 눈검사용 (이름 · 힌트) 표본. */
     sample: [],
+    /** 채택된 전원 (이름 · 힌트) — 부적격 인물 눈검사용(AI-2.1 대표 요청). */
+    roster: [],
+    /** 버리지 않고 사람에게 넘긴 검수 플래그 (AI-2.1). */
+    notices: [],
   };
 
   try {
@@ -295,11 +299,16 @@ async function runOnce(anthropic, cond) {
     const want = cond.count ?? TOTAL_CONTESTANTS;
     const contestants = cond.parse(text, {
       onDiscard: (item) => result.discarded.push(item),
+      onNotice: (item) => result.notices.push(item),
     });
     result.names = contestants.map((c) => String(c.name ?? "").trim());
     result.sample = contestants
       .slice(0, NAME_SAMPLE)
       .map((c) => ({ name: c.name, hint: c.imageSearchKeyword }));
+    result.roster = contestants.map((c) => ({
+      name: c.name,
+      hint: c.imageSearchKeyword,
+    }));
 
     // 검증기 사후 확인 — 채택분에 메모·정규화 중복이 남아 있으면 파이프라인 결함이다.
     const finalSeen = new Map();
@@ -404,11 +413,33 @@ async function main() {
       ];
       console.log(`  #${i + 1} 품질: ${bits.join(" · ")}`);
       for (const d of r.discarded) {
-        console.log(`      폐기[${d.reason}] ${d.name}  🔎 ${d.imageSearchKeyword}`);
+        console.log(
+          `      폐기[${d.reason}] ${d.name}  🔎 ${d.imageSearchKeyword}` +
+            (d.detail ? `  — ${d.detail}` : ""),
+        );
+      }
+      // AI-2.1: 버리지 않고 남긴 것들. 여기가 운영자 검수 목록이다.
+      for (const n of r.notices) {
+        console.log(
+          `      플래그[${n.flag}] 슬롯 ${n.index + 1} ${n.name}  🔎 ${n.imageSearchKeyword}` +
+            (n.suggestedNameTokens?.length
+              ? `  (정정 후보: ${n.suggestedNameTokens.join(" ")})`
+              : "") +
+            `\n         ↳ ${n.detail}`,
+        );
       }
       for (const dup of r.rawDupNames) console.log(`      원본중복: ${dup}`);
       for (const p of r.finalPolluted) {
         console.log(`      ⚠ 채택분에 메모가 남았다: ${p.name} 🔎 ${p.hint}`);
+      }
+      // 채택 전원 — 탈퇴·활동중단·논란 인물이 섞였는지 대표가 눈으로 본다(요구 4).
+      if (r.roster.length > 0) {
+        console.log(`  #${i + 1} 채택 전원 ${r.roster.length}명:`);
+        r.roster.forEach((row, n) => {
+          console.log(
+            `      ${String(n + 1).padStart(2, "0")}. ${pad(row.name, 16)} 🔎 ${row.hint || "(빈 힌트)"}`,
+          );
+        });
       }
     });
     console.log("");
@@ -436,7 +467,7 @@ async function main() {
   printTable(
     [
       "조건", "모델", "N", "통과",
-      "원본메모", "원본중복", "폐기", // AI-2: 앞 둘 = 프롬프트 효과, 셋째 = 검증기 몫
+      "원본메모", "원본중복", "폐기", "플래그", // 앞 둘 = 프롬프트 효과 · 폐기 = 확인된 병합 · 플래그 = 사람에게 넘긴 것
       "입력토큰", "출력토큰", "건당($)", "건당(원)", "소요(s)",
     ],
     summary.map((s) => [
@@ -447,6 +478,7 @@ async function main() {
       String(sum(s.runs, (r) => r.rawPolluted.length)),
       String(sum(s.runs, (r) => r.rawDupNames.length)),
       String(sum(s.runs, (r) => r.discarded.length)),
+      String(sum(s.runs, (r) => r.notices.length)),
       Math.round(s.inTok).toLocaleString(),
       Math.round(s.outTok).toLocaleString(),
       usd(s.cost),
@@ -488,8 +520,12 @@ async function main() {
         `   ① (f) 원본 메모: ${pollutedRuns}/${evidence.runs.length}회에서 등장.` +
         " 2회 이상이면 프롬프트로 안 잡힌 것 → 대표 결정(§6 Auto-STOP)\n" +
         "   ② 위 '폐기[...]' 줄에 **정상 힌트**가 섞였으면 검증기 오탐 → STOP\n" +
-        "   ③ 눈검사 목록에 탈퇴·활동중단·논란 인물(예: 수진)이 있으면 적격성 문구 미작동\n" +
-        "   ④ 힌트가 '그룹명 활동명 stage' 꼴인지 — 문장·메모면 계약 미작동",
+        "      (AI-2.1부터 폐기는 '같은 인물임이 확인된' 병합뿐이다. 이름만 같아서\n" +
+        "       버리는 경로는 없다 — 못 가린 건 전부 아래 '플래그' 줄로 간다)\n" +
+        "   ③ '채택 전원' 목록에 탈퇴·활동중단·논란 인물(예: 수진)이 있으면 적격성 문구 미작동\n" +
+        "   ④ 힌트가 '그룹명 활동명 stage' 꼴인지 — 문장·메모면 계약 미작동\n" +
+        "   ⑤ 플래그[name-hint-mismatch] 줄의 '정정 후보'가 이름 칸과 맞는지 —\n" +
+        "      맞다면 그 슬롯의 이름만 손보면 된다(항목은 살아 있다)",
     );
   }
   console.log("※ 환율은 가정치다. 단가만 docs.claude.com 실측(2026-08-16).");
