@@ -11,9 +11,12 @@ import {
   affiliationContradicts,
   parentheticalContradictsHint,
   hintTokenSet,
+  personTokens,
+  findExclusion,
   type ContestantNotice,
   type DiscardedContestant,
 } from "../core/parseContestants";
+import { ROSTER_EXCLUSIONS } from "../core/rosterExclusions";
 
 function fakeArray(n: number): string {
   return JSON.stringify(
@@ -357,6 +360,7 @@ describe("inferTeamTokens — 소속 낱말을 응답 자체에서 뽑는다 (�
     { name: "홍은채", imageSearchKeyword: "LE SSERAFIM Eunchae stage" },
     { name: "카리나", imageSearchKeyword: "aespa Karina stage" },
     { name: "윈터", imageSearchKeyword: "aespa Winter stage" },
+    { name: "닝닝", imageSearchKeyword: "aespa Ningning stage" },
   ];
 
   it("두 사람 이상의 힌트에 나오면 팀 토큰이다", () => {
@@ -367,7 +371,7 @@ describe("inferTeamTokens — 소속 낱말을 응답 자체에서 뽑는다 (�
 
   it("한 사람에게만 나오는 낱말은 인물 토큰으로 남긴다", () => {
     const teams = inferTeamTokens(roster);
-    for (const person of ["chaewon", "yunjin", "eunchae", "karina", "winter"]) {
+    for (const person of ["chaewon", "yunjin", "eunchae", "karina", "ningning"]) {
       expect(teams.has(person)).toBe(false);
     }
   });
@@ -516,11 +520,12 @@ describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1
       row("설윤", "NMIXX Sullyoon stage", "NewJeans 메인댄서"), // 소속 오기
       row("혜인", "NewJeans Hyein stage", "NewJeans 막내"),
       row("다니엘", "NewJeans Danielle stage", "NewJeans 보컬"),
+      row("해린", "NewJeans Haerin stage", "NewJeans 댄서"),
       row("지우", "NMIXX Jiwoo stage", "NMIXX 메인댄서"),
       row("배이", "NMIXX Bae stage", "NMIXX 리더"),
       row("설윤(엔믹스)", "NMIXX Sullyoon stage", "NMIXX 메인보컬"), // 일관됨
     ]);
-    const out = parseAiContestants(text, 6);
+    const out = parseAiContestants(text, 7);
     expect(out[0].name).toBe("설윤(엔믹스)");
     expect(out[0].position).toBe("NMIXX 메인보컬");
   });
@@ -546,5 +551,143 @@ describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1
     expect(parentheticalContradictsHint("설윤(NMIXX)", "NMIXX Sullyoon")).toBe(false);
     // 한글 괄호는 로마자 힌트와 문자가 달라 여기서 판단하지 않는다.
     expect(parentheticalContradictsHint("김채원(허윤진)", "LE SSERAFIM Yunjin")).toBe(false);
+  });
+});
+
+/**
+ * AI-2.2 (2026-08-20) — 인물 토큰 충돌 검출 + 서버 제외 목록.
+ *
+ * 2026-08-19 골든이 남긴 두 구멍을 막는다:
+ *   ① 이름도 검색어도 다른데 **같은 인물**인 중복 6쌍을 아무도 못 잡았다
+ *   ② 프롬프트에 적격성 규칙이 있는데도 수진이 3회 중 2회 명단에 올랐다
+ */
+describe("인물 토큰 충돌 — 이름이 달라도 같은 사람을 가리키면 잡는다 (AI-2.2 ①)", () => {
+  const row = (name: string, hint: string, position = "") => ({
+    name,
+    nationality: "KR",
+    position,
+    imageSearchKeyword: hint,
+  });
+
+  /** 팀 토큰이 서려면 그룹당 3명 이상이 필요하다(TEAM_TOKEN_MIN_OWNERS). */
+  const sserafim = [
+    row("김채원", "LE SSERAFIM Kim Chaewon stage"),
+    row("허윤진", "LE SSERAFIM Yunjin stage"),
+    row("카즈하", "LE SSERAFIM Kazuha stage"),
+    row("홍은채", "LE SSERAFIM Eunchae stage"),
+  ];
+
+  it("골든 #3의 `설윤`🔎Sakura + `사쿠라`🔎Sakura 를 같은 인물로 잡는다", () => {
+    const notices: ContestantNotice[] = [];
+    const text = JSON.stringify([
+      ...sserafim,
+      row("설윤", "LE SSERAFIM Sakura stage"), // 이름표가 틀린 항목
+      row("사쿠라", "LE SSERAFIM Sakura performance"),
+    ]);
+    const out = parseAiContestants(text, 6, { onNotice: (n) => notices.push(n) });
+
+    expect(out).toHaveLength(5); // 둘이 하나로 접혔다
+    // 이름 표기가 서로 달랐으므로 살아남은 이름을 확인하라고 알린다.
+    const flag = notices.find((n) => n.flag === "name-hint-mismatch");
+    expect(flag?.suggestedNameTokens).toContain("sakura");
+    expect(flag?.detail).toContain("같은 인물을 가리킨다");
+  });
+
+  it("골든 #1의 `채원` + `김채원`(둘 다 Chaewon)을 잡는다 — 부분집합", () => {
+    const text = JSON.stringify([
+      row("채원", "LE SSERAFIM Chaewon stage"),
+      ...sserafim.slice(1),
+      row("김채원", "LE SSERAFIM Kim Chaewon stage"),
+    ]);
+    expect(parseAiContestants(text, 5)).toHaveLength(4);
+  });
+
+  it("같은 팀의 다른 멤버는 여전히 전원 살아남는다 (오탐 없음)", () => {
+    const out = parseAiContestants(JSON.stringify(sserafim), 4);
+    expect(out.map((c) => c.name)).toEqual([
+      "김채원",
+      "허윤진",
+      "카즈하",
+      "홍은채",
+    ]);
+  });
+
+  it("인물 토큰이 일부만 겹치면 같다고 단정하지 않는다 — 둘 다 남기고 플래그", () => {
+    const notices: ContestantNotice[] = [];
+    // 소속이 팀으로 안 잡히는 작은 응답(2명)에서 `nmixx`가 인물 토큰으로 남는 경우.
+    const text = JSON.stringify([
+      row("해원", "NMIXX Haewon stage"),
+      row("릴리", "NMIXX Lily stage"),
+    ]);
+    const out = parseAiContestants(text, 2, { onNotice: (n) => notices.push(n) });
+    expect(out).toHaveLength(2);
+    expect(notices[0]?.flag).toBe("duplicate-suspect");
+    expect(notices[0]?.detail).toContain("일부만 겹친다");
+  });
+
+  it("한 음절 활동명도 인물 토큰으로 남는다 (STAYC 윤)", () => {
+    const teams = new Set(["stayc"]);
+    expect(personTokens("STAYC 윤 stage", teams)).toEqual(["윤"]);
+  });
+});
+
+describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한다 (AI-2.2 ③)", () => {
+  const at = (name: string, hint: string, position = "") => ({
+    name,
+    position,
+    imageSearchKeyword: hint,
+  });
+
+  it("골든에 실제로 올라왔던 두 형태를 모두 잡는다", () => {
+    expect(findExclusion(at("수진", "(G)I-DLE Soyeon stage"))?.reason).toContain(
+      "학교폭력",
+    );
+    expect(findExclusion(at("수진", "GIDLE Soojin stage"))).not.toBeNull();
+  });
+
+  it("이름표가 엉뚱해도 힌트가 제외 대상을 가리키면 잡는다", () => {
+    // 슬롯에 들어갈 영상이 제외 대상의 것이면 이름이 뭐든 막아야 한다.
+    expect(findExclusion(at("미연", "GIDLE Soojin stage"))).not.toBeNull();
+  });
+
+  it("동명이인은 막지 않는다 — 소속이 다르면 통과 (위클리 이수진)", () => {
+    expect(findExclusion(at("이수진", "Weeekly Lee Soojin stage"))).toBeNull();
+    expect(findExclusion(at("수진", "Weeekly Soojin stage"))).toBeNull();
+  });
+
+  it("소속이 position 쪽에만 적혀 있어도 잡는다", () => {
+    expect(findExclusion(at("수진", "Soojin stage", "(여자)아이들 메인댄서"))).not.toBeNull();
+  });
+
+  it("관계없는 인물은 건드리지 않는다", () => {
+    expect(findExclusion(at("카리나", "aespa Karina stage"))).toBeNull();
+    expect(findExclusion(at("우기", "(G)I-DLE Yuqi stage"))).toBeNull();
+  });
+
+  it("목록 항목은 사유와 등록일을 반드시 갖는다 (근거 없이 사람을 막지 않는다)", () => {
+    expect(ROSTER_EXCLUSIONS.length).toBeGreaterThan(0);
+    for (const entry of ROSTER_EXCLUSIONS) {
+      expect(entry.names.length).toBeGreaterThan(0);
+      expect(entry.affiliation.length).toBeGreaterThan(0);
+      expect(entry.reason.trim()).not.toBe("");
+      expect(entry.addedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("파서가 제외 항목을 사유와 함께 버린다", () => {
+    const discarded: DiscardedContestant[] = [];
+    const rows = [
+      { name: "우기", nationality: "KR", position: "(G)I-DLE 래퍼", imageSearchKeyword: "(G)I-DLE Yuqi stage" },
+      { name: "미연", nationality: "KR", position: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Miyeon stage" },
+      { name: "수진", nationality: "KR", position: "(G)I-DLE 댄서", imageSearchKeyword: "(G)I-DLE Soojin stage" },
+      { name: "민니", nationality: "KR", position: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Minnie stage" },
+    ];
+    const out = parseAiContestants(JSON.stringify(rows), 4, {
+      onDiscard: (d) => discarded.push(d),
+    });
+    expect(out.map((c) => c.name)).toEqual(["우기", "미연", "민니"]);
+    expect(discarded).toHaveLength(1);
+    expect(discarded[0]).toMatchObject({ reason: "excluded", name: "수진" });
+    expect(discarded[0].detail).toContain("탈퇴");
   });
 });

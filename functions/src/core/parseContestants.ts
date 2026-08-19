@@ -60,6 +60,8 @@
  *            expectedCount개 → floor 미만이면 실패(기존 그대로)
  */
 
+import { ROSTER_EXCLUSIONS, type RosterExclusion } from "./rosterExclusions";
+
 export const TOTAL_CONTESTANTS = 48;
 
 /** 부족분 허용치. expectedCount 48 → 46명까지 통과, 45명이면 실패. */
@@ -176,12 +178,53 @@ export function normalizeHintKey(hint: string): string {
   return (hint ?? "").toLocaleLowerCase().replace(/\s+/g, "");
 }
 
+/** 비교용 정규화 — 소문자 + 공백 제거. 이름·소속 낱말 양쪽에 같은 잣대를 쓴다. */
+function foldForMatch(text: string): string {
+  return (text ?? "").toLocaleLowerCase().replace(/\s+/g, "");
+}
+
+/**
+ * 제외 목록에 걸리는가 (AI-2.2).
+ *
+ * **이름과 소속이 함께 맞을 때만** 걸린다. `수진`이라는 이름만 보고 자르면
+ * 위클리 이수진 같은 다른 사람이 같이 잘린다 — 동명이인을 지우지 않는다는
+ * AI-2.1의 원칙은 여기서도 그대로다.
+ *
+ * 이름은 `name` 칸뿐 아니라 **힌트에서도** 찾는다: 이름표가 엉뚱해도
+ * (`미연` 🔎 `GIDLE Soojin`) 슬롯에 들어갈 영상은 제외 대상의 것이기 때문이다.
+ */
+export function findExclusion(
+  item: { name: string; position: string; imageSearchKeyword: string },
+  list: readonly RosterExclusion[] = ROSTER_EXCLUSIONS,
+): RosterExclusion | null {
+  const nameKey = normalizeNameKey(item.name);
+  const hintFolded = foldForMatch(item.imageSearchKeyword);
+  const haystack = `${hintFolded}${foldForMatch(item.position)}`;
+
+  for (const entry of list) {
+    const nameHit = entry.names.some((raw) => {
+      const alias = foldForMatch(raw);
+      if (!alias) return false;
+      return nameKey === alias || hintFolded.includes(alias);
+    });
+    if (!nameHit) continue;
+    const affiliationHit = entry.affiliation.some((raw) => {
+      const token = foldForMatch(raw);
+      return token !== "" && haystack.includes(token);
+    });
+    if (affiliationHit) return entry;
+  }
+  return null;
+}
+
 /** 버려진 항목의 사유 — 골든이 표로 찍고 대표가 오탐을 눈으로 본다. */
 export type DiscardReason =
   | "no-name"
   | "polluted-hint"
   /** 같은 인물임이 **판정된** 중복. 이름만 같아서 버리는 경로는 더 없다. */
-  | "duplicate-merged";
+  | "duplicate-merged"
+  /** 제외 목록에 걸렸다 (rosterExclusions — 이름 + 소속이 함께 맞을 때만). */
+  | "excluded";
 
 export interface DiscardedContestant {
   reason: DiscardReason;
@@ -251,16 +294,25 @@ const HINT_FILLERS = new Set([
   "the",
   "of",
   "and",
+  "a",
+  "an",
 ]);
 
-/** 힌트의 뜻 있는 낱말만. 소문자·구두점 제거. */
+/**
+ * 힌트의 뜻 있는 낱말만. 소문자·구두점 제거.
+ *
+ * 한 글자도 버리지 않는다. STAYC `윤`처럼 **한 음절이 곧 활동명**인 경우가 있고,
+ * 버리면 그 사람은 인물 토큰이 없어져 중복 판정에서 아예 빠진다. 대신 `(G)I-DLE`이
+ * 남기는 `g`·`i` 같은 부스러기는 여러 사람의 힌트에 나타나므로 팀 토큰으로 걸러진다
+ * (inferTeamTokens) — 길이로 자르는 것보다 이쪽이 정확하다.
+ */
 export function hintTokenSet(hint: string): string[] {
   const seen = new Set<string>();
   for (const t of (hint ?? "")
     .toLocaleLowerCase()
     .replace(HINT_SEPARATORS, " ")
     .split(" ")) {
-    if (t.length > 1 && !HINT_FILLERS.has(t)) seen.add(t);
+    if (t.length > 0 && !HINT_FILLERS.has(t)) seen.add(t);
   }
   return Array.from(seen);
 }
@@ -278,6 +330,16 @@ export function hintTokenSet(hint: string): string[] {
  * 만들지는 않는다 — 그때는 "가릴 근거가 없다"(unsure)로 떨어져 사람에게 간다.
  * 조용히 병합하는 경우는 없다는 뜻이고, 그게 이 설계의 요점이다.
  */
+/**
+ * 팀 토큰으로 인정할 최소 소유자 수.
+ *
+ * 2였을 때 문제가 났다: 같은 인물이 두 번 오르면(`GFriend Miyeon` + `(G)I-DLE
+ * Miyeon`) 그 사람 이름이 "둘이 쓰는 낱말"이 되어 팀으로 분류됐고, 그러면
+ * 인물 토큰이 사라져 중복을 못 잡았다. 진짜 그룹은 로스터에 3명 이상 올라오고
+ * 중복은 보통 2건이라, 3이 둘을 가른다.
+ */
+export const TEAM_TOKEN_MIN_OWNERS = 3;
+
 export function inferTeamTokens(
   rows: readonly { name: string; imageSearchKeyword: string }[],
 ): Set<string> {
@@ -296,9 +358,17 @@ export function inferTeamTokens(
   }
   const teams = new Set<string>();
   owners.forEach((names, token) => {
-    if (names.size >= 2) teams.add(token);
+    if (names.size >= TEAM_TOKEN_MIN_OWNERS) teams.add(token);
   });
   return teams;
+}
+
+/** 힌트에서 **인물**을 가리키는 낱말만 (소속 낱말을 뺀 나머지). */
+export function personTokens(
+  hint: string,
+  teamTokens: ReadonlySet<string>,
+): string[] {
+  return hintTokenSet(hint).filter((t) => !teamTokens.has(t));
 }
 
 export type SameContestantVerdict = "same" | "different" | "unsure";
@@ -372,9 +442,23 @@ export function judgeSameContestant(
         personTokens: personB,
       };
     }
+    // 한쪽이 다른 쪽을 통째로 품을 때만 같은 인물로 본다
+    // (`Chaewon` ⊂ `Kim Chaewon`). 낱말 하나만 겹치는 건(`NMIXX Haewon` vs
+    // `NMIXX Lily`에서 소속이 팀으로 안 잡힌 경우) 같다고 말할 근거가 못 된다.
+    const aInB = personA.every((t) => personB.includes(t));
+    const bInA = personB.every((t) => personA.includes(t));
+    if (aInB || bInA) {
+      return {
+        verdict: "same",
+        detail: `인물 토큰이 일치한다 (${personA.filter((t) => personB.includes(t)).join(" ")})`,
+        personTokens: personB,
+      };
+    }
     return {
-      verdict: "same",
-      detail: `인물 토큰이 일치한다 (${personA.filter((t) => personB.includes(t)).join(" ")})`,
+      verdict: "unsure",
+      detail:
+        `인물 토큰이 일부만 겹친다 (${personA.join(" ")} / ${personB.join(" ")})` +
+        " — 같은 인물이라고 단정할 수 없다",
       personTokens: personB,
     };
   }
@@ -507,12 +591,20 @@ export function parseAiContestants(
       discard("polluted-hint", { name, imageSearchKeyword: hint });
       continue;
     }
-    rows.push({
+    const row = {
       name,
       nationality: toStr(o.nationality),
       position: toStr(o.position),
       imageSearchKeyword: hint,
-    });
+    };
+    // AI-2.2: 제외 목록. 여기만은 **버리는 게 목적**이다 — 프롬프트 지시가
+    // 두 번 뚫린 자리라(골든 2026-08-19, 수진 2/3회) 서버가 마지막으로 막는다.
+    const excluded = findExclusion(row);
+    if (excluded) {
+      discard("excluded", row, excluded.reason);
+      continue;
+    }
+    rows.push(row);
   }
 
   // ── 2차: 응답 전체에서 팀 토큰을 뽑는다 (AI-2.1 ①의 재료) ──
@@ -526,12 +618,21 @@ export function parseAiContestants(
     const nameKey = normalizeNameKey(row.name);
     const hintKey = normalizeHintKey(row.imageSearchKeyword);
 
-    // 이름이 겹치거나 검색어가 똑같은 기존 항목을 찾는다 — 판정의 시작점일 뿐이다.
-    const rivalIndex = picked.findIndex(
-      (p) =>
-        normalizeNameKey(p.name) === nameKey ||
-        (hintKey !== "" && normalizeHintKey(p.imageSearchKeyword) === hintKey),
-    );
+    // 충돌 후보를 찾는다 — 판정의 시작점일 뿐이다. 셋 중 하나라도 걸리면 본다:
+    //   ① 이름이 같다 ② 검색어가 똑같다 ③ **힌트가 같은 인물을 가리킨다**
+    // ③이 AI-2.2에서 추가됐다. 2026-08-19 골든의 중복 6쌍은 이름도 검색어도
+    // 달랐다(`설윤`🔎LE SSERAFIM Sakura + `사쿠라`🔎LE SSERAFIM Sakura performance).
+    // 사람 이름표를 못 믿으니 힌트가 가리키는 사람으로 찾는 수밖에 없다.
+    const rowPersons = personTokens(row.imageSearchKeyword, teamTokens);
+    const rivalIndex = picked.findIndex((p) => {
+      if (normalizeNameKey(p.name) === nameKey) return true;
+      if (hintKey !== "" && normalizeHintKey(p.imageSearchKeyword) === hintKey) {
+        return true;
+      }
+      if (rowPersons.length === 0) return false;
+      const rivalPersons = personTokens(p.imageSearchKeyword, teamTokens);
+      return rivalPersons.some((t) => rowPersons.includes(t));
+    });
 
     if (rivalIndex >= 0) {
       const rival = picked[rivalIndex];
@@ -541,6 +642,7 @@ export function parseAiContestants(
         // 같은 인물이 확인됐을 때만 병합한다. 남길 쪽은 **소속이 힌트와 맞는 쪽**.
         const rivalBroken = affiliationContradicts(rival, teamTokens);
         const rowBroken = affiliationContradicts(row, teamTokens);
+        const namesDisagree = normalizeNameKey(rival.name) !== nameKey;
         if (rivalBroken && !rowBroken) {
           picked[rivalIndex] = row; // 일관된 쪽으로 갈아끼운다
           discard(
@@ -550,6 +652,21 @@ export function parseAiContestants(
           );
         } else {
           discard("duplicate-merged", row, judged.detail);
+        }
+        // 같은 인물인데 **이름 표기가 서로 달랐다** → 살아남은 쪽 이름이 틀렸을
+        // 수 있다. 병합했다고 조용히 넘기지 않는다(`설윤`이 사쿠라를 가리킨 건).
+        if (namesDisagree) {
+          const survivor = picked[rivalIndex];
+          notice({
+            flag: "name-hint-mismatch",
+            index: rivalIndex,
+            name: survivor.name,
+            imageSearchKeyword: survivor.imageSearchKeyword,
+            suggestedNameTokens: judged.personTokens,
+            detail:
+              `"${rival.name}"와 "${row.name}"가 같은 인물을 가리킨다 —` +
+              ` ${judged.detail}. 남은 이름 칸이 맞는지 확인할 것`,
+          });
         }
         continue;
       }

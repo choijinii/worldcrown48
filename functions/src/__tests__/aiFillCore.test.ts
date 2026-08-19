@@ -164,15 +164,25 @@ describe("buildPrompt — AI-2 계약 문구", () => {
 
   it("명단 적격성 규칙을 싣는다 (탈퇴·활동중단·논란 제외)", () => {
     const prompt = buildPrompt(base);
-    expect(prompt).toContain("탈퇴했거나 활동을 중단했거나");
-    expect(prompt).toContain("논란이 없을 인물만");
+    expect(prompt).toContain("탈퇴·퇴출된 전 멤버");
+    expect(prompt).toContain("해체했거나 활동을 중단한 팀");
+    expect(prompt).toContain("학교폭력·범죄");
+  });
+
+  // AI-2.2: 이 규칙은 2026-08-19 골든에서 **한 번 뚫렸다**. 강화 문구가 통째로
+  // 빠지면 같은 사고가 조용히 재발하므로 세 조각을 각각 못 박는다.
+  it("강화된 적격성 문구 3요소가 모두 나간다 (금지 목록 · 현재 멤버 · 자문 절차)", () => {
+    const prompt = buildPrompt(base);
+    expect(prompt).toContain("지금 그 팀의 현재 공식 멤버");
+    expect(prompt).toContain("지금 활동 중인가");
+    expect(prompt).toContain("다른 사람으로 채운다");
   });
 
   it("blank-only 모드에서도 계약 문구가 함께 나간다", () => {
     // 빈칸만 채우는 경로가 계약을 잃으면 오염이 그 경로로만 되살아난다.
     const prompt = buildPrompt({ ...base, count: 6, existing: ["설윤", "지수"] });
     expect(prompt).toContain("imageSearchKeyword 규칙:");
-    expect(prompt).toContain("탈퇴했거나 활동을 중단했거나");
+    expect(prompt).toContain("탈퇴·퇴출된 전 멤버");
   });
 
   it("기존 규칙은 그대로 남는다 (추가만 — RULE 1)", () => {
