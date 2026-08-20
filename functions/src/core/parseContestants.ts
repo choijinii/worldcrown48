@@ -178,6 +178,72 @@ export function normalizeHintKey(hint: string): string {
   return (hint ?? "").toLocaleLowerCase().replace(/\s+/g, "");
 }
 
+/**
+ * `start`의 여는 괄호와 짝이 되는 `]`의 위치. 못 찾으면 -1.
+ *
+ * 문자열 리터럴 안의 괄호는 세지 않는다 — 힌트에 `[]`가 들어와도 무너지지 않게.
+ * 균형이 맞았는데 닫는 문자가 `]`가 아니면(객체였다) 배열이 아니므로 -1이다.
+ */
+function matchingBracket(text: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === "[" || ch === "{") {
+      depth += 1;
+    } else if (ch === "]" || ch === "}") {
+      depth -= 1;
+      if (depth === 0) return ch === "]" ? i : -1;
+      if (depth < 0) return -1;
+    }
+  }
+  return -1; // 닫히지 않았다 — 잘린 응답
+}
+
+/**
+ * 응답 텍스트에서 **JSON 배열을 골라낸다** (AI-2.4).
+ *
+ * 예전에는 `/\[[\s\S]*\]/` 한 줄이었다. 첫 `[` 부터 **마지막** `]` 까지를
+ * 탐욕적으로 잡는 정규식이라, 배열이 두 개면 그 사이의 `] ... [` 까지 통째로
+ * 삼켜 유효한 JSON이 아니게 된다. 2026-08-20 골든 4차 #3이 그렇게 죽었다 —
+ * 출력 6,914토큰(정상 회차의 2.1배 · 약 110항목 분량)에 파싱은 0건이었다.
+ * 산문에 낀 `[1]` 같은 대괄호도 같은 방식으로 파서를 깨뜨린다.
+ *
+ * 그래서 괄호 균형을 세어 **유효한 배열만** 후보로 모으고, 항목이 가장 많은 것을
+ * 고른다. 모델이 명단을 두 번 뱉어도 온전한 쪽이 뽑히고, 뒤쪽이 잘려 있으면
+ * (닫는 `]`가 없으면) 그건 후보에서 빠진다.
+ */
+export function extractJsonArray(text: string): unknown[] | null {
+  const source = text ?? "";
+  let best: unknown[] | null = null;
+  for (let i = 0; i < source.length; i += 1) {
+    if (source[i] !== "[") continue;
+    const end = matchingBracket(source, i);
+    if (end < 0) continue;
+    try {
+      const value: unknown = JSON.parse(source.slice(i, end + 1));
+      if (Array.isArray(value)) {
+        if (best === null || value.length > best.length) best = value;
+        i = end; // 이 배열 **안쪽**은 다시 훑지 않는다
+      }
+    } catch {
+      /* 이 위치에서 시작하는 조각은 JSON이 아니다 — 다음 `[`로 */
+    }
+  }
+  return best;
+}
+
 /** 비교용 정규화 — 소문자 + 공백 제거. 이름·소속 낱말 양쪽에 같은 잣대를 쓴다. */
 function foldForMatch(text: string): string {
   return (text ?? "").toLocaleLowerCase().replace(/\s+/g, "");
@@ -545,21 +611,24 @@ export function parseAiContestants(
   expectedCount: number = TOTAL_CONTESTANTS,
   options: ParseOptions = {},
 ): AiContestantSuggestion[] {
-  const match = text.match(/\[[\s\S]*\]/);
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(match ? match[0] : text);
-  } catch {
+  const parsed = extractJsonArray(text);
+  if (parsed === null) {
+    // 배열이 하나도 없었다. 응답 전체가 JSON이긴 한데 배열이 아닌 경우
+    // (`{"a":1}`)와 아예 JSON이 아닌 경우를 구분해 준다 — 운영자에게 다른 얘기다.
+    let whole: unknown;
+    try {
+      whole = JSON.parse((text ?? "").trim());
+    } catch {
+      throw new ContestantParseError(
+        "unparseable",
+        "AI 응답에서 JSON 배열을 찾지 못했습니다.",
+      );
+    }
     throw new ContestantParseError(
-      "unparseable",
-      "AI 응답에서 JSON 배열을 찾지 못했습니다.",
-    );
-  }
-
-  if (!Array.isArray(parsed)) {
-    throw new ContestantParseError(
-      "not_array",
-      "AI 응답이 배열 형식이 아닙니다.",
+      Array.isArray(whole) ? "unparseable" : "not_array",
+      Array.isArray(whole)
+        ? "AI 응답에서 JSON 배열을 찾지 못했습니다."
+        : "AI 응답이 배열 형식이 아닙니다.",
     );
   }
 

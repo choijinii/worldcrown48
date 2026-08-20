@@ -13,6 +13,7 @@ import {
   hintTokenSet,
   personTokens,
   findExclusion,
+  extractJsonArray,
   type ContestantNotice,
   type DiscardedContestant,
 } from "../core/parseContestants";
@@ -689,5 +690,80 @@ describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한�
     expect(discarded).toHaveLength(1);
     expect(discarded[0]).toMatchObject({ reason: "excluded", name: "수진" });
     expect(discarded[0].detail).toContain("탈퇴");
+  });
+});
+
+/**
+ * AI-2.4 (2026-08-20) — 배열 추출 견고화.
+ *
+ * 골든 4차 #3이 파싱 0건으로 죽었다: 출력 6,914토큰(정상 회차 3,365·3,209의 2.1배,
+ * 약 110항목 분량)인데 `JSON 배열을 찾지 못했습니다`. 탐욕 정규식이 첫 `[`부터
+ * 마지막 `]`까지를 삼켜, 배열이 둘이면 사이의 `] ... [`까지 끌어안은 게 원인이다.
+ */
+describe("extractJsonArray — 산문·중복 배열을 견딘다 (AI-2.4)", () => {
+  const one = (name: string) =>
+    ({ name, nationality: "KR", position: "Vocal", imageSearchKeyword: `${name} stage` });
+  const arr = (names: string[]) => JSON.stringify(names.map(one));
+
+  it("깨끗한 배열을 그대로 돌려준다", () => {
+    expect(extractJsonArray(arr(["A", "B"]))).toHaveLength(2);
+  });
+
+  it("앞뒤 산문을 걷어낸다", () => {
+    const text = `여기 있습니다:\n${arr(["A", "B"])}\n필요하면 더 드릴게요.`;
+    expect(extractJsonArray(text)).toHaveLength(2);
+  });
+
+  it("**배열이 두 번** 나와도 죽지 않는다 — 골든 4차 #3의 형태", () => {
+    // 예전 탐욕 정규식은 첫 `[`부터 마지막 `]`까지를 잡아 통째로 실패했다.
+    const text = `${arr(["A", "B"])}\n\n다시 정리하면:\n${arr(["A", "B", "C"])}`;
+    const out = extractJsonArray(text);
+    expect(out).toHaveLength(3); // 항목이 더 많은 쪽
+  });
+
+  it("산문 속 대괄호에 속지 않는다", () => {
+    const text = `규칙 [1] 에 따라 정리했습니다.\n${arr(["A", "B"])}`;
+    expect(extractJsonArray(text)).toHaveLength(2);
+  });
+
+  it("뒤쪽 배열이 잘려 있으면 온전한 앞쪽을 쓴다", () => {
+    const text = `${arr(["A", "B"])}\n[{"name":"C","nationality":"KR"`;
+    expect(extractJsonArray(text)).toHaveLength(2);
+  });
+
+  it("힌트에 대괄호가 들어 있어도 괄호 수를 틀리지 않는다", () => {
+    const text = JSON.stringify([
+      { name: "A", nationality: "KR", position: "V", imageSearchKeyword: "GROUP [SPECIAL] stage" },
+    ]);
+    const out = extractJsonArray(text);
+    expect(out).toHaveLength(1);
+    expect((out?.[0] as { imageSearchKeyword: string }).imageSearchKeyword).toContain("[SPECIAL]");
+  });
+
+  it("배열이 없으면 null", () => {
+    expect(extractJsonArray("설명만 잔뜩")).toBeNull();
+    expect(extractJsonArray('{"a":1}')).toBeNull();
+    expect(extractJsonArray("")).toBeNull();
+  });
+
+  it("파서가 중복 배열 응답을 실제로 통과시킨다 (회귀 방지)", () => {
+    const roster = ["카리나", "윈터", "닝닝", "지젤"];
+    const text = `${arr(roster)}\n\n한 번 더 정리합니다:\n${arr(roster)}`;
+    expect(parseAiContestants(text, 4).map((c) => c.name)).toEqual(roster);
+  });
+
+  it("오류 구분은 그대로다 — 배열 아님 vs 파싱 불가", () => {
+    try {
+      parseAiContestants('{"a":1}');
+      throw new Error("should have thrown");
+    } catch (e) {
+      expect((e as ContestantParseError).reason).toBe("not_array");
+    }
+    try {
+      parseAiContestants("nope");
+      throw new Error("should have thrown");
+    } catch (e) {
+      expect((e as ContestantParseError).reason).toBe("unparseable");
+    }
   });
 });

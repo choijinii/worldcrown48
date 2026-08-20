@@ -39,10 +39,13 @@
  * 옵션 환경변수:
  *   USD_KRW=1417   원화 환산 환율 (기본 1417 — 2026-08-16 실측 가정치)
  *   GOLDEN_ONLY=f  조건 키를 콤마로 — 지정하면 그 조건만 돈다 (호출비 절약)
+ *   GOLDEN_DUMP_DIR=/path  실패 회차의 **원시 응답**을 저장할 디렉터리 (기본 임시폴더)
  *
  * 키는 절대 출력하지 않는다. 프롬프트 전문도 로그에 남기지 않는다 (RULE R2).
  */
-import { basename } from "node:path";
+import { basename, join } from "node:path";
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import Anthropic from "@anthropic-ai/sdk";
 import { buildPrompt } from "../lib/core/aiFillCore.js";
 import {
@@ -240,8 +243,10 @@ function printTable(headers, rows) {
 }
 
 // ── 실행 ─────────────────────────────────────────────────────────────
-async function runOnce(anthropic, cond) {
+async function runOnce(anthropic, cond, runNo) {
   const startedAt = Date.now();
+  /** 원시 응답. 실패하면 파일로 남긴다 — 추론 말고 확인으로 끝내려고. */
+  let rawText = "";
   const result = {
     verdict: "PASS",
     detail: "",
@@ -264,6 +269,10 @@ async function runOnce(anthropic, cond) {
     flaggedDupes: [],
     /** 힌트가 빈 채택분 수 — 폴백 검색어로 가는 슬롯. */
     finalBlankHints: 0,
+    /** 실패 회차의 원시 응답 파일 경로 (성공하면 없음). */
+    dumpPath: "",
+    /** 원시 응답 앞머리 — 콘솔에서 바로 형태를 보라고. */
+    rawHead: "",
     /** 눈검사용 (이름 · 힌트) 표본. */
     sample: [],
     /** 채택된 전원 (이름 · 힌트) — 부적격 인물 눈검사용(AI-2.1 대표 요청). */
@@ -285,6 +294,7 @@ async function runOnce(anthropic, cond) {
     result.stopReason = resp.stop_reason ?? "";
     const block = resp.content[0];
     const text = block && block.type === "text" ? block.text : "";
+    rawText = text; // 실패하면 이걸 파일로 남긴다 (AI-2.4 1안)
 
     // 모델이 실제로 준 개수 — 파서가 절단하기 전 값. 과다 요청이 먹혔는지 본다.
     // AI-2: 같은 원본에서 **프롬프트 효과**를 잰다. 파서가 걸러낸 뒤를 보면
@@ -385,7 +395,26 @@ async function runOnce(anthropic, cond) {
     }
   } catch (e) {
     result.verdict = "FAIL";
-    result.detail = `${e?.name ?? "Error"}: ${e?.message ?? String(e)}`;
+    // stop_reason은 실패 줄에도 찍는다. 예전엔 catch가 detail을 덮어써서
+    // 파싱이 실패하면 잘림 여부를 알 길이 없었다 — 4차 #3에서 토큰 수로
+    // 우회 추론해야 했던 이유다.
+    result.detail =
+      `${e?.name ?? "Error"}: ${e?.message ?? String(e)}` +
+      (result.stopReason ? ` · stop_reason=${result.stopReason}` : "") +
+      (result.rawCount === null && rawText ? ` · 원시응답 ${rawText.length}자` : "");
+
+    // 원시 응답 보존 (AI-2.4 1안). 프롬프트도 키도 쓰지 않는다 — 응답뿐이다(R6).
+    if (rawText) {
+      try {
+        const dir = process.env.GOLDEN_DUMP_DIR || tmpdir();
+        const file = join(dir, `golden-raw-${cond.key}-${runNo}.txt`);
+        writeFileSync(file, rawText, "utf-8");
+        result.dumpPath = file;
+        result.rawHead = rawText.slice(0, 200).replace(/\s+/g, " ");
+      } catch (writeErr) {
+        result.detail += ` · 원시응답 저장 실패(${writeErr?.message ?? writeErr})`;
+      }
+    }
   }
 
   result.elapsedMs = Date.now() - startedAt;
@@ -417,13 +446,17 @@ async function main() {
     const runs = [];
     const condRuns = cond.runs ?? RUNS;
     for (let i = 1; i <= condRuns; i++) {
-      const r = await runOnce(anthropic, cond);
+      const r = await runOnce(anthropic, cond, i);
       runs.push(r);
       const price = PRICE[cond.model];
       console.log(
         `  #${i} ${r.verdict} — ${r.detail} · in=${r.usage.input_tokens} out=${r.usage.output_tokens} ` +
           `${(r.elapsedMs / 1000).toFixed(1)}s · ${usd(costOf(r.usage, price))} / ${krw(costOf(r.usage, price))}`,
       );
+      if (r.dumpPath) {
+        console.log(`      ↳ 원시 응답 저장: ${r.dumpPath}  (앞 200자)`);
+        console.log(`        ${r.rawHead}`);
+      }
     }
     // 실존 여부 눈검사 — 1회차 이름 10개 + 힌트(AI-2: 힌트가 검색어 꼴인지 본다)
     const first = runs[0];
