@@ -23,6 +23,13 @@
  *   cd functions && npm run build
  *   ANTHROPIC_API_KEY='sk-ant-...' node scripts/golden-ai-fill.mjs
  *
+ * 4차(2026-08-20 · AI-2.3). 합격선을 **제품 계약에 맞췄다**(대표 결정):
+ *   · 개수 — `expectedCount - SHORTFALL_TOLERANCE` 이상이면 통과. 파서가 47명을
+ *     정상 반환하는데 골든만 "정확히 48"을 요구하면 제품이 아닌 걸 재게 된다.
+ *   · 중복 — 실패는 **못 잡은 중복**뿐이다. 같은 인물로 보이는 쌍인데 플래그도
+ *     병합도 없이 통과한 경우. 플래그가 달린 동명이인은 설계대로 남긴 것이라
+ *     통과다(3차 #2의 설윤(ITZY)/설윤(NMIXX)이 이 경우였다).
+ *
  * 3차(2026-08-18 · AI-2). 조건 (f) "증거재현"을 추가했다 — EVIDENCE_AI-2의 재현
  * 조건 그대로 돌려 **힌트 칸 오염이 프롬프트로 잡혔는지**를 본다. 회차마다
  * 원본 메모 수 · 원본 정규화 중복 수 · 파서 폐기 목록 · 채택분 잔존을 찍는다.
@@ -41,8 +48,10 @@ import { buildPrompt } from "../lib/core/aiFillCore.js";
 import {
   parseAiContestants,
   TOTAL_CONTESTANTS,
+  SHORTFALL_TOLERANCE,
   isPollutedHint,
   normalizeNameKey,
+  normalizeHintKey,
 } from "../lib/core/parseContestants.js";
 import { SONNET_MODEL, HAIKU_MODEL, SONNET_THINKING } from "../lib/core/models.js";
 
@@ -247,9 +256,12 @@ async function runOnce(anthropic, cond) {
     rawDupNames: [],
     /** 파서가 버린 항목 — 오탐 눈검사용(§6 Auto-STOP). */
     discarded: [],
-    /** 최종 채택분에 남은 메모/중복 — 0이어야 한다(검증기 사후 확인). */
+    /** 최종 채택분에 남은 메모 — 0이어야 한다(검증기 사후 확인). */
     finalPolluted: [],
-    finalDupNames: [],
+    /** 같은 인물로 보이는데 **플래그도 없이** 통과한 쌍 = 진짜 못 잡은 중복. */
+    missedDupes: [],
+    /** 중복으로 보이지만 플래그가 달린 쌍 — 사람에게 넘긴 것이라 실패가 아니다. */
+    flaggedDupes: [],
     /** 힌트가 빈 채택분 수 — 폴백 검색어로 가는 슬롯. */
     finalBlankHints: 0,
     /** 눈검사용 (이름 · 힌트) 표본. */
@@ -310,39 +322,62 @@ async function runOnce(anthropic, cond) {
       hint: c.imageSearchKeyword,
     }));
 
-    // 검증기 사후 확인 — 채택분에 메모·정규화 중복이 남아 있으면 파이프라인 결함이다.
-    const finalSeen = new Map();
+    // 검증기 사후 확인 — 채택분에 메모가 남아 있으면 파이프라인 결함이다.
     for (const c of contestants) {
       const hint = String(c.imageSearchKeyword ?? "").trim();
       if (!hint) result.finalBlankHints += 1;
       if (isPollutedHint(hint)) result.finalPolluted.push({ name: c.name, hint });
-      const key = normalizeNameKey(c.name);
-      if (finalSeen.has(key)) result.finalDupNames.push(`${finalSeen.get(key)} = ${c.name}`);
-      else finalSeen.set(key, c.name);
+    }
+
+    // ── 중복 사후 확인 (AI-2.3 · 대표 결정 2026-08-20) ────────────────
+    // 예전 기준은 "이름 문자열이 겹치면 실패"였다. 그건 대표 결정
+    // ("동명이인은 둘 다 남기고 플래그")와 정면으로 부딪힌다 — 골든 3차 #2가
+    // 설윤(ITZY) / 설윤(NMIXX)을 **의도대로** 남겼는데 실패로 셌다.
+    //
+    // 이 파이프라인의 계약은 "병합하든가 플래그하든가, **조용히 두 번 싣지는
+    // 않는다**"이다. 그래서 실패 기준도 거기에 맞춘다: 같은 인물로 보이는 쌍인데
+    // 플래그가 하나도 안 붙었으면 아무도 못 본 것이므로 실패다.
+    const flaggedIdx = new Set(result.notices.map((n) => n.index));
+    for (let i = 0; i < contestants.length; i += 1) {
+      for (let j = i + 1; j < contestants.length; j += 1) {
+        const a = contestants[i];
+        const b = contestants[j];
+        const sameName = normalizeNameKey(a.name) === normalizeNameKey(b.name);
+        const hintA = normalizeHintKey(a.imageSearchKeyword);
+        const sameHint =
+          hintA !== "" && hintA === normalizeHintKey(b.imageSearchKeyword);
+        if (!sameName && !sameHint) continue;
+        const pair = `${a.name} = ${b.name}`;
+        if (flaggedIdx.has(i) || flaggedIdx.has(j)) result.flaggedDupes.push(pair);
+        else result.missedDupes.push(pair);
+      }
     }
 
     const raw = result.rawCount === null ? "?" : result.rawCount;
 
-    if (contestants.length !== want) {
-      // 파서는 N-2까지 통과시키지만, 골든 합격선은 킥 DoD대로 정확히 N이다.
+    // 합격선은 **제품 계약과 같다**(대표 결정 2026-08-20). 파서가
+    // SHORTFALL_TOLERANCE만큼의 부족분을 통과시키는 이상, 골든만 "정확히 N"을
+    // 요구하면 프로덕션이 정상 반환할 응답을 골든이 떨어뜨린다 — 3차 #1의 47명이
+    // 그랬다. 게이트가 제품보다 엄격하면 재는 대상이 제품이 아니게 된다.
+    const floor = Math.max(1, want - SHORTFALL_TOLERANCE);
+    if (contestants.length < floor) {
       result.verdict = "FAIL";
-      result.detail = `${contestants.length}명 (기대 ${want}, 원본 ${raw}개)`;
+      result.detail = `${contestants.length}명 (하한 ${floor} 미달, 기대 ${want}, 원본 ${raw}개)`;
+    } else if (result.missedDupes.length > 0) {
+      result.verdict = "FAIL";
+      result.detail =
+        `못 잡은 중복 ${result.missedDupes.length}건: ${result.missedDupes.join(", ")}` +
+        " (플래그도 병합도 없이 통과)";
+    } else if (result.finalPolluted.length > 0) {
+      // 여기가 걸리면 프롬프트가 아니라 **검증기·파서**가 샌 것이다.
+      result.verdict = "FAIL";
+      result.detail = `채택분 오염 ${result.finalPolluted.length}건 (검증기 결함)`;
     } else {
-      const dupes = result.names.filter((n, i) => result.names.indexOf(n) !== i);
-      if (dupes.length > 0) {
-        result.verdict = "FAIL";
-        result.detail = `중복 ${dupes.length}건: ${[...new Set(dupes)].join(", ")}`;
-      } else if (result.finalPolluted.length > 0 || result.finalDupNames.length > 0) {
-        // 여기가 걸리면 프롬프트가 아니라 **검증기·파서**가 샌 것이다.
-        result.verdict = "FAIL";
-        result.detail =
-          `채택분 오염 ${result.finalPolluted.length} · 정규화 중복 ${result.finalDupNames.length}` +
-          " (검증기 결함)";
-      } else {
-        result.detail =
-          `${want}명 · 중복 0 · 원본 ${raw}개 · 원본메모 ${result.rawPolluted.length}` +
-          ` · 폐기 ${result.discarded.length}`;
-      }
+      const short = want - contestants.length;
+      result.detail =
+        `${contestants.length}명${short > 0 ? ` (하한 ${floor} 통과 · ${short}칸 빈다)` : ""}` +
+        ` · 못 잡은 중복 0 · 원본 ${raw}개 · 원본메모 ${result.rawPolluted.length}` +
+        ` · 폐기 ${result.discarded.length} · 플래그 ${result.notices.length}`;
     }
     if (result.stopReason === "max_tokens") {
       result.verdict = "FAIL";
@@ -409,6 +444,7 @@ async function main() {
         `원본중복 ${r.rawDupNames.length}`,
         `폐기 ${r.discarded.length}`,
         `채택 ${r.names.length}`,
+        `못잡은중복 ${r.missedDupes.length}`,
         `빈힌트 ${r.finalBlankHints}`,
       ];
       console.log(`  #${i + 1} 품질: ${bits.join(" · ")}`);
@@ -431,6 +467,10 @@ async function main() {
       for (const dup of r.rawDupNames) console.log(`      원본중복: ${dup}`);
       for (const p of r.finalPolluted) {
         console.log(`      ⚠ 채택분에 메모가 남았다: ${p.name} 🔎 ${p.hint}`);
+      }
+      for (const d of r.missedDupes) console.log(`      ⚠ 못 잡은 중복: ${d}`);
+      for (const d of r.flaggedDupes) {
+        console.log(`      (플래그된 중복 — 사람이 판단): ${d}`);
       }
       // 채택 전원 — 탈퇴·활동중단·논란 인물이 섞였는지 대표가 눈으로 본다(요구 4).
       if (r.roster.length > 0) {
@@ -525,7 +565,9 @@ async function main() {
         "   ③ '채택 전원' 목록에 탈퇴·활동중단·논란 인물(예: 수진)이 있으면 적격성 문구 미작동\n" +
         "   ④ 힌트가 '그룹명 활동명 stage' 꼴인지 — 문장·메모면 계약 미작동\n" +
         "   ⑤ 플래그[name-hint-mismatch] 줄의 '정정 후보'가 이름 칸과 맞는지 —\n" +
-        "      맞다면 그 슬롯의 이름만 손보면 된다(항목은 살아 있다)",
+        "      맞다면 그 슬롯의 이름만 손보면 된다(항목은 살아 있다)\n" +
+        "   ⑥ '못 잡은 중복' 줄이 있으면 파이프라인이 샌 것 → STOP.\n" +
+        "      '(플래그된 중복 …)' 줄은 사람에게 넘긴 것이라 실패가 아니다",
     );
   }
   console.log("※ 환율은 가정치다. 단가만 docs.claude.com 실측(2026-08-16).");

@@ -82,10 +82,10 @@ describe("parseAiContestants (functions)", () => {
 
 /**
  * AI-1 — 과다 요청 + 관용 파싱 (대표 결정).
- * 프롬프트가 50~52명을 요청하고, 여기서 중복 제거 후 정확히 48명을 취한다.
+ * 프롬프트가 51~53명을 요청하고(AI-2.2), 여기서 걸러낸 뒤 정확히 48명을 취한다.
  */
 describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족분 허용 (AI-1)", () => {
-  it("50~52명이 와도 앞에서부터 정확히 48명만 취한다", () => {
+  it("51~53명이 와도 앞에서부터 정확히 48명만 취한다", () => {
     for (const n of [49, 50, 52]) {
       const out = parseAiContestants(fakeArray(n));
       expect(out).toHaveLength(TOTAL_CONTESTANTS);

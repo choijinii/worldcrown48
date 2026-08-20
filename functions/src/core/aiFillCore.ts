@@ -88,12 +88,20 @@ export interface BuildPromptOptions {
 }
 
 /**
- * 과다 요청 폭 (AI-1). 필요한 수보다 2~4명 더 달라고 하고, 파서가 중복 제거 후
- * 앞에서부터 정확히 count명을 취한다. 골든 1차에서 "정확히 N명"이 자주 빗나가
- * (49·47명) 응답 전체가 버려졌던 것에 대한 대표 결정.
+ * 과다 요청 폭. 필요한 수보다 이만큼 더 달라고 하고, 파서가 걸러낸 뒤 앞에서부터
+ * 정확히 count명을 취한다. 골든 1차에서 "정확히 N명"이 자주 빗나가(49·47명) 응답
+ * 전체가 버려졌던 것에 대한 대표 결정(AI-1)이 출발점이다.
+ *
+ * AI-2.2에서 2~4 → **3~5**로 넓혔다(대표 결정 2026-08-20). 폐기 경로가 늘었기
+ * 때문이다: 제외 목록 + 확인된 중복 병합까지 더해지면서 골든 3차의 폐기가 회차당
+ * 4·2·3건이었고, 51개를 받은 회차에서 여유분 3을 폐기 4가 넘어 47명이 됐다.
+ *
+ * 더 넓히지 않는 이유: 후보 풀은 유한하다. 56명을 요구하면 모델이 더 깊이 파고
+ * 들어가는데, 골든 3차의 검수 플래그 9건 중 6건이 슬롯 33 이후에 몰렸다 —
+ * 뒤로 갈수록 애매한 인물이 나온다는 신호다. 개수를 사려고 꼬리 품질을 팔지 않는다.
  */
-const OVER_REQUEST_MIN = 2;
-const OVER_REQUEST_MAX = 4;
+const OVER_REQUEST_MIN = 3;
+const OVER_REQUEST_MAX = 5;
 
 export function buildPrompt(opts: BuildPromptOptions): string {
   const { title, category, description, keywords, existing, count } = opts;
