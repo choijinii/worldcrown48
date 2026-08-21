@@ -14,6 +14,7 @@ import { useT } from "@/lib/i18n/useT";
 import type { SlotSourcingState } from "@/lib/lab/sourcingDraft";
 import {
   sourcingBadgeTone,
+  sourcingDemotedMessage,
   sourcingReasonMessage,
   sourcingStatusMessage,
 } from "@/lib/lab/sourcingMessages";
@@ -222,20 +223,30 @@ export function ContestantEditor({
           data-sourcing-status={sourcing.status}
           style={{ marginTop: 6, display: "grid", gap: 3 }}
         >
-          <span
-            style={{
-              justifySelf: "start",
-              padding: "1px 6px",
-              borderRadius: 999,
-              border: `1px solid ${TONE_COLOR[sourcingBadgeTone(sourcing.status)]}`,
-              color: TONE_COLOR[sourcingBadgeTone(sourcing.status)],
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {t(sourcingStatusMessage(sourcing.status).key)}
-          </span>
+          {(() => {
+            // AI-2: 감점된 영상이 그래도 얹혔으면 배지에 사유를 매단다. 배지 문구
+            // 자체는 그대로다 — "제안"인데 논란 영상일 수 있다는 건 툴팁으로 알린다.
+            const demoted = sourcingDemotedMessage(sourcing);
+            return (
+              <span
+                title={demoted ? t(demoted.key, demoted.vars) : undefined}
+                data-demoted={demoted ? "true" : undefined}
+                style={{
+                  justifySelf: "start",
+                  padding: "1px 6px",
+                  borderRadius: 999,
+                  border: `1px solid ${TONE_COLOR[sourcingBadgeTone(sourcing.status)]}`,
+                  color: TONE_COLOR[sourcingBadgeTone(sourcing.status)],
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {t(sourcingStatusMessage(sourcing.status).key)}
+                {demoted ? " ⚠" : ""}
+              </span>
+            );
+          })()}
           {(() => {
             const reason = sourcingReasonMessage(sourcing);
             return reason ? (

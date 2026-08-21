@@ -21,6 +21,8 @@ import {
   parseAiContestants,
   TOTAL_CONTESTANTS,
   type AiContestantSuggestion,
+  type ContestantNotice,
+  type DiscardedContestant,
 } from "./parseContestants";
 
 /** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
@@ -61,6 +63,12 @@ export interface AiFillDeps {
    * of being swallowed by the generic ai-failed message.
    */
   logError?: (message: string, err: unknown) => void;
+  /**
+   * 폐기 요약 로거 (AI-2). 검증기가 버린 항목을 서버 로그에 남긴다 — 오탐이
+   * 프로덕션에서만 드러날 때 골든을 다시 돌리지 않고 확인할 수 있는 유일한 창이다.
+   * R6: 프롬프트 전문·키는 절대 넣지 않는다. 폐기 항목의 이름·힌트·사유까지만.
+   */
+  logInfo?: (message: string) => void;
 }
 
 function toStringArray(v: unknown): string[] {
@@ -80,12 +88,20 @@ export interface BuildPromptOptions {
 }
 
 /**
- * 과다 요청 폭 (AI-1). 필요한 수보다 2~4명 더 달라고 하고, 파서가 중복 제거 후
- * 앞에서부터 정확히 count명을 취한다. 골든 1차에서 "정확히 N명"이 자주 빗나가
- * (49·47명) 응답 전체가 버려졌던 것에 대한 대표 결정.
+ * 과다 요청 폭. 필요한 수보다 이만큼 더 달라고 하고, 파서가 걸러낸 뒤 앞에서부터
+ * 정확히 count명을 취한다. 골든 1차에서 "정확히 N명"이 자주 빗나가(49·47명) 응답
+ * 전체가 버려졌던 것에 대한 대표 결정(AI-1)이 출발점이다.
+ *
+ * AI-2.2에서 2~4 → **3~5**로 넓혔다(대표 결정 2026-08-20). 폐기 경로가 늘었기
+ * 때문이다: 제외 목록 + 확인된 중복 병합까지 더해지면서 골든 3차의 폐기가 회차당
+ * 4·2·3건이었고, 51개를 받은 회차에서 여유분 3을 폐기 4가 넘어 47명이 됐다.
+ *
+ * 더 넓히지 않는 이유: 후보 풀은 유한하다. 56명을 요구하면 모델이 더 깊이 파고
+ * 들어가는데, 골든 3차의 검수 플래그 9건 중 6건이 슬롯 33 이후에 몰렸다 —
+ * 뒤로 갈수록 애매한 인물이 나온다는 신호다. 개수를 사려고 꼬리 품질을 팔지 않는다.
  */
-const OVER_REQUEST_MIN = 2;
-const OVER_REQUEST_MAX = 4;
+const OVER_REQUEST_MIN = 3;
+const OVER_REQUEST_MAX = 5;
 
 export function buildPrompt(opts: BuildPromptOptions): string {
   const { title, category, description, keywords, existing, count } = opts;
@@ -124,6 +140,29 @@ export function buildPrompt(opts: BuildPromptOptions): string {
     // 문자 그대로 따르면서 실존 K-POP 아티스트(대부분 한국인)를 피하려다 인물을
     // 지어냈다 — 골든 1차에서 확인. 국적 규칙은 카테고리에 종속시킨다.
     "- 카테고리에 실제로 속한 인물이면 국적을 가리지 말 것 (K-POP이면 한국인 아티스트를 피하지 말 것). 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",
+    // AI-2 ⑥ 명단 적격성. AI-2.2(2026-08-20)에서 문구를 강화했다 — **한 번 실패한
+    // 규칙이기 때문이다**. 2026-08-18에 아래 첫 줄을 넣었는데도 이튿날 골든 3회 중
+    // 2회에서 탈퇴 멤버가 명단에 올랐다. 그래서 (a) 금지 항목을 번호로 쪼개 세고,
+    // (b) 한 명씩 자문하는 절차를 시키고, (c) 뺀 자리는 채우라고 명시한다.
+    // 그래도 모델 지시는 지시일 뿐이라 서버에 제외 목록을 따로 뒀다
+    // (core/rosterExclusions.ts) — 이 문구가 또 뚫려도 거기서 막힌다.
+    "- 명단 적격성 — 다음 세 부류는 넣지 않는다: ① 그룹에서 탈퇴·퇴출된 전 멤버 ② 해체했거나 활동을 중단한 팀의 멤버 ③ 학교폭력·범죄 등 중대한 사회적 물의로 논란이 된 인물",
+    "- 특히 ①이 자주 틀린다. **지금 그 팀의 현재 공식 멤버**만 넣는다. 논란으로 팀을 떠난 전 멤버를 그 팀 이름과 함께 넣는 일이 없도록 할 것",
+    "- 한 명을 적을 때마다 스스로 확인한다: \"지금 활동 중인가 · 탈퇴하지 않았나 · 논란이 없었나\". 셋 중 하나라도 걸리면 그 사람을 빼고 **다른 사람으로 채운다**",
+  );
+  // AI-2 ② 힌트 칸 계약. 이 칸은 LAB-EV-2 자동 소싱이 **그대로 유튜브 검색창에
+  // 넣는 문자열**이다(§3 OUT "검색어 AI 재작성 금지"). 계약이 없던 탓에 모델이
+  // 확신 없는 인물의 검색어 자리에 자기 메모를 흘렸다 — EVIDENCE_AI-2 6/6.
+  // 규칙 목록에서 떼어 별도 블록으로 둔다: 필드 하나에 대한 형식 계약이라
+  // 명단 규칙 사이에 끼면 묻힌다.
+  lines.push(
+    "",
+    "imageSearchKeyword 규칙:",
+    "- 이 칸은 유튜브 검색창에 그대로 붙여 넣을 검색어다. 메모장이 아니다",
+    "- 형식: 그룹·소속명 + 활동명 (필요하면 stage 또는 performance), 최대 6단어. 그 인물의 영상이 실제로 검색되는 표기를 쓴다",
+    '- 예시 형식: "<그룹명> <활동명> stage"',
+    "- 메모·설명·의문·확인 요청·괄호 주석·물음표를 절대 넣지 말 것. \"X 아님 Y 확인\" 같은 문자열은 검색어가 아니다",
+    "- 이 칸에 쓸 검색어를 확신할 수 없으면 그 인물을 목록에서 빼라. 요청 인원보다 여유 있게 요청했으니 빠져도 된다",
   );
   return lines.join("\n");
 }
@@ -177,5 +216,41 @@ export async function aiFillCore(
 
   // parseAiContestants throws ContestantParseError on bad/short output; the
   // onCall wrapper maps that to HttpsError('internal') with a retry hint.
-  return parseAiContestants(text, count);
+  // AI-2: 검증기가 버린 항목은 요약 한 줄로 남긴다(R6 — 이름·힌트·사유까지만).
+  const discarded: DiscardedContestant[] = [];
+  const notices: ContestantNotice[] = [];
+  const contestants = parseAiContestants(text, count, {
+    onDiscard: (item) => discarded.push(item),
+    onNotice: (item) => notices.push(item),
+  });
+  if (discarded.length > 0) {
+    deps.logInfo?.(
+      `aiFillCore discarded ${discarded.length} item(s): ` +
+        discarded
+          .map(
+            (d) =>
+              `[${d.reason}] ${d.name} 🔎${d.imageSearchKeyword}` +
+              (d.detail ? ` — ${d.detail}` : ""),
+          )
+          .join(" | "),
+    );
+  }
+  // AI-2.1: 버리지 않고 남긴 검수 플래그. 슬롯 번호를 함께 남겨 운영자가
+  // 그리드에서 바로 찾을 수 있게 한다(index + 1 = 화면의 슬롯 번호).
+  if (notices.length > 0) {
+    deps.logInfo?.(
+      `aiFillCore review flags ${notices.length}: ` +
+        notices
+          .map(
+            (n) =>
+              `[${n.flag}] 슬롯 ${n.index + 1} ${n.name} 🔎${n.imageSearchKeyword}` +
+              (n.suggestedNameTokens?.length
+                ? ` (정정 후보: ${n.suggestedNameTokens.join(" ")})`
+                : "") +
+              ` — ${n.detail}`,
+          )
+          .join(" | "),
+    );
+  }
+  return contestants;
 }

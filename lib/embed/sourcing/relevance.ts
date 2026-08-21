@@ -11,6 +11,10 @@
  *
  * §6 Auto-STOP 3번: ambiguous 비율이 30%를 넘으면 멈추고 보고한다. 그래서
  * `judgeRelevance`는 판정만이 아니라 **왜 그 판정인지(점수·매칭 토큰)**를 돌려준다.
+ *
+ * AI-2 (2026-08-18): "이 인물의 영상인가"와 "대회 카드에 걸 영상인가"는 다른
+ * 질문이다. 학폭 논란 해명 영상은 앞 질문에 확실히 예라서 규칙이 통과시킨다 —
+ * 부정 키워드 감점(NEGATIVE_TITLE_TERMS)이 그런 영상을 **정상 무대 뒤로** 민다.
  */
 import { hintTokens, tokenize } from "./searchQuery";
 
@@ -22,6 +26,11 @@ export interface RelevanceScore {
   score: number;
   /** 제목·채널에서 실제로 발견된 이름 토큰 — 운영자 진단용. */
   matchedNameTokens: string[];
+  /**
+   * 감점을 부른 부정 키워드 (AI-2). 비어 있으면 감점 없음.
+   * 배지 툴팁에 그대로 실려 운영자가 "왜 이 영상이 밀렸나"를 본다.
+   */
+  demotedTerms: string[];
 }
 
 /**
@@ -43,6 +52,54 @@ export const THRESHOLD_RELEVANT = 3;
 
 /** 이 점수 이하면 규칙만으로 탈락(모델에 묻지 않는다 — 물어봐야 아니다). */
 export const THRESHOLD_IRRELEVANT = 0;
+
+/**
+ * 부정 키워드 (AI-2 · 킥 §5 B2). 논란·해명·탈퇴를 다루는 영상은 **그 인물의
+ * 영상이 맞다** — 관련성은 높은데 팬 투표 대회 카드에 걸 영상은 아니다.
+ *
+ * 그래서 **제외가 아니라 감점**이다. 정상 무대 영상이 하나라도 있으면 그쪽이
+ * 먼저 가고, 이것뿐이면 그래도 후보로 남아 운영자가 판단한다(§6 Auto-STOP —
+ * 감점이 정상 무대를 밀어내면 폭을 조정한다).
+ *
+ * 소문자 부분 일치다. 한국어는 "학폭논란"처럼 붙어 나오므로 낱말 단위로는 못 잡는다.
+ * `사과`는 과일과 겹치지만(먹방 제목) 감점일 뿐이라 최악이 순위 한 칸이다.
+ */
+export const NEGATIVE_TITLE_TERMS = [
+  "논란",
+  "해명",
+  "사과",
+  "학폭",
+  "학교폭력",
+  "탈퇴",
+  "활동 중단",
+  "활동중단",
+  "은퇴",
+  "혐의",
+  "controversy",
+  "apology",
+  "apologiz",
+  "scandal",
+  "allegation",
+  "lawsuit",
+] as const;
+
+/**
+ * 감점 폭. 이름이 완전히 맞는 후보(3.0 = THRESHOLD_RELEVANT)를 ambiguous로
+ * 끌어내려 **정상 후보 뒤로 보내는** 최소값이다. 더 키우면 정상 무대까지 밀려난다.
+ */
+export const NEGATIVE_PENALTY = 1.5;
+
+/**
+ * 감점 후 바닥. 감점만으로 THRESHOLD_IRRELEVANT까지 떨어지면 "제외 아님"이 깨진다
+ * — 원래 통과선을 넘던 후보는 감점 뒤에도 이 위에서 멈춘다.
+ */
+export const PENALTY_FLOOR = THRESHOLD_IRRELEVANT + 0.5;
+
+/** 제목·채널명에서 발견된 부정 키워드. 없으면 빈 배열. */
+export function findNegativeTerms(text: string): string[] {
+  const lower = (text ?? "").toLowerCase();
+  return NEGATIVE_TITLE_TERMS.filter((term) => lower.includes(term));
+}
 
 function fraction(found: number, total: number): number {
   return total === 0 ? 0 : found / total;
@@ -72,10 +129,19 @@ export function judgeRelevance(
   const matchedNameTokens = nameTokens.filter((t) => haystack.has(t));
   const matchedHints = hints.filter((t) => haystack.has(t));
 
-  const score =
+  const raw =
     fraction(matchedNameTokens.length, nameTokens.length) * 3 +
     fraction(matchedHints.length, hints.length) * 2 +
     (hasChannelHint(candidate.channelTitle) ? 1 : 0);
+
+  // AI-2: 논란·탈퇴를 다루는 영상은 감점해 차순위로 민다(제외 아님).
+  const demotedTerms = findNegativeTerms(
+    `${candidate.title} ${candidate.channelTitle}`,
+  );
+  const score =
+    demotedTerms.length > 0 && raw > THRESHOLD_IRRELEVANT
+      ? Math.max(PENALTY_FLOOR, raw - NEGATIVE_PENALTY)
+      : raw;
 
   const verdict: RelevanceVerdict =
     score >= THRESHOLD_RELEVANT
@@ -84,7 +150,7 @@ export function judgeRelevance(
         ? "irrelevant"
         : "ambiguous";
 
-  return { verdict, score, matchedNameTokens };
+  return { verdict, score, matchedNameTokens, demotedTerms };
 }
 
 /** AI 판정으로 넘길 항목 한 건. 콜러블이 배치로 모아 1콜에 묻는다. */

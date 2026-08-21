@@ -22,6 +22,11 @@ import type {
 export interface SlotSourcingState {
   status: SlotSourcingStatus;
   reason?: SourcingFailureReason;
+  /**
+   * 배정된 영상이 부정 키워드로 감점됐을 때 그 키워드 (AI-2). 배지 툴팁에만 쓴다 —
+   * "제안"이 떴어도 논란 영상이 얹혔을 수 있다는 걸 운영자가 알아야 한다.
+   */
+  demotedTerms?: string[];
 }
 
 /** index → 상태. Record로 두는 건 React state 갱신이 단순해서다. */
@@ -98,9 +103,12 @@ export function dropSourcingStates(
 export function toSourcingStates(results: readonly SourcingResult[]): SourcingStates {
   const states: SourcingStates = {};
   for (const result of results) {
-    states[result.index] = result.reason
-      ? { status: result.status, reason: result.reason }
-      : { status: result.status };
+    const demoted = result.demotedTerms ?? [];
+    states[result.index] = {
+      status: result.status,
+      ...(result.reason ? { reason: result.reason } : {}),
+      ...(demoted.length > 0 ? { demotedTerms: demoted } : {}),
+    };
   }
   return states;
 }
