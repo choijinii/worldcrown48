@@ -156,6 +156,21 @@ describe("buildPrompt — AI-2 계약 문구", () => {
     expect(prompt).toContain("물음표를 절대 넣지 말 것");
   });
 
+  // AI-2.5: 곡명 금지. 스모크에서 곡명 한 낱말이 검색 과협소·중복 미병합·플래그
+  // 오탐을 한꺼번에 만들었다. 검증기로는 못 거르므로(임의의 낱말) 계약이 유일한 방어다.
+  it("곡 제목을 금지하고 형식을 3~4단어로 좁힌다", () => {
+    const prompt = buildPrompt(base);
+    expect(prompt).toContain("곡 제목·노래 이름은 넣지 말 것");
+    expect(prompt).toContain("그룹 영문명 + 활동명 영문 + stage 또는 performance");
+    expect(prompt).toContain("3~4단어로 끝낸다");
+  });
+
+  it("금지 이유까지 함께 실어 보낸다 (규칙만 주면 잘 안 지킨다)", () => {
+    const prompt = buildPrompt(base);
+    expect(prompt).toContain("검색이 지나치게 좁아져");
+    expect(prompt).toContain("같은 인물이 곡만 바꿔 두 번 오른다");
+  });
+
   it("불확실 인물의 출구를 준다 — 확신 없으면 빼라", () => {
     const prompt = buildPrompt(base);
     expect(prompt).toContain("확신할 수 없으면 그 인물을 목록에서 빼라");
