@@ -7,8 +7,10 @@
  *   3. Sign out          → authStore.signOut + toast
  *
  * Closing:
- *   - Escape or outside click — handled by focus-trap-react via
- *     `escapeDeactivates` + `clickOutsideDeactivates`.
+ *   - Escape / 바깥 클릭 — `lib/ui/dismiss`의 훅이 소유한다. 예전에는
+ *     focus-trap의 `escapeDeactivates` + `clickOutsideDeactivates` + `onDeactivate`가
+ *     했는데, focus-trap은 **언마운트 정리에서도** onDeactivate를 부른다 →
+ *     StrictMode 재마운트에서 메뉴가 열리자마자 닫혔다(dev 전용).
  *   - Selecting any item also closes (caller passes onClose into each
  *     handler).
  *
@@ -25,6 +27,7 @@ import type { User } from "firebase/auth";
 import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
+import { useEscapeClose, useOutsideClose } from "@/lib/ui/dismiss";
 
 interface UserDropdownProps {
   user: User;
@@ -39,6 +42,10 @@ export function UserDropdown({
 }: UserDropdownProps): JSX.Element {
   const signOut = useAuthStore((s) => s.signOut);
   const { lang } = useI18n();
+  useEscapeClose(onClose);
+  // 바깥 클릭은 preventDefault하지 않는다 — 예전 allowOutsideClick: true와 같은
+  // 약속이라, 메뉴가 닫히면서 그 클릭은 원래 대상에게 그대로 간다.
+  const menuRef = useOutsideClose<HTMLDivElement>(onClose);
 
   async function handleSignOut() {
     onClose();
@@ -67,15 +74,13 @@ export function UserDropdown({
   return (
     <FocusTrap
       focusTrapOptions={{
-        escapeDeactivates: true,
-        clickOutsideDeactivates: true,
-        onDeactivate: onClose,
-        // Allow outside clicks to fall through (close the dropdown but
-        // also fire the click on whatever was clicked).
+        escapeDeactivates: false,
+        clickOutsideDeactivates: false,
         allowOutsideClick: true,
       }}
     >
       <div
+        ref={menuRef}
         className="user-dropdown"
         role="menu"
         aria-label={lang === "ko" ? "사용자 메뉴" : "User menu"}

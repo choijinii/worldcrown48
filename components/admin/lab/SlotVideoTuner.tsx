@@ -15,6 +15,7 @@
 import { useEffect, useRef, useState } from "react";
 import FocusTrap from "focus-trap-react";
 import { useT } from "@/lib/i18n/useT";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 import { showToast } from "@/lib/toast";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import { buildWatchUrl, resolveLoopRange } from "@/lib/embed/loopRange";
@@ -50,8 +51,6 @@ export function SlotVideoTuner({
   const { t } = useT();
   const [suggestion, setSuggestion] = useState<KillingPartSuggestion | null>(null);
   const [busy, setBusy] = useState(false);
-  const busyRef = useRef(busy);
-  busyRef.current = busy;
 
   const videoId = draft.videoId ?? "";
   const startSec = draft.videoStartSec ?? 0;
@@ -84,6 +83,10 @@ export function SlotVideoTuner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
+  // 훅은 조기 return **앞**에 있어야 한다 — 호출 순서가 렌더마다 같아야 하므로.
+  // busy 중에는 듣지 않는다: 진행 중인 작업을 Escape로 끊지 않기 위해서다.
+  useEscapeClose(onClose, !busy);
+
   if (!videoId) return null;
 
   function nudge(delta: number) {
@@ -108,10 +111,10 @@ export function SlotVideoTuner({
       }}
     >
       <FocusTrap
+        // 닫기는 useEscapeClose가 갖는다 (lib/ui/dismiss).
         focusTrapOptions={{
           initialFocus: "#slot-tuner-slider",
-          escapeDeactivates: true,
-          onDeactivate: () => !busyRef.current && onClose(),
+          escapeDeactivates: false,
         }}
       >
         <div

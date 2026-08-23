@@ -23,9 +23,9 @@
  */
 "use client";
 
-import { useEffect } from "react";
 import FocusTrap from "focus-trap-react";
 import { useT } from "@/lib/i18n/useT";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 import type { SourcingQuotaPreview } from "@/lib/lab/autoSource";
 import { lab } from "./theme";
 
@@ -42,15 +42,8 @@ export function SourcingQuotaDialog({
 }: SourcingQuotaDialogProps): JSX.Element {
   const { t } = useT();
 
-  // Escape는 우리가 처리한다(escapeDeactivates: false). focus-trap의 수명주기에
-  // 닫기를 얹으면 StrictMode 재마운트가 그걸 "사용자가 닫았다"로 오인한다.
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onCancel();
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onCancel]);
+  // Escape는 우리가 처리한다(escapeDeactivates: false) — 이제 저장소 공용 훅으로.
+  useEscapeClose(onCancel);
 
   return (
     <div

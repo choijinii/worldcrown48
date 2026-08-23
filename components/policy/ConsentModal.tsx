@@ -30,6 +30,7 @@ import {
 } from "react";
 import FocusTrap from "focus-trap-react";
 import { useI18n } from "@/lib/i18n";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 import {
   REJECT_ALL_PREFERENCES,
   type ConsentPreferences,
@@ -63,21 +64,12 @@ export function ConsentModal(): JSX.Element | null {
   // Only the "open" state is user-editable; "saving"/"saved" are read-only.
   const isInteractive = modalState === "open";
 
-  // Live mirror of `isInteractive` for the focus-trap `onDeactivate` guard.
-  //
-  // focus-trap-react copies `focusTrapOptions.onDeactivate` into its
-  // constructor ONCE and never re-syncs it on re-render (its
-  // componentDidUpdate updates containerElements + activate/deactivate, but
-  // not originalOptions). A closure over `isInteractive` would therefore be
-  // frozen at the modal's first render — when modalState is "open" and
-  // isInteractive is `true`. On Save, `active` flips true→false (open→saving),
-  // focus-trap fires that frozen onDeactivate, the stale `true` guard passes,
-  // and closeModal() unmounts the modal mid-save; it only reappears when the
-  // async save resolves to "saved" — the visible flicker. Reading the live
-  // value through a ref keeps the guard honest: a programmatic deactivation
-  // during saving sees `false` and does NOT close.
-  const isInteractiveRef = useRef(isInteractive);
-  isInteractiveRef.current = isInteractive;
+  // Escape 닫기는 useEscapeClose가 갖는다(lib/ui/dismiss). 저장 중에는
+  // isInteractive가 false라 듣지 않는다 — 예전 isInteractiveRef 미러가 막던
+  // "저장 중 언마운트 → 깜빡임"을, 얼어붙을 여지 없이 같은 방식으로 막는다.
+  // focus-trap의 onDeactivate를 아예 쓰지 않으므로 프로그램적 비활성화
+  // (active: true→false)가 더는 닫기로 오인되지 않는다.
+  useEscapeClose(closeModal, isInteractive);
 
   useEffect(() => {
     if (modalState === "open" || modalState === "closed") {
@@ -101,15 +93,8 @@ export function ConsentModal(): JSX.Element | null {
       active={isInteractive}
       focusTrapOptions={{
         initialFocus: '[data-initial-focus="true"]',
-        escapeDeactivates: true,
+        escapeDeactivates: false,
         clickOutsideDeactivates: false,
-        onDeactivate: () => {
-          // Only treat Escape as a close action when the modal is still
-          // editable — during saving/saved we let the explicit Close button
-          // drive transitions. Read the live value via the ref: the closure
-          // focus-trap holds is frozen at first render (see isInteractiveRef).
-          if (isInteractiveRef.current) closeModal();
-        },
         // The library checks isClickable before allowing the initial focus —
         // a button with `disabled` would fail, so we guide it explicitly.
         fallbackFocus: ".modal",
