@@ -103,7 +103,6 @@ function emptyDraft(): ContestantDraft {
     name: "",
     nationality: "",
     position: "",
-    imageUrl: "",
     imageSearchKeyword: "",
   };
 }
@@ -113,7 +112,6 @@ function toDraft(c: AiSuggestion): ContestantDraft {
     name: c.name,
     nationality: c.nationality,
     position: c.position,
-    imageUrl: "",
     imageSearchKeyword: c.imageSearchKeyword,
   };
 }

@@ -6,7 +6,7 @@ import {
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 
 function draft(name: string): ContestantDraft {
-  return { name, nationality: "", position: "", imageUrl: "", imageSearchKeyword: "" };
+  return { name, nationality: "", position: "", imageSearchKeyword: "" };
 }
 
 describe("publishReady", () => {

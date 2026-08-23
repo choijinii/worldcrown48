@@ -331,16 +331,6 @@ export const MESSAGES = {
     en: "Contestant {n} position",
     es: "Contestant {n} posición",
   },
-  "lab.contestant.imageUrl": {
-    ko: "이미지 URL (라이선스 확인)",
-    en: "Image URL (check the license)",
-    es: "URL de imagen (verifica la licencia)",
-  },
-  "lab.contestant.imageUrlAria": {
-    ko: "Contestant {n} 이미지 URL",
-    en: "Contestant {n} image URL",
-    es: "Contestant {n} URL de imagen",
-  },
   "lab.contestant.keywordHint": { ko: "Claude 추천 검색어", en: "Claude-suggested search term", es: "Término de búsqueda sugerido por Claude" },
   "lab.contestant.clearAria": { ko: "Contestant {n} 지우기", en: "Clear Contestant {n}", es: "Vaciar Contestant {n}" },
 

@@ -7,11 +7,12 @@
 "use client";
 
 import type { Contestant } from "@/lib/types/tournament";
+import { contestantThumbnail } from "@/lib/media/mediaSlot";
 import styles from "./arena.module.css";
 
 type FinalContestant = Pick<
   Contestant,
-  "id" | "name" | "nationality" | "position" | "imageUrl"
+  "id" | "name" | "nationality" | "position" | "media"
 >;
 
 interface FinalPickViewProps {
@@ -59,9 +60,9 @@ export function FinalPickView({
               onClick={() => onPick(f.id)}
             >
               <div className={styles.fcardPhoto}>
-                {f.imageUrl ? (
+                {contestantThumbnail(f.media) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={f.imageUrl} alt={f.name} />
+                  <img src={contestantThumbnail(f.media)} alt={f.name} />
                 ) : (
                   f.name.charAt(0).toUpperCase()
                 )}

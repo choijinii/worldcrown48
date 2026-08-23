@@ -8,10 +8,10 @@ import {
   type ContestantMeta,
 } from "../core/rankingAggregator";
 
-const meta = (id: string, name = id, imageUrl = ""): ContestantMeta => ({
+const meta = (id: string, name = id, videoId = ""): ContestantMeta => ({
   id,
   name,
-  imageUrl,
+  videoId,
 });
 
 describe("tallyVotes", () => {
@@ -42,17 +42,17 @@ describe("buildTallies", () => {
     const counts = tallyVotes([{ contestantId: "a" }, { contestantId: "a" }]);
     const tallies = buildTallies(counts, [meta("a", "Alpha"), meta("b", "Bravo")]);
     expect(tallies).toEqual([
-      { contestantId: "a", name: "Alpha", imageUrl: null, voteCount: 2 },
-      { contestantId: "b", name: "Bravo", imageUrl: null, voteCount: 0 },
+      { contestantId: "a", name: "Alpha", videoId: null, voteCount: 2 },
+      { contestantId: "b", name: "Bravo", videoId: null, voteCount: 0 },
     ]);
   });
 
-  it("normalizes empty imageUrl to null, keeps a real url", () => {
+  it("normalizes empty videoId to null, keeps a real one (LAB-UX-1 PR-2)", () => {
     const tallies = buildTallies(new Map(), [
       meta("a", "Alpha", ""),
-      meta("b", "Bravo", "https://cdn/b.png"),
+      meta("b", "Bravo", "9bZkp7q19f0"),
     ]);
-    expect(tallies[0].imageUrl).toBeNull();
-    expect(tallies[1].imageUrl).toBe("https://cdn/b.png");
+    expect(tallies[0].videoId).toBeNull();
+    expect(tallies[1].videoId).toBe("9bZkp7q19f0");
   });
 });

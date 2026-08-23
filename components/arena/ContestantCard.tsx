@@ -8,11 +8,12 @@
 "use client";
 
 import type { Contestant } from "@/lib/types/tournament";
+import { contestantThumbnail } from "@/lib/media/mediaSlot";
 import styles from "./arena.module.css";
 
 type CardContestant = Pick<
   Contestant,
-  "id" | "name" | "nationality" | "position" | "imageUrl"
+  "id" | "name" | "nationality" | "position" | "media"
 >;
 
 interface ContestantCardProps {
@@ -33,6 +34,9 @@ export function ContestantCard({
   onVote,
 }: ContestantCardProps): JSX.Element {
   const initial = contestant.name?.charAt(0).toUpperCase() || "?";
+  // LAB-UX-1 PR-2 — 운영자가 붙이던 imageUrl이 사라진 자리. 정지 썸네일 한 장이고
+  // 호버 재생을 새로 만들지 않는다(대표 결정). 영상이 없으면 예전 그대로 이니셜.
+  const photoUrl = contestantThumbnail(contestant.media);
   const meta = [contestant.nationality, contestant.position]
     .filter(Boolean)
     .join(" · ");
@@ -55,9 +59,9 @@ export function ContestantCard({
       onClick={() => onVote(contestant.id)}
     >
       <div className={styles.vsPortrait}>
-        {contestant.imageUrl ? (
+        {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={contestant.imageUrl} alt={contestant.name} />
+          <img src={photoUrl} alt={contestant.name} />
         ) : (
           initial
         )}

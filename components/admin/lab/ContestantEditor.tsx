@@ -5,6 +5,10 @@
  * 중앙 크롭이다(대표 확정 2026-08-23): 유튜브 썸네일은 16:9지만 숏폼(9:16)이
  * 섞이면 16:9 틀에서 인물이 너무 작게 잡힌다.
  *
+ * PR-2: "이미지 URL(라이선스 확인)" 칸을 삭제했다. 실데이터 528건 중 **0건**이
+ * 채워져 있었다 — 아무도 쓰지 않는 칸이 카드 높이를 한 줄 먹고 있었다. 이제
+ * 미리보기는 영상 썸네일 하나뿐이고, 영상이 없으면 예전처럼 자리만 비운다.
+ *
  * LAB-UX-1이 바꾼 것 세 가지.
  *   ① **이름 칸에 ✎ 상시 노출** — 배지가 무엇이든 이름은 언제나 고칠 수 있다는 걸
  *      v1 목업이 안 보이게 그려서 대표가 "고치는 루트가 없나?"라고 물었다. 루트는
@@ -99,7 +103,7 @@ export function ContestantEditor({
   // LAB-EV-1: 영상만 있는 슬롯도 그리드에서 비어 보이면 안 된다 — 유튜브 썸네일을
   // 미리보기로 쓴다(imageUrl은 건드리지 않는다. 라이선스된 스틸의 자리다).
   const videoId = contestant.videoId ?? "";
-  const previewUrl = contestant.imageUrl || (videoId ? buildThumbnailUrl(videoId) : "");
+  const previewUrl = videoId ? buildThumbnailUrl(videoId) : "";
   const hint = (contestant.imageSearchKeyword ?? "").trim();
   const duplicate = reviewFlags?.find((f) => f.kind === "duplicate-suspect");
   const mismatch = reviewFlags?.find((f) => f.kind === "name-hint-mismatch");
@@ -109,7 +113,6 @@ export function ContestantEditor({
     contestant.name,
     contestant.nationality,
     contestant.position,
-    contestant.imageUrl,
     contestant.imageSearchKeyword,
   ].some((v) => v.trim() !== "");
 
@@ -118,7 +121,6 @@ export function ContestantEditor({
       name: "",
       nationality: "",
       position: "",
-      imageUrl: "",
       imageSearchKeyword: "",
     });
   }
@@ -274,14 +276,6 @@ export function ContestantEditor({
           style={fieldStyle}
         />
       </div>
-      <input
-        value={contestant.imageUrl}
-        onChange={(e) => onChange(index, { imageUrl: e.target.value })}
-        placeholder={t("lab.contestant.imageUrl")}
-        aria-label={t("lab.contestant.imageUrlAria", { n })}
-        style={fieldStyle}
-      />
-
       {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
       {(duplicate || mismatch) && (
         <div

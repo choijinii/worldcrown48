@@ -22,7 +22,12 @@ export interface RankingEntry {
   contestantId: string;
   /** Tournament-time denormalization so the UI needs no contestants read. */
   name: string;
-  imageUrl: string | null;
+  /**
+   * 아바타의 재료 — 유튜브 videoId. 완성된 URL이 아니라 id를 싣는다: 썸네일 주소
+   * 템플릿이 한 곳(buildThumbnailUrl)에만 있어야 캐시와 화면이 갈라지지 않는다.
+   * LAB-UX-1 PR-2에서 `imageUrl`을 대체했다(실데이터 0건이라 마이그레이션 없음).
+   */
+  videoId: string | null;
   /**
    * INTERNAL ONLY — NEVER render (Vote Count 금지). Used by the cron for rate
    * math, T-3 growth, and admin_alerts detail.
@@ -74,7 +79,7 @@ export interface RankingCache extends RankingSnapshot {
 export interface ContestantTally {
   contestantId: string;
   name: string;
-  imageUrl: string | null;
+  videoId: string | null;
   voteCount: number;
 }
 

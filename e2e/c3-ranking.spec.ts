@@ -58,7 +58,7 @@ function entry(
     rank,
     contestantId,
     name,
-    imageUrl: null,
+    videoId: null,
     voteCount: SECRET_VOTE_COUNT, // internal only — must not render
     rate,
   };

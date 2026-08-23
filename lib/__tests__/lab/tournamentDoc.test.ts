@@ -123,7 +123,6 @@ describe("buildContestantDocs", () => {
       name: "P1",
       nationality: "KR",
       position: "FW",
-      imageUrl: "https://img/0.jpg",
       imageSearchKeyword: "p1",
     });
     expect(docs[47].order).toBe(48);
@@ -167,9 +166,9 @@ describe("buildContestantDocs", () => {
       expect("media" in docs[0]).toBe(false);
     });
 
-    it("imageUrl과 공존한다 — 영상은 추가 필드지 대체가 아니다", () => {
+    it("imageUrl은 더 이상 저장되지 않는다 (LAB-UX-1 PR-2)", () => {
       const docs = buildContestantDocs("t1", "host-1", withVideo());
-      expect(docs[0].imageUrl).toBe("https://img/0.jpg");
+      expect("imageUrl" in docs[0]).toBe(false);
       expect(docs[0].media?.type).toBe("embed");
     });
 

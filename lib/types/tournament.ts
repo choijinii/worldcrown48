@@ -85,21 +85,22 @@ export interface Contestant {
   name: string;
   nationality: string;
   position: string;
-  imageUrl: string; // operator-entered, license-checked (never auto-downloaded)
   imageSearchKeyword: string; // Claude-suggested search term only
   /**
-   * ND-1 §3 #12 — OPTIONAL media swap grail (image | embed | clip). Additive &
-   * backward-compatible: absent `media` is treated as `image` (imageUrl). `clip`
-   * is schema-reservation only — no render path (see lib/media/mediaSlot.ts).
+   * ND-1 §3 #12 — OPTIONAL media swap grail (image | embed | clip). `clip`은
+   * 스키마 예약이고 렌더 경로가 없다(lib/media/mediaSlot.ts).
+   *
+   * LAB-UX-1 PR-2: 운영자가 직접 붙이던 `imageUrl`이 사라졌다 — 실데이터 528건 중
+   * 0건이 채워져 있었다. 이제 Contestant의 그림은 전부 여기서 나온다
+   * (`contestantThumbnail`이 embed의 videoId로 정지 썸네일을 만든다).
    */
   media?: ContestantMedia;
 }
 
 /**
  * The shape Claude returns per Contestant before the operator edits and the
- * system assigns order/tournamentId/imageUrl. No `imageUrl` — copyright
- * (불변 원칙 #6): the function returns a search keyword, the operator pastes a
- * licensed URL.
+ * system assigns order/tournamentId. 이미지 URL은 애초에 없었고(불변 원칙 #6 —
+ * 함수는 이미지를 내려받지 않는다), PR-2에서 운영자 입력 칸마저 사라졌다.
  */
 export interface AiContestantSuggestion {
   name: string;

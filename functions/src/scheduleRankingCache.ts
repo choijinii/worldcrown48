@@ -55,7 +55,7 @@ export const scheduleRankingCache = onSchedule(
       const cacheRef = adminDb.collection("ranking_cache").doc(tournamentId);
       const historyRef = cacheRef.collection("history");
 
-      // 1. votes (one read) + 2. contestants (for name/imageUrl join).
+      // 1. votes (one read) + 2. contestants (for name/videoId join).
       const [votesSnap, contestantsSnap, prevSnap] = await Promise.all([
         adminDb.collection("votes").where("tournamentId", "==", tournamentId).get(),
         adminDb.collection("contestants").where("tournamentId", "==", tournamentId).get(),
@@ -70,7 +70,10 @@ export const scheduleRankingCache = onSchedule(
         contestantsSnap.docs.map((d) => ({
           id: d.id,
           name: (d.data().name as string) ?? "",
-          imageUrl: (d.data().imageUrl as string) ?? "",
+          // media.embed.videoId — Contestant의 그림은 전부 여기서 나온다(PR-2).
+          videoId:
+            ((d.data().media as { embed?: { videoId?: string } } | undefined)
+              ?.embed?.videoId as string) ?? "",
         })),
       );
 

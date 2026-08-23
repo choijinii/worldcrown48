@@ -100,7 +100,6 @@ async function seedTournament(): Promise<void> {
       name: `P${i}`,
       nationality: "KR",
       position: "FW",
-      imageUrl: "",
       imageSearchKeyword: `p${i}`,
     });
   }
