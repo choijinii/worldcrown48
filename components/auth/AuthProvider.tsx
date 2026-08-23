@@ -30,6 +30,7 @@ import {
   getFunctionsInstance,
 } from "@/lib/firebase";
 import { PENDING_ANON_UID_KEY, useAuthStore } from "@/lib/authStore";
+import { planAuthBoot } from "@/lib/auth/providerBoot";
 import { pickLanding, RETURNING_CARD_TID_KEY, type Landing } from "@/lib/auth/landing";
 
 // HF-3 §확인 필요 4: the transfer grew (votes + bracket_seeds + roundProgress +
@@ -82,28 +83,33 @@ async function linkPendingVote(
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();
-  const bootRanRef = useRef(false);
+  // 페이지 로드당 1회인 일회성 호출만 기억한다. 재마운트를 넘어 살아남아야 하므로
+  // state가 아니라 ref다 — 그리고 **그것만** 감싼다(providerBoot 머리주석).
+  const redirectReadRef = useRef(false);
 
   useEffect(() => {
-    if (bootRanRef.current) return;
-    bootRanRef.current = true;
-
     const auth = getAuthInstance();
+    const plan = planAuthBoot(redirectReadRef.current);
 
     // (2) Resolve any redirect-completed sign-in BEFORE attaching the
     // listener race. getRedirectResult itself triggers an onAuthStateChanged
     // emission, so the listener below will still see the resulting user.
-    void (async () => {
-      try {
-        await getRedirectResult(auth);
-      } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[Auth] getRedirectResult failed:", err);
+    if (plan.readRedirect) {
+      redirectReadRef.current = true;
+      void (async () => {
+        try {
+          await getRedirectResult(auth);
+        } catch (err) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("[Auth] getRedirectResult failed:", err);
+          }
         }
-      }
-    })();
+      })();
+    }
 
     // (1) + (3) — listen for state changes and link any pending guest run.
+    // plan.subscribe는 언제나 참이다. 이 구독을 ref로 잠그면 StrictMode 재마운트
+    // 뒤 리스너가 0개가 되어 앱이 오류 없이 스피너에서 멈춘다 — providerBoot 참조.
     const unsub = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user && !user.isAnonymous) {
