@@ -1,10 +1,18 @@
 /**
- * ContestantEditor — one editable node in the 48-grid (AC Step2 #2·#5·#6).
+ * ContestantEditor — 48칸 중 한 칸 (AC Step2 #2·#5·#6 · LAB-UX-1 재구성).
  *
- * Empty (no name) → dashed gold border + "+" affordance. Filled → solid
- * border. imageUrl is operator-entered only — the Cloud Function never
- * auto-downloads images (copyright, 불변 원칙 #6); it supplies imageSearchKeyword
- * as a hint the operator uses to find a licensed URL.
+ * 빈 칸(이름 없음) → 금색 점선 + "+" / 채워진 칸 → 실선. 미리보기는 1:1 정사각
+ * 중앙 크롭이다(대표 확정 2026-08-23): 유튜브 썸네일은 16:9지만 숏폼(9:16)이
+ * 섞이면 16:9 틀에서 인물이 너무 작게 잡힌다.
+ *
+ * LAB-UX-1이 바꾼 것 세 가지.
+ *   ① **이름 칸에 ✎ 상시 노출** — 배지가 무엇이든 이름은 언제나 고칠 수 있다는 걸
+ *      v1 목업이 안 보이게 그려서 대표가 "고치는 루트가 없나?"라고 물었다. 루트는
+ *      있었고, 보이지 않았을 뿐이다.
+ *   ② **검수 배지 2종 추가**(중복 의심 · 이름↔힌트 불일치). 지금까지 서버 로그에만
+ *      있던 판정이라 운영자는 48칸을 눈으로 훑다 놓쳤다.
+ *   ③ **검색 힌트 문구를 카드에서 뺀다** — 툴팁으로 옮겨 카드 높이를 줄인다.
+ *      8열 그리드는 카드가 좁고 낮아야 성립한다.
  */
 "use client";
 
@@ -12,6 +20,7 @@ import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 import { useT } from "@/lib/i18n/useT";
 import type { SlotSourcingState } from "@/lib/lab/sourcingDraft";
+import type { SlotReviewFlag } from "@/lib/lab/reviewFlags";
 import {
   sourcingBadgeTone,
   sourcingDemotedMessage,
@@ -28,10 +37,19 @@ interface ContestantEditorProps {
   onTune?: (index: number) => void;
   /** LAB-EV-2: 자동 소싱 결과 배지(제안·수동 필요·실존 의심). 없으면 안 그린다. */
   sourcing?: SlotSourcingState;
+  /** LAB-UX-1: 검수 배지(중복 의심·이름↔힌트 불일치). 상태에서 파생된다. */
+  reviewFlags?: SlotReviewFlag[];
+  /** 중복 의심 배지의 [N번 보기] — 상대 칸으로 데려간다. */
+  onGoToSlot?: (index: number) => void;
   /** LAB-EV-2: 이 슬롯만 캐시 우회 재검색. 소싱을 돌린 적 있을 때만 넘어온다. */
   onRefreshVideo?: (index: number) => void;
   /** 이 슬롯이 재검색 중. */
   refreshing?: boolean;
+}
+
+/** 슬롯 카드의 DOM id — [N번 보기] 스크롤이 이걸로 찾는다. */
+export function slotDomId(index: number): string {
+  return `contestant-node-${index}`;
 }
 
 /** 팔레트에 초록이 없다 — 검수기(LAB-EV-1)와 같은 색 역할을 쓴다. */
@@ -53,12 +71,25 @@ const fieldStyle: React.CSSProperties = {
   marginTop: 4,
 };
 
+const badgeStyle = (color: string): React.CSSProperties => ({
+  justifySelf: "start",
+  padding: "1px 6px",
+  borderRadius: 999,
+  border: `1px solid ${color}`,
+  color,
+  fontSize: 9,
+  fontWeight: 700,
+  letterSpacing: "0.04em",
+});
+
 export function ContestantEditor({
   index,
   contestant,
   onChange,
   onTune,
   sourcing,
+  reviewFlags,
+  onGoToSlot,
   onRefreshVideo,
   refreshing = false,
 }: ContestantEditorProps): JSX.Element {
@@ -69,6 +100,9 @@ export function ContestantEditor({
   // 미리보기로 쓴다(imageUrl은 건드리지 않는다. 라이선스된 스틸의 자리다).
   const videoId = contestant.videoId ?? "";
   const previewUrl = contestant.imageUrl || (videoId ? buildThumbnailUrl(videoId) : "");
+  const hint = (contestant.imageSearchKeyword ?? "").trim();
+  const duplicate = reviewFlags?.find((f) => f.kind === "duplicate-suspect");
+  const mismatch = reviewFlags?.find((f) => f.kind === "name-hint-mismatch");
   // The ✕ clears the WHOLE card (all fields, incl. the AI keyword hint) back to
   // an empty slot. Shown whenever the card holds anything to clear.
   const hasContent = [
@@ -91,6 +125,7 @@ export function ContestantEditor({
 
   return (
     <div
+      id={slotDomId(index)}
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       style={{
@@ -140,6 +175,7 @@ export function ContestantEditor({
           borderRadius: 4,
           background: lab.surfaceElev,
           backgroundImage: previewUrl ? `url(${previewUrl})` : undefined,
+          // 1:1 중앙 크롭 — 16:9 썸네일도 숏폼도 인물이 크게 잡힌다(결정 ②).
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "flex",
@@ -151,6 +187,26 @@ export function ContestantEditor({
         }}
       >
         {!previewUrl && (isEmpty ? "+" : "🏆")}
+        {/* 검색 힌트는 카드에서 뺐다 — 여기 🔎에 툴팁으로만 남는다(카드 높이 절약). */}
+        {hint && (
+          <span
+            data-testid={`contestant-hint-${index}`}
+            title={t("lab.review.hintTip", { hint })}
+            style={{
+              position: "absolute",
+              left: 4,
+              top: 4,
+              padding: "1px 4px",
+              borderRadius: 999,
+              background: "rgba(0,0,31,0.72)",
+              color: lab.textSub,
+              fontSize: 9,
+              cursor: "help",
+            }}
+          >
+            🔎
+          </span>
+        )}
         {videoId && onTune && (
           <button
             type="button"
@@ -177,13 +233,31 @@ export function ContestantEditor({
         )}
       </div>
 
-      <input
-        value={contestant.name}
-        onChange={(e) => onChange(index, { name: e.target.value })}
-        placeholder={t("lab.contestant.namePlaceholder", { n })}
-        aria-label={t("lab.contestant.nameAria", { n })}
-        style={{ ...fieldStyle, fontWeight: 700, fontSize: 12 }}
-      />
+      {/* ✎는 장식이 아니라 안내다 — "이 칸은 언제든 고칠 수 있다"는 뜻. */}
+      <div style={{ position: "relative" }}>
+        <input
+          value={contestant.name}
+          onChange={(e) => onChange(index, { name: e.target.value })}
+          placeholder={t("lab.contestant.namePlaceholder", { n })}
+          aria-label={t("lab.contestant.nameAria", { n })}
+          title={t("lab.contestant.editName", { n })}
+          style={{ ...fieldStyle, fontWeight: 700, fontSize: 12, paddingRight: 18 }}
+        />
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            right: 5,
+            top: "50%",
+            transform: "translateY(-40%)",
+            fontSize: 9,
+            color: lab.textMuted,
+            pointerEvents: "none",
+          }}
+        >
+          ✎
+        </span>
+      </div>
       <div style={{ display: "flex", gap: 4 }}>
         <input
           value={contestant.nationality}
@@ -207,13 +281,59 @@ export function ContestantEditor({
         aria-label={t("lab.contestant.imageUrlAria", { n })}
         style={fieldStyle}
       />
-      {contestant.imageSearchKeyword && (
-        <span
-          style={{ marginTop: 4, fontSize: 10, color: lab.textMuted }}
-          title={t("lab.contestant.keywordHint")}
+
+      {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
+      {(duplicate || mismatch) && (
+        <div
+          data-testid={`contestant-review-${index}`}
+          style={{ marginTop: 6, display: "grid", gap: 3 }}
         >
-          🔎 {contestant.imageSearchKeyword}
-        </span>
+          {duplicate && (
+            <>
+              <span
+                data-review-flag="duplicate-suspect"
+                title={t("lab.review.duplicateTip", {
+                  slots: duplicate.pairedIndexes.map((i) => i + 1).join(", "),
+                })}
+                style={{ ...badgeStyle(TONE_COLOR.warn), cursor: "help" }}
+              >
+                {t("lab.review.duplicate")} ·{" "}
+                {duplicate.pairedIndexes.map((i) => i + 1).join(", ")}
+              </span>
+              {onGoToSlot && duplicate.pairedIndexes[0] !== undefined && (
+                <button
+                  type="button"
+                  onClick={() => onGoToSlot(duplicate.pairedIndexes[0])}
+                  data-testid={`contestant-goto-${index}`}
+                  style={{
+                    justifySelf: "start",
+                    padding: "2px 7px",
+                    borderRadius: 999,
+                    border: `1px solid ${lab.border}`,
+                    background: "transparent",
+                    color: lab.textSub,
+                    fontSize: 9,
+                    fontFamily: lab.font,
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("lab.review.goToSlot", { n: duplicate.pairedIndexes[0] + 1 })}
+                </button>
+              )}
+            </>
+          )}
+          {mismatch && (
+            <span
+              data-review-flag="name-hint-mismatch"
+              title={t("lab.review.nameMismatchTip", {
+                tokens: mismatch.suggestedNameTokens.join(" ") || hint,
+              })}
+              style={{ ...badgeStyle(TONE_COLOR.danger), cursor: "help" }}
+            >
+              {t("lab.review.nameMismatch")}
+            </span>
+          )}
+        </div>
       )}
 
       {/* LAB-EV-2 — 소싱 결과. "왜 안 됐는지"가 칸 안에 남아야 운영자가 조치한다. */}
@@ -231,16 +351,7 @@ export function ContestantEditor({
               <span
                 title={demoted ? t(demoted.key, demoted.vars) : undefined}
                 data-demoted={demoted ? "true" : undefined}
-                style={{
-                  justifySelf: "start",
-                  padding: "1px 6px",
-                  borderRadius: 999,
-                  border: `1px solid ${TONE_COLOR[sourcingBadgeTone(sourcing.status)]}`,
-                  color: TONE_COLOR[sourcingBadgeTone(sourcing.status)],
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                }}
+                style={badgeStyle(TONE_COLOR[sourcingBadgeTone(sourcing.status)])}
               >
                 {t(sourcingStatusMessage(sourcing.status).key)}
                 {demoted ? " ⚠" : ""}

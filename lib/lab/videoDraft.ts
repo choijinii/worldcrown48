@@ -14,6 +14,7 @@ import { heuristicStartSec } from "@/lib/embed/killingPart";
 import { resolveLoopRange, buildWatchUrl } from "@/lib/embed/loopRange";
 import type { LinkVerdict } from "@/lib/embed/verdict";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
+import { isRenamedTo } from "@/lib/lab/nameKey";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 
 export interface VideoDraftFields {
@@ -77,6 +78,28 @@ export function retimeDraft(
     videoEndSec: range.endSec,
     videoSourceUrl: buildWatchUrl(draft.videoId, range.startSec),
   };
+}
+
+/**
+ * 이름이 다른 인물로 바뀐 칸 — 이전 인물의 흔적을 뗀 draft (LAB-UX-1 A).
+ *
+ * 지금까지는 이름을 **완전히 지웠을 때만** 배지가 풀렸다. 그래서 `하린`을 지우고
+ * `허윤진`을 바로 쳐 넣으면 하린을 찾아 붙인 영상과 하린용 검색 힌트가 그대로
+ * 남았다 — 카드에는 허윤진이라고 쓰여 있는데 재생되는 건 다른 사람이다.
+ *
+ * 힌트까지 떼는 게 핵심이다. 힌트를 남기면 [새 영상 찾기]가 그 힌트로 다시
+ * 검색해 **또 이전 인물을** 데려온다. 힌트가 비면 소싱은 "이름 + 카테고리
+ * 키워드" 폴백으로 돌아간다(searchQuery) — 새 이름으로 찾는다는 뜻이다.
+ *
+ * 배지 해제는 여기서 하지 않는다. 배지는 화면 전용 상태(SourcingStates)라
+ * 호출부가 `dropSourcingStates`로 같은 index를 떼어낸다.
+ */
+export function releaseRenamedSlot(
+  draft: ContestantDraft,
+  nextName: string,
+): ContestantDraft {
+  if (!isRenamedTo(draft.name, nextName)) return { ...draft, name: nextName };
+  return { ...clearVideo(draft), name: nextName, imageSearchKeyword: "" };
 }
 
 /** 영상만 지운다 — 이름·이미지는 남긴다(운영자가 링크만 갈아 끼우는 흐름). */

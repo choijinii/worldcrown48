@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  mergeKeywords,
   validateKeywords,
   KEYWORDS_MAX,
   KEYWORD_MAX_LEN,
@@ -50,5 +51,36 @@ describe("validateKeywords", () => {
     const r = validateKeywords(["x".repeat(KEYWORD_MAX_LEN)]);
     expect(r.hasTooLong).toBe(false);
     expect(r.isValid).toBe(true);
+  });
+});
+
+describe("mergeKeywords — ✨AI 재클릭 경로의 상한 (LAB-UX-1)", () => {
+  it("합친 결과를 상한에서 자른다 — 재클릭해도 20/12가 되지 않는다", () => {
+    const existing = Array.from({ length: 8 }, (_, i) => `mine${i}`);
+    const incoming = Array.from({ length: KEYWORDS_MAX }, (_, i) => `ai${i}`);
+    const r = mergeKeywords(existing, incoming);
+    expect(r.values).toHaveLength(KEYWORDS_MAX);
+    expect(r.dropped).toBe(8);
+    // 잘린 결과가 다시 검사기를 통과해야 STEP 1 게이트가 열린 채로 남는다.
+    expect(validateKeywords(r.values).isValid).toBe(true);
+  });
+
+  it("운영자가 먼저 넣은 것을 남기고 AI 제안의 뒤쪽을 버린다", () => {
+    const existing = Array.from({ length: KEYWORDS_MAX }, (_, i) => `mine${i}`);
+    const r = mergeKeywords(existing, ["ai-extra"]);
+    expect(r.values).toEqual(existing);
+    expect(r.dropped).toBe(1);
+  });
+
+  it("상한 안이면 아무것도 버리지 않는다", () => {
+    const r = mergeKeywords(["kpop"], ["dance", "vocal"]);
+    expect(r.values).toEqual(["kpop", "dance", "vocal"]);
+    expect(r.dropped).toBe(0);
+  });
+
+  it("중복은 병합 단계에서 이미 사라지므로 자리를 먹지 않는다", () => {
+    const r = mergeKeywords(["KPOP"], ["kpop", "dance"]);
+    expect(r.values).toEqual(["KPOP", "dance"]);
+    expect(r.dropped).toBe(0);
   });
 });
