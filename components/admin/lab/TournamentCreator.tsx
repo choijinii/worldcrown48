@@ -429,6 +429,12 @@ export function TournamentCreator(): JSX.Element {
     } catch (err) {
       setChainStage(null);
       const code = inspectErrorCode(err);
+      // 토스트는 4초 뒤 사라진다. 그것만 남기면 다음 디버거는 "버튼을 눌렀는데
+      // 아무 일도 안 일어난다"만 보게 된다 — autoSource.ts의 "실패를 조용히
+      // 삼키지 않는다"를 이 경로에도 적용한다.
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[Lab] previewSourcingQuota failed:", code, err);
+      }
       showToast(t(sourcingErrorMessage(code).key), "error");
       void track("admin_lab_source_preview_error", { error_code: code });
     }
