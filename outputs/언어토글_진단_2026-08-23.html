@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>언어 토글 진단 — 편집기 · 뉴스데스크</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap");
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F2F2F5; color:#241754; font-family:"Inter","Pretendard",-apple-system,system-ui,sans-serif; line-height:1.65; padding:40px 24px 80px; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  .doc-kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; color:#B08F00; font-weight:700; }
+  .doc-title { font-size:28px; font-weight:800; letter-spacing:-0.02em; margin-top:6px; }
+  .doc-sub { font-size:14px; color:#484B67; margin-top:8px; }
+  .section { margin-top:44px; }
+  .sec-num { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:999px; background:#241754; color:#FCD006; font-size:13px; font-weight:800; margin-right:8px; }
+  .sec-title { font-size:19px; font-weight:800; display:flex; align-items:center; margin-bottom:6px; }
+  .sec-desc { font-size:13.5px; color:#484B67; margin-bottom:16px; max-width:860px; }
+  .note { background:#FFFFFF; border:1px solid #D9DBE1; border-left:4px solid #FCD006; border-radius:5px; padding:12px 16px; font-size:13px; color:#484B67; margin-top:14px; }
+  .note b { color:#241754; }
+
+  /* 3층 다이어그램 */
+  .layers { display:grid; gap:14px; }
+  .layer { background:#FFFFFF; border:1.5px solid #D9DBE1; border-radius:5px; padding:16px 18px; display:grid; grid-template-columns:200px 1fr 190px; gap:16px; align-items:center; }
+  .layer-name { font-weight:800; font-size:14.5px; }
+  .layer-name small { display:block; font-weight:500; font-size:11.5px; color:#6B7A99; margin-top:2px; }
+  .layer-desc { font-size:12.5px; color:#484B67; }
+  .verdict { text-align:center; padding:9px 10px; border-radius:5px; font-weight:800; font-size:12.5px; }
+  .v-yes { background:#E5F6F8; color:#00707E; border:1.5px solid #00A3B7; }
+  .v-no { background:#FDEBEF; color:#A80E32; border:1.5px solid #D7063A; }
+  .v-check { background:#FFFBEB; color:#8A6D00; border:1.5px solid #FCD006; }
+
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; overflow:hidden; font-size:13px; }
+  th { background:#241754; color:#F2F2F5; text-align:left; padding:10px 14px; font-size:12.5px; }
+  td { padding:10px 14px; border-top:1px solid #E7E8EC; vertical-align:top; color:#484B67; }
+  td:first-child { font-weight:700; color:#241754; width:30%; }
+  .chip { font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; }
+  .c-ok { color:#00838F; } .c-no { color:#A80E32; } .c-warn { color:#B08F00; }
+
+  .opt-card { background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; padding:16px 18px; margin-top:10px; font-size:13px; color:#484B67; }
+  .opt-card.rec { border-color:#FCD006; background:#FFFBEB; }
+  .rec-mark { font-size:10.5px; font-weight:800; color:#B08F00; letter-spacing:.06em; }
+  .opt-card b { color:#241754; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-kicker">진단 보고 · 2026-08-23 · 코드 실측 기준</div>
+    <div class="doc-title">언어 토글, 어디서 작동하고 어디서 안 하나</div>
+    <div class="doc-sub">대표님 증언("편집기 STEP 2·뉴스데스크에서 토글이 안 먹는다")을 코드로 확인한 결과입니다. 결론부터: <b>오해가 아니라 절반은 실제 결함(뉴스데스크)이고, 이름 표기 대형 킥은 필요 없었습니다.</b></div>
+  </header>
+
+  <!-- 1. 3층 구조 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">1</span>화면 글자는 3개 층으로 나뉩니다 — 토글은 이 중 2개만 담당</div>
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-name">① UI 문구 층<small>버튼·라벨·안내문 ("발행", "새 영상 찾기")</small></div>
+        <div class="layer-desc">번역 사전(메시지 카탈로그)에서 꺼내 쓰는 글자. 토글을 누르면 즉시 바뀝니다. 현재 사전에 208개 문구 — 전부 한/영 보유, 191개는 ES도 보유(없는 것은 영어로 대신 표시).</div>
+        <div class="verdict v-yes">토글 작동 대상</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">② 콘텐츠 층<small>Tournament 제목·설명, 기사 본문</small></div>
+        <div class="layer-desc">발행 시점에 한 번 3개 언어로 번역해 저장(titleI18n) → 보는 사람의 언어 설정에 맞는 버전이 나옵니다. K-드라마·크리에이터 카테고리도 이 방식으로 ES까지 자동 커버 — <b>대표님 이해가 정확합니다.</b></div>
+        <div class="verdict v-yes">토글 작동 대상</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">③ 이름 층<small>Contestant 이름 ("지수 (JISOO)")</small></div>
+        <div class="layer-desc">번역하지 않는 단일 문자열. 현행 공식 = <b>한/영 병기 1줄</b>, 어떤 언어 설정에서도 같은 글자가 보입니다. ES 이용자는 영문 표기를 읽으면 됨 — <b>대표님이 말씀하신 "한/영 공식, ES는 영어" 그대로가 이미 현행 정책입니다.</b></div>
+        <div class="verdict v-yes">번역 불필요 (정책대로)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 실측 결과 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">2</span>문제의 두 화면 실측 결과</div>
+    <table>
+      <tr><th>화면</th><th>실측 결과</th></tr>
+      <tr>
+        <td>뉴스데스크 (운영 콘솔)</td>
+        <td><span class="chip c-no">토글 안 먹는 것 맞음 — 실제 하드코딩</span><br>
+        콘솔 문구("저장"·"발행"·"초안 대기함"·"AI 초안 생성" 등)가 번역 사전을 안 거치고 <b>한글로 직접 박혀</b> 있습니다. ND-1 제작 당시 운영자 전용 화면이라 한글 고정으로 만든 것 — 토글을 눌러도 안 바뀌는 게 코드상 사실입니다. 단, <b>기사 내용</b>은 콘솔 안에 자체 KO/EN/ES 탭이 있어 언어별 편집이 되고, 발행된 기사를 읽는 쪽(/news)은 토글을 정상으로 따라갑니다.</td>
+      </tr>
+      <tr>
+        <td>편집기 STEP 2 (The Lab)</td>
+        <td><span class="chip c-warn">코드상으로는 토글이 작동해야 정상 — 실기기 확인 필요</span><br>
+        STEP 2의 버튼·라벨은 거의 전부 번역 사전을 거치므로 토글에 반응해야 합니다. 한글로 박힌 곳은 <b>로그인 게이트</b>("운영자 계정으로 로그인하세요")와 <b>데스크탑 안내</b>("1440px 이상…") 두 화면뿐입니다. 대표님이 "안 바뀐다"고 보신 글자가 정확히 무엇이었는지가 관건입니다 — 게이트 화면이었다면 코드와 증언이 일치하고, 본 화면의 버튼이었다면 제가 못 찾은 결함이 있는 것이니 실기기로 확인하겠습니다.</td>
+      </tr>
+    </table>
+    <div class="note"><b>확인 방법(다음 세션에서 5분):</b> 대표님이 Chrome에 어드민 로그인만 해 두시면, Claude Code가 브라우저 스모크로 편집기 STEP 2에서 토글 KO→EN→ES를 눌러 안 바뀌는 문구를 캡처·목록화할 수 있습니다(LAB-EV-2 때 실증된 방식). 대표님 눈으로 다시 보신 뒤 캡처를 주셔도 됩니다.</div>
+  </div>
+
+  <!-- 3. 결론 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">3</span>그래서 NAME-1은 이렇게 바뀝니다</div>
+    <div class="sec-desc">어제 확정했던 "이름 언어별 표기 대형 킥"은 <b>과잉 처방이었습니다.</b> 문제의 실체는 이름 규칙이 아니라 토글 커버리지(토글이 못 미치는 화면 두 곳)입니다. 훨씬 작은 일로 줄어듭니다.</div>
+    <div class="opt-card rec">
+      <span class="rec-mark">추천</span><br>
+      <b>NAME-1(대형 킥) 취소 → "토글 커버리지 소킥"으로 축소.</b> 범위: ① 뉴스데스크 콘솔 문구를 번역 사전으로 이관 ② 편집기 게이트 2화면 문구 이관 ③ 브라우저 스모크로 "토글 눌렀을 때 안 바뀌는 문구 0건" 확인을 완료 기준으로. 이름 표기는 현행 한/영 병기 공식을 문서에 명문화만 하고 손대지 않습니다.
+    </div>
+    <div class="opt-card">
+      <b>더 아끼는 선택지:</b> 뉴스데스크·편집기는 대표님 혼자 쓰는 운영 화면이므로 "운영 콘솔 = 한글 고정"을 공식 규칙으로 못 박고 아무것도 안 고치는 것도 합리적입니다. 다만 토글이 화면에 보이는데 안 먹는 상태는 남으므로, 앞으로도 "고장인가?" 하는 혼란이 재발할 수 있습니다.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

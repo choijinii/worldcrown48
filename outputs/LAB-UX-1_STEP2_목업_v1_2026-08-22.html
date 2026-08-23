@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAB-UX-1 · STEP 2 화면 구성안 목업 v1</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap");
+
+  /* ── 문서 프레임: 라이트 hex 고정 (대표 열람용) ── */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#F2F2F5; color:#241754;
+    font-family:"Inter","Pretendard",-apple-system,system-ui,sans-serif;
+    line-height:1.6; padding:40px 24px 80px;
+  }
+  .wrap { max-width:1240px; margin:0 auto; }
+  .doc-header { margin-bottom:36px; }
+  .doc-kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; color:#B08F00; font-weight:700; }
+  .doc-title { font-size:30px; font-weight:800; letter-spacing:-0.02em; margin-top:6px; }
+  .doc-sub { font-size:14px; color:#484B67; margin-top:8px; }
+  .section { margin-top:48px; }
+  .sec-num { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:999px; background:#241754; color:#FCD006; font-size:13px; font-weight:800; margin-right:8px; }
+  .sec-title { font-size:20px; font-weight:800; display:flex; align-items:center; margin-bottom:6px; }
+  .sec-desc { font-size:13.5px; color:#484B67; margin-bottom:18px; max-width:860px; }
+  .note { background:#FFFFFF; border:1px solid #D9DBE1; border-left:4px solid #FCD006; border-radius:5px; padding:12px 16px; font-size:13px; color:#484B67; margin-top:14px; }
+  .note b { color:#241754; }
+
+  /* ── 다크 스크린 목업 프레임 (Domain 2 · The Lab 실제 팔레트) ── */
+  .screen {
+    background:#0E0944; border-radius:5px; padding:36px 32px;
+    box-shadow:0 8px 32px rgba(0,0,58,.25); overflow-x:auto;
+    color:#FFFFFF;
+  }
+  .screen-label { font-family:"JetBrains Mono",monospace; font-size:11px; color:#6B7A99; margin-bottom:8px; letter-spacing:.08em; }
+
+  /* Lab 헤더 */
+  .lab-kicker { font-size:11px; letter-spacing:.08em; color:#FCD006; font-weight:700; }
+  .lab-h1 { font-size:24px; font-weight:800; margin-top:6px; }
+  .lab-step { font-size:13px; color:#6B7896; margin-top:6px; }
+
+  /* 요약 카드 */
+  .summary-card { margin-top:22px; padding:16px; border-radius:12px; background:#1A1466; border:1px solid rgba(255,255,255,.12); display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  .summary-title { font-weight:800; font-size:17px; }
+  .summary-desc { font-size:13px; color:#B8C4D9; margin-top:4px; }
+  .ghost-btn { padding:7px 13px; border-radius:8px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#B8C4D9; font-size:12px; font-weight:700; white-space:nowrap; }
+
+  /* ★ 생성 패널 — 2버튼 */
+  .gen-panel { margin-top:16px; padding:20px; border-radius:12px; background:#1A1466; border:1px solid rgba(252,208,6,.35); }
+  .gen-label { font-size:12px; font-weight:700; letter-spacing:.06em; color:#B8C4D9; }
+  .gen-row { display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; align-items:stretch; }
+  .btn-video, .btn-image {
+    flex:1; min-width:280px; text-align:left; padding:16px 20px; border-radius:12px; cursor:pointer;
+  }
+  .btn-video { background:#FCD006; color:#0E0944; border:none; }
+  .btn-image { background:rgba(252,208,6,.12); color:#FCD006; border:2px solid #FCD006; }
+  .btn-big-label { font-size:16px; font-weight:800; }
+  .btn-big-sub { font-size:11.5px; margin-top:4px; opacity:.8; font-weight:500; }
+  .gen-foot { display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:10px; }
+  .fill-count { font-family:"JetBrains Mono",monospace; font-size:12px; color:#B8C4D9; }
+  .fill-count b { color:#FCD006; }
+  .adv-toggle { font-size:12px; color:#6B7896; border:1px dashed rgba(255,255,255,.25); border-radius:999px; padding:5px 12px; background:transparent; }
+
+  /* 고급 도구 (접힘 열린 상태) */
+  .adv-row { margin-top:12px; padding:12px 14px; border-radius:8px; background:#241754; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .adv-btn { padding:7px 13px; border-radius:8px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#B8C4D9; font-size:12px; }
+  .adv-hint { font-size:11px; color:#6B7896; }
+
+  /* 발행 줄 */
+  .publish-row { display:flex; justify-content:flex-end; margin-top:16px; }
+  .btn-publish { padding:14px 28px; border-radius:12px; border:none; background:#FCD006; color:#0E0944; font-weight:800; font-size:15px; }
+
+  /* 그리드 */
+  .grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-top:18px; min-width:1080px; }
+  .slot { position:relative; background:#1A1466; border:1px solid rgba(255,255,255,.12); border-radius:5px; padding:7px; font-size:11px; }
+  .slot.empty { border:2px dashed rgba(252,208,6,.4); background:#140F52; }
+  .thumb { aspect-ratio:16/9; border-radius:4px; position:relative; background:#241754; overflow:hidden; }
+  .thumb .play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .thumb .play::after { content:""; width:0; height:0; border-left:14px solid rgba(255,255,255,.85); border-top:9px solid transparent; border-bottom:9px solid transparent; margin-left:3px; }
+  .thumb .tune { position:absolute; left:4px; bottom:4px; font-size:9px; font-weight:700; color:#FCD006; background:rgba(0,0,31,.72); border:1px solid rgba(255,255,255,.15); border-radius:999px; padding:2px 6px; }
+  .t1 { background:linear-gradient(135deg,#3A2C7A,#7A3070); }
+  .t2 { background:linear-gradient(135deg,#1E3A6E,#00A3B7); }
+  .t3 { background:linear-gradient(135deg,#5C2570,#D7063A); }
+  .t4 { background:linear-gradient(135deg,#233E6B,#3D7A5C); }
+  .slot .x { position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:999px; background:rgba(14,9,68,.8); color:#B8C4D9; display:flex; align-items:center; justify-content:center; font-size:11px; z-index:2; }
+  .nm { margin-top:6px; padding:4px 6px; border-radius:4px; background:#241754; border:1px solid rgba(255,255,255,.12); font-weight:700; font-size:11.5px; color:#FFF; }
+  .meta { display:flex; gap:4px; margin-top:4px; }
+  .meta span { flex:1; padding:3px 6px; border-radius:4px; background:#241754; border:1px solid rgba(255,255,255,.10); color:#B8C4D9; font-size:10px; }
+  .hint { margin-top:4px; font-size:9.5px; color:#6B7896; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .badges { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+  .bdg { padding:1px 7px; border-radius:999px; font-size:9px; font-weight:700; letter-spacing:.04em; border:1px solid; background:transparent; }
+  .b-ok { color:#00A3B7; border-color:#00A3B7; }
+  .b-warn { color:#FCD006; border-color:#FCD006; }
+  .b-danger { color:#FF5C7E; border-color:#D7063A; }
+  .b-dup { color:#FF5C7E; border-color:#D7063A; background:rgba(215,6,58,.14); }
+  .slot-actions { display:flex; gap:4px; margin-top:6px; }
+  .sa { padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.18); color:#B8C4D9; font-size:9px; background:transparent; }
+  .plus { display:flex; align-items:center; justify-content:center; color:#6B7896; font-size:22px; aspect-ratio:16/9; }
+  .grid-note { font-size:11px; color:#6B7896; margin-top:10px; font-family:"JetBrains Mono",monospace; }
+
+  /* 확대 카드 섹션 */
+  .zoom-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
+  .zoom-cell { background:#0E0944; border-radius:5px; padding:16px; }
+  .zoom-cap { font-size:12px; font-weight:700; color:#241754; margin-top:10px; }
+  .zoom-cap-sub { font-size:11.5px; color:#484B67; margin-top:3px; }
+  .zoom-cell .slot { font-size:11px; }
+
+  /* 흐름도 */
+  .flow { display:flex; align-items:stretch; gap:0; flex-wrap:wrap; margin-top:8px; }
+  .fnode { background:#FFFFFF; border:1.5px solid #D9DBE1; border-radius:5px; padding:12px 14px; min-width:150px; flex:1; }
+  .fnode.gold { border-color:#FCD006; background:#FFFBEB; }
+  .fnode.human { border-color:#241754; background:#241754; color:#F2F2F5; }
+  .fnode .ft { font-size:13px; font-weight:800; }
+  .fnode.human .ft { color:#FCD006; }
+  .fnode .fs { font-size:11px; color:#6B7A99; margin-top:3px; }
+  .fnode.human .fs { color:#B8C4D9; }
+  .farrow { display:flex; align-items:center; padding:0 8px; color:#B08F00; font-weight:800; font-size:16px; }
+  .fauto { font-family:"JetBrains Mono",monospace; font-size:10px; color:#00838F; margin-top:4px; font-weight:600; }
+
+  /* 결정 카드 */
+  .dec-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px; }
+  .dec-card { background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; padding:18px; }
+  .dec-tag { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; color:#0E0944; background:#FCD006; border-radius:999px; padding:2px 10px; }
+  .dec-q { font-size:15px; font-weight:800; margin-top:10px; }
+  .dec-opts { margin-top:10px; font-size:13px; color:#484B67; }
+  .dec-opts .opt { padding:8px 10px; border:1px solid #E7E8EC; border-radius:5px; margin-top:6px; }
+  .dec-opts .opt.rec { border-color:#FCD006; background:#FFFBEB; }
+  .rec-mark { font-size:10.5px; font-weight:800; color:#B08F00; letter-spacing:.06em; }
+
+  /* 체크리스트 표 */
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; overflow:hidden; font-size:13px; }
+  th { background:#241754; color:#F2F2F5; text-align:left; padding:10px 14px; font-size:12.5px; }
+  td { padding:10px 14px; border-top:1px solid #E7E8EC; vertical-align:top; color:#484B67; }
+  td:first-child { font-weight:700; color:#241754; width:34%; }
+  .ok-chip { font-family:"JetBrains Mono",monospace; font-size:11px; color:#00838F; font-weight:700; }
+  .pend-chip { font-family:"JetBrains Mono",monospace; font-size:11px; color:#B08F00; font-weight:700; }
+
+  .rename-table td:first-child { width:40%; }
+  .old { text-decoration:line-through; color:#9AA1B5; }
+  .new { color:#241754; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <div class="doc-kicker">LAB-UX-1 · 편집기 정리 킥 — 착수 ① 목업</div>
+    <div class="doc-title">The Lab STEP 2 화면 구성안 · 목업 v1</div>
+    <div class="doc-sub">2026-08-22 · 티오 제안 → 대표 선택·수정용 · 확정 사항(08-21)은 그대로 반영, 미정 사항은 ④에서 선택지로 제시합니다.</div>
+  </header>
+
+  <!-- ① 전체 화면 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">1</span>STEP 2 전체 화면 (제안)</div>
+    <div class="sec-desc">
+      핵심 변화는 하나입니다 — 부품(AI 채우기·소싱·검수)을 조작하던 화면에서, <b>결과물(동영상/이미지)을 주문하는 화면</b>으로 바뀝니다.
+      아래는 동영상 생성이 끝난 직후 상태이며, 그리드는 48칸 중 앞 12칸만 예시로 그렸습니다.
+    </div>
+    <div class="screen">
+      <div class="screen-label">DOMAIN 2 · THE LAB — 다크 테마 (실제 프로덕션 팔레트)</div>
+      <p class="lab-kicker">DOMAIN 2 · THE LAB</p>
+      <h2 class="lab-h1">Tournament 만들기</h2>
+      <p class="lab-step">STEP 2 / 2</p>
+
+      <!-- 제목 요약 (기존 유지) -->
+      <div class="summary-card">
+        <div>
+          <div class="summary-title">2026 걸그룹 보컬 이상형 월드컵</div>
+          <div class="summary-desc">가장 사랑하는 목소리를 골라 주세요</div>
+        </div>
+        <button class="ghost-btn">제목·설명 수정</button>
+      </div>
+
+      <!-- ★ 신규: 결과물 2버튼 생성 패널 -->
+      <div class="gen-panel">
+        <div class="gen-label">라인업 만들기 — 결과는 전부 “제안”으로 들어오고, 발행은 아래 [토너먼트 생성]을 눌러야 일어납니다</div>
+        <div class="gen-row">
+          <button class="btn-video">
+            <div class="btn-big-label">🎬 동영상 생성</div>
+            <div class="btn-big-sub">AI가 48명을 채우고 → 영상을 찾고 → 검수까지 자동으로 이어서 합니다</div>
+          </button>
+          <button class="btn-image">
+            <div class="btn-big-label">🖼 이미지 생성</div>
+            <div class="btn-big-sub">AI가 48명을 채우고 → 이미지 검수까지 자동으로 합니다</div>
+          </button>
+        </div>
+        <div class="gen-foot">
+          <span class="fill-count">채움 <b>46</b>/48 · 제안 41 · 손볼 칸 5</span>
+          <button class="adv-toggle">▾ 직접 손보기 도구</button>
+        </div>
+        <!-- 접힘 열린 상태 예시 -->
+        <div class="adv-row">
+          <button class="adv-btn">링크 직접 붙여넣기</button>
+          <button class="adv-btn">빈칸만 AI로 채우기</button>
+          <span class="adv-hint">자동 생성이 놓친 칸을 손으로 복구하는 보조 도구 — 평소엔 접혀 있습니다</span>
+        </div>
+      </div>
+
+      <div class="publish-row">
+        <button class="btn-publish">토너먼트 생성 (46/48)</button>
+      </div>
+
+      <!-- 그리드 -->
+      <div class="grid">
+        <!-- 01 정상 제안 -->
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t1"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">지수 (JISOO)</div>
+          <div class="meta"><span>KR</span><span>보컬</span></div>
+          <div class="hint">힌트: BLACKPINK JISOO stage</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <!-- 02 정상 -->
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t2"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">윈터 (WINTER)</div>
+          <div class="meta"><span>KR</span><span>보컬</span></div>
+          <div class="hint">힌트: aespa WINTER live vocal</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <!-- 03 ★중복 의심 -->
+        <div class="slot" style="border-color:#D7063A;"><div class="x">✕</div>
+          <div class="thumb t3"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">설윤 (SULLYOON)</div>
+          <div class="meta"><span>KR</span><span>비주얼</span></div>
+          <div class="hint">힌트: NMIXX SULLYOON fancam</div>
+          <div class="badges"><span class="bdg b-ok">제안</span><span class="bdg b-dup">중복 의심 · 38번</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span><span class="sa">38번 보기</span></div>
+        </div>
+        <!-- 04 ★이름↔힌트 불일치 -->
+        <div class="slot" style="border-color:rgba(252,208,6,.6);"><div class="x">✕</div>
+          <div class="thumb t4"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">김민주</div>
+          <div class="meta"><span>KR</span><span>보컬</span></div>
+          <div class="hint">힌트: Kim Chaewon Weekly</div>
+          <div class="badges"><span class="bdg b-ok">제안</span><span class="bdg b-warn">이름↔힌트 불일치</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <!-- 05 수동 필요 -->
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb"><div class="plus" style="aspect-ratio:auto;height:100%;">—</div></div>
+          <div class="nm">유나 (YUNA)</div>
+          <div class="meta"><span>KR</span><span>댄스</span></div>
+          <div class="hint">힌트: ITZY YUNA solo stage</div>
+          <div class="badges"><span class="bdg b-warn">수동 필요</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span><span class="sa">링크 붙여넣기</span></div>
+        </div>
+        <!-- 06 실존 의심 -->
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb"><div class="plus" style="aspect-ratio:auto;height:100%;">—</div></div>
+          <div class="nm">하린</div>
+          <div class="meta"><span>KR</span><span>보컬</span></div>
+          <div class="hint">힌트: (검색 결과 없음)</div>
+          <div class="badges"><span class="bdg b-danger">실존 의심</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <!-- 07~10 정상 축약 -->
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t2"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">안유진 (YUJIN)</div>
+          <div class="meta"><span>KR</span><span>리더</span></div>
+          <div class="hint">힌트: IVE YUJIN encore</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t1"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">카리나 (KARINA)</div>
+          <div class="meta"><span>KR</span><span>리더</span></div>
+          <div class="hint">힌트: aespa KARINA fancam</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t4"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">장원영 (WONYOUNG)</div>
+          <div class="meta"><span>KR</span><span>비주얼</span></div>
+          <div class="hint">힌트: IVE Jang Wonyoung</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <div class="slot"><div class="x">✕</div>
+          <div class="thumb t3"><div class="play"></div><span class="tune">영상 조정</span></div>
+          <div class="nm">해원 (HAEWON)</div>
+          <div class="meta"><span>KR</span><span>보컬</span></div>
+          <div class="hint">힌트: NMIXX HAEWON vocal</div>
+          <div class="badges"><span class="bdg b-ok">제안</span></div>
+          <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+        </div>
+        <!-- 빈 칸 -->
+        <div class="slot empty">
+          <div class="plus">+</div>
+          <div class="nm" style="color:#6B7896;font-weight:500;">Contestant 11</div>
+          <div class="meta"><span>국적</span><span>포지션</span></div>
+        </div>
+        <div class="slot empty">
+          <div class="plus">+</div>
+          <div class="nm" style="color:#6B7896;font-weight:500;">Contestant 12</div>
+          <div class="meta"><span>국적</span><span>포지션</span></div>
+        </div>
+      </div>
+      <div class="grid-note">… 이하 48칸 동일 (6열 × 8행) · 이미지 URL 입력 칸은 삭제됨</div>
+    </div>
+
+    <div class="note">
+      <b>그리드 미리보기 = 유튜브 썸네일(16:9)</b>로 바뀌었습니다(08-21 확정 — 플레이어 동시 6개 제한 때문).
+      기존의 1:1 정사각 + 이미지 URL 칸은 사라지고, 카드가 세로로 짧아져 한 화면에 더 많은 행이 들어옵니다.
+      매치 화면(투표 무대)은 지금처럼 정지 임베드 그대로입니다.
+    </div>
+  </div>
+
+  <!-- ② 슬롯 상태 확대 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">2</span>슬롯 카드 5가지 상태 (확대)</div>
+    <div class="sec-desc">
+      이번 킥의 신설 배지는 <b>중복 의심</b>과 <b>이름↔힌트 불일치</b> 2종입니다. 지금은 로그에만 남는 정보를 칸 위로 끌어올립니다 —
+      운영자(대표)가 스크롤만 해도 손볼 칸이 눈에 걸리는 것이 목적입니다.
+    </div>
+    <div class="zoom-row">
+      <div>
+        <div class="zoom-cell">
+          <div class="slot"><div class="x">✕</div>
+            <div class="thumb t1"><div class="play"></div><span class="tune">영상 조정</span></div>
+            <div class="nm">지수 (JISOO)</div>
+            <div class="meta"><span>KR</span><span>보컬</span></div>
+            <div class="badges"><span class="bdg b-ok">제안</span></div>
+            <div class="slot-actions"><span class="sa">새 영상 찾기</span></div>
+          </div>
+        </div>
+        <div class="zoom-cap">① 제안 (정상)</div>
+        <div class="zoom-cap-sub">자동 체인이 검수까지 통과시킨 상태. 그대로 두면 발행에 포함됩니다.</div>
+      </div>
+      <div>
+        <div class="zoom-cell">
+          <div class="slot" style="border-color:#D7063A;"><div class="x">✕</div>
+            <div class="thumb t3"><div class="play"></div><span class="tune">영상 조정</span></div>
+            <div class="nm">설윤 (SULLYOON)</div>
+            <div class="meta"><span>KR</span><span>비주얼</span></div>
+            <div class="badges"><span class="bdg b-ok">제안</span><span class="bdg b-dup">중복 의심 · 38번</span></div>
+            <div class="slot-actions"><span class="sa">새 영상 찾기</span><span class="sa">38번 보기</span></div>
+          </div>
+        </div>
+        <div class="zoom-cap">② 중복 의심 ★신설</div>
+        <div class="zoom-cap-sub">같은 인물이 다른 칸에도 있는 것으로 의심될 때. 상대 칸 번호를 배지에 표시하고, [38번 보기]로 바로 이동합니다. 카드 테두리도 붉게.</div>
+      </div>
+      <div>
+        <div class="zoom-cell">
+          <div class="slot" style="border-color:rgba(252,208,6,.6);"><div class="x">✕</div>
+            <div class="thumb t4"><div class="play"></div><span class="tune">영상 조정</span></div>
+            <div class="nm">김민주</div>
+            <div class="meta"><span>KR</span><span>보컬</span></div>
+            <div class="hint">힌트: Kim Chaewon Weekly</div>
+            <div class="badges"><span class="bdg b-ok">제안</span><span class="bdg b-warn">이름↔힌트 불일치</span></div>
+          </div>
+        </div>
+        <div class="zoom-cap">③ 이름↔힌트 불일치 ★신설</div>
+        <div class="zoom-cap-sub">이름 칸과 검색 힌트의 인물이 다를 때(AI-2에서 발견된 오염 유형). 영상이 엉뚱한 사람일 수 있으니 골드(주의)로 표시합니다.</div>
+      </div>
+      <div>
+        <div class="zoom-cell">
+          <div class="slot"><div class="x">✕</div>
+            <div class="thumb"><div class="plus" style="aspect-ratio:auto;height:100%;">—</div></div>
+            <div class="nm">유나 (YUNA)</div>
+            <div class="meta"><span>KR</span><span>댄스</span></div>
+            <div class="badges"><span class="bdg b-warn">수동 필요</span></div>
+            <div class="slot-actions"><span class="sa">새 영상 찾기</span><span class="sa">링크 붙여넣기</span></div>
+          </div>
+        </div>
+        <div class="zoom-cap">④ 수동 필요 (기존)</div>
+        <div class="zoom-cap-sub">자동 소싱이 영상을 못 찾은 칸. [새 영상 찾기] 재검색 또는 [링크 붙여넣기]로 직접 해결합니다.</div>
+      </div>
+      <div>
+        <div class="zoom-cell">
+          <div class="slot empty">
+            <div class="plus">+</div>
+            <div class="nm" style="color:#6B7896;font-weight:500;">Contestant 11</div>
+            <div class="meta"><span>국적</span><span>포지션</span></div>
+          </div>
+        </div>
+        <div class="zoom-cap">⑤ 빈 칸 (기존)</div>
+        <div class="zoom-cap-sub">금색 점선 유지. 직접 타이핑하거나 [빈칸만 AI로 채우기]로 채웁니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 흐름도 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">3</span>[🎬 동영상 생성] 버튼 한 번의 속 흐름</div>
+    <div class="sec-desc">
+      버튼은 하나지만 안에서는 기존 부품 3개가 순서대로 돌아갑니다. 사람 손이 닿는 곳은 <b>시작(쿼터 확인)</b>과 <b>끝(토너먼트 생성)</b> 딱 두 군데입니다 — 결과가 전부 “제안”에 머무는 R6 원칙은 그대로입니다.
+    </div>
+    <div class="flow">
+      <div class="fnode human"><div class="ft">🎬 동영상 생성 클릭</div><div class="fs">쿼터(하루 검색 100콜) 견적 확인 창 → 사람이 승인</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode"><div class="ft">AI 채우기</div><div class="fs">48명 라인업 작성</div><div class="fauto">자동</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode"><div class="ft">영상 소싱</div><div class="fs">이름별 유튜브 검색</div><div class="fauto">자동</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode"><div class="ft">검수</div><div class="fs">임베드 가능·인물 일치 판정</div><div class="fauto">자동</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode gold"><div class="ft">48칸 “제안” 도착</div><div class="fs">배지 보고 손볼 칸만 수정</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode human"><div class="ft">토너먼트 생성 클릭</div><div class="fs">사람이 눌러야 발행 (R6)</div></div>
+    </div>
+    <div class="note"><b>🖼 이미지 생성</b>은 같은 흐름에서 “영상 소싱” 단계가 빠진 짧은 체인입니다(AI 채우기 → 이미지 검수 → 제안).</div>
+  </div>
+
+  <!-- ④ 대표 결정 필요 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">4</span>대표님 결정이 필요한 3가지</div>
+    <div class="sec-desc">목업은 각 항목의 추천안 기준으로 그렸습니다. 다르게 정하시면 v2에서 바로 고치겠습니다.</div>
+    <div class="dec-grid">
+      <div class="dec-card">
+        <span class="dec-tag">결정 1</span>
+        <div class="dec-q">숨긴 부품 버튼, 완전히 없앨까요?</div>
+        <div class="dec-opts">
+          <div class="opt rec"><span class="rec-mark">추천 · 목업 반영안</span><br><b>B안 — “직접 손보기 도구”로 접어두기.</b> 평소엔 접혀 있고, 펼치면 [링크 직접 붙여넣기]·[빈칸만 AI로 채우기]만 나옵니다. AI가 실패해도 손으로 복구할 길(AC#1 원칙)이 남습니다.</div>
+          <div class="opt"><b>A안 — 완전 숨김.</b> 화면은 가장 깨끗하지만, 자동 체인이 막히면 슬롯 하나씩만 고칠 수 있습니다.</div>
+        </div>
+      </div>
+      <div class="dec-card">
+        <span class="dec-tag">결정 2</span>
+        <div class="dec-q">이름 KO/EN/ES 언어별 표기, 이 킥에 넣을까요?</div>
+        <div class="dec-opts">
+          <div class="opt"><b>넣는다</b> — 이름 칸이 언어 설정을 따라가도록 이번에 함께 개편.</div>
+          <div class="opt rec"><span class="rec-mark">추천</span><br><b>실측 후 결정(인계서 원안)</b> — 이름 데이터가 저장·노출되는 곳(Crown Card·랭킹·매치 등)을 Claude Code가 grep으로 실측한 뒤, 규모가 크면 별도 킥으로 분리. 목업 v1에는 반영하지 않았습니다.</div>
+        </div>
+      </div>
+      <div class="dec-card">
+        <span class="dec-tag">결정 3</span>
+        <div class="dec-q">동영상 생성 앞의 쿼터 확인 창, 유지할까요?</div>
+        <div class="dec-opts">
+          <div class="opt rec"><span class="rec-mark">추천 · 목업 반영안</span><br><b>유지.</b> 유튜브 검색은 하루 100콜뿐이고 48명 소싱이 절반을 씁니다. “오늘 몇 번 남았는지” 모른 채 누르면 두 번째 Tournament가 막히므로, 승인 창 1회는 안전장치로 남깁니다.</div>
+          <div class="opt"><b>없앤다</b> — 클릭 수는 줄지만 쿼터 소진을 사후에 알게 됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 버튼명 정리 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">5</span>버튼명 정리 — “하는 일” 기준 (확정 원칙 적용)</div>
+    <table class="rename-table">
+      <tr><th>지금 이름</th><th>바뀌는 이름 / 처리</th></tr>
+      <tr><td><span class="old">✨ AI로 48명 채우기</span></td><td><span class="new">🎬 동영상 생성 · 🖼 이미지 생성</span> 체인 속으로 흡수 (버튼 사라짐)</td></tr>
+      <tr><td><span class="old">영상 검수기 열기</span></td><td><span class="new">링크 직접 붙여넣기</span> — 접힌 “직접 손보기 도구” 안으로 이동</td></tr>
+      <tr><td><span class="old">영상 자동 소싱</span></td><td>체인 속으로 흡수 (버튼 사라짐)</td></tr>
+      <tr><td><span class="old">✨ 빈칸만 AI</span></td><td><span class="new">빈칸만 AI로 채우기</span> — 접힌 도구 안으로 이동</td></tr>
+      <tr><td>새로 고침(슬롯)</td><td><span class="new">새 영상 찾기</span> — 슬롯 안 유지</td></tr>
+      <tr><td>이미지 URL 입력 칸</td><td><b>삭제</b> (킥 실행 시 읽는 곳 grep 실측 후 데이터까지 제거)</td></tr>
+    </table>
+  </div>
+
+  <!-- ⑥ 체크리스트 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">6</span>확정 사항(08-21~22) ↔ 목업 반영 체크</div>
+    <table>
+      <tr><th>확정 사항</th><th>목업 반영</th></tr>
+      <tr><td>STEP 2 = 결과물 2버튼 (동영상/이미지 생성), 부품 버튼 숨김</td><td><span class="ok-chip">반영</span> — ① 생성 패널. 숨김 방식만 결정 1로 질의</td></tr>
+      <tr><td>결과는 전부 “제안” + 사람이 [토너먼트 생성] 클릭 (R6)</td><td><span class="ok-chip">반영</span> — ①·③ 흐름도의 시작·끝 두 군데만 사람</td></tr>
+      <tr><td>그리드 = 유튜브 썸네일 / 매치 화면 = 정지 임베드</td><td><span class="ok-chip">반영</span> — 슬롯 미리보기 16:9 썸네일로 교체 (매치 화면은 변경 없음)</td></tr>
+      <tr><td>중복 의심·이름↔힌트 불일치를 슬롯 배지로 노출</td><td><span class="ok-chip">반영</span> — ② 신설 배지 2종 + 테두리 색 + [상대 칸 보기]</td></tr>
+      <tr><td>슬롯에서 수정·삭제·[새 영상 찾기]</td><td><span class="ok-chip">반영</span> — 칸 안 직접 수정 + ✕ 삭제 + 액션 칩</td></tr>
+      <tr><td>이미지 URL 칸 데이터까지 삭제 (삭제 전 grep 실측)</td><td><span class="ok-chip">반영</span> — 목업에서 칸 제거. grep 실측은 킥 문서의 선행 작업으로 명시 예정</td></tr>
+      <tr><td>이름 표기 KO/EN/ES — 실측 후 포함 여부 결정</td><td><span class="pend-chip">보류</span> — 결정 2 참조 (v1 미반영)</td></tr>
+      <tr><td>키워드 재클릭 20/12 결함 수정</td><td><span class="pend-chip">킥 문서행</span> — STEP 1 로직 결함이라 화면 목업 범위 밖. 킥 범위에 포함</td></tr>
+      <tr><td>버튼명은 “하는 일” 기준</td><td><span class="ok-chip">반영</span> — ⑤ 정리표</td></tr>
+    </table>
+    <div class="note">디자인 계약 준수 확인: 다크 테마(Domain 2)·Crown Gold #FCD006 단일 포인트·크림슨/터콰이즈는 상태 표시 전용·모서리 0/5px/999px·라운드명·LIVE·Vote Count 미노출. 문서 프레임은 열람용 라이트 hex 고정입니다.</div>
+  </div>
+
+</div>
+</body>
+</html>

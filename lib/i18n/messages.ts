@@ -297,10 +297,13 @@ export const MESSAGES = {
     es: "El Deadline debe ser una fecha futura.",
   },
 
-  "lab.fill.label": { ko: "채우기", en: "Fill", es: "Rellenar" },
-  "lab.fill.all": { ko: "✨ AI 48명 전체", en: "✨ AI all 48", es: "✨ IA los 48" },
-  "lab.fill.allBusy": { ko: "✨ 추천 중… (약 15초)", en: "✨ Generating… (~15s)", es: "✨ Generando… (~15s)" },
-  "lab.fill.blanks": { ko: "✨ 빈칸만 AI", en: "✨ AI blanks only", es: "✨ IA solo vacíos" },
+  // lab.fill.label/all/allBusy/hint 는 LAB-UX-1에서 삭제됐다 — 부품 버튼
+  // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[🖼 이미지 생성] 체인에 흡수됐다.
+  "lab.fill.blanks": {
+    ko: "빈칸만 AI로 채우기",
+    en: "AI-fill the blanks only",
+    es: "Rellenar solo los vacíos con IA",
+  },
   "lab.fill.hint": {
     ko: "✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요",
     en: "✏️ You can also click a cell to type or edit it",
@@ -398,10 +401,12 @@ export const MESSAGES = {
   },
 
   // ── LAB-EV-1 유튜브 임베드 검수기 (어드민 전용 · ADR-EV-7) ──────────────
+  // 개명 (LAB-UX-1 목업 v2 ⑤): 버튼명은 "무엇인가"가 아니라 "하는 일"이다.
+  // "유튜브 검수기"는 도구 이름이라 운영자가 언제 쓰는지 알 수 없었다.
   "lab.embed.open": {
-    ko: "🎬 유튜브 검수기 일괄 입력",
-    en: "🎬 YouTube batch inspector",
-    es: "🎬 Inspector por lotes de YouTube",
+    ko: "링크 직접 붙여넣기",
+    en: "Paste links yourself",
+    es: "Pegar enlaces manualmente",
   },
   "lab.embed.title": {
     ko: "유튜브 임베드 검수기",
@@ -689,6 +694,144 @@ export const MESSAGES = {
     ko: "다른 후보를 찾지 못했습니다.",
     en: "No other candidate found.",
     es: "No se encontró otro candidato.",
+  },
+
+  // ── LAB-UX-1 STEP 2 재편 — 결과물 2버튼 · 검수 배지 · 게이트 문구 ────────
+  "lab.generate.lead": {
+    ko: "라인업 만들기 — 결과는 전부 “제안”으로 들어오고, 발행은 [토너먼트 생성]을 눌러야 일어납니다.",
+    en: "Build the lineup — everything arrives as a proposal; nothing publishes until you press [Create Tournament].",
+    es: "Crea la alineación — todo llega como propuesta; nada se publica hasta pulsar [Crear Tournament].",
+  },
+  "lab.generate.videos": { ko: "🎬 동영상 생성", en: "🎬 Generate videos", es: "🎬 Generar videos" },
+  "lab.generate.videosSub": {
+    ko: "AI가 48명을 채우고 → 영상을 찾고 → 검수까지 이어서 합니다",
+    en: "AI fills all 48 → finds a video for each → inspects them",
+    es: "La IA rellena los 48 → busca un video → los inspecciona",
+  },
+  "lab.generate.images": { ko: "🖼 이미지 생성", en: "🖼 Generate images", es: "🖼 Generar imágenes" },
+  "lab.generate.imagesSub": {
+    ko: "AI가 48명을 채우고 → 검수까지 합니다 (영상 검색 없음)",
+    en: "AI fills all 48 → inspects them (no video search)",
+    es: "La IA rellena los 48 → los inspecciona (sin buscar videos)",
+  },
+  "lab.generate.filling": {
+    ko: "✨ 48명 채우는 중… (약 15초)",
+    en: "✨ Filling all 48… (~15s)",
+    es: "✨ Rellenando los 48… (~15s)",
+  },
+  "lab.generate.sourcing": {
+    ko: "🎬 영상 찾는 중… {done}/{total}",
+    en: "🎬 Finding videos… {done}/{total}",
+    es: "🎬 Buscando videos… {done}/{total}",
+  },
+  "lab.generate.counter": {
+    ko: "채움 {filled}/{total} · 제안 {suggested} · 손볼 칸 {todo}",
+    en: "Filled {filled}/{total} · proposed {suggested} · needs a look {todo}",
+    es: "Rellenadas {filled}/{total} · propuestas {suggested} · por revisar {todo}",
+  },
+  "lab.generate.imagesDone": {
+    ko: "✓ {filled}칸을 채웠어요 · 손볼 칸 {todo}개",
+    en: "✓ Filled {filled} slots · {todo} need a look",
+    es: "✓ {filled} casillas rellenadas · {todo} por revisar",
+  },
+  "lab.generate.chainStopped": {
+    ko: "영상 찾기에서 멈췄어요 — 앞선 결과는 그대로 있고 남은 칸은 {remaining}개입니다.",
+    en: "Stopped while finding videos — earlier results are kept; {remaining} slots remain.",
+    es: "Se detuvo al buscar videos — los resultados previos se mantienen; quedan {remaining}.",
+  },
+  "lab.generate.chainFillFailed": {
+    ko: "48명 채우기에서 멈춰 영상 찾기는 시작하지 않았어요.",
+    en: "Stopped while filling the 48 — video search never started.",
+    es: "Se detuvo al rellenar los 48 — la búsqueda de videos no empezó.",
+  },
+  "lab.generate.tools": {
+    ko: "직접 손보기 도구",
+    en: "Fix-it-yourself tools",
+    es: "Herramientas manuales",
+  },
+  "lab.generate.toolsHint": {
+    ko: "자동 생성이 놓친 칸을 손으로 복구하는 보조 도구입니다.",
+    en: "Backup tools for the slots automatic generation missed.",
+    es: "Herramientas de apoyo para las casillas que la generación automática no cubrió.",
+  },
+  "lab.keywords.capped": {
+    ko: "키워드는 최대 {max}개예요 — {dropped}개는 넣지 않았습니다.",
+    en: "Keywords cap at {max} — {dropped} were left out.",
+    es: "Máximo {max} palabras clave — {dropped} quedaron fuera.",
+  },
+  "lab.contestant.editName": {
+    ko: "Contestant {n} 이름 수정",
+    en: "Edit Contestant {n} name",
+    es: "Editar el nombre del Contestant {n}",
+  },
+  "lab.contestant.released": {
+    ko: "이름이 바뀌어 이전 인물의 영상·검색어를 뗐어요.",
+    en: "Name changed — the previous person's video and search term were released.",
+    es: "El nombre cambió — se soltaron el video y el término de búsqueda anteriores.",
+  },
+  "lab.review.duplicate": { ko: "중복 의심", en: "Possible duplicate", es: "Posible duplicado" },
+  "lab.review.duplicateTip": {
+    ko: "{slots}번 칸과 같은 인물로 보입니다. 어느 쪽을 남길지 정하고 나머지는 ✕로 비우거나 이름을 고치세요.",
+    en: "Looks like the same person as slot {slots}. Keep one, then clear the other with ✕ or fix its name.",
+    es: "Parece la misma persona que la casilla {slots}. Conserva una y vacía la otra con ✕ o corrige el nombre.",
+  },
+  "lab.review.goToSlot": { ko: "{n}번 보기", en: "Go to {n}", es: "Ir a {n}" },
+  "lab.review.nameMismatch": {
+    ko: "이름↔검색어 불일치",
+    en: "Name ≠ search term",
+    es: "Nombre ≠ búsqueda",
+  },
+  "lab.review.nameMismatchTip": {
+    ko: "이름 칸이 검색어가 가리키는 인물과 어긋납니다. 검색어 기준 후보: {tokens}",
+    en: "The name disagrees with the person the search term points at. Candidates from the term: {tokens}",
+    es: "El nombre no coincide con la persona que indica la búsqueda. Candidatos: {tokens}",
+  },
+  "lab.review.hintTip": {
+    ko: "Claude가 남긴 검색어: {hint}",
+    en: "Search term left by Claude: {hint}",
+    es: "Término de búsqueda de Claude: {hint}",
+  },
+  "lab.step2.translateNote": {
+    ko: "제목·설명은 발행 시 KO/EN/ES로 자동 번역됩니다 — 편집기에는 원문만 보입니다.",
+    en: "Title and description are auto-translated to KO/EN/ES at publish — the editor shows only the original.",
+    es: "El título y la descripción se traducen a KO/EN/ES al publicar — el editor solo muestra el original.",
+  },
+  "lab.gate.loading": { ko: "확인 중…", en: "Checking…", es: "Comprobando…" },
+  "lab.gate.forbidden": {
+    ko: "권한이 없습니다. 홈으로 이동합니다…",
+    en: "Not authorized. Returning home…",
+    es: "Sin permiso. Volviendo al inicio…",
+  },
+  "lab.gate.roleTag": {
+    ko: "THE LAB · 운영자 전용",
+    en: "THE LAB · OPERATORS ONLY",
+    es: "THE LAB · SOLO OPERADORES",
+  },
+  "lab.gate.signInTitle": {
+    ko: "운영자 계정으로 로그인하세요",
+    en: "Sign in with an operator account",
+    es: "Inicia sesión con una cuenta de operador",
+  },
+  "lab.gate.signIn": {
+    ko: "Google로 계속하기",
+    en: "Continue with Google",
+    es: "Continuar con Google",
+  },
+  "lab.gate.signingIn": { ko: "로그인 중…", en: "Signing in…", es: "Iniciando sesión…" },
+  "lab.gate.signInFailed": {
+    ko: "로그인에 실패했어요. 다시 시도해 주세요.",
+    en: "Sign-in failed. Please try again.",
+    es: "Error al iniciar sesión. Inténtalo de nuevo.",
+  },
+  "lab.desktop.title": {
+    ko: "데스크탑 전용 화면입니다",
+    en: "Desktop only",
+    es: "Solo para escritorio",
+  },
+  "lab.desktop.body": {
+    ko: "The Lab 운영자 콘솔은 1440px 이상의 화면에서만 사용할 수 있어요. 데스크탑에서 다시 열어주세요.",
+    en: "The Lab operator console needs a screen at least 1440px wide. Please reopen it on a desktop.",
+    es: "La consola de The Lab necesita una pantalla de al menos 1440px. Ábrela en un escritorio.",
   },
 
   // ── ND-1 News Desk (Domain: /news + /admin/newsdesk) ───────────────────

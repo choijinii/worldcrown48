@@ -8,9 +8,12 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
 
 export function DesktopOnly({ children }: { children: ReactNode }): JSX.Element {
+  const { t } = useT();
+
   return (
     <>
       <style>{`
@@ -42,11 +45,10 @@ export function DesktopOnly({ children }: { children: ReactNode }): JSX.Element 
       >
         <div style={{ fontSize: 40 }}>🖥️</div>
         <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>
-          데스크탑 전용 화면입니다
+          {t("lab.desktop.title")}
         </h1>
         <p style={{ margin: 0, fontSize: 13, color: lab.textSub, maxWidth: 320 }}>
-          The Lab 운영자 콘솔은 1440px 이상의 화면에서만 사용할 수 있어요.
-          데스크탑에서 다시 열어주세요.
+          {t("lab.desktop.body")}
         </p>
       </div>
     </>

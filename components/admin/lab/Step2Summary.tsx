@@ -95,6 +95,15 @@ export function Step2Summary({
             >
               {description || t("lab.step2.noDescription")}
             </div>
+            {/* LAB-UX-1 — 편집기에 원문만 보이는 것이 **정상**임을 못 박는다.
+                2026-08-23 대표가 lang=es에서 제목이 한국어로 보이는 걸 결함으로
+                보고했다. 실제로는 발행 시 번역 설계인데, 화면이 그 말을 안 했다. */}
+            <div
+              data-testid="step2-translate-note"
+              style={{ marginTop: 8, fontSize: 11, color: lab.textMuted }}
+            >
+              {t("lab.step2.translateNote")}
+            </div>
           </div>
           <button
             type="button"

@@ -103,6 +103,10 @@ async function goToStep2(page: Page) {
   await expect(next).toBeEnabled();
   await next.click();
   await expect(page.getByTestId("contestant-grid")).toBeVisible();
+  // LAB-UX-1: 검수기는 "직접 손보기 도구" 안으로 접혀 들어갔다(결정 1 · B안).
+  // 기본이 접힘이라 열어야 버튼이 보인다.
+  await page.getByTestId("lab-manual-tools-toggle").click();
+  await expect(page.getByTestId("lab-manual-tools")).toBeVisible();
 }
 
 test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {

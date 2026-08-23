@@ -15,6 +15,9 @@
  * ADMIN_UID comes from process.env.NEXT_PUBLIC_ADMIN_UID (NOT Vite's
  * import.meta — handoff §9 trap #2). If unset, adminGateState fails closed and
  * nobody is admin.
+ *
+ * LAB-UX-1: 문구는 전부 메시지 카탈로그(`lab.gate.*`)에서 온다. 운영 화면도
+ * 토글 대상이라는 대표 결정(2026-08-23) — 번역 정당성을 우리 화면부터 시험한다.
  */
 
 "use client";
@@ -24,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/authStore";
 import { showToast } from "@/lib/toast";
 import { adminGateState } from "@/lib/lab/adminGate";
+import { useT } from "@/lib/i18n/useT";
 
 const ADMIN_UID = process.env.NEXT_PUBLIC_ADMIN_UID;
 
@@ -40,6 +44,7 @@ const shell: React.CSSProperties = {
 };
 
 export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Element {
+  const { t } = useT();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
@@ -65,7 +70,7 @@ export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Eleme
     try {
       await signInWithGoogle();
     } catch {
-      showToast("로그인에 실패했어요. 다시 시도해 주세요.", "error");
+      showToast(t("lab.gate.signInFailed"), "error");
     } finally {
       setBusy(false);
     }
@@ -73,10 +78,10 @@ export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Eleme
 
   return (
     <main style={shell}>
-      {state === "loading" && <div role="status">확인 중…</div>}
+      {state === "loading" && <div role="status">{t("lab.gate.loading")}</div>}
 
       {state === "forbidden" && (
-        <div role="status">권한이 없습니다. 홈으로 이동합니다…</div>
+        <div role="status">{t("lab.gate.forbidden")}</div>
       )}
 
       {state === "needs-signin" && (
@@ -90,10 +95,10 @@ export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Eleme
               fontWeight: 700,
             }}
           >
-            THE LAB · 운영자 전용
+            {t("lab.gate.roleTag")}
           </p>
           <h1 style={{ margin: "8px 0 20px", fontSize: 22, fontWeight: 800 }}>
-            운영자 계정으로 로그인하세요
+            {t("lab.gate.signInTitle")}
           </h1>
           <button
             type="button"
@@ -111,7 +116,7 @@ export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Eleme
               cursor: busy ? "wait" : "pointer",
             }}
           >
-            {busy ? "로그인 중…" : "Google로 계속하기"}
+            {busy ? t("lab.gate.signingIn") : t("lab.gate.signIn")}
           </button>
         </div>
       )}
