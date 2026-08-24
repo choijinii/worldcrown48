@@ -41,7 +41,15 @@ function ensureAdmin(): typeof admin | null {
   return admin;
 }
 
-/** 48 fake suggestions matching the aiFillContestants return contract. */
+/**
+ * 48 fake suggestions — **일부러 옛 계약(`position`)으로 답한다.**
+ *
+ * PR-2에서 응답 스키마가 affiliation으로 바뀌었는데, 프론트는 머지 즉시 Vercel로
+ * 나가고 functions는 사람이 따로 배포한다. 그 **배포 순서 창** 동안 배포된 옛
+ * 함수는 여전히 position으로 답한다. 그때 클라이언트가 affiliation을 undefined로
+ * 만들면 Firestore가 거부해 발행이 통째로 실패한다 — 실제로 이 테스트가 그걸
+ * 잡았다. 스텁을 옛 계약에 고정해 그 창을 계속 지킨다.
+ */
 function fakeContestants() {
   return Array.from({ length: 48 }, (_, i) => ({
     name: `E2E Player ${i + 1}`,

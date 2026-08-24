@@ -209,3 +209,19 @@ describe("소속 — PR-2 추가형 (기존 발행분 표시가 깨지지 않는
     expect(contestantAffiliation({ affiliation: "  ", position: "래퍼" })).toBe("래퍼");
   });
 });
+
+describe("★배포 순서 창 — 옛 계약 응답에도 발행이 깨지지 않는다", () => {
+  it("affiliation이 없는 draft도 빈 문자열로 저장한다 (Firestore는 undefined를 거부)", () => {
+    // 프론트는 머지 즉시 나가고 functions는 나중에 배포된다. 그 창 동안 옛 함수는
+    // position으로 답하고, affiliation이 undefined가 되면 writeBatch가 통째로
+    // 실패해 Tournament가 아예 안 만들어진다 — CI E2E가 실제로 잡은 결함이다.
+    const legacy = drafts(48).map((d) => {
+      const { affiliation, ...rest } = d;
+      void affiliation;
+      return rest as unknown as ContestantDraft;
+    });
+    const docs = buildContestantDocs("t1", "host-1", legacy);
+    expect(docs[0].affiliation).toBe("");
+    expect(Object.values(docs[0]).every((v) => v !== undefined)).toBe(true);
+  });
+});

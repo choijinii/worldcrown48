@@ -156,9 +156,11 @@ export function buildContestantDocs(
       hostUid,
       order: i + 1,
       name: d.name,
-      nationality: d.nationality,
-      affiliation: d.affiliation,
-      imageSearchKeyword: d.imageSearchKeyword,
+      nationality: d.nationality ?? "",
+      // Firestore는 undefined를 거부한다. 한 칸이라도 undefined면 writeBatch가
+      // 통째로 실패해 Tournament가 아예 안 만들어진다 — 빈 문자열로 눌러 둔다.
+      affiliation: d.affiliation ?? "",
+      imageSearchKeyword: d.imageSearchKeyword ?? "",
       // undefined 필드를 그대로 넘기면 Firestore가 거부한다 — 있을 때만 싣는다.
       ...(media ? { media } : {}),
     };

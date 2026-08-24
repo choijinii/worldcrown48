@@ -96,7 +96,14 @@ type AiSuggestion = {
   /** ISO 3166-1 alpha-2 — 서버가 정규화해서 준다(normalizeCountry). */
   nationality: string;
   /** 소속(그룹·팀·채널) — PR-2 신설 필드. */
-  affiliation: string;
+  affiliation?: string;
+  /**
+   * @deprecated 옛 계약. **배포 순서 때문에 남겨 둔다**: 프론트는 머지 즉시
+   * Vercel로 나가지만 functions는 사람이 따로 배포한다. 그 창 동안 배포된 옛
+   * 함수는 `position`으로 답하고, 그때 affiliation이 undefined가 되면
+   * Firestore가 undefined를 거부해 **발행이 통째로 실패한다**(E2E가 잡았다).
+   */
+  position?: string;
   imageSearchKeyword: string;
 };
 
@@ -111,10 +118,12 @@ function emptyDraft(): ContestantDraft {
 
 function toDraft(c: AiSuggestion): ContestantDraft {
   return {
-    name: c.name,
-    nationality: c.nationality,
-    affiliation: c.affiliation,
-    imageSearchKeyword: c.imageSearchKeyword,
+    name: c.name ?? "",
+    nationality: c.nationality ?? "",
+    // 새 키 우선, 없으면 옛 키, 그래도 없으면 빈 문자열 — 어떤 경우에도
+    // undefined를 만들지 않는다(Firestore 거부 → 발행 실패).
+    affiliation: c.affiliation ?? c.position ?? "",
+    imageSearchKeyword: c.imageSearchKeyword ?? "",
   };
 }
 
