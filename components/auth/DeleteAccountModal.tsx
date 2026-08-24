@@ -32,6 +32,7 @@ import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
 import type { Lang } from "@/lib/cookieConsent";
 import { showToast } from "@/lib/toast";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 
 const CONFIRM_KEYWORD = "DELETE";
 const DELETE_TIMEOUT_MS = 30_000;
@@ -58,14 +59,8 @@ export function DeleteAccountModal({
   const [mounted, setMounted] = useState(false);
   const spinnerTimerRef = useRef<number | null>(null);
 
-  // Live mirror of `busy` for the focus-trap `onDeactivate` guard below.
-  // focus-trap-react freezes focusTrapOptions.onDeactivate at construction and
-  // never re-syncs it, so a closure over `busy` would be stuck at the
-  // mount-time value (false) — pressing Escape mid-deletion would close the
-  // modal despite the `!busy` guard. The stakes are higher here (a destructive
-  // GDPR erasure request in flight), so read the live value via the ref.
-  const busyRef = useRef(busy);
-  busyRef.current = busy;
+  // Escape 닫기는 useEscapeClose가 갖는다. 삭제 요청이 도는 중에는 `busy`가 true라
+  // 듣지 않는다 — 예전 busyRef 미러와 같은 보호를, 얼어붙을 여지 없이.
 
   useEffect(() => {
     setMounted(true);
@@ -78,6 +73,10 @@ export function DeleteAccountModal({
       }
     };
   }, []);
+
+  // 훅은 조기 return **앞**에 있어야 한다 — 호출 순서가 렌더마다 같아야 하므로.
+  // busy 중에는 듣지 않는다: 진행 중인 작업을 Escape로 끊지 않기 위해서다.
+  useEscapeClose(onClose, !busy);
 
   if (!isOpen || !mounted || typeof document === "undefined") return null;
 
@@ -151,7 +150,9 @@ export function DeleteAccountModal({
         padding: 16,
       }}
     >
-      <FocusTrap focusTrapOptions={{ initialFocus: "#delete-cancel", escapeDeactivates: true, onDeactivate: () => !busyRef.current && onClose() }}>
+      <FocusTrap
+        focusTrapOptions={{ initialFocus: "#delete-cancel", escapeDeactivates: false }}
+      >
         <div
           style={{
             width: "100%",

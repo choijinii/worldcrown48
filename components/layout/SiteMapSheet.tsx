@@ -13,6 +13,7 @@
 import Link from "next/link";
 import FocusTrap from "focus-trap-react";
 import { SITE_DOMAINS, siteMapEyebrow } from "@/lib/layout/domains";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 
 export interface SiteMapSheetProps {
   isOpen: boolean;
@@ -20,14 +21,17 @@ export interface SiteMapSheetProps {
 }
 
 export function SiteMapSheet({ isOpen, onClose }: SiteMapSheetProps): JSX.Element | null {
+  // 훅은 조기 return 앞에 — 열림 여부는 인자로 넘긴다(호출 순서 고정).
+  useEscapeClose(onClose, isOpen);
   if (!isOpen) return null;
 
   return (
     <FocusTrap
+      // 닫기는 아래 오버레이 onClick(바깥 클릭)과 useEscapeClose(Escape)가 갖는다.
+      // focus-trap에 얹으면 StrictMode 재마운트가 즉시 닫아 버린다(lib/ui/dismiss).
       focusTrapOptions={{
-        onDeactivate: onClose,
-        escapeDeactivates: true,
-        clickOutsideDeactivates: true,
+        escapeDeactivates: false,
+        clickOutsideDeactivates: false,
       }}
     >
       <div

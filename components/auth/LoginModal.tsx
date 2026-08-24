@@ -32,6 +32,7 @@ import { useAuthStore } from "@/lib/authStore";
 import { useI18n } from "@/lib/i18n";
 import type { Lang } from "@/lib/cookieConsent";
 import { showToast } from "@/lib/toast";
+import { useEscapeClose } from "@/lib/ui/dismiss";
 
 export type LoginReason = "vote" | "share" | "daily_limit";
 
@@ -52,13 +53,12 @@ export function LoginModal({
   const { lang } = useI18n();
   const [busy, setBusy] = useState(false);
 
-  // Live mirror of `busy` for the focus-trap `onDeactivate` guard below.
-  // focus-trap-react freezes focusTrapOptions.onDeactivate at construction
-  // and never re-syncs it on re-render, so a closure over `busy` would be
-  // stuck at the mount-time value (false) — pressing Escape mid-sign-in
-  // would then close the modal despite the `!busy` guard. Read via the ref.
-  const busyRef = useRef(busy);
-  busyRef.current = busy;
+  // Escape 닫기는 useEscapeClose가 갖는다. `busy`를 그대로 가드로 넘길 수 있다 —
+  // 평범한 effect라 매 렌더의 최신 값을 읽는다(예전의 busyRef 미러가 필요 없어졌다).
+
+  // 훅은 조기 return **앞**에 있어야 한다 — 호출 순서가 렌더마다 같아야 하므로.
+  // busy 중에는 듣지 않는다: 진행 중인 작업을 Escape로 끊지 않기 위해서다.
+  useEscapeClose(onClose, !busy);
 
   if (!isOpen) return null;
 
@@ -99,8 +99,7 @@ export function LoginModal({
       <FocusTrap
         focusTrapOptions={{
           initialFocus: showGoogleButton ? "#login-google" : "#login-close",
-          escapeDeactivates: true,
-          onDeactivate: () => !busyRef.current && onClose(),
+          escapeDeactivates: false,
         }}
       >
         <div
