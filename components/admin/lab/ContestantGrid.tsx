@@ -71,7 +71,7 @@ export function ContestantGrid({
             contestants[i] ?? {
               name: "",
               nationality: "",
-              position: "",
+              affiliation: "",
               imageSearchKeyword: "",
             }
           }

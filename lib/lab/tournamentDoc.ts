@@ -53,8 +53,10 @@ export type TournamentDocData = Omit<Tournament, "id" | "createdAt">;
  */
 export interface ContestantDraft {
   name: string;
+  /** ISO 3166-1 alpha-2 (KR·JP…). 표시는 displayRegion이 언어별로 편다. */
   nationality: string;
-  position: string;
+  /** 소속(그룹·팀·채널) — PR-2 신설. 직책(position)을 대체한다. */
+  affiliation: string;
   imageSearchKeyword: string;
   /** 11자 YouTube id — 검수기(LAB-EV-1)가 채운다. */
   videoId?: string;
@@ -155,7 +157,7 @@ export function buildContestantDocs(
       order: i + 1,
       name: d.name,
       nationality: d.nationality,
-      position: d.position,
+      affiliation: d.affiliation,
       imageSearchKeyword: d.imageSearchKeyword,
       // undefined 필드를 그대로 넘기면 Firestore가 거부한다 — 있을 때만 싣는다.
       ...(media ? { media } : {}),

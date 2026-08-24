@@ -43,7 +43,7 @@ import { MESSAGES, type MessageKey } from "@/lib/i18n/messages";
 const CATALOG = MESSAGES as Record<MessageKey, { ko: string; en: string; es?: string }>;
 
 function emptyDraft(): ContestantDraft {
-  return { name: "", nationality: "", position: "", imageSearchKeyword: "" };
+  return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
 }
 
 function draft(over: Partial<ContestantDraft> = {}): ContestantDraft {

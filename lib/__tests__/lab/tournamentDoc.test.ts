@@ -4,6 +4,7 @@ import {
   buildContestantDocs,
   type ContestantDraft,
 } from "@/lib/lab/tournamentDoc";
+import { contestantAffiliation } from "@/lib/types/tournament";
 
 const NOW = 1_752_000_000_000;
 const DAY = 86_400_000;
@@ -33,8 +34,7 @@ function drafts(n: number): ContestantDraft[] {
   return Array.from({ length: n }, (_, i) => ({
     name: `P${i + 1}`,
     nationality: "KR",
-    position: "FW",
-    imageUrl: i % 2 === 0 ? `https://img/${i}.jpg` : "",
+    affiliation: "BLACKPINK",
     imageSearchKeyword: `p${i + 1}`,
   }));
 }
@@ -122,7 +122,7 @@ describe("buildContestantDocs", () => {
       order: 1,
       name: "P1",
       nationality: "KR",
-      position: "FW",
+      affiliation: "BLACKPINK",
       imageSearchKeyword: "p1",
     });
     expect(docs[47].order).toBe(48);
@@ -178,5 +178,34 @@ describe("buildContestantDocs", () => {
       const docs = buildContestantDocs("t1", "host-1", all);
       expect(docs[0].media?.embed?.end).toBe(40);
     });
+  });
+});
+
+describe("소속 — PR-2 추가형 (기존 발행분 표시가 깨지지 않는다)", () => {
+  it("새 문서는 affiliation을 쓰고 position을 쓰지 않는다", () => {
+    const docs = buildContestantDocs("t1", "host-1", drafts(48));
+    expect(docs[0].affiliation).toBe("BLACKPINK");
+    expect("position" in docs[0]).toBe(false);
+  });
+
+  it("contestantAffiliation은 새 문서를 읽는다", () => {
+    expect(contestantAffiliation({ affiliation: "NMIXX", position: undefined })).toBe(
+      "NMIXX",
+    );
+  });
+
+  it("★회귀: PR-2 이전 발행분(position만 있음)도 그대로 보인다", () => {
+    // 528건이 이 모양이다. 필드를 갈아치웠다면 여기가 빈칸이 됐을 것이다.
+    expect(contestantAffiliation({ affiliation: undefined, position: "메인보컬" })).toBe(
+      "메인보컬",
+    );
+  });
+
+  it("둘 다 있으면 새 필드가 이긴다", () => {
+    expect(contestantAffiliation({ affiliation: "IVE", position: "리더" })).toBe("IVE");
+  });
+
+  it("빈 문자열은 없는 것으로 친다 — 옛 값으로 떨어진다", () => {
+    expect(contestantAffiliation({ affiliation: "  ", position: "래퍼" })).toBe("래퍼");
   });
 });

@@ -20,7 +20,7 @@ const A = "9bZkp7q19f0";
 const B = "dQw4w9WgXcQ";
 
 function emptyDraft(): ContestantDraft {
-  return { name: "", nationality: "", position: "", imageSearchKeyword: "" };
+  return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
 }
 
 function verdict(videoId: string, overrides: Partial<LinkVerdict> = {}): LinkVerdict {
@@ -181,7 +181,7 @@ describe("clearVideo", () => {
     expect(clearVideo(draft)).toEqual({
       name: "n",
       nationality: "",
-      position: "",
+      affiliation: "",
       imageSearchKeyword: "k",
     });
   });

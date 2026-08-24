@@ -8,12 +8,15 @@
 "use client";
 
 import type { Contestant } from "@/lib/types/tournament";
+import { contestantAffiliation } from "@/lib/types/tournament";
 import { contestantThumbnail } from "@/lib/media/mediaSlot";
+import { displayRegion } from "@/lib/i18n/regionName";
+import { useT } from "@/lib/i18n/useT";
 import styles from "./arena.module.css";
 
 type CardContestant = Pick<
   Contestant,
-  "id" | "name" | "nationality" | "position" | "media"
+  "id" | "name" | "nationality" | "affiliation" | "position" | "media"
 >;
 
 interface ContestantCardProps {
@@ -33,11 +36,14 @@ export function ContestantCard({
   disabled,
   onVote,
 }: ContestantCardProps): JSX.Element {
+  const { lang } = useT();
   const initial = contestant.name?.charAt(0).toUpperCase() || "?";
   // LAB-UX-1 PR-2 — 운영자가 붙이던 imageUrl이 사라진 자리. 정지 썸네일 한 장이고
   // 호버 재생을 새로 만들지 않는다(대표 결정). 영상이 없으면 예전 그대로 이니셜.
   const photoUrl = contestantThumbnail(contestant.media);
-  const meta = [contestant.nationality, contestant.position]
+  // PR-2 — 국가는 코드로 저장하고 보는 사람 언어로 편다(레거시 자유 텍스트는 원문
+  // 그대로). 소속은 신규 필드지만 기존 발행분은 position에만 있어 둘 다 본다.
+  const meta = [displayRegion(contestant.nationality, lang), contestantAffiliation(contestant)]
     .filter(Boolean)
     .join(" · ");
   const className = [

@@ -83,8 +83,21 @@ export interface Contestant {
   hostUid: string; // denormalized from the Tournament — enables batch-safe Firestore rules
   order: number; // 1..48
   name: string;
+  /**
+   * ISO 3166-1 alpha-2 (KR·JP·US…). LAB-UX-1 PR-2 이전에 발행된 문서는 자유 텍스트
+   * ("대한민국")를 갖고 있다 — 화면은 `displayRegion`이 둘 다 처리한다.
+   */
   nationality: string;
-  position: string;
+  /**
+   * 소속(그룹·팀·채널). PR-2에서 신설했다.
+   *
+   * `position`(직책)을 **대체**하지만 지우지 않는다: 이미 발행된 528건은 position에만
+   * 값이 있어서, 필드를 갈아치우면 그 Tournament들의 메타가 통째로 빈칸이 된다.
+   * 읽을 때는 `contestantAffiliation()`이 affiliation → position 순으로 본다.
+   */
+  affiliation?: string;
+  /** @deprecated PR-2 이전 발행분 전용. 새 문서에는 쓰지 않는다. */
+  position?: string;
   imageSearchKeyword: string; // Claude-suggested search term only
   /**
    * ND-1 §3 #12 — OPTIONAL media swap grail (image | embed | clip). `clip`은
@@ -104,7 +117,22 @@ export interface Contestant {
  */
 export interface AiContestantSuggestion {
   name: string;
+  /** ISO 3166-1 alpha-2. */
   nationality: string;
-  position: string;
+  /** 소속(그룹·팀·채널). */
+  affiliation: string;
   imageSearchKeyword: string;
+}
+
+/**
+ * 표시용 소속 — PR-2 이전 발행분 호환 (LAB-UX-1).
+ *
+ * 새 문서는 `affiliation`을, 2026-08-24 이전 발행분(528건)은 `position`을 갖는다.
+ * 필드를 갈아치우는 대신 읽는 쪽에서 흡수한다 — 그래야 기존 Tournament의 메타가
+ * 빈칸이 되지 않는다(B-2의 `titleI18n` 추가형 전례와 같은 방식).
+ */
+export function contestantAffiliation(
+  c: Pick<Contestant, "affiliation" | "position">,
+): string {
+  return (c.affiliation ?? "").trim() || (c.position ?? "").trim();
 }

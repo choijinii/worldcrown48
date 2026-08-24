@@ -173,6 +173,20 @@ export function normalizeNameKey(name: string): string {
     .replace(/\s+/g, "");
 }
 
+/**
+ * 국가 값 정규화 (LAB-UX-1 PR-2).
+ *
+ * 프롬프트가 ISO 3166-1 alpha-2를 요구하지만 모델은 종종 `kr`·`Kr`처럼 답한다 —
+ * 두 글자 라틴이면 대문자로 세운다. **그 외에는 손대지 않는다**: 모델이 "대한민국"을
+ * 돌려줬을 때 코드로 추측해 바꾸면 틀린 나라를 박게 되고, 이미 발행된 자유 텍스트
+ * 데이터와도 규칙이 갈라진다. 코드가 아닌 값은 화면이 원문 그대로 보여준다
+ * (lib/i18n/regionName.displayRegion).
+ */
+export function normalizeCountry(value: string): string {
+  const trimmed = (value ?? "").trim();
+  return /^[A-Za-z]{2}$/.test(trimmed) ? trimmed.toUpperCase() : trimmed;
+}
+
 /** 중복 판정용 힌트 키. 대소문자·공백 무시. 빈 힌트는 중복 판정에서 뺀다. */
 export function normalizeHintKey(hint: string): string {
   return (hint ?? "").toLocaleLowerCase().replace(/\s+/g, "");
@@ -260,12 +274,12 @@ function foldForMatch(text: string): string {
  * (`미연` 🔎 `GIDLE Soojin`) 슬롯에 들어갈 영상은 제외 대상의 것이기 때문이다.
  */
 export function findExclusion(
-  item: { name: string; position: string; imageSearchKeyword: string },
+  item: { name: string; affiliation: string; imageSearchKeyword: string },
   list: readonly RosterExclusion[] = ROSTER_EXCLUSIONS,
 ): RosterExclusion | null {
   const nameKey = normalizeNameKey(item.name);
   const hintFolded = foldForMatch(item.imageSearchKeyword);
-  const haystack = `${hintFolded}${foldForMatch(item.position)}`;
+  const haystack = `${hintFolded}${foldForMatch(item.affiliation)}`;
 
   for (const entry of list) {
     const nameHit = entry.names.some((raw) => {
@@ -538,21 +552,22 @@ export function judgeSameContestant(
 }
 
 /**
- * 소속(position)이 힌트의 팀과 **어긋나는가**.
+ * 소속(affiliation)이 힌트의 팀과 **어긋나는가**.
  *
- * 증거의 슬롯 11이 그랬다: 이름 설윤 · position "NewJeans 메인댄서" · 실제로는
- * NMIXX. position이 한국어 직책만 담고 있으면(“메인보컬”) 모순이 아니라 **정보 없음**
- * 이다 — 그때 false를 돌려주는 게 중요하다. 없는 걸 어긋났다고 하면 안 된다.
+ * 증거의 슬롯 11이 그랬다: 이름 설윤 · 소속 "NewJeans" · 실제로는 NMIXX.
+ * 소속 칸이 한국어 직책만 담고 있으면(“메인보컬” — LAB-UX-1 이전의 position 값이
+ * 그랬다) 모순이 아니라 **정보 없음**이다 — 그때 false를 돌려주는 게 중요하다.
+ * 없는 걸 어긋났다고 하면 안 된다.
  */
 export function affiliationContradicts(
-  item: { position: string; imageSearchKeyword: string },
+  item: { affiliation: string; imageSearchKeyword: string },
   teamTokens: ReadonlySet<string>,
 ): boolean {
   const hintTeams = hintTokenSet(item.imageSearchKeyword).filter((t) =>
     teamTokens.has(t),
   );
   if (hintTeams.length === 0) return false;
-  const posTeams = hintTokenSet(item.position).filter((t) => teamTokens.has(t));
+  const posTeams = hintTokenSet(item.affiliation).filter((t) => teamTokens.has(t));
   if (posTeams.length === 0) return false;
   return !posTeams.some((t) => hintTeams.includes(t));
 }
@@ -581,8 +596,10 @@ export function parentheticalContradictsHint(
 
 export interface AiContestantSuggestion {
   name: string;
+  /** ISO 3166-1 alpha-2 (KR·JP·US…). 레거시 자유 텍스트가 올 수도 있어 그대로 보존한다. */
   nationality: string;
-  position: string;
+  /** 소속(그룹·팀·채널). LAB-UX-1 PR-2에서 position을 대체한 **신규 필드**다. */
+  affiliation: string;
   imageSearchKeyword: string;
 }
 
@@ -662,8 +679,10 @@ export function parseAiContestants(
     }
     const row = {
       name,
-      nationality: toStr(o.nationality),
-      position: toStr(o.position),
+      nationality: normalizeCountry(toStr(o.nationality)),
+      // 모델이 옛 키(position)로 답해도 받아준다 — 프롬프트는 바뀌었지만
+      // 계약을 한 번에 갈아끼우면 그 사이 응답이 통째로 소속 없이 들어온다.
+      affiliation: toStr(o.affiliation) || toStr(o.position),
       imageSearchKeyword: hint,
     };
     // AI-2.2: 제외 목록. 여기만은 **버리는 게 목적**이다 — 프롬프트 지시가

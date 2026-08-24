@@ -93,8 +93,10 @@ import { TournamentList } from "./TournamentList";
 
 type AiSuggestion = {
   name: string;
+  /** ISO 3166-1 alpha-2 — 서버가 정규화해서 준다(normalizeCountry). */
   nationality: string;
-  position: string;
+  /** 소속(그룹·팀·채널) — PR-2 신설 필드. */
+  affiliation: string;
   imageSearchKeyword: string;
 };
 
@@ -102,7 +104,7 @@ function emptyDraft(): ContestantDraft {
   return {
     name: "",
     nationality: "",
-    position: "",
+    affiliation: "",
     imageSearchKeyword: "",
   };
 }
@@ -111,7 +113,7 @@ function toDraft(c: AiSuggestion): ContestantDraft {
   return {
     name: c.name,
     nationality: c.nationality,
-    position: c.position,
+    affiliation: c.affiliation,
     imageSearchKeyword: c.imageSearchKeyword,
   };
 }
@@ -167,8 +169,7 @@ export function TournamentCreator(): JSX.Element {
           const d = contestants[i];
           return {
             name: d?.name ?? "",
-            // PR-2에서 이 칸이 소속(팀)으로 바뀐다 — 매핑을 여기 한 줄로 모아 둔다.
-            affiliation: d?.position ?? "",
+            affiliation: d?.affiliation ?? "",
             imageSearchKeyword: d?.imageSearchKeyword ?? "",
           };
         }),
@@ -375,7 +376,7 @@ export function TournamentCreator(): JSX.Element {
       const flags = deriveReviewFlags(
         drafts.map((d) => ({
           name: d.name,
-          affiliation: d.position,
+          affiliation: d.affiliation,
           imageSearchKeyword: d.imageSearchKeyword,
         })),
       );

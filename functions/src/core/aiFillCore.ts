@@ -126,7 +126,7 @@ export function buildPrompt(opts: BuildPromptOptions): string {
   lines.push(
     "",
     "각 Contestant를 JSON 배열로 반환:",
-    `[{ "name": string, "nationality": string, "position": string, "imageSearchKeyword": string }]`,
+    `[{ "name": string, "nationality": string, "affiliation": string, "imageSearchKeyword": string }]`,
     "",
     "규칙:",
     `- ${askMin}~${askMax}명 (서버가 앞에서부터 ${count}명만 채택하니 확실한 인물부터 순서대로)`,
@@ -134,7 +134,8 @@ export function buildPrompt(opts: BuildPromptOptions): string {
     "- 같은 인물을 두 번 넣지 말 것",
     "- 퍼포먼스 기반 공개 데이터만 사용",
     "- 미성년자 금지",
-    "- 카테고리에 맞는 활동 영역 (position 필드)",
+    "- affiliation = 소속. 그룹·팀·소속사·채널명 등 그 인물이 **어디 소속인가**를 적는다 (예: BLACKPINK · NMIXX). 직책·포지션(메인보컬·리더)이 아니다. 소속이 없는 솔로 활동가면 빈 문자열",
+    "- nationality = **ISO 3166-1 alpha-2 국가 코드 두 글자 대문자** (예: KR · JP · US · TH). 나라 이름을 한글이나 영어로 적지 말 것 — 화면이 보는 사람의 언어로 바꿔 보여준다",
     // AI-1: 이전 문구 "한국적 요소에 치우치지 말 것 (글로벌 MZ)"는 불변 원칙 #3
     // (디자인·브랜딩 규칙)을 로스터 구성에 잘못 적용한 것이었다. Sonnet 5가 이걸
     // 문자 그대로 따르면서 실존 K-POP 아티스트(대부분 한국인)를 피하려다 인물을

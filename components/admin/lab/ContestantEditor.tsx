@@ -112,7 +112,7 @@ export function ContestantEditor({
   const hasContent = [
     contestant.name,
     contestant.nationality,
-    contestant.position,
+    contestant.affiliation,
     contestant.imageSearchKeyword,
   ].some((v) => v.trim() !== "");
 
@@ -120,7 +120,7 @@ export function ContestantEditor({
     onChange(index, {
       name: "",
       nationality: "",
-      position: "",
+      affiliation: "",
       imageSearchKeyword: "",
     });
   }
@@ -262,18 +262,20 @@ export function ContestantEditor({
       </div>
       <div style={{ display: "flex", gap: 4 }}>
         <input
+          value={contestant.affiliation}
+          onChange={(e) => onChange(index, { affiliation: e.target.value })}
+          placeholder={t("lab.contestant.affiliation")}
+          aria-label={t("lab.contestant.affiliationAria", { n })}
+          style={fieldStyle}
+        />
+        {/* 국가는 ISO 코드로 저장한다 — 화면이 보는 사람의 언어로 편다.
+            운영자에겐 코드 그대로 보여주는 게 맞다: 고칠 때 무엇을 치는지 알아야 한다. */}
+        <input
           value={contestant.nationality}
           onChange={(e) => onChange(index, { nationality: e.target.value })}
           placeholder={t("lab.contestant.nationality")}
           aria-label={t("lab.contestant.nationalityAria", { n })}
-          style={fieldStyle}
-        />
-        <input
-          value={contestant.position}
-          onChange={(e) => onChange(index, { position: e.target.value })}
-          placeholder={t("lab.contestant.position")}
-          aria-label={t("lab.contestant.positionAria", { n })}
-          style={fieldStyle}
+          style={{ ...fieldStyle, textTransform: "uppercase" }}
         />
       </div>
       {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
