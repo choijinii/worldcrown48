@@ -298,7 +298,7 @@ export const MESSAGES = {
   },
 
   // lab.fill.label/all/allBusy/hint 는 LAB-UX-1에서 삭제됐다 — 부품 버튼
-  // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[🖼 이미지 생성] 체인에 흡수됐다.
+  // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[📝 명단만 만들기] 체인에 흡수됐다.
   "lab.fill.blanks": {
     ko: "빈칸만 AI로 채우기",
     en: "AI-fill the blanks only",
@@ -701,11 +701,14 @@ export const MESSAGES = {
     en: "AI fills all 48 → finds a video for each → inspects them",
     es: "La IA rellena los 48 → busca un video → los inspecciona",
   },
-  "lab.generate.images": { ko: "🖼 이미지 생성", en: "🖼 Generate images", es: "🖼 Generar imágenes" },
-  "lab.generate.imagesSub": {
-    ko: "AI가 48명을 채우고 → 검수까지 합니다 (영상 검색 없음)",
-    en: "AI fills all 48 → inspects them (no video search)",
-    es: "La IA rellena los 48 → los inspecciona (sin buscar videos)",
+  // 개명 (PR-2). "이미지 생성"은 이제 사실이 아니다 — imageUrl 칸이 사라지면서
+  // 이 경로는 이미지를 하나도 만들지 않는다(그림은 소싱된 영상 썸네일에서만 온다).
+  // 버튼명은 하는 일 기준이라는 원칙대로, 실제로 하는 일인 "명단 채우기"로 적는다.
+  "lab.generate.roster": { ko: "📝 명단만 만들기", en: "📝 Roster only", es: "📝 Solo la alineación" },
+  "lab.generate.rosterSub": {
+    ko: "AI가 48명을 채우고 검수합니다 — 영상은 찾지 않습니다 (검색 0콜)",
+    en: "AI fills all 48 and inspects them — no video search (0 search calls)",
+    es: "La IA rellena los 48 y los revisa — sin buscar videos (0 búsquedas)",
   },
   "lab.generate.filling": {
     ko: "✨ 48명 채우는 중… (약 15초)",
@@ -722,7 +725,7 @@ export const MESSAGES = {
     en: "Filled {filled}/{total} · proposed {suggested} · needs a look {todo}",
     es: "Rellenadas {filled}/{total} · propuestas {suggested} · por revisar {todo}",
   },
-  "lab.generate.imagesDone": {
+  "lab.generate.rosterDone": {
     ko: "✓ {filled}칸을 채웠어요 · 손볼 칸 {todo}개",
     en: "✓ Filled {filled} slots · {todo} need a look",
     es: "✓ {filled} casillas rellenadas · {todo} por revisar",

@@ -144,11 +144,11 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(next).toBeEnabled();
     await next.click();
 
-    // STEP 2 — [🖼 이미지 생성]으로 48칸을 스텁에서 채운다 → Publish 활성.
+    // STEP 2 — [📝 명단만 만들기]로 48칸을 스텁에서 채운다 → Publish 활성.
     // LAB-UX-1에서 부품 버튼(fill-all-button)이 사라지고 결과물 2버튼이 됐다.
     // 이미지 경로를 쓰는 건 유튜브 search 콜을 한 번도 안 쓰기 때문이다 —
     // E2E가 프리뷰의 하루 100콜 버킷을 갉아먹으면 안 된다.
-    await page.getByTestId("lab-generate-images").click();
+    await page.getByTestId("lab-generate-roster").click();
     await expect(page.getByTestId("contestant-grid")).toBeVisible();
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");
     const publish = page.getByRole("button", { name: /토너먼트 생성 \(48\/48\)/ });
