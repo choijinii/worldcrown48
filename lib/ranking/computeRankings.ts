@@ -48,7 +48,7 @@ export function computeRankings(tallies: ContestantTally[]): RankingEntry[] {
       rank,
       contestantId: t.contestantId,
       name: t.name,
-      imageUrl: t.imageUrl,
+      videoId: t.videoId,
       voteCount: t.voteCount,
       rate: roundRate((t.voteCount / totalVotes) * 100),
     });

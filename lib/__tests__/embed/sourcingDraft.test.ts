@@ -43,7 +43,7 @@ import { MESSAGES, type MessageKey } from "@/lib/i18n/messages";
 const CATALOG = MESSAGES as Record<MessageKey, { ko: string; en: string; es?: string }>;
 
 function emptyDraft(): ContestantDraft {
-  return { name: "", nationality: "", position: "", imageUrl: "", imageSearchKeyword: "" };
+  return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
 }
 
 function draft(over: Partial<ContestantDraft> = {}): ContestantDraft {
@@ -137,8 +137,8 @@ describe("chunkTargets", () => {
 });
 
 describe("applySourcingResults", () => {
-  it("제안분만 슬롯에 얹고 이름·이미지는 건드리지 않는다", () => {
-    const drafts = [draft({ name: "Jisoo", imageUrl: "https://img/1.jpg" })];
+  it("제안분만 슬롯에 얹고 이름·검색어는 건드리지 않는다", () => {
+    const drafts = [draft({ name: "Jisoo", imageSearchKeyword: "blackpink jisoo" })];
     const { drafts: next } = applySourcingResults(
       drafts,
       [suggested(0, "aaaaaaaaaaa")],
@@ -146,7 +146,7 @@ describe("applySourcingResults", () => {
       emptyDraft,
     );
     expect(next[0].name).toBe("Jisoo");
-    expect(next[0].imageUrl).toBe("https://img/1.jpg");
+    expect(next[0].imageSearchKeyword).toBe("blackpink jisoo");
     expect(next[0].videoId).toBe("aaaaaaaaaaa");
     expect(next[0].videoStartSec).toBe(60);
     expect(next[0].videoSourceUrl).toContain("aaaaaaaaaaa");

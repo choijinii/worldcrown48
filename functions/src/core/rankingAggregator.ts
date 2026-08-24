@@ -16,7 +16,8 @@ export interface VoteLike {
 export interface ContestantMeta {
   id: string;
   name: string;
-  imageUrl: string;
+  /** 유튜브 videoId (media.embed.videoId). 없으면 빈 문자열 → 아바타는 글자. */
+  videoId: string;
 }
 
 /** Group raw votes into a contestantId → count map. */
@@ -31,8 +32,11 @@ export function tallyVotes(votes: VoteLike[]): Map<string, number> {
 
 /**
  * Join counts onto the Tournament's contestants. One tally per contestant
- * (0-vote ones included — computeRankings filters them out). Empty `imageUrl`
- * is normalized to null (RankingEntry.imageUrl is `string | null`).
+ * (0-vote ones included — computeRankings filters them out). 빈 `videoId`는
+ * null로 정규화한다(RankingEntry.videoId가 `string | null`).
+ *
+ * LAB-UX-1 PR-2: 예전에는 운영자가 붙인 `imageUrl`을 실었는데 실데이터 528건 중
+ * 0건이었다. 이제 영상 id를 싣고 URL 조립은 화면이 한다.
  */
 export function buildTallies(
   counts: Map<string, number>,
@@ -41,7 +45,7 @@ export function buildTallies(
   return contestants.map((c) => ({
     contestantId: c.id,
     name: c.name,
-    imageUrl: c.imageUrl ? c.imageUrl : null,
+    videoId: c.videoId ? c.videoId : null,
     voteCount: counts.get(c.id) ?? 0,
   }));
 }

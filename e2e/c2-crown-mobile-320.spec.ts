@@ -50,7 +50,6 @@ async function seed(): Promise<void> {
     name: "Mobile Champion",
     nationality: "KR",
     position: "FW",
-    imageUrl: "",
     imageSearchKeyword: "champ",
   });
   // Completed per-Voter bracket — the champion route renders the modal directly.

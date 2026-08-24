@@ -4,6 +4,7 @@ import {
   buildContestantDocs,
   type ContestantDraft,
 } from "@/lib/lab/tournamentDoc";
+import { contestantAffiliation } from "@/lib/types/tournament";
 
 const NOW = 1_752_000_000_000;
 const DAY = 86_400_000;
@@ -33,8 +34,7 @@ function drafts(n: number): ContestantDraft[] {
   return Array.from({ length: n }, (_, i) => ({
     name: `P${i + 1}`,
     nationality: "KR",
-    position: "FW",
-    imageUrl: i % 2 === 0 ? `https://img/${i}.jpg` : "",
+    affiliation: "BLACKPINK",
     imageSearchKeyword: `p${i + 1}`,
   }));
 }
@@ -122,8 +122,7 @@ describe("buildContestantDocs", () => {
       order: 1,
       name: "P1",
       nationality: "KR",
-      position: "FW",
-      imageUrl: "https://img/0.jpg",
+      affiliation: "BLACKPINK",
       imageSearchKeyword: "p1",
     });
     expect(docs[47].order).toBe(48);
@@ -167,9 +166,9 @@ describe("buildContestantDocs", () => {
       expect("media" in docs[0]).toBe(false);
     });
 
-    it("imageUrl과 공존한다 — 영상은 추가 필드지 대체가 아니다", () => {
+    it("imageUrl은 더 이상 저장되지 않는다 (LAB-UX-1 PR-2)", () => {
       const docs = buildContestantDocs("t1", "host-1", withVideo());
-      expect(docs[0].imageUrl).toBe("https://img/0.jpg");
+      expect("imageUrl" in docs[0]).toBe(false);
       expect(docs[0].media?.type).toBe("embed");
     });
 
@@ -179,5 +178,50 @@ describe("buildContestantDocs", () => {
       const docs = buildContestantDocs("t1", "host-1", all);
       expect(docs[0].media?.embed?.end).toBe(40);
     });
+  });
+});
+
+describe("소속 — PR-2 추가형 (기존 발행분 표시가 깨지지 않는다)", () => {
+  it("새 문서는 affiliation을 쓰고 position을 쓰지 않는다", () => {
+    const docs = buildContestantDocs("t1", "host-1", drafts(48));
+    expect(docs[0].affiliation).toBe("BLACKPINK");
+    expect("position" in docs[0]).toBe(false);
+  });
+
+  it("contestantAffiliation은 새 문서를 읽는다", () => {
+    expect(contestantAffiliation({ affiliation: "NMIXX", position: undefined })).toBe(
+      "NMIXX",
+    );
+  });
+
+  it("★회귀: PR-2 이전 발행분(position만 있음)도 그대로 보인다", () => {
+    // 528건이 이 모양이다. 필드를 갈아치웠다면 여기가 빈칸이 됐을 것이다.
+    expect(contestantAffiliation({ affiliation: undefined, position: "메인보컬" })).toBe(
+      "메인보컬",
+    );
+  });
+
+  it("둘 다 있으면 새 필드가 이긴다", () => {
+    expect(contestantAffiliation({ affiliation: "IVE", position: "리더" })).toBe("IVE");
+  });
+
+  it("빈 문자열은 없는 것으로 친다 — 옛 값으로 떨어진다", () => {
+    expect(contestantAffiliation({ affiliation: "  ", position: "래퍼" })).toBe("래퍼");
+  });
+});
+
+describe("★배포 순서 창 — 옛 계약 응답에도 발행이 깨지지 않는다", () => {
+  it("affiliation이 없는 draft도 빈 문자열로 저장한다 (Firestore는 undefined를 거부)", () => {
+    // 프론트는 머지 즉시 나가고 functions는 나중에 배포된다. 그 창 동안 옛 함수는
+    // position으로 답하고, affiliation이 undefined가 되면 writeBatch가 통째로
+    // 실패해 Tournament가 아예 안 만들어진다 — CI E2E가 실제로 잡은 결함이다.
+    const legacy = drafts(48).map((d) => {
+      const { affiliation, ...rest } = d;
+      void affiliation;
+      return rest as unknown as ContestantDraft;
+    });
+    const docs = buildContestantDocs("t1", "host-1", legacy);
+    expect(docs[0].affiliation).toBe("");
+    expect(Object.values(docs[0]).every((v) => v !== undefined)).toBe(true);
   });
 });

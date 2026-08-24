@@ -18,7 +18,7 @@ const entry = (
   rate: number,
   voteCount: number,
   name = contestantId,
-): RankingEntry => ({ contestantId, rank, rate, voteCount, name, imageUrl: null });
+): RankingEntry => ({ contestantId, rank, rate, voteCount, name, videoId: null });
 
 const snap = (rankings: RankingEntry[], generationSequence = 0): RankingSnapshot => ({
   tournamentId: "t1",

@@ -7,11 +7,15 @@
 "use client";
 
 import type { Contestant } from "@/lib/types/tournament";
+import { contestantAffiliation } from "@/lib/types/tournament";
+import { contestantThumbnail } from "@/lib/media/mediaSlot";
+import { displayRegion } from "@/lib/i18n/regionName";
+import { useT } from "@/lib/i18n/useT";
 import styles from "./arena.module.css";
 
 type FinalContestant = Pick<
   Contestant,
-  "id" | "name" | "nationality" | "position" | "imageUrl"
+  "id" | "name" | "nationality" | "affiliation" | "position" | "media"
 >;
 
 interface FinalPickViewProps {
@@ -27,6 +31,7 @@ export function FinalPickView({
   disabled,
   onPick,
 }: FinalPickViewProps): JSX.Element {
+  const { lang } = useT();
   const hasPick = Boolean(pickedId);
 
   return (
@@ -59,9 +64,9 @@ export function FinalPickView({
               onClick={() => onPick(f.id)}
             >
               <div className={styles.fcardPhoto}>
-                {f.imageUrl ? (
+                {contestantThumbnail(f.media) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={f.imageUrl} alt={f.name} />
+                  <img src={contestantThumbnail(f.media)} alt={f.name} />
                 ) : (
                   f.name.charAt(0).toUpperCase()
                 )}
@@ -69,7 +74,9 @@ export function FinalPickView({
               <div className={styles.fcardBody}>
                 <div className={styles.fcardName}>{f.name}</div>
                 <div className={styles.fcardMeta}>
-                  {[f.nationality, f.position].filter(Boolean).join(" · ")}
+                  {[displayRegion(f.nationality, lang), contestantAffiliation(f)]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </div>
                 <span className={styles.fcardVote}>
                   <small>CROWN</small>

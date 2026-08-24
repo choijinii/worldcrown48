@@ -5,6 +5,7 @@ import {
   TOTAL_CONTESTANTS,
   HINT_MAX_LENGTH,
   isPollutedHint,
+  normalizeCountry,
   normalizeNameKey,
   inferTeamTokens,
   judgeSameContestant,
@@ -24,7 +25,7 @@ function fakeArray(n: number): string {
     Array.from({ length: n }, (_, i) => ({
       name: `Player ${i + 1}`,
       nationality: "KR",
-      position: "FW",
+      affiliation: "FW",
       imageSearchKeyword: `player ${i + 1} portrait`,
     })),
   );
@@ -53,10 +54,10 @@ describe("parseAiContestants (functions)", () => {
       })),
     );
     expect(Object.keys(parseAiContestants(text)[0]).sort()).toEqual([
+      "affiliation",
       "imageSearchKeyword",
       "name",
       "nationality",
-      "position",
     ]);
   });
 
@@ -104,10 +105,10 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
   // 예전에는 이 둘이 서로 다른 인물로 남았다 — 사람이 보기에 같은 인물이다.
   it("중복은 먼저 나온 것만 남긴다 (대소문자·공백 차이 포함)", () => {
     const dupes = JSON.stringify([
-      { name: "IU", nationality: "KR", position: "Vocal", imageSearchKeyword: "iu" },
-      { name: "iu", nationality: "KR", position: "Vocal", imageSearchKeyword: "iu" },
-      { name: "  I U  ", nationality: "KR", position: "Vocal", imageSearchKeyword: "iu" },
-      { name: "Taeyeon", nationality: "KR", position: "Vocal", imageSearchKeyword: "ty" },
+      { name: "IU", nationality: "KR", affiliation: "Vocal", imageSearchKeyword: "iu" },
+      { name: "iu", nationality: "KR", affiliation: "Vocal", imageSearchKeyword: "iu" },
+      { name: "  I U  ", nationality: "KR", affiliation: "Vocal", imageSearchKeyword: "iu" },
+      { name: "Taeyeon", nationality: "KR", affiliation: "Vocal", imageSearchKeyword: "ty" },
     ]);
     const out = parseAiContestants(dupes, 2);
     expect(out.map((c) => c.name)).toEqual(["IU", "Taeyeon"]);
@@ -115,9 +116,9 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
 
   it("이름이 빈 항목은 슬롯을 채우지 못한다", () => {
     const withBlanks = JSON.stringify([
-      { name: "", nationality: "KR", position: "V", imageSearchKeyword: "x" },
-      { name: "   ", nationality: "KR", position: "V", imageSearchKeyword: "x" },
-      { name: "Rosé", nationality: "KR", position: "V", imageSearchKeyword: "rose" },
+      { name: "", nationality: "KR", affiliation: "V", imageSearchKeyword: "x" },
+      { name: "   ", nationality: "KR", affiliation: "V", imageSearchKeyword: "x" },
+      { name: "Rosé", nationality: "KR", affiliation: "V", imageSearchKeyword: "rose" },
     ]);
     expect(parseAiContestants(withBlanks, 1).map((c) => c.name)).toEqual(["Rosé"]);
   });
@@ -141,7 +142,7 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
       Array.from({ length: 48 }, (_, i) => ({
         name: `Player ${(i % 3) + 1}`,
         nationality: "KR",
-        position: "FW",
+        affiliation: "FW",
         imageSearchKeyword: `group${(i % 3) + 1} player${(i % 3) + 1} stage`,
       })),
     );
@@ -159,7 +160,7 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
     const rows = Array.from({ length: 6 }, (_, i) => ({
       name: "Player 1", // 전부 같은 이름
       nationality: "KR",
-      position: "FW",
+      affiliation: "FW",
       imageSearchKeyword: `teamx member${i + 1} stage`, // 인물 토큰은 제각각
     }));
     const out = parseAiContestants(JSON.stringify(rows), 6, {
@@ -171,10 +172,10 @@ describe("parseAiContestants — 과다 공급 절단 · 중복 제거 · 부족
 
   it("스키마는 불변이다 — 필드 4개 그대로 (RULE R1)", () => {
     expect(Object.keys(parseAiContestants(fakeArray(50))[0]).sort()).toEqual([
+      "affiliation",
       "imageSearchKeyword",
       "name",
       "nationality",
-      "position",
     ]);
   });
 });
@@ -256,7 +257,7 @@ describe("parseAiContestants — AI-2 폐기·중복 파이프라인", () => {
   const item = (name: string, hint: string) => ({
     name,
     nationality: "KR",
-    position: "Vocal",
+    affiliation: "Vocal",
     imageSearchKeyword: hint,
   });
 
@@ -340,10 +341,10 @@ describe("parseAiContestants — AI-2 폐기·중복 파이프라인", () => {
       onDiscard: () => undefined,
     });
     expect(Object.keys(out[0]).sort()).toEqual([
+      "affiliation",
       "imageSearchKeyword",
       "name",
       "nationality",
-      "position",
     ]);
   });
 });
@@ -442,10 +443,10 @@ describe("judgeSameContestant — 이름이 겹칠 때 힌트로 가른다", () 
 });
 
 describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1)", () => {
-  const row = (name: string, hint: string, position = "") => ({
+  const row = (name: string, hint: string, affiliation = "") => ({
     name,
     nationality: "KR",
-    position,
+    affiliation,
     imageSearchKeyword: hint,
   });
 
@@ -514,7 +515,7 @@ describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1
   });
 
   it("병합할 때 소속이 힌트와 어긋나는 쪽을 접는다 (일관된 쪽 유지)", () => {
-    // 증거 슬롯 11의 모양 그대로다: 이름 설윤 · position "NewJeans 메인댄서" ·
+    // 증거 슬롯 11의 모양 그대로다: 이름 설윤 · 소속 "NewJeans 메인댄서" ·
     // 실제로는 NMIXX. NewJeans 멤버가 함께 실려 있어야 `newjeans`가 팀 낱말로
     // 인식되고, 그래야 "소속이 힌트와 어긋난다"를 말할 수 있다(실제 48명 응답의 조건).
     const text = JSON.stringify([
@@ -528,20 +529,20 @@ describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1
     ]);
     const out = parseAiContestants(text, 7);
     expect(out[0].name).toBe("설윤(엔믹스)");
-    expect(out[0].position).toBe("NMIXX 메인보컬");
+    expect(out[0].affiliation).toBe("NMIXX 메인보컬");
   });
 
-  it("한국어 직책만 있는 position은 모순이 아니다 (정보 없음)", () => {
+  it("한국어 직책만 있는 소속 값은 모순이 아니다 (정보 없음 · 레거시 position 모양)", () => {
     const teams = new Set(["nmixx"]);
     expect(
       affiliationContradicts(
-        { position: "메인보컬", imageSearchKeyword: "NMIXX Sullyoon" },
+        { affiliation: "메인보컬", imageSearchKeyword: "NMIXX Sullyoon" },
         teams,
       ),
     ).toBe(false);
     expect(
       affiliationContradicts(
-        { position: "NewJeans 메인댄서", imageSearchKeyword: "NMIXX Sullyoon" },
+        { affiliation: "NewJeans 메인댄서", imageSearchKeyword: "NMIXX Sullyoon" },
         new Set(["nmixx", "newjeans"]),
       ),
     ).toBe(true);
@@ -563,10 +564,10 @@ describe("parseAiContestants — 이름이 겹쳐도 버리지 않는다 (AI-2.1
  *   ② 프롬프트에 적격성 규칙이 있는데도 수진이 3회 중 2회 명단에 올랐다
  */
 describe("인물 토큰 충돌 — 이름이 달라도 같은 사람을 가리키면 잡는다 (AI-2.2 ①)", () => {
-  const row = (name: string, hint: string, position = "") => ({
+  const row = (name: string, hint: string, affiliation = "") => ({
     name,
     nationality: "KR",
-    position,
+    affiliation,
     imageSearchKeyword: hint,
   });
 
@@ -633,9 +634,9 @@ describe("인물 토큰 충돌 — 이름이 달라도 같은 사람을 가리�
 });
 
 describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한다 (AI-2.2 ③)", () => {
-  const at = (name: string, hint: string, position = "") => ({
+  const at = (name: string, hint: string, affiliation = "") => ({
     name,
-    position,
+    affiliation,
     imageSearchKeyword: hint,
   });
 
@@ -656,7 +657,7 @@ describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한�
     expect(findExclusion(at("수진", "Weeekly Soojin stage"))).toBeNull();
   });
 
-  it("소속이 position 쪽에만 적혀 있어도 잡는다", () => {
+  it("소속이 소속 칸에만 적혀 있어도 잡는다", () => {
     expect(findExclusion(at("수진", "Soojin stage", "(여자)아이들 메인댄서"))).not.toBeNull();
   });
 
@@ -678,10 +679,10 @@ describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한�
   it("파서가 제외 항목을 사유와 함께 버린다", () => {
     const discarded: DiscardedContestant[] = [];
     const rows = [
-      { name: "우기", nationality: "KR", position: "(G)I-DLE 래퍼", imageSearchKeyword: "(G)I-DLE Yuqi stage" },
-      { name: "미연", nationality: "KR", position: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Miyeon stage" },
-      { name: "수진", nationality: "KR", position: "(G)I-DLE 댄서", imageSearchKeyword: "(G)I-DLE Soojin stage" },
-      { name: "민니", nationality: "KR", position: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Minnie stage" },
+      { name: "우기", nationality: "KR", affiliation: "(G)I-DLE 래퍼", imageSearchKeyword: "(G)I-DLE Yuqi stage" },
+      { name: "미연", nationality: "KR", affiliation: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Miyeon stage" },
+      { name: "수진", nationality: "KR", affiliation: "(G)I-DLE 댄서", imageSearchKeyword: "(G)I-DLE Soojin stage" },
+      { name: "민니", nationality: "KR", affiliation: "(G)I-DLE 보컬", imageSearchKeyword: "(G)I-DLE Minnie stage" },
     ];
     const out = parseAiContestants(JSON.stringify(rows), 4, {
       onDiscard: (d) => discarded.push(d),
@@ -702,7 +703,7 @@ describe("findExclusion — 이름과 소속이 함께 맞을 때만 제외한�
  */
 describe("extractJsonArray — 산문·중복 배열을 견딘다 (AI-2.4)", () => {
   const one = (name: string) =>
-    ({ name, nationality: "KR", position: "Vocal", imageSearchKeyword: `${name} stage` });
+    ({ name, nationality: "KR", affiliation: "Vocal", imageSearchKeyword: `${name} stage` });
   const arr = (names: string[]) => JSON.stringify(names.map(one));
 
   it("깨끗한 배열을 그대로 돌려준다", () => {
@@ -733,7 +734,7 @@ describe("extractJsonArray — 산문·중복 배열을 견딘다 (AI-2.4)", () 
 
   it("힌트에 대괄호가 들어 있어도 괄호 수를 틀리지 않는다", () => {
     const text = JSON.stringify([
-      { name: "A", nationality: "KR", position: "V", imageSearchKeyword: "GROUP [SPECIAL] stage" },
+      { name: "A", nationality: "KR", affiliation: "V", imageSearchKeyword: "GROUP [SPECIAL] stage" },
     ]);
     const out = extractJsonArray(text);
     expect(out).toHaveLength(1);
@@ -765,5 +766,48 @@ describe("extractJsonArray — 산문·중복 배열을 견딘다 (AI-2.4)", () 
     } catch (e) {
       expect((e as ContestantParseError).reason).toBe("unparseable");
     }
+  });
+});
+
+describe("normalizeCountry — ISO 코드로 세우되 추측하지 않는다 (LAB-UX-1 PR-2)", () => {
+  it("두 글자 라틴은 대문자로 세운다", () => {
+    expect(normalizeCountry("kr")).toBe("KR");
+    expect(normalizeCountry(" jp ")).toBe("JP");
+    expect(normalizeCountry("US")).toBe("US");
+  });
+
+  it("★나라 이름은 코드로 바꾸지 않는다 — 추측하면 틀린 나라를 박는다", () => {
+    expect(normalizeCountry("대한민국")).toBe("대한민국");
+    expect(normalizeCountry("South Korea")).toBe("South Korea");
+  });
+
+  it("빈 값은 빈 값", () => {
+    expect(normalizeCountry("")).toBe("");
+    expect(normalizeCountry("   ")).toBe("");
+  });
+});
+
+describe("parseAiContestants — 소속·국가 계약 (LAB-UX-1 PR-2)", () => {
+  it("affiliation을 그대로 싣고 국가는 대문자 코드로 정규화한다", () => {
+    const text = JSON.stringify([
+      { name: "지수", nationality: "kr", affiliation: "BLACKPINK", imageSearchKeyword: "BLACKPINK Jisoo stage" },
+    ]);
+    const out = parseAiContestants(text, 1);
+    expect(out[0].affiliation).toBe("BLACKPINK");
+    expect(out[0].nationality).toBe("KR");
+  });
+
+  it("모델이 옛 키(position)로 답해도 소속으로 받는다 — 계약 교체기의 안전망", () => {
+    const text = JSON.stringify([
+      { name: "윈터", nationality: "KR", position: "aespa", imageSearchKeyword: "aespa Winter stage" },
+    ]);
+    expect(parseAiContestants(text, 1)[0].affiliation).toBe("aespa");
+  });
+
+  it("affiliation이 있으면 그쪽이 이긴다", () => {
+    const text = JSON.stringify([
+      { name: "카리나", nationality: "KR", affiliation: "aespa", position: "리더", imageSearchKeyword: "aespa Karina stage" },
+    ]);
+    expect(parseAiContestants(text, 1)[0].affiliation).toBe("aespa");
   });
 });

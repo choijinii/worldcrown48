@@ -319,27 +319,20 @@ export const MESSAGES = {
 
   "lab.contestant.namePlaceholder": { ko: "#{n} 이름", en: "#{n} name", es: "#{n} nombre" },
   "lab.contestant.nameAria": { ko: "Contestant {n} 이름", en: "Contestant {n} name", es: "Contestant {n} nombre" },
-  "lab.contestant.nationality": { ko: "국적", en: "Nationality", es: "Nacionalidad" },
+  // 국가는 ISO 3166-1 alpha-2로 저장한다(PR-2). 자리표시자에 코드 예시를 박아
+  // 운영자가 "대한민국"을 치지 않게 한다 — 화면은 보는 사람 언어로 펴 준다.
+  "lab.contestant.nationality": { ko: "국가 KR", en: "Country KR", es: "País KR" },
   "lab.contestant.nationalityAria": {
-    ko: "Contestant {n} 국적",
-    en: "Contestant {n} nationality",
-    es: "Contestant {n} nacionalidad",
+    ko: "Contestant {n} 국가 코드",
+    en: "Contestant {n} country code",
+    es: "Código de país del Contestant {n}",
   },
-  "lab.contestant.position": { ko: "포지션", en: "Position", es: "Posición" },
-  "lab.contestant.positionAria": {
-    ko: "Contestant {n} 포지션",
-    en: "Contestant {n} position",
-    es: "Contestant {n} posición",
-  },
-  "lab.contestant.imageUrl": {
-    ko: "이미지 URL (라이선스 확인)",
-    en: "Image URL (check the license)",
-    es: "URL de imagen (verifica la licencia)",
-  },
-  "lab.contestant.imageUrlAria": {
-    ko: "Contestant {n} 이미지 URL",
-    en: "Contestant {n} image URL",
-    es: "Contestant {n} URL de imagen",
+  // PR-2: 포지션(직책) → 소속(그룹·팀·채널). 신규 필드다.
+  "lab.contestant.affiliation": { ko: "소속", en: "Affiliation", es: "Grupo" },
+  "lab.contestant.affiliationAria": {
+    ko: "Contestant {n} 소속",
+    en: "Contestant {n} affiliation",
+    es: "Grupo del Contestant {n}",
   },
   "lab.contestant.keywordHint": { ko: "Claude 추천 검색어", en: "Claude-suggested search term", es: "Término de búsqueda sugerido por Claude" },
   "lab.contestant.clearAria": { ko: "Contestant {n} 지우기", en: "Clear Contestant {n}", es: "Vaciar Contestant {n}" },

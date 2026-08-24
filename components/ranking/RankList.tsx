@@ -6,6 +6,7 @@
  */
 import { avatarGlyph, barWidth, formatRate } from "@/lib/ranking/rateFormatter";
 import type { RankingEntry } from "@/lib/ranking/rankingTypes";
+import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 
 export function RankList({
   entries,
@@ -26,9 +27,9 @@ export function RankList({
           <div key={entry.contestantId} className={cls} data-testid="rank-row">
             <div className="rank-no">{entry.rank}</div>
             <div className="rank-av">
-              {entry.imageUrl ? (
+              {entry.videoId ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.imageUrl} alt="" />
+                <img src={buildThumbnailUrl(entry.videoId)} alt="" />
               ) : (
                 <span>{avatarGlyph(entry.name)}</span>
               )}

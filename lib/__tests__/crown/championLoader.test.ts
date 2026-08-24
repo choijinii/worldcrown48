@@ -38,7 +38,6 @@ const CHAMPION: Contestant = {
   name: "Moussa Adeyemi",
   nationality: "Nigeria",
   position: "Forward",
-  imageUrl: "https://cdn.example/adeyemi.jpg",
   imageSearchKeyword: "moussa adeyemi forward",
 };
 

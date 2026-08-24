@@ -45,16 +45,18 @@ export type TournamentDocData = Omit<Tournament, "id" | "createdAt">;
 /**
  * Operator-editable Contestant row before order/tournamentId are assigned.
  *
- * LAB-EV-1: the video fields are OPTIONAL and ADDITIVE — a Contestant can carry a
- * licensed still, a 10-second embed loop, or both (킥 W6 "기존 imageUrl과 공존").
- * They are written into the existing `media` grail at publish time, never as a
- * parallel schema (see buildContestantDocs).
+ * LAB-EV-1: the video fields are OPTIONAL and ADDITIVE — 발행 시 기존 `media`
+ * 그레일에 실린다(병렬 스키마를 만들지 않는다 — buildContestantDocs).
+ *
+ * LAB-UX-1 PR-2: `imageUrl` 칸이 사라졌다. 실데이터 528건 중 0건이 채워져 있었고,
+ * Contestant의 그림은 이제 전부 영상 썸네일에서 나온다(contestantThumbnail).
  */
 export interface ContestantDraft {
   name: string;
+  /** ISO 3166-1 alpha-2 (KR·JP…). 표시는 displayRegion이 언어별로 편다. */
   nationality: string;
-  position: string;
-  imageUrl: string;
+  /** 소속(그룹·팀·채널) — PR-2 신설. 직책(position)을 대체한다. */
+  affiliation: string;
   imageSearchKeyword: string;
   /** 11자 YouTube id — 검수기(LAB-EV-1)가 채운다. */
   videoId?: string;
@@ -154,10 +156,11 @@ export function buildContestantDocs(
       hostUid,
       order: i + 1,
       name: d.name,
-      nationality: d.nationality,
-      position: d.position,
-      imageUrl: d.imageUrl,
-      imageSearchKeyword: d.imageSearchKeyword,
+      nationality: d.nationality ?? "",
+      // Firestore는 undefined를 거부한다. 한 칸이라도 undefined면 writeBatch가
+      // 통째로 실패해 Tournament가 아예 안 만들어진다 — 빈 문자열로 눌러 둔다.
+      affiliation: d.affiliation ?? "",
+      imageSearchKeyword: d.imageSearchKeyword ?? "",
       // undefined 필드를 그대로 넘기면 Firestore가 거부한다 — 있을 때만 싣는다.
       ...(media ? { media } : {}),
     };

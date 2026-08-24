@@ -20,7 +20,7 @@ const A = "9bZkp7q19f0";
 const B = "dQw4w9WgXcQ";
 
 function emptyDraft(): ContestantDraft {
-  return { name: "", nationality: "", position: "", imageUrl: "", imageSearchKeyword: "" };
+  return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
 }
 
 function verdict(videoId: string, overrides: Partial<LinkVerdict> = {}): LinkVerdict {
@@ -168,11 +168,11 @@ describe("retimeDraft — 슬라이더·추천 칩 (W5)", () => {
 });
 
 describe("clearVideo", () => {
-  it("영상 필드만 지우고 이름·이미지는 남긴다", () => {
+  it("영상 필드만 지우고 이름·검색어는 남긴다", () => {
     const draft: ContestantDraft = {
       ...emptyDraft(),
       name: "n",
-      imageUrl: "i",
+      imageSearchKeyword: "k",
       videoId: A,
       videoStartSec: 60,
       videoEndSec: 70,
@@ -181,9 +181,8 @@ describe("clearVideo", () => {
     expect(clearVideo(draft)).toEqual({
       name: "n",
       nationality: "",
-      position: "",
-      imageUrl: "i",
-      imageSearchKeyword: "",
+      affiliation: "",
+      imageSearchKeyword: "k",
     });
   });
 });

@@ -8,7 +8,7 @@ import type { ContestantTally } from "../../ranking/rankingTypes";
 const tally = (id: string, voteCount: number, name = id): ContestantTally => ({
   contestantId: id,
   name,
-  imageUrl: null,
+  videoId: null,
   voteCount,
 });
 

@@ -72,6 +72,7 @@ export {
   extractVideoIdFromUrl as extractVideoId,
 } from "@/lib/embed/youtubeUrl";
 import { isValidVideoId } from "@/lib/embed/youtubeUrl";
+import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 
 /** Build the facade (nocookie · lazy · mute · start) for an embed. */
 export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
@@ -81,9 +82,26 @@ export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
   }
   return {
     videoId: embed.videoId,
-    thumbnailUrl: `https://i.ytimg.com/vi/${embed.videoId}/hqdefault.jpg`,
+    thumbnailUrl: buildThumbnailUrl(embed.videoId),
     iframeSrc: `https://www.youtube-nocookie.com/embed/${embed.videoId}?${params.join("&")}`,
   };
+}
+
+/**
+ * Contestant의 **정지 썸네일 한 장** — 임베드를 띄우지 않는 자리가 쓴다
+ * (매치 카드 · THE FINAL · 랭킹 아바타 · Lab 그리드).
+ *
+ * LAB-UX-1 PR-2에서 `imageUrl`(운영자가 직접 붙이던 라이선스 스틸) 칸이 사라졌다.
+ * 실데이터 528건 중 **한 번도 입력된 적이 없었다**. 그 자리를 대신하는 것이 이
+ * 함수다: 소싱·검수를 통과해 슬롯에 들어온 영상의 유튜브 썸네일.
+ *
+ * 임베드(호버 재생)를 **새로 만들지 않는다**(대표 결정 2026-08-23). 여기서 나오는
+ * 것은 언제나 정지 이미지 URL이고, 없으면 빈 문자열 — 호출부는 기존 폴백
+ * (이름 이니셜 등)을 그대로 쓴다.
+ */
+export function contestantThumbnail(media: ContestantMedia | undefined): string {
+  const videoId = media?.embed?.videoId;
+  return videoId && isValidVideoId(videoId) ? buildThumbnailUrl(videoId) : "";
 }
 
 function imageOrNone(imageUrl: string): MediaRenderDecision {
