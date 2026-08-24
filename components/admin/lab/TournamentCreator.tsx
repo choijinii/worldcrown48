@@ -3,14 +3,14 @@
  *
  *   STEP 1: 제목 + 카테고리 + 설명(선택) + 키워드(필수·✨AI) + Deadline → [다음]
  *           (다음 활성 = ①②④⑤ 충족, AI 성공 여부와 무관 — 핵심 AC#1)
- *   STEP 2: 결과물 2버튼([🎬 동영상 생성]·[📝 명단만 만들기]) + 48칸 그리드 → Publish
+ *   STEP 2: 결과물 2버튼([🎬 동영상 생성]·[🖼 이미지 생성]) + 48칸 그리드 → Publish
  *           (writeBatch: Tournament + 48 Contestants, atomic — trap #6)
  *
  * LAB-UX-1(2026-08-23)에서 STEP 2의 **순서를 화면이 갖게** 됐다. 예전에는 부품
  * 버튼 네 개(AI 48명 · 빈칸만 AI · 검수기 · 자동 소싱)가 늘어서 있었고 운영자가
  * 매번 순서를 기억해야 했다. 이제 체인이 그 순서를 소유한다:
  *   🎬 = aiFillContestants → (쿼터 확인) → autoSourceVideos ×N배치 → 검수 배지
- *   📝 = aiFillContestants → 검수 배지 (search 콜 0)
+ *   🖼 = aiFillContestants → 검수 배지 (search 콜 0)
  * 새 서버 API는 없다(R2) — 기존 콜러블을 클라이언트가 순서대로 부를 뿐이다.
  *
  * All gates/validation are the tested lib (validateTitle, isStep1Ready,
@@ -370,18 +370,13 @@ export function TournamentCreator(): JSX.Element {
   }
 
   /**
-   * [📝 명단만 만들기] — 채우기 → 검수 (LAB-UX-1 결정 ①).
-   *
-   * PR-2 개명: 예전 이름은 [🖼 이미지 생성]이었는데, imageUrl 칸이 사라지면서
-   * 이 경로는 이미지를 하나도 만들지 않게 됐다(그림은 소싱된 영상 썸네일에서만
-   * 온다). 하는 일은 명단 채우기 + 검수뿐이라 이름을 사실에 맞췄다.
-   * 새 기능을 붙이지 않았다 — 동작은 그대로고 문구만 정직해졌다.
+   * [🖼 이미지 생성] — 채우기 → 검수 (LAB-UX-1 결정 ①).
    *
    * 검색 콜을 한 번도 쓰지 않는 경로다. "검수"는 채워진 48칸을 중복 의심·이름↔힌트
    * 불일치로 훑는 일이고, 그 판정은 `reviewFlags`가 상태에서 파생한다 — 여기서는
    * 결과를 세어 한 줄로 알려주기만 하면 된다.
    */
-  async function generateRoster() {
+  async function generateImages() {
     if (chainStage) return;
     setChainStage("filling");
     try {
@@ -395,8 +390,8 @@ export function TournamentCreator(): JSX.Element {
         })),
       );
       const c = step2Counters(drafts, {}, flags, TOTAL_CONTESTANTS);
-      showToast(t("lab.generate.rosterDone", { filled: c.filled, todo: c.todo }), "success");
-      void track("admin_lab_chain_roster", { filled: c.filled, todo: c.todo });
+      showToast(t("lab.generate.imagesDone", { filled: c.filled, todo: c.todo }), "success");
+      void track("admin_lab_chain_images", { filled: c.filled, todo: c.todo });
     } finally {
       setChainStage(null);
     }
@@ -784,7 +779,7 @@ export function TournamentCreator(): JSX.Element {
             stage={chainStage}
             progress={sourceProgress}
             onGenerateVideos={() => void generateVideos()}
-            onGenerateRoster={() => void generateRoster()}
+            onGenerateImages={() => void generateImages()}
             onPasteLinks={() => setInspectorOpen(true)}
             onFillBlanks={() => void fillWithAI("blanks")}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}

@@ -25,7 +25,7 @@ interface GeneratePanelProps {
   /** 소싱 진행률 — stage === "sourcing"일 때만 있다. */
   progress: { done: number; total: number } | null;
   onGenerateVideos: () => void;
-  onGenerateRoster: () => void;
+  onGenerateImages: () => void;
   /** 접이식 도구 — 구 유튜브 검수기(링크 일괄 입력). */
   onPasteLinks: () => void;
   /** 접이식 도구 — 빈칸만 AI. */
@@ -41,7 +41,7 @@ export function GeneratePanel({
   stage,
   progress,
   onGenerateVideos,
-  onGenerateRoster,
+  onGenerateImages,
   onPasteLinks,
   onFillBlanks,
   hasBlanks,
@@ -123,16 +123,16 @@ export function GeneratePanel({
         </button>
         <button
           type="button"
-          onClick={onGenerateRoster}
+          onClick={onGenerateImages}
           disabled={busy}
-          data-testid="lab-generate-roster"
+          data-testid="lab-generate-images"
           style={primary(false)}
         >
           <span style={{ fontSize: 15, fontWeight: 800 }}>
-            {stage === "filling" ? t("lab.generate.filling") : t("lab.generate.roster")}
+            {stage === "filling" ? t("lab.generate.filling") : t("lab.generate.images")}
           </span>
           <span style={{ fontSize: 12, color: lab.textMuted, fontWeight: 400 }}>
-            {t("lab.generate.rosterSub")}
+            {t("lab.generate.imagesSub")}
           </span>
         </button>
       </div>
