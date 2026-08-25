@@ -17,6 +17,7 @@ import {
   addToTally,
   applySourcingResults,
   buildSourcingTargets,
+  chainTargets,
   chunkTargets,
   collectExcludedVideoIds,
   dropSourcingStates,
@@ -324,5 +325,31 @@ describe("sourcingMessages — 3언어 커버리지", () => {
     expect(sourcingBadgeTone("suggested")).toBe("ok");
     expect(sourcingBadgeTone("manual")).toBe("danger");
     expect(sourcingBadgeTone("unknown-person")).toBe("warn");
+  });
+});
+
+describe("chainTargets — 빈칸 체인이 하루 쿼터를 태우지 않는다 (마무리 패치)", () => {
+  const grid = [
+    draft({ name: "지수" }),
+    draft({ name: "카리나" }),
+    draft({ name: "" }),
+    draft({ name: "윈터" }),
+  ];
+
+  it('mode "all" — 이름 있는 칸 전부', () => {
+    expect(chainTargets(grid, "all", []).map((t) => t.index)).toEqual([0, 1, 3]);
+  });
+
+  it('★mode "blanks" — 이번에 채운 칸만. 이미 영상이 붙은 칸은 다시 검색하지 않는다', () => {
+    // 빈칸 하나를 채우자고 47칸을 다시 검색하면 하루 100콜의 절반이 날아간다.
+    expect(chainTargets(grid, "blanks", [3]).map((t) => t.index)).toEqual([3]);
+  });
+
+  it('mode "blanks" — 채운 칸이 없으면 아무것도 소싱하지 않는다', () => {
+    expect(chainTargets(grid, "blanks", [])).toEqual([]);
+  });
+
+  it('mode "blanks" — 이름이 빈 칸은 채웠다고 표시돼도 대상이 아니다', () => {
+    expect(chainTargets(grid, "blanks", [2])).toEqual([]);
   });
 });

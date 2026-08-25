@@ -299,10 +299,12 @@ export const MESSAGES = {
 
   // lab.fill.label/all/allBusy/hint 는 LAB-UX-1에서 삭제됐다 — 부품 버튼
   // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[🖼 이미지 생성] 체인에 흡수됐다.
+  // 이제 채우기에서 끝나지 않고 **그 칸들만** 소싱까지 이어간다(대표 스모크 ②).
+  // 이름은 하는 일 기준이라 "영상까지"를 붙인다.
   "lab.fill.blanks": {
-    ko: "빈칸만 AI로 채우기",
-    en: "AI-fill the blanks only",
-    es: "Rellenar solo los vacíos con IA",
+    ko: "빈칸 채우고 영상까지",
+    en: "Fill blanks + find videos",
+    es: "Rellenar vacíos + buscar videos",
   },
   "lab.fill.hint": {
     ko: "✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요",
@@ -682,6 +684,9 @@ export const MESSAGES = {
     es: "Penalizado: palabra sensible ({terms}) — no se encontró otro video. Revísalo",
   },
   "lab.source.refresh": { ko: "새 영상 찾기", en: "Find another", es: "Buscar otro" },
+  // 영상이 아직 없는 칸의 라벨. "새" 영상은 이미 하나 있을 때 쓰는 말이라,
+  // 빈 칸에 그대로 두면 운영자가 "뭘 바꾸라는 거지?"로 읽는다.
+  "lab.source.find": { ko: "영상 찾기", en: "Find a video", es: "Buscar video" },
   "lab.source.refreshing": { ko: "찾는 중…", en: "Searching…", es: "Buscando…" },
   "lab.source.refreshEmpty": {
     ko: "다른 후보를 찾지 못했습니다.",
