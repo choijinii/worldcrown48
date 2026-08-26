@@ -50,6 +50,27 @@ export function buildSourcingTargets(drafts: ContestantDraft[]): SourcingTarget[
 }
 
 /**
+ * 체인 1회가 소싱할 대상 (LAB-UX-1 마무리 패치).
+ *
+ *   mode "all"    — 이름 있는 칸 전부. [🎬 동영상 생성]이 쓴다.
+ *   mode "blanks" — **이번에 새로 채운 칸만.** [빈칸 채우고 영상까지]가 쓴다.
+ *
+ * 빈칸 경로를 굳이 좁히는 이유는 쿼터다. search 버킷은 하루 100콜뿐인데, 빈칸
+ * 하나를 채우자고 이미 영상이 붙은 47칸까지 다시 검색하면 그 한 번으로 하루치의
+ * 절반이 날아간다. 이미 검수를 마친 칸의 영상을 다시 굴릴 이유도 없다.
+ */
+export function chainTargets(
+  drafts: ContestantDraft[],
+  mode: "all" | "blanks",
+  filledIndexes: readonly number[],
+): SourcingTarget[] {
+  const all = buildSourcingTargets(drafts);
+  if (mode === "all") return all;
+  const touched = new Set(filledIndexes);
+  return all.filter((target) => touched.has(target.index));
+}
+
+/**
  * 이번 실행이 건드리지 않는 슬롯들이 이미 쓰고 있는 videoId — 중복 회피의 씨앗.
  * 슬롯 1개만 재검색할 때 나머지 47칸의 영상이 여기로 들어간다.
  */

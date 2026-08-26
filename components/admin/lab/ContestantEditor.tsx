@@ -362,28 +362,38 @@ export function ContestantEditor({
               </span>
             ) : null;
           })()}
-          {onRefreshVideo && (
-            <button
-              type="button"
-              onClick={() => onRefreshVideo(index)}
-              disabled={refreshing}
-              data-testid={`contestant-refresh-${index}`}
-              style={{
-                justifySelf: "start",
-                padding: "2px 7px",
-                borderRadius: 999,
-                border: `1px solid ${lab.border}`,
-                background: "transparent",
-                color: lab.textSub,
-                fontSize: 9,
-                fontFamily: lab.font,
-                cursor: refreshing ? "not-allowed" : "pointer",
-              }}
-            >
-              {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
-            </button>
-          )}
         </div>
+      )}
+
+      {/* 영상 찾기 — 배지와 **무관하게** 이름이 있는 칸이면 언제나 준다.
+          배지 블록 안에 있던 시절엔 이름을 고치는 순간(배지 해제) 이 버튼까지
+          사라져 새 인물의 영상을 찾을 길이 없었다(대표 스모크 ①). */}
+      {onRefreshVideo && (
+        <button
+          type="button"
+          onClick={() => onRefreshVideo(index)}
+          disabled={refreshing}
+          data-testid={`contestant-refresh-${index}`}
+          style={{
+            marginTop: 6,
+            justifySelf: "start",
+            alignSelf: "start",
+            padding: "2px 7px",
+            borderRadius: 999,
+            border: `1px solid ${lab.border}`,
+            background: "transparent",
+            color: lab.textSub,
+            fontSize: 9,
+            fontFamily: lab.font,
+            cursor: refreshing ? "not-allowed" : "pointer",
+          }}
+        >
+          {refreshing
+            ? t("lab.source.refreshing")
+            : videoId
+              ? t("lab.source.refresh")
+              : t("lab.source.find")}
+        </button>
       )}
     </div>
   );

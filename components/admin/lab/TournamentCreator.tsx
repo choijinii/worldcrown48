@@ -55,6 +55,7 @@ import {
 import {
   applySourcingResults,
   buildSourcingTargets,
+  chainTargets,
   collectExcludedVideoIds,
   dropSourcingStates,
   toSourcingStates,
@@ -268,7 +269,14 @@ export function TournamentCreator(): JSX.Element {
    * only the empty slots (excluding names already present) and merges into the
    * blanks — filled cells are preserved 100% (AC#3).
    */
-  async function fillWithAI(mode: "all" | "blanks"): Promise<ContestantDraft[] | null> {
+  /**
+   * 채우기 1회. 돌려주는 `filledIndexes`가 **이번에 새로 채워진 칸**이다 —
+   * 빈칸 체인이 그 칸들만 소싱하려면 이 목록이 있어야 한다(안 그러면 이미 영상이
+   * 붙은 47칸까지 다시 검색해 하루 쿼터를 통째로 태운다).
+   */
+  async function fillWithAI(
+    mode: "all" | "blanks",
+  ): Promise<{ drafts: ContestantDraft[]; filledIndexes: number[] } | null> {
     if (filling) return null;
     const grid =
       contestants.length === TOTAL_CONTESTANTS
@@ -306,12 +314,14 @@ export function TournamentCreator(): JSX.Element {
       // 체인이 다음 단계(소싱)에서 쓸 명단. setContestants는 비동기라 이 함수가
       // 돌려주는 배열이 유일하게 확실한 최신본이다.
       let applied: ContestantDraft[];
+      let touched: number[];
 
       if (mode === "all") {
         applied = Array.from(
           { length: TOTAL_CONTESTANTS },
           (_, i) => incoming[i] ?? emptyDraft(),
         );
+        touched = applied.map((d, i) => (d.name.trim() ? i : -1)).filter((i) => i >= 0);
         setContestants(applied);
         // LAB-EV-2 — 인물이 통째로 바뀌었다. 옛 소싱 배지를 남기면 "제안"이라
         // 써 있는 칸에 다른 사람이 앉아 있게 된다.
@@ -326,6 +336,7 @@ export function TournamentCreator(): JSX.Element {
           return incoming[k++];
         });
         applied = merged;
+        touched = filledIndexes;
         setContestants(merged);
         // 새로 채워진 칸만 배지를 떼어낸다 — 손대지 않은 칸의 결과는 유효하다.
         setSourcingStates((states) => dropSourcingStates(states, filledIndexes));
@@ -336,7 +347,7 @@ export function TournamentCreator(): JSX.Element {
         duration_ms: Date.now() - started,
         contestant_count: incoming.length,
       });
-      return applied;
+      return { drafts: applied, filledIndexes: touched };
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
       void track("admin_lab_ai_fill_error", { category, mode, error_code: code });
@@ -380,8 +391,9 @@ export function TournamentCreator(): JSX.Element {
     if (chainStage) return;
     setChainStage("filling");
     try {
-      const drafts = await fillWithAI("all");
-      if (!drafts) return;
+      const filled = await fillWithAI("all");
+      if (!filled) return;
+      const drafts = filled.drafts;
       const flags = deriveReviewFlags(
         drafts.map((d) => ({
           name: d.name,
@@ -398,7 +410,12 @@ export function TournamentCreator(): JSX.Element {
   }
 
   /**
-   * [🎬 동영상 생성] — 채우기 → (쿼터 확인) → 소싱 → 검수.
+   * 결과물 체인 — 채우기 → (쿼터 확인) → 소싱 → 검수.
+   *
+   * [🎬 동영상 생성]은 48칸 전부(mode="all"), [빈칸만 AI로 채우기]는 **이번에 채운
+   * 칸만**(mode="blanks") 태운다. 원래 빈칸 경로는 채우기에서 끝나서, 새로 들어온
+   * 인물에게 영상도 배지도 [새 영상 찾기]도 없는 칸이 남았다 — 복구 수단이 링크
+   * 붙여넣기뿐이었다(대표 스모크 2026-08-25).
    *
    * R2: 새 서버 API를 만들지 않는다. 기존 콜러블 두 개(aiFillContestants,
    * autoSourceVideos)를 클라이언트가 **순서대로** 부를 뿐이다. 순서를 화면이
@@ -407,21 +424,23 @@ export function TournamentCreator(): JSX.Element {
    * 확인 창은 채우기 **뒤**에 뜬다(결정 3 유지). 견적이 "몇 칸을 검색하는가"에
    * 달려 있어서, 명단이 없으면 물어볼 수 있는 게 없다.
    */
-  async function generateVideos() {
+  async function startVideoChain(mode: "all" | "blanks") {
     if (chainStage) return;
     setChainStage("filling");
-    let drafts: ContestantDraft[] | null = null;
+    let filled: { drafts: ContestantDraft[]; filledIndexes: number[] } | null = null;
     try {
-      drafts = await fillWithAI("all");
+      filled = await fillWithAI(mode);
     } finally {
-      if (!drafts) setChainStage(null);
+      if (!filled) setChainStage(null);
     }
-    if (!drafts) {
+    if (!filled) {
       showToast(t("lab.generate.chainFillFailed"), "error");
       return;
     }
+    const drafts = filled.drafts;
 
-    const targets = buildSourcingTargets(drafts);
+    // 빈칸 경로는 **이번에 채운 칸만** 소싱한다 — 규칙은 순수 층에서 잠근다.
+    const targets = chainTargets(drafts, mode, filled.filledIndexes);
     if (targets.length === 0) {
       setChainStage(null);
       showToast(t("lab.source.noTargets"), "info");
@@ -778,10 +797,12 @@ export function TournamentCreator(): JSX.Element {
             counters={counters}
             stage={chainStage}
             progress={sourceProgress}
-            onGenerateVideos={() => void generateVideos()}
+            onGenerateVideos={() => void startVideoChain("all")}
             onGenerateImages={() => void generateImages()}
             onPasteLinks={() => setInspectorOpen(true)}
-            onFillBlanks={() => void fillWithAI("blanks")}
+            // 빈칸도 같은 체인을 탄다 — 채우기로 끝나면 영상도 배지도 없는 칸이
+            // 남아 복구가 안 된다(대표 스모크 지적 ②).
+            onFillBlanks={() => void startVideoChain("blanks")}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}
             disabled={publishing}
           />

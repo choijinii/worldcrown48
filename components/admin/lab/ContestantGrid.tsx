@@ -80,9 +80,14 @@ export function ContestantGrid({
           sourcing={sourcing?.[i]}
           reviewFlags={reviewFlags?.[i]}
           onGoToSlot={scrollToSlot}
-          // 소싱을 한 번도 안 돌린 칸에는 [새 영상 찾기]가 뜨지 않는다 —
-          // 검색 콜을 쓰는 버튼이라 배지와 함께만 노출한다.
-          onRefreshVideo={sourcing?.[i] ? onRefreshVideo : undefined}
+          // 이름이 있으면 언제나 [영상 찾기]를 준다. 예전에는 소싱 배지가 있는
+          // 칸에만 줬는데, 그러면 **이름을 고친 칸**(배지가 해제된다)과 **빈칸을
+          // 새로 채운 칸**에서 영상을 찾을 길이 사라진다 — 복구 수단이 링크
+          // 붙여넣기뿐이 됐다(대표 스모크 2026-08-25 ①②).
+          // 일일 캡은 서버(consumeAiDailyQuota)가 그대로 들고 있다.
+          onRefreshVideo={
+            (contestants[i]?.name ?? "").trim() ? onRefreshVideo : undefined
+          }
           refreshing={refreshingIndex === i}
         />
       ))}
