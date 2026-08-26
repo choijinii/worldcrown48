@@ -43,7 +43,9 @@ export type AiCallKind =
   /** LAB-EV-2 §5 B — 영상 자동 소싱 배치(≤8명). 콜 **횟수** 캡이다. */
   | "autoSourceVideos"
   /** LAB-EV-2 — 슬롯 1개 캐시 우회 재검색. */
-  | "refreshSlotVideo";
+  | "refreshSlotVideo"
+  /** LAB-UX-1 ③ — 붙여넣은 링크의 제목에서 인물 추출. Haiku 1콜(YouTube API 0콜). */
+  | "extractContestantsFromVideos";
 
 /**
  * 종류별 기본 상한 (LAB-EV-2 §5 B "예 20/일").

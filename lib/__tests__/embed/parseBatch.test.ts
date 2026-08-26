@@ -75,3 +75,34 @@ describe("assignSlots — 통과분만 01..N 순서 주입 (W4)", () => {
     expect(assignSlots(parseLinkBatch("nope\nnope2", 48))).toEqual([]);
   });
 });
+
+describe("assignSlots — 빈칸에만, 빈칸 개수만큼 (LAB-UX-1 ③)", () => {
+  const three = () =>
+    parseLinkBatch(
+      [
+        "https://youtu.be/aaaaaaaaaaa",
+        "https://youtu.be/bbbbbbbbbbb",
+        "https://youtu.be/ccccccccccc",
+      ].join("\n"),
+      48,
+    );
+
+  it("★빈칸 index로 배정한다 — 채워진 칸을 덮지 않는다", () => {
+    // 0·1번이 이미 차 있고 2·5·7번이 비었다면 링크는 그 셋에만 간다.
+    expect(assignSlots(three(), [2, 5, 7]).map((a) => a.slot)).toEqual([3, 6, 8]);
+  });
+
+  it("★빈칸보다 링크가 많으면 남는 링크는 배정하지 않는다", () => {
+    const out = assignSlots(three(), [4]);
+    expect(out).toHaveLength(1);
+    expect(out[0].slot).toBe(5);
+  });
+
+  it("빈칸이 없으면 아무것도 배정하지 않는다", () => {
+    expect(assignSlots(three(), [])).toEqual([]);
+  });
+
+  it("인자를 생략하면 예전처럼 앞에서부터 채운다 (기존 호출부 호환)", () => {
+    expect(assignSlots(three()).map((a) => a.slot)).toEqual([1, 2, 3]);
+  });
+});

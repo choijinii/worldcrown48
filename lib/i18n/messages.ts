@@ -408,10 +408,22 @@ export const MESSAGES = {
     en: "YouTube embed inspector",
     es: "Inspector de embeds de YouTube",
   },
+  // ③ — 이제 "어디에 들어가는지"와 "이름까지 채운다"가 문구에 있어야 한다.
+  // 예전 문구는 슬롯 01부터 덮어쓴다는 사실을 숨기고 있었다.
   "lab.embed.subtitle": {
-    ko: "줄당 링크 1개. 통과한 링크는 10초 무음 루프로 슬롯에 들어갑니다.",
-    en: "One link per line. Passing links become 10-second silent loops in the slots.",
-    es: "Un enlace por línea. Los enlaces válidos entran como bucles silenciosos de 10 segundos.",
+    ko: "줄당 링크 1개. 빈칸에만 순서대로 들어가고, 제목에서 이름·소속을 읽어 함께 채웁니다.",
+    en: "One link per line. They fill empty slots only, and the name and affiliation are read from the title.",
+    es: "Un enlace por línea. Solo rellenan casillas vacías; el nombre y el grupo se leen del título.",
+  },
+  "lab.embed.blanksLeft": {
+    ko: "빈칸 {n}개",
+    en: "{n} empty slots",
+    es: "{n} casillas vacías",
+  },
+  "lab.embed.overflow": {
+    ko: "빈칸보다 링크가 {n}개 많아요 — 남는 링크는 넣지 않습니다 (채워진 칸은 건드리지 않아요)",
+    en: "{n} more links than empty slots — the extras are skipped (filled slots are never overwritten)",
+    es: "Hay {n} enlaces más que casillas vacías — los sobrantes se omiten (las casillas llenas no se tocan)",
   },
   "lab.embed.sizeTab": { ko: "{n}강", en: "{n} slots", es: "{n} espacios" },
   "lab.embed.sizeAria": {
@@ -515,6 +527,13 @@ export const MESSAGES = {
     ko: "✓ {n}개 슬롯에 영상을 넣었어요.",
     en: "✓ Video added to {n} slots.",
     es: "✓ Video añadido a {n} espacios.",
+  },
+  // 이름을 확신 못 한 칸은 실패가 아니라 **정상 출력**이다 — 지어내지 않았다는 뜻.
+  // 그래서 "실패 n"이 아니라 "손볼 칸 n"으로 적는다.
+  "lab.embed.appliedWithNames": {
+    ko: "✓ {n}칸에 영상을 넣었어요 · 이름까지 채운 칸 {named} · 손볼 칸 {manual}",
+    en: "✓ Video added to {n} slots · {named} named · {manual} need a look",
+    es: "✓ Video en {n} casillas · {named} con nombre · {manual} por revisar",
   },
   "lab.embed.error.permission": {
     ko: "검수기는 운영자 전용입니다.",

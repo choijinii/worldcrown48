@@ -69,6 +69,11 @@ import {
   type SourcingQuotaPreview,
 } from "@/lib/lab/autoSource";
 import { deriveReviewFlags } from "@/lib/lab/reviewFlags";
+import {
+  applyExtractions,
+  blankSlotIndexes,
+  type ExtractedContestant,
+} from "@/lib/lab/pasteExtract";
 import { step2Counters } from "@/lib/lab/step2Counters";
 import { isRenamedTo } from "@/lib/lab/nameKey";
 import { inspectErrorCode } from "@/lib/lab/inspectYouTube";
@@ -362,10 +367,43 @@ export function TournamentCreator(): JSX.Element {
    * LAB-EV-1 W4 — 검수 통과분을 슬롯 01..N에 얹는다. 차단 판정은 순수 층
    * (applyVideoAssignments)이 걸러내므로 여기서 다시 검사하지 않는다.
    */
-  function applyVideoSlots(assignments: SlotAssignment[], verdicts: LinkVerdict[]) {
-    setContestants((prev) =>
-      applyVideoAssignments(prev, assignments, verdicts, TOTAL_CONTESTANTS, emptyDraft),
-    );
+  /**
+   * 붙여넣은 링크 1회분을 그리드에 얹는다 (LAB-UX-1 ③).
+   *
+   * 두 단계다: ① 영상 주입(LAB-EV-1의 기존 계약 그대로) ② 제목에서 읽어낸
+   * 인물 채우기 + 배지. ②는 ①의 결과 위에서 돌아야 한다 — 같은 setState 안에서
+   * 이어 붙이지 않으면 한쪽이 다른 쪽을 덮는다.
+   */
+  function applyVideoSlots(
+    assignments: SlotAssignment[],
+    verdicts: LinkVerdict[],
+    extractions: ExtractedContestant[],
+  ) {
+    let tally = { named: 0, manual: 0 };
+    setContestants((prev) => {
+      const withVideo = applyVideoAssignments(
+        prev,
+        assignments,
+        verdicts,
+        TOTAL_CONTESTANTS,
+        emptyDraft,
+      );
+      // 차단 판정은 주입되지 않았으므로 그 슬롯은 배지도 받지 않는다.
+      const injected = assignments.filter((a) =>
+        verdicts.some((v) => v.videoId === a.videoId && v.status !== "blocked"),
+      );
+      const applied = applyExtractions(
+        withVideo,
+        injected,
+        extractions,
+        TOTAL_CONTESTANTS,
+        emptyDraft,
+      );
+      tally = applied.tally;
+      setSourcingStates((states) => ({ ...states, ...applied.states }));
+      return applied.drafts;
+    });
+    void track("admin_lab_paste_extract", { named: tally.named, manual: tally.manual });
   }
 
   /**
@@ -836,6 +874,7 @@ export function TournamentCreator(): JSX.Element {
       <YouTubeInspectorModal
         isOpen={inspectorOpen}
         onClose={() => setInspectorOpen(false)}
+        blankIndexes={blankSlotIndexes(contestants, TOTAL_CONTESTANTS)}
         onApply={applyVideoSlots}
       />
       {tuningIndex !== null && contestants[tuningIndex]?.videoId && (
