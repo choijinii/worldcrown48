@@ -33,9 +33,13 @@ export function step2Counters(
 
   for (let i = 0; i < total; i += 1) {
     const named = (drafts[i]?.name ?? "").trim() !== "";
-    if (!named) continue;
-    filled += 1;
     const state = states[i];
+    // 이름이 없어도 배지가 붙은 칸은 **일이 남은 칸**이다. LAB-UX-1 ③에서
+    // 그런 칸이 생긴다: 링크는 들어갔는데 제목에서 인물을 못 읽어 "수동 필요"로
+    // 남은 자리. 예전 규칙(이름 있는 칸만 센다)이면 화면에 배지 3개가 보이는데
+    // 카운터는 "손볼 칸 0"이라고 말한다 — 프리플라이트에서 실제로 그랬다.
+    if (!named && !state) continue;
+    if (named) filled += 1;
     if (state?.status === "suggested") suggested += 1;
     else if (state) todo.add(i);
     if (flags[i]?.length) todo.add(i);

@@ -530,6 +530,13 @@ export const MESSAGES = {
   },
   // 이름을 확신 못 한 칸은 실패가 아니라 **정상 출력**이다 — 지어내지 않았다는 뜻.
   // 그래서 "실패 n"이 아니라 "손볼 칸 n"으로 적는다.
+  // 추출만 실패했을 때. "검수에 실패했어요"를 띄우면 영상이 안 들어간 줄 안다 —
+  // 실제로는 들어가 있고, 이름만 못 읽은 것이다.
+  "lab.embed.error.extract": {
+    ko: "영상은 넣었지만 제목에서 이름을 읽지 못했어요. 그 칸들은 직접 채워주세요.",
+    en: "Videos were added, but the names could not be read from the titles. Fill those slots yourself.",
+    es: "Se añadieron los videos, pero no se pudo leer el nombre del título. Rellena esas casillas a mano.",
+  },
   "lab.embed.appliedWithNames": {
     ko: "✓ {n}칸에 영상을 넣었어요 · 이름까지 채운 칸 {named} · 손볼 칸 {manual}",
     en: "✓ Video added to {n} slots · {named} named · {manual} need a look",

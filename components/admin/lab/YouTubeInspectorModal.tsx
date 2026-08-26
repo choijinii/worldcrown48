@@ -124,8 +124,15 @@ export function YouTubeInspectorModal({
             })),
           );
         } catch (err) {
+          // 검수는 성공했고 **추출만** 실패했다. 여기서 검수 실패 문구를 띄우면
+          // 운영자는 영상이 안 들어간 줄 안다 — 실제로는 들어가 있다
+          // (쿼터 문구 사고와 같은 계열: 원인을 잘못 지목하지 않는다).
           const code = inspectErrorCode(err);
-          showToast(t(inspectErrorMessage(code).key), "error");
+          const key =
+            code === "quota-daily" || code === "quota-youtube"
+              ? inspectErrorMessage(code).key
+              : "lab.embed.error.extract";
+          showToast(t(key), "error");
           void track("admin_lab_extract_error", { error_code: code });
         }
       }
