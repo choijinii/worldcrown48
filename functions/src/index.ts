@@ -188,3 +188,4 @@ export { scheduleEmbedRecheck } from "./scheduleEmbedRecheck"; // 월 05:00 KST 
 // LAB-EV-2 자동 영상 소싱 — 이름 → 검색 → 검수(LAB-EV-1 재사용) → 슬롯 "제안".
 // 토너먼트 생성은 사람이 누른다(R6 — 자동 발행 0건).
 export { autoSourceVideos, refreshSlotVideo } from "./autoSourceVideos";
+export { extractContestantsFromVideos } from "./extractContestants"; // 링크 제목 → 인물 추출

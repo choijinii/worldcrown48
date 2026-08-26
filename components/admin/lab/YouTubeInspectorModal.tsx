@@ -25,6 +25,8 @@ import {
 } from "@/lib/embed/constants";
 import { assignSlots, parseLinkBatch, type SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkStatus, LinkVerdict } from "@/lib/embed/verdict";
+import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
+import type { ExtractedContestant } from "@/lib/lab/pasteExtract";
 import {
   inspectErrorCode,
   validateYouTubeLinks,
@@ -40,8 +42,20 @@ import { lab } from "./theme";
 interface YouTubeInspectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** 통과·경고분을 그리드에 얹는다. 차단 판정은 여기까지 오지 않는다. */
-  onApply: (assignments: SlotAssignment[], verdicts: LinkVerdict[]) => void;
+  /**
+   * 비어 있는 슬롯의 0-based index — 화면 순서대로 (LAB-UX-1 ③).
+   * 링크는 **여기에만, 이 개수만큼** 들어간다. 채워 둔 칸을 덮지 않는다.
+   */
+  blankIndexes: number[];
+  /**
+   * 통과·경고분을 그리드에 얹는다. 차단 판정은 여기까지 오지 않는다.
+   * `extractions`는 제목에서 읽어낸 인물 — 확신 못 한 항목은 이름이 비어 있다.
+   */
+  onApply: (
+    assignments: SlotAssignment[],
+    verdicts: LinkVerdict[],
+    extractions: ExtractedContestant[],
+  ) => void;
 }
 
 /** 팔레트에 초록이 없다 — 통과는 turquoise, 경고는 Crown Gold, 차단은 crimson. */
@@ -54,6 +68,7 @@ const STATUS_COLOR: Record<LinkStatus, string> = {
 export function YouTubeInspectorModal({
   isOpen,
   onClose,
+  blankIndexes,
   onApply,
 }: YouTubeInspectorModalProps): JSX.Element | null {
   const { t } = useT();
@@ -63,7 +78,10 @@ export function YouTubeInspectorModal({
   const [busy, setBusy] = useState(false);
 
   const rows = useMemo(() => parseLinkBatch(text, size), [text, size]);
-  const slots = useMemo(() => assignSlots(rows), [rows]);
+  // ③ — 빈칸에만, 빈칸 개수만큼. 남는 링크는 배정되지 않는다.
+  const slots = useMemo(() => assignSlots(rows, blankIndexes), [rows, blankIndexes]);
+  const passingRows = rows.filter((r) => r.ok && r.videoId).length;
+  const overflow = Math.max(0, passingRows - blankIndexes.length);
   const slotByIndex = useMemo(
     () => new Map(slots.map((s) => [s.index, s])),
     [slots],
@@ -90,10 +108,43 @@ export function YouTubeInspectorModal({
     try {
       const res = await validateYouTubeLinks(slots.map((s) => s.videoId));
       setVerdicts(res.verdicts);
-      onApply(slots, res.verdicts);
 
-      const applied = res.verdicts.filter((v) => v.status !== "blocked").length;
-      showToast(t("lab.embed.applied", { n: applied }), "success");
+      // ③ — 검수를 통과한 영상의 제목·채널로 인물을 읽는다. 재료는 방금 받은
+      // verdict에 이미 있다(YouTube API 0콜). 실패해도 영상 주입은 살린다:
+      // 빈 결과로 넘기면 그 칸들이 "수동 필요"가 되어 사람에게 간다.
+      const usable = res.verdicts.filter((v) => v.status !== "blocked");
+      let extractions: ExtractedContestant[] = [];
+      if (usable.length > 0) {
+        try {
+          extractions = await extractContestantsFromVideos(
+            usable.map((v) => ({
+              videoId: v.videoId,
+              title: v.title,
+              channelTitle: v.channelTitle,
+            })),
+          );
+        } catch (err) {
+          // 검수는 성공했고 **추출만** 실패했다. 여기서 검수 실패 문구를 띄우면
+          // 운영자는 영상이 안 들어간 줄 안다 — 실제로는 들어가 있다
+          // (쿼터 문구 사고와 같은 계열: 원인을 잘못 지목하지 않는다).
+          const code = inspectErrorCode(err);
+          const key =
+            code === "quota-daily" || code === "quota-youtube"
+              ? inspectErrorMessage(code).key
+              : "lab.embed.error.extract";
+          showToast(t(key), "error");
+          void track("admin_lab_extract_error", { error_code: code });
+        }
+      }
+
+      onApply(slots, res.verdicts, extractions);
+
+      const applied = usable.length;
+      const named = extractions.filter((e) => e.confident).length;
+      showToast(
+        t("lab.embed.appliedWithNames", { n: applied, named, manual: applied - named }),
+        "success",
+      );
       void track("admin_lab_embed_validate", {
         requested: slots.length,
         applied,
@@ -222,6 +273,16 @@ export function YouTubeInspectorModal({
                 limit: size,
                 failed: failedRows,
               })}
+              {" · "}
+              {t("lab.embed.blanksLeft", { n: blankIndexes.length })}
+              {/* 넘치는 링크가 채워진 칸을 밀어내지 않는다는 걸 **누르기 전에** 말한다.
+                  누른 뒤에 알면 이미 무엇이 빠졌는지 세어야 한다. */}
+              {overflow > 0 && (
+                <span data-testid="embed-overflow" style={{ color: lab.gold }}>
+                  {" · "}
+                  {t("lab.embed.overflow", { n: overflow })}
+                </span>
+              )}
             </span>
             <div style={{ display: "flex", gap: 8 }}>
               <button

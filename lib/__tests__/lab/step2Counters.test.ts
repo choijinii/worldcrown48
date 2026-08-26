@@ -58,9 +58,18 @@ describe("step2Counters", () => {
     expect(c.todo).toBe(1);
   });
 
-  it("빈 칸에 남은 배지는 세지 않는다 — 이름이 없으면 손볼 인물도 없다", () => {
-    const states: SourcingStates = { 3: { status: "manual", reason: "no-results" } };
+  it("★이름이 없어도 배지가 붙은 칸은 손볼 칸이다 (LAB-UX-1 ③)", () => {
+    // 링크 붙여넣기가 만드는 상태다: 영상은 들어갔는데 제목에서 인물을 못 읽어
+    // "수동 필요"로 남은 자리. 예전 규칙(이름 있는 칸만)이면 화면엔 배지가
+    // 보이는데 카운터는 "손볼 칸 0"이라 말한다 — 프리플라이트에서 실제로 그랬다.
+    const states: SourcingStates = { 3: { status: "manual" } };
     const c = step2Counters(names("지수", "", "", ""), states, {}, TOTAL);
+    expect(c.filled).toBe(1); // 채움은 여전히 **이름** 기준
+    expect(c.todo).toBe(1);
+  });
+
+  it("배지도 이름도 없는 칸은 아무것도 아니다", () => {
+    const c = step2Counters(names("지수", "", "", ""), {}, {}, TOTAL);
     expect(c.filled).toBe(1);
     expect(c.todo).toBe(0);
   });

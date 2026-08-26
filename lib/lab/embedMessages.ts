@@ -42,6 +42,8 @@ const STATUS_KEYS: Record<LinkStatus, MessageKey> = {
 
 const ERROR_KEYS: Record<InspectErrorCode, MessageKey> = {
   "permission-denied": "lab.embed.error.permission",
+  "quota-youtube": "lab.embed.error.quota",
+  "quota-daily": "lab.embed.error.dailyCap",
   "resource-exhausted": "lab.embed.error.quota",
   "invalid-argument": "lab.embed.error.failed",
   "not-found": "lab.embed.error.failed",

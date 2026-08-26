@@ -30,6 +30,9 @@ const REASON_KEYS: Record<SourcingFailureReason, MessageKey> = {
 
 const ERROR_KEYS: Record<InspectErrorCode, MessageKey> = {
   "permission-denied": "lab.source.error.permission",
+  "quota-youtube": "lab.source.error.quota",
+  "quota-daily": "lab.source.error.dailyCap",
+  // 사유를 못 가른 resource-exhausted — 옛 동작(유튜브 쿼터)을 그대로 둔다.
   "resource-exhausted": "lab.source.error.quota",
   "invalid-argument": "lab.source.error.failed",
   "not-found": "lab.source.error.failed",

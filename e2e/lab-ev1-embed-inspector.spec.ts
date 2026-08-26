@@ -5,7 +5,8 @@
  * 링크 붙여넣기 → [검수 및 자동 채우기] → 결과 리스트(초록/노랑/빨강) →
  * 통과분 슬롯 자동 주입 → 슬롯 미세조정 열기.
  *
- * validateYouTubeLinks / recommendKillingPart는 page.route로 STUB한다 —
+ * validateYouTubeLinks / recommendKillingPart / extractContestantsFromVideos는
+ * page.route로 STUB한다 —
  * B-1이 Claude 토큰을 안 쓰는 것과 같은 이유로, CI가 유튜브 API 쿼터를 태우거나
  * 남의 영상 상태 변화에 흔들려서는 안 된다(§8 쿼터 방어의 연장).
  * Firestore 쓰기는 일어나지 않는다 — 발행 전 단계까지만 본다.
@@ -39,8 +40,39 @@ function verdict(videoId: string, status: "pass" | "warn" | "blocked") {
   };
 }
 
-/** 검수 콜러블 2종을 stub — 실제 유튜브 API 쿼터를 태우지 않는다. */
+/** 검수·추출 콜러블 3종을 stub — 실제 쿼터를 태우지 않는다. */
 async function stubInspector(page: Page) {
+  // LAB-UX-1 ③ — 제목에서 인물을 읽는 콜러블. 스텁하지 않으면 CI가 (a) 매 실행마다
+  // 진짜 Haiku 콜과 일일 캡을 태우고 (b) **아직 배포되지 않은 함수**를 불러
+  // 브라우저가 CORS 오류를 콘솔에 찍는다 — afterEach의 "콘솔 오류 0"에 걸린다.
+  // 확신한 것과 못 한 것을 하나씩 돌려 두 갈래(제안 / 수동 필요)를 모두 태운다.
+  await page.route("**/extractContestantsFromVideos*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        result: {
+          extractions: [
+            {
+              videoId: PASS_ID,
+              name: "카리나",
+              affiliation: "aespa",
+              nationality: "KR",
+              confident: true,
+            },
+            {
+              videoId: WARN_ID,
+              name: "",
+              affiliation: "",
+              nationality: "",
+              confident: false,
+            },
+          ],
+        },
+      }),
+    });
+  });
+
   await page.route("**/validateYouTubeLinks*", async (route) => {
     await route.fulfill({
       status: 200,
@@ -175,6 +207,20 @@ test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {
     await expect(page.getByTestId("contestant-tune-0")).toBeVisible();
     await expect(page.getByTestId("contestant-tune-1")).toBeVisible();
     await expect(page.getByTestId("contestant-tune-2")).toHaveCount(0);
+
+    // ③ — 확신한 칸은 이름까지 채워지고 "제안", 확신 못 한 칸은 이름이 빈 채
+    // "수동 필요"로 남는다. 지어낸 이름이 들어가지 않는다는 계약이다.
+    await expect(page.getByLabel("Contestant 1 이름")).toHaveValue("카리나");
+    await expect(page.getByLabel("Contestant 1 소속")).toHaveValue("aespa");
+    await expect(page.getByTestId("contestant-sourcing-0")).toHaveAttribute(
+      "data-sourcing-status",
+      "suggested",
+    );
+    await expect(page.getByLabel("Contestant 2 이름")).toHaveValue("");
+    await expect(page.getByTestId("contestant-sourcing-1")).toHaveAttribute(
+      "data-sourcing-status",
+      "manual",
+    );
 
     // W5 — 슬롯 미세조정: 추천 칩·[원본 열기]·슬라이더.
     await page.getByTestId("contestant-tune-0").click();
