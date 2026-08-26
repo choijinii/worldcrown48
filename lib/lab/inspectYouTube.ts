@@ -29,13 +29,29 @@ export interface KillingPartSuggestion {
   commentsAvailable: boolean;
 }
 
-/** Firebase 콜러블 에러 코드 → 화면 메시지 키를 고르기 위한 최소 분류. */
+/**
+ * Firebase 콜러블 에러 코드 → 화면 메시지 키를 고르기 위한 분류.
+ *
+ * `resource-exhausted`를 셋으로 쪼갠 이유(2026-08-25 실측): 서버는 **서로 다른 세
+ * 사유**를 같은 코드로 던진다 — 요청 과다 · AI 일일 캡 · YouTube 쿼터. 그걸 하나로
+ * 뭉쳐 "유튜브 검색 횟수가 부족합니다"로 보여줬더니, YouTube 쿼터가 50콜 남은
+ * 화면에서 그 문구가 떴다. 운영자는 남아 있는 숫자를 보며 원인을 못 찾는다.
+ *
+ * 서버는 이미 `details.code`로 사유를 실어 보내고 있었다(`ai_daily_limit` ·
+ * `youtube_daily_quota`). 읽지 않았을 뿐이라 **클라이언트만 고치면 된다**.
+ */
 export type InspectErrorCode =
   | "permission-denied"
+  | "quota-daily"
+  | "quota-youtube"
   | "resource-exhausted"
   | "invalid-argument"
   | "not-found"
   | "unknown";
+
+/** 서버가 details에 싣는 사유 코드 (functions/src/{aiQuota,youtubeQuota}.ts). */
+const DETAIL_DAILY_LIMIT = "ai_daily_limit";
+const DETAIL_YOUTUBE_QUOTA = "youtube_daily_quota";
 
 export function inspectErrorCode(err: unknown): InspectErrorCode {
   const raw = String((err as { code?: string }).code ?? "").replace(/^functions\//, "");
@@ -43,8 +59,19 @@ export function inspectErrorCode(err: unknown): InspectErrorCode {
     case "permission-denied":
     case "unauthenticated":
       return "permission-denied";
-    case "resource-exhausted":
+    case "resource-exhausted": {
+      // 사유는 details에 있다 — **있을 때만** 좁힌다.
+      //
+      // details가 없다고 "요청 과다"로 단정하면 안 된다: 검수기 경로
+      // (validateYouTubeLinks)는 속도 제한도, 진짜 YouTube 쿼터 초과도 둘 다
+      // details 없이 던진다. 거기서 "요청이 너무 잦습니다"라고 말하면 쿼터가
+      // 바닥난 운영자를 엉뚱한 곳으로 보낸다. 모르면 기존 문구를 유지한다.
+      const detail = (err as { details?: { code?: unknown } }).details;
+      const reason = typeof detail?.code === "string" ? detail.code : "";
+      if (reason === DETAIL_DAILY_LIMIT) return "quota-daily";
+      if (reason === DETAIL_YOUTUBE_QUOTA) return "quota-youtube";
       return "resource-exhausted";
+    }
     case "invalid-argument":
       return "invalid-argument";
     case "not-found":

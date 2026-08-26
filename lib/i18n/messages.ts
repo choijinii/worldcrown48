@@ -526,6 +526,11 @@ export const MESSAGES = {
     en: "The YouTube API daily quota is used up. Try again later in smaller batches.",
     es: "Se agotó la cuota diaria de la API de YouTube. Inténtalo más tarde por lotes.",
   },
+  "lab.embed.error.dailyCap": {
+    ko: "오늘 쓸 수 있는 AI 호출을 다 썼습니다. 한국시간 자정에 초기화됩니다.",
+    en: "Today's AI call allowance is used up. It resets at midnight KST.",
+    es: "Se agotaron las llamadas de IA de hoy. Se reinicia a medianoche KST.",
+  },
   "lab.embed.error.failed": {
     ko: "검수에 실패했어요. 다시 시도해주세요.",
     en: "Inspection failed. Please try again.",
@@ -643,6 +648,14 @@ export const MESSAGES = {
     ko: "오늘 남은 유튜브 검색 횟수가 부족합니다. 태평양시 자정에 초기화됩니다.",
     en: "Not enough YouTube search quota left today. It resets at midnight PT.",
     es: "No queda cuota de búsqueda de YouTube hoy. Se reinicia a medianoche PT.",
+  },
+  // 아래 둘은 예전에 위 문구로 잘못 뭉뚱그려지던 사유다(2026-08-25 실측).
+  // 리셋 시각이 서로 다르다는 게 핵심 정보다 — YouTube는 태평양시 자정,
+  // AI 캡은 KST 자정(카운터 문서 id가 KST 날짜다).
+  "lab.source.error.dailyCap": {
+    ko: "오늘 쓸 수 있는 AI 호출을 다 썼습니다. 한국시간 자정에 초기화됩니다. (유튜브 검색 한도와는 별개예요)",
+    en: "Today's AI call allowance is used up. It resets at midnight KST — separate from the YouTube search quota.",
+    es: "Se agotaron las llamadas de IA de hoy. Se reinicia a medianoche KST — es distinto de la cuota de YouTube.",
   },
   "lab.source.error.failed": {
     ko: "영상 소싱에 실패했습니다. 다시 시도해주세요.",
