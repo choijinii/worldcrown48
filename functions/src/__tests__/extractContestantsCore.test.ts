@@ -32,6 +32,15 @@ describe("buildExtractPrompt", () => {
     expect(p).toContain("국적을 추측하지 마라");
   });
 
+  it("★표기 규칙을 명시한다 — 로마자로 옮기지 않는다 (2026-08-27 골든)", () => {
+    // `카리나`가 적힌 제목에서 `Karina`가 돌아왔다. AI 채우기는 한글로 채우므로
+    // 섞이면 같은 사람이 두 표기로 앉고 중복 판정도 못 잡는다.
+    const p = buildExtractPrompt(items);
+    expect(p).toContain("적힌 표기를 그대로");
+    expect(p).toContain("로마자로 옮기거나 번역하지 마라");
+    expect(p).toContain("한글 표기");
+  });
+
   it("항목의 id·제목·채널을 모두 싣는다", () => {
     const p = buildExtractPrompt(items);
     expect(p).toContain(A);
