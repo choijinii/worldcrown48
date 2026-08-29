@@ -10,6 +10,9 @@
  *
  * Isomorphic (browser canvas + node-canvas). QR drawer injected so this module
  * carries no qrcode-generator dependency (see drawLink.ts).
+ *
+ * 딥링크화(2026-08-29 대표 확정, marketing-instrumentation-kick.md ③) — QR 타깃
+ * 규칙은 drawLink.ts와 동일: d.url + utm_source=qr. 화면 문구는 무변경.
  */
 import {
   bg,
@@ -29,6 +32,7 @@ import {
 } from "./primitives";
 import type { CrownData } from "../formats";
 import type { QrDrawer } from "./drawLink";
+import { withShareUtm } from "../shareIntents";
 
 const noopQr: QrDrawer = () => {};
 
@@ -131,7 +135,7 @@ export function drawPortrait(
 
   // scannable mini QR, bottom-right
   const qrs = pw * 0.15;
-  qr(ctx, px + pw - qrs - W * 0.028, py + ph - qrs - W * 0.028, qrs, "https://worldcrown48.com");
+  qr(ctx, px + pw - qrs - W * 0.028, py + ph - qrs - W * 0.028, qrs, withShareUtm(d.url, "qr"));
 
   // crown layer ON TOP of the photo, straddling its top edge
   crownHero(ctx, cx, cyCrown, cs, img);

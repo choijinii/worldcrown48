@@ -11,6 +11,12 @@
  * no `qrcode-generator` dependency — Phase 2's drawQR.ts supplies the real one;
  * tests inject a spy; the default is a no-op (matches the wireframe, whose QR is
  * a guarded no-op until the CDN script loads).
+ *
+ * 딥링크화(2026-08-29 대표 확정, marketing-instrumentation-kick.md ③): QR이
+ * 가리키는 곳은 이제 `d.url`(그 대회의 Crown Card 페이지, championLoader 참고)에
+ * utm_source=qr을 붙인 주소다 — 예전엔 "https://worldcrown48.com" 고정이었다.
+ * 화면에 보이는 "WorldCrown48.com" 글자는 브랜드 표기라 그대로 둔다(화면 문구
+ * 변경 아님 — QR은 스캔하는 것이지 읽는 게 아니라서 승인 게이트 대상이 아니다).
  */
 import {
   bg,
@@ -28,6 +34,7 @@ import {
   type CrownImage,
 } from "./primitives";
 import type { CrownData } from "../formats";
+import { withShareUtm } from "../shareIntents";
 
 /** Draws a scannable QR of `text` at (x, y) with the given size. */
 export type QrDrawer = (ctx: Canvas2D, x: number, y: number, size: number, text: string) => void;
@@ -112,5 +119,5 @@ export function drawLink(
 
   // scannable mini QR, bottom-right corner
   const qrs = H * 0.17;
-  qr(ctx, rRight - qrs, H - pad - m - qrs, qrs, "https://worldcrown48.com");
+  qr(ctx, rRight - qrs, H - pad - m - qrs, qrs, withShareUtm(d.url, "qr"));
 }

@@ -60,12 +60,12 @@ describe("resolveChampionId", () => {
 });
 
 describe("toCrownData", () => {
-  it("maps champion + tournament to the render contract", () => {
+  it("maps champion + tournament to the render contract, url deep-linked to that tournament's Crown Card page (2026-08-29, marketing-instrumentation-kick.md ③)", () => {
     expect(toCrownData(CHAMPION, TOURNAMENT)).toEqual({
       initial: "M",
       name: "Moussa Adeyemi",
       title: "Strikers of the Century",
-      url: "worldcrown48.com",
+      url: "worldcrown48.com/arena/t1/champion",
       path: "48 → 24 → 12 → 6 → THE FINAL",
     });
   });

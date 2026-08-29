@@ -81,7 +81,9 @@ describe("drawPortrait (9:16 story · 1080×1920)", () => {
     expect(qx).toBeCloseTo(832.95, 1);
     expect(qy).toBeCloseTo(1651.95, 1);
     expect(qsize).toBeCloseTo(138.51, 1);
-    expect(qurl).toBe("https://worldcrown48.com");
+    expect(qurl).toBe(
+      "https://worldcrown48.com/?utm_source=qr&utm_medium=share&utm_campaign=crown_card",
+    ); // withShareUtm(d.url, "qr") — 2026-08-29 딥링크화, marketing-instrumentation-kick.md ③
   });
 
   it("renders the gold crown glyph fallback when no image is supplied", () => {
