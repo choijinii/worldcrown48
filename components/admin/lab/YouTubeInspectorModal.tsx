@@ -4,7 +4,11 @@
  * 운영자 동선은 세 번의 클릭 안에 끝난다(§6 AC#1):
  *   ① [🎬 유튜브 검수기] → ② 붙여넣기 → ③ [검수 및 자동 채우기]
  * 세 번째 클릭 하나가 검증 + 주입을 동시에 한다. 결과 리스트는 "무엇이 들어갔고
- * 무엇이 왜 빠졌는지"를 사후에 보여주는 영수증이지, 또 한 번의 확인 절차가 아니다.
+ * 무엇이 왜 빠졌는지"를 그리는 화면이지만, **성공하면 창은 자동으로 닫힌다**
+ * (2026-08-29 대표 확정, name-i18n-gap.md ②) — 결과는 토스트 한 줄로 충분하고,
+ * 성공 후에도 창이 열려 있으면 이미 처리된 넘침 경고(overflow) 같은 문구가 남아
+ * 운영자가 "뭔가 또 확인해야 하나" 헷갈린다. 실패했을 때는 닫지 않는다 — 원인을
+ * 보고 고쳐서 다시 시도해야 하므로.
  *
  * 규모 N(48/24/12)은 BRACKET_SIZES 단일 소스에서 온다(ADR-EV-6 — 48 하드코딩 금지).
  * 판정·파싱·주입 로직은 전부 lib/embed + lib/lab의 순수 층에 있고(§0.5 렌더 테스트
@@ -151,6 +155,12 @@ export function YouTubeInspectorModal({
         api_calls: res.apiCalls,
         bracket_size: size,
       });
+
+      // 성공하면 닫는다(2026-08-29 대표 확정) — 결과는 방금 띄운 토스트가 보고를
+      // 끝냈다. 다음에 다시 열 때 이전 배치가 남아 있지 않도록 입력도 함께 비운다.
+      setText("");
+      setVerdicts(null);
+      onClose();
     } catch (err) {
       const code = inspectErrorCode(err);
       showToast(t(inspectErrorMessage(code).key), "error");

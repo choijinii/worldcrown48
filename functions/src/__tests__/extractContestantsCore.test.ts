@@ -47,6 +47,14 @@ describe("buildExtractPrompt", () => {
     expect(p).toContain("KARINA FOCUS");
     expect(p).toContain("MNET K-POP");
   });
+
+  it("★소속(affiliation)은 영문 공식 표기를 우선하고, 없으면 원문 그대로다 (2026-08-28 대표 확정)", () => {
+    // 화면 전체 소속 표기 = 영문 공식명(aespa·IVE·BLACKPINK), 공식 로마자가 없으면
+    // 원문 그대로, 그마저 없으면 빈칸 — aiFillCore와 같은 규칙 (name-i18n-gap.md ②).
+    const p = buildExtractPrompt(items);
+    expect(p).toContain("영문(로마자) 공식 표기가 있으면 그걸 쓴다");
+    expect(p).toContain("원문 그대로 쓴다");
+  });
 });
 
 describe("parseExtractions", () => {
