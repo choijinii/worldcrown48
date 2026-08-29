@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   description:
     "The Pitch — WorldCrown48's trending tournament feed. 48 contestants, one crown. Vote for who you love and crown your champion.",
   openGraph: {
-    title: "WorldCrown48 — Who Wears the Ultimate Crown?",
+    title: "전 세계 팬들의 선택이 모이는 곳",
     description:
-      "The Pitch — trending fan-voting tournaments. 48 contestants, one crown.",
+      "A global fan-voting arena where every vote counts toward crowning one champion.",
     url: "https://worldcrown48.com",
     siteName: "WorldCrown48",
     type: "website",
