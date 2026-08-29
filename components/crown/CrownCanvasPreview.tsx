@@ -18,7 +18,7 @@ import { drawPortrait } from "@/lib/crown/canvas/drawPortrait";
 import { drawQR } from "@/lib/crown/canvas/drawQR";
 import type { Canvas2D } from "@/lib/crown/canvas/primitives";
 import { crownFileName } from "@/lib/crown/slug";
-import { buildTweetIntent, canShareFiles, type ShareCapableNavigator } from "@/lib/crown/shareIntents";
+import { buildTweetIntent, canShareFiles, withShareUtm, type ShareCapableNavigator } from "@/lib/crown/shareIntents";
 import styles from "./crown.module.css";
 
 let crownImg: HTMLImageElement | null = null;
@@ -86,7 +86,15 @@ export async function nativeShareCrown(
   const nav = (typeof navigator !== "undefined" ? navigator : undefined) as ShareCapableNavigator | undefined;
   if (nav && canShareFiles(nav, file) && nav.share) {
     try {
-      await nav.share({ files: [file], title: "My WorldCrown48 Champion", text: `${data.name} · Champion 👑 worldcrown48.com` });
+      // url은 UTM 부착 대상(2026-08-29, marketing-instrumentation-kick.md 묶음②) —
+      // text의 "worldcrown48.com" 표기 문구 자체는 그대로 두고(화면 문구 승인 게이트
+      // 미해당), 추적 가능한 실제 링크만 별도 url 필드로 추가한다.
+      await nav.share({
+        files: [file],
+        title: "My WorldCrown48 Champion",
+        text: `${data.name} · Champion 👑 worldcrown48.com`,
+        url: withShareUtm(data.url, "share_sheet"),
+      });
       return "shared";
     } catch {
       return "fallback";
