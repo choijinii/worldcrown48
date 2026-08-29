@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { buildTweetIntent, canShareFiles, TWEET_HASHTAG } from "@/lib/crown/shareIntents";
+import { buildTweetIntent, canShareFiles, withShareUtm, TWEET_HASHTAG } from "@/lib/crown/shareIntents";
 
 /**
  * shareIntents — X intent URL + Web Share feature detection.
@@ -17,9 +17,13 @@ describe("buildTweetIntent", () => {
     expect(url.searchParams.get("text")).toBe(`M. Adeyemi is my Champion 👑 ${TWEET_HASHTAG}`);
   });
 
-  it("encodes the share url as https://<host>", () => {
+  it("encodes the share url as https://<host> with the X share UTM tags (2026-08-29, marketing-instrumentation-kick.md ②)", () => {
     const url = new URL(buildTweetIntent("Yuki", "worldcrown48.com"));
-    expect(url.searchParams.get("url")).toBe("https://worldcrown48.com");
+    const shareUrl = new URL(url.searchParams.get("url")!);
+    expect(shareUrl.origin + shareUrl.pathname).toBe("https://worldcrown48.com/");
+    expect(shareUrl.searchParams.get("utm_source")).toBe("x");
+    expect(shareUrl.searchParams.get("utm_medium")).toBe("share");
+    expect(shareUrl.searchParams.get("utm_campaign")).toBe("crown_card");
   });
 
   it("escapes special characters in the champion name (no intent injection)", () => {
@@ -27,6 +31,26 @@ describe("buildTweetIntent", () => {
     expect(url.searchParams.get("text")).toBe(`A & B #1 is my Champion 👑 ${TWEET_HASHTAG}`);
     // raw query string must percent-encode the ampersand so it is one param
     expect(url.search).toContain("%23WorldCrown48");
+  });
+});
+
+describe("withShareUtm", () => {
+  it("appends utm_source/medium/campaign to a bare host", () => {
+    const url = withShareUtm("worldcrown48.com", "share_sheet");
+    const parsed = new URL(url);
+    expect(parsed.origin + parsed.pathname).toBe("https://worldcrown48.com/");
+    expect(parsed.searchParams.get("utm_source")).toBe("share_sheet");
+    expect(parsed.searchParams.get("utm_medium")).toBe("share");
+    expect(parsed.searchParams.get("utm_campaign")).toBe("crown_card");
+  });
+
+  it("lets the caller vary utm_source per channel while medium/campaign stay fixed", () => {
+    const x = new URL(withShareUtm("worldcrown48.com", "x"));
+    const sheet = new URL(withShareUtm("worldcrown48.com", "share_sheet"));
+    expect(x.searchParams.get("utm_source")).toBe("x");
+    expect(sheet.searchParams.get("utm_source")).toBe("share_sheet");
+    expect(x.searchParams.get("utm_medium")).toBe(sheet.searchParams.get("utm_medium"));
+    expect(x.searchParams.get("utm_campaign")).toBe(sheet.searchParams.get("utm_campaign"));
   });
 });
 
