@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   description:
     "WorldCrown48 — the global fan-voting arena. A WorldCrown48 tournament is open. Vote for who you love. Crown your champion.",
   openGraph: {
-    title: "WorldCrown48 — Who Rules the World?",
-    description: "The global fan-voting arena. A WorldCrown48 tournament is open.",
+    title: "전 세계 팬들의 선택이 모이는 곳",
+    description: "A global fan-voting arena where every vote counts toward crowning one champion.",
     url: "https://worldcrown48.com/launch",
     siteName: "WorldCrown48",
     type: "website",
