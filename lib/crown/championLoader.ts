@@ -47,13 +47,20 @@ function initialOf(name: string): string {
 /**
  * Map the resolved Champion Contestant + its Tournament to the pure render
  * contract consumed by drawLink / drawPortrait / CrownStaticCard.
+ *
+ * `url` — 딥링크화(2026-08-29 대표 확정, marketing-instrumentation-kick.md ③):
+ * 예전엔 "worldcrown48.com" 고정이라 공유 링크·QR이 전부 홈으로만 갔다. 이제
+ * `/arena/{tournamentId}/champion` 경로를 붙인다 — 그 대회의 Crown Card 목적지
+ * 페이지(이미 구현돼 있음, app/arena/[tournamentId]/champion/page.tsx 참고)로
+ * 실제로 이동한다. UTM 부착은 채널별로 shareIntents.ts의 withShareUtm이 담당하고,
+ * 이 함수는 UTM 없는 "깨끗한" 경로만 만든다.
  */
 export function toCrownData(champion: Contestant, tournament: Tournament): CrownData {
   return {
     initial: initialOf(champion.name),
     name: champion.name,
     title: tournament.title,
-    url: "worldcrown48.com",
+    url: `worldcrown48.com/arena/${tournament.id}/champion`,
     path: VICTORY_PATH,
   };
 }

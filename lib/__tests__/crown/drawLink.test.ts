@@ -75,7 +75,9 @@ describe("drawLink (1.91:1 OG card)", () => {
     expect(qx).toBeCloseTo(1040.1, 1);
     expect(qy).toBeCloseTo(470.1, 1);
     expect(qsize).toBeCloseTo(107.1, 1);
-    expect(qurl).toBe("https://worldcrown48.com");
+    expect(qurl).toBe(
+      "https://worldcrown48.com/?utm_source=qr&utm_medium=share&utm_campaign=crown_card",
+    ); // withShareUtm(d.url, "qr") — 2026-08-29 딥링크화, marketing-instrumentation-kick.md ③
   });
 
   it("renders the gold crown glyph fallback when no image is supplied", () => {
