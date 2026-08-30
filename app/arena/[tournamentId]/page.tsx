@@ -12,7 +12,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
@@ -20,6 +20,14 @@ import { useAuthStore } from "@/lib/authStore";
 import { useVoteGate } from "@/lib/voteGate";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/useT";
+import { trackWithConsent } from "@/lib/analytics";
+import {
+  commonEventParams,
+  markTournamentStart,
+  readTournamentDurationSec,
+  resolveEntryPoint,
+  roundParam,
+} from "@/lib/analytics/funnelEvents";
 import { voteErrorMessageKey } from "@/lib/voteErrorCodes";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { LoginModal, type LoginReason } from "@/components/auth/LoginModal";
@@ -79,6 +87,58 @@ export default function ArenaPage(): JSX.Element {
 
   const { checkCanVote, onVoteSuccess } = useVoteGate();
   const progress = useRoundTransition(uid, tournamentId);
+  const isGuest = !canShare;
+
+  // ── 계측 소킥 A (2026-08-30) — 투표 퍼널 4단계 ────────────────────────────
+  // tournament_start / round_advance(48·24·12·6·final) / champion_confirmed.
+  // 전부 "실제 이 화면에서 지금 막 일어난 일"만 기록한다 — /champion 딥링크
+  // 재방문·타인의 공유 링크 열람에서는 안 찍히도록 이 페이지(투표 세션 본인)
+  // 쪽에만 붙였다. ref들은 같은 값으로 두 번 안 쏘게 막는 가드일 뿐이다.
+  const tournamentStartFiredRef = useRef<string | null>(null);
+  const roundAdvanceFiredRef = useRef<number | null>(null);
+  const championFiredRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!tournament) return;
+    if (tournamentStartFiredRef.current === tournament.id) return;
+    tournamentStartFiredRef.current = tournament.id;
+    markTournamentStart(tournament.id);
+    void trackWithConsent("tournament_start", {
+      ...commonEventParams(tournament, isGuest, lang),
+      entry_point: resolveEntryPoint(),
+    });
+  }, [tournament, isGuest, lang]);
+
+  useEffect(() => {
+    if (!tournament || !progress?.toRound || progress.complete) return;
+    if (roundAdvanceFiredRef.current === progress.toRound) return;
+    roundAdvanceFiredRef.current = progress.toRound;
+    // toRound로 전환 중이라는 건 방금 fromRound를 다 통과했다는 뜻 — round_advance는
+    // "막 완료한 라운드" 값을 보낸다.
+    const completedRound = (progress.fromRound ?? progress.toRound - 1) as RoundIndex;
+    void trackWithConsent("round_advance", {
+      ...commonEventParams(tournament, isGuest, lang),
+      round: roundParam(completedRound),
+    });
+  }, [tournament, progress?.toRound, progress?.fromRound, progress?.complete, isGuest, lang]);
+
+  useEffect(() => {
+    if (!tournament || !progress?.complete || !progress.championId) return;
+    if (championFiredRef.current === progress.championId) return;
+    championFiredRef.current = progress.championId;
+    // THE FINAL 통과도 round_advance 시퀀스의 마지막 한 걸음이라 같이 보낸다
+    // (EVENT_SPEC.md §2: "48 → 24 → 12 → 6 → FINAL").
+    void trackWithConsent("round_advance", {
+      ...commonEventParams(tournament, isGuest, lang),
+      round: "final",
+    });
+    const durationSec = readTournamentDurationSec(tournament.id);
+    void trackWithConsent("champion_confirmed", {
+      ...commonEventParams(tournament, isGuest, lang),
+      champion_id: progress.championId,
+      ...(durationSec !== null ? { duration_sec: durationSec } : {}),
+    });
+  }, [tournament, progress?.complete, progress?.championId, isGuest, lang]);
 
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -233,7 +293,7 @@ export default function ArenaPage(): JSX.Element {
       const data = toCrownData(champ, tournament);
       return (
         <div className={styles.arena} data-arena-surface="champion">
-          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} tournamentId={tournamentId} />
+          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} />
           {loginModal}
         </div>
       );

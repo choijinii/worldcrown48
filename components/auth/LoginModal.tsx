@@ -69,7 +69,16 @@ export function LoginModal({
     if (busy) return;
     setBusy(true);
     try {
-      await signInWithGoogle();
+      // 계측 소킥 A: reason을 trigger_point 버킷으로 매핑해 guest_signin_convert가
+      // "어느 화면에서 로그인했는지" 알 수 있게 한다.
+      // "share"       → Crown Card 모달의 잠금 배너에서 온 것 → "card_modal"
+      // "daily_limit" → 일일 참가 한도에 걸려 뜬 것 → "quota_limit"
+      //                 (showGoogleButton이 false라 실제론 여기까지 안 오지만,
+      //                 매핑 자체는 정확하게 맞춰 둔다)
+      // "vote"        → 투표 도중 게이트에 걸려 뜬 것 → 전용 버킷이 없어 "other"
+      const triggerPoint =
+        reason === "share" ? "card_modal" : reason === "daily_limit" ? "quota_limit" : "other";
+      await signInWithGoogle(triggerPoint);
       onSuccess?.();
       onClose();
     } catch {
