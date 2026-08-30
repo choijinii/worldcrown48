@@ -84,7 +84,7 @@ export default function ChampionPage(): JSX.Element {
     <>
       <ReturningCardBanner tournamentId={tournamentId} />
       <ModuleNav tournamentId={tournamentId} />
-      <CrownCardModal data={data} canShare={canShare} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} />
+      <CrownCardModal data={data} canShare={canShare} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} />
       <LoginModal
         isOpen={loginOpen}
         reason="share"

@@ -32,7 +32,8 @@ export function SignInButton(): JSX.Element {
     if (busy) return;
     setBusy(true);
     try {
-      await signInWithGoogle();
+      // 계측 소킥 A: 헤더/탭바에서 바로 누르는 로그인이라 trigger_point는 "header".
+      await signInWithGoogle("header");
     } catch {
       showToast(
         lang === "ko"

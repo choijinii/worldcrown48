@@ -29,7 +29,14 @@ import {
   getAuthInstance,
   getFunctionsInstance,
 } from "@/lib/firebase";
-import { PENDING_ANON_UID_KEY, useAuthStore } from "@/lib/authStore";
+import {
+  PENDING_ANON_UID_KEY,
+  PENDING_TRIGGER_POINT_KEY,
+  useAuthStore,
+  type SignInTriggerPoint,
+} from "@/lib/authStore";
+import { trackWithConsent } from "@/lib/analytics";
+import { useI18n } from "@/lib/i18n";
 import { planAuthBoot } from "@/lib/auth/providerBoot";
 import { pickLanding, RETURNING_CARD_TID_KEY, type Landing } from "@/lib/auth/landing";
 
@@ -52,12 +59,19 @@ interface LinkSessionVoteResult {
  */
 async function linkPendingVote(
   googleUid: string,
+  lang: string,
 ): Promise<{ landing: Landing | null }> {
   if (typeof window === "undefined") return { landing: null };
   const pendingAnonUid = sessionStorage.getItem(PENDING_ANON_UID_KEY);
   if (!pendingAnonUid || pendingAnonUid === googleUid) {
     return { landing: null };
   }
+  // 계측 소킥 A (2026-08-30): "어느 화면에서 로그인을 눌렀는지" — authStore가
+  // 로그인 시도 시점에 적어둔 값을 그대로 읽는다. 값이 없으면(구버전 세션 등)
+  // "other"로 둔다.
+  const triggerPoint =
+    (sessionStorage.getItem(PENDING_TRIGGER_POINT_KEY) as SignInTriggerPoint | null) ??
+    "other";
 
   try {
     const callable = httpsCallable<{ anonUid: string }, LinkSessionVoteResult>(
@@ -66,6 +80,16 @@ async function linkPendingVote(
       { timeout: LINK_SESSION_VOTE_TIMEOUT_MS },
     );
     const res = await callable({ anonUid: pendingAnonUid });
+    // guest_signin_convert (EVENT_SPEC.md §6) — 게스트 세션이 로그인 계정으로
+    // 연결된 순간. tournament_id는 일부러 생략한다: 게스트 런 하나가 여러
+    // 대회에 걸쳐 있을 수 있어(res.data.tournaments가 배열) 이 시점에 하나로
+    // 특정할 수 없다 — EVENT_SPEC 문서 자체도 이 이벤트만 공통 파라미터 표기가
+    // 없다.
+    void trackWithConsent("guest_signin_convert", {
+      is_guest: false,
+      lang,
+      trigger_point: triggerPoint,
+    });
     return { landing: pickLanding(res.data.tournaments) };
   } catch (err) {
     // Per acceptance §4-6 #4: the pending key is cleared below so a later
@@ -77,12 +101,14 @@ async function linkPendingVote(
     return { landing: null };
   } finally {
     sessionStorage.removeItem(PENDING_ANON_UID_KEY);
+    sessionStorage.removeItem(PENDING_TRIGGER_POINT_KEY);
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();
+  const { lang } = useI18n();
   // 페이지 로드당 1회인 일회성 호출만 기억한다. 재마운트를 넘어 살아남아야 하므로
   // state가 아니라 ref다 — 그리고 **그것만** 감싼다(providerBoot 머리주석).
   const redirectReadRef = useRef(false);
@@ -113,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     const unsub = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user && !user.isAnonymous) {
-        void linkPendingVote(user.uid).then(({ landing }) => {
+        void linkPendingVote(user.uid, lang).then(({ landing }) => {
           // W6: a completed Guest Run lands on the shareable Crown Card page;
           // a mid-progress transfer stays put and continues in place (AC5).
           if (!landing) return;
