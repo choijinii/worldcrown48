@@ -11,15 +11,13 @@
  * utm_source만 채널별로 갈아끼운다(X="x", 네이티브 공유 시트="share_sheet").
  * EVENT_SPEC.md "유입 출처 비중 = utm_medium share/owned 비중" 요건과 정합.
  *
- * UTM_RULES v1.0 반영(2026-08-31 대표 확정, marketing/UTM_RULES_v1.0.md):
- * utm_campaign을 전 채널 고정값(crown_card)에서 "어느 토너먼트에서 나온
- * 공유인지" 구분되게 바꾼다. 마케팅 문서엔 4개 런칭 대회의 "슬러그" 이름이
- * 적혀 있지만, 그 이름들이 실제 Firestore 대회 문서 ID와 연결된 근거가
- * 코드·데이터 어디에도 없어(2026-08-31 티오 확인 — Tournament 타입 자체에
- * slug 필드가 없음) 지금은 대회 ID를 그대로 campaign 값으로 쓴다.
- * TOURNAMENT_SLUGS에 실제 "대회ID → 마케팅 슬러그" 매칭을 채워 넣으면 그
- * 값이 우선 적용된다 — 대표 확인 후 채워 넣을 자리(빈 채로 둬도 안전하게
- * 대회 ID로 폴백한다). utm_content=crown_card는 신설 항목.
+ * UTM_RULES v1.0 반영(marketing/00_strategy/UTM_RULES_v1.0.md · 마케팅 2026-08-28,
+ * 대표 승인 2026-08-31 A안): utm_campaign은 전 채널 고정값(crown_card)이 아니라
+ * "어느 토너먼트에서 나온 공유인지"를 말하는 값이다 — 편집기에서 입력한 캠페인
+ * 이름표(Tournament.campaignSlug, 예: best_stage_48), 없으면 대회 ID 정규화값,
+ * 토너먼트 밖 공유는 "site". 값은 championLoader.toCrownData가 CrownData.campaign
+ * 으로 한 번만 계산하고, 이 모듈은 받은 값을 그대로 붙인다(URL 문자열에서
+ * 대회 ID를 다시 뽑지 않는다). utm_content=crown_card는 소재 구분용 신설 항목.
  */
 
 /** Campaign hashtag appended to every Champion tweet. */
@@ -31,36 +29,21 @@ export const CROWN_SHARE_UTM = { medium: "share" } as const;
 /** utm_content — 소재 구분, 크라운 카드 공유는 전 채널 공통. */
 const CROWN_SHARE_CONTENT = "crown_card";
 
-/**
- * 실제 대회 ID → 마케팅 확정 슬러그. 지금은 비어 있다 — 대표님이 확인해주신
- * "대회ID / 이름" 대응표를 채우면 그 값이 utm_campaign에 그대로 쓰인다.
- * 예: "AbCdEf123456": "best_stage_48",
- */
-export const TOURNAMENT_SLUGS: Record<string, string> = {};
+/** utm_campaign for shares made outside any Tournament (UTM_RULES v1.0 §1). */
+export const SITE_CAMPAIGN = "site";
 
 /**
- * `hostUrl`(예: "worldcrown48.com/arena/{tournamentId}/champion")에서
- * 대회 ID를 뽑아 utm_campaign 값을 만든다. 대회 경로가 아니면(토너먼트 밖
- * 공유) UTM_RULES v1.0 §1의 "site"로 떨어진다.
+ * Append the Crown Card share UTM parameters to `hostUrl` (a bare host or
+ * host+path like "worldcrown48.com/arena/{id}/champion", no protocol) so GA can
+ * attribute traffic. `source` identifies the channel ("x" for the X intent,
+ * "share_sheet" for the native Web Share sheet); `campaign` is the Tournament's
+ * campaign value from CrownData.campaign — omit it only for 토너먼트 밖 공유.
  */
-function campaignFor(hostUrl: string): string {
-  const match = hostUrl.match(/\/arena\/([^/]+)\/champion/);
-  if (!match) return "site";
-  const tournamentId = match[1];
-  return TOURNAMENT_SLUGS[tournamentId] ?? tournamentId;
-}
-
-/**
- * Append the Crown Card share campaign's UTM parameters to `hostUrl` (a bare
- * host like "worldcrown48.com", no protocol) so GA can attribute traffic to
- * the channel it came from. `source` identifies the channel (e.g. "x" for the
- * X intent, "share_sheet" for the native Web Share sheet).
- */
-export function withShareUtm(hostUrl: string, source: string): string {
+export function withShareUtm(hostUrl: string, source: string, campaign: string = SITE_CAMPAIGN): string {
   const url = new URL(`https://${hostUrl}`);
   url.searchParams.set("utm_source", source);
   url.searchParams.set("utm_medium", CROWN_SHARE_UTM.medium);
-  url.searchParams.set("utm_campaign", campaignFor(hostUrl));
+  url.searchParams.set("utm_campaign", campaign || SITE_CAMPAIGN);
   url.searchParams.set("utm_content", CROWN_SHARE_CONTENT);
   return url.toString();
 }
@@ -76,10 +59,14 @@ export interface ShareCapableNavigator {
  * percent-encoded by URLSearchParams, so a name containing `&` or `#` can never
  * break out into another query parameter.
  */
-export function buildTweetIntent(championName: string, hostUrl: string): string {
+export function buildTweetIntent(
+  championName: string,
+  hostUrl: string,
+  campaign: string = SITE_CAMPAIGN,
+): string {
   const params = new URLSearchParams({
     text: `${championName} is my Champion 👑 ${TWEET_HASHTAG}`,
-    url: withShareUtm(hostUrl, "x"),
+    url: withShareUtm(hostUrl, "x", campaign),
   });
   return `https://twitter.com/intent/tweet?${params.toString()}`;
 }

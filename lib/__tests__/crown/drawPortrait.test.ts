@@ -18,6 +18,7 @@ const D: CrownData = {
   title: "Strikers of the Century",
   url: "worldcrown48.com",
   path: "48 → 24 → 12 → 6 → THE FINAL",
+  campaign: "site",
 };
 
 function expectText(ctx: ReturnType<typeof createRecordingCtx>, text: string, x: number, y: number) {

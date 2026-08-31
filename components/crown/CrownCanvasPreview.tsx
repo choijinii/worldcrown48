@@ -92,7 +92,7 @@ export async function nativeShareCrown(
         files: [file],
         title: "My WorldCrown48 Champion",
         text: `${data.name} · Champion 👑 worldcrown48.com`,
-        url: withShareUtm(data.url, "share_sheet"),
+        url: withShareUtm(data.url, "share_sheet", data.campaign),
       });
       return "shared";
     } catch {
@@ -106,7 +106,7 @@ export async function nativeShareCrown(
 /** Open the X intent in a new tab and save the Link PNG to attach (AC-7, wireframe shareX). */
 export async function shareCrownToX(data: CrownData, img: HTMLImageElement | null): Promise<void> {
   if (typeof window !== "undefined") {
-    window.open(buildTweetIntent(data.name, data.url), "_blank", "noopener");
+    window.open(buildTweetIntent(data.name, data.url, data.campaign), "_blank", "noopener");
   }
   await downloadCrown("link", data, img);
 }
@@ -121,12 +121,12 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
   // Depend on the rendered fields, not the `data` object identity — toCrownData
   // builds a fresh object every parent render, which would otherwise repaint the
   // canvas on every unrelated re-render (path is not drawn, so it's excluded).
-  const { initial, name, title, url } = data;
+  const { initial, name, title, url, campaign } = data;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const d: CrownData = { initial, name, title, url, path: "" };
+    const d: CrownData = { initial, name, title, url, path: "", campaign };
     const img = loadCrownImage();
     let raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     // Re-render once the crown SVG finishes loading so it replaces the glyph.

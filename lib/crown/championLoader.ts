@@ -11,6 +11,7 @@
  * no other module hard-codes either name. Pure logic — node-env vitest (§11.2).
  */
 import type { Contestant, Tournament } from "@/lib/types/tournament";
+import { campaignForTournament } from "@/lib/lab/campaignSlugValidation";
 import type { CrownData } from "./formats";
 
 /** The slice of roundProgress this loader reads (mirrors C-1's RoundProgressEvent). */
@@ -54,6 +55,11 @@ function initialOf(name: string): string {
  * 페이지(이미 구현돼 있음, app/arena/[tournamentId]/champion/page.tsx 참고)로
  * 실제로 이동한다. UTM 부착은 채널별로 shareIntents.ts의 withShareUtm이 담당하고,
  * 이 함수는 UTM 없는 "깨끗한" 경로만 만든다.
+ *
+ * `campaign` — UTM_RULES v1.0(marketing/00_strategy/UTM_RULES_v1.0.md, 대표 승인
+ * 2026-08-31 A안): 공유 링크의 utm_campaign은 이 대회의 캠페인 이름표
+ * (campaignSlug)이고, 이름표가 없는 대회(2026-08-31 이전 생성분)는 대회 ID를
+ * 정규화한 값이다. 카드 그림에는 안 그려지고 공유 링크에만 쓰인다.
  */
 export function toCrownData(champion: Contestant, tournament: Tournament): CrownData {
   return {
@@ -62,5 +68,6 @@ export function toCrownData(champion: Contestant, tournament: Tournament): Crown
     title: tournament.title,
     url: `worldcrown48.com/arena/${tournament.id}/champion`,
     path: VICTORY_PATH,
+    campaign: campaignForTournament(tournament),
   };
 }

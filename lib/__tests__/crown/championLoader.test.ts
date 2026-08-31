@@ -67,7 +67,13 @@ describe("toCrownData", () => {
       title: "Strikers of the Century",
       url: "worldcrown48.com/arena/t1/champion",
       path: "48 → 24 → 12 → 6 → THE FINAL",
+      campaign: "t1",
     });
+  });
+
+  it("campaign = the Tournament's campaignSlug when set, else its normalized id (UTM_RULES v1.0 A안, 2026-08-31)", () => {
+    expect(toCrownData(CHAMPION, { ...TOURNAMENT, campaignSlug: "best_stage_48" }).campaign).toBe("best_stage_48");
+    expect(toCrownData(CHAMPION, { ...TOURNAMENT, id: "FbzCreuLSW4l7u0VUsKs" }).campaign).toBe("fbzcreulsw4l7u0vusks");
   });
 
   it("uppercases the first letter for the initial fallback", () => {

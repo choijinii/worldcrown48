@@ -23,9 +23,16 @@ describe("buildTweetIntent", () => {
     expect(shareUrl.origin + shareUrl.pathname).toBe("https://worldcrown48.com/");
     expect(shareUrl.searchParams.get("utm_source")).toBe("x");
     expect(shareUrl.searchParams.get("utm_medium")).toBe("share");
-    // 대회 경로(/arena/{id}/champion)가 없는 호스트는 "토너먼트 밖 공유"로 취급 → site
+    // campaign을 안 넘기면 "토너먼트 밖 공유" → site (UTM_RULES v1.0 §1)
     expect(shareUrl.searchParams.get("utm_campaign")).toBe("site");
     expect(shareUrl.searchParams.get("utm_content")).toBe("crown_card");
+  });
+
+  it("carries the Tournament campaign (CrownData.campaign) into utm_campaign (UTM_RULES v1.0 A안, 2026-08-31)", () => {
+    const url = new URL(buildTweetIntent("Yuki", "worldcrown48.com/arena/t1/champion", "best_stage_48"));
+    const shareUrl = new URL(url.searchParams.get("url")!);
+    expect(shareUrl.pathname).toBe("/arena/t1/champion");
+    expect(shareUrl.searchParams.get("utm_campaign")).toBe("best_stage_48");
   });
 
   it("escapes special characters in the champion name (no intent injection)", () => {
@@ -37,7 +44,7 @@ describe("buildTweetIntent", () => {
 });
 
 describe("withShareUtm", () => {
-  it("appends utm_source/medium/campaign/content to a bare host (no /arena/ path → campaign=site)", () => {
+  it("appends utm_source/medium/campaign/content to a bare host (no campaign given → site)", () => {
     const url = withShareUtm("worldcrown48.com", "share_sheet");
     const parsed = new URL(url);
     expect(parsed.origin + parsed.pathname).toBe("https://worldcrown48.com/");
@@ -57,10 +64,12 @@ describe("withShareUtm", () => {
     expect(x.searchParams.get("utm_content")).toBe(sheet.searchParams.get("utm_content"));
   });
 
-  it("uses the tournament id from an /arena/{id}/champion path as utm_campaign (2026-08-31 UTM_RULES v1.0 — 마케팅 슬러그 미검증 상태의 안전한 기본값)", () => {
-    const url = withShareUtm("worldcrown48.com/arena/AbCd1234/champion", "qr");
-    const parsed = new URL(url);
-    expect(parsed.searchParams.get("utm_campaign")).toBe("AbCd1234");
+  it("uses the given campaign verbatim and never re-derives it from the URL (2026-08-31 A안 — 대회 ID 파싱 방식 폐기)", () => {
+    const parsed = new URL(withShareUtm("worldcrown48.com/arena/AbCd1234/champion", "share_sheet", "gen4_idol_48"));
+    expect(parsed.searchParams.get("utm_campaign")).toBe("gen4_idol_48");
+    // 빈 문자열은 site로 눌러 둔다 — utm_campaign이 빈 값으로 나가는 일이 없도록.
+    const empty = new URL(withShareUtm("worldcrown48.com/arena/AbCd1234/champion", "share_sheet", ""));
+    expect(empty.searchParams.get("utm_campaign")).toBe("site");
   });
 });
 

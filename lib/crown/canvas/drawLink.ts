@@ -10,7 +10,7 @@
  * node-canvas (server OG PNG).
  *
  * QR 제거(2026-08-31 대표 확정): 카드 본체 안에 QR을 넣지 않기로 정책이
- * 바뀌었다 — marketing/UTM_RULES_v1.0.md와 WC48 Card Mockup 문서가 독립적으로
+ * 바뀌었다 — marketing/00_strategy/UTM_RULES_v1.0.md와 WC48 Card Mockup 문서가 독립적으로
  * 같은 결론(QR은 카드 이미지 밖에서만)을 냈고, 대표님이 "아예 삭제"로
  * 최종 확정했다. 이전엔 QrDrawer를 주입받아 bottom-right에 그렸으나, 이제
  * 이 렌더러는 QR을 전혀 그리지 않는다.

@@ -110,6 +110,24 @@ describe("buildTournamentDoc", () => {
       buildTournamentDoc({ ...validInput, deadlineMs: NOW - 1 }, VALID_IDS, NOW),
     ).toThrow();
   });
+
+  describe("캠페인 이름표 — UTM_RULES v1.0 A안 (2026-08-31, 추가형·선택)", () => {
+    it("stores campaignSlug when the host set one", () => {
+      const doc = buildTournamentDoc({ ...validInput, campaignSlug: "best_stage_48" }, VALID_IDS, NOW);
+      expect(doc.campaignSlug).toBe("best_stage_48");
+    });
+
+    it("omits the field entirely when blank (Firestore rejects undefined; pre-08-31 docs stay shape-identical)", () => {
+      expect("campaignSlug" in buildTournamentDoc(validInput, VALID_IDS, NOW)).toBe(false);
+      expect("campaignSlug" in buildTournamentDoc({ ...validInput, campaignSlug: "  " }, VALID_IDS, NOW)).toBe(false);
+    });
+
+    it("rejects a slug that breaks UTM_RULES §2 (uppercase / spaces) — never pollutes utm_campaign", () => {
+      expect(() =>
+        buildTournamentDoc({ ...validInput, campaignSlug: "Best Stage 48" }, VALID_IDS, NOW),
+      ).toThrow();
+    });
+  });
 });
 
 describe("buildContestantDocs", () => {

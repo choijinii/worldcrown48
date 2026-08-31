@@ -250,6 +250,20 @@ export const MESSAGES = {
     es: "No se pudieron cargar las categorías",
   },
 
+  // 캠페인 이름표 (UTM_RULES v1.0 A안, 대표 승인 2026-08-31) — 문구 대표 확정본
+  "lab.campaignSlug.label": { ko: "캠페인 이름표", en: "Campaign tag", es: "Etiqueta de campaña" },
+  "lab.campaignSlug.optional": { ko: "선택", en: "optional", es: "opcional" },
+  "lab.campaignSlug.placeholder": {
+    ko: "예: best_stage_48",
+    en: "e.g. best_stage_48",
+    es: "ej. best_stage_48",
+  },
+  "lab.campaignSlug.hint": {
+    ko: "공유 링크의 유입 추적(utm_campaign)에 들어가는 이름입니다. 소문자 영문·숫자·밑줄(_)만 쓰이며, 비워 두면 대회 ID를 소문자로 사용합니다.",
+    en: "Used as utm_campaign in share links for traffic tracking. Lowercase letters, digits and underscores only; leave blank to use the lowercase Tournament ID.",
+    es: "Se usa como utm_campaign en los enlaces compartidos. Solo minúsculas, dígitos y guiones bajos; en blanco se usa el ID del Tournament en minúsculas.",
+  },
+
   "lab.description.label": { ko: "설명", en: "Description", es: "Descripción" },
   "lab.description.optional": { ko: "선택", en: "optional", es: "opcional" },
   "lab.description.placeholder": {
