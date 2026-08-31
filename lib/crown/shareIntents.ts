@@ -7,18 +7,48 @@
  * branch are unit-testable (handoff §11.2 — AC-7, AC-8).
  *
  * UTM 자동 부착(2026-08-29 대표 확정, marketing-instrumentation-kick.md 묶음②):
- * 크라운 카드에서 나가는 모든 공유 링크에 utm_medium=share·utm_campaign=crown_card를
- * 붙이고, utm_source만 채널별로 갈아끼운다(X="x", 네이티브 공유 시트="share_sheet").
+ * 크라운 카드에서 나가는 모든 공유 링크에 utm_medium=share를 붙이고,
+ * utm_source만 채널별로 갈아끼운다(X="x", 네이티브 공유 시트="share_sheet").
  * EVENT_SPEC.md "유입 출처 비중 = utm_medium share/owned 비중" 요건과 정합.
- * 화면에 보이는 카드 이미지(QR·"WorldCrown48.com" 문구)는 건드리지 않는다 — 그건
- * 별도 소킥(딥링크화)의 몫이라 지금은 손대지 않는다.
+ *
+ * UTM_RULES v1.0 반영(2026-08-31 대표 확정, marketing/UTM_RULES_v1.0.md):
+ * utm_campaign을 전 채널 고정값(crown_card)에서 "어느 토너먼트에서 나온
+ * 공유인지" 구분되게 바꾼다. 마케팅 문서엔 4개 런칭 대회의 "슬러그" 이름이
+ * 적혀 있지만, 그 이름들이 실제 Firestore 대회 문서 ID와 연결된 근거가
+ * 코드·데이터 어디에도 없어(2026-08-31 티오 확인 — Tournament 타입 자체에
+ * slug 필드가 없음) 지금은 대회 ID를 그대로 campaign 값으로 쓴다.
+ * TOURNAMENT_SLUGS에 실제 "대회ID → 마케팅 슬러그" 매칭을 채워 넣으면 그
+ * 값이 우선 적용된다 — 대표 확인 후 채워 넣을 자리(빈 채로 둬도 안전하게
+ * 대회 ID로 폴백한다). utm_content=crown_card는 신설 항목.
  */
 
 /** Campaign hashtag appended to every Champion tweet. */
 export const TWEET_HASHTAG = "#WorldCrown48";
 
-/** utm_medium/utm_campaign shared by every Crown Card share channel — only utm_source varies. */
-export const CROWN_SHARE_UTM = { medium: "share", campaign: "crown_card" } as const;
+/** utm_medium shared by every Crown Card share channel — only utm_source varies. */
+export const CROWN_SHARE_UTM = { medium: "share" } as const;
+
+/** utm_content — 소재 구분, 크라운 카드 공유는 전 채널 공통. */
+const CROWN_SHARE_CONTENT = "crown_card";
+
+/**
+ * 실제 대회 ID → 마케팅 확정 슬러그. 지금은 비어 있다 — 대표님이 확인해주신
+ * "대회ID / 이름" 대응표를 채우면 그 값이 utm_campaign에 그대로 쓰인다.
+ * 예: "AbCdEf123456": "best_stage_48",
+ */
+export const TOURNAMENT_SLUGS: Record<string, string> = {};
+
+/**
+ * `hostUrl`(예: "worldcrown48.com/arena/{tournamentId}/champion")에서
+ * 대회 ID를 뽑아 utm_campaign 값을 만든다. 대회 경로가 아니면(토너먼트 밖
+ * 공유) UTM_RULES v1.0 §1의 "site"로 떨어진다.
+ */
+function campaignFor(hostUrl: string): string {
+  const match = hostUrl.match(/\/arena\/([^/]+)\/champion/);
+  if (!match) return "site";
+  const tournamentId = match[1];
+  return TOURNAMENT_SLUGS[tournamentId] ?? tournamentId;
+}
 
 /**
  * Append the Crown Card share campaign's UTM parameters to `hostUrl` (a bare
@@ -30,7 +60,8 @@ export function withShareUtm(hostUrl: string, source: string): string {
   const url = new URL(`https://${hostUrl}`);
   url.searchParams.set("utm_source", source);
   url.searchParams.set("utm_medium", CROWN_SHARE_UTM.medium);
-  url.searchParams.set("utm_campaign", CROWN_SHARE_UTM.campaign);
+  url.searchParams.set("utm_campaign", campaignFor(hostUrl));
+  url.searchParams.set("utm_content", CROWN_SHARE_CONTENT);
   return url.toString();
 }
 

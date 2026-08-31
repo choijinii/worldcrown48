@@ -6,13 +6,12 @@
  * renderer serves both portrait formats (story 1080×1920, feed 1080×1350) — the
  * layout is expressed in fractions of W/H. Photo fills ~90% of the card with the
  * champion initial + a bottom scrim caption (CHAMPION / name / title / tagline /
- * url), a hero crown straddling the top edge, and a scannable QR bottom-right.
+ * url) and a hero crown straddling the top edge.
  *
- * Isomorphic (browser canvas + node-canvas). QR drawer injected so this module
- * carries no qrcode-generator dependency (see drawLink.ts).
+ * Isomorphic (browser canvas + node-canvas).
  *
- * 딥링크화(2026-08-29 대표 확정, marketing-instrumentation-kick.md ③) — QR 타깃
- * 규칙은 drawLink.ts와 동일: d.url + utm_source=qr. 화면 문구는 무변경.
+ * QR 제거(2026-08-31 대표 확정): drawLink.ts와 동일한 이유로 카드 본체에서
+ * QR을 뺐다 — 상세 사유는 drawLink.ts 헤더 참고.
  */
 import {
   bg,
@@ -31,10 +30,6 @@ import {
   type CrownImage,
 } from "./primitives";
 import type { CrownData } from "../formats";
-import type { QrDrawer } from "./drawLink";
-import { withShareUtm } from "../shareIntents";
-
-const noopQr: QrDrawer = () => {};
 
 export function drawPortrait(
   ctx: Canvas2D,
@@ -42,7 +37,6 @@ export function drawPortrait(
   H: number,
   d: CrownData,
   img: CrownImage,
-  qr: QrDrawer = noopQr,
 ): void {
   bg(ctx, W, H, H * 0.42);
   const pad = W * 0.05;
@@ -132,10 +126,6 @@ export function drawPortrait(
 
   // global-tournament badge — fixed gap below the crown's bottom edge
   drawBadge(ctx, cx, crownTop + cs + W * 0.05, W * 0.044, "WORLD'S TOP 10 · MY PICK");
-
-  // scannable mini QR, bottom-right
-  const qrs = pw * 0.15;
-  qr(ctx, px + pw - qrs - W * 0.028, py + ph - qrs - W * 0.028, qrs, withShareUtm(d.url, "qr"));
 
   // crown layer ON TOP of the photo, straddling its top edge
   crownHero(ctx, cx, cyCrown, cs, img);

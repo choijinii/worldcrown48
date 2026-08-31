@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { drawPortrait } from "@/lib/crown/canvas/drawPortrait";
 import { GOLD, TEXT, SUB } from "@/lib/crown/canvas/primitives";
 import { createRecordingCtx } from "./recordingCtx";
@@ -69,22 +69,8 @@ describe("drawPortrait (9:16 story · 1080×1920)", () => {
     expectText(ctx, "A", 540, 667.362);
   });
 
-  it("places the QR bottom-right inside the photo, pointing at worldcrown48.com", () => {
-    const ctx = createRecordingCtx();
-    const qr = vi.fn();
-    drawPortrait(ctx, W, H, D, null, qr);
-    expect(qr).toHaveBeenCalledTimes(1);
-    const [, qx, qy, qsize, qurl] = qr.mock.calls[0];
-    // pad=54; innerW=972; pw=innerW*0.95=923.4; px=cx-pw/2=78.3
-    // qrs=pw*0.15=138.51 ; x=px+pw-qrs-W*0.028=78.3+923.4-138.51-30.24=832.95
-    // y=py+ph-qrs-W*0.028=99.3+1721.4-138.51-30.24=1651.95
-    expect(qx).toBeCloseTo(832.95, 1);
-    expect(qy).toBeCloseTo(1651.95, 1);
-    expect(qsize).toBeCloseTo(138.51, 1);
-    expect(qurl).toBe(
-      "https://worldcrown48.com/?utm_source=qr&utm_medium=share&utm_campaign=crown_card",
-    ); // withShareUtm(d.url, "qr") — 2026-08-29 딥링크화, marketing-instrumentation-kick.md ③
-  });
+  // QR 제거(2026-08-31 대표 확정): drawPortrait는 이제 qr 파라미터 자체가 없다 —
+  // 타입 시그니처에서 빠졌으므로 컴파일이 이를 보장한다. 별도 런타임 테스트 불필요.
 
   it("renders the gold crown glyph fallback when no image is supplied", () => {
     const ctx = createRecordingCtx();
