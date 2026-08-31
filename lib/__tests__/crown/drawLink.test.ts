@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { drawLink } from "@/lib/crown/canvas/drawLink";
 import { GOLD, TEXT } from "@/lib/crown/canvas/primitives";
 import { createRecordingCtx } from "./recordingCtx";
@@ -20,6 +20,7 @@ const D: CrownData = {
   title: "Strikers of the Century",
   url: "worldcrown48.com",
   path: "48 → 24 → 12 → 6 → THE FINAL",
+  campaign: "site",
 };
 
 /** Assert a fillText for `text` landed at (x, y) within ±2px. */
@@ -65,20 +66,8 @@ describe("drawLink (1.91:1 OG card)", () => {
     expect(url.fillStyle).toBe(TEXT);
   });
 
-  it("draws the QR bottom-right at (1040.1, 470.1) size 107.1 pointing at worldcrown48.com", () => {
-    const ctx = createRecordingCtx();
-    const qr = vi.fn();
-    drawLink(ctx, W, H, D, null, qr);
-    expect(qr).toHaveBeenCalledTimes(1);
-    const [, qx, qy, qsize, qurl] = qr.mock.calls[0];
-    // qrs = H*0.17 = 107.1 ; x = rRight - qrs = 1147.2-107.1 ; y = H-pad-m-qrs
-    expect(qx).toBeCloseTo(1040.1, 1);
-    expect(qy).toBeCloseTo(470.1, 1);
-    expect(qsize).toBeCloseTo(107.1, 1);
-    expect(qurl).toBe(
-      "https://worldcrown48.com/?utm_source=qr&utm_medium=share&utm_campaign=crown_card",
-    ); // withShareUtm(d.url, "qr") — 2026-08-29 딥링크화, marketing-instrumentation-kick.md ③
-  });
+  // QR 제거(2026-08-31 대표 확정): drawLink는 이제 qr 파라미터 자체가 없다 —
+  // 타입 시그니처에서 빠졌으므로 컴파일이 이를 보장한다. 별도 런타임 테스트 불필요.
 
   it("renders the gold crown glyph fallback when no image is supplied", () => {
     const ctx = createRecordingCtx();

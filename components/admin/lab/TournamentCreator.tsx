@@ -87,6 +87,7 @@ import { SourcingQuotaDialog } from "./SourcingQuotaDialog";
 import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
 import { SlotVideoTuner } from "./SlotVideoTuner";
 import { TitleInput } from "./TitleInput";
+import { CampaignSlugInput } from "./CampaignSlugInput";
 import { CategorySelect } from "./CategorySelect";
 import { DescriptionInput } from "./DescriptionInput";
 import { KeywordChips } from "./KeywordChips";
@@ -142,6 +143,7 @@ export function TournamentCreator(): JSX.Element {
   const [categories, setCategories] = useState<CategoryDoc[]>([]);
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [campaignSlug, setCampaignSlug] = useState("");
   // Stable reference "now" for this create session (presets + gate use it).
   const [nowMs] = useState(() => Date.now());
   const [deadlineMs, setDeadlineMs] = useState(() =>
@@ -689,6 +691,7 @@ export function TournamentCreator(): JSX.Element {
             category,
             hostUid: uid,
             deadlineMs,
+            campaignSlug,
           },
           validCategoryIds,
           nowMs,
@@ -711,6 +714,7 @@ export function TournamentCreator(): JSX.Element {
       setCategory("");
       setDescription("");
       setKeywords([]);
+      setCampaignSlug("");
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
       setContestants([]);
       setSourcingStates({});
@@ -757,6 +761,7 @@ export function TournamentCreator(): JSX.Element {
       {step === 1 && (
         <div style={{ display: "grid", gap: 20 }}>
           <TitleInput value={title} onChange={setTitle} />
+          <CampaignSlugInput value={campaignSlug} onChange={setCampaignSlug} />
           <CategorySelect
             value={category}
             onChange={setCategory}

@@ -14,6 +14,7 @@ import { isValidCategory } from "@/lib/lab/categories";
 import { validateTitle } from "@/lib/lab/titleValidation";
 import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
+import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import type { ContestantMedia } from "@/lib/media/mediaSlot";
 import {
@@ -37,6 +38,11 @@ export interface TournamentInput {
   hostUid: string;
   /** Chosen deadline as epoch ms — must be strictly in the future. */
   deadlineMs: number;
+  /**
+   * 캠페인 이름표(선택). 입력칸이 이미 정규화한 값이 오지만 여기서 한 번 더
+   * 검증한다 — 규칙 위반 값은 Tournament를 만들지 않는다(utm_campaign 오염 방지).
+   */
+  campaignSlug?: string;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -98,6 +104,10 @@ export function buildTournamentDoc(
   if (!deadline.isValid) {
     throw new Error("Tournament Deadline은 미래 시각이어야 합니다.");
   }
+  const slug = validateCampaignSlug(input.campaignSlug ?? "");
+  if (!slug.isValid) {
+    throw new Error("캠페인 이름표는 소문자 영문·숫자·밑줄(_)만 쓸 수 있습니다.");
+  }
 
   return {
     title: title.value,
@@ -114,6 +124,8 @@ export function buildTournamentDoc(
     totalContestants: TOTAL_CONTESTANTS,
     settings: { aiNews: false, multiLang: false, showRanking: true },
     featured: false,
+    // Firestore rejects undefined — carry the field only when the host set one.
+    ...(slug.isEmpty ? {} : { campaignSlug: slug.value }),
   };
 }
 

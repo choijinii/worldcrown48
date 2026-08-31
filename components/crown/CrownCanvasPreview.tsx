@@ -15,7 +15,6 @@ import { useEffect, useRef } from "react";
 import { FORMATS, type FormatKey, type CrownData } from "@/lib/crown/formats";
 import { drawLink } from "@/lib/crown/canvas/drawLink";
 import { drawPortrait } from "@/lib/crown/canvas/drawPortrait";
-import { drawQR } from "@/lib/crown/canvas/drawQR";
 import type { Canvas2D } from "@/lib/crown/canvas/primitives";
 import { crownFileName } from "@/lib/crown/slug";
 import { buildTweetIntent, canShareFiles, withShareUtm, type ShareCapableNavigator } from "@/lib/crown/shareIntents";
@@ -47,8 +46,8 @@ export function paintCrown(
   // only the common subset; the browser type is wider — incl. CanvasPattern).
   const ctx = canvas.getContext("2d") as unknown as Canvas2D | null;
   if (!ctx) return;
-  if (fmt === "link") drawLink(ctx, F.w, F.h, data, img, drawQR);
-  else drawPortrait(ctx, F.w, F.h, data, img, drawQR);
+  if (fmt === "link") drawLink(ctx, F.w, F.h, data, img);
+  else drawPortrait(ctx, F.w, F.h, data, img);
 }
 
 /** Render `fmt` off-screen and resolve a PNG blob. */
@@ -93,7 +92,7 @@ export async function nativeShareCrown(
         files: [file],
         title: "My WorldCrown48 Champion",
         text: `${data.name} · Champion 👑 worldcrown48.com`,
-        url: withShareUtm(data.url, "share_sheet"),
+        url: withShareUtm(data.url, "share_sheet", data.campaign),
       });
       return "shared";
     } catch {
@@ -107,7 +106,7 @@ export async function nativeShareCrown(
 /** Open the X intent in a new tab and save the Link PNG to attach (AC-7, wireframe shareX). */
 export async function shareCrownToX(data: CrownData, img: HTMLImageElement | null): Promise<void> {
   if (typeof window !== "undefined") {
-    window.open(buildTweetIntent(data.name, data.url), "_blank", "noopener");
+    window.open(buildTweetIntent(data.name, data.url, data.campaign), "_blank", "noopener");
   }
   await downloadCrown("link", data, img);
 }
@@ -122,12 +121,12 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
   // Depend on the rendered fields, not the `data` object identity — toCrownData
   // builds a fresh object every parent render, which would otherwise repaint the
   // canvas on every unrelated re-render (path is not drawn, so it's excluded).
-  const { initial, name, title, url } = data;
+  const { initial, name, title, url, campaign } = data;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const d: CrownData = { initial, name, title, url, path: "" };
+    const d: CrownData = { initial, name, title, url, path: "", campaign };
     const img = loadCrownImage();
     let raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     // Re-render once the crown SVG finishes loading so it replaces the glyph.

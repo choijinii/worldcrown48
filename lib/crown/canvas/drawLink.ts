@@ -4,19 +4,16 @@
  * Ported verbatim from the wireframe truth source
  * (docs/design/wireframes/Domain 3 · The Arena.html line 1252-1296).
  * Layout: left photo square with the champion initial, right column with a
- * gold crown above the name/title/tagline/url, and a scannable QR bottom-right.
+ * gold crown above the name/title/tagline/url.
  *
  * Isomorphic: runs against the browser canvas (client preview / download) and
- * node-canvas (server OG PNG). The QR drawer is injected so this module carries
- * no `qrcode-generator` dependency — Phase 2's drawQR.ts supplies the real one;
- * tests inject a spy; the default is a no-op (matches the wireframe, whose QR is
- * a guarded no-op until the CDN script loads).
+ * node-canvas (server OG PNG).
  *
- * 딥링크화(2026-08-29 대표 확정, marketing-instrumentation-kick.md ③): QR이
- * 가리키는 곳은 이제 `d.url`(그 대회의 Crown Card 페이지, championLoader 참고)에
- * utm_source=qr을 붙인 주소다 — 예전엔 "https://worldcrown48.com" 고정이었다.
- * 화면에 보이는 "WorldCrown48.com" 글자는 브랜드 표기라 그대로 둔다(화면 문구
- * 변경 아님 — QR은 스캔하는 것이지 읽는 게 아니라서 승인 게이트 대상이 아니다).
+ * QR 제거(2026-08-31 대표 확정): 카드 본체 안에 QR을 넣지 않기로 정책이
+ * 바뀌었다 — marketing/00_strategy/UTM_RULES_v1.0.md와 WC48 Card Mockup 문서가 독립적으로
+ * 같은 결론(QR은 카드 이미지 밖에서만)을 냈고, 대표님이 "아예 삭제"로
+ * 최종 확정했다. 이전엔 QrDrawer를 주입받아 bottom-right에 그렸으나, 이제
+ * 이 렌더러는 QR을 전혀 그리지 않는다.
  */
 import {
   bg,
@@ -34,12 +31,6 @@ import {
   type CrownImage,
 } from "./primitives";
 import type { CrownData } from "../formats";
-import { withShareUtm } from "../shareIntents";
-
-/** Draws a scannable QR of `text` at (x, y) with the given size. */
-export type QrDrawer = (ctx: Canvas2D, x: number, y: number, size: number, text: string) => void;
-
-const noopQr: QrDrawer = () => {};
 
 export function drawLink(
   ctx: Canvas2D,
@@ -47,7 +38,6 @@ export function drawLink(
   H: number,
   d: CrownData,
   img: CrownImage,
-  qr: QrDrawer = noopQr,
 ): void {
   bg(ctx, W, H, H * 0.42);
   const pad = W * 0.022;
@@ -117,7 +107,4 @@ export function drawLink(
   ctx.fillText("WorldCrown48.com", rcx, H * 0.875);
   ls(ctx, "0px");
 
-  // scannable mini QR, bottom-right corner
-  const qrs = H * 0.17;
-  qr(ctx, rRight - qrs, H - pad - m - qrs, qrs, withShareUtm(d.url, "qr"));
 }

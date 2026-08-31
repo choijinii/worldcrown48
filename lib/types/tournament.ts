@@ -75,6 +75,12 @@ export interface Tournament {
   totalContestants: typeof TOTAL_CONTESTANTS;
   settings: TournamentSettings;
   featured: boolean; // exactly one Tournament true at a time (Launch Pad hero)
+  /**
+   * 캠페인 이름표 — 공유 링크의 utm_campaign 값(UTM_RULES v1.0 §1, 예: best_stage_48).
+   * 선택·additive: 2026-08-31 이전 문서엔 없다. 없으면 공유 링크는 대회 ID를
+   * 정규화해 쓴다(lib/lab/campaignSlugValidation.ts campaignForTournament).
+   */
+  campaignSlug?: string;
 }
 
 export interface Contestant {

@@ -45,4 +45,11 @@ export interface CrownData {
   url: string;
   /** Victory-route flow text: "48 → 24 → 12 → 6 → THE FINAL". */
   path: string;
+  /**
+   * utm_campaign for every share link made from this card (UTM_RULES v1.0 §1):
+   * the Tournament's campaignSlug, else its normalized id, else "site".
+   * Not drawn on the card — carried so shareIntents never re-derives it from
+   * the URL string (championLoader.toCrownData is the single source).
+   */
+  campaign: string;
 }
