@@ -1,3 +1,6 @@
+> 🚫 **참가 규칙은 이 문서가 정본이 아닙니다 (2026-09-03 DOC-QUOTA-1).** 아래 본문의 "1일 5회 투표"·"Tournament별 독립 5회 카운트" 류 서술은 **전부 폐기된 옛 규칙**입니다.
+> 정본 = `LANGUAGE.md` §일일 판 한도(Daily Run Limit) + `outputs/참가규칙_정본v2.0_판Run_2026-09-03.html` — **계정당·대회당 하루(KST) 5판**, 판마다 새 대진표+Crown Card 1장, 비로그인은 하루 통틀어 1판. 제품 정의에서 "표"는 단위로 쓰지 않습니다.
+
 > ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
 > 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
 > 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
@@ -97,7 +100,7 @@ Tournament Host (대진을 만든자)    →  role: 'host'
 
 Voter (투표 참여자)                →  role: 'voter'
   Tournament에 참여하여 Vote하는 일반 사용자.
-  계정당 동일 Tournament에서 1일 5 Match 투표 가능.
+  계정당 동일 Tournament에서 1일 5 Match 투표 가능.  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 ```
 
 ```typescript
@@ -159,9 +162,9 @@ Match (매치):
 ### 핵심 규칙
 
 ```
-계정당 동일 Tournament에서 1일 5 Match 투표 가능  ← ★ v1.7 교정 (구버전 오기: "1일 1회")
+계정당 동일 Tournament에서 1일 5 Match 투표 가능  ← ★ v1.7 교정 (구버전 오기: "1일 1회")  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 자정 리셋: KST 00:00 기준 카운트 초기화
-복수 Tournament: 각 Tournament별 독립 5회 카운트
+복수 Tournament: 각 Tournament별 독립 5회 카운트  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 계정 신뢰성: Google / Apple 소셜 로그인 필수 (익명 계정 없음)
 랭킹 노출: Vote Rate(%) + 1시간 캐시만 표시. Vote Count 절대 노출 금지.
 ```
@@ -183,7 +186,7 @@ MVP 3: 3단계 차단 시스템 (소프트/하드/영구) + 관리자 UI
   matchId:      string;
   winnerId:     string;   // 선택된 Contestant ID (★ v1.7: candidateId → winnerId)
   timestamp:    Timestamp;
-  voteDate:     string;   // 'YYYY-MM-DD KST' — 1일 5회 카운트용
+  voteDate:     string;   // 'YYYY-MM-DD KST' — 1일 5회 카운트용  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
   ipHash:       string;
 }
 // 일일 투표 확인: voterId == ? AND tournamentId == ? AND voteDate == TODAY → count < 5
@@ -391,7 +394,7 @@ Node 상태:
 A: 불필요합니다. Round에는 Deadline이 없습니다. Voter의 투표 흐름에 따라 시스템이 자동으로 advanceRound()를 실행합니다.
 
 **Q: 하루 투표 제한은 전체 합산인가요, Tournament별인가요?**
-A: Tournament별 5회 (각 Tournament마다 독립 카운트, 1일 5 Match 가능). 자정 KST 리셋.
+A: Tournament별 5회 (각 Tournament마다 독립 카운트, 1일 5 Match 가능). 자정 KST 리셋.  ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 
 **Q: 비로그인 상태에서 투표할 수 있나요?**
 A: 불가합니다. 투표 시 Google/Apple 로그인이 필수입니다.
@@ -679,7 +682,7 @@ export const defaultLocale = 'en';
 | | | ★ PART 13 신규: 다국어(i18n) 정책 요약 |
 | **v1.7** | **2026-05-16** | **⛔ 디자인 토큰 구버전 오류 교정 + 재발 방지 규칙** |
 | | | ★ PART 5 디자인 토큰 전면 교정: CLAUDE.md 구버전 → WC48_DESIGN_SYSTEM_v2.1 기준 |
-| | | ★ PART 4 투표 정책 교정: "1일 1회" → "1일 5회" (CONTEXT.md v0.3 기준) |
+| | | ★ PART 4 투표 정책 교정: "1일 1회" → "1일 5회" (CONTEXT.md v0.3 기준) |  ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 | | | ★ PART 7 용어 교정: "Candidate" → "Contestant" |
 | | | ★ PART 8 에이전트 템플릿 색상 전면 교정: 구버전 → v2.1 정확한 값 |
 | | | ★ PART 10-8 신규: 디자인 토큰 구버전 참조 오류 영구 기록 |

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아레나 대수술 — 킥 사전 브리프 (2026-08-31)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #F2F2F5; color: #241754; font-family: -apple-system, "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif; line-height: 1.65; padding: 36px 22px 80px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .kicker { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: .12em; color: #B08F00; font-weight: 700; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-top: 6px; }
+  .sub { font-size: 13.5px; color: #484B67; margin-top: 8px; max-width: 900px; }
+  h2 { font-size: 17px; font-weight: 800; margin: 38px 0 10px; display: flex; align-items: center; gap: 8px; }
+  h2 .num { display: inline-flex; width: 24px; height: 24px; border-radius: 999px; background: #241754; color: #FCD006; font-size: 12px; font-weight: 800; align-items: center; justify-content: center; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #D9DBE1; border-radius: 6px; overflow: hidden; font-size: 12.5px; }
+  th { background: #241754; color: #F2F2F5; text-align: left; padding: 9px 11px; font-size: 12px; }
+  td { padding: 9px 11px; border-top: 1px solid #E7E8EC; vertical-align: top; color: #33355A; }
+  td:first-child { font-weight: 700; color: #241754; white-space: nowrap; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; background: #EDEEF3; padding: 1px 5px; border-radius: 3px; color: #241754; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .now { background: #FDEBEF; color: #A80E32; } .new { background: #DDF3EA; color: #0B7A5B; } .keep { background: #EDEEF3; color: #6B6E85; } .ask { background: #FFE9CF; color: #B05A00; }
+  .note { background: #fff; border: 1px solid #D9DBE1; border-left: 4px solid #FCD006; border-radius: 5px; padding: 12px 15px; font-size: 13px; color: #484B67; margin-top: 14px; }
+  .note b { color: #241754; }
+  /* flow */
+  .flow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .lane { background: #fff; border: 1px solid #D9DBE1; border-radius: 8px; padding: 14px 16px; }
+  .lane h3 { font-size: 13px; font-weight: 800; letter-spacing: .06em; margin-bottom: 10px; }
+  .lane.now h3 { color: #A80E32; } .lane.new h3 { color: #0B7A5B; }
+  .step { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px dashed #E7E8EC; font-size: 12.5px; color: #33355A; }
+  .step:first-of-type { border-top: 0; }
+  .step .b { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px; background: #241754; color: #FCD006; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+  .step .b.add { background: #0B7A5B; color: #fff; }
+  .step .b.chg { background: #B05A00; color: #fff; }
+  .step b { color: #241754; }
+  .legend { font-size: 12px; color: #484B67; margin-top: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .card { background: #fff; border: 1px solid #D9DBE1; border-radius: 6px; padding: 13px 15px; font-size: 12.5px; color: #33355A; }
+  .card h3 { font-size: 14px; font-weight: 800; color: #241754; margin-bottom: 6px; }
+  .card.rec { border: 2px solid #FCD006; }
+  .card .tag { font-size: 11px; font-weight: 800; color: #B08F00; letter-spacing: .08em; }
+  .card ul { padding-left: 16px; margin-top: 6px; } .card li { margin: 3px 0; }
+  @media (max-width: 760px) { .flow, .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">WORLDCROWN48 · W2~3 (9/4–9/17) 대형 킥</div>
+  <h1>아레나 대수술 — 킥 사전 브리프</h1>
+  <p class="sub">킥 문서를 쓰기 전에 "지금 무엇이 있고, 무엇으로 바뀌며, 대표님이 정할 것이 무엇인지"를 한 장으로 모았습니다. 근거는 오늘 밤 main <code>85a56db</code> 전수 실측(파일·줄 단위) + 08-09/08-17/08-22 확정 결정 + 마케팅 대관 연출 인계 문서(08-31)입니다.</p>
+
+  <h2><span class="num">1</span> 한 판의 흐름 — 지금 vs 대수술 후</h2>
+  <div class="flow">
+    <div class="lane now">
+      <h3>지금 (라이브)</h3>
+      <div class="step"><span class="b">0</span><div><b>대회 카드 → 아레나 바로 진입.</b> 팝업·안내 없음. 브래킷 크기 선택 없음(항상 48강).</div></div>
+      <div class="step"><span class="b">1</span><div><b>VS 매치</b> — 최대 폭 920px 3열 그리드, 카드 2장 + 가운데 "vs". 미디어는 <b>정지 유튜브 썸네일 1장</b>. 호버는 4px 살짝 뜸. 카드 아래 <b>영문 개발자 고지문(vs-foot)</b>이 팬에게 그대로 노출.</div></div>
+      <div class="step"><span class="b">2</span><div><b>투표 후</b> 전체 흐림 오버레이 + 스피너 "다음 매치 · Next match". 다음 매치 그림은 그때 처음 받음(프리로드 없음).</div></div>
+      <div class="step"><span class="b">3</span><div><b>라운드 전환</b> 전체화면 2초 자동 — "방금 완료 / 다음 라운드 ROUND OF 24". 와이어프레임의 동심원·코너 라벨은 미이식.</div></div>
+      <div class="step"><span class="b">4</span><div><b>결승</b> 3인 가로 나열, 1명 선택. 선택 즉시 서버 확정 대기 → 텍스트 "👑 Champion 확정 · Crown Card 준비 중…"</div></div>
+      <div class="step"><span class="b">5</span><div><b>크라운 카드 모달</b> 즉시 교체. 세레머니 없음.</div></div>
+    </div>
+    <div class="lane new">
+      <h3>대수술 후 (확정 스펙 + 마케팅 인계 반영)</h3>
+      <div class="step"><span class="b add">0</span><div><b>첫 입장 팝업</b>(기기당 1회): 소개 + 데이터 고지 + "결과는 라운드 후 공개". <span class="chip ask">브래킷 크기 12/24/48 선택은 아레나 홈 몫 — 4절 결정</span></div></div>
+      <div class="step"><span class="b chg">1</span><div><b>VS 스플릿 무대</b> — 화면 전체(100vw/vh)를 좌우 50:50으로 가름. 양쪽 <b>10초 무음 루프 영상</b>(LoopPlayer 재사용, 동시 2개 ≤ 상한 6). 호버/터치 쪽이 <b>1.5~2배로 벌어지며</b> scale 1.1 + 채도 30→100%. 가운데 VS 뱃지. 라운드·득표율·고지문 <b>없음</b>. 모바일은 상하 2탭.</div></div>
+      <div class="step"><span class="b chg">2</span><div><b>픽 절정 연출</b>(선택 쪽이 화면을 채우며 확정) → 다음 매치 <b>프리로드</b>(영상 iframe·썸네일 미리 준비)로 오버레이 대기 최소화.</div></div>
+      <div class="step"><span class="b chg">3</span><div><b>라운드 전환</b> 재설계 — 와이어프레임 동심원·코너 라벨 복원, 라운드명은 여기에서만. "Voter" → "팬/Fan" 표시 용어 v2.0. reduced-motion 시 대기 시간도 단축.</div></div>
+      <div class="step"><span class="b chg">4</span><div><b>결승 3인</b>(구조 불변) — 스플릿 무대의 3분할 변형. 선택 즉시 ↓</div></div>
+      <div class="step"><span class="b add">4½</span><div><b>★ 대관 연출(Crown Ceremony)</b> 2.5~3초: 탈락 2인 어두워지며 물러남 → 챔피언 중앙 확대 → 크라운 하강(감속·튕김) → 광채 → 반짝임 → CROWNED(폰트) → <b>정지, 탭 대기</b>. 탭 건너뛰기·reduced-motion 정지 프레임. 정지 프레임 = 사전등록 페이지 캡처 소재.</div></div>
+      <div class="step"><span class="b keep" style="background:#6B6E85;color:#fff">5</span><div><b>크라운 카드</b>(탭 후). 구조 유지 — 시안 논의는 별도. "카드 준비 중…" 대기 문구 개선.</div></div>
+    </div>
+  </div>
+  <p class="legend">진한 초록 = 신설 · 주황 = 전면 교체 · 회색 = 유지. 화면에 새로 생기는 문구는 전부 승인 게이트 대상입니다.</p>
+
+  <h2><span class="num">2</span> 킥 모듈 분해 (실측 근거 포함)</h2>
+  <table>
+    <thead><tr><th style="width:190px">모듈</th><th>내용</th><th style="width:250px">지금 코드 실측</th><th style="width:70px">판정</th></tr></thead>
+    <tbody>
+      <tr><td>M1 VS 스플릿 + 루프 영상</td><td>100vw/vh Flexbox 50:50, 호버 flex 1.5~2·scale 1.1·saturate, VS 뱃지, 터치 상하 2탭, LoopPlayer 2개 자동재생(무음·클릭차단·출처 칩), 영상 없는 참가자는 썸네일 폴백</td><td><code>MatchView.tsx</code>(79줄) 3열 그리드, <code>ContestantCard.tsx</code> 썸네일 img. LoopPlayer는 <code>components/embed/LoopPlayer.tsx</code>에 있으나 아레나 미사용</td><td><span class="chip new">신설</span></td></tr>
+      <tr><td>M2 픽 연출 + 프리로드</td><td>선택 쪽 확장 절정 → 다음 매치 리소스 선행 로드 → 오버레이 최소화</td><td>프리로드 코드 0건, 오버레이 720ms 스피너</td><td><span class="chip new">신설</span></td></tr>
+      <tr><td>M3 라운드 전환 재설계</td><td>동심원·코너 라벨·rt-meta 복원, 표시 용어(팬/Fan), reduced-motion 대기 단축, i18n 키화</td><td><code>RoundTransition.tsx</code> 2초 setTimeout, 문구 하드코딩, "Voter" 노출</td><td><span class="chip now">교체</span></td></tr>
+      <tr><td>M4 결승 3분할 + ★대관 연출</td><td>결승 = 스플릿 3분할. 픽 즉시 Crown Ceremony 7층 레이어(딤·탈락2·챔피언·광채 뒤·크라운·반짝임 앞·CROWNED). 자산 6종은 대표 제작. 탭 건너뛰기·정지 프레임 완성도·reduced-motion</td><td><code>FinalPickView.tsx</code> 3인 나열, 세레머니 0건(저장소 전체 "대관/ceremony" 0건)</td><td><span class="chip new">신설</span></td></tr>
+      <tr><td>M5 첫 입장 팝업</td><td>기기당 1회(localStorage), 소개·데이터 고지·"결과는 라운드 후 공개". 개인정보 문구 정합 확인</td><td>아레나에 팝업 0건(쿠키 배너만 전역)</td><td><span class="chip new">신설</span></td></tr>
+      <tr><td>M6 문구 정리</td><td>vs-foot 고지문 제거, 매치·전환·결승·챔피언 대기 문구 전부 i18n 키(ko/en/es) + 표시 용어 v2.0 §1 인라인(이름 병기 규칙 포함)</td><td><code>arena.*</code> 키 8개뿐, 나머지 하드코딩 십여 곳</td><td><span class="chip now">교체</span></td></tr>
+      <tr><td>M7 계측 보존 + 보강</td><td>tournament_start·round_advance·champion_confirmed(PR #88) 대수술 후에도 발화 확인이 완료 기준. 추가 후보: ceremony_viewed·ceremony_skipped(탭 건너뜀)</td><td>3종 발화 중(<code>page.tsx:106/119/131/136</code>), 개별 vote 이벤트 없음</td><td><span class="chip keep">보존</span></td></tr>
+      <tr><td>M8 운영 안전</td><td>투표 속도 제한 20→40/분 완화(오늘 부하 실측), 크라운 카드 대기 문구, 동시 플레이어 상한 6 준수</td><td><code>onVote.ts RATE_LIMIT=20</code></td><td><span class="chip ask">결정</span></td></tr>
+      <tr><td>(별도) 아레나 홈 + 브래킷 크기 선택</td><td>07-10 확정 "Arena 홈 = 활동(신설)" + B안 "시작 시 12/24/48 선택". 3절에서 토의</td><td>UI 0건(상수 <code>BRACKET_SIZES</code>만 존재)</td><td><span class="chip ask">결정</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>규칙 잠금(변경 불가):</b> 매치 화면에 라운드 라벨·득표율·마감 타이머 없음(Round Scope Lock) · 결승은 3인 1택(1v1로 쪼개지 않음) · 라운드 흐름 48→24→12→6→FINAL 불변 · Crown Gold 단일 포인트 색, raw hex 금지(토큰만) · 애니메이션 라이브러리 없음(CSS + Web Animations API) · 축제의 언어.</div>
+
+  <h2><span class="num">3</span> 마케팅 "확인 필요 — 티오" 3항 답변 (대관 연출 인계 §8)</h2>
+  <table>
+    <thead><tr><th style="width:230px">질문</th><th>실측 답</th></tr></thead>
+    <tbody>
+      <tr><td>① 실제 화면 규격</td><td>대수술 후 매치·결승·대관은 <b>뷰포트 전체(100vw × 100vh)</b>를 씁니다. 모바일 세로 390×844 가정은 유효하고, 데스크톱은 가로가 넓어지므로 크라운은 "화면 짧은 변의 %"로 배치합니다(예: 크라운 폭 = min(vw, vh)의 36%). 따라서 자산은 <b>제안하신 3배 크기 그대로 OK</b>, 데스크톱에서는 SVG 크라운이 벡터라 손실 없음, PNG 광채(960px)도 데스크톱 최대 표시 ≈ 400px이라 충분합니다.</td></tr>
+      <tr><td>② 애니메이션 도구</td><td>저장소에 애니메이션 라이브러리가 <b>없습니다</b>(package.json 실측: framer-motion·gsap·react-spring 0건, 규범 문서도 "CSS transition/keyframes"). 대관 연출은 <b>CSS keyframes + Web Animations API</b>(브라우저 내장)로 구현 — 위치·크기·회전·투명도만 쓰는 제약과 정확히 맞고, 탭 건너뛰기는 <code>animation.finish()</code> 한 줄입니다. 새 도구 도입 불필요.</td></tr>
+      <tr><td>③ crown_main.svg 저장 형태</td><td>대표님께 요청 사항: <b>(a)</b> 채우기 색을 고정 hex 대신 <code>fill="currentColor"</code>(또는 <code>var(--crown-gold)</code>)로 — 대관 순간 금색이 밝아지는 연출을 CSS로 처리. <b>(b)</b> 그림자·광채 효과는 SVG 필터로 넣지 말고(모바일 끊김) PNG 광채 층에 맡기기. <b>(c)</b> viewBox 정사각(0 0 420 420), 크라운 바닥선이 viewBox 아래에서 8% 지점에 오도록(하강 후 "닿는" 기준선 계산용). <b>(d)</b> 텍스트·폰트 포함 금지, 패스만.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">4</span> 대표님 결정 3가지</h2>
+  <div class="grid2">
+    <div class="card rec">
+      <div class="tag">결정 1 · 킥 범위 — 추천</div>
+      <h3>A. 두 킥으로 나눈다: ARENA-1(매치 무대 M1~M8) → ARENA-2(아레나 홈 + 브래킷 크기 선택)</h3>
+      <ul>
+        <li>W2~3는 10영업일. 무대 하나만도 대형(화면 5개 교체 + 신규 연출 2개).</li>
+        <li>아레나 홈은 "내 대회·내 카드·시작 옵션"이라는 <b>새 화면 기획</b>이 먼저 필요 — 오늘 토의 후 별도 킥.</li>
+        <li>ARENA-1이 먼저 나가도 지금처럼 대회 카드에서 바로 진입하므로 서비스는 끊기지 않음.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="tag">결정 1 · 대안</div>
+      <h3>B. 한 킥에 전부</h3>
+      <ul>
+        <li>홈·브래킷 선택까지 한 PR 열차 — 검토·머지 병목(대표 1인)이 커지고 W3 말 검증 2단계와 충돌 위험.</li>
+      </ul>
+    </div>
+    <div class="card rec">
+      <div class="tag">결정 2 · "동영상 위주"의 정확한 뜻 — 확인 필요</div>
+      <h3>VS 양쪽에 10초 무음 루프 자동재생(LoopPlayer 2개)</h3>
+      <ul>
+        <li>08-09 확정은 "임베드 10초 루프". 08-22 메모는 "매치 화면 = 정지 임베드"로 적혀 있어 <b>두 기록이 다릅니다.</b></li>
+        <li>제 이해: 화면에 들어오면 양쪽이 무음으로 10초 구간을 반복 재생, 영상 없는 참가자는 썸네일. 이게 맞는지 한 마디로 확인해 주세요.</li>
+        <li>참고: 모바일 자동재생은 무음+playsinline이면 허용. 데이터 사용량은 매치당 수 MB — 셀룰러 배려로 "Wi-Fi 아닐 때 탭하면 재생" 옵션을 킥에 넣을 수 있음.</li>
+      </ul>
+    </div>
+    <div class="card rec">
+      <div class="tag">결정 3 · 실행 방식 — 추천</div>
+      <h3>Claude Code 핸드오프(템플릿 v2.1 + §11 TDD 3계층)</h3>
+      <ul>
+        <li>계측 소킥 A는 티오 직접 코딩이라 TDD가 빠졌던 전례. 화면 5개 교체는 E2E(c1-arena-flow·c2-crown-card-flow) 회귀가 필수라 <b>Claude Code + Playwright</b>가 맞습니다.</li>
+        <li>티오 역할: 킥 문서·프리플라이트·눈검증·문구 승인 게이트 운영.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

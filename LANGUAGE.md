@@ -28,7 +28,7 @@
 | --- | --- | --- | --- | --- |
 | 시스템 관리자 | **System Admin** | role: 'admin' | (독자 노출 없음 — 관리자 전용) | 월크48 플랫폼 전체를 운영·관리하는 사람. DB 접근, 유저 관리, 플랫폼 설정 등 최상위 권한 보유. MVP에서는 대표님 본인. |
 | **대진을 만든자** | **Tournament Host** | role: 'host' | (미확정 — 다음 결정 세션 이월) | **대진(Tournament)을 생성하고 운영하는 사람.** 본인이 만든 대진의 Tournament Deadline 설정, 대진 공개/비공개 권한 보유. MVP에서는 System Admin만 Host가 될 수 있음. MVP 이후 일반 유저도 Host가 될 수 있도록 확장 예정. |
-| 투표 참여자 | **Voter** | role: 'voter' | **팬 / Fan / Fan** | 대진에 참여하여 투표하는 일반 사용자. 계정당 1일 5회 투표 가능. |
+| 투표 참여자 | **Voter** | role: 'voter' | **팬 / Fan / Fan** | 대진에 참여하여 투표하는 일반 사용자. 계정당·대회당 하루(KST) **5판**까지 참가 가능(일일 판 한도 — §2 참조). |
 
 ### 표시 용어(Display Term) 층 — v2.0 (2026-08-06 대표 확정)
 
@@ -88,7 +88,9 @@ System Admin
 | **투표** | **Vote** | vote | Voter가 하나의 Match에서 두 Contestant 중 하나를 선택하는 행위. |
 | **득표** | **Vote Count** | voteCount | 특정 Contestant이 받은 투표의 합계. 랭킹 화면에는 절대 수치가 아닌 득표율(Vote Rate)만 표시. ★ v1.7: **Vote Count(득표 수)와 점수(Crown Score)는 완전히 다른 개념** — §13 참조. 절대 수치는 랭킹에도 표시하지 않음 |
 | **득표율** | **Vote Rate** | voteRate | 전체 투표 중 특정 Contestant이 받은 비율(%). 랭킹에 표시되는 유일한 수치. ★ v1.7: 랭킹 표시 지표가 3종(우승비율·점유율·승률)으로 확장됨 — §13 참조. "점유율"은 Vote Rate의 동의 표기 |
-| **일일 참가 한도** | **Daily Participation Limit** | dailyParticipation | Voter 1명이 **하루(KST 기준)에 새로 참가할 수 있는 Tournament 수 = 5개**. 이미 참가한 Tournament 안에서는 투표 **무제한**(48강 브래킷 구조상 대회당 최대 46표로 자연 상한). 서버가 `daily_participation/${uid}_${date}` 단일 doc(`tournamentIds[]`)으로 원자적 집계. **HF-1 (2026-07-05) 도입** — 폐기된 "Daily Vote Limit(1일 5표)" 개념을 대체. |
+| **판** | **Run** | run | Voter 1명이 하나의 Tournament를 48강부터 결승까지 **처음부터 끝까지 완주하는 한 번의 여정**. 참가를 세는 유일한 단위. ★ v2.0(2026-09-03 대표 확정): 사람에게 설명하는 단위는 언제나 **판**이며, "표"는 내부 기록(DB `votes`)의 이름일 뿐 제품 정의·화면 문구에 등장하지 않는다. |
+| **회차** | **Run Index** | runIndex | 같은 Voter가 같은 Tournament를 몇 번째로 도는 판인지(1~5). 대진표 씨앗·진행상황·Crown Card의 키에 포함되어 판을 서로 구분한다. |
+| **일일 판 한도** | **Daily Run Limit** | dailyRunLimit | Voter 1명이 **하나의 Tournament에서 하루(KST 기준)에 참가할 수 있는 판 수 = 5판**. 대회마다 각각 5판(대회 A 5판 · 대회 B 5판). **판마다 대진표가 새로 섞이고 Crown Card가 1장씩 생성**되며, 5판 모두 랭킹에 반영된다. **비로그인(게스트)은 하루 통틀어 1판**, 그 다음 판부터 로그인. ★ v2.0 (2026-09-03 대표 확정) — 폐기된 "Daily Participation Limit(하루 새 대회 5개, HF-1)"을 대체. 정본 문서: `outputs/참가규칙_정본v2.0_판Run_2026-09-03.html` |
 | **우승자** | **Champion** | champion | 최종 결승(Final)에서 Voter가 선택한 최종 1인 Contestant. |
 | **왕관** | **Crown** | crown | Champion에게 수여되는 월크48의 상징. 서비스명 WorldCrown48의 핵심 브랜드 요소. |
 | **대진 마감일** | **Tournament Deadline** | tournamentDeadline | **Tournament Host가 설정**하는 **Tournament 전체**의 투표 마감 시각. Tournament에만 존재하며 Round에는 Deadline이 없다. |
@@ -225,7 +227,9 @@ AI 에이전트가 혼용하면 즉시 지적하고 공식 용어로 교정하�
 | 실제 경기 결과 연동 | **(사용 금지)** | 외부 경기 결과와 무관한 서비스 |
 | Round Deadline | **(존재하지 않는 개념)** | ★ v1.2: Round에는 Deadline이 없다. Tournament Deadline만 존재 |
 | 라운드 마감일 | **(존재하지 않는 개념)** | Round는 Voter 투표 흐름에 따라 자동 전환. 마감 개념 없음 |
-| Daily Vote Limit / 1일 5표 / Tournament당 하루 5회 | **Daily Participation Limit (1일 신규 참가 5개)** | ★ HF-1 (2026-07-05): 투표 수를 세는 규칙은 폐기. 하루에 새로 참가하는 Tournament 수만 5개로 제한하고, 참가한 대회 안에서는 무제한 |
+| Daily Vote Limit / 1일 5표 / Tournament당 하루 5회 투표 | **Daily Run Limit (일일 판 한도 — 대회당 하루 5판)** | ★ v2.0 (2026-09-03): 투표 수를 세는 규칙은 폐기. 세는 단위는 **판** |
+| Daily Participation Limit / 하루 새 대회 5개 / 하루 신규 참가 5개 | **Daily Run Limit (일일 판 한도 — 대회당 하루 5판)** | ★ v2.0 (2026-09-03 대표 확정): HF-1의 "서로 다른 대회 5개" 정의는 **대표 확정 정의와 달라 폐기**. 올바른 정의 = 대회마다 하루 5판 |
+| 하루 230표 / 대회당 46표 / 투표 무제한 | **(제품 정의에서 "표"를 단위로 쓰지 않는다)** | ★ v2.0: 한도·설명·화면 문구는 전부 **판** 기준. 표 수치는 어디에도 노출하지 않는다 |
 | 라운드 자동 종료 | **Voter의 마지막 Match 완료 → advanceRound()** | 종료가 아니라 '전환'이며 Voter 행동에 의해 트리거됨 |
 | Host가 라운드를 전환한다 | **시스템이 자동으로 advanceRound()** | ★ v1.2: 라운드 전환은 Host가 아닌 시스템이 자동 수행 |
 

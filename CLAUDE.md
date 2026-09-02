@@ -138,8 +138,20 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 | Tournament Deadline | Round Deadline (없는 개념) |
 | Vote Rate (%) | Vote Count (절대 수치) |
 | Crown Score | 점수, 스코어, 랭킹 점수 (임의 명칭) |
+| **Run (판)** | 회, 게임, 라운드 — 참가를 세는 단위는 **판** |
+| **Daily Run Limit (일일 판 한도)** | Daily Vote Limit, Daily Participation Limit, "하루 새 대회 5개", "1일 5표" (전부 폐기) |
 | Voter Count | Vote Count와 혼용 (완전 별개 개념) |
 | `active` | `In Progress` |
+
+### ⚖️ 참가 규칙 (정본 = LANGUAGE.md §일일 판 한도 · 2026-09-03 대표 확정 v2.0)
+
+- **판(Run)** = 한 Voter가 한 Tournament를 48강→결승까지 완주하는 한 번의 여정. **참가를 세는 유일한 단위.**
+- **한도 = 계정당 · 대회당 · 하루(KST) 5판.** 대회마다 각각 5판. 판마다 **대진표 재섞기 + Crown Card 1장**, 5판 전부 랭킹 반영.
+- **비로그인(게스트) = 하루 통틀어 1판.** 그 다음 판부터 로그인.
+- 🚫 **제품 정의·화면 문구에서 "표"를 단위로 쓰지 않는다** ("1일 5표"·"하루 230표"·"46표" 금지). Vote는 DB 내부 이름일 뿐.
+- ⚠️ **현재 코드는 이 정의와 다르다**(옛 HF-1 "하루 새 대회 5개"). 정합 작업 = RUN-1 킥, 미착수. 규칙 인용은 반드시 LANGUAGE.md에서.
+
+---
 
 ※ **표시 용어(Display) 층 v2.0 (2026-08-06)**: 독자 노출 텍스트의 Voter = **"팬"(ko) / "Fan"(en·es)**.
    위 표는 **시스템 층**(공식 용어·코드·DB)이며 불변. 상세·예외(기본 닉네임 "Voter" 유지 등) → **LANGUAGE.md §1**

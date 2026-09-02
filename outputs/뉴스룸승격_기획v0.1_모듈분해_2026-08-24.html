@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뉴스룸 승격 기획 v0.1 — 모듈 분해와 병렬성 지도</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap");
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F2F2F5; color:#241754; font-family:"Inter","Pretendard",-apple-system,system-ui,sans-serif; line-height:1.7; padding:40px 24px 80px; }
+  .wrap { max-width:1120px; margin:0 auto; }
+  .doc-kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; color:#B08F00; font-weight:700; }
+  .doc-title { font-size:27px; font-weight:800; letter-spacing:-0.02em; margin-top:6px; }
+  .doc-sub { font-size:14px; color:#484B67; margin-top:8px; max-width:900px; }
+  .section { margin-top:46px; }
+  .sec-num { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:999px; background:#241754; color:#FCD006; font-size:13px; font-weight:800; margin-right:8px; }
+  .sec-title { font-size:19px; font-weight:800; display:flex; align-items:center; margin-bottom:8px; }
+  .sec-desc { font-size:13.5px; color:#484B67; margin-bottom:16px; max-width:900px; }
+  .note { background:#FFFFFF; border:1px solid #D9DBE1; border-left:4px solid #FCD006; border-radius:5px; padding:12px 16px; font-size:13px; color:#484B67; margin-top:14px; }
+  .note b { color:#241754; }
+
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; overflow:hidden; font-size:12.5px; }
+  th { background:#241754; color:#F2F2F5; text-align:left; padding:9px 12px; font-size:12px; }
+  td { padding:10px 12px; border-top:1px solid #E7E8EC; vertical-align:top; color:#484B67; }
+  td:first-child { font-weight:800; color:#241754; white-space:nowrap; }
+  .chip { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700; padding:1px 8px; border-radius:999px; }
+  .c-now { background:#E5F6F8; color:#00707E; }
+  .c-cond { background:#FFF3C4; color:#8A6D00; }
+  .c-later { background:#EDEEF3; color:#484B67; }
+  .c-conflict { background:#FDEBEF; color:#A80E32; }
+
+  /* 두 트랙 다이어그램 */
+  .tracks { display:grid; gap:14px; }
+  .track { background:#FFFFFF; border:1.5px solid #D9DBE1; border-radius:5px; padding:14px 16px; }
+  .track.main { border-color:#241754; }
+  .track.sub { border-color:#FCD006; background:#FFFBEB; }
+  .track-label { font-size:12px; font-weight:800; letter-spacing:.06em; margin-bottom:8px; }
+  .track.main .track-label { color:#241754; }
+  .track.sub .track-label { color:#8A6D00; }
+  .flow { display:flex; align-items:stretch; flex-wrap:wrap; gap:0; }
+  .fnode { background:#F7F7FA; border:1.5px solid #D9DBE1; border-radius:5px; padding:8px 12px; font-size:12px; font-weight:700; color:#241754; min-width:110px; text-align:center; }
+  .fnode small { display:block; font-weight:500; font-size:10.5px; color:#6B7A99; margin-top:2px; }
+  .fnode.done { background:#E5F6F8; border-color:#00A3B7; }
+  .fnode.active { background:#FFFBEB; border-color:#FCD006; }
+  .farrow { display:flex; align-items:center; padding:0 7px; color:#B08F00; font-weight:800; }
+
+  .q-card { background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; padding:16px 18px; margin-top:10px; font-size:13px; color:#484B67; }
+  .q-tag { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; color:#0E0944; background:#FCD006; border-radius:999px; padding:2px 10px; }
+  .q-card b { color:#241754; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-kicker">NEWSROOM 승격 · 기획 v0.1 — 티오 초안 (대표 검토용)</div>
+    <div class="doc-title">뉴스룸 승격 — 모듈 분해와 병렬성 지도</div>
+    <div class="doc-sub">2026-08-24 · 전제: 대형 킥 실행 순서(Arena 매치 대수술 → Pitch 쇼케이스 → 뉴스룸 승격 본킥)는 <b>그대로 유지</b>. 이 문서는 뉴스룸을 모듈로 쪼개, 그중 <b>지금 병렬로 미리 진행해도 안전한 조각</b>을 가려내는 지도입니다. 08-09 확정 결정(도메인 격상·창구 多·NewsRail·SiteMapSheet·sitemap/Article schema)과 뉴스데스크 사양(07-22), 미디어 피벗(인터넷신문 등록)을 근거로 작성했습니다.</div>
+  </header>
+
+  <!-- 1. 승격의 정의 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">1</span>"승격"이 뜻하는 것 — 이미 확정된 그림의 재확인</div>
+    <div class="sec-desc">
+      뉴스룸은 지금 "/news 목록 + 기사 페이지 + 사이드 레일"입니다. 승격은 세 겹입니다:
+      ① <b>지위</b> — 7도메인 체계의 정식 도메인(라이트 테마 존 — 테마 B안 확정: 매치·투표=다크 / 뉴스룸·정책·계정=화이트)이 되고, GNB(상단 메뉴)와 SiteMapSheet에 정식 자리를 얻는다.
+      ② <b>화면</b> — 뉴스룸 홈(피드)·기사 지면이 언론사 수준으로 서고, Around the Pitch(외부 축구 뉴스)와 NewsRail이 결합된다.
+      ③ <b>발견</b> — sitemap·Article schema(구글이 기사로 인식하는 구조 데이터)·검색 색인으로 바깥에서 찾아 들어오게 한다. 이것은 인터넷신문 등록(미디어 피벗)의 실체이기도 합니다.
+    </div>
+  </div>
+
+  <!-- 2. 모듈 분해 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">2</span>모듈 분해 9개 — 무엇을 건드리고, 지금 병렬이 되는가</div>
+    <div class="sec-desc">판정 기준은 두 가지입니다: (a) 지금 돌고 있는 PR-2·대기 중인 TOG-1·다음 Arena 킥과 <b>같은 파일을 건드리는가</b>, (b) 대표님의 결정·검토가 얼마나 필요한가.</div>
+    <table>
+      <tr><th>모듈</th><th>내용</th><th>건드리는 곳</th><th>충돌</th><th>병렬 판정</th></tr>
+      <tr>
+        <td>N0 기획·규범 스윕</td>
+        <td>도메인 정의·IA(화면 구조)·"창구 1원칙 폐기" 규범 문서 스윕(08-09 숙제) — 코드 없음, 티오+대표</td>
+        <td>문서만</td><td>없음</td><td><span class="chip c-now">지금 (이 문서가 시작)</span></td>
+      </tr>
+      <tr>
+        <td>N1 뉴스룸 홈</td>
+        <td>/news를 "목록"에서 "뉴스룸 홈"으로 — 라이트 테마 피드, 헤드라인·최신·카테고리 구획</td>
+        <td>app/news, components/news</td><td>PR-2 ✕ · TOG-1 ✕(그쪽은 admin만)</td><td><span class="chip c-now">지금 코드 가능 · 1순위</span></td>
+      </tr>
+      <tr>
+        <td>N2 기사 지면 강화</td>
+        <td>기사 본문 비주얼 블록(스탯 타일·VS 그래픽 — 07-22 지침 ③), 임베드 기사 블록 정비, ✦ AI-Report v2.5 준수 확인</td>
+        <td>components/news, lib/news</td><td>PR-2 ✕</td><td><span class="chip c-now">지금 코드 가능 · N1과 한 묶음</span></td>
+      </tr>
+      <tr>
+        <td>N3 SEO·색인</td>
+        <td>sitemap·Article schema·기사 메타(08-13 SEO 신호 확정) + RSS 검토</td>
+        <td>app/robots·sitemap, 기사 메타(독립 파일 위주)</td><td>거의 없음</td><td><span class="chip c-now">지금 코드 가능 · N1 묶음에 동승</span></td>
+      </tr>
+      <tr>
+        <td>N4 콘텐츠 축적</td>
+        <td>기사 4호~ 발행 리듬(주 2~3건), 주간 랭킹 기사 품질 점검 — 코드 없음, 뉴스데스크 사용</td>
+        <td>데이터만</td><td>없음</td><td><span class="chip c-now">지금 (대표+뉴스데스크)</span></td>
+      </tr>
+      <tr>
+        <td>N5 Around the Pitch</td>
+        <td>외부 축구 뉴스 피드(thenewsapi — 08-09 "즉시 아님", 실측 미결). 비용·품질 실측 → 붙일지 판단</td>
+        <td>실측=코드 0 / 구현=components/pitch·news</td><td>구현은 Pitch 킥과 접점</td><td><span class="chip c-cond">실측만 지금 · 구현은 본킥</span></td>
+      </tr>
+      <tr>
+        <td>N6 NewsRail 정식판</td>
+        <td>왼쪽+페이지 분할, ≥800px (08-09 확정) — Pitch 화면 구조와 맞물림</td>
+        <td>components/news/NewsRail + Pitch 배치</td><td><span class="chip c-conflict">Pitch 쇼케이스와 얽힘</span></td><td><span class="chip c-later">Pitch 킥과 함께</span></td>
+      </tr>
+      <tr>
+        <td>N7 GNB·SiteMapSheet 편입</td>
+        <td>상단 메뉴·사이트맵에 뉴스룸 정식 항목 — 도메인 지위의 마지막 도장</td>
+        <td>Navbar·SiteMapSheet (전 화면 공유 파일)</td><td><span class="chip c-conflict">공유 파일 — 모든 트랙과 충돌 소지</span></td><td><span class="chip c-later">본킥 마지막에 한 번에</span></td>
+      </tr>
+      <tr>
+        <td>N8 뉴스데스크 생산성</td>
+        <td>콘솔 개선 + 다국어 문구 이관(TOG-1과 같은 파일)</td>
+        <td>components/admin/newsdesk</td><td><span class="chip c-conflict">TOG-1과 동일 파일</span></td><td><span class="chip c-later">TOG-1에 이어 붙이기</span></td>
+      </tr>
+      <tr>
+        <td>N9 등록·법무 연계</td>
+        <td>인터넷신문 등록 절차 진행(발행 실적 요건 확인), Search Console 등록 확인(08-13 미결)</td>
+        <td>행정·콘솔(대표)</td><td>없음</td><td><span class="chip c-now">지금 (대표 행정 작업)</span></td>
+      </tr>
+    </table>
+    <div class="note"><b>병렬 코드의 안전 규칙 2개</b>: ① 동시에 도는 코드 트랙은 <b>PR-2 외에 1개까지만</b>(대표님의 검토·머지 시간이 진짜 병목이므로). ② 번역 사전(messages.ts)은 모든 트랙이 건드리는 유일한 공유 파일이라, 뉴스룸 트랙의 새 문구 키는 <b>몰아서 마지막 커밋</b>으로 넣어 충돌을 최소화합니다.</div>
+  </div>
+
+  <!-- 3. 두 트랙 그림 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">3</span>두 트랙 운행도 — 메인은 그대로, 뉴스룸은 곁길에서 미리 자란다</div>
+    <div class="tracks">
+      <div class="track main">
+        <div class="track-label">메인 트랙 (확정 순서 그대로 · 직렬)</div>
+        <div class="flow">
+          <div class="fnode done">LAB-UX-1 PR-1<small>완료 · main 머지</small></div>
+          <div class="farrow">→</div>
+          <div class="fnode active">PR-2<small>실행 중</small></div>
+          <div class="farrow">→</div>
+          <div class="fnode">TOG-1<small>소킥</small></div>
+          <div class="farrow">→</div>
+          <div class="fnode">Arena 매치 대수술</div>
+          <div class="farrow">→</div>
+          <div class="fnode">Pitch 쇼케이스<small>N6 NewsRail 포함</small></div>
+          <div class="farrow">→</div>
+          <div class="fnode">뉴스룸 승격 본킥<small>N5 구현·N7 GNB·통합</small></div>
+        </div>
+      </div>
+      <div class="track sub">
+        <div class="track-label">뉴스룸 서브 트랙 (병렬 · 지금 시작)</div>
+        <div class="flow">
+          <div class="fnode active">N0 기획<small>이 문서 → 목업 → 소킥 문서</small></div>
+          <div class="farrow">→</div>
+          <div class="fnode">NEWS-1 소킥<small>N1 홈 + N2 지면 + N3 SEO</small></div>
+          <div class="farrow">＋</div>
+          <div class="fnode">N4 콘텐츠<small>기사 축적 (상시)</small></div>
+          <div class="farrow">＋</div>
+          <div class="fnode">N5 실측 · N9 행정<small>코드 0</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-desc" style="margin-top:12px;">
+      이렇게 하면 "뉴스룸 승격 본킥"이 시작될 때 이미 홈·지면·SEO·콘텐츠가 자라 있어, 본킥은 <b>통합과 도장 찍기(GNB 편입·Around the Pitch·NewsRail 결합)</b>만 하면 됩니다. 순서 약속은 지키면서 체감 속도는 당겨지는 구조입니다.
+    </div>
+  </div>
+
+  <!-- 4. 대표 결정 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">4</span>시작 전에 정해 주실 것 3가지</div>
+    <div class="q-card">
+      <span class="q-tag">질문 1</span> <b>병렬 코드 1트랙을 "NEWS-1 소킥(N1 홈+N2 지면+N3 SEO)"으로 잡는 데 동의하시나요?</b><br>
+      동의하시면 다음 순서로 갑니다 — 우리 절차 그대로: 티오가 뉴스룸 홈 <b>HTML 목업</b>을 먼저 만들어 보여드리고 → 대표 선택·수정 → 소킥 문서 → 승인 → 발행. (PR-2가 끝나기 전에는 목업·킥 문서까지만 준비하고, 코드 착수는 PR-2 머지 후로 하는 안전판도 선택 가능합니다.)
+    </div>
+    <div class="q-card">
+      <span class="q-tag">질문 2</span> <b>기사 이미지 정책(미결)을 이번에 정할까요?</b><br>
+      뉴스룸 홈은 썸네일이 있어야 사는 화면인데, "기사 이미지를 무엇으로 쓰나"가 미결로 남아 있습니다. 후보: ⓐ 대회 영상의 유튜브 썸네일 재사용(임베드 법리 안, 추가 작업 적음) ⓑ 스탯 타일 등 자체 제작 그래픽(지침 ③과 일치, 디자인 비용) ⓒ 혼합. 목업에 반영해야 하니 방향만 정해 주세요.
+    </div>
+    <div class="q-card">
+      <span class="q-tag">질문 3</span> <b>N9(행정)를 언제 움직일까요?</b><br>
+      Search Console 등록 확인(구글이 우리 기사를 색인하는지 보는 콘솔)과 인터넷신문 등록 절차는 대표님만 할 수 있는 행정 작업입니다. 제가 단계별 안내서를 만들어 드리면 되는데, 지금 병행할지 / 뉴스룸 본킥 때 할지 정해 주세요.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
