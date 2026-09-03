@@ -78,6 +78,8 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 | `app/arena/[tournamentId]/page.tsx` | MODIFY | 완주(`complete`) 화면에 **[다시 도전 (n/5)]** 버튼 + **지난 판의 Crown Card 목록**. 5판 소진 시 버튼 비활성 + 안내. 버튼 클릭 → 다음 회차로 새 판 시작(새 bracketSeed·새 roundProgress) |
 | `lib/i18n/messages.ts` | MODIFY | `arena.vote.dailyLimit` 3언어 교체 + 신규 키(재도전 버튼·지난 카드) — **§8 문구표 그대로** |
 | `components/auth/LoginModal.tsx` | MODIFY | `daily_limit` / `dailyLimitSub` 3언어 교체 — **§8 문구표 그대로** |
+| `functions/src/onVote.ts` (속도 제한) | MODIFY | **`RATE_LIMIT = 20` → `40`** (2026-09-03 대표 확정). 근거: v2.0에서 5판 = 선택 230번인데 분당 20이면 규칙이 최소 11.5분을 강제해 "결과물을 늘린다"는 설계와 충돌. 40이면 1.5초에 한 번까지 허용 |
+| `lib/i18n/messages.ts` (`arena.vote.rateLimited`) | MODIFY | 현재 "잠시 후 다시 시도해주세요." — **왜 막혔는지 설명이 없음**. 대표 지시(09-03): 안내 문구 필수 → §8 표 참조, **대표 승인 후 반영** |
 | `functions/src/core/guestVoteGuard.ts` | MODIFY | 게스트는 하루 통틀어 1판. **완주한 대회의 재도전도 로그인 요구**(기존 `completedCurrentTournament` 분기가 이미 그 역할 — 회차 개념만 반영) |
 
 ### Phase 3 — 정리·계측 (PR 3)
@@ -87,6 +89,8 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 | 옛 데이터 읽기 폴백 | MODIFY | `runIndex`가 없는 기존 문서 = **1회차로 간주**. 이관 스크립트 없음. 옛 `daily_participation/{uid}_{date}`의 `tournamentIds[]`는 읽지 않고 버림(그날 자정에 자연 소멸) |
 | `match_session_id` 계측 | MODIFY | 해시 입력에 **runIndex 추가** → `hash(uid + tournamentId + runIndex)` 앞 16자 |
 | `first_vote` 이벤트 | CREATE | 판당 1회 발화 (마케팅 요청, 09-03 서신) |
+| `functions/src/scheduleRankingCache.ts` | MODIFY | **갱신 주기 `every 60 minutes` → `every 12 hours`** (2026-09-03 대표 확정). 설정 한 줄. 근거: 부하 재산정 — 현재 매시간 전량 재읽기가 비용·중단의 99% 원인. **증분 집계(W4)까지 버티는 임시 방어이자, "발표 시각" 제품 기능의 기반** |
+| 랭킹 화면 **다음 발표 시각 한 줄** | CREATE | **2026-09-04 대표 확정 — 12시간 전환의 필수 동반 조건.** 랭킹 화면에 `다음 발표: 오늘 21:00` 형태 한 줄 노출. 문구 = §8 표 `ranking.nextUpdate.today` / `.tomorrow` (승인 완료). 없으면 팬이 12시간 정지를 **"고장"으로 읽는다** — 이 한 줄 없이 주기만 늘리지 말 것 |
 
 ---
 
@@ -104,6 +108,9 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 10. 랭킹 집계 결과가 5판 전부를 반영한다(`rankingAggregator` **코드 변경 없이** 그대로 동작).
 11. 옛 문서(회차 없음)를 가진 계정이 화면에서 정상 동작한다 — 1회차로 표시.
 12. 화면 문구 3언어가 §8 표와 **글자 단위로 일치**한다.
+13. 1분에 40번까지 선택이 허용되고, 41번째에 **왜 막혔는지 알려주는 안내**가 뜬다.
+14. 랭킹 갱신 주기가 12시간이다.
+15. 랭킹 화면에 **다음 발표 시각 한 줄**이 3언어로 뜨고, 날짜가 넘어가면 "오늘"→"내일"로 정확히 바뀐다.
 
 ---
 
@@ -163,8 +170,17 @@ Vercel Preview에서 **로그인 계정**으로:
 | `dailyLimitSub` | 한국 시간 자정에 5판이 다시 채워져요. 다른 Tournament는 지금 바로 도실 수 있어요. | Your 5 runs reset at Seoul midnight. Other Tournaments are open right now. | Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora. |
 | `arena.run.playAgain` (신설) | 다시 도전 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
 | `arena.run.pastCards` (신설) | 지난 판의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
+| `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
+| `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
+| `ranking.nextUpdate.tomorrow` **✅ 승인 (2026-09-04)** | 다음 발표: 내일 09:00 | Next update: tomorrow 09:00 KST | Próxima actualización: mañana 09:00 KST |
 
 > "Tournament" · "Crown Card"는 3언어 모두 **원문 그대로** 유지(LANGUAGE.md RULE 1).
+
+> **발표 시각 표기 규칙 (2026-09-04 대표 확정)**
+> - 시각은 **KST 고정**. en·es는 `21:00 KST`처럼 시간대를 명시한다.
+> - **"오늘/내일" 판정은 시각이 아니라 날짜로 한다** — 다음 발표 시각의 **KST 날짜**가 오늘과 같으면 `today`, 다음 날이면 `tomorrow`.
+>   ❌ "22시 이후면 내일" 같은 시각 기준으로 박지 말 것 — 자정을 넘긴 새벽에 틀린 글자가 뜬다.
+> - **현지 시각 자동 표시는 이번 범위 밖** → §12 W4 후속 항목.
 
 ---
 
@@ -230,3 +246,6 @@ Phase 5 — /pr         : §10 종료 조건 체크리스트를 PR 본문에 포
 - **RUN-1은 아레나 개편(ARENA-1/2)보다 먼저다** (2026-09-03 대표 확정). 재입장 화면이 겹치므로 순서를 바꾸면 같은 화면을 두 번 만들게 된다.
 - 런칭(2026-10-08) 전 반영이 목표.
 - 마케팅에는 정정 서신 발송 완료 — `marketing/00_strategy/서신_티오→마케팅_참가규칙v2.0-정정_2026-09-03.md`
+
+### 이 킥에서 의도적으로 제외 — W4 후속 항목
+- **발표 시각의 현지 시각 자동 표시.** RUN-1은 **KST 고정 표기**(`21:00 KST`)로 간다. 해외 팬에게 자기 지역 시각으로 환산해 보여주는 일은 **범위 밖** — 랭킹 개편(W4)에서 다룬다. (2026-09-04 대표 확정)
