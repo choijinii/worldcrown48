@@ -57,18 +57,76 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 
 ## §3. Files to CREATE / MODIFY
 
+### 3.0 회차 번호 구조 — 2026-09-05 대표 확정 (1안) · §3 원안 대체
+
+> **왜 바뀌었나.** 원안은 회차를 `daily_runs/{uid}_{date}` 의 그날 판 수 + 1 로 매겼다.
+> 그런데 회차가 붙는 문서 3종(`bracket_seeds` · `roundProgress` · `crown_cards`)은 **날짜가 지나도 남는 영구 문서**다.
+> 하루가 지나면 그날 판 수가 0으로 초기화되므로 회차가 다시 1이 되고, **어제의 `_r1` 문서를 그대로 집는다**
+> → 어제와 같은 대진표(create-once라 못 고침) · 들어가자마자 완주 화면 · 새 Crown Card 미생성.
+> **하루만 지나면 그 Tournament를 영영 못 하게 된다.** 그래서 회차와 한도를 두 숫자로 분리한다.
+
+**컬렉션 `tournament_runs/{uid}_{tournamentId}`** — 한 문서에 두 숫자를 담는다. 읽기 1회로 회차·한도를 동시에 판정한다.
+
+```jsonc
+{
+  "runIndex":    7,             // 평생 누적 회차. 절대 되감기지 않는다 → 문서 id의 _r{n}에 쓰는 번호
+  "lastRunDate": "2026-09-06",  // 마지막으로 판을 시작한 KST 날짜 (YYYY-MM-DD)
+  "runsToday":   2              // 그날 쓴 판 수. lastRunDate !== 오늘(KST) 이면 0으로 간주한다
+}
+```
+
+- 화면의 **"다시 도전 (n/5)"의 n = `runsToday`** — 팬에게 보이는 숫자는 늘 1~5다. 누적 회차는 팬에게 보이지 않는다.
+- 원안의 `daily_runs/{uid}_{date}` 는 **만들지 않는다.** 이 문서가 그 역할까지 겸한다.
+
+#### 대표 지시 조건 5건 (2026-09-05) — 전부 필수
+
+| # | 조건 | 이행 방법 |
+|---|---|---|
+| 1 | **날짜는 반드시 KST 기준.** 서버가 UTC면 매일 0~9시에 "어제"로 잘못 판정한다. `lastRunDate`는 KST 날짜 문자열이다 | 기존 헬퍼를 **재사용**한다 — 서버 `functions/src/core/voteRecord.ts` `kstDate()`, 클라이언트 `lib/kst.ts` `getTodayKST()`. 둘 다 `Intl` + `Asia/Seoul` 로 이미 올바르다. ❌ `new Date().toISOString().slice(0,10)` **신규 사용 금지** |
+| 2 | **자정 리셋이 자동이 아니라 코드 판정이 됐다.** AC 7을 시계 고정 단위 테스트로 못박아라. 1안이 새로 만든 유일한 위험이다 | 순수 함수는 `todayKST: string`을 **입력으로 받는다**(내부에서 시계를 읽지 않는다) → 날짜 경계가 결정적으로 테스트된다. 추가로 `kstDate()` 자체를 고정 `Date`로 검증한다: UTC 14:59:59 / 15:00:00(=KST 자정) 경계, 그리고 조건 1이 경고한 **UTC 00:00~09:00 구간** |
+| 3 | **게스트는 이 문서로 못 센다.** `tournament_runs`는 Tournament별 문서인데 게스트 한도는 "하루 통틀어 1판"이라 Tournament를 가로지른다 | 게스트 전용 보관소 **`guest_runs/{uid}`** 를 신설한다 (§3 Phase 1 표에 반영). `{ lastRunDate, runsToday, tournamentId }`. 게스트 uid는 브라우저마다 새로 생기므로 uid 단위 문서 1개로 충분하다. KST 리셋 판정은 `tournament_runs`와 **같은 방식**을 쓴다(리셋 로직이 하나여야 테스트도 하나다) |
+| 4 | **`firestore.rules`에 `tournament_runs` 규칙 추가.** `daily_runs` 컬렉션명 변경 항목은 삭제 | `tournament_runs` · `guest_runs` 읽기 규칙 신설(§9 함정 1의 `docId.split('_')[0] == uid` 패턴 그대로 통과 — uid에 `_`가 없다. `guest_runs`는 id가 uid 하나뿐이라 `docId == uid`). 쓰기는 둘 다 차단(서버 전용). **기존 `daily_participation` 규칙 블록은 Phase 3에서 삭제** — Phase 1에서 지우면 아직 옛 코드를 들고 있는 열린 탭이 읽기 거부를 맞는다 |
+| 5 | **이어하기 판정 경로를 명시하라.** AC 8이 여기 걸린다 | `tournament_runs.runIndex = n` 을 읽고 → `roundProgress/{uid}_{tid}_r{n}` 의 `complete`를 본다. **`complete !== true` 면 그 판(회차 n)을 이어한다. 새 판이 아니고, 한도를 소모하지 않는다.** `complete === true` 일 때만 새 판(회차 n+1)이며 그때 한도를 1 소모한다. `n === 0`(첫 판)도 새 판이다 |
+
+#### 회차 판정 순수 함수 (클라이언트·서버 공용 — §9 함정 5 대비)
+
+```ts
+decideRun({
+  runIndex: number,           // tournament_runs.runIndex (없으면 0)
+  lastRunDate: string | null, // tournament_runs.lastRunDate (없으면 null)
+  runsToday: number,          // tournament_runs.runsToday (없으면 0)
+  todayKST: string,           // 호출자가 주입 — 함수 내부에서 시계를 읽지 않는다
+  currentRunComplete: boolean,// roundProgress/{uid}_{tid}_r{runIndex}.complete === true
+  deadlinePassed: boolean,    // Tournament Deadline < now (AC 9)
+  limit?: number,             // 기본 5
+})
+  => { status: "continue",       runIndex: n }              // 한도 소모 없음
+   | { status: "new_run",        runIndex: n + 1 }          // 한도 1 소모
+   | { status: "limit_reached" }
+   | { status: "deadline_passed" }
+```
+
+판정 순서: ① `runIndex > 0 && !currentRunComplete` → **`continue`** (마감·한도와 무관하게 이어한다)
+② `deadlinePassed` → `deadline_passed` ③ `effectiveRunsToday = (lastRunDate === todayKST ? runsToday : 0)` 가 `limit` 이상 → `limit_reached` ④ 그 외 → `new_run`.
+
+---
+
 ### Phase 1 — 서버 코어 (PR 1)
 
 | 파일 | 작업 | 상세 |
 |---|---|---|
-| `functions/src/core/participation.ts` | MODIFY | `DAILY_PARTICIPATION_LIMIT` → **`DAILY_RUN_LIMIT = 5`**. `decideParticipation`을 **`decideRun`** 으로 재작성: 입력 = `{ runsForThisTournament: number, limit? }`, 출력 = `{ status:"allowed", runIndex:number }` \| `{ status:"limit_reached" }`. `runIndex = runsForThisTournament + 1`. 문서 id 헬퍼는 유지(`{uid}_{date}`), 필드만 `tournamentIds: string[]` → **`runs: { [tournamentId]: number }`** |
+| `functions/src/core/participation.ts` | MODIFY | `DAILY_PARTICIPATION_LIMIT` → **`DAILY_RUN_LIMIT = 5`**. `decideParticipation` → **`decideRun`** (시그니처는 **§3.0** 참조 — 2026-09-05 대표 확정으로 원안에서 바뀌었다). 문서 id 헬퍼 `participationDocId(uid, date)` → **`tournamentRunsDocId(uid, tournamentId)`** = `` `${uid}_${tid}` ``. KST 리셋 판정 헬퍼(`lastRunDate === todayKST ? runsToday : 0`)도 여기 둔다 |
+| `functions/src/core/guestRunGuard.ts` (`guestVoteGuard.ts` 대체) | MODIFY | 게스트 한도를 **`guest_runs/{uid}` 문서 기반**으로 재작성(§3.0 조건 3). 순수 판정: 오늘 판 수 0 → 허용(새 판) · 오늘 이미 1판인데 **같은 Tournament의 미완주 판** → 허용(이어하기) · 그 외 → 로그인 요구. **§9 함정 8의 기존 버그를 이 교체가 함께 없앤다** |
 | `functions/src/core/voteRecord.ts` | MODIFY | `VoteInput`에 `runIndex: number` 추가 + 검증(정수 1..5). matchId 형식 규칙은 **그대로** |
-| `functions/src/onVote.ts` | MODIFY | ① 중복 방지 쿼리를 `(userId, matchId)` → **`(userId, matchId, runIndex)`** ② 트랜잭션에서 `daily_runs` 문서의 해당 대회 판 수를 읽어 `decideRun` 호출 ③ 새 판 시작 시에만 카운트 +1 ④ vote 문서에 `runIndex` 기록 ⑤ 에러 코드 `VOTE_ERROR_CODES.DAILY_LIMIT` 유지 |
+| `functions/src/onVote.ts` | MODIFY | ① 중복 방지 쿼리를 `(userId, matchId)` → **`(userId, matchId, runIndex)`** ② 트랜잭션에서 **`tournament_runs/{uid}_{tid}`** 와 `roundProgress/{uid}_{tid}_r{n}` 을 읽어 `decideRun` 호출(§3.0) ③ `new_run` 일 때만 `runIndex +1` · `runsToday +1` · `lastRunDate = 오늘(KST)` 기록. `continue` 면 아무것도 쓰지 않는다 ④ vote 문서에 `runIndex` 기록 ⑤ 에러 코드 `VOTE_ERROR_CODES.DAILY_LIMIT` 유지 |
 | `lib/arena/bracketSeed.ts` | MODIFY | `bracketSeedDocId(uid, tid)` → **`bracketSeedDocId(uid, tid, runIndex)`** = `` `${uid}_${tid}_r${runIndex}` ``. 캐시 키(`wc48_bracket_seed_...`)도 같이. mulberry32·load-or-create 구조는 그대로 |
-| `functions/src/advanceRound.ts` + roundProgress 계열 | MODIFY | roundProgress 문서 id에 `_r{n}` 접미사, **문서 필드에 `runIndex` 추가** |
+| `functions/src/advanceRound.ts` + roundProgress 계열 | MODIFY | roundProgress 문서 id에 `_r{n}` 접미사, **문서 필드에 `runIndex` 추가**. 회차는 vote 문서의 `runIndex` **필드**에서 읽는다(id 파싱 금지 — §9 함정 2) |
 | `functions/src/core/crownCardRecord.ts` | MODIFY | `crownCardId(voterUid, tid)` → `crownCardId(voterUid, tid, runIndex)` = `` `${uid}_${tid}_r${n}` ``. 레코드에 `runIndex` 필드 추가 |
 | `functions/src/onChampionConfirmed.ts` | MODIFY | `after.runIndex`를 읽어 `crownCardId(...)`에 전달. **문서 id를 파싱하지 말 것**(§9 함정 2) |
-| `firestore.rules` | MODIFY | `daily_participation` → **`daily_runs`** 컬렉션명 변경(읽기 규칙 동일: `docId.split('_')[0] == uid`). 나머지 3개 컬렉션 규칙은 **변경 불필요**(§9 함정 1) |
+| `firestore.rules` | MODIFY | **`tournament_runs` · `guest_runs` 읽기 규칙 신설**(§3.0 조건 4). 소유자 판정은 기존 패턴 그대로 — `tournament_runs`는 `docId.split('_')[0] == uid`, `guest_runs`는 `docId == uid`. 쓰기는 둘 다 `if false`(서버 전용). `bracket_seeds`·`roundProgress`·`crown_cards` 규칙은 **변경 불필요**(§9 함정 1). ~~`daily_participation` → `daily_runs` 개명~~ **항목 삭제됨**(2026-09-05) — 기존 `daily_participation` 블록은 **Phase 3에서 삭제** |
+| `functions/src/advanceRound.ts` (votes 집계) | MODIFY | 🔴 **§9 함정 9.** 라운드 완료 판정이 `where(userId, tournamentId, round)`로 세고 있다 — 2판째 첫 선택이 1판째 24건과 합산돼 **즉시 라운드가 넘어간다**. `where("runIndex","==",n)` 추가 필수 |
+| `functions/src/linkSessionVote.ts` | MODIFY | 🔴 **§9 함정 11 — 원안 §3 파일 목록 누락.** 게스트→로그인 이관 코드가 `{uid}_{tid}` 형식 문서 id를 직접 만드는 곳이 4군데 있다(roundProgress 2 · votes 재부모화 · crown card 재발화). 회차 붙은 id로 전부 갱신. 게스트는 항상 `r1`이지만 **로그인 계정에 이미 `r1`이 있으면 충돌 판정이 달라진다**(HF-3.1 케이스 2) |
+| `functions/src/onChampionConfirmed.ts` (이미지 경로) | MODIFY | 🟠 **§9 함정 10.** Storage 경로가 `crown-cards/{tid}/{uid}.png` 라 **2판째가 1판째 그림을 덮어쓴다**(AC 5 정면 위반). 경로에 회차 추가 |
 
 ### Phase 2 — 화면·문구 (PR 2)
 
@@ -80,7 +138,8 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 | `components/auth/LoginModal.tsx` | MODIFY | `daily_limit` / `dailyLimitSub` 3언어 교체 — **§8 문구표 그대로** |
 | `functions/src/onVote.ts` (속도 제한) | MODIFY | **`RATE_LIMIT = 20` → `40`** (2026-09-03 대표 확정). 근거: v2.0에서 5판 = 선택 230번인데 분당 20이면 규칙이 최소 11.5분을 강제해 "결과물을 늘린다"는 설계와 충돌. 40이면 1.5초에 한 번까지 허용 |
 | `lib/i18n/messages.ts` (`arena.vote.rateLimited`) | MODIFY | 현재 "잠시 후 다시 시도해주세요." — **왜 막혔는지 설명이 없음**. 대표 지시(09-03): 안내 문구 필수 → §8 표 참조, **대표 승인 후 반영** |
-| `functions/src/core/guestVoteGuard.ts` | MODIFY | 게스트는 하루 통틀어 1판. **완주한 대회의 재도전도 로그인 요구**(기존 `completedCurrentTournament` 분기가 이미 그 역할 — 회차 개념만 반영) |
+| `lib/arena/voteStore.ts` | MODIFY | 🔴 **§9 함정 9(클라이언트 쪽).** `loadTournament`가 `where(userId, tournamentId)`로 **그 Tournament의 모든 판의 선택 기록을 통째로** 불러온다 → 2판째가 화면에서 곧바로 완주 상태가 된다. `where("runIndex","==",n)` 추가 + 회차를 스토어 상태에 보관 |
+| Arena 마감 안내 화면 (AC 9·16) | MODIFY | 마감된 Tournament에 **① 완주 화면에서 [다시 도전] 비활성 + 안내 한 줄** ② **한 판도 안 돈 팬의 첫 진입 화면에도 같은 안내 한 줄**(2026-09-05 대표 지시). 진행 중인 판은 **이어갈 수 있게 둔다**. 문구 = §8 `arena.run.deadlinePassed` |
 
 ### Phase 3 — 정리·계측 (PR 3)
 
@@ -104,13 +163,14 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 6. **비로그인은 하루 통틀어 1판.** 완주 후 같은 대회 재도전·다른 대회 진입 모두 로그인 요구.
 7. **한도는 KST 자정에 리셋**된다.
 8. **미완주 판도 회차 1개를 차지**한다 — 24강까지만 하고 나갔다가 다시 들어오면 **그 판을 이어서** 진행하며, 새 판이 아니다.
-9. **마감(Deadline) 지난 Tournament는 새 판을 시작할 수 없다.**
+9. **마감(Deadline) 지난 Tournament는 새 판을 시작할 수 없다.** 단 **진행 중인 판은 이어갈 수 있다**(2026-09-05 대표 확정). ⚠️ 실측 결과 투표 경로에 마감 검사가 **아예 없다** — "기존 원칙 유지"가 아니라 신규 구현이다.
 10. 랭킹 집계 결과가 5판 전부를 반영한다(`rankingAggregator` **코드 변경 없이** 그대로 동작).
 11. 옛 문서(회차 없음)를 가진 계정이 화면에서 정상 동작한다 — 1회차로 표시.
 12. 화면 문구 3언어가 §8 표와 **글자 단위로 일치**한다.
 13. 1분에 40번까지 선택이 허용되고, 41번째에 **왜 막혔는지 알려주는 안내**가 뜬다.
 14. 랭킹 갱신 주기가 12시간이다.
 15. 랭킹 화면에 **다음 발표 시각 한 줄**이 3언어로 뜨고, 날짜가 넘어가면 "오늘"→"내일"로 정확히 바뀐다.
+16. **마감된 Tournament에 한 판도 안 돈 팬이 처음 들어와도 안내가 뜬다** (2026-09-05 대표 지시). 완주 화면의 [다시 도전] 비활성만으로는 부족하다 — 첫 진입 화면에도 `arena.run.deadlinePassed` 가 노출된다.
 
 ---
 
@@ -171,10 +231,15 @@ Vercel Preview에서 **로그인 계정**으로:
 | `arena.run.playAgain` (신설) | 다시 도전 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
 | `arena.run.pastCards` (신설) | 지난 판의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
 | `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
+| `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05)** | 이 Tournament는 마감됐어요. 다른 Tournament에서 새 판을 시작해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
 | `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
 | `ranking.nextUpdate.tomorrow` **✅ 승인 (2026-09-04)** | 다음 발표: 내일 09:00 | Next update: tomorrow 09:00 KST | Próxima actualización: mañana 09:00 KST |
 
 > "Tournament" · "Crown Card"는 3언어 모두 **원문 그대로** 유지(LANGUAGE.md RULE 1).
+
+> **차단 문구 원칙 (2026-09-05 대표 확정)**
+> **막고 나서 길을 열어준다.** 승인된 차단 문구는 전부 다음 행동을 함께 준다 — `dailyLimit`은 다른 Tournament로, `rateLimited`는 몇 초 뒤 이어가기로, `deadlinePassed`는 다른 Tournament의 새 판으로.
+> 닫고 끝나는 문장은 팬을 막다른 길에 세운다. **"할 수 없다"는 이미 비활성 버튼이 눈으로 말한다** — 문구는 갈 곳을 말해야 한다.
 
 > **발표 시각 표기 규칙 (2026-09-04 대표 확정)**
 > - 시각은 **KST 고정**. en·es는 `21:00 KST`처럼 시간대를 명시한다.
@@ -194,12 +259,20 @@ Vercel Preview에서 **로그인 계정**으로:
 6. **⚠️ 진행 중 판의 이어하기가 깨지기 쉽다.** "다시 도전"은 **완주 상태에서만** 노출된다. 미완주 상태에서 재입장하면 언제나 **그 판을 이어서**다(§4 AC 8).
 7. **⚠️ 로컬 main은 매번 stale하다.** 새 브랜치는 직전 작업 브랜치에서 딸 것.
 
+### 2026-09-05 Claude Code 실측 추가 (8~12)
+
+8. **🟠 기존 버그 — 게스트의 "다른 Tournament 진입" 서버 차단이 항상 작동하지 않는다.** `functions/src/onVote.ts:39-40` 의 범위 검색이 시작값과 끝값을 똑같이(`lo = hi = ${uid}_`) 잡아서 **결과가 늘 0건**이다 → `enteredOtherTournament` 가 영원히 `false`. 지금 게스트를 막는 건 탭을 닫으면 사라지는 `sessionStorage` 마커뿐이다. §9 함정 4가 경고한 "랭킹 조작 비용 0"이 **현재 실재한다.** §3.0 조건 3의 `guest_runs` 문서 기반 재작성이 이 버그를 함께 없앤다.
+9. **🔴 판이 늘어나도 코드가 지난 판의 선택 기록까지 같이 센다.** 두 곳이다 — `functions/src/advanceRound.ts:35-39`(라운드 완료 판정)와 `lib/arena/voteStore.ts:143-147`(화면 진행 상황 복원). 둘 다 `(userId, tournamentId)` 로만 조회한다. 회차 필터를 안 넣으면 **2판째가 시작하자마자 완주 상태**가 된다. 참고: 두 쿼리 모두 **등가 조건만** 쓰므로 Firestore 인덱스 병합이 적용된다 — 새 복합 인덱스는 불필요할 것으로 보이나 **에뮬레이터에서 실측 확인할 것**.
+10. **🟠 Crown Card 이미지 경로에 회차가 없다.** `functions/src/onChampionConfirmed.ts:83` 이 `crown-cards/{tid}/{uid}.png` 에 저장한다 → **2판째가 1판째 그림을 덮어쓴다.** 문서(`crown_cards`)만 회차별로 나눠도 그림이 하나면 AC 5(지난 카드 보존)는 실패한다.
+11. **🟡 `linkSessionVote.ts` 가 원안 §3 파일 목록에서 빠져 있었다.** 게스트→로그인 이관이 `{uid}_{tid}` 형식 문서 id를 4군데서 직접 만든다.
+12. **🟡 마감 검사가 투표 경로에 존재하지 않는다.** `tournamentDeadline` 은 랭킹 화면·Pitch 목록 등 7개 파일에서 쓰이지만 Arena 진입과 `onVote` 에는 없다. AC 9는 "유지"가 아니라 **신규 구현**이다.
+
 ---
 
 ## §10. 핸드오프 종료 조건
 
 ```
-☐ §4 Acceptance Criteria 12개 전부 통과
+☐ §4 Acceptance Criteria **16개** 전부 통과
 ☐ §11 3계층 테스트 100% PASS + Console 에러 0건
 ☐ PR 3개(Phase 1·2·3) 각각 리뷰 통과 후 머지
 ☐ Vercel Preview에서 §7 수동 테스트 5단계 완료 (대표 눈검사 전 Claude Code가 먼저 완주)
@@ -234,6 +307,10 @@ Phase 5 — /pr         : §10 종료 조건 체크리스트를 PR 본문에 포
 | `functions/src/core/__tests__/crownCardRecord.test.ts` | 회차별 카드 id 생성·중복 방지 | 4·5 |
 | `functions/src/core/__tests__/guestVoteGuard.test.ts` | 게스트 1판 후 전면 차단 | 6 |
 | 폴백 테스트 (신규) | `runIndex` 없는 옛 문서 → 1회차 | 11 |
+| KST 리셋 테스트 (신규) | `lastRunDate !== todayKST` → `runsToday` 0 취급 · `kstDate()` 를 고정 `Date`로 (UTC 14:59:59 / 15:00:00 경계 + UTC 00:00~09:00 구간) | 7 |
+| 마감 게이트 테스트 (신규) | `deadlinePassed` → 새 판 차단 · **진행 중 판은 `continue`** | 9·16 |
+| 이어하기 테스트 (신규) | `currentRunComplete === false` → `continue`(한도 미소모, 새 판 아님) | 8 |
+| `functions/src/core/__tests__/guestRunGuard.test.ts` | `guest_runs` 기반 게스트 1판 한도 + 같은 Tournament 이어하기 허용 | 6 |
 
 ### 11.3~11.6
 템플릿 `docs/templates/HANDOFF_BRIEF_TEMPLATE.md` §11.3~11.6 그대로 적용.
@@ -248,4 +325,5 @@ Phase 5 — /pr         : §10 종료 조건 체크리스트를 PR 본문에 포
 - 마케팅에는 정정 서신 발송 완료 — `marketing/00_strategy/서신_티오→마케팅_참가규칙v2.0-정정_2026-09-03.md`
 
 ### 이 킥에서 의도적으로 제외 — W4 후속 항목
+- **마감 후 "이어하기"를 언제까지 허용할지** (2026-09-05 대표 지시로 기록). RUN-1은 진행 중인 판을 **기한 없이** 이어가게 둔다. 그래서 미완주 판을 며칠 뒤에 이어하면 마감된 Tournament에 계속 선택이 들어간다. 하루 5판 한도가 있어 규모는 작지만 **구멍은 구멍이다.** 유예 기간(예: 마감 후 24시간)을 둘지는 후속 킥에서 정한다.
 - **발표 시각의 현지 시각 자동 표시.** RUN-1은 **KST 고정 표기**(`21:00 KST`)로 간다. 해외 팬에게 자기 지역 시각으로 환산해 보여주는 일은 **범위 밖** — 랭킹 개편(W4)에서 다룬다. (2026-09-04 대표 확정)
