@@ -8,7 +8,7 @@
  * stays refresh-stable even when the server never acks.
  */
 import { describe, it, expect, vi } from "vitest";
-import { resolveBracketSeed, type SeedIO } from "@/lib/arena/bracketSeed";
+import { bracketSeedDocId, resolveBracketSeed, type SeedIO } from "@/lib/arena/bracketSeed";
 
 const NEW = 4242;
 const SERVER = 777;
@@ -116,5 +116,25 @@ describe("resolveBracketSeed", () => {
     expect(r.source).toBe("pending-local");
     reject(new Error("late failure"));
     await new Promise((res) => setTimeout(res, 5)); // would surface as unhandled
+  });
+});
+
+describe("bracketSeedDocId — 회차 (RUN-1)", () => {
+  it("① 회차를 안 주면 1회차 — 현행 문서 이름과 같다(호출부 무변경)", () => {
+    expect(bracketSeedDocId("u1", "gen4_idol_48")).toBe("u1_gen4_idol_48");
+  });
+
+  it("② 1회차는 접미사가 없다 (§3.0 B안)", () => {
+    expect(bracketSeedDocId("u1", "gen4_idol_48", 1)).toBe("u1_gen4_idol_48");
+  });
+
+  it("③ 회차마다 문서가 다르다 — create-once를 완화하지 않고 새 판에 새 씨앗을 준다 (§5 DON'T 4)", () => {
+    expect(bracketSeedDocId("u1", "gen4_idol_48", 2)).toBe("u1_gen4_idol_48_r2");
+    expect(bracketSeedDocId("u1", "gen4_idol_48", 5)).toBe("u1_gen4_idol_48_r5");
+  });
+
+  it("④ 5회차까지 문서 이름이 전부 다르다 — 판마다 대진표가 새로 섞인다 (AC 3)", () => {
+    const ids = [1, 2, 3, 4, 5].map((n) => bracketSeedDocId("u1", "gen4_idol_48", n));
+    expect(new Set(ids).size).toBe(5);
   });
 });

@@ -24,10 +24,17 @@
 | 묶음 | 태스크 | 상태 | 커밋 |
 |---|---|---|---|
 | A | 1~4 순수 모듈 4종 (`kstReset`·`runDocId`·`decideRun`·`guestRun`) | ✅ **완료** (테스트 37건 · 루트 전체 812건 green · tsc 0) | `6a0bce2` |
-| B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` | ☐ 미착수 | — |
+| B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` (+ `todayKST` 통합) | ⚠️ **코드 완료·빌드 미완** — 아래 주의 | `PENDING_B` |
 | C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** | ☐ 미착수 | — |
 | D | 10~12 `advanceRound`·`onChampionConfirmed`·`linkSessionVote` | ☐ 미착수 | — |
 | E | 13~15 보안 규칙 + 인덱스 실측 + PR | ☐ 미착수 | — |
+
+> ⚠️ **묶음 B 종료 시점의 알려진 상태 (2026-09-05)**
+> 테스트는 양쪽 다 green이다 (루트 820건 · functions 431건). 그러나 **`functions` 의 `tsc` 는 2곳에서 실패한다**:
+> `onVote.ts:115` (`buildVoteDoc` 에 `runIndex` 없음) · `onChampionConfirmed.ts:37,83` (`crownCardId`·`buildCrownCardRecord` 에 `runIndex` 없음).
+> **이건 고장이 아니라 계약 변경이 아직 배선되지 않은 것**이고, 그 배선이 정확히 **Task 9(onVote)와 Task 11(onChampionConfirmed)** 이다.
+> 묶음 B의 경계가 타입이 맞는 지점이 아니라는 뜻이다 — 컴파일이 맞는 첫 경계는 **Task 11 끝**이다.
+> 이어받는 사람은 이 두 오류를 "내가 뭘 깼나" 로 읽지 말고 **남은 작업 목록**으로 읽어라.
 
 **이어받는 사람이 할 일**: 위 표에서 `☐ 미착수` 인 첫 묶음부터 시작한다.
 직전 묶음의 커밋 해시로 `git show --stat` 해서 실제로 들어간 파일을 먼저 확인한다.
