@@ -26,7 +26,7 @@ import { ALLOWED_ORIGINS } from "./cors";
 import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 import { decideRun, effectiveRunsToday, normalizeRunIndex } from "./_run/decideRun";
 import { decideGuestRun } from "./_run/guestRun";
-import { runDocId } from "./_run/runDocId";
+import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
 import { planRunWrite } from "./core/planRunWrite";
 import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
 
@@ -105,7 +105,9 @@ export const onVote = onCall(
     const deadlinePassed = await isDeadlinePassed(tid);
 
     const votes = adminDb.collection("votes");
-    const runsRef = adminDb.collection("tournament_runs").doc(`${uid}_${tid}`);
+    const runsRef = adminDb
+      .collection("tournament_runs")
+      .doc(tournamentRunsDocId(uid, tid));
     const guestRef = adminDb.collection("guest_runs").doc(uid);
     // 접미사 없는 옛 진행 문서 = 회차 도입 전의 1회차 판 (§3.0 B안 · AC 11).
     const legacyProgressRef = adminDb.doc(`roundProgress/${runDocId(uid, tid, 1)}`);

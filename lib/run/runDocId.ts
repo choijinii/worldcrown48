@@ -55,3 +55,16 @@ export function bracketSeedCacheKey(
 ): string {
   return `wc48_bracket_seed_${runDocId(uid, tournamentId, runIndex)}`;
 }
+
+/**
+ * 판 원장 문서 id — `tournament_runs/{uid}_{tid}`.
+ *
+ * 회차가 붙지 않는다. 이 문서 **하나가** 그 Tournament의 모든 판을 관장하기 때문이다
+ * (누적 회차 `runIndex` + 오늘 판 수 `runsToday` + 마지막 판 날짜 `lastRunDate`).
+ * 회차별로 나누면 "오늘 몇 판 썼나"를 세려고 문서를 훑어야 한다.
+ *
+ * 게스트 한도 문서(`guest_runs/{uid}`)는 id가 uid 하나뿐이라 조합할 것이 없다.
+ */
+export function tournamentRunsDocId(uid: string, tournamentId: string): string {
+  return `${uid}_${tournamentId}`;
+}

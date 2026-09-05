@@ -12,6 +12,7 @@ import {
   bracketSeedCacheKey,
   crownCardStoragePath,
   runDocId,
+  tournamentRunsDocId,
 } from "@/lib/run/runDocId";
 
 const UID = "abc123";
@@ -60,5 +61,15 @@ describe("bracketSeedCacheKey", () => {
 
   it("⑨ 2회차는 다른 키 — 회차마다 씨앗이 달라야 대진표가 새로 섞인다 (AC 3)", () => {
     expect(bracketSeedCacheKey(UID, TID, 2)).toBe("wc48_bracket_seed_abc123_gen4_idol_48_r2");
+  });
+});
+
+describe("tournamentRunsDocId", () => {
+  it("⑩ 회차가 붙지 않는다 — 이 문서 하나가 그 Tournament의 모든 판을 관장한다", () => {
+    expect(tournamentRunsDocId(UID, TID)).toBe("abc123_gen4_idol_48");
+  });
+
+  it("⑪ 소유자 판정이 uid를 준다 — 보안 규칙이 여기 걸린다", () => {
+    expect(tournamentRunsDocId(UID, TID).split("_")[0]).toBe(UID);
   });
 });

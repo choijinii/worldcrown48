@@ -1,7 +1,8 @@
 /**
  * bracket_seeds — the per-Voter, per-Tournament random seed (ADR-0007).
  *
- * doc id = `${uid}_${tournamentId}`, shape `{ seed: number, createdAt }`.
+ * doc id = `runDocId(uid, tournamentId, runIndex)` (1회차는 접미사 없음 — §3.0 B안),
+ * shape `{ seed: number, createdAt }`. 판마다 씨앗이 따로라 대진표가 새로 섞인다(AC 3).
  * The seed is created ONCE on first Arena entry and is then immutable
  * (firestore.rules: owner read via doc-id prefix + create-once, no update/
  * delete). It is the third input to the pure bracket (contestants, votes,
