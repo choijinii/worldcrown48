@@ -1,0 +1,48 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>크라운 카드 이미지 소싱 — 대표 3단계 설계 판정 (2026-08-28)</title>
+<style>
+body{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#FFFFFF;color:#1F2937;margin:0;padding:32px;line-height:1.6}
+h1{font-size:21px;margin:0 0 6px}h2{font-size:16px;margin:30px 0 10px;border-left:5px solid #F5C518;padding-left:10px}
+.sub{color:#6B7280;font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+th,td{border:1px solid #E5E7EB;padding:9px 11px;text-align:left;vertical-align:top}th{background:#F3F4F6}
+.g{background:#F0FDF4}.y{background:#FFFBEB}.r{background:#FEF2F2}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.t-g{background:#16A34A}.t-y{background:#D97706}.t-r{background:#DC2626}
+.note{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;font-size:13px;margin:10px 0}
+.flow{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.step{flex:1;min-width:180px;border:1.5px solid #D1D5DB;border-radius:10px;padding:10px 12px;font-size:13px;background:#F9FAFB}
+.step b{display:block;margin-bottom:4px}
+.mono{font-family:Menlo,monospace;font-size:12.5px;background:#F3F4F6;padding:1px 5px;border-radius:4px}
+</style></head><body>
+<h1>크라운 카드 이미지 소싱 — 대표 3단계 설계, 조항별 판정</h1>
+<div class="sub">2026-08-28 · 티오 · 대조 기준: 2026-07-13~08-08 법률 상담 확정 원칙(임베드=최강 카드 · 묵시적 허락 부정 · CC-NC 배제)</div>
+
+<h2>1. 대표 설계를 조항별로 나눠 판정</h2>
+<table>
+<tr><th style="width:34%">대표 설계 조항</th><th style="width:12%">판정</th><th>근거</th></tr>
+<tr class="g"><td><b>소속사 제공 홍보 이미지 사용</b></td><td><span class="tag t-g">그대로 실행</span></td><td>권리자가 배포 목적으로 푼 이미지 = 가장 안전. 이 설계의 심장이고, 전적으로 동의</td></tr>
+<tr class="g"><td><b>소속사에 문의해 허락받은 이미지 사용</b></td><td><span class="tag t-g">그대로 실행</span></td><td>명시적 허락 = 완전 안전. 단, 문의서에 <b>"크라운 카드(유저가 저장·공유하는 기념 카드)에 사용"</b>을 명시해야 허락 범위에 포함됨</td></tr>
+<tr class="g"><td><b>48명 전원 확보는 불가능하니 확보분만 우선</b></td><td><span class="tag t-g">그대로 실행</span></td><td>현실 인식 정확. 그래서 카드가 "있으면 사진, 없으면 무사진"으로 <b>둘 다 소화하는 하이브리드</b>여야 함 (§2)</td></tr>
+<tr class="r"><td><b>답변이 없으면</b> 임베드 캡처·썸네일을 파일에 사용</td><td><span class="tag t-r">대체 필요</span></td><td>상담에서 <b>"묵시적 허락 부정"</b>이 명시 확정됨 — 무응답은 허락이 아니라 거절과 같음. 게다가 문의 기록이 남은 상태의 무단 사용은 "몰랐다"는 항변도 못 쓰는 <b>고의 침해</b>가 됨. 문의 안 한 것보다 오히려 위험</td></tr>
+<tr class="r"><td>그동안 <b>광고·구독 없이 비상업</b>이면 괜찮다</td><td><span class="tag t-r">방어 안 됨</span></td><td>저작권·초상권 침해는 <b>비상업이어도 성립</b>. 비상업은 손해배상 액수를 줄일 뿐 침해 여부를 바꾸지 않고, 사전등록을 모으는 서비스는 법원이 상업적 맥락으로 볼 여지도 큼</td></tr>
+<tr class="y"><td><b>MVP2: LAB 유저 공개 → 이미지 소싱은 유저 몫</b></td><td><span class="tag t-y">조건부 동의</span></td><td>방향 맞음. 단 "유저가 올리면 무조건 안전"이 아니라 <b>플랫폼 면책 요건</b>을 갖춰야 안전: 약관(권리 보증 조항)+신고·삭제 절차(notice&takedown)+반복 침해자 제재. 그리고 카드 <b>파일을 굽는 건 우리 서버</b>라 이 장치 없이는 책임이 우리에게 남음</td></tr>
+<tr class="y"><td><b>언론사 심사 통과 후 보도용 이미지 사용</b></td><td><span class="tag t-y">절반만</span></td><td>보도용 이미지의 허락 범위는 <b>보도(기사)</b>. 뉴스룸 기사에는 쓸 수 있게 되지만, 크라운 카드는 서비스 기능이라 목적 밖. 해법: 언론사 지위는 <b>소속사 문의의 응답률을 올리는 지렛대</b>로 쓰고, 카드 사용 허락은 문의서에 별도 명시해 받는다</td></tr>
+</table>
+
+<h2>2. 티오 수정안 — 설계의 심장은 살리고 빨간 조항만 갈아끼움</h2>
+<div class="flow">
+<div class="step" style="border-color:#16A34A"><b>1단계 (지금~런칭)</b>크라운 카드 파일 = <b>하이브리드</b>. 승인 이미지 확보된 우승자 → 사진 카드 / 미확보 → 무사진 브랜드 카드. 소속사 문의는 대표가 지금 시작(회신 수 주 소요). <b>무응답 = 미확보로 처리, 썸네일 파일 굽기 금지</b></div>
+<div class="step" style="border-color:#D97706"><b>2단계 (MVP2 · LAB 공개)</b>유저 업로드 이미지 허용 + 약관 권리 보증 + 신고·삭제 절차 + 반복 침해 제재 = 플랫폼 면책 구조. 이 4종 세트를 LAB 공개 킥의 완료 기준에 포함</div>
+<div class="step" style="border-color:#16A34A"><b>3단계 (언론사 등록 후)</b>보도용 이미지는 뉴스룸 기사에 사용. 언론사 명함으로 소속사 문의 재발송 → 카드 사용 허락 명시 취득 → 승인 풀 확대</div>
+</div>
+<div class="note">화면 표시는 지금 그대로: 그리드·랭킹 = 썸네일, 매치 = 임베드, 크라운 카드 화면 = 썸네일. 쟁점은 오직 <b>파일로 구워 내보내는 카드</b>뿐이고, 그 파일의 원칙은 "허락받은 사진 아니면 무사진" 한 줄이 전부입니다.</div>
+
+<h2>3. 대표가 물으신 "48명 데이터폼" — 네, 필요합니다</h2>
+<table>
+<tr><th style="width:30%">구성</th><th>내용</th></tr>
+<tr><td>저장 칸</td><td><span class="mono">Contestant.approvedImage</span> 신설: 이미지 + <b>출처·허락 증빙 메모</b>(소속사명·회신 날짜·허락 범위). 증빙이 붙어야 나중에 문제 제기가 와도 한 줄로 답할 수 있음</td></tr>
+<tr><td>입력 폼</td><td>편집기(STEP 2) 각 칸에 "승인 이미지" 업로드 칸 — 어드민 전용. 8/23 제거한 imageUrl 칸과 달리 <b>허락 증빙이 동반되는 칸</b>이라 부활이 아니라 다른 물건</td></tr>
+<tr><td>렌더 분기</td><td>크라운 카드 파일 생성 시: 승인 이미지 있음 → 사진 카드 / 없음 → 무사진 브랜드 카드 (한 디자인의 두 변형)</td></tr>
+<tr><td>착수 시점</td><td>폼은 <b>첫 승인 이미지가 손에 들어오는 시점</b>에 맞추면 충분(그 전엔 넣을 게 없음) → 소속사 문의 발송이 먼저, 폼 소킥은 W5~6 버퍼 또는 MVP2 초입 — 대표 결정</td></tr>
+</table>
+</body></html>

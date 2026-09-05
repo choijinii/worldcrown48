@@ -1,3 +1,6 @@
+> 🚫 **참가 규칙은 이 문서가 정본이 아닙니다 (2026-09-03 DOC-QUOTA-1).** 아래 본문의 "1일 5회 투표"·"Tournament별 독립 5회 카운트" 류 서술은 **전부 폐기된 옛 규칙**입니다.
+> 정본 = `LANGUAGE.md` §일일 판 한도(Daily Run Limit) + `outputs/참가규칙_정본v2.0_판Run_2026-09-03.html` — **계정당·대회당 하루(KST) 5판**, 판마다 새 대진표+Crown Card 1장, 비로그인은 하루 통틀어 1판. 제품 정의에서 "표"는 단위로 쓰지 않습니다.
+
 > ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
 > 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.3 「🔄 2026-07 대개편」` > `LANGUAGE.md v2.0` > 이 문서.
 > 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
@@ -160,9 +163,9 @@ Domain 6: Admin Dashboard  — 관리자 대시보드 (MVP 1 일부)          [�
 
 ```
 ✅ 확정 규칙:
-  - 대진별 1일 5회: 동일 Tournament에서 하루 최대 5개 Match 투표 가능
+  - 대진별 1일 5회: 동일 Tournament에서 하루 최대 5개 Match 투표 가능  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
   - 자정 리셋: KST 00:00 기준 카운트 초기화
-  - 복수 Tournament: 각 Tournament별 독립 5회 카운트
+  - 복수 Tournament: 각 Tournament별 독립 5회 카운트  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
   - 소셜 로그인 필수: Google / Apple (익명 투표 없음)
 
 랭킹 노출:

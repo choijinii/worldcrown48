@@ -6,7 +6,7 @@
  * 카운터와 같은 모양이다.
  *
  * 컬렉션 이름은 `ai_usage` — 핸드오프 문면은 `aiUsage`였지만 이 저장소의 컬렉션은
- * 전부 snake_case(`news_generation`·`ranking_cache`·`daily_participation`)라
+ * 전부 snake_case(`news_generation`·`ranking_cache`·`tournament_runs`)라
  * 관례에 맞췄다. 문서 id는 문면대로 `{yyyy-mm-dd}`(KST).
  *
  * 카운트는 **모델 호출 직전**에 올린다. 모델이 그 뒤 실패해도 1회는 소모된다

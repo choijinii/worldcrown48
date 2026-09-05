@@ -1,0 +1,62 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>LAB-UX-1 대표 스모크 진단 — 이름·소속 표기 (2026-08-28)</title>
+<style>
+body{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#FFFFFF;color:#1F2937;margin:0;padding:32px;line-height:1.55}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:34px 0 12px;border-left:5px solid #F5C518;padding-left:10px}
+.sub{color:#6B7280;font-size:13px}
+.flow{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;margin:14px 0}
+.step{flex:1;min-width:150px;border:1.5px solid #D1D5DB;border-radius:10px;padding:10px 12px;font-size:13px;background:#F9FAFB;position:relative}
+.step b{display:block;font-size:13px;margin-bottom:4px}
+.ok{border-color:#16A34A;background:#F0FDF4}.warn{border-color:#F59E0B;background:#FFFBEB}.bad{border-color:#DC2626;background:#FEF2F2}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;color:#fff;margin-bottom:6px}
+.t-ok{background:#16A34A}.t-warn{background:#D97706}.t-bad{background:#DC2626}.t-info{background:#2563EB}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+th,td{border:1px solid #E5E7EB;padding:8px 10px;text-align:left;vertical-align:top}th{background:#F3F4F6}
+.mono{font-family:Menlo,monospace;font-size:12.5px;background:#F3F4F6;padding:1px 5px;border-radius:4px}
+.layer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+.box{border:1.5px solid #D1D5DB;border-radius:10px;padding:12px;font-size:13px}
+.box h3{margin:0 0 6px;font-size:14px}
+.arrow{text-align:center;color:#9CA3AF;font-size:22px;margin:-4px 0}
+.note{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;font-size:13px;margin:10px 0}
+</style></head><body>
+<h1>LAB-UX-1 대표 스모크 진단 — "이름이 한글로만 나온다"</h1>
+<div class="sub">2026-08-28 · 티오 · 근거: 대표 스크린샷 9장 + 코드 실측(lib/types/tournament.ts · functions/src/core/aiFillCore.ts · extractContestantsCore.ts · YouTubeInspectorModal.tsx)</div>
+
+<h2>1. 스모크에서 일어난 일 (흐름 그대로)</h2>
+<div class="flow">
+<div class="step ok"><span class="tag t-ok">정상</span><b>동영상 생성</b>48칸 채움 · 이름 전부 한글 · 소속은 aespa·BLACKPINK(영문 공식명) · 국가 KR/JP/TH</div>
+<div class="step ok"><span class="tag t-ok">정상</span><b>X로 5칸 비움</b>이름·소속만 지워지고 영상은 남음 → 43/48</div>
+<div class="step ok"><span class="tag t-ok">정상</span><b>링크 5개 붙여넣기</b>"빈칸 5개" 인식 → 검수 및 자동 채우기</div>
+<div class="step warn"><span class="tag t-warn">혼란</span><b>채운 뒤 뜬 문구</b>"빈칸보다 링크가 5개 많아요…" — 이미 채워진 뒤의 상태를 다시 계산해 보여준 것</div>
+<div class="step ok"><span class="tag t-ok">정상</span><b>5칸 자동 채움</b>지수·윈터·카리나·장원영·카리나 (한글) · 중복 의심 배지 정확히 작동</div>
+<div class="step warn"><span class="tag t-warn">혼재</span><b>소속 표기</b>붙여넣기분은 <span class="mono">에스파</span>, AI 채우기분은 <span class="mono">aespa</span> — 같은 그룹이 두 표기</div>
+<div class="step bad"><span class="tag t-bad">핵심</span><b>EN으로 토글</b>버튼·라벨은 영어가 되는데 이름은 그대로 한글</div>
+<div class="step ok"><span class="tag t-ok">정상</span><b>영문 제목 숏츠</b>멤버 여럿(#hanni #minji…) → "수동 필요" → 이름 입력 → [새 영상 찾기] 등장</div>
+</div>
+<div class="note">결론부터: <b>#80·#81·#82가 하기로 한 일은 전부 제대로 했습니다.</b> 대표님이 발견하신 건 그 위층의 문제 — <b>"참가자 이름은 언어가 하나뿐"</b>이라는 데이터 구조의 한계입니다. 이건 LAB-UX-1이 만든 문제가 아니라, LAB-UX-1이 이름을 한글로 통일하면서 <b>드러난</b> 문제입니다.</div>
+
+<h2>2. 왜 이름만 번역이 안 되나 — 구조도</h2>
+<div class="layer">
+<div class="box" style="border-color:#16A34A"><h3>대회 제목·설명</h3>발행 시 Haiku가 ko·en·es 3벌로 번역해 저장 (<span class="mono">titleI18n</span>) → 언어 토글에 따라 바뀜 ✅</div>
+<div class="box" style="border-color:#16A34A"><h3>국가</h3>ISO 코드(KR) 한 글자로 저장 → 화면이 보는 사람 언어로 "대한민국 / Korea" 표시 ✅</div>
+<div class="box" style="border-color:#DC2626"><h3>참가자 이름·소속</h3><span class="mono">name: string</span> 딱 한 칸. 번역본이 없으니 어떤 언어로 봐도 저장된 글자 그대로 ❌ (I18N_POLICY에도 참가자 이름 규정 없음 — 실측)</div>
+</div>
+<p style="font-size:13.5px">즉 제목과 국가는 "여러 언어를 담을 그릇"이 있는데 이름은 그릇이 하나뿐입니다. #82 이전엔 로마자·한글이 뒤섞여 있어서 이 한계가 안 보였고, 한글로 정돈되자 EN 화면에서 또렷이 보이게 된 것입니다.</p>
+
+<h2>3. 발견 3건 — 심각도와 범위</h2>
+<table>
+<tr><th style="width:26%">발견</th><th>판정</th><th>고치는 방법</th><th style="width:14%">규모</th></tr>
+<tr><td><b>A. 이름이 언어와 무관하게 한글</b></td><td><span class="tag t-bad">런칭 전 필수</span><br>월드컵 겨냥 글로벌 서비스에서 EN·ES 방문자가 한글 이름만 보게 됨. 베타(W4) 전에 있어야 함</td><td>제목과 같은 방식: <span class="mono">nameI18n {ko,en,es}</span> 칸 신설 → 발행 시 Haiku 1콜로 48명 공식 로마자 활동명 채움 → 화면은 언어별 표시, 없으면 한글로 폴백. <b>정본(중복 판정·검색 기준)은 한글 유지 → #82 그대로</b></td><td>새 킥 1건 (스키마+발행 훅+표시 3곳) · 1~2일</td></tr>
+<tr><td><b>B. 소속 표기 혼재</b> (에스파 vs aespa)</td><td><span class="tag t-warn">작은 정합성</span><br>#82 "제목에 적힌 그대로" 규칙이 소속에도 적용된 부작용</td><td>추출 프롬프트 한 줄: "소속은 공식 로마자 그룹명(aespa·IVE)으로" — AI 채우기와 같은 관례로 통일. 소속은 언어와 무관한 고유명이라 번역 불필요</td><td>소PR (프롬프트+테스트 1줄) · 1시간</td></tr>
+<tr><td><b>C. 채운 뒤 뜨는 "링크가 5개 많아요"</b></td><td><span class="tag t-warn">문구 혼란</span><br>성공했는데 실패처럼 읽힘</td><td>성공 시 창을 닫고 토스트 "5칸 채움 · 이름 4 · 수동 필요 1"로 결과 보고 (문구는 대표 승인)</td><td>소PR · 1시간</td></tr>
+</table>
+<p style="font-size:13px;color:#6B7280">참고: [새 영상 찾기]가 관련성 낮은 영상을 고른 건 검색 품질(LAB-EV 영역)이라 이번 범위 밖입니다. 이름 하나로 유튜브를 검색하니 단체 무대가 잡힐 수 있고, 미세조정 창의 [원본 열기]·[영상 빼기]가 그 보완책입니다.</p>
+
+<h2>4. 티오 추천 — 일정에 얹는 방법</h2>
+<div class="flow">
+<div class="step ok"><b>지금</b>LAB-UX-1 <b>공식 종료</b> (약속한 기능 전부 확인됨) → /clear</div>
+<div class="step ok"><b>W1 (–9/3)</b>B+C를 <b>소PR 한 건</b>으로 묶어 처리 — OG→GA 열차에 끼워 넣어도 반나절</div>
+<div class="step warn"><b>W2~3 (–9/17)</b>A = <b>새 킥 "NAME-I18N-1"</b>. Arena 대수술과 같은 주에 — 화면 표시층을 어차피 손대는 시기라 겹쳐서 이득</div>
+<div class="step ok"><b>W4 베타 게이트</b>EN 화면에서 이름이 로마자로 보이는지를 게이트 항목에 추가</div>
+</div>
+<div class="note"><b>대표님이 정하실 것 2가지</b><br>① A를 W2~3 킥으로 잡는 데 동의하시는지 (대안: W1에 당기기 — 대신 GA·UTM이 하루 밀림)<br>② 소속 표기 정본을 <b>영문 공식명(aespa)</b>으로 할지, <b>한글(에스파)</b>로 할지 — 티오 추천은 영문 공식명(이미 AI 채우기 관례이고 어느 언어에서도 그대로 통함)</div>
+</body></html>

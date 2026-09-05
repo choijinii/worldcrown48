@@ -13,11 +13,13 @@ const INPUT = {
   tournamentTitle: "Strikers of the Century",
   tournamentCategory: "FOOTBALL",
   imageUrl: "https://storage.example/crown-cards/t1/voter1.png",
+  // RUN-1: 판마다 카드가 1장씩 남는다. 1회차는 접미사가 없어 id가 현행과 같다(§3.0 B안).
+  runIndex: 1,
 };
 
 describe("crownCardId (idempotency key)", () => {
   it("is `${voterUid}_${tournamentId}`", () => {
-    expect(crownCardId("voter1", "t1")).toBe("voter1_t1");
+    expect(crownCardId("voter1", "t1", 1)).toBe("voter1_t1");
   });
 });
 
@@ -27,6 +29,7 @@ describe("buildCrownCardRecord", () => {
       id: "voter1_t1",
       voterUid: "voter1",
       tournamentId: "t1",
+      runIndex: 1,
       championContestantId: "c7",
       tournamentTitle: "Strikers of the Century",
       tournamentCategory: "FOOTBALL",
@@ -63,5 +66,35 @@ describe("buildCrownCardRecord", () => {
     for (const cat of ["KPOP", "CREATOR", "ANIME_WEBTOON", "HOLLYWOOD", "ESPORTS"]) {
       expect(buildCrownCardRecord({ ...INPUT, tournamentCategory: cat }).tournamentCategory).toBe(cat);
     }
+  });
+});
+
+describe("crown_cards — 회차 (RUN-1)", () => {
+  const input = {
+    voterUid: "u1",
+    tournamentId: "gen4_idol_48",
+    championId: "c1",
+    tournamentTitle: "4세대 아이돌 48",
+    tournamentCategory: "kpop",
+    imageUrl: "https://example.com/a.png",
+  };
+
+  it("① 1회차 카드 id는 현행과 같다 — 옛 카드가 곧 1회차 카드다 (AC 11)", () => {
+    expect(crownCardId("u1", "gen4_idol_48", 1)).toBe("u1_gen4_idol_48");
+  });
+
+  it("② 2회차는 다른 카드 id — 판마다 카드가 1장씩 남는다 (AC 4)", () => {
+    expect(crownCardId("u1", "gen4_idol_48", 2)).toBe("u1_gen4_idol_48_r2");
+  });
+
+  it("③ 레코드가 회차를 필드로 싣는다 (§5 DO 1)", () => {
+    const r = buildCrownCardRecord({ ...input, runIndex: 3 });
+    expect(r.runIndex).toBe(3);
+    expect(r.id).toBe("u1_gen4_idol_48_r3");
+  });
+
+  it("④ 회차가 다르면 카드 id가 겹치지 않는다 — 지난 판 카드가 보존된다 (AC 5)", () => {
+    const ids = [1, 2, 3, 4, 5].map((n) => crownCardId("u1", "gen4_idol_48", n));
+    expect(new Set(ids).size).toBe(5);
   });
 });

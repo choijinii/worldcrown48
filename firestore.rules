@@ -172,6 +172,40 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── tournament_runs (RUN-1) ────────────────────────────────────
+    // Voter별·Tournament별 판(Run) 원장 (id = `${uid}_${tid}`):
+    //   runIndex    평생 누적 회차 — 문서 id의 _r{n}에 쓰는 번호. 되감기지 않는다.
+    //   lastRunDate 마지막으로 판을 시작한 KST 날짜 (YYYY-MM-DD)
+    //   runsToday   그날 쓴 판 수. lastRunDate가 오늘이 아니면 0으로 읽는다.
+    // 회차와 한도를 한 문서에 담아 클라이언트 게이트가 단일 get으로 둘 다 안다.
+    // 회차를 날마다 초기화하면 어제의 영구 문서(bracket_seeds·roundProgress·
+    // crown_cards)와 이름이 겹쳐 어제 대진표를 다시 집는다 — 그래서 누적이다.
+    //
+    // 쓰기 차단 — onVote(admin SDK)가 투표 트랜잭션 안에서만 갱신하므로 Voter가
+    // 한도를 위조하거나 초기화할 수 없다.
+    //
+    // 읽기: 소유자만, DOC ID 접두사로 판정한다(resource.data가 아니다). 아직 없는
+    // 문서를 읽어도 거부되지 않아야 한다 — 첫 판을 시작하는 Voter의 게이트가 이
+    // 문서를 먼저 읽는다(HF-1.6의 not-yet-existing-doc 함정). Firebase uid에는
+    // '_'가 없으므로 split('_')[0]은 tournamentId가 '_'를 포함해도 언제나 uid다.
+    match /tournament_runs/{docId} {
+      allow read: if request.auth != null
+                  && docId.split('_')[0] == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ── guest_runs (RUN-1) ─────────────────────────────────────────
+    // 게스트의 "하루 통틀어 1판" 한도 (id = `${uid}` — Tournament를 가로지르므로
+    // uid 단위 문서 하나다). `{ lastRunDate, runsToday, tournamentId }`.
+    //
+    // 게스트 uid는 브라우저마다 새로 생기고 게스트의 선택도 랭킹에 집계된다 →
+    // 이 문서를 클라이언트가 쓸 수 있으면 랭킹 조작 비용이 0이 된다.
+    // id가 uid 하나뿐이라 split이 필요 없다.
+    match /guest_runs/{docId} {
+      allow read: if request.auth != null && docId == request.auth.uid;
+      allow write: if false;
+    }
+
     // ── roundProgress (C-1) ────────────────────────────────────────
     // Per-Voter round-transition + Champion doc (id = `${uid}_${tid}`), the
     // client subscribes via onSnapshot (ADR-0001, Firestore-only). Write:

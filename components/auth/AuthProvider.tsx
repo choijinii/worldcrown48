@@ -41,7 +41,8 @@ import { planAuthBoot } from "@/lib/auth/providerBoot";
 import { pickLanding, RETURNING_CARD_TID_KEY, type Landing } from "@/lib/auth/landing";
 
 // HF-3 §확인 필요 4: the transfer grew (votes + bracket_seeds + roundProgress +
-// daily_participation), so widen the client timeout to 10s. Crown Card rendering
+// tournament_runs — RUN-1이 daily_participation을 대체했다), so widen the client
+// timeout to 10s. Crown Card rendering
 // stays async — it runs in the onChampionConfirmed trigger AFTER this resolves,
 // and the Champion page's "카드 준비 중" state absorbs the lag.
 const LINK_SESSION_VOTE_TIMEOUT_MS = 10_000;

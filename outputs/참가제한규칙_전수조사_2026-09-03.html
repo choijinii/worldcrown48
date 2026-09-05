@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>"하루 5개 참가" 규칙 — 전수 조사 보고서 (2026-09-03)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #F2F2F5; color: #241754; font-family: -apple-system, "Pretendard", system-ui, sans-serif; line-height: 1.65; padding: 34px 22px 80px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .kicker { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: .12em; color: #B08F00; font-weight: 700; }
+  h1 { font-size: 25px; font-weight: 800; margin-top: 6px; letter-spacing: -.02em; }
+  .sub { font-size: 13.5px; color: #484B67; margin-top: 8px; max-width: 920px; }
+  h2 { font-size: 17px; font-weight: 800; margin: 36px 0 10px; display: flex; align-items: center; gap: 8px; }
+  h2 .num { display: inline-flex; width: 24px; height: 24px; border-radius: 999px; background: #241754; color: #FCD006; font-size: 12px; font-weight: 800; align-items: center; justify-content: center; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #D9DBE1; border-radius: 6px; overflow: hidden; font-size: 12.5px; }
+  th { background: #241754; color: #F2F2F5; text-align: left; padding: 9px 11px; font-size: 12px; }
+  td { padding: 9px 11px; border-top: 1px solid #E7E8EC; vertical-align: top; color: #33355A; }
+  td:first-child { white-space: nowrap; font-weight: 700; color: #241754; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; background: #EDEEF3; padding: 1px 5px; border-radius: 3px; color: #241754; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .ok { background: #DDF3EA; color: #0B7A5B; } .dead { background: #EDEEF3; color: #6B6E85; } .stale { background: #FDEBEF; color: #A80E32; } .note-c { background: #FFE9CF; color: #B05A00; }
+  .callout { background: #fff; border: 1px solid #D9DBE1; border-left: 4px solid #FCD006; border-radius: 5px; padding: 13px 16px; font-size: 13.5px; color: #484B67; margin-top: 12px; }
+  .callout b { color: #241754; }
+  .timeline { position: relative; margin: 14px 0 0 10px; padding-left: 22px; border-left: 3px solid #241754; }
+  .tstep { position: relative; padding: 0 0 18px 8px; }
+  .tstep::before { content: ""; position: absolute; left: -31px; top: 4px; width: 13px; height: 13px; border-radius: 999px; background: #FCD006; border: 3px solid #241754; }
+  .tstep .d { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; font-weight: 700; color: #B08F00; }
+  .tstep .t { font-size: 14px; font-weight: 800; color: #241754; margin: 2px 0; }
+  .tstep .b { font-size: 12.8px; color: #484B67; max-width: 900px; }
+  blockquote { border-left: 3px solid #B1B5C4; margin: 6px 0; padding: 2px 10px; font-size: 12.3px; color: #484B67; background: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">WORLDCROWN48 · 규칙 고고학 (2026-09-03, 코드·문서·git 이력·메모리 전수)</div>
+  <h1>"참가 5회" 규칙 — 언제 태어나 어떻게 변했고, 지금 무엇이 맞는가</h1>
+  <p class="sub">대표님 요청으로 "대회 5회 참가" 관련 문구를 저장소 전체(코드·규범 문서·아카이브·핸드오프), git 커밋 이력, 프로젝트 메모리에서 전부 수집했습니다. 결론 → 연혁 → 전체 인용 → 스테일 문서 정정 목록 → "왜 5인가" 순서입니다.</p>
+
+  <h2><span class="num">0</span> 결론 3줄</h2>
+  <div class="callout">
+    <b>① 현행 규칙(코드·정본 문서·최근 토의 모두 일치):</b> 비로그인 = 대회 <b>1개</b>를 1회 완주(맛보기) · 로그인 = <b>하루(KST)에 "새로운" 대회 5개까지 참가</b>, 참가한 대회 안에서는 투표 무제한(46표 완주 자연 상한). 같은 대회 재도전은 없음.<br>
+    <b>② "5"의 주인은 대표님 본인입니다</b> — 2026-07-05, 실사용 중 "5표 차단" P0 사고를 발견하시고 "대회당 5표"(오염 스펙)를 "하루 새 대회 5개"로 재정의하셨습니다. 최근의 "비로그인 1 / 로그인 5" 토의는 이 규칙 그대로입니다.<br>
+    <b>③ 오늘 혼란의 진범 = 스테일 문서 4건</b> — 폐기된 옛 규칙("대회당 1일 5회 투표")이 그대로 남은 문서가 저장소에 살아 있습니다(§3). 이걸 보면 누구든 헷갈립니다.
+  </div>
+
+  <h2><span class="num">1</span> 연혁 — "5"는 네 번 옷을 갈아입었다</h2>
+  <div class="timeline">
+    <div class="tstep"><div class="d">2026-05 (CONTEXT v0.3 이전)</div><div class="t">제1기 · "1일 1회"</div><div class="b">초기 스킬 문서에 "일일 투표 제한: 5회 → 1회로 강화" 흔적(ProjectSkill v1.6 개정 이력) — 1회/5회 사이에서 흔들리던 시기.</div></div>
+    <div class="tstep"><div class="d">2026-05~06 (CONTEXT v0.3~0.6 · PRD v2.1)</div><div class="t">제2기 · "Tournament당 1일 5회 투표" — 훗날 오염 스펙으로 판명</div><div class="b">CONTEXT_v0_6 §투표 정책: "대진별 1일 5회 · 각 Tournament별 독립 5회 카운트". PRD U-11/S-2도 동일. <b>06-14 D1 스펙에 명문화 → 06-18 PR #20으로 코드 구현.</b> 이때 "5" = 하루에 매치 5번 클릭.</div></div>
+    <div class="tstep"><div class="d">2026-07-05 (HF-1, P0)</div><div class="t">제3기 탄생 · 대표 재정의 — "하루 새 대회 5개, 대회 안은 무제한"</div><div class="b">대표님이 직접 투표하다 "오늘의 투표를 모두 사용했어요 (5/5)"에 차단 — 46표 완주에 10일 걸리는 구조임을 발견. <b>"코드 버그가 아니라 스펙이 오염원"</b>으로 진단하고 규칙을 재정의: <b>Daily Participation Limit = 하루(KST) 신규 참가 대회 5개, 대회 내 무제한, 비로그인 1회 불변.</b> 07-06 PR #35 머지. LANGUAGE.md 금지어표에 "Daily Vote Limit(1일 5표)" 폐기 등재.</div></div>
+    <div class="tstep"><div class="d">2026-07-07~08 (HF-3)</div><div class="t">게스트 "1표"의 재정의 — "매치 1클릭"이 아니라 "대회 1회 완주"</div><div class="b">A안(06-14)의 "비로그인 1표"가 문서엔 "2번째 매치부터 로그인"으로 잘못 옮겨져 있던 것을 발견 → 대표 재정의: <b>비로그인 = 1개 대회 1회 완주(Guest Run)</b>. 07-08 PR #40 구현. 커밋 제목이 그대로 "Guest Run — 비로그인 1개 대회 1회 완주".</div></div>
+    <div class="tstep"><div class="d">2026-07-11 (TX-0)</div><div class="t">재확인 도장</div><div class="b">"참가 규칙 확정: 하루 5회 = <b>전체 기준 신규 참가 5개(대회당 아님)</b>. 완주한 대회 재진입 → Crown Card" (NEXT_SESSION_PROMPT_B2_2026-07-11). 이후 변경 이력 없음 — <b>이것이 현행이자 최종</b>입니다.</div></div>
+  </div>
+
+  <h2><span class="num">2</span> 전체 인용 — 현행 정본 (일치 ✓)</h2>
+  <table>
+    <thead><tr><th style="width:300px">위치</th><th>원문(요지)</th><th style="width:70px">판정</th></tr></thead>
+    <tbody>
+      <tr><td>LANGUAGE.md:91 (용어 정본)</td><td>"일일 참가 한도(Daily Participation Limit) = 하루(KST)에 새로 참가할 수 있는 Tournament 수 = 5개. 이미 참가한 Tournament 안에서는 투표 무제한… HF-1(2026-07-05) 도입 — 폐기된 'Daily Vote Limit(1일 5표)' 개념을 대체"</td><td><span class="chip ok">정본</span></td></tr>
+      <tr><td>LANGUAGE.md:228 (금지어표)</td><td>"Daily Vote Limit / 1일 5표 / Tournament당 하루 5회 → <b>금지</b>, Daily Participation Limit(1일 신규 참가 5개)로"</td><td><span class="chip ok">정본</span></td></tr>
+      <tr><td>functions/src/core/participation.ts:4-7</td><td>"Rule (대표 결정 2026-07-05): a Voter may JOIN at most 5 NEW Tournaments per KST day. Voting inside an already-joined Tournament is unlimited"</td><td><span class="chip ok">코드</span></td></tr>
+      <tr><td>lib/voteGate.ts:17·34·80</td><td>동일 규칙의 클라이언트 게이트. <code>DAILY_PARTICIPATION_LIMIT = 5</code> — 상수 하나</td><td><span class="chip ok">코드</span></td></tr>
+      <tr><td>components/auth/LoginModal.tsx:12</td><td>"Daily Participation Limit (5 NEW Tournaments / KST day)"</td><td><span class="chip ok">코드</span></td></tr>
+      <tr><td>git 커밋 4419803 (2026-07-06, PR #35)</td><td>"fix(hf1): Daily Participation Limit — 5 new Tournaments/KST day, unlimited within a joined Tournament (P0)"</td><td><span class="chip ok">이력</span></td></tr>
+      <tr><td>git 커밋 d1846bb (2026-07-08, PR #40)</td><td>"feat(hf3): Guest Run — <b>비로그인 1개 대회 1회 완주</b> (P0)"</td><td><span class="chip ok">이력</span></td></tr>
+      <tr><td>outputs/handoffs-staging/NEXT_SESSION_PROMPT_B2_2026-07-11.md:11</td><td>"참가 규칙 확정: 하루 5회 = 전체 기준 신규 참가 5개(대회당 아님)"</td><td><span class="chip ok">기록</span></td></tr>
+      <tr><td>메모리 project-hf1-daily-quota-2026-07-05</td><td>P0 발견 경위 + "확정 규칙(대표 2026-07-05)" 전문 — 위 §1 제3기의 원사료</td><td><span class="chip ok">기록</span></td></tr>
+      <tr><td>마케팅 대관 인계문(08-31):33</td><td>"하루 5번 하는 구조라…" — 하루 5개 대회와 정합(재도전 아님)</td><td><span class="chip ok">일치</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">3</span> 전체 인용 — 옛 규칙이 남은 곳 (혼란의 진범)</h2>
+  <table>
+    <thead><tr><th style="width:300px">위치</th><th>남아 있는 옛 문구</th><th style="width:96px">판정</th></tr></thead>
+    <tbody>
+      <tr><td>⚠ LANGUAGE.md:31 (Voter 행)</td><td>"계정당 <b>1일 5회 투표</b> 가능" — 같은 파일 91행의 정본 정의와 <b>자기모순</b></td><td><span class="chip stale">정정 필요</span></td></tr>
+      <tr><td>⚠ CONTEXT_v0_6.md:163·165</td><td>"대진별 1일 5회: 동일 Tournament에서 하루 최대 5개 Match 투표 · 각 Tournament별 독립 5회 카운트"</td><td><span class="chip stale">정정 필요</span></td></tr>
+      <tr><td>⚠ WC48_CODING_CONTEXT_v1.md:212·251·611·674·677</td><td>옛 "Tournament 1일 5회" 검사 로직·에러 문구가 예시 코드로 통째로 남음</td><td><span class="chip stale">정정 필요</span></td></tr>
+      <tr><td>⚠ WorldCrown48_ProjectSkill_v1_8.md:100·162·164·186·189·394·682</td><td>"계정당 동일 Tournament에서 1일 5 Match 투표 가능 · Tournament별 독립 5회 카운트" 등 7곳</td><td><span class="chip stale">정정 필요</span></td></tr>
+      <tr><td>_archive/planning/PRD-MVP1_v2_1.md · _archive/skills/* (v1.6·PolicyReview)</td><td>"같은 Tournament에 하루 5회 초과 차단"(U-11·S-2 등) — 의도적 보관 아카이브</td><td><span class="chip dead">아카이브</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>정정 계획(티오):</b> 위 "정정 필요" 4개 파일에 대해 <b>DOC-QUOTA-1 정정 소킥</b>(문서만 고치는 30분짜리)을 제안합니다 — 각 문구를 LANGUAGE.md 91행 정본으로 치환하거나, 구버전 문서(CONTEXT·CODING_CONTEXT·ProjectSkill)는 상단에 "참가 규칙은 LANGUAGE.md §일일 참가 한도가 정본(HF-1)" 배너 한 줄로 잠급니다. 결정은 즉시 문서에 박제 원칙(3회 재발 이력)의 4번째 사례이기도 합니다.</div>
+
+  <h2><span class="num">4</span> "왜 5개로 제한하지? 전부 돌게 하는 게 좋지 않나?" — 정직한 답</h2>
+  <table>
+    <thead><tr><th style="width:210px">질문</th><th>실측 기반 답</th></tr></thead>
+    <tbody>
+      <tr><td>숫자 5의 근거 문서가 있나</td><td><b>없습니다.</b> 07-05 재정의 기록에는 "무엇으로 바꾼다"만 있고 "왜 하필 5개인가"의 근거는 어디에도 없습니다 — 오염 스펙 시절의 숫자 5를 참가 단위로 옮겨 온 것으로 보입니다. 이건 열려 있는 결정입니다.</td></tr>
+      <tr><td>제한이 지금 실제로 걸리나</td><td><b>런칭 기준으로는 안 걸립니다.</b> 런칭 대회는 4종 — 팬이 전부 완주해도 4개 &lt; 5개라 제한을 만날 수 없습니다. "전 토너먼트를 다 돌아야 좋다"는 대표님 목표는 현행 그대로 이미 성립합니다.</td></tr>
+      <tr><td>그럼 왜 두나 (제한의 효용)</td><td>대회 수가 5개를 넘는 시점(MVP1.5~2, 유저 생성 개방)부터 의미가 생깁니다: 계정 하나가 하루에 만들 수 있는 표의 상한(5대회 × 46표 = 230표)을 정해 <b>다계정·봇의 랭킹 조작 비용을 올리는</b> 어뷰징 방호벽입니다. 유저 생성 대회가 쏟아질 때 "무제한"이면 조작 인센티브도 무제한이 됩니다.</td></tr>
+      <tr><td>티오 권고</td><td><b>지금은 손대지 않기.</b> 런칭엔 영향 0이고, 값은 상수 하나(<code>DAILY_PARTICIPATION_LIMIT</code>)라 언제든 1줄+배포로 조정됩니다. <b>재검토 시점을 "라이브 대회가 5개를 넘는 날(MVP1.5 유저 오픈)"로 예약</b>해 두고, 그때 데이터(하루 평균 완주 수)를 보고 5 유지/10 상향/제거를 정하시길 권합니다 — MVP1.5 검수 설계에 재검토 항목으로 걸어 두겠습니다.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">5</span> 오늘 자 회신문·계측에 미치는 영향</h2>
+  <div class="callout">영향 <b>없음</b>이 확인됐습니다. 마케팅 회신문의 "같은 대회 재도전 불가 → 판 = 사람×대회 1:1 → match_session_id 결정적 해시" 논리는 현행 규칙(하루 5개 = 서로 다른 대회 5개)과 정확히 맞물립니다 — 하루 5판이면 서로 다른 값 5개. 마케팅 대관 문서의 "하루 5번" 서술과도 일치합니다.</div>
+</div>
+</body>
+</html>

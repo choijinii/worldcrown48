@@ -1,7 +1,8 @@
 /**
  * bracket_seeds — the per-Voter, per-Tournament random seed (ADR-0007).
  *
- * doc id = `${uid}_${tournamentId}`, shape `{ seed: number, createdAt }`.
+ * doc id = `runDocId(uid, tournamentId, runIndex)` (1회차는 접미사 없음 — §3.0 B안),
+ * shape `{ seed: number, createdAt }`. 판마다 씨앗이 따로라 대진표가 새로 섞인다(AC 3).
  * The seed is created ONCE on first Arena entry and is then immutable
  * (firestore.rules: owner read via doc-id prefix + create-once, no update/
  * delete). It is the third input to the pure bracket (contestants, votes,
@@ -32,6 +33,7 @@ import {
   serverTimestamp,
   type Firestore,
 } from "firebase/firestore";
+import { bracketSeedCacheKey, runDocId } from "@/lib/run/runDocId";
 
 /**
  * How long first render waits for the create to ack before proceeding.
@@ -49,8 +51,19 @@ import {
  */
 export const SEED_PERSIST_TIMEOUT_MS = 400;
 
-export function bracketSeedDocId(uid: string, tournamentId: string): string {
-  return `${uid}_${tournamentId}`;
+/**
+ * RUN-1: 판마다 대진표가 새로 섞이므로 씨앗 문서도 판마다 따로다(AC 3).
+ * create-once 불변 규칙은 그대로 두고 **새 판은 새 문서 id**로 만든다(§5 DON'T 4).
+ * 1회차는 접미사가 없어 기존 문서가 그대로 1회차 씨앗이 된다(§3.0 B안).
+ *
+ * 기본값 1은 PR 1에서 호출부를 안 바꾸기 위한 것이다 — PR 2가 실제 회차를 넘긴다.
+ */
+export function bracketSeedDocId(
+  uid: string,
+  tournamentId: string,
+  runIndex: number = 1,
+): string {
+  return runDocId(uid, tournamentId, runIndex);
 }
 
 /** A fresh unsigned 32-bit seed from the CSPRNG (mulberry32 masks with >>>0). */
@@ -143,12 +156,8 @@ export async function resolveBracketSeed(io: SeedIO): Promise<SeedResult> {
  * (the duplicate-winner hazard ADR-0007 exists to prevent). It is cleared the
  * moment the server holds the value.
  */
-function cacheKey(uid: string, tournamentId: string): string {
-  return `wc48_bracket_seed_${bracketSeedDocId(uid, tournamentId)}`;
-}
-
-function browserCache(uid: string, tournamentId: string) {
-  const key = cacheKey(uid, tournamentId);
+function browserCache(uid: string, tournamentId: string, runIndex: number) {
+  const key = bracketSeedCacheKey(uid, tournamentId, runIndex);
   const ls = (): Storage | null => {
     try {
       return typeof window === "undefined" ? null : window.localStorage;
@@ -188,9 +197,10 @@ export async function loadOrCreateBracketSeed(
   db: Firestore,
   uid: string,
   tournamentId: string,
+  runIndex: number = 1,
   timeoutMs: number = SEED_PERSIST_TIMEOUT_MS,
 ): Promise<number> {
-  const ref = doc(db, "bracket_seeds", bracketSeedDocId(uid, tournamentId));
+  const ref = doc(db, "bracket_seeds", bracketSeedDocId(uid, tournamentId, runIndex));
   const result = await resolveBracketSeed({
     read: async () => {
       const snap = await getDoc(ref);
@@ -199,7 +209,7 @@ export async function loadOrCreateBracketSeed(
     create: (seed) => setDoc(ref, { seed, createdAt: serverTimestamp() }),
     newSeed: randomSeed,
     timeoutMs,
-    ...browserCache(uid, tournamentId),
+    ...browserCache(uid, tournamentId, runIndex),
   });
   return result.seed;
 }

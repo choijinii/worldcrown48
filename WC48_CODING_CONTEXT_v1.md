@@ -1,3 +1,6 @@
+> 🚫 **참가 규칙은 이 문서가 정본이 아닙니다 (2026-09-03 DOC-QUOTA-1).** 아래 본문의 "1일 5회 투표"·"Tournament별 독립 5회 카운트" 류 서술은 **전부 폐기된 옛 규칙**입니다.
+> 정본 = `LANGUAGE.md` §일일 판 한도(Daily Run Limit) + `outputs/참가규칙_정본v2.0_판Run_2026-09-03.html` — **계정당·대회당 하루(KST) 5판**, 판마다 새 대진표+Crown Card 1장, 비로그인은 하루 통틀어 1판. 제품 정의에서 "표"는 단위로 쓰지 않습니다.
+
 > ⚠️ **2026-07-11 대개편 정합성 공지** — 이 문서의 일부 내용이 대개편 결정으로 대체되었습니다.
 > 충돌 시 최신 진실 우선순위: `CLAUDE.md v2.2 「🔄 2026-07 대개편」` > `LANGUAGE.md v1.7 §13` > 이 문서.
 > 상세 결정: `outputs/handoffs-staging/WC48_개편결정_v1_2026-07-10.md` (v1.2)
@@ -209,7 +212,7 @@ worldcrown48/
 
 ```
 Step 1  onRateLimitCheck   1분 내 10회 초과? → 429 에러 + 15분 쿨다운
-Step 2  Daily limit check  Tournament 1일 5회 초과? → Reject (Firestore 쿼리)
+Step 2  Daily limit check  Tournament 1일 5회 초과? → Reject (Firestore 쿼리)  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 Step 3  Realtime DB tx     votes/{matchId}/{contestantId} +1 (트랜잭션)
 Step 4  Firestore write    votes 컬렉션: userId + matchId + date + ipHash
 Step 5  advanceRound()     마지막 Match 완료? → 자동 라운드 전환
@@ -248,7 +251,7 @@ const snapshot = await firestore
   .get();
 
 if (snapshot.size >= 5) {
-  throw new HttpsError('resource-exhausted', '오늘 5회 한도 도달');
+  throw new HttpsError('resource-exhausted', '오늘 5회 한도 도달');  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
 }
 // 자정 리셋: KST 00:00 (UTC+9) 기준
 ```
@@ -608,7 +611,7 @@ service cloud.firestore {
     │     ├─ onRateLimitCheck (내장 미들웨어)
     │     │    └─ 1분 10회+ → Block (429)
     │     ├─ Daily limit check
-    │     │    └─ 1일 5회+ → Reject
+    │     │    └─ 1일 5회+ → Reject  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
     │     ├─ Realtime DB tx (+1)
     │     └─ Firestore votes write
     │
@@ -671,10 +674,10 @@ export const onVote = onCall(async (request) => {
       `Rate limit 초과. ${Math.ceil(rateCheck.cooldownRemaining / 60)}분 후 재시도`);
   }
 
-  // Step 3: 1일 5회 한도 (Tournament 기준)
+  // Step 3: 1일 5회 한도 (Tournament 기준)  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
   const dailyCount = await getTodayVoteCount(userId, tournamentId);
   if (dailyCount >= 5) {
-    throw new HttpsError('resource-exhausted', '오늘 투표 한도(5회) 도달');
+    throw new HttpsError('resource-exhausted', '오늘 투표 한도(5회) 도달');  // ⚠️(폐기 — 정본은 LANGUAGE.md §일일 판 한도)
   }
 
   // Step 4: Realtime DB 트랜잭션 (동시 충돌 방지)

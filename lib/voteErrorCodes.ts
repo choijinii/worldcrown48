@@ -18,6 +18,8 @@ import type { MessageKey } from "@/lib/i18n/messages";
 export const VOTE_ERROR_CODES = {
   DAILY_LIMIT: "daily_limit",
   RATE_LIMITED: "rate_limited",
+  /** RUN-1 (AC 9): 마감된 Tournament에서 새 판을 열려 했다. 진행 중인 판은 이 코드가 안 난다. */
+  DEADLINE_PASSED: "deadline_passed",
 } as const;
 
 export type VoteErrorCode =

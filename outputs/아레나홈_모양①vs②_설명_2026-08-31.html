@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아레나 홈 — 모양 ① vs ② 그림 설명</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #F2F2F5; color: #241754; font-family: -apple-system, "Pretendard", system-ui, sans-serif; line-height: 1.6; padding: 32px 22px 70px; }
+  .wrap { max-width: 1140px; margin: 0 auto; }
+  .kicker { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: .12em; color: #B08F00; font-weight: 700; }
+  h1 { font-size: 24px; font-weight: 800; margin-top: 6px; }
+  .sub { font-size: 13.5px; color: #484B67; margin-top: 8px; max-width: 920px; }
+  h2 { font-size: 16px; font-weight: 800; margin: 30px 0 10px; }
+  .journey { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .scr { flex: 1 1 200px; max-width: 240px; background: #fff; border: 2px solid #241754; border-radius: 10px; overflow: hidden; font-size: 11px; color: #33355A; }
+  .scr .url { background: #241754; color: #F2F2F5; font-family: ui-monospace, Menlo, monospace; font-size: 10px; padding: 4px 8px; }
+  .scr .body { padding: 8px; min-height: 150px; }
+  .bill { background: linear-gradient(135deg,#241754,#00003A); color: #FCD006; border-radius: 6px; padding: 8px; font-weight: 800; font-size: 11px; min-height: 52px; }
+  .bill small { display: block; color: #F2F2F5; font-weight: 400; font-size: 10px; }
+  .pills { margin: 6px 0; } .pill { display: inline-block; border: 1px solid #241754; border-radius: 999px; padding: 0 7px; font-size: 10px; margin-right: 3px; } .pill.on { background: #241754; color: #FCD006; }
+  .btn { display: inline-block; background: #FCD006; color: #241754; font-weight: 800; font-size: 10.5px; padding: 3px 9px; border-radius: 6px; }
+  .cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; margin-top: 6px; }
+  .cards div { background: #EDEEF3; border-radius: 4px; height: 26px; font-size: 9px; display: flex; align-items: center; justify-content: center; color: #484B67; }
+  .cards div.sel { outline: 2px solid #FCD006; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; height: 110px; border-radius: 6px; overflow: hidden; }
+  .split div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
+  .split .l { background: #00A3B7; } .split .r { background: #D7063A; }
+  .arrow { align-self: center; font-size: 22px; color: #B08F00; padding: 0 2px; }
+  .cap { font-size: 12px; color: #484B67; margin-top: 8px; }
+  .cap b { color: #241754; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #D9DBE1; font-size: 12.5px; margin-top: 10px; }
+  th { background: #241754; color: #F2F2F5; text-align: left; padding: 8px 11px; font-size: 12px; }
+  td { padding: 8px 11px; border-top: 1px solid #E7E8EC; vertical-align: top; color: #33355A; }
+  td:first-child { font-weight: 700; color: #241754; white-space: nowrap; }
+  .note { background: #fff; border: 1px solid #D9DBE1; border-left: 4px solid #FCD006; border-radius: 5px; padding: 12px 15px; font-size: 13px; color: #484B67; margin-top: 14px; }
+  .note b { color: #241754; }
+  .lane { background: #fff; border: 1px solid #D9DBE1; border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .lane h3 { font-size: 13.5px; font-weight: 800; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">ARENA-2 · 모양 ① vs ② 그림 설명</div>
+  <h1>"대회마다 하나씩"과 "허브 한 장"의 차이 — 팬이 실제로 밟는 걸음으로</h1>
+  <p class="sub">둘 다 화면 구성(위 전광판 대기실 + 아래 카테고리별 아카이브)은 같습니다. 차이는 <b>"아래에서 다른 대회를 고를 때 무슨 일이 일어나느냐"</b>와 <b>"주소창에 무엇이 남느냐"</b> 두 가지뿐입니다.</p>
+
+  <div class="lane">
+    <h3>모양 ① 대회마다 하나씩 — 경기장마다 자기 정문(대기실)이 따로 있다</h3>
+    <div class="journey">
+      <div class="scr"><div class="url">/ (The Pitch)</div><div class="body">트렌딩 대회 카드들<div class="cards"><div class="sel">A 대회</div><div>B</div><div>C</div></div><div class="cap">A 카드 클릭 ↓</div></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena/A</div><div class="body"><div class="bill">A 대회 전광판<small>대표이미지 위에 제목·설명·마감</small></div><div class="pills"><span class="pill on">48</span><span class="pill">24</span><span class="pill">12</span></div><span class="btn">입장하기 ▶</span><div class="cap" style="margin-top:6px">아래 아카이브에서 <b>B를 누르면</b> ↓</div></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena/B  ← 주소가 바뀜</div><div class="body"><div class="bill">B 대회 전광판<small>페이지가 B의 대기실로 이동</small></div><div class="pills"><span class="pill on">48</span><span class="pill">24</span><span class="pill">12</span></div><span class="btn">입장하기 ▶</span></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena/B (무대)</div><div class="body"><div class="split"><div class="l">L</div><div class="r">R</div></div><div class="cap">VS 스플릿 무대</div></div></div>
+    </div>
+    <p class="cap"><b>느낌:</b> 대회 하나하나가 독립된 "장소". 아카이브는 다른 장소로 가는 문. 뒤로가기를 누르면 이전 대회의 대기실로 돌아감. 링크를 복사하면 <b>그 대회의 대기실</b>이 열림(마케팅이 대회별로 링크를 뿌릴 때 유리).</p>
+  </div>
+
+  <div class="lane">
+    <h3>모양 ② 허브 한 장 — 경기장 하나에 전광판이 있고, 채널을 돌리듯 대회를 바꾼다</h3>
+    <div class="journey">
+      <div class="scr"><div class="url">/ (The Pitch) 또는 GNB "Arena"</div><div class="body">대회 카드 or 메뉴<div class="cards"><div class="sel">A 대회</div><div>B</div><div>C</div></div><div class="cap">클릭 ↓</div></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena?t=A</div><div class="body"><div class="bill">A 대회 전광판<small>선택된 대회</small></div><div class="pills"><span class="pill on">48</span><span class="pill">24</span><span class="pill">12</span></div><span class="btn">입장하기 ▶</span><div class="cards"><div class="sel">A</div><div>B</div><div>C</div></div><div class="cap">아래에서 <b>B를 누르면</b> ↓</div></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena?t=B  ← 같은 페이지, 전광판만 교체</div><div class="body"><div class="bill">B 대회 전광판<small>스크롤 위치·탭 유지, 부드럽게 교체</small></div><div class="pills"><span class="pill on">48</span><span class="pill">24</span><span class="pill">12</span></div><span class="btn">입장하기 ▶</span><div class="cards"><div>A</div><div class="sel">B</div><div>C</div></div></div></div>
+      <div class="arrow">→</div>
+      <div class="scr"><div class="url">/arena/B (무대)</div><div class="body"><div class="split"><div class="l">L</div><div class="r">R</div></div><div class="cap">VS 스플릿 무대</div></div></div>
+    </div>
+    <p class="cap"><b>느낌:</b> 아레나는 하나의 "홈". 아래 카드를 누르면 페이지 이동 없이 위 전광판이 바뀌므로 여러 대회를 빠르게 훑기 좋음. 주소에 <code>?t=B</code>를 남기면 ①처럼 <b>대회별 링크 공유·뒤로가기</b>도 그대로 됩니다 — 즉 ②는 ①의 장점을 대부분 흡수할 수 있습니다.</p>
+  </div>
+
+  <h2>한 표로 비교</h2>
+  <table>
+    <thead><tr><th style="width:190px">항목</th><th>① 대회마다 하나씩</th><th>② 허브 한 장 (+ ?t=ID)</th></tr></thead>
+    <tbody>
+      <tr><td>다른 대회 고를 때</td><td>페이지 이동(대기실 → 대기실)</td><td>제자리에서 전광판 교체(빠름, 탐색에 강함)</td></tr>
+      <tr><td>대회별 공유 링크</td><td>/arena/A (자연스러움)</td><td>/arena?t=A (동일하게 가능)</td></tr>
+      <tr><td>검색 엔진(SEO)</td><td>대회마다 독립 페이지 — 유리</td><td>한 페이지 — 대회별 색인은 무대(/arena/{id}) 메타로 보완 필요</td></tr>
+      <tr><td>The Pitch와 경계</td><td>Pitch = 발견 / 대기실 = 그 대회 활동 — 선명</td><td>Pitch(트렌딩)와 아카이브(전체)가 비슷해 보일 수 있음 → Pitch는 "추천·히어로·기사", 아레나 홈은 "전체 목록·내 진행"으로 역할 분리</td></tr>
+      <tr><td>구현 규모</td><td>중 — 기존 /arena/{id}를 대기실로, 무대는 상태 전환</td><td>중 — /arena 신설 + 선택 상태 관리 + 무대 진입</td></tr>
+      <tr><td>크라운 카드 딥링크(/arena/{id}/champion)</td><td>같은 가족</td><td>무대 주소 아래라 그대로 유지</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><b>티오 의견:</b> 대표님이 그리신 "전광판 대기실 + 아카이브 = 한 장"은 <b>②가 맞습니다.</b> ②에 <code>?t=대회ID</code>만 붙이면 ①이 가진 공유·뒤로가기 장점을 다 가져오므로, ②로 확정해도 손해가 없습니다. 남는 숙제 하나: <b>"매치 대표이미지"</b> — 지금 대회 데이터에 대표 이미지 칸이 없습니다(그림은 전부 참가자 영상 썸네일). 편집기에 "대표 이미지" 칸을 새로 만들지, 참가자 썸네일 4~6장을 자동 콜라주해서 전광판 배경으로 쓸지 정해야 합니다(후자는 제작 부담 0, 전자는 대표님이 대회마다 그림 준비).</div>
+</div>
+</body>
+</html>

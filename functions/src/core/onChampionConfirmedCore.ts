@@ -9,6 +9,8 @@
  * plus the crown_cards existence check in the trigger, gives idempotency.
  */
 export interface RoundProgressData {
+  /** RUN-1: 이 판의 회차. 옛 문서에는 없다 → 읽는 쪽에서 1로 본다. */
+  runIndex?: number;
   userId?: string | null;
   tournamentId?: string | null;
   complete?: boolean;

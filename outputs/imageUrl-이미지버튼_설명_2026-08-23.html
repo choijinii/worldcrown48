@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imageUrl · 이미지 생성 버튼 — 무엇이 문제이고, 선택지는 무엇인가</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap");
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F2F2F5; color:#241754; font-family:"Inter","Pretendard",-apple-system,system-ui,sans-serif; line-height:1.7; padding:40px 24px 80px; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  .doc-kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; color:#B08F00; font-weight:700; }
+  .doc-title { font-size:27px; font-weight:800; letter-spacing:-0.02em; margin-top:6px; }
+  .doc-sub { font-size:14px; color:#484B67; margin-top:8px; max-width:860px; }
+  .section { margin-top:46px; }
+  .sec-num { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:999px; background:#241754; color:#FCD006; font-size:13px; font-weight:800; margin-right:8px; }
+  .sec-title { font-size:19px; font-weight:800; display:flex; align-items:center; margin-bottom:8px; }
+  .sec-desc { font-size:13.5px; color:#484B67; margin-bottom:16px; max-width:880px; }
+  .note { background:#FFFFFF; border:1px solid #D9DBE1; border-left:4px solid #FCD006; border-radius:5px; padding:12px 16px; font-size:13px; color:#484B67; margin-top:14px; }
+  .note b { color:#241754; }
+  .note.warn { border-left-color:#D7063A; }
+
+  /* 다크 화면 도해 */
+  .screen { background:#0E0944; border-radius:5px; padding:24px; color:#FFF; overflow-x:auto; }
+  .gen-panel { padding:16px 18px; border-radius:12px; background:#1A1466; border:1px solid rgba(252,208,6,.35); }
+  .gen-label { font-size:12px; font-weight:700; color:#B8C4D9; }
+  .gen-row { display:flex; gap:14px; margin-top:12px; flex-wrap:wrap; }
+  .btn-video, .btn-image { flex:1; min-width:260px; text-align:left; padding:14px 18px; border-radius:12px; }
+  .btn-video { background:#FCD006; color:#0E0944; }
+  .btn-image { background:rgba(252,208,6,.12); color:#FCD006; border:2px solid #FCD006; position:relative; }
+  .btn-big-label { font-size:15px; font-weight:800; }
+  .btn-big-sub { font-size:11.5px; margin-top:4px; opacity:.85; }
+  .pointer { position:absolute; top:-34px; right:10px; background:#D7063A; color:#FFF; font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:999px; }
+  .pointer::after { content:""; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%); border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #D7063A; }
+  .slotline { margin-top:16px; display:flex; gap:10px; }
+  .mini-slot { flex:1; max-width:160px; background:#1A1466; border:1px solid rgba(255,255,255,.12); border-radius:5px; padding:6px; font-size:10px; }
+  .mini-thumb { aspect-ratio:1/1; background:#241754; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#6B7896; }
+  .mini-field { margin-top:4px; padding:3px 6px; background:#241754; border:1px solid rgba(255,255,255,.12); border-radius:4px; color:#B8C4D9; }
+  .mini-field.hl { border-color:#D7063A; color:#FF5C7E; font-weight:700; }
+
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #D9DBE1; border-radius:5px; overflow:hidden; font-size:13px; }
+  th { background:#241754; color:#F2F2F5; text-align:left; padding:10px 13px; font-size:12.5px; }
+  td { padding:11px 13px; border-top:1px solid #E7E8EC; vertical-align:top; color:#484B67; }
+  td:first-child { font-weight:800; color:#241754; width:17%; }
+  tr.rec td { background:#FFFBEB; }
+  .tag { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700; padding:1px 8px; border-radius:999px; margin-left:6px; }
+  .t-cheap { background:#E5F6F8; color:#00707E; }
+  .t-big { background:#FDEBEF; color:#A80E32; }
+  .t-mid { background:#FFF3C4; color:#8A6D00; }
+
+  .gap-box { display:grid; grid-template-columns:1fr 60px 1fr; gap:0; align-items:stretch; margin-top:8px; }
+  .gap-cell { background:#FFFFFF; border:1.5px solid #D9DBE1; border-radius:5px; padding:14px 16px; font-size:13px; color:#484B67; }
+  .gap-cell.left { border-color:#FCD006; background:#FFFBEB; }
+  .gap-cell b { color:#241754; display:block; margin-bottom:4px; font-size:13.5px; }
+  .gap-neq { display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:#D7063A; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-kicker">LAB-UX-1 · 대표 결정 안건 — 설명서</div>
+    <div class="doc-title">imageUrl 칸과 [🖼 이미지 생성] 버튼 — 무엇이 문제이고, 4가지 선택지는 각각 무엇인가</div>
+    <div class="doc-sub">2026-08-23 · 티오. 앞서 제가 설명 없이 방향을 확정하려 한 것을 철회하고, 처음부터 차근차근 설명드립니다. 읽으신 뒤 ⑤에서 방향만 정해 주시면 됩니다 — 결정 전에는 아무 작업도 진행하지 않습니다.</div>
+  </header>
+
+  <!-- ① 버튼이 어디 있나 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">1</span>[🖼 이미지 생성] 버튼이 어디에 있는 무엇인가</div>
+    <div class="sec-desc">
+      대표님이 목업에서 승인하신 STEP 2 상단 "라인업 만들기" 패널의 <b>오른쪽 버튼</b>입니다. 조금 전 눈검사 화면에서 [🎬 동영상 생성]을 누르셨을 때, 그 옆에 흐리게 있던 버튼("48명 채우는 중… — 영상 검색 없음"이라고 표시되던 쪽)이 바로 이것입니다.
+    </div>
+    <div class="screen">
+      <div class="gen-panel">
+        <div class="gen-label">라인업 만들기</div>
+        <div class="gen-row">
+          <div class="btn-video">
+            <div class="btn-big-label">🎬 동영상 생성</div>
+            <div class="btn-big-sub">AI 48명 채움 → 영상 검색 → 검수 — 어제오늘 완성·검증된 체인</div>
+          </div>
+          <div class="btn-image">
+            <span class="pointer">이 버튼이 논의 대상</span>
+            <div class="btn-big-label">🖼 이미지 생성</div>
+            <div class="btn-big-sub">"AI가 48명을 채우고 → 이미지 검수까지 자동으로 합니다"</div>
+          </div>
+        </div>
+      </div>
+      <div class="slotline">
+        <div class="mini-slot">
+          <div class="mini-thumb">🏆</div>
+          <div class="mini-field">Jimin</div>
+          <div class="mini-field">Korean · Vocalist</div>
+          <div class="mini-field hl">이미지 URL (라이선스 확인)</div>
+        </div>
+        <div style="align-self:center; font-size:12px; color:#B8C4D9; max-width:420px;">
+          ← 슬롯 카드 맨 아래의 <b style="color:#FF5C7E;">"이미지 URL" 입력 칸</b>이 이번 안건의 다른 한쪽입니다.
+          목업에서는 이 칸을 삭제하기로 했었지요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 두 가지 문제 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">2</span>실측에서 드러난 두 가지 문제</div>
+
+    <div class="sec-desc"><b>문제 A — 이미지 URL 칸을 지우면 안 되는 상태였습니다.</b><br>
+    킥 규칙대로 "지우기 전에 이 칸을 읽는 코드를 전부 찾아보라(grep)" 했더니 <b>6곳에서 이 값을 읽고 있었습니다</b>. 어디 6곳인지 상세 목록은 제가 아직 Claude Code에게 받지 않았는데(요청하면 바로 받을 수 있습니다), 예상되는 곳은 슬롯 미리보기·발행 문서·매치 화면 등입니다. 읽는 곳이 남아 있는 채로 데이터를 지우면 그 화면들이 깨질 수 있어, 안전장치(Auto-STOP)가 작동해 삭제를 멈춘 상태입니다.</div>
+
+    <div class="sec-desc"><b>문제 B — [🖼 이미지 생성] 버튼은 약속과 실제 능력이 다릅니다.</b><br>
+    이게 "버튼 의미 붕괴"라고 보고된 문제의 정체입니다. 아래를 비교해 보세요.</div>
+
+    <div class="gap-box">
+      <div class="gap-cell left">
+        <b>버튼이 약속하는 것 (문구)</b>
+        "AI가 48명을 채우고 → <u>이미지</u> 검수까지 자동으로 합니다" — 누르면 인물 사진이 채워질 것처럼 읽힙니다.
+      </div>
+      <div class="gap-neq">≠</div>
+      <div class="gap-cell">
+        <b>실제로 하는 것</b>
+        AI가 이름·국적 등 <u>명단만</u> 채웁니다. <b>이미지는 한 장도 가져오지 않습니다.</b> 이미지 칸은 빈 채로 남고, 사람이 라이선스를 확인한 사진 주소를 직접 붙여넣어야 합니다.
+      </div>
+    </div>
+
+    <div class="note"><b>왜 이미지를 자동으로 못 가져오나요?</b> 실수가 아니라 <b>우리가 처음부터 정한 저작권 원칙</b> 때문입니다. 영상은 "유튜브 공식 플레이어로 보여주기(임베드)"라는 법적으로 안전한 길이 있어 자동화했지만, <b>이미지는 그런 안전한 길이 없습니다.</b> 인터넷의 사진을 자동으로 긁어오면 저작권·초상권 침해가 되기 쉬워서, "이미지는 반드시 사람이 라이선스를 확인하고 넣는다"로 설계해 두었던 것입니다. 그래서 이 버튼은 태생적으로 '이미지 생성'이라는 이름을 다 지킬 수 없었고 — 목업 단계에서 제가 이 간극을 미리 짚어드리지 못했습니다. 그 점도 사과드립니다.</div>
+  </div>
+
+  <!-- ③ 선택지 4개 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">3</span>선택지 4가지 — 각각 무엇이고, 무엇을 얻고 잃나</div>
+    <table>
+      <tr><th>선택지</th><th>무엇을 하는 것인가</th><th>얻는 것</th><th>잃는 것 / 대가</th></tr>
+      <tr>
+        <td>① 칸 유지<br>(F 축소)<span class="tag t-cheap">비용 0</span></td>
+        <td>이미지 URL 칸과 데이터를 <b>그대로 둡니다</b>. "삭제" 계획만 접습니다. (읽는 곳 6곳이 있으니 지금 지우는 것은 어차피 위험)</td>
+        <td>아무것도 안 깨짐. 이미지 기반 토너먼트의 수동 경로 유지.</td>
+        <td>목업에서 정한 "칸 삭제 → 카드 축소"를 못 함. 카드가 한 줄 더 큼.</td>
+      </tr>
+      <tr>
+        <td>② 문구 정직화<span class="tag t-cheap">반나절</span></td>
+        <td>버튼은 그대로 두되, <b>이름과 설명을 실제 능력에 맞게</b> 고칩니다. 예: "🖼 명단 채우기 — 이미지는 라이선스 확인 후 직접 입력". (우리 "버튼명은 하는 일 기준" 원칙의 적용)</td>
+        <td>운영자(대표님)가 버튼을 눌렀을 때 기대와 결과가 일치. 싸고 빠름.</td>
+        <td>"이미지 생성"이라는 매력적인 이름을 잃음. 이미지는 여전히 수동.</td>
+      </tr>
+      <tr>
+        <td>③ 버튼 철회<span class="tag t-mid">반나절</span></td>
+        <td>🖼 버튼을 <b>아예 제거</b>하고 [🎬 동영상 생성] 하나만 남깁니다. 이미지 토너먼트는 슬롯에서 손으로만.</td>
+        <td>화면이 가장 단순. 오해 소지 0.</td>
+        <td>대표님이 목업에서 승인한 2버튼 구조가 1버튼이 됨. 이미지 토너먼트 비전이 화면에서 사라짐.</td>
+      </tr>
+      <tr>
+        <td>④ 재정의<br>(이미지 소싱 파이프라인)<span class="tag t-big">별도 킥 규모</span></td>
+        <td>버튼이 이름값을 하도록, <b>라이선스가 확인된 이미지를 자동으로 찾아오는 새 시스템</b>을 만듭니다. 상세는 아래 ④절.</td>
+        <td>버튼 약속을 진짜로 이행. 이미지 토너먼트 제작이 영상만큼 쉬워짐.</td>
+        <td>큰 공사 + <b>법리 미확보</b>(아래 참조). LAB-UX-1 안에서는 불가능, Arena 일정이 뒤로 밀림.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ④ 재정의 상세 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">4</span>"재정의(이미지 소싱 파이프라인)"는 왜 필요하고, 왜 신중해야 하나</div>
+    <div class="sec-desc">
+      <b>왜 필요한가</b>: [🖼 이미지 생성]이라는 버튼이 진짜로 이미지를 만들어 오려면 이 길뿐입니다. 만들려면 세 가지가 필요합니다 —
+      ⓐ <b>라이선스 필터가 있는 이미지 검색</b>(예: 상업적 이용이 허락된 이미지만 걸러 주는 검색 API — 외부 서비스 연동),
+      ⓑ <b>검수 층</b>(영상 검수기처럼 "이 사진이 정말 그 인물인가, 쓸 수 있는 라이선스인가" 판정),
+      ⓒ <b>법리 확인</b>.
+    </div>
+    <div class="note warn">
+      <b>왜 신중해야 하나 — 법리가 영상과 다릅니다.</b> 우리의 영상 전략은 "유튜브 공식 플레이어로 보여주기(임베드)"라서 판례로 확인된 안전한 카드였습니다(법률 상담 08-08 확정). 그런데 <b>이미지는 임베드 같은 보호 장치가 없습니다</b> — 사진을 우리 화면에 띄우는 것은 복제·전송 문제가 바로 걸리고, K-POP 인물 사진은 초상권까지 겹칩니다. "라이선스 확인된 이미지만"이라는 필터도 오탐(라이선스 표기가 틀린 이미지)이 있어서, 이 길을 가려면 <b>다음 법률 상담에서 이미지 소싱의 안전선을 먼저 확인</b>하는 것이 순서입니다. 즉 ④는 "하면 안 된다"가 아니라 "지금 이 킥에서 곁다리로 할 일이 아니라, 법리 확인을 앞세운 별도 킥감"이라는 뜻입니다.
+    </div>
+  </div>
+
+  <!-- ⑤ 결정 요청 -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-num">5</span>대표님께 여쭙는 것</div>
+    <div class="sec-desc">
+      선택지는 섞을 수 있습니다(예: ①+② / ①+②를 지금 하고 ④는 법률 상담 뒤 별도 킥으로 검토). 제 의견은 참고로만 말씀드리면 —
+      <b>지금 킥에서는 ①+②(칸 유지 + 문구 정직화)로 정직하게 맞춰 두고, ④(재정의)는 "다음 법률 상담 확인 목록"에 올려 두었다가 상담 결과를 보고 별도 킥으로 판단</b>하는 것이 품질과 법적 안전을 다 지키는 길이라고 봅니다. ③(철회)은 대표님이 승인하신 2버튼 구조를 되돌리는 것이라 권하지 않습니다.
+      <br><br>
+      다만 이것은 어디까지나 추천이고, <b>결정은 대표님 몫입니다.</b> 원하시면 결정 전에 imageUrl을 읽는 6곳의 상세 목록을 Claude Code에게 받아 함께 검토할 수도 있습니다. 방향을 정해 주시면, 그때 실행 프롬프트를 만들어 드리겠습니다.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
