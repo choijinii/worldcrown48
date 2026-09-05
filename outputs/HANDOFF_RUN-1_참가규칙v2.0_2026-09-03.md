@@ -183,11 +183,27 @@ decideRun({
 | `lib/voteGate.ts` | MODIFY | `decideVoteGate`의 로그인 분기를 **판 기준**으로: `participatedThisTournament`(불리언) → **`runsForThisTournament`(숫자)**. `runsForThisTournament >= 5` → `daily_limit_reached`. 게스트 분기는 §5 DO 3 참조. **서버(`decideRun`)와 같은 순수 함수를 공유하거나, 최소한 동일 입력→동일 출력이 단위 테스트로 고정될 것** |
 | `app/arena/[tournamentId]/page.tsx` | MODIFY | 완주(`complete`) 화면에 **[다시 도전 (n/5)]** 버튼 + **지난 판의 Crown Card 목록**. 5판 소진 시 버튼 비활성 + 안내. 버튼 클릭 → 다음 회차로 새 판 시작(새 bracketSeed·새 roundProgress) |
 | `lib/i18n/messages.ts` | MODIFY | `arena.vote.dailyLimit` 3언어 교체 + 신규 키(재도전 버튼·지난 카드) — **§8 문구표 그대로** |
-| `components/auth/LoginModal.tsx` | MODIFY | `daily_limit` / `dailyLimitSub` 3언어 교체 — **§8 문구표 그대로** |
+| `components/auth/LoginModal.tsx` | MODIFY | ① `daily_limit` / `dailyLimitSub` 3언어 교체 — **§8 문구표 그대로** ② **`LoginReason` 에 `guest_limit` 신설**(2026-09-05 대표 확정, 아래 상세) ③ **파일 상단 주석의 폐기된 HF-1 규칙을 v2.0으로 교체** |
 | `functions/src/onVote.ts` (속도 제한) | MODIFY | **`RATE_LIMIT = 20` → `40`** (2026-09-03 대표 확정). 근거: v2.0에서 5판 = 선택 230번인데 분당 20이면 규칙이 최소 11.5분을 강제해 "결과물을 늘린다"는 설계와 충돌. 40이면 1.5초에 한 번까지 허용 |
 | `lib/i18n/messages.ts` (`arena.vote.rateLimited`) | MODIFY | 현재 "잠시 후 다시 시도해주세요." — **왜 막혔는지 설명이 없음**. 대표 지시(09-03): 안내 문구 필수 → §8 표 참조, **대표 승인 후 반영** |
 | `lib/arena/voteStore.ts` | MODIFY | 🔴 **§9 함정 9(클라이언트 쪽).** `loadTournament`가 `where(userId, tournamentId)`로 **그 Tournament의 모든 판의 선택 기록을 통째로** 불러온다 → 2판째가 화면에서 곧바로 완주 상태가 된다. `where("runIndex","==",n)` 추가 + 회차를 스토어 상태에 보관 |
 | Arena 마감 안내 화면 (AC 9·16) | MODIFY | 마감된 Tournament에 **① 완주 화면에서 [다시 도전] 비활성 + 안내 한 줄** ② **한 판도 안 돈 팬의 첫 진입 화면에도 같은 안내 한 줄**(2026-09-05 대표 지시). 진행 중인 판은 **이어갈 수 있게 둔다**. 문구 = §8 `arena.run.deadlinePassed` |
+
+#### `guest_limit` 신설 — 2026-09-05 대표 확정
+
+> **왜.** 지금 게스트가 막히면 `reason="vote"` 의 "계속하려면 로그인이 필요해요"가 뜬다 — **왜 막혔는지를 말하지 않는다.**
+> 게스트 1판은 **회원 전환 지점**인데, 전환의 결정적 순간에 이유 없이 요구만 한다.
+
+**(a) 하나로 묶는다.** 게스트가 막히는 두 경우 — **같은 Tournament 재도전** · **다른 Tournament 진입** — 모두 `guest_limit` 을 쓴다. 근본 이유가 같다("오늘의 1판을 썼다").
+
+**(b) 문구**는 §8 표 `login.guest_limit.title` / `.sub` 를 **글자 그대로**. **Google 버튼은 그대로 노출한다** — `daily_limit` 과 달리 여기엔 행동 경로가 있다 (`LoginModal.tsx:66` 의 `showGoogleButton` 조건을 `reason !== "daily_limit"` 그대로 두면 자동으로 만족된다).
+
+**(c) 파일 상단 주석 정정 (필수).** `components/auth/LoginModal.tsx:1-26` 이 **폐기된 HF-1 규칙**으로 적혀 있다 —
+`"5 NEW Tournaments / KST day"` · `"Voting inside an already-joined Tournament is unlimited"`.
+> **안 고치면 다음 사람이 주석을 읽고 옛 규칙으로 되돌린다.** (대표) — Stale-Doc Guard가 코드 주석에도 적용된다.
+> 9번째 줄의 `"You've joined all 5 Tournaments for today (5/5)"` 도 v2.0 문구로 함께 고친다.
+
+---
 
 ### Phase 3 — 정리·계측 (PR 3)
 
@@ -219,6 +235,7 @@ decideRun({
 14. 랭킹 갱신 주기가 12시간이다.
 15. 랭킹 화면에 **다음 발표 시각 한 줄**이 3언어로 뜨고, 날짜가 넘어가면 "오늘"→"내일"로 정확히 바뀐다.
 16. **마감된 Tournament에 한 판도 안 돈 팬이 처음 들어와도 안내가 뜬다** (2026-09-05 대표 지시). 완주 화면의 [다시 도전] 비활성만으로는 부족하다 — 첫 진입 화면에도 `arena.run.deadlinePassed` 가 노출된다.
+17. **게스트가 막힐 때 왜 막혔는지 알려준다** (2026-09-05 대표 확정). 같은 Tournament 재도전·다른 Tournament 진입 **두 경우 모두** `guest_limit` 문구가 3언어로 뜨고, **Google 버튼이 함께 보인다**. `LoginModal.tsx` 상단 주석의 폐기된 HF-1 규칙도 v2.0으로 고쳐져 있다.
 
 ---
 
@@ -298,6 +315,8 @@ decideRun({
 | `arena.run.playAgain` (신설) | 다시 도전 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
 | `arena.run.pastCards` (신설) | 지난 판의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
 | `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
+| `login.guest_limit.title` (신설) **✅ 승인 (2026-09-05)** | 오늘의 무료 1판을 다 도셨어요 | You've played today's free run | Ya has jugado tu partida gratis de hoy |
+| `login.guest_limit.sub` (신설) **✅ 승인 (2026-09-05)** | 로그인하시면 Tournament마다 하루 5판씩, 크라운 카드도 계속 쌓을 수 있어요. | Sign in for 5 runs a day in every Tournament — and keep every Crown Card. | Inicia sesión para 5 partidas al día en cada Tournament y guarda todas tus Crown Cards. |
 | `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05)** | 이 Tournament는 마감됐어요. 다른 Tournament에서 새 판을 시작해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
 | `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
 | `ranking.nextUpdate.tomorrow` **✅ 승인 (2026-09-04)** | 다음 발표: 내일 09:00 | Next update: tomorrow 09:00 KST | Próxima actualización: mañana 09:00 KST |
@@ -305,8 +324,11 @@ decideRun({
 > "Tournament" · "Crown Card"는 3언어 모두 **원문 그대로** 유지(LANGUAGE.md RULE 1).
 
 > **차단 문구 원칙 (2026-09-05 대표 확정)**
-> **막고 나서 길을 열어준다.** 승인된 차단 문구는 전부 다음 행동을 함께 준다 — `dailyLimit`은 다른 Tournament로, `rateLimited`는 몇 초 뒤 이어가기로, `deadlinePassed`는 다른 Tournament의 새 판으로.
+> **막고 나서 길을 열어준다.** 승인된 차단 문구는 전부 다음 행동을 함께 준다 — `dailyLimit`은 다른 Tournament로, `rateLimited`는 몇 초 뒤 이어가기로, `deadlinePassed`는 다른 Tournament의 새 판으로, `guest_limit`은 로그인으로.
 > 닫고 끝나는 문장은 팬을 막다른 길에 세운다. **"할 수 없다"는 이미 비활성 버튼이 눈으로 말한다** — 문구는 갈 곳을 말해야 한다.
+>
+> **버튼 노출 규칙**: `daily_limit`은 Google 버튼을 **숨긴다**(이미 로그인 상태라 버튼이 할 일이 없다).
+> `guest_limit`은 **그대로 노출한다** — 여기엔 실제로 갈 길이 있다.
 
 > **발표 시각 표기 규칙 (2026-09-04 대표 확정)**
 > - 시각은 **KST 고정**. en·es는 `21:00 KST`처럼 시간대를 명시한다.
@@ -339,7 +361,7 @@ decideRun({
 ## §10. 핸드오프 종료 조건
 
 ```
-☐ §4 Acceptance Criteria **16개** 전부 통과
+☐ §4 Acceptance Criteria **17개** 전부 통과
 ☐ **PR 1 안에서** `votes` 의 `runIndex` 조회 3곳(onVote 중복 방지 · advanceRound 라운드 판정 · voteStore 진행 복원)을
    에뮬레이터로 실행해 복합 인덱스 필요 여부를 확인 → 필요하면 `firestore.indexes.json` 에 추가해 PR 1에 포함,
    결과와 근거를 PR 본문에 기재 (2026-09-05 대표 지시 · 인덱스 없는 쿼리는 런타임 실패라 배포 후 발견하면 투표가 통째로 막힌다)
