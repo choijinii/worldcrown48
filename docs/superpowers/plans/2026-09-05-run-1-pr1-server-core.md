@@ -23,7 +23,7 @@
 
 | 묶음 | 태스크 | 상태 | 커밋 |
 |---|---|---|---|
-| A | 1~4 순수 모듈 4종 (`kstReset`·`runDocId`·`decideRun`·`guestRun`) | ✅ **완료** (테스트 37건 · 루트 전체 812건 green · tsc 0) | `e7d07cf` |
+| A | 1~4 순수 모듈 4종 (`kstReset`·`runDocId`·`decideRun`·`guestRun`) | ✅ **완료** (테스트 37건 · 루트 전체 812건 green · tsc 0) | `6a0bce2` |
 | B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` | ☐ 미착수 | — |
 | C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** | ☐ 미착수 | — |
 | D | 10~12 `advanceRound`·`onChampionConfirmed`·`linkSessionVote` | ☐ 미착수 | — |
