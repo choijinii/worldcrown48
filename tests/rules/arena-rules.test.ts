@@ -350,3 +350,58 @@ describe("bracket_seeds (HF-2) — owner read via doc-id prefix, create-once, im
     await assertFails(deleteDoc(doc(db, `bracket_seeds/${VOTER}_t1`)));
   });
 });
+
+/**
+ * RUN-1 — 판(Run) 원장과 게스트 한도의 소유자 규칙.
+ *
+ * 두 컬렉션 모두 서버(onVote·linkSessionVote, admin SDK) 전용 쓰기다. 클라이언트가
+ * 쓸 수 있으면 한도를 초기화해 하루 5판 규칙이 사라지고, guest_runs는 §9 함정 4
+ * (게스트 uid는 브라우저마다 새로 생기니 랭킹 조작 비용 0)로 직행한다.
+ */
+describe("tournament_runs / guest_runs (RUN-1)", () => {
+  it("소유자는 자기 문서를 읽는다 — 문서가 없어도 거부되지 않는다", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, "tournament_runs", `${VOTER}_gen4_idol_48`)));
+  });
+
+  it("남의 문서는 못 읽는다", async () => {
+    const db = testEnv.authenticatedContext(OTHER).firestore();
+    await assertFails(getDoc(doc(db, "tournament_runs", `${VOTER}_gen4_idol_48`)));
+  });
+
+  it("tournamentId의 '_'와 회차 접미사가 소유자 판정을 깨지 않는다 (§9 함정 2)", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertSucceeds(getDoc(doc(db, "tournament_runs", `${VOTER}_best_stage_48`)));
+  });
+
+  it("클라이언트는 한도를 고쳐 쓸 수 없다 — 서버 전용", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, "tournament_runs", `${VOTER}_gen4_idol_48`), {
+        runIndex: 1,
+        runsToday: 0,
+        lastRunDate: "2026-09-06",
+      }),
+    );
+  });
+
+  it("게스트는 자기 guest_runs를 읽고, 남의 것은 못 읽는다", async () => {
+    const mine = testEnv.authenticatedContext(VOTER).firestore();
+    const other = testEnv.authenticatedContext(OTHER).firestore();
+    await assertSucceeds(getDoc(doc(mine, "guest_runs", VOTER)));
+    await assertFails(getDoc(doc(other, "guest_runs", VOTER)));
+  });
+
+  it("guest_runs도 클라이언트 쓰기 차단 — 풀리면 랭킹 조작 비용이 0이 된다 (§9 함정 4)", async () => {
+    const db = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(
+      setDoc(doc(db, "guest_runs", VOTER), { runsToday: 0, lastRunDate: "2026-09-06" }),
+    );
+  });
+
+  it("로그인하지 않으면 아무것도 못 읽는다", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "tournament_runs", `${VOTER}_gen4_idol_48`)));
+    await assertFails(getDoc(doc(db, "guest_runs", VOTER)));
+  });
+});
