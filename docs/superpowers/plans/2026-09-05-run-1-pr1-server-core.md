@@ -16,6 +16,9 @@
 ## 진행 상황 — 세션이 끊겨도 여기만 보면 이어갈 수 있다
 
 > 2026-09-05 대표 지시. **묶음이 끝날 때마다 커밋하고 아래 표를 갱신한다.**
+> **2026-09-06 경계 조정**: 묶음 C를 Task 9~11로 넓혔다 — 묶음 B 끝이 타입이 안 맞는 지점이라
+> (`onVote`·`onChampionConfirmed` 가 회차를 아직 안 넘긴다) 쉬는 지점이 컴파일 되는 상태여야 한다.
+> **커밋은 Task 9 / 10 / 11 각각 따로** 한다.
 > Task 9(onVote 재작성)가 가장 크므로 그 앞뒤로 특히 확실히 끊는다.
 > 커밋한 뒤에는 **실제 파일 내용을 다시 읽어** 의도한 수정이 들어갔는지 확인하고 넘어간다
 > (2026-09-05: 편집 스크립트가 중간에 죽어 커밋 메시지와 내용이 어긋난 사고가 있었다 —
@@ -25,10 +28,12 @@
 |---|---|---|---|
 | A | 1~4 순수 모듈 4종 (`kstReset`·`runDocId`·`decideRun`·`guestRun`) | ✅ **완료** (테스트 37건 · 루트 전체 812건 green · tsc 0) | `6a0bce2` |
 | B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` (+ `todayKST` 통합) | ⚠️ **코드 완료·빌드 미완** — 아래 주의 | `639bda6` |
-| C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** | ☐ 미착수 | — |
-| D | 10~12 `advanceRound`·`onChampionConfirmed`·`linkSessionVote` | ☐ 미착수 | — |
+| C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** · 10 `advanceRound` · 11 `onChampionConfirmed` | ✅ **완료 · 양쪽 tsc 0** (루트 822 · functions 428 green) | `b7d5b86` · `bf78fc1` · `b722bf0` |
+| D | 12 `linkSessionVote` | ☐ 미착수 | — |
 | E | 13~15 보안 규칙 + 인덱스 실측 + PR | ☐ 미착수 | — |
 
+> ✅ **해소됨 (2026-09-06, 묶음 C)** — 아래 경고는 묶음 B 시점의 기록이며 Task 11에서 타입이 맞춰졌다.
+>
 > ⚠️ **묶음 B 종료 시점의 알려진 상태 (2026-09-05)**
 > 테스트는 양쪽 다 green이다 (루트 820건 · functions 431건). 그러나 **`functions` 의 `tsc` 는 2곳에서 실패한다**:
 > `onVote.ts:115` (`buildVoteDoc` 에 `runIndex` 없음) · `onChampionConfirmed.ts:37,83` (`crownCardId`·`buildCrownCardRecord` 에 `runIndex` 없음).
