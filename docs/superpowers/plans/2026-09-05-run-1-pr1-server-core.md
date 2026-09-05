@@ -1772,7 +1772,37 @@ git commit -m "feat(run-1): tournament_runs·guest_runs 보안 규칙 (소유자
 ③ voteStore 진행 복원  votes  where userId == , tournamentId == , runIndex ==  (등가 3, PR 2에서 실사용)
 ```
 
-- [ ] **Step 2: 에뮬레이터를 띄우고 세 쿼리를 실제로 실행한다**
+> 🔴 **2026-09-06 실측 — 이 태스크의 원래 검증 방법은 틀렸다.**
+> **Firestore 에뮬레이터는 인덱스 부족을 강제하지 않는다.** 대조 실험으로 확인했다:
+> 프로덕션이라면 반드시 실패할 쿼리(`votes` 에서 `userId==` + `createdAt` 정렬 — 이 조합의
+> 복합 인덱스는 배포돼 있지 않다)를 에뮬레이터에 던졌더니 **그냥 통과**했다.
+> 따라서 아래 Step 2의 "에뮬레이터에서 인덱스 오류가 안 났다"는 **아무것도 증명하지 못한다** —
+> 전형적인 false green이다. 대신 프로덕션 설정을 직접 조회해 판단한다(Step 2′).
+
+- [ ] **Step 2′: 프로덕션 인덱스 설정을 조회해 판단한다 (에뮬레이터 대신)**
+
+```bash
+npx firebase firestore:indexes --project worldcrown48
+```
+*무엇을 하나*: 프로덕션 Firestore에 **실제로 배포돼 있는** 인덱스 목록을 받아옵니다.
+*왜*: 에뮬레이터가 인덱스를 강제하지 않으므로, 필요 여부는 프로덕션의 실제 설정과 이미 돌고 있는
+쿼리로 판단해야 합니다. *성공 모습*: `votes` 항목과 `fieldOverrides` 를 볼 수 있습니다.
+
+**2026-09-06 조회 결과와 판단 — 복합 인덱스 불필요**
+
+| 근거 | 내용 |
+|---|---|
+| ① 살아 있는 선례 | 프로덕션에 `votes(userId, tournamentId, round)` 복합 인덱스가 **없는데**, `advanceRound` 가 바로 그 3중 등가 쿼리를 **프로덕션에서 돌리고 있다.** 즉 Firestore가 등가 전용 쿼리를 단일 필드 인덱스 병합으로 처리한다는 실측 증거다 |
+| ② 새 필드도 색인된다 | `fieldOverrides` 가 **비어 있다** → 모든 필드가 자동으로 단일 필드 인덱스를 갖는다. 새로 생기는 `runIndex` 도 예외 없이 병합에 참여한다 |
+| ③ 추가되는 조건의 성격 | 세 쿼리가 붙이는 `runIndex ==` 는 **등가 조건**이다. 범위·정렬이 아니므로 ①의 선례와 같은 부류다 |
+
+⚠️ **이 판단은 로컬 실행이 아니라 프로덕션 설정 + 살아 있는 선례에 근거한다.** 에뮬레이터로는
+확인할 수 없다(위 대조 실험). 최종 확증은 §7 0단계(프리뷰에서 실제 1판 완주)가 한다 —
+인덱스가 정말 없다면 그때 `FAILED_PRECONDITION` 으로 크게 터진다.
+
+<details><summary>원래 계획의 Step 2 (무효 — 기록용)</summary>
+
+- [ ] **Step 2(무효): 에뮬레이터를 띄우고 세 쿼리를 실제로 실행한다**
 
 ```bash
 firebase emulators:exec --only firestore --project worldcrown48 "npx vitest run --config vitest.rules.config.ts tests/rules/arena-rules.test.ts"
@@ -1781,6 +1811,8 @@ firebase emulators:exec --only firestore --project worldcrown48 "npx vitest run 
 
 > 위 테스트에 세 쿼리가 없으면, `tests/rules/arena-rules.test.ts` 에 임시 `it()` 세 개를 추가해
 > 위 조합을 그대로 실행하고(결과가 비어 있어도 된다) 인덱스 오류만 확인한 뒤 지운다.
+
+</details>
 
 - [ ] **Step 3: 필요하면 인덱스를 추가한다**
 
