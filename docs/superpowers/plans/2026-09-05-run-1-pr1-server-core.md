@@ -29,7 +29,7 @@
 | A | 1~4 순수 모듈 4종 (`kstReset`·`runDocId`·`decideRun`·`guestRun`) | ✅ **완료** (테스트 37건 · 루트 전체 812건 green · tsc 0) | `6a0bce2` |
 | B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` (+ `todayKST` 통합) | ⚠️ **코드 완료·빌드 미완** — 아래 주의 | `639bda6` |
 | C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** · 10 `advanceRound` · 11 `onChampionConfirmed` | ✅ **완료 · 양쪽 tsc 0** (루트 822 · functions 428 green) | `b7d5b86` · `bf78fc1` · `b722bf0` |
-| D | 12 `linkSessionVote` | ☐ 미착수 | — |
+| D | 12 `linkSessionVote` | ✅ **완료** (루트 822 · functions 430 green · 양쪽 tsc 0) | `77c2da3` |
 | E | 13~15 보안 규칙 + 인덱스 실측 + PR | ☐ 미착수 | — |
 
 > ✅ **해소됨 (2026-09-06, 묶음 C)** — 아래 경고는 묶음 B 시점의 기록이며 Task 11에서 타입이 맞춰졌다.
