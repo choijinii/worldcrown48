@@ -30,7 +30,7 @@
 | B | 5~8 미러링 배선 + `voteRecord`·`crownCardRecord`·`bracketSeed` (+ `todayKST` 통합) | ⚠️ **코드 완료·빌드 미완** — 아래 주의 | `639bda6` |
 | C | **9 `onVote` 재작성 + 옛 판정 모듈 삭제** · 10 `advanceRound` · 11 `onChampionConfirmed` | ✅ **완료 · 양쪽 tsc 0** (루트 822 · functions 428 green) | `b7d5b86` · `bf78fc1` · `b722bf0` |
 | D | 12 `linkSessionVote` | ✅ **완료** (루트 822 · functions 430 green · 양쪽 tsc 0) | `77c2da3` |
-| E | 13~15 보안 규칙 + 인덱스 실측 + PR | ☐ 미착수 | — |
+| E | 13~15 보안 규칙 + 인덱스 + PR | ✅ **완료** (규칙 92건 green · 인덱스 3개 보험 추가 · 전체 게이트 통과) | `bb2ea68` · `53eeffc` |
 
 > ✅ **해소됨 (2026-09-06, 묶음 C)** — 아래 경고는 묶음 B 시점의 기록이며 Task 11에서 타입이 맞춰졌다.
 >
