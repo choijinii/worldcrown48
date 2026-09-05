@@ -1,71 +1,38 @@
 /**
  * onVote — callable Cloud Function (Domain 3 · The Arena, castVote).
  *
- * Thin adapter around the tested voteRecord + participation cores. Writes the
- * vote inside a Firestore TRANSACTION (B-1 transaction-safe pattern) so the
- * dedupe (one vote per match) and the Daily Participation Limit check are atomic
- * against concurrent calls — no double-vote race, no 5-tournament overshoot.
+ * Thin adapter around the tested `_run` decision cores. The vote is written in a
+ * Firestore TRANSACTION (B-1 transaction-safe pattern) so the dedupe and the
+ * Daily Run Limit check are atomic against concurrent calls.
  *
  *   request.data: { tournamentId, round, matchId, contestantId }
  *   returns:      { ok: true }
  *
- * Anonymous uids are allowed (the guest's one free vote — D-1 linkSessionVote
- * re-parents it after sign-in). Per-uid in-memory rate limit (20/min) defuses
- * floods before any Firestore read (trap-style cost guard). `date` is the KST
- * day computed server-side — never trusted from the client.
+ * RUN-1 (참가 규칙 v2.0): 한 Voter가 하나의 Tournament를 하루(KST) 최대 5판까지 완주할 수
+ * 있다. **회차(runIndex)는 클라이언트가 보내지 않는다** — 서버가 `tournament_runs` 와
+ * `roundProgress` 를 읽어 스스로 정한다. 클라이언트 게이트(`lib/voteGate`)는 UX용이고,
+ * 같은 순수 함수(`_run/decideRun`)를 돌려 같은 답에 도달한다(§9 함정 5: 두 게이트가
+ * 어긋나면 P0다).
+ *
+ * 익명 uid는 허용된다(게스트의 하루 1판 — D-1 linkSessionVote가 로그인 후 재부모화한다).
+ * 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다(§5 DO 3).
+ * uid별 인메모리 속도 제한은 Firestore를 읽기 전에 홍수를 막는다. `date` 는 서버가 KST로
+ * 계산한다 — 클라이언트를 믿지 않는다.
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue, FieldPath } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
 import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
-import { decideParticipation, participationDocId } from "./core/participation";
-import { decideGuestVoteGuard, type GuestVoteFacts } from "./core/guestVoteGuard";
+import { decideRun, effectiveRunsToday, normalizeRunIndex } from "./_run/decideRun";
+import { decideGuestRun } from "./_run/guestRun";
+import { runDocId } from "./_run/runDocId";
+import { planRunWrite } from "./core/planRunWrite";
 import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
 
-/**
- * Guest Run server guard (HF-3 W3, AC7). For an anonymous caller, gather the two
- * facts the pure guard needs — with the admin SDK, which bypasses the
- * doc-id-prefix `list` denial that blocked the client (§확인 필요 1). Fail-open on
- * a transient read error (never break a legit 46-vote run on a dropped read; the
- * client gate + rules remain) — the deny path only fires on a confirmed fact.
- */
-async function fetchGuestVoteFacts(
-  uid: string,
-  tournamentId: string,
-): Promise<GuestVoteFacts> {
-  try {
-    const progressRef = adminDb.doc(`roundProgress/${uid}_${tournamentId}`);
-    const lo = `${uid}_`;
-    const hi = `${uid}_`;
-    const [progressSnap, seedsSnap] = await Promise.all([
-      progressRef.get(),
-      adminDb
-        .collection("bracket_seeds")
-        .where(FieldPath.documentId(), ">=", lo)
-        .where(FieldPath.documentId(), "<", hi)
-        .get(),
-    ]);
-    const completedCurrentTournament = progressSnap.get("complete") === true;
-    const enteredOtherTournament = seedsSnap.docs.some(
-      (d) => d.id !== `${uid}_${tournamentId}`,
-    );
-    return { isAnonymous: true, completedCurrentTournament, enteredOtherTournament };
-  } catch (err) {
-    console.warn("[onVote] guest guard fact fetch failed (fail-open):", err);
-    return {
-      isAnonymous: true,
-      completedCurrentTournament: false,
-      enteredOtherTournament: false,
-    };
-  }
-}
-
 // Per-uid token bucket — 20 calls / uid / minute / instance (HF-1.5 완화).
-// 3초당 1회 — 46표 완주하는 정상 voter가 12초/표 제한에 반복 차단되던 UX 결함 해소.
-// Same algorithm as before (handoff §8.1: token bucket 패턴 유지) — only the
-// limit moved 5 → 20. Exported below for unit testing (handoff §8.3) without
-// invoking the onCall wrapper / Firestore.
+// Same algorithm as before (handoff §8.1: token bucket 패턴 유지). Exported below
+// for unit testing (handoff §8.3) without invoking the onCall wrapper / Firestore.
 export const RATE_LIMIT = 20;
 export const RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
@@ -83,6 +50,20 @@ export function checkRateLimit(uid: string, now: number): boolean {
 /** Test-only — clears the per-instance buckets between cases. */
 export function __resetRateBucketsForTest(): void {
   uidBuckets.clear();
+}
+
+/**
+ * Tournament Deadline 검사 (AC 9). 트랜잭션 밖에서 한 번 읽는다 — 마감 시각은 Voter의 판
+ * 상태와 무관해서 원자성이 필요 없다. 읽기가 실패하면 그대로 전파된다: 회차 판정에 필요한
+ * 사실을 모른 채 허용하면 마감된 Tournament에 새 판이 열린다.
+ */
+async function isDeadlinePassed(tournamentId: string): Promise<boolean> {
+  const snap = await adminDb.collection("tournaments").doc(tournamentId).get();
+  const deadline = snap.get("tournamentDeadline") as
+    | { toMillis?: () => number }
+    | undefined;
+  if (!deadline?.toMillis) return false; // 마감이 없는 Tournament는 열려 있다.
+  return deadline.toMillis() < Date.now();
 }
 
 export const onVote = onCall(
@@ -110,78 +91,153 @@ export const onVote = onCall(
     };
     const date = kstDate();
 
-    let doc;
-    try {
-      doc = buildVoteDoc({
-        userId: uid,
-        tournamentId: data.tournamentId ?? "",
-        round: data.round ?? 0,
-        matchId: data.matchId ?? "",
-        contestantId: data.contestantId ?? "",
-        date,
-      });
-    } catch (e) {
-      if (e instanceof VoteValidationError) {
-        throw new HttpsError("invalid-argument", e.message);
-      }
-      throw e;
+    // 회차를 정하려면 문서를 읽어야 하고, 문서를 읽으려면 tournamentId가 있어야 한다.
+    // 전체 검증은 아래 buildVoteDoc이 하지만, 빈 id로 Firestore를 읽지 않기 위해 여기서 먼저 막는다.
+    const tid = data.tournamentId ?? "";
+    if (!tid) {
+      throw new HttpsError("invalid-argument", "tournamentId가 필요합니다.");
     }
 
-    // Guest Run server guard (HF-3 W3, AC7). Only anonymous callers are guarded
-    // — detected off the Firebase sign-in provider, not a client-supplied flag.
+    // 익명 여부는 Firebase 로그인 제공자로 판정한다 — 클라이언트가 보낸 플래그가 아니다.
     const isAnonymous =
       req.auth?.token?.firebase?.sign_in_provider === "anonymous";
-    if (isAnonymous) {
-      const decision = decideGuestVoteGuard(
-        await fetchGuestVoteFacts(uid, doc.tournamentId),
-      );
-      if (decision.status === "deny") {
-        throw new HttpsError("permission-denied", decision.reason);
-      }
-    }
+
+    const deadlinePassed = await isDeadlinePassed(tid);
 
     const votes = adminDb.collection("votes");
-    const partRef = adminDb
-      .collection("daily_participation")
-      .doc(participationDocId(uid, date));
+    const runsRef = adminDb.collection("tournament_runs").doc(`${uid}_${tid}`);
+    const guestRef = adminDb.collection("guest_runs").doc(uid);
+    // 접미사 없는 옛 진행 문서 = 회차 도입 전의 1회차 판 (§3.0 B안 · AC 11).
+    const legacyProgressRef = adminDb.doc(`roundProgress/${runDocId(uid, tid, 1)}`);
+
     await adminDb.runTransaction(async (tx) => {
-      // Reads first (Firestore requires all reads before any write in a tx).
-      // Dedupe: one vote per (uid, matchId) — atomic against a double-click.
+      // ── 읽기 (Firestore는 모든 읽기가 쓰기보다 앞서야 한다) ──────────────
+      const [runsSnap, guestSnap, legacySnap] = await Promise.all([
+        tx.get(runsRef),
+        tx.get(guestRef),
+        tx.get(legacyProgressRef),
+      ]);
+
+      const stored = runsSnap.data() ?? {};
+      const runIndex = normalizeRunIndex({
+        runIndex: Number(stored.runIndex ?? 0),
+        legacyRunExists: legacySnap.exists,
+      });
+
+      // 현재 회차의 판이 끝났는지 — 이어하기와 새 판을 가르는 유일한 사실.
+      const currentRunComplete =
+        runIndex === 0
+          ? false
+          : (await tx.get(adminDb.doc(`roundProgress/${runDocId(uid, tid, runIndex)}`)))
+              .get("complete") === true;
+
+      const runsTodayBefore = effectiveRunsToday({
+        lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(stored.runsToday ?? 0),
+        todayKST: date,
+      });
+
+      // ── 게스트 한도가 먼저다 (§5 DO 3: 하루 통틀어 1판) ──────────────────
+      const guest = guestSnap.data() ?? {};
+      const guestRunsTodayBefore = effectiveRunsToday({
+        lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(guest.runsToday ?? 0),
+        todayKST: date,
+      });
+      if (isAnonymous) {
+        const guestDecision = decideGuestRun({
+          lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
+          runsToday: Number(guest.runsToday ?? 0),
+          runTournamentId: (guest.tournamentId as string | undefined) ?? null,
+          todayKST: date,
+          tournamentId: tid,
+          currentRunComplete,
+        });
+        if (guestDecision.status === "login_required") {
+          // 막히는 두 경우(완주한 판의 재도전 · 다른 Tournament 진입)는 같은 이유다 →
+          // 화면은 하나의 문구(login.guest_limit)로 안내한다 (2026-09-05 대표 확정).
+          throw new HttpsError(
+            "permission-denied",
+            "Guest Run already used today — sign in to keep playing.",
+          );
+        }
+      }
+
+      // ── 회차·한도·마감 판정 (클라이언트 게이트와 같은 함수) ─────────────
+      const decision = decideRun({
+        runIndex,
+        lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(stored.runsToday ?? 0),
+        todayKST: date,
+        currentRunComplete,
+        deadlinePassed,
+      });
+      if (decision.status === "limit_reached") {
+        // #12: 하드코딩 한국어를 던지지 않는다 — 화면이 details.code로 3언어를 고른다.
+        throw new HttpsError("resource-exhausted", "daily run limit reached", {
+          code: VOTE_ERROR_CODES.DAILY_LIMIT,
+        });
+      }
+      if (decision.status === "deadline_passed") {
+        throw new HttpsError("failed-precondition", "tournament deadline passed", {
+          code: VOTE_ERROR_CODES.DEADLINE_PASSED,
+        });
+      }
+
+      const plan = planRunWrite({
+        decision,
+        todayKST: date,
+        tournamentId: tid,
+        runsTodayBefore,
+        guestRunsTodayBefore,
+      });
+
+      let doc;
+      try {
+        doc = buildVoteDoc({
+          userId: uid,
+          tournamentId: tid,
+          round: data.round ?? 0,
+          matchId: data.matchId ?? "",
+          contestantId: data.contestantId ?? "",
+          date,
+          runIndex: plan.runIndex,
+        });
+      } catch (e) {
+        if (e instanceof VoteValidationError) {
+          throw new HttpsError("invalid-argument", e.message);
+        }
+        throw e;
+      }
+
+      // 중복 방지: (uid, matchId, runIndex) — 같은 매치라도 판이 다르면 다른 선택이다.
+      // 회차를 빼면 2판째의 첫 선택이 1판째와 중복으로 잡혀 아무것도 못 고르게 된다.
       const dupe = await tx.get(
-        votes.where("userId", "==", uid).where("matchId", "==", doc.matchId).limit(1),
+        votes
+          .where("userId", "==", uid)
+          .where("matchId", "==", doc.matchId)
+          .where("runIndex", "==", doc.runIndex)
+          .limit(1),
       );
       if (!dupe.empty) {
         throw new HttpsError("already-exists", "이미 투표한 매치입니다.");
       }
-      // Daily Participation Limit: at most 5 NEW Tournaments joined / KST day.
-      // Voting inside an already-joined Tournament costs no quota (46-vote path).
-      const partSnap = await tx.get(partRef);
-      const participatedTournamentIds: string[] = partSnap.exists
-        ? (partSnap.data()?.tournamentIds ?? [])
-        : [];
-      const decision = decideParticipation({
-        participatedTournamentIds,
-        tournamentId: doc.tournamentId,
-      });
-      if (decision.status === "limit_reached") {
-        // #12: was a hardcoded Korean message (leaked to en/es Voters). Now the
-        // client maps details.code=daily_limit → localized toast (ko/en/es).
-        throw new HttpsError(
-          "resource-exhausted",
-          "daily participation limit reached",
-          { code: VOTE_ERROR_CODES.DAILY_LIMIT },
-        );
-      }
-      // Writes: record the participation slot only when joining a NEW Tournament.
-      if (decision.consumesQuota) {
+
+      // ── 쓰기 ─────────────────────────────────────────────────────────────
+      // 새 판일 때만 카운터가 움직인다. 이어하기는 아무것도 쓰지 않는다(AC 8).
+      if (plan.tournamentRuns) {
         tx.set(
-          partRef,
-          {
-            tournamentIds: FieldValue.arrayUnion(doc.tournamentId),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
+          runsRef,
+          { ...plan.tournamentRuns, updatedAt: FieldValue.serverTimestamp() },
           { merge: true },
         );
+        if (isAnonymous && plan.guestRuns) {
+          tx.set(
+            guestRef,
+            { ...plan.guestRuns, updatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+        }
       }
       tx.set(votes.doc(), { ...doc, createdAt: FieldValue.serverTimestamp() });
     });
