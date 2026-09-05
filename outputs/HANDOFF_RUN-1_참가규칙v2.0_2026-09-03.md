@@ -75,6 +75,25 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 }
 ```
 
+#### 문서 이름 규칙 — 2026-09-05 대표 확정 (B안) · §3 원안 대체
+
+| 회차 | `bracket_seeds` · `roundProgress` · `crown_cards` 문서 id | Crown Card 이미지 경로 |
+|---|---|---|
+| **1회차** | `{uid}_{tid}` — **현행과 동일. 접미사를 붙이지 않는다** | `crown-cards/{tid}/{uid}.png` — 현행과 동일 |
+| **2회차 이상** | `{uid}_{tid}_r2` · `_r3` … | `crown-cards/{tid}/{uid}_r2.png` … |
+
+> **왜 1회차만 예외인가.** §3 원안대로 `_r1`부터 붙이면 **PR 1(서버)만 배포된 구간에 P0가 난다** —
+> 서버는 `roundProgress/{uid}_{tid}_r1` 에 쓰는데 아직 옛 화면은 `roundProgress/{uid}_{tid}` 를 구독한다
+> → 라운드 전환 안내가 안 뜨고 THE FINAL에서 멈춘다 (2026-07-06 HF-1.6과 같은 유형).
+> 1회차 이름을 그대로 두면 그 구간이 사라진다. 옛 화면에는 [다시 도전] 버튼이 없어 2회차가 생길 일도 없다.
+>
+> **덤**: §3 Phase 3의 "`runIndex` 없는 옛 문서를 1회차로 간주하는 폴백"이 **필요 없어진다** — 옛 문서가 곧 1회차 문서다.
+>
+> 구현은 헬퍼 한 곳에 가둔다: `runSuffix(n) = n <= 1 ? "" : `_r${n}``. 호출부는 이 규칙을 몰라야 한다.
+> ⚠️ **남는 위험 1건**: 옛 `votes` 문서에는 `runIndex` 항목이 없어 `where("runIndex","==",1)` 에 안 걸린다
+> → 전환 배포 순간 **판을 돌던 팬은 그 판의 진행이 초기화**된다(완주 기록·카드는 무사).
+> 런칭 전이라 규모는 작을 것으로 보이나 **배포 직전 실측해 보고**한다. 일괄 변환 스크립트는 §5 DON'T 3으로 금지.
+
 - 화면의 **"다시 도전 (n/5)"의 n = `runsToday`** — 팬에게 보이는 숫자는 늘 1~5다. 누적 회차는 팬에게 보이지 않는다.
 - 원안의 `daily_runs/{uid}_{date}` 는 **만들지 않는다.** 이 문서가 그 역할까지 겸한다.
 
@@ -119,9 +138,9 @@ decideRun({
 | `functions/src/core/guestRunGuard.ts` (`guestVoteGuard.ts` 대체) | MODIFY | 게스트 한도를 **`guest_runs/{uid}` 문서 기반**으로 재작성(§3.0 조건 3). 순수 판정: 오늘 판 수 0 → 허용(새 판) · 오늘 이미 1판인데 **같은 Tournament의 미완주 판** → 허용(이어하기) · 그 외 → 로그인 요구. **§9 함정 8의 기존 버그를 이 교체가 함께 없앤다** |
 | `functions/src/core/voteRecord.ts` | MODIFY | `VoteInput`에 `runIndex: number` 추가 + 검증(정수 1..5). matchId 형식 규칙은 **그대로** |
 | `functions/src/onVote.ts` | MODIFY | ① 중복 방지 쿼리를 `(userId, matchId)` → **`(userId, matchId, runIndex)`** ② 트랜잭션에서 **`tournament_runs/{uid}_{tid}`** 와 `roundProgress/{uid}_{tid}_r{n}` 을 읽어 `decideRun` 호출(§3.0) ③ `new_run` 일 때만 `runIndex +1` · `runsToday +1` · `lastRunDate = 오늘(KST)` 기록. `continue` 면 아무것도 쓰지 않는다 ④ vote 문서에 `runIndex` 기록 ⑤ 에러 코드 `VOTE_ERROR_CODES.DAILY_LIMIT` 유지 |
-| `lib/arena/bracketSeed.ts` | MODIFY | `bracketSeedDocId(uid, tid)` → **`bracketSeedDocId(uid, tid, runIndex)`** = `` `${uid}_${tid}_r${runIndex}` ``. 캐시 키(`wc48_bracket_seed_...`)도 같이. mulberry32·load-or-create 구조는 그대로 |
-| `functions/src/advanceRound.ts` + roundProgress 계열 | MODIFY | roundProgress 문서 id에 `_r{n}` 접미사, **문서 필드에 `runIndex` 추가**. 회차는 vote 문서의 `runIndex` **필드**에서 읽는다(id 파싱 금지 — §9 함정 2) |
-| `functions/src/core/crownCardRecord.ts` | MODIFY | `crownCardId(voterUid, tid)` → `crownCardId(voterUid, tid, runIndex)` = `` `${uid}_${tid}_r${n}` ``. 레코드에 `runIndex` 필드 추가 |
+| `lib/arena/bracketSeed.ts` | MODIFY | `bracketSeedDocId(uid, tid)` → **`bracketSeedDocId(uid, tid, runIndex)`** = `` `${uid}_${tid}${runSuffix(runIndex)}` `` (§3.0 B안). 캐시 키(`wc48_bracket_seed_...`)도 같이. mulberry32·load-or-create 구조는 그대로 |
+| `functions/src/advanceRound.ts` + roundProgress 계열 | MODIFY | roundProgress 문서 id에 `runSuffix(n)` 접미사(§3.0 B안 — 1회차는 접미사 없음), **문서 필드에 `runIndex` 추가**. 회차는 vote 문서의 `runIndex` **필드**에서 읽는다(id 파싱 금지 — §9 함정 2) |
+| `functions/src/core/crownCardRecord.ts` | MODIFY | `crownCardId(voterUid, tid)` → `crownCardId(voterUid, tid, runIndex)` = `` `${uid}_${tid}${runSuffix(n)}` `` (§3.0 B안). 레코드에 `runIndex` 필드 추가 |
 | `functions/src/onChampionConfirmed.ts` | MODIFY | `after.runIndex`를 읽어 `crownCardId(...)`에 전달. **문서 id를 파싱하지 말 것**(§9 함정 2) |
 | `firestore.rules` | MODIFY | **`tournament_runs` · `guest_runs` 읽기 규칙 신설**(§3.0 조건 4). 소유자 판정은 기존 패턴 그대로 — `tournament_runs`는 `docId.split('_')[0] == uid`, `guest_runs`는 `docId == uid`. 쓰기는 둘 다 `if false`(서버 전용). `bracket_seeds`·`roundProgress`·`crown_cards` 규칙은 **변경 불필요**(§9 함정 1). ~~`daily_participation` → `daily_runs` 개명~~ **항목 삭제됨**(2026-09-05) — 기존 `daily_participation` 블록은 **Phase 3에서 삭제** |
 | `functions/src/advanceRound.ts` (votes 집계) | MODIFY | 🔴 **§9 함정 9.** 라운드 완료 판정이 `where(userId, tournamentId, round)`로 세고 있다 — 2판째 첫 선택이 1판째 24건과 합산돼 **즉시 라운드가 넘어간다**. `where("runIndex","==",n)` 추가 필수 |
@@ -145,7 +164,7 @@ decideRun({
 
 | 파일 | 작업 | 상세 |
 |---|---|---|
-| 옛 데이터 읽기 폴백 | MODIFY | `runIndex`가 없는 기존 문서 = **1회차로 간주**. 이관 스크립트 없음. 옛 `daily_participation/{uid}_{date}`의 `tournamentIds[]`는 읽지 않고 버림(그날 자정에 자연 소멸) |
+| 옛 데이터 읽기 폴백 | MODIFY | ~~`runIndex`가 없는 기존 문서 = 1회차로 간주~~ **§3.0 B안 채택으로 폴백 코드 불필요** — 옛 문서 id가 곧 1회차 id다. 남는 일은 `crown_cards`·`roundProgress` **필드**에 `runIndex`가 없을 때 `1`로 읽는 것뿐. 이관 스크립트 없음. 옛 `daily_participation/{uid}_{date}`의 `tournamentIds[]`는 읽지 않고 버림(그날 자정에 자연 소멸) |
 | `match_session_id` 계측 | MODIFY | 해시 입력에 **runIndex 추가** → `hash(uid + tournamentId + runIndex)` 앞 16자 |
 | `first_vote` 이벤트 | CREATE | 판당 1회 발화 (마케팅 요청, 09-03 서신) |
 | `functions/src/scheduleRankingCache.ts` | MODIFY | **갱신 주기 `every 60 minutes` → `every 12 hours`** (2026-09-03 대표 확정). 설정 한 줄. 근거: 부하 재산정 — 현재 매시간 전량 재읽기가 비용·중단의 99% 원인. **증분 집계(W4)까지 버티는 임시 방어이자, "발표 시각" 제품 기능의 기반** |
