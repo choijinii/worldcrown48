@@ -26,7 +26,7 @@
 |---|---|---|
 | `lib/run/runDocId.ts` | **문서 이름을 만드는 유일한 곳** (§3.0 B안 조건 1). `runDocId(uid, tid, runIndex)` · `crownCardStoragePath(tid, uid, runIndex)` · `bracketSeedCacheKey(...)`. "1회차는 접미사 없음"을 아는 유일한 코드 | 없음 |
 | `lib/run/decideRun.ts` | 회차·한도·마감 판정 (§3.0 시그니처). `todayKST` 를 **입력으로 받는다** — 내부에서 시계를 읽지 않는다. `normalizeRunIndex` 도 여기 (§1.3) | 없음 |
-| `lib/run/guestRun.ts` | 게스트 한도 판정 — `guest_runs/{uid}` 기반, 하루 통틀어 1판 (§3.0 조건 3) | 없음 |
+| `lib/run/guestRun.ts` | 게스트 한도 판정 — `guest_runs/{uid}` 기반, 하루 통틀어 1판 (§3.0 조건 3). `todayKST` 주입 (§1.4) | 없음 |
 
 **왜 공용인가**: §9 함정 5 — 클라이언트 게이트와 서버 게이트가 어긋나면 P0다(2026-07-05 사고가 이 유형).
 "같은 테스트로 묶는다"보다 **같은 코드를 실행한다**가 강하고, 그 수단이 이미 리포에 있다.
@@ -64,6 +64,37 @@ normalizeRunIndex({ runIndex, legacyRunExists })
 
 `legacyRunExists` = 접미사 없는 `roundProgress/{uid}_{tid}` 문서의 존재.
 **이것이 AC 11의 실체다** — 폴백 분기가 아니라 회차 번호를 한 번 보정하는 것뿐이고, 그 뒤 로직은 완전히 동일하다.
+
+### 1.4 게스트의 자정 리셋과 회차 — 두 문서가 역할을 나눈다
+
+게스트도 **회차 번호가 필요하다.** 같은 브라우저의 익명 계정은 유지되므로, 오늘 A를 1판 돌고 내일 또 A를 돌면
+그건 A의 **2회차**다. 그런데 게스트 한도는 Tournament를 가로지르는("하루 통틀어 1판") 값이라 Tournament별 문서로는 못 센다.
+그래서 문서 두 개가 역할을 나눈다.
+
+| 문서 | 누구에게 | 담는 것 | 하는 일 |
+|---|---|---|---|
+| `tournament_runs/{uid}_{tid}` | **모든 Voter (게스트 포함)** | `runIndex` · `lastRunDate` · `runsToday` | **회차 번호** 원장. 게스트도 여기서 회차를 받는다 |
+| `guest_runs/{uid}` | **게스트만** | `lastRunDate` · `runsToday` · `tournamentId` | **하루 통틀어 1판** 한도. Tournament를 가로지르므로 uid 단위 문서 1개 |
+
+**자정 리셋은 `tournament_runs` 와 문자 그대로 같은 방식이다** (§3.0 조건 3: "리셋 로직이 하나여야 테스트도 하나다").
+날짜를 지우거나 문서를 새로 만들지 않고, **읽을 때 비교**한다.
+
+```ts
+// guestRun.ts — 날짜가 오늘이 아니면 어제 값은 없는 것으로 본다
+const fresh          = lastRunDate === todayKST;   // todayKST는 주입받는다
+const runsToday      = fresh ? doc.runsToday : 0;
+const runTournament  = fresh ? doc.tournamentId : null;
+```
+
+판정 순서:
+① `runsToday === 0` → **허용**(오늘의 1판 시작)
+② `runsToday >= 1` 이고 `runTournament === 현재 Tournament` 이고 그 판이 미완주 → **허용**(이어하기. 판을 새로 세지 않는다)
+③ 그 외(다른 Tournament · 완주한 판의 재도전) → **로그인 요구**
+
+> **날짜를 빠뜨리면 두 방향 모두 사고다.** 리셋이 없으면 게스트가 **영원히 1판만 하고 막히고**,
+> 반대로 한도를 안 세면 **무제한**이 되어 §9 함정 4(게스트 uid는 브라우저마다 새로 생기니 랭킹 조작 비용이 0)로 직행한다.
+
+호출 순서: **게스트면 `guestRun` 을 먼저** 돌려 막고(로그인 요구), 통과한 뒤에 `decideRun` 으로 회차를 정한다.
 
 ---
 
@@ -103,7 +134,18 @@ normalizeRunIndex({ runIndex, legacyRunExists })
 ⑤ voteRecord (runIndex 검증) → ⑥ crownCardRecord → ⑦ bracketSeed
 ⑧ onVote (②③⑤에 의존)  → ⑨ advanceRound → ⑩ onChampionConfirmed → ⑪ linkSessionVote
 ⑫ firestore.rules (tournament_runs · guest_runs 신설)
+⑬ **복합 인덱스 확인 — PR 1의 완료 조건 (2026-09-05 대표 지시)**
 ```
+
+**⑬ 인덱스 확인은 "열린 위험"이 아니라 PR 1 안에서 끝낸다.**
+`votes` 조회에 `runIndex` 등가 조건이 붙는 곳이 3군데다 — `onVote` 중복 방지 · `advanceRound` 라운드 완료 판정 · `voteStore` 진행 복원.
+**인덱스 없는 쿼리는 런타임 실패**라, 배포 후에 발견하면 **투표가 통째로 막힌다.**
+리포 기록에도 같은 사고가 있다(`feedback_firestore_composite_index` — "새 query 패턴이면 `firestore.indexes.json`을 검증하라";
+B-1→C-1 때 새 모듈의 조회가 기존 컬렉션에서 인덱스 없이 터졌다).
+
+절차: 에뮬레이터에서 세 쿼리를 **실제로 실행**해 인덱스 오류가 없는지 확인한다 →
+필요하면 `firestore.indexes.json` 에 추가하고 **PR 1에 포함**한다. 결과(추가 여부와 근거)를 PR 본문에 적는다.
+등가 조건만 쓰므로 인덱스 병합으로 통과할 것으로 **예상**하지만, 예상은 확인이 아니다.
 
 ⑦ `bracketSeed` 는 클라이언트 파일이라 PR 1에서도 화면에 닿는다.
 **`runIndex` 인자에 기본값 1을 주어 호출부를 안 바꾼다** → B안(1회차 접미사 없음)과 합쳐져 PR 1의 화면 동작은 현행과 완전히 동일하다.
@@ -144,7 +186,7 @@ match_session_id 해시에 runIndex → first_vote 이벤트 → scheduleRanking
 
 | 층 | 대상 |
 |---|---|
-| 순수 단위 | `runDocId`(1·2·5회차 경계) · `decideRun`(0~5판 경계·이어하기·마감·KST 리셋) · `guestRun` · `normalizeRunIndex` |
+| 순수 단위 | `runDocId`(1·2·5회차 경계) · `decideRun`(0~5판 경계·이어하기·마감·KST 리셋) · `normalizeRunIndex` · **`guestRun`(하루 1판 · 같은 Tournament 이어하기 허용 · 다른 Tournament 거부 · **KST 자정 리셋**: `lastRunDate`가 어제면 `runsToday`를 0으로 취급)** |
 | 어댑터 단위 | `voteRecord` runIndex 검증 · `crownCardRecord` · `voteGate` 어댑터가 `decideRun` 과 같은 답을 내는지 |
 | 규칙 | `tournament_runs` · `guest_runs` 소유자 읽기 / 타인 거부 / 쓰기 차단 |
 | E2E | 로그인 5판 완주 → 6판째 차단 · 비로그인 1판 게이트 (§11.3 의무 대상) |
@@ -155,10 +197,11 @@ match_session_id 해시에 runIndex → first_vote 이벤트 → scheduleRanking
 
 ---
 
-## 6. 열린 위험 3건
+## 6. 열린 위험 2건
+
+> 복합 인덱스 확인은 2026-09-05 대표 지시로 **PR 1의 완료 조건**으로 옮겼다 (§3 ⑬).
 
 | # | 위험 | 처리 |
 |---|---|---|
 | 1 | 옛 `votes` 에 `runIndex` 필드가 없어 회차 필터에 안 걸린다 → 전환 시점 **진행 중인 판이 초기화** | 배포 판단 기준을 **실측 전에 확정**해 뒀다 — 0건이면 배포, 1건 이상이면 대표 보고 (§3.0 조건 4) |
-| 2 | 회차 필터가 붙은 `votes` 조회에 복합 인덱스가 필요할 수 있다 | 두 조회 모두 **등가 조건만** 써서 인덱스 병합이 적용될 것으로 보이나 **에뮬레이터 실측 확인**(§9 함정 9) |
-| 3 | 마감 후 이어하기에 기한이 없다 → 마감된 Tournament에 계속 선택이 들어간다 | **이번 범위 밖**, §12 후속 항목으로 기록됨 (2026-09-05 대표 지시) |
+| 2 | 마감 후 이어하기에 기한이 없다 → 마감된 Tournament에 계속 선택이 들어간다 | **이번 범위 밖**, §12 후속 항목으로 기록됨 (2026-09-05 대표 지시) |
