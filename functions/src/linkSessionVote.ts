@@ -39,6 +39,14 @@ import {
   type RoundProgressFacts,
 } from "./core/linkRoundProgress";
 import { kstDate } from "./core/voteRecord";
+import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
+import { effectiveRunsToday } from "./_run/decideRun";
+
+/**
+ * 게스트 판의 회차. 게스트는 하루 통틀어 1판이므로(§5 DO 3) 이관 대상은 정의상 1회차다.
+ * 1회차는 접미사가 없어(§3.0 B안) 이관되는 문서 이름이 현행과 같다.
+ */
+const GUEST_RUN_INDEX = 1;
 
 const BATCH_LIMIT = 500;
 const TIMEOUT_SECONDS = 30;
@@ -70,8 +78,8 @@ async function fetchRoundProgressFacts(
   return Promise.all(
     tids.map(async (tid) => {
       const [guestSnap, googleSnap] = await Promise.all([
-        adminDb.doc(`roundProgress/${anonUid}_${tid}`).get(),
-        adminDb.doc(`roundProgress/${googleUid}_${tid}`).get(),
+        adminDb.doc(`roundProgress/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`).get(),
+        adminDb.doc(`roundProgress/${runDocId(googleUid, tid, GUEST_RUN_INDEX)}`).get(),
       ]);
       return {
         tournamentId: tid,
@@ -102,9 +110,13 @@ async function executeRoundProgressPlan(
   for (const decision of plan) {
     if (decision.action === "skip") continue;
     const tid = decision.tournamentId;
-    const guestSnap = await adminDb.doc(`roundProgress/${anonUid}_${tid}`).get();
+    const guestSnap = await adminDb
+      .doc(`roundProgress/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`)
+      .get();
     const guestData = guestSnap.data() ?? {};
-    const targetRef = adminDb.doc(`roundProgress/${googleUid}_${tid}`);
+    const targetRef = adminDb.doc(
+      `roundProgress/${runDocId(googleUid, tid, GUEST_RUN_INDEX)}`,
+    );
 
     if (decision.action === "copy") {
       // Incomplete run → single create under the new uid (no trigger needed).
@@ -136,31 +148,52 @@ async function executeRoundProgressPlan(
 }
 
 /**
- * Merge the guest's TODAY (KST) Daily Participation into the Google uid's
- * (대표 확정, §8 Edge #5): prevents "guest-run then sign in" from laundering the
- * HF-1 daily new-Tournament quota. Already-joined Tournaments stay unlimited, so
- * arrayUnion never blocks continued voting. Non-fatal on failure.
+ * 이관된 판을 Google 계정의 판 원장에 반영한다 (§8 Edge #5의 v2.0판).
+ *
+ * RUN-1 이전에는 `daily_participation` 의 참가 Tournament 집합을 합쳤다. v2.0에서 세는
+ * 단위가 "참가한 Tournament"가 아니라 **판**이 되었으므로, 이관된 Tournament마다
+ * `tournament_runs` 에 1판을 기록한다. 이게 없으면 "게스트로 1판 돌고 로그인"이 하루
+ * 한도를 세탁한다 — 게스트가 완주한 판이 Google 계정에서는 없던 일이 된다.
+ *
+ * **이관된 Tournament만** 대상이다. 충돌(HF-3.1 케이스 2)로 게스트 판이 버려진
+ * Tournament는 옮겨온 판이 없으므로 한도도 소모하지 않는다.
+ *
+ * 이관이 일어났다는 것은 Google 계정에 그 Tournament의 판이 없었다는 뜻이라(충돌 판정이
+ * 곧 그 검사다) 회차는 1이 된다. 그래도 기존 값을 읽어 확인한다 — 예상은 확인이 아니다.
+ * 실패는 비치명적이다: 표는 이미 옮겨졌고, 한도 한 판이 덜 세어지는 것이 로그인 직후
+ * 전체 실패보다 낫다.
  */
-async function mergeDailyParticipation(
-  anonUid: string,
+async function mergeTournamentRuns(
   googleUid: string,
+  transferredTids: string[],
 ): Promise<void> {
-  try {
-    const date = kstDate();
-    const guestSnap = await adminDb.doc(`daily_participation/${anonUid}_${date}`).get();
-    const guestTids: string[] = guestSnap.exists
-      ? (guestSnap.data()?.tournamentIds ?? [])
-      : [];
-    if (guestTids.length === 0) return;
-    await adminDb.doc(`daily_participation/${googleUid}_${date}`).set(
-      {
-        tournamentIds: FieldValue.arrayUnion(...guestTids),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-  } catch (err) {
-    console.warn("[linkSessionVote] daily_participation merge failed:", err);
+  if (transferredTids.length === 0) return;
+  const date = kstDate();
+  for (const tid of transferredTids) {
+    try {
+      const ref = adminDb.doc(`tournament_runs/${tournamentRunsDocId(googleUid, tid)}`);
+      const snap = await ref.get();
+      const stored = snap.data() ?? {};
+      const existingRunIndex = Number(stored.runIndex ?? 0);
+      // 이미 판이 있으면 충돌이었어야 한다 — 이관되지 않았을 것이므로 손대지 않는다.
+      if (existingRunIndex > 0) continue;
+      const runsToday = effectiveRunsToday({
+        lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(stored.runsToday ?? 0),
+        todayKST: date,
+      });
+      await ref.set(
+        {
+          runIndex: GUEST_RUN_INDEX,
+          runsToday: runsToday + 1,
+          lastRunDate: date,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (err) {
+      console.warn("[linkSessionVote] tournament_runs merge failed:", tid, err);
+    }
   }
 }
 
@@ -259,7 +292,16 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
           if (tid && conflictTids.has(tid)) {
             batch.delete(d.ref); // conflict → discard the guest vote
           } else {
-            batch.update(d.ref, { userId: googleUid });
+            // 회차 도입 전의 게스트 표에는 runIndex 필드가 없다. 필드가 없으면 회차
+            // 필터(`where runIndex == 1`)에 안 걸려 로그인 직후 그 판의 진행이
+            // 통째로 사라진다. 이미 이 문서를 쓰고 있으므로 여기서 채운다 —
+            // 일괄 변환 스크립트가 아니라(§5 DON'T 3) 이관 중의 한 필드다.
+            const hasRunIndex =
+              typeof (d.data() as { runIndex?: unknown }).runIndex === "number";
+            batch.update(d.ref, {
+              userId: googleUid,
+              ...(hasRunIndex ? {} : { runIndex: GUEST_RUN_INDEX }),
+            });
             reparentedInPage += 1;
           }
         });
@@ -278,7 +320,9 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
     // makes conflict tids a no-op (the Google uid already owns its seed).
     const anonSeeds: AnonSeed[] = await Promise.all(
       tids.map(async (tid) => {
-        const s = await adminDb.doc(`bracket_seeds/${anonUid}_${tid}`).get();
+        const s = await adminDb
+          .doc(`bracket_seeds/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`)
+          .get();
         return s.exists
           ? { tournamentId: tid, seed: (s.data() as { seed: number }).seed }
           : null;
@@ -303,7 +347,11 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
     // preferred over a `complete` `existing` entry (the conflict card + banner).
     // Reuses the facts read in PASS 1 — no second roundProgress read.
     const tournaments = await executeRoundProgressPlan(anonUid, googleUid, facts);
-    await mergeDailyParticipation(anonUid, googleUid);
+    // 충돌로 버려진 Tournament는 빠진다 — 옮겨온 판이 없으면 한도도 안 쓴다.
+    await mergeTournamentRuns(
+      googleUid,
+      tids.filter((tid) => !conflictTids.has(tid)),
+    );
 
     // Tidy up the orphaned anon account. Failing here is non-fatal — the
     // votes are already linked; the leftover anon record is harmless. We delete

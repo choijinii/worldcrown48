@@ -85,3 +85,27 @@ describe("planSeedTransfer (§8 Edge #1)", () => {
     expect(planSeedTransfer(NEW_UID, [null, null])).toEqual([]);
   });
 });
+
+/**
+ * RUN-1 §9 함정 11 — 회귀 잠금.
+ *
+ * 게스트→로그인 전환은 퍼널의 핵심이라 여기가 깨지면 신규 회원이 자기 판을 잃는다.
+ * 게스트는 하루 통틀어 1판이므로 이관 대상은 언제나 1회차이고, 1회차는 접미사가 없어
+ * 결과 문자열이 현행과 같다. 목적은 동작 변경이 아니라 `runDocId` 로의 일원화다
+ * (§3.0 조건 1: 어디서도 문자열을 직접 조합하지 않는다).
+ */
+describe("planSeedTransfer — 회차 (RUN-1, §9 함정 11)", () => {
+  it("① 게스트의 판은 언제나 1회차라 접미사가 없다 — 옛 이름과 같다", () => {
+    const writes = planSeedTransfer("newuid", [
+      { tournamentId: "gen4_idol_48", seed: 7 },
+    ]);
+    expect(writes).toEqual([{ docId: "newuid_gen4_idol_48", seed: 7 }]);
+  });
+
+  it("② tournamentId의 '_'가 소유자 판정을 깨지 않는다 (§9 함정 2)", () => {
+    const writes = planSeedTransfer("newuid", [
+      { tournamentId: "best_stage_48", seed: 9 },
+    ]);
+    expect(writes[0].docId.split("_")[0]).toBe("newuid");
+  });
+});
