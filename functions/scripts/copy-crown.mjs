@@ -20,12 +20,22 @@ const destCanvas = join(dest, "canvas");
 
 mkdirSync(destCanvas, { recursive: true });
 
-// Pure render contract + the canvas modules drawLink/drawQR depend on.
+// Pure render contract + the canvas modules drawLink depends on.
 copyFileSync(join(libCrown, "formats.ts"), join(dest, "formats.ts"));
+
+// CrownData.campaign 의 값 규칙(UTM_RULES v1.0 §1: campaignSlug → 정규화한 id →
+// "site")도 함께 미러링한다. 서버가 같은 규칙을 재구현하면 두 곳이 갈라진다 —
+// 클라이언트는 championLoader.toCrownData 에서 이 함수를 쓴다. import가 없어 그대로 복사된다.
+copyFileSync(
+  join(root, "lib", "lab", "campaignSlugValidation.ts"),
+  join(dest, "campaignSlugValidation.ts"),
+);
 for (const file of readdirSync(join(libCrown, "canvas"))) {
   if (file.endsWith(".ts")) {
     copyFileSync(join(libCrown, "canvas", file), join(destCanvas, file));
   }
 }
 
-console.log("[copy-crown] mirrored lib/crown/{formats,canvas/*} → functions/src/_crown");
+console.log(
+  "[copy-crown] mirrored lib/crown/{formats,canvas/*} + lib/lab/campaignSlugValidation → functions/src/_crown",
+);
