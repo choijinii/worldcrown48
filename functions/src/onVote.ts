@@ -14,6 +14,9 @@
  * 같은 순수 함수(`_run/decideRun`)를 돌려 같은 답에 도달한다(§9 함정 5: 두 게이트가
  * 어긋나면 P0다).
  *
+ * ⚠️ 2026-09-06: Tournament Deadline 강제는 **꺼져 있다**(아래 `deadlinePassed: false`).
+ * 화면·문구가 PR 2에 있어 팬에게는 고장으로 보였다 — 그 P0의 대응이다.
+ *
  * 익명 uid는 허용된다(게스트의 하루 1판 — D-1 linkSessionVote가 로그인 후 재부모화한다).
  * 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다(§5 DO 3).
  * uid별 인메모리 속도 제한은 Firestore를 읽기 전에 홍수를 막는다. `date` 는 서버가 KST로
@@ -52,20 +55,6 @@ export function __resetRateBucketsForTest(): void {
   uidBuckets.clear();
 }
 
-/**
- * Tournament Deadline 검사 (AC 9). 트랜잭션 밖에서 한 번 읽는다 — 마감 시각은 Voter의 판
- * 상태와 무관해서 원자성이 필요 없다. 읽기가 실패하면 그대로 전파된다: 회차 판정에 필요한
- * 사실을 모른 채 허용하면 마감된 Tournament에 새 판이 열린다.
- */
-async function isDeadlinePassed(tournamentId: string): Promise<boolean> {
-  const snap = await adminDb.collection("tournaments").doc(tournamentId).get();
-  const deadline = snap.get("tournamentDeadline") as
-    | { toMillis?: () => number }
-    | undefined;
-  if (!deadline?.toMillis) return false; // 마감이 없는 Tournament는 열려 있다.
-  return deadline.toMillis() < Date.now();
-}
-
 export const onVote = onCall(
   { cors: ALLOWED_ORIGINS },
   async (req): Promise<{ ok: true }> => {
@@ -101,8 +90,6 @@ export const onVote = onCall(
     // 익명 여부는 Firebase 로그인 제공자로 판정한다 — 클라이언트가 보낸 플래그가 아니다.
     const isAnonymous =
       req.auth?.token?.firebase?.sign_in_provider === "anonymous";
-
-    const deadlinePassed = await isDeadlinePassed(tid);
 
     const votes = adminDb.collection("votes");
     const runsRef = adminDb
@@ -172,7 +159,20 @@ export const onVote = onCall(
         runsToday: Number(stored.runsToday ?? 0),
         todayKST: date,
         currentRunComplete,
-        deadlinePassed,
+        // 🔴 2026-09-06 P0 대응 — 마감 강제를 껐다(대표 결정).
+        //
+        // AC 9(마감 지난 Tournament는 새 판 불가)는 유효하고 `decideRun` 의 판정
+        // 로직·테스트도 그대로 있다. 끈 것은 **서버 강제**뿐이다.
+        //
+        // 왜: 마감 강제를 PR 1(서버)에 넣었는데 그걸 설명할 화면·문구는 PR 2에 있다.
+        // 그래서 마감 지난 Tournament에서 팬이 본 것은 "마감됐어요"가 아니라
+        // 일반 실패 배너("투표에 실패했어요")였다. 배포 시점에 `active` Tournament
+        // 19개 중 14개가 마감을 지나 있어 사실상 투표가 막혔다.
+        //
+        // 설명 없는 강제는 고장으로 보인다. PR 2에서 §8 `arena.run.deadlinePassed`
+        // 문구와 첫 진입 화면 안내(AC 16)를 함께 올릴 때 이 값을 되살린다.
+        // ⚠️ 화면 처리 없이 이 줄만 true로 돌리지 말 것 — 같은 P0가 재발한다.
+        deadlinePassed: false,
       });
       if (decision.status === "limit_reached") {
         // #12: 하드코딩 한국어를 던지지 않는다 — 화면이 details.code로 3언어를 고른다.
@@ -180,11 +180,8 @@ export const onVote = onCall(
           code: VOTE_ERROR_CODES.DAILY_LIMIT,
         });
       }
-      if (decision.status === "deadline_passed") {
-        throw new HttpsError("failed-precondition", "tournament deadline passed", {
-          code: VOTE_ERROR_CODES.DEADLINE_PASSED,
-        });
-      }
+      // `deadline_passed` 분기는 위에서 강제를 껐으므로 지금은 도달하지 않는다.
+      // PR 2가 화면·문구와 함께 되살린다 (VOTE_ERROR_CODES.DEADLINE_PASSED는 유지).
 
       const plan = planRunWrite({
         decision,
