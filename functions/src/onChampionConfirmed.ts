@@ -24,6 +24,7 @@ import { adminDb, adminStorage } from "./admin";
 import { shouldGenerateCrownCard, type RoundProgressData } from "./core/onChampionConfirmedCore";
 import { buildCrownCardRecord, crownCardId } from "./core/crownCardRecord";
 import { crownCardStoragePath } from "./_run/runDocId";
+import { campaignForTournament } from "./_crown/campaignSlugValidation";
 import { renderCrownPng } from "./core/canvasServer";
 
 const VICTORY_PATH = "48 → 24 → 12 → 6 → THE FINAL";
@@ -70,6 +71,10 @@ export const onChampionConfirmed = onDocumentUpdated(
         title: tournamentTitle,
         url: "worldcrown48.com",
         path: VICTORY_PATH,
+        // CrownData가 요구하는 필드다. 이 PNG 자체는 campaign을 그리지 않지만
+        // (drawLink이 참조하지 않는다), 값 규칙은 클라이언트와 같은 함수로 구한다 —
+        // 재구현하면 두 곳이 갈라진다 (UTM_RULES v1.0 §1).
+        campaign: campaignForTournament({ id: tournamentId, campaignSlug: tournament.campaignSlug as string | undefined }),
       });
     } catch (err) {
       console.error(

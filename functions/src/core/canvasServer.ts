@@ -12,7 +12,6 @@
  * (handoff §9 trap #7). The downloadable client cards remain pixel-faithful.
  */
 import { drawLink } from "../_crown/canvas/drawLink";
-import { drawQR } from "../_crown/canvas/drawQR";
 import type { Canvas2D } from "../_crown/canvas/primitives";
 import type { CrownData } from "../_crown/formats";
 
@@ -38,6 +37,8 @@ export function renderCrownPng(data: CrownData): Buffer {
   const H = 630;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d") as unknown as Canvas2D;
-  drawLink(ctx, W, H, data, null, drawQR);
+  // PR #89가 QR을 없애며 drawLink 인자를 6→5로 줄였다. 서버 호출부가 그때 같이
+  // 안 고쳐져 functions 빌드가 깨져 있었다.
+  drawLink(ctx, W, H, data, null);
   return canvas.toBuffer("image/png");
 }
