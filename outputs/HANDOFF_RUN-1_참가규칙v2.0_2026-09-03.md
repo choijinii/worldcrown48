@@ -1,9 +1,11 @@
 # Handoff Brief — RUN-1 참가 규칙 v2.0 코드 정합 (Domain 3 The Arena + Functions)
 
 > **From**: Cowork(티오) — 기획·규칙 확정 · **To**: Claude Code — 실코드
-> **Date**: 2026-09-03 · **Author**: 대표 · **Version**: v1.0
+> **Date**: 2026-09-03 · **Author**: 대표 · **Version**: v1.1 (2026-09-07 — 참가 규칙 **v2.1 게스트 정책** 반영, §16 신설)
 > **작업 브랜치**: `feat/run-1-participation-v2` (**직전 작업 브랜치에서 분기** — 로컬 main은 stale함)
-> **목표 산출물**: 회차(runIndex) 도입 — participation·onVote·bracketSeed·roundProgress·crown_cards·voteGate·재입장 화면·문구 3언어·계측
+> **목표 산출물**: 회차(runIndex) 도입 — participation·onVote·bracketSeed·roundProgress·crown_cards·voteGate·재입장 화면·문구 3언어·계측 · **+ v2.1 게스트 정책(3판·공유 개방·저장 잠금·랭킹 제외)**
+>
+> ⚠️ **2026-09-07 개정 안내** — 이 문서에서 "게스트 = 하루 통틀어 1판"으로 적힌 곳은 전부 **v2.1(2026-09-06 대표 확정) = 하루 통틀어 3판**으로 읽는다. 로그인 규칙은 변경 없음. 개정 요지는 **§16**에, 게스트 정본은 `outputs/참가규칙_정본v2.1_판Run_2026-09-07.html` §4에 있다. **용어: "표"는 낱말 자체가 금지(2026-09-07) — 이 문서의 잔존 "표"는 "선택"으로 읽는다.**
 
 ---
 
@@ -28,6 +30,7 @@ test -f outputs/HANDOFF_RUN-1_참가규칙v2.0_2026-09-03.md && echo "✓ handof
 ```bash
 grep -c "Daily Run Limit" LANGUAGE.md   # 기대: 3 이상
 grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
+grep -c "게스트 일일 판 한도" LANGUAGE.md  # 기대: 3 이상 (v2.1 전파 확인 — 2026-09-07 추가)
 ```
 
 ✅ 모두 통과해야 §1로 진행.
@@ -49,7 +52,7 @@ grep -c "판(Run)" CLAUDE.md             # 기대: 1 이상
 
 ## §2. Goal — 한 줄 결과 정의
 
-> **한 Voter가 하나의 Tournament를 하루(KST) 최대 5판까지 완주할 수 있고, 판마다 대진표가 새로 섞이며 Crown Card가 1장씩 남는다. 비로그인은 하루 통틀어 1판.**
+> **한 Voter가 하나의 Tournament를 하루(KST) 최대 5판까지 완주할 수 있고, 판마다 대진표가 새로 섞이며 Crown Card가 1장씩 남는다. 비로그인은 하루 통틀어 3판(v2.1) — 공유는 열리고 저장은 잠기며, 게스트의 선택은 랭킹에 실리지 않는다.**
 
 현재 코드는 "하루에 서로 다른 Tournament 5개"라는 **폐기된 옛 규칙(HF-1)** 로 동작한다. 이 작업은 그 어긋남을 대표 확정 정의에 맞추는 것이다.
 
@@ -180,7 +183,12 @@ decideRun({
 
 | 파일 | 작업 | 상세 |
 |---|---|---|
-| `lib/voteGate.ts` | MODIFY | `decideVoteGate`의 로그인 분기를 **판 기준**으로: `participatedThisTournament`(불리언) → **`runsForThisTournament`(숫자)**. `runsForThisTournament >= 5` → `daily_limit_reached`. 게스트 분기는 §5 DO 3 참조. **서버(`decideRun`)와 같은 순수 함수를 공유하거나, 최소한 동일 입력→동일 출력이 단위 테스트로 고정될 것** |
+| `lib/voteGate.ts` | MODIFY | `decideVoteGate`의 로그인 분기를 **판 기준**으로: `participatedThisTournament`(불리언) → **`runsForThisTournament`(숫자)**. `runsForThisTournament >= 5` → `daily_limit_reached`. 게스트 분기는 §5 DO 3(v2.1: 3판) 참조 — `sessionStorage` 마커(`GUEST_RUN_TID_KEY`)와 `getGuestRunState`는 **폐기**하고 `guest_runs/{uid}` 읽기 + `decideGuestRun`으로 교체. **서버(`decideRun`·`decideGuestRun`)와 같은 순수 함수를 공유하거나, 최소한 동일 입력→동일 출력이 단위 테스트로 고정될 것** |
+| **`lib/run/guestRun.ts`** (+ `functions/src/_run/` 미러) | MODIFY | 🆕 **v2.1.** `GUEST_DAILY_RUN_LIMIT = 1` → **`3`** (상수 한 곳). `decideGuestRun`에서 **`runTournamentId` 인자·`tournamentId` 비교를 제거** — 3판·복수 Tournament 구조에서 "마지막 Tournament 하나"로는 이어하기를 판정할 수 없다(§16 실측 3). 이어하기는 호출자가 넘기는 `isContinue`(= `decideRun` 결과가 `continue`)로 판정: `isContinue → allow` · 아니면 `effectiveRunsToday < limit → allow` · 그 외 `login_required` |
+| **`functions/src/core/planRunWrite.ts`** · `onVote.ts` | MODIFY | 🆕 **v2.1.** `guestRuns` 쓰기에서 `tournamentId` 제거 → `{ runsToday, lastRunDate }`. **vote 문서에 `isGuest: boolean` 필드 신설**(`sign_in_provider === "anonymous"` 로 서버가 판정 — 클라이언트 플래그 아님). `buildVoteDoc`에 `isGuest` 추가. PR 3의 랭킹 제외가 이 필드를 읽는다 — **PR 2에 넣지 않으면 PR 2 이후 기록도 구분 불가** |
+| **`functions/src/linkSessionVote.ts`** | MODIFY | 🆕 **v2.1.** 게스트→로그인 재부모화 시 옮기는 vote 문서에 **`isGuest: false`** 로 갱신 — "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수 |
+| **`components/crown/CrownCardModal.tsx`** · `ShareActions` · `CrownCanvasPreview` | MODIFY | 🆕 **v2.1 공유 개방 / 저장 잠금.** `canShare`(로그인 여부) 하나로 공유·저장을 함께 잠그던 것을 **둘로 분리**: 공유(X · 네이티브 공유 시트 · 링크 복사)는 게스트에게 **열고**, 다운로드(`onDownload` · Story PNG)만 로그인 게이트 유지. 잠금 배너 문구는 "저장하려면 로그인"으로(§8 초안, 승인 대기). 공유 링크 규격은 로그인과 동일(`withShareUtm` 그대로) + `crown_share`류 이벤트에 **`is_guest`** 파라미터(이미 `crown_card_created`엔 있음 — 공유 이벤트에도 동일 규칙) |
+| **게스트 안내 3지점** (`app/arena/[tournamentId]/page.tsx` · Crown Card 화면 · `LoginModal`) | CREATE | 🆕 **v2.1 대표 요구.** ① 게스트 첫 진입 — "오늘 3판" 안내 ② 1판 완주 후 Crown Card 화면 — 남은 판수(`3 − runsToday`) ③ 판 소진 — `guest_limit` 모달로 연결. **표시 위치·존재 여부가 이 PR 범위**, 문구 다듬기는 아레나 개편. 문구 키 = §8 `arena.guest.welcome` · `arena.guest.remaining`(승인 대기) |
 | `app/arena/[tournamentId]/page.tsx` | MODIFY | 완주(`complete`) 화면에 **[다시 도전 (n/5)]** 버튼 + **지난 판의 Crown Card 목록**. 5판 소진 시 버튼 비활성 + 안내. 버튼 클릭 → 다음 회차로 새 판 시작(새 bracketSeed·새 roundProgress) |
 | `lib/i18n/messages.ts` | MODIFY | `arena.vote.dailyLimit` 3언어 교체 + 신규 키(재도전 버튼·지난 카드) — **§8 문구표 그대로** |
 | `components/auth/LoginModal.tsx` | MODIFY | ① `daily_limit` / `dailyLimitSub` 3언어 교체 — **§8 문구표 그대로** ② **`LoginReason` 에 `guest_limit` 신설**(2026-09-05 대표 확정, 아래 상세) ③ **파일 상단 주석의 폐기된 HF-1 규칙을 v2.0으로 교체** |
@@ -212,6 +220,7 @@ decideRun({
 | 옛 데이터 읽기 폴백 | MODIFY | ~~`runIndex`가 없는 기존 문서 = 1회차로 간주~~ **§3.0 B안 채택으로 폴백 코드 불필요** — 옛 문서 id가 곧 1회차 id다. 남는 일은 `crown_cards`·`roundProgress` **필드**에 `runIndex`가 없을 때 `1`로 읽는 것뿐. 이관 스크립트 없음. 옛 `daily_participation/{uid}_{date}`의 `tournamentIds[]`는 읽지 않고 버림(그날 자정에 자연 소멸) |
 | `match_session_id` 계측 | MODIFY | 해시 입력에 **runIndex 추가** → `hash(uid + tournamentId + runIndex)` 앞 16자 |
 | `first_vote` 이벤트 | CREATE | 판당 1회 발화 (마케팅 요청, 09-03 서신) |
+| **`functions/src/core/rankingAggregator.ts`** · `scheduleRankingCache.ts` | MODIFY | 🆕 **v2.1 — 게스트의 선택 랭킹 제외.** `tallyVotes`에서 `isGuest === true` 기록을 건너뛴다(votes는 이미 통째로 읽으므로 **메모리 필터** — Firestore `!=` 쿼리는 필드 없는 옛 문서를 빼버리므로 쓰지 않는다). `VoteLike`에 `isGuest?: boolean` 추가. **소급 없음(2026-09-07 대표 확정)**: `isGuest`가 없는 옛 기록은 그대로 집계. §5 DON'T 2 해제 근거 = 이 행 |
 | `functions/src/scheduleRankingCache.ts` | MODIFY | **갱신 주기 `every 60 minutes` → `every 12 hours`** (2026-09-03 대표 확정). 설정 한 줄. 근거: 부하 재산정 — 현재 매시간 전량 재읽기가 비용·중단의 99% 원인. **증분 집계(W4)까지 버티는 임시 방어이자, "발표 시각" 제품 기능의 기반** |
 | 랭킹 화면 **다음 발표 시각 한 줄** | CREATE | **2026-09-04 대표 확정 — 12시간 전환의 필수 동반 조건.** 랭킹 화면에 `다음 발표: 오늘 21:00` 형태 한 줄 노출. 문구 = §8 표 `ranking.nextUpdate.today` / `.tomorrow` (승인 완료). 없으면 팬이 12시간 정지를 **"고장"으로 읽는다** — 이 한 줄 없이 주기만 늘리지 말 것 |
 
@@ -224,11 +233,11 @@ decideRun({
 3. **판마다 대진표가 다르다** — 같은 uid·같은 대회의 1회차와 2회차 bracket seed가 서로 다르다.
 4. **판마다 Crown Card가 1장** 생성된다 (5판 → 카드 5장, 각각 조회·공유 가능).
 5. **지난 판의 카드가 보존**된다 — 새 판을 시작해도 이전 회차 카드가 사라지지 않는다.
-6. **비로그인은 하루 통틀어 1판.** 완주 후 같은 대회 재도전·다른 대회 진입 모두 로그인 요구.
+6. **비로그인은 하루 통틀어 3판** (v2.1 · 2026-09-06 대표 확정, 원안 1판 대체). 대회를 오가며 3판을 쓸 수 있고, **미완주 판은 한도와 무관하게 이어할 수 있으며**(A 미완주 → B → C 3판 소진 → A로 돌아와 이어하기 허용), 4판째 새 판은 어느 대회든 로그인 요구. 게스트 Crown Card는 **공유 가능 · 저장 불가**. 첫 진입·완주 화면·소진 시 **안내 3지점**이 보인다.
 7. **한도는 KST 자정에 리셋**된다.
 8. **미완주 판도 회차 1개를 차지**한다 — 24강까지만 하고 나갔다가 다시 들어오면 **그 판을 이어서** 진행하며, 새 판이 아니다.
 9. **마감(Deadline) 지난 Tournament는 새 판을 시작할 수 없다.** 단 **진행 중인 판은 이어갈 수 있다**(2026-09-05 대표 확정). ⚠️ 실측 결과 투표 경로에 마감 검사가 **아예 없다** — "기존 원칙 유지"가 아니라 신규 구현이다.
-10. 랭킹 집계 결과가 5판 전부를 반영한다(`rankingAggregator` **코드 변경 없이** 그대로 동작).
+10. 랭킹 집계 결과가 로그인 Voter의 5판 전부를 반영한다. **단, `isGuest === true` 기록은 집계에서 빠진다** (v2.1 — `rankingAggregator` 변경 있음, PR 3). `isGuest` 필드가 없는 옛 기록은 그대로 집계(소급 없음).
 11. 옛 문서(회차 없음)를 가진 계정이 화면에서 정상 동작한다 — 1회차로 표시. **검증 방법(2026-09-05 갱신)**: 폴백 코드로 만족되는 것이 **아니라**, §3.0 B안(1회차는 접미사 없음)에 따라 **옛 문서 id가 곧 1회차 id라는 구조**로 만족된다. 따라서 검증은 "폴백 분기가 도는가"가 아니라 **"옛 문서를 가진 계정이 새 코드에서 그 문서를 그대로 1회차로 집는가"** 를 본다. `crown_cards`·`roundProgress` **필드**에 `runIndex` 가 없을 때만 `1` 로 읽는다.
 12. 화면 문구 3언어가 §8 표와 **글자 단위로 일치**한다.
 13. 1분에 40번까지 선택이 허용되고, 41번째에 **왜 막혔는지 알려주는 안내**가 뜬다.
@@ -244,7 +253,7 @@ decideRun({
 ### DO
 1. **회차는 문서 "필드"가 정본이다.** 문서 id의 `_r{n}` 접미사는 키 충돌 방지용일 뿐, 로직은 항상 `runIndex` 필드를 읽는다.
 2. **한도 판정은 서버가 최종.** 클라이언트 게이트(`voteGate`)는 UX용이고, `onVote`가 독립적으로 다시 판정한다(현행 방어 구조 유지).
-3. **게스트 = 하루 통틀어 1판** (대회당 1판 아님 — 2026-09-03 대표 확정 (가)안).
+3. **게스트 = 하루 통틀어 3판** (v2.1 · 2026-09-06 대표 확정 — 원안 "1판"을 대체. 대회당이 아니라 **하루 통틀어**이며 대회 수가 늘어도 3판 고정). 숫자 3은 `GUEST_DAILY_RUN_LIMIT` **한 곳**에서만 정의한다.
 4. **미완주 판도 회차를 소모한다** — 판을 시작한 시점에 카운트한다(완주 시점 아님). 이유: 24강까지만 반복해 카드 없이 판만 태우는 구멍 차단.
 
    > **📌 2026-09-05 대표 확정 — "판을 시작한 시점"의 정의**
@@ -264,7 +273,7 @@ decideRun({
 
 ### DON'T
 1. ❌ **"표"를 단위로 쓰는 문구를 만들지 말 것** — "1일 5표", "하루 230표", "46표", "투표 무제한" 전부 LANGUAGE.md 금지어. 사람에게 보이는 단위는 **판**뿐이다.
-2. ❌ `rankingAggregator` / `scheduleRankingCache`의 집계 로직을 건드리지 말 것 (5판 전부 반영이 확정이라 변경 불필요).
+2. ~~❌ `rankingAggregator` / `scheduleRankingCache`의 집계 로직을 건드리지 말 것 (5판 전부 반영이 확정이라 변경 불필요).~~ **→ 2026-09-07 해제.** v2.1 5번(게스트의 선택 랭킹 제외)은 집계 로직 변경이다. 허용 범위는 **`isGuest === true` 기록을 건너뛰는 것뿐** — 회차 가중치·로그인 Voter의 판 제외 등 다른 변경은 여전히 금지. (PR 3, §3 Phase 3 표)
 3. ❌ 기존 프로덕션 문서를 일괄 변환하는 **마이그레이션 스크립트를 쓰지 말 것** — 읽기 폴백으로 처리한다.
 4. ❌ `bracket_seeds`의 create-once 불변 규칙을 완화하지 말 것 — 새 판은 **새 문서 id**로 만든다.
 5. ❌ 문서 id를 `split('_')`로 잘라 tournamentId를 복원하지 말 것 (§9 함정 2).
@@ -310,7 +319,7 @@ decideRun({
 2. 2판째 진입 → **48강 첫 매치의 대진 조합이 1판째와 다른지 눈으로 확인** (핵심 검증)
 3. 2판 완주 → 카드 2장이 모두 남아 있는지, 각각 공유되는지
 4. A대회 5판 소진 → 6판째 차단 문구 확인 → B대회는 정상 진입되는지
-5. **시크릿 창(비로그인)**: 1판 완주 → 같은 대회 재도전·다른 대회 진입 모두 로그인 모달
+5. **시크릿 창(비로그인)** (v2.1): 첫 진입에 "오늘 3판" 안내가 보이는가 → 1판 완주 → Crown Card 화면에 남은 판수(2판) → **공유 버튼은 열려 있고 다운로드만 로그인 요구**하는가 → 다른 대회로 2판·3판 → 4판째(같은 대회 재도전·다른 대회 진입 모두) `guest_limit` 모달 + Google 버튼 → 시크릿 창을 새로 열어 랭킹이 게스트 판으로 움직이지 않는지는 PR 3에서
 
 ---
 
@@ -330,8 +339,13 @@ decideRun({
 | `arena.run.playAgain` (신설) | 다시 도전 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
 | `arena.run.pastCards` (신설) | 지난 판의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
 | `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
-| `login.guest_limit.title` (신설) **✅ 승인 (2026-09-05)** | 오늘의 무료 1판을 다 도셨어요 | You've played today's free run | Ya has jugado tu partida gratis de hoy |
-| `login.guest_limit.sub` (신설) **✅ 승인 (2026-09-05)** | 로그인하시면 Tournament마다 하루 5판씩, 크라운 카드도 계속 쌓을 수 있어요. | Sign in for 5 runs a day in every Tournament — and keep every Crown Card. | Inicia sesión para 5 partidas al día en cada Tournament y guarda todas tus Crown Cards. |
+| ~~`login.guest_limit.title` (신설) ✅ 승인 (2026-09-05)~~ **❌ v2.1로 무효** | ~~오늘의 무료 1판을 다 도셨어요~~ | ~~You've played today's free run~~ | ~~Ya has jugado tu partida gratis de hoy~~ |
+| `login.guest_limit.title` **🟡 초안 (2026-09-07) — 대표 승인 대기, 승인 전 구현 금지** | 오늘의 3판을 모두 도셨어요 | You've played today's 3 free runs | Ya has jugado tus 3 partidas gratis de hoy |
+| ~~`login.guest_limit.sub` (신설) ✅ 승인 (2026-09-05)~~ **❌ v2.1로 무효** (공유가 열려 유인이 저장·랭킹 반영으로 이동) | ~~로그인하시면 Tournament마다 하루 5판씩, 크라운 카드도 계속 쌓을 수 있어요.~~ | ~~Sign in for 5 runs a day in every Tournament — and keep every Crown Card.~~ | ~~Inicia sesión para 5 partidas al día en cada Tournament y guarda todas tus Crown Cards.~~ |
+| `login.guest_limit.sub` **🟡 초안 (2026-09-07) — 승인 대기** | 로그인하시면 Tournament마다 하루 5판, Crown Card 저장까지 — 그리고 내 선택이 랭킹에 반영돼요. | Sign in for 5 runs a day in every Tournament, save your Crown Cards — and make your picks count in the Ranking. | Inicia sesión: 5 partidas al día en cada Tournament, guarda tus Crown Cards — y haz que tus elecciones cuenten en el Ranking. |
+| `arena.guest.welcome` (신설) **🟡 초안 (2026-09-07) — 승인 대기** | 로그인 없이 오늘 3판까지 도실 수 있어요 | Play up to 3 runs today — no sign-in needed | Juega hasta 3 partidas hoy — sin iniciar sesión |
+| `arena.guest.remaining` (신설) **🟡 초안 (2026-09-07) — 승인 대기** | 오늘 남은 판: n판 · 저장하려면 로그인 | n runs left today · Sign in to save | Te quedan n partidas hoy · Inicia sesión para guardar |
+| 히어로 `pitch.hero.sub` 마지막 문장 (금지어 "표" 정정 — 2026-09-07 실측 `lib/i18n/messages.ts:98`) **🟡 초안 — 승인 대기** | 당신의 선택이 Champion을 만듭니다. (현행 "당신의 한 표가 Champion을 만듭니다.") | Your pick crowns the Champion. (현행 "Your vote crowns the Champion.") | Tu elección corona al Champion. (현행 "Tu voto corona al Champion.") |
 | `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05)** | 이 Tournament는 마감됐어요. 다른 Tournament에서 새 판을 시작해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
 | `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
 | `ranking.nextUpdate.tomorrow` **✅ 승인 (2026-09-04)** | 다음 발표: 내일 09:00 | Next update: tomorrow 09:00 KST | Próxima actualización: mañana 09:00 KST |
@@ -358,7 +372,7 @@ decideRun({
 1. **✅ Firestore 보안 규칙은 손댈 필요가 거의 없다.** `bracket_seeds`·`roundProgress`·`crown_cards` 규칙은 `docId.split('_')[0] == request.auth.uid` 로 소유자를 판정한다. 뒤에 `_r{n}`을 붙여도 **첫 조각은 여전히 uid**라 그대로 통과한다. (컬렉션명을 바꾸는 `daily_participation` → `daily_runs`만 규칙 수정.)
 2. **⚠️ tournamentId에 `_`가 들어 있다.** 실제 슬러그가 `gen4_idol_48`·`best_stage_48` 형태다. 따라서 문서 id를 `split('_')`로 잘라 tournamentId를 복원하는 코드를 **새로 만들지 말 것**. 다행히 `onChampionConfirmed`는 이미 문서 **필드**(`after.tournamentId`)를 읽는다 — 그 방식을 유지·확장하라.
 3. **⚠️ `bracket_seeds`는 create-once 불변**이고 규칙이 키를 `['seed','createdAt']`로 제한한다. 회차를 **필드로 추가하려면 규칙의 `hasOnly` 목록도 함께 고쳐야** 한다. 더 안전한 길: 회차는 **문서 id에만** 담고 필드는 건드리지 않는다.
-4. **⚠️ 게스트 uid는 브라우저마다 새로 생긴다.** 게스트 표도 랭킹에 그대로 집계되므로, 게스트 한도(하루 1판)를 느슨하게 만들면 랭킹 조작 비용이 0이 된다. §5 DO 3을 반드시 지킬 것.
+4. **⚠️ 게스트 uid는 브라우저마다 새로 생긴다.** 3판 한도는 사람이 아니라 *창*에 걸린다 — 시크릿 창을 반복해 열면 무한히 돈다. 그래서 v2.1은 한도를 늘리는 대신 **게스트의 선택을 랭킹에서 제외**해 조작 동기를 없앤다(§16). ~~게스트 표도 랭킹에 그대로 집계되므로 한도(하루 1판)를 느슨하게 만들면 조작 비용이 0~~ → v2.1로 대체.
 5. **⚠️ 클라이언트·서버 게이트가 어긋나면 P0.** 2026-07-05 사고가 정확히 이 유형이었다(스펙이 오염원). 두 곳의 판정을 **같은 순수 함수 또는 동일한 테스트 케이스**로 묶어라.
 6. **⚠️ 진행 중 판의 이어하기가 깨지기 쉽다.** "다시 도전"은 **완주 상태에서만** 노출된다. 미완주 상태에서 재입장하면 언제나 **그 판을 이어서**다(§4 AC 8).
 7. **⚠️ 로컬 main은 매번 stale하다.** 새 브랜치는 직전 작업 브랜치에서 딸 것.
@@ -416,7 +430,10 @@ Phase 5 — /pr         : §10 종료 조건 체크리스트를 PR 본문에 포
 | KST 리셋 테스트 (신규) | `lastRunDate !== todayKST` → `runsToday` 0 취급 · `kstDate()` 를 고정 `Date`로 (UTC 14:59:59 / 15:00:00 경계 + UTC 00:00~09:00 구간) | 7 |
 | 마감 게이트 테스트 (신규) | `deadlinePassed` → 새 판 차단 · **진행 중 판은 `continue`** | 9·16 |
 | 이어하기 테스트 (신규) | `currentRunComplete === false` → `continue`(한도 미소모, 새 판 아님) | 8 |
-| `functions/src/core/__tests__/guestRunGuard.test.ts` | `guest_runs` 기반 게스트 1판 한도 + 같은 Tournament 이어하기 허용 | 6 |
+| `lib/__tests__/run/guestRun.test.ts` (+ functions 미러) | **v2.1**: `guest_runs` 기반 **3판** 한도 · 복수 Tournament 오가기 · `isContinue`면 한도 무관 allow · 3판 소진 후 새 판은 어느 Tournament든 `login_required` · KST 리셋 | 6 |
+| `functions/src/__tests__/planRunWrite.test.ts` · `voteRecord.test.ts` | **v2.1**: `guestRuns`에 `tournamentId` 없음 · vote 문서 `isGuest` 기록(익명이면 true, 아니면 false) | 6·10 |
+| `functions/src/__tests__/rankingAggregator.test.ts` (PR 3) | **v2.1**: `isGuest: true` 제외 · 필드 없는 옛 기록은 집계 | 10 |
+| 공유/저장 게이트 테스트 (신규, PR 2) | 게스트: 공유 액션 활성 · 다운로드 비활성 / 로그인: 둘 다 활성 | 6 |
 
 ### 11.3~11.6
 템플릿 `docs/templates/HANDOFF_BRIEF_TEMPLATE.md` §11.3~11.6 그대로 적용.
@@ -506,3 +523,31 @@ votes: userId, tournamentId, runIndex          ← voteStore 진행 복원
 
 투표가 복구돼도 **팬은 끝난 Tournament를 완주하게 된다.** RUN-1 이전에는 마감 강제가 어디에도 없어
 보이지 않던 문제다. 데이터·기획 결정이므로 **런칭 전 정리 항목으로만 기록**한다.
+
+---
+
+## §16. 참가 규칙 v2.1 — 게스트 정책 (2026-09-06 대표 확정 · 2026-09-07 반영)
+
+v2.0에서 **게스트(비로그인) 부분만** 바뀐다. 로그인 규칙은 그대로. 정본 = `outputs/참가규칙_정본v2.1_판Run_2026-09-07.html` §4 · 근거 = `marketing/00_strategy/게스트정책_v2.1_결정.md`.
+
+| # | 변경 | 코드 착지 |
+|---|---|---|
+| 1 | **게스트 한도 = 하루 통틀어 3판** (대회 자유, 대회 수 무관 고정) | `GUEST_DAILY_RUN_LIMIT` 1 → 3 (PR 2) |
+| 2 | **게스트 공유 개방** (07-06 HF-2 공유 게이트 해제) | `CrownCardModal`/`ShareActions` 공유·저장 분리 (PR 2) |
+| 3 | **게스트 저장·다운로드 잠금 유지** | 다운로드만 로그인 게이트 (PR 2) |
+| 4 | **게스트 공유 링크 UTM 동일 규격 + `is_guest` 이벤트 파라미터** | `withShareUtm` 그대로 · 공유 이벤트 파라미터 (PR 2 계측은 PR 3) |
+| 5 | **★ 게스트의 선택은 랭킹 집계 제외 — 앞으로만, 소급 없음(2026-09-07)** | vote `isGuest` 필드(PR 2) → `tallyVotes` 필터(PR 3). **§5 DON'T 2 해제** |
+
+### 착수 전 실측 4건 — 2026-09-07 결과
+| # | 질문 | 결과 | 조치 |
+|---|---|---|---|
+| 1 | 게스트의 선택을 판별할 수 있나 | ❌ `votes` 문서에 표시 없음. `onVote`는 `sign_in_provider === "anonymous"`로 알고는 있으나 안 적는다 | **PR 2에서 `isGuest` 신설** (PR 3이 아님 — 안 그러면 PR 2 이후 기록도 구분 불가) |
+| 2 | 옛 기록 소급 제외 | 판별 불가(익명 계정 목록 대조 1회성 작업이면 가능) | **대표 결정: 앞으로만** |
+| 3 | `guest_runs`가 3판·복수 대회를 견디나 | ❌ `tournamentId` 하나만 기억 → A 미완주→B→C(3판)→A 이어하기 거부 | `tournamentId` 제거, 이어하기는 `decideRun`의 `continue`가 판정 |
+| 4 | 공유 링크가 게스트 uid를 노출하나 | ✅ `worldcrown48.com/arena/{tid}/champion?utm_…` — uid 없음 | 공유 개방 안전 |
+
+### ⛔ PR 2 배포 전제 — 대회 정리 (2026-09-07 대표 확정, [[todo-expired-tournaments-cleanup]])
+2026-09-07 라이브 The Pitch 실측: "진행 중" 12개 중 **마감이 남은 Tournament 0개**(마감 지남 7 · 마감 없음 5). PR 2가 마감 강제를 되살리면 정리 없이는 09-06 P0가 문구만 붙은 채 재발한다. **처리안**: 실제 팬용 4개(kpop 여자아이돌 퍼포먼스 · Kpop 아티스트 · 남자아이돌 댄스 · 틱톡커)는 **마감 연장(런칭 10/08 이후 날짜, 실행 시 대표 확인)**, 나머지(테스트·미리보기·마감 없는 5개)는 **숨김**. §7 0단계 잔여 테스트 데이터(익명 uid 기록 10건)도 같은 단계에서 확인·삭제. 마지노선 2026-09-17.
+
+### 용어
+**"표"는 낱말 자체가 금지(2026-09-07 대표 확정)** — "게스트 표"·"내 표"·"부정표" 전부 "선택"으로. `votes`·`Vote`·`onVote`는 코드 내부 이름으로만.

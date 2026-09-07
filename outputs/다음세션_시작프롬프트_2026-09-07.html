@@ -1,0 +1,195 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>다음 세션 시작 프롬프트 — v2.1 + PR 2</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#141b2d;font:16px/1.72 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px}
+header{background:#1b2540;color:#fff;border-radius:18px;padding:30px 32px;margin-bottom:22px}
+header .kicker{font-size:12px;letter-spacing:.18em;color:#f0c66b;font-weight:700;margin-bottom:10px}
+header h1{margin:0 0 8px;font-size:27px}header p{margin:0;color:#c3cbe0;font-size:14.5px}
+section{background:#fff;border:1px solid #e2e7f0;border-radius:16px;padding:24px 26px;margin-bottom:20px}
+h2{margin:0 0 12px;font-size:19px;display:flex;gap:10px;align-items:center}
+h2 .no{background:#1b2540;color:#fff;font-size:12.5px;border-radius:8px;padding:3px 9px;font-weight:700}
+h3{font-size:15px;margin:22px 0 8px;color:#1b2540}
+table{width:100%;border-collapse:collapse;font-size:13.8px;margin:10px 0}
+th,td{border:1px solid #e2e7f0;padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#f7f9fc;font-weight:700}
+code{background:#eef1f7;border-radius:5px;padding:1px 5px;font-size:12.6px;font-family:ui-monospace,Menlo,monospace}
+.key{background:#f2fbf5;border:2px solid #2e9e6b;border-radius:14px;padding:16px 20px;margin:12px 0;font-size:15px}
+.key b{color:#1c6b47}
+.warn{background:#fffaf0;border:1px solid #f2e0b8;border-radius:12px;padding:14px 16px;margin:12px 0;font-size:14.5px}
+.warn b{color:#8a6410}
+.stop{background:#fdf3f3;border:1px solid #f0d4d4;border-radius:12px;padding:14px 16px;margin:12px 0;font-size:14.5px}
+.stop b{color:#8a3b3b}
+.flow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.flow .b{flex:1;min-width:170px;border:1px solid #e2e7f0;border-radius:12px;padding:14px 15px;background:#fcfdff;font-size:13.8px}
+.flow .b .t{font-weight:700;font-size:14.5px;margin-bottom:5px}
+.flow .b.now{background:#eef4fd;border-color:#b9cdf5;box-shadow:0 0 0 3px #dce8fb}
+.flow .b.next{background:#fdf6ec;border-color:#f2e0b8}
+ul{margin:8px 0;padding-left:20px}li{margin-bottom:6px;font-size:14.6px}
+.promptbox{position:relative;background:#141b2d;border-radius:14px;padding:20px 22px 22px;margin:14px 0}
+.promptbox pre{margin:0;color:#e8edf7;font-size:13.6px;line-height:1.62;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,"D2Coding",monospace}
+.copybtn{position:absolute;top:14px;right:14px;background:#f0c66b;color:#1b2540;border:0;border-radius:9px;padding:8px 16px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.copybtn:hover{background:#f7d68b}
+.copybtn.done{background:#2e9e6b;color:#fff}
+.hint{font-size:13.4px;color:#5d6a85;margin:6px 0 0}
+footer{color:#5d6a85;font-size:13px;text-align:center;margin-top:22px}
+</style></head><body><div class="wrap">
+
+<header>
+  <div class="kicker">WORLDCROWN48 · 다음 세션 준비물</div>
+  <h1>다음 세션 시작 프롬프트 — 참가 규칙 v2.1 + PR 2</h1>
+  <p>아래 <b style="color:#f0c66b">복사</b> 버튼을 누르고 Cowork(티오) 새 세션 입력창에 붙여넣으시면 됩니다. 그게 전부입니다.</p>
+</header>
+
+<section>
+  <h2><span class="no">1</span> 다음 세션에서 무엇을 하나</h2>
+  <div class="flow">
+    <div class="b now"><div class="t">① 규칙 v2.1 문서 반영</div>게스트 정책 5건을<br>LANGUAGE·CLAUDE·정본·핸드오프에</div>
+    <div class="b next"><div class="t">② PR 2 착수</div>화면·문구<br>(원래 하려던 것)</div>
+  </div>
+  <div class="key">
+    <b>순서가 핵심입니다.</b> v2.1이 닿는 곳의 거의 전부가 <b>아직 안 만든 화면</b>입니다.
+    ②를 먼저 하면 같은 화면을 두 번 만들게 됩니다 — 09-03에 "RUN-1이 아레나보다 먼저"를 정하신 것과 똑같은 이유입니다.
+  </div>
+  <p class="hint">일정은 밀리지 않습니다. 어차피 다음 세션이 PR 2였고, 그 앞에 반나절짜리 문서 작업이 끼는 것뿐입니다.</p>
+</section>
+
+<section>
+  <h2><span class="no">2</span> 복사할 프롬프트</h2>
+  <div class="promptbox">
+    <button class="copybtn" id="cp">📋 복사</button>
+<pre id="pt">WorldCrown48 이어서 진행해줘. 이번 세션 주제는 두 가지, 순서가 중요해.
+① 참가 규칙 v2.1을 문서에 반영  →  ② 그 위에서 RUN-1 PR 2 착수.
+
+시작 전에 이것부터 전부 읽어:
+1. 프로젝트 메모리 — user-communication-profile.md
+   → participation-rule-v2-run-2026-09-03
+   → guest-policy-v2.1-2026-09-06
+   → run1-kickoff-2026-09-04
+2. outputs/SESSION-HANDOFF_2026-09-07_티오-다음세션_v2.1+PR2.md   ← 이번 세션 지시서
+3. outputs/HANDOFF_RUN-1_참가규칙v2.0_2026-09-03.md   (§8·§14·§15가 09-06에 갱신됨)
+4. marketing/00_strategy/게스트정책_v2.1_결정.md
+
+확정된 것 = 재론 금지:
+- 참가 규칙 v2.1 (2026-09-06 대표 확정) — 게스트만 바뀐다.
+  · 게스트 하루 통틀어 3판 (대회 수가 늘어도 3판 고정)
+  · 게스트 공유 개방
+  · 게스트 저장·다운로드는 잠금 유지
+  · 게스트 공유 링크에 UTM + is_guest 파라미터
+  · ★ 게스트가 넣은 표는 랭킹 집계에서 제외
+- 로그인 사용자 규칙은 v2.0 그대로. "표"는 여전히 제품 정의 금지어, 단위는 "판".
+- PR 1은 공식 종료. §7 0단계 통과(내가 직접 눈으로 확인 완료).
+
+이번 세션에서 할 일:
+1. v2.1을 LANGUAGE.md · CLAUDE.md · 참가 규칙 정본 · RUN-1 핸드오프에 전파해라.
+   기존 §5 DON'T 2("rankingAggregator를 건드리지 마라")는 v2.1의 랭킹 제외로 해제된다 —
+   그 사실을 문서에 명시해라.
+
+2. 09-05에 내가 승인한 guest_limit 문구가 v2.1에서 거짓이 된다("무료 1판").
+   숫자만 바꾸지 마라 — 공유가 열렸으니 로그인 유인이 "저장"과 "랭킹 반영"으로 옮겨갔다.
+   새 문구 3언어 초안을 만들어 나에게 승인받고 진행해라. 승인 전 구현 금지.
+
+3. 착수 전 실측 4건을 먼저 해라.
+   ① 게스트가 넣은 표를 어떻게 판별하나 (투표 기록에 표시가 있는가)
+   ② 이미 쌓인 게스트 표를 소급 제외할 것인가 — 나에게 물어라
+   ③ guest_runs 구조가 3판·여러 대회를 견디는가
+   ④ 공유 링크가 게스트 uid를 노출하지 않는가
+
+4. 그다음 PR 2를 Superpowers TDD로 착수해라.
+   마감 강제 복원을 반드시 이 PR에 포함해라 — 강제와 문구는 한 쌍이고,
+   그 짝이 갈라진 것이 09-06 프로덕션 P0였다.
+
+하지 말 것:
+아레나 UI 대수술(ARENA-1/2) · MVP1.5 검수 재론 · 로그인 사용자 규칙 재론.
+
+먼저 확인해줘:
+· GCP 결제 (9/9 예정, 만료 9/10)
+· 마감 지난 대회 14개 + 마감이 아예 없는 대회 정리 (마지노선 9/17)
+· §7 0단계 테스트 데이터 삭제 결과
+
+첫 답변은 "지금 어디까지 와 있는지"부터 내 눈높이로 요약해줘.</pre>
+  </div>
+  <p class="hint">복사가 안 되면 프롬프트 글자를 마우스로 드래그해 직접 복사하셔도 똑같습니다.</p>
+</section>
+
+<section>
+  <h2><span class="no">3</span> 이 프롬프트가 담고 있는 것</h2>
+  <table>
+    <tr><th style="width:24%">부분</th><th>왜 넣었나</th></tr>
+    <tr><td><b>읽을 것 4개</b></td><td>티오가 맥락 없이 시작하지 않게. 메모리 3개 + 지시서 + 갱신된 핸드오프 + v2.1 근거 문서</td></tr>
+    <tr><td><b>재론 금지 목록</b></td><td>이미 확정한 것을 다시 논의하느라 시간을 쓰지 않게. 특히 <b>로그인 규칙은 안 바뀐다</b>는 점 — v2.1은 게스트만입니다</td></tr>
+    <tr><td><b>할 일 4단계</b></td><td>순서가 곧 안전입니다. 문서 → 문구 승인 → 실측 → 구현</td></tr>
+    <tr><td><b>"승인 전 구현 금지"</b></td><td>화면 글자는 대표님 영역이라는 규칙. 이번엔 <b>이미 승인된 문구가 거짓이 되는</b> 특수한 경우입니다</td></tr>
+    <tr><td><b>실측 4건</b></td><td>①이 특히 중요합니다 — 게스트 표를 판별할 방법이 지금 없다면, 그 표시를 만드는 일이 PR 2보다 앞섭니다</td></tr>
+    <tr><td><b>마감 강제 복원</b></td><td>09-06 P0의 재발 방지. 막는 기능과 안내 문구는 반드시 같은 PR에서 켭니다</td></tr>
+    <tr><td><b>먼저 확인 3건</b></td><td>기한이 있는 것들. 티오가 먼저 여쭤보게 만듭니다</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="no">4</span> 참가 규칙 v2.1 한눈에</h2>
+  <p style="font-size:14.6px;color:#3b465e;margin:0 0 10px">v2.0에서 <b>게스트(비로그인)만</b> 바뀝니다. 로그인 사용자는 그대로입니다.</p>
+  <table>
+    <tr><th style="width:22%">항목</th><th style="width:32%">지금 (v2.0)</th><th>v2.1</th></tr>
+    <tr><td>게스트 판수</td><td>하루 통틀어 <b>1판</b></td><td>하루 통틀어 <b>3판</b> · 대회 자유 선택 · <b>대회가 늘어도 3판 고정</b></td></tr>
+    <tr><td>게스트 공유</td><td>로그인 필요</td><td><b>개방</b> — 공유는 우리 링크를 퍼뜨리는 행위</td></tr>
+    <tr><td>게스트 저장</td><td>로그인 필요</td><td><b>잠금 유지</b> — 저장은 파일만 가져가는 행위. "간직하려면 로그인"이 유인으로 남음</td></tr>
+    <tr><td>공유 링크 추적</td><td>게스트는 공유 불가</td><td>로그인과 <b>동일 UTM</b> + 공유 이벤트에 <code>is_guest</code></td></tr>
+    <tr><td><b>게스트 표 랭킹</b></td><td>집계에 포함</td><td><b>집계에서 제외</b></td></tr>
+  </table>
+  <div class="key">
+    <b>랭킹 제외가 이 개정의 안전장치입니다.</b> 게스트 계정은 시크릿 창을 새로 열 때마다 새로 생깁니다 —
+    3판 제한이 <b>사람이 아니라 창</b>에 걸리는 셈이라, 창을 반복해 열면 한 사람이 무한히 돌 수 있습니다.
+    랭킹에서 빼면 <b>그렇게 할 이유 자체가 사라집니다.</b> 덤으로 "내 표가 랭킹에 반영되려면 로그인"이 새 가입 유인이 됩니다.
+  </div>
+  <div class="warn">
+    <b>3판이라는 숫자에는 특별한 근거가 없습니다.</b> "큰 변수가 아니다"는 대표님 판단(09-06)입니다.
+    나중에 조정할 수 있는 값으로 다루도록, 코드에서 <b>상수 한 곳에만</b> 두라고 지시서에 적어뒀습니다.
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">5</span> 새 세션에서도 살아 있는 것 / 사라지는 것</h2>
+  <table>
+    <tr><th style="width:30%">항목</th><th>새 세션에서</th></tr>
+    <tr><td>프로젝트 메모리</td><td>✅ <b>그대로 살아 있습니다</b> — v2.1 항목도 어제 기록해 뒀습니다</td></tr>
+    <tr><td>outputs 문서 전부</td><td>✅ 디스크에 그대로</td></tr>
+    <tr><td>예약 알림 3건</td><td>✅ GCP 9/9·9/10 · 마감 대회 정리 9/14</td></tr>
+    <tr><td>어제 대화 내용</td><td>❌ <b>사라집니다</b> — 그래서 이 프롬프트와 지시서가 필요합니다</td></tr>
+  </table>
+  <p style="font-size:14.6px;color:#3b465e;margin:10px 0 0">
+    Claude Code 쪽도 마찬가지입니다. 새로 켜시면 <code>outputs/SESSION-HANDOFF_2026-09-07_*</code> 부터 읽게 하면 됩니다.
+  </p>
+</section>
+
+<section>
+  <h2><span class="no">6</span> 기한이 있는 것 세 가지</h2>
+  <table>
+    <tr><th style="width:18%">언제</th><th style="width:26%">무엇</th><th>안 하면</th></tr>
+    <tr><td><b style="color:#8a3b3b">9월 9일</b><br><span style="color:#5d6a85;font-size:12.6px">만료 9/10</span></td><td><b>GCP 결제 등록</b></td><td>Firebase 서버가 멈춥니다. 알림 2건 예약돼 있습니다</td></tr>
+    <tr><td><b>9월 17일</b><br><span style="color:#5d6a85;font-size:12.6px">알림 9/14</span></td><td><b>마감 지난 대회 정리</b><br>+ 마감이 아예 없는 대회</td><td>부하 테스트가 오염된 데이터 위에서 돌아갑니다. 연장·아카이브·삭제 중 대표님이 고르셔야 합니다</td></tr>
+    <tr><td><b>런칭 전</b><br><span style="color:#5d6a85;font-size:12.6px">10월 8일</span></td><td><b>Vercel Hobby → Pro</b></td><td>연휴 총공 트래픽을 못 견딥니다. 9월 중 아무 때나 30분이면 됩니다</td></tr>
+  </table>
+</section>
+
+<footer>WorldCrown48 · 다음 세션 시작 프롬프트 · 2026-09-06 작성 · 지시서 outputs/SESSION-HANDOFF_2026-09-07_티오-다음세션_v2.1+PR2.md</footer>
+</div>
+<script>
+document.getElementById('cp').addEventListener('click', function(){
+  var t = document.getElementById('pt').innerText;
+  var btn = this;
+  function ok(){ btn.textContent='✓ 복사됨'; btn.classList.add('done'); setTimeout(function(){ btn.textContent='📋 복사'; btn.classList.remove('done'); },2000); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(ok).catch(function(){ fb(); });
+  } else { fb(); }
+  function fb(){
+    var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ btn.textContent='드래그해 복사하세요'; }
+    document.body.removeChild(ta);
+  }
+});
+</script>
+</body></html>
