@@ -334,23 +334,25 @@ decideRun({
 
 | 키 | ko | en | es |
 |---|---|---|---|
-| `arena.vote.dailyLimit` | 이 Tournament는 오늘 5판을 모두 도셨어요 (5/5) | You've played all 5 runs of this Tournament today (5/5) | Ya has jugado las 5 partidas de este Tournament hoy (5/5) |
-| `dailyLimitSub` | 한국 시간 자정에 5판이 다시 채워져요. 다른 Tournament는 지금 바로 도실 수 있어요. | Your 5 runs reset at Seoul midnight. Other Tournaments are open right now. | Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora. |
-| `arena.run.playAgain` (신설) | 다시 도전 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
-| `arena.run.pastCards` (신설) | 지난 판의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
+| `arena.vote.dailyLimit` **✅ ko 순화 승인 (2026-09-07)** | 이 Tournament는 오늘 5번 참여를 모두 하셨어요 (5/5) | You've played all 5 runs of this Tournament today (5/5) | Ya has jugado las 5 partidas de este Tournament hoy (5/5) |
+| `dailyLimitSub` **✅ ko 순화 승인 (2026-09-07)** | 한국 시간 자정에 참여 횟수가 다시 채워져요. 다른 Tournament는 지금 바로 참여하실 수 있어요. | Your 5 runs reset at Seoul midnight. Other Tournaments are open right now. | Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora. |
+| `arena.run.playAgain` (신설) **✅ ko 순화 승인 (2026-09-07)** | 다시 참여 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
+| `arena.run.pastCards` (신설) **✅ ko 순화 승인 (2026-09-07)** | 이전 참여의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
 | `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
 | ~~`login.guest_limit.title` (신설) ✅ 승인 (2026-09-05)~~ **❌ v2.1로 무효** | ~~오늘의 무료 1판을 다 도셨어요~~ | ~~You've played today's free run~~ | ~~Ya has jugado tu partida gratis de hoy~~ |
-| `login.guest_limit.title` **🟡 초안 (2026-09-07) — 대표 승인 대기, 승인 전 구현 금지** | 오늘의 3판을 모두 도셨어요 | You've played today's 3 free runs | Ya has jugado tus 3 partidas gratis de hoy |
+| `login.guest_limit.title` **✅ 승인 (2026-09-07, 대표 원문)** | 오늘의 서비스(3번 참여)를 모두 소진하셨어요. | You've used all 3 of today's free entries. | Has usado tus 3 participaciones gratis de hoy. |
 | ~~`login.guest_limit.sub` (신설) ✅ 승인 (2026-09-05)~~ **❌ v2.1로 무효** (공유가 열려 유인이 저장·랭킹 반영으로 이동) | ~~로그인하시면 Tournament마다 하루 5판씩, 크라운 카드도 계속 쌓을 수 있어요.~~ | ~~Sign in for 5 runs a day in every Tournament — and keep every Crown Card.~~ | ~~Inicia sesión para 5 partidas al día en cada Tournament y guarda todas tus Crown Cards.~~ |
-| `login.guest_limit.sub` **🟡 초안 (2026-09-07) — 승인 대기** | 로그인하시면 Tournament마다 하루 5판, Crown Card 저장까지 — 그리고 내 선택이 랭킹에 반영돼요. | Sign in for 5 runs a day in every Tournament, save your Crown Cards — and make your picks count in the Ranking. | Inicia sesión: 5 partidas al día en cada Tournament, guarda tus Crown Cards — y haz que tus elecciones cuenten en el Ranking. |
-| `arena.guest.welcome` (신설) **🟡 초안 (2026-09-07) — 승인 대기** | 로그인 없이 오늘 3판까지 도실 수 있어요 | Play up to 3 runs today — no sign-in needed | Juega hasta 3 partidas hoy — sin iniciar sesión |
-| `arena.guest.remaining` (신설) **🟡 초안 (2026-09-07) — 승인 대기** | 오늘 남은 판: n판 · 저장하려면 로그인 | n runs left today · Sign in to save | Te quedan n partidas hoy · Inicia sesión para guardar |
-| 히어로 `pitch.hero.sub` 마지막 문장 (금지어 "표" 정정 — 2026-09-07 실측 `lib/i18n/messages.ts:98`) **🟡 초안 — 승인 대기** | 당신의 선택이 Champion을 만듭니다. (현행 "당신의 한 표가 Champion을 만듭니다.") | Your pick crowns the Champion. (현행 "Your vote crowns the Champion.") | Tu elección corona al Champion. (현행 "Tu voto corona al Champion.") |
-| `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05)** | 이 Tournament는 마감됐어요. 다른 Tournament에서 새 판을 시작해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
+| `login.guest_limit.sub` **✅ 승인 (2026-09-07, 대표 원문)** | 로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요. | Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking. | Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking. |
+| `arena.guest.welcome` (신설) **✅ 승인 (2026-09-07, 대표 원문)** | 로그인 없이 하루 3번까지 참여가 가능해요! | Join up to 3 times a day — no sign-in needed! | ¡Participa hasta 3 veces al día — sin iniciar sesión! |
+| `arena.guest.remaining` (신설) **✅ 승인 (2026-09-07, 대표 원문)** | 오늘 남은 참여 가능 횟수는 : n판 · 저장하려면 로그인 | Entries left today: n · Sign in to save | Participaciones restantes hoy: n · Inicia sesión para guardar |
+| 히어로 `pitch.hero.sub` 뒷부분 (`lib/i18n/messages.ts:98`) **✅ 승인 (2026-09-07)** — 앞부분 "48 Contestants. Five Rounds. Match를 거치며 하나의 Crown만 남을 때까지 전진합니다." 는 3언어 그대로, **"예측도, 배당도 없이 —" 구절은 3언어 모두 삭제**(도박·투기 연상) | 오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다. | Pure fan choice. Your pick crowns the Champion. | Solo la elección de los fans. Tu elección corona al Champion. |
+| `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05) · ko 순화 승인 (2026-09-07)** | 이 Tournament는 마감됐어요. 다른 Tournament에 참여해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
 | `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
 | `ranking.nextUpdate.tomorrow` **✅ 승인 (2026-09-04)** | 다음 발표: 내일 09:00 | Next update: tomorrow 09:00 KST | Próxima actualización: mañana 09:00 KST |
 
 > "Tournament" · "Crown Card"는 3언어 모두 **원문 그대로** 유지(LANGUAGE.md RULE 1).
+>
+> **표시 용어 규칙 (2026-09-07 대표 확정)** — 화면 문구에서 **'판'은 "참여 / N번 참여 / 참여 횟수"로 순화**한다(시스템 용어 Run(판)은 불변 — LANGUAGE.md §1 표시 용어 층). **"표"는 낱말 자체 금지 → "선택"**. 위 표의 ko는 전부 이 규칙을 반영한 **최종본**이며 한 글자도 임의 변경 금지. en/es는 기승인 문구의 run/partida를 유지하고 신규 문구는 entry/participación (대표 확정).
 
 > **차단 문구 원칙 (2026-09-05 대표 확정)**
 > **막고 나서 길을 열어준다.** 승인된 차단 문구는 전부 다음 행동을 함께 준다 — `dailyLimit`은 다른 Tournament로, `rateLimited`는 몇 초 뒤 이어가기로, `deadlinePassed`는 다른 Tournament의 새 판으로, `guest_limit`은 로그인으로.
