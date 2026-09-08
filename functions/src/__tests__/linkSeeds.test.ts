@@ -46,7 +46,7 @@ describe("planSeedTransfer (§8 Edge #1)", () => {
   const NEW_UID = "google-uid";
 
   it("copies each anon seed to `${newUid}_${tid}` preserving the seed VALUE", () => {
-    const anon: AnonSeed[] = [{ tournamentId: "t1", seed: 4242 }];
+    const anon: AnonSeed[] = [{ tournamentId: "t1", runIndex: 1, seed: 4242 }];
     expect(planSeedTransfer(NEW_UID, anon)).toEqual([
       { docId: "google-uid_t1", seed: 4242 },
     ]);
@@ -54,15 +54,15 @@ describe("planSeedTransfer (§8 Edge #1)", () => {
 
   it("carries the exact seed so the bracket does NOT reshuffle on login", () => {
     // The seed value must survive verbatim — a changed value would reshuffle.
-    const anon: AnonSeed[] = [{ tournamentId: "t1", seed: 0xdeadbeef }];
+    const anon: AnonSeed[] = [{ tournamentId: "t1", runIndex: 1, seed: 0xdeadbeef }];
     const [plan] = planSeedTransfer(NEW_UID, anon);
     expect(plan.seed).toBe(0xdeadbeef);
   });
 
   it("plans a write per tournament the guest had a seed for", () => {
     const anon: AnonSeed[] = [
-      { tournamentId: "t1", seed: 1 },
-      { tournamentId: "t2", seed: 2 },
+      { tournamentId: "t1", runIndex: 1, seed: 1 },
+      { tournamentId: "t2", runIndex: 1, seed: 2 },
     ];
     expect(planSeedTransfer(NEW_UID, anon)).toEqual([
       { docId: "google-uid_t1", seed: 1 },
@@ -72,7 +72,7 @@ describe("planSeedTransfer (§8 Edge #1)", () => {
 
   it("skips tournaments where the guest had no seed doc (null)", () => {
     const anon: AnonSeed[] = [
-      { tournamentId: "t1", seed: 1 },
+      { tournamentId: "t1", runIndex: 1, seed: 1 },
       null, // guest never entered Arena for t2 → nothing to copy
     ];
     expect(planSeedTransfer(NEW_UID, anon)).toEqual([
@@ -97,15 +97,39 @@ describe("planSeedTransfer (§8 Edge #1)", () => {
 describe("planSeedTransfer — 회차 (RUN-1, §9 함정 11)", () => {
   it("① 게스트의 판은 언제나 1회차라 접미사가 없다 — 옛 이름과 같다", () => {
     const writes = planSeedTransfer("newuid", [
-      { tournamentId: "gen4_idol_48", seed: 7 },
+      { tournamentId: "gen4_idol_48", runIndex: 1, seed: 7 },
     ]);
     expect(writes).toEqual([{ docId: "newuid_gen4_idol_48", seed: 7 }]);
   });
 
   it("② tournamentId의 '_'가 소유자 판정을 깨지 않는다 (§9 함정 2)", () => {
     const writes = planSeedTransfer("newuid", [
-      { tournamentId: "best_stage_48", seed: 9 },
+      { tournamentId: "best_stage_48", runIndex: 1, seed: 9 },
     ]);
     expect(writes[0].docId.split("_")[0]).toBe("newuid");
+  });
+});
+
+describe("회차별 씨앗 이관 (v2.1 — 게스트 3판)", () => {
+  const NEW_UID = "google-uid";
+
+  it("2회차 씨앗은 _r2 문서로 간다 — 회차마다 대진표가 다르기 때문이다 (AC 3)", () => {
+    const anon: AnonSeed[] = [
+      { tournamentId: "t1", runIndex: 1, seed: 11 },
+      { tournamentId: "t1", runIndex: 2, seed: 22 },
+    ];
+    expect(planSeedTransfer(NEW_UID, anon)).toEqual([
+      { docId: "google-uid_t1", seed: 11 },
+      { docId: "google-uid_t1_r2", seed: 22 },
+    ]);
+  });
+
+  it("회차를 빼먹으면 2판째가 1판째 씨앗을 덮어쓴다 — 그래서 id가 달라야 한다", () => {
+    const anon: AnonSeed[] = [
+      { tournamentId: "t1", runIndex: 1, seed: 11 },
+      { tournamentId: "t1", runIndex: 2, seed: 22 },
+    ];
+    const ids = planSeedTransfer(NEW_UID, anon).map((w) => w.docId);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
