@@ -2506,7 +2506,7 @@ git commit -m "feat(run-1): 완주 화면 [다시 참여] + 이전 참여 Crown 
     guestLimitSub: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요.",
   },
 ```
-(en·es도 §8 표 그대로. `share` 의 ko는 v2.1 의미에 맞춰 "저장하려면 로그인이 필요해요"로 — **이건 표 밖 문구이므로 Task 16의 배너와 함께 대표 승인을 받는다. 승인 전에는 기존 문구를 그대로 둔다.**)
+en·es도 §8 표 그대로. **`share` 3언어는 2026-09-09 대표 승인본으로 교체한다** (아래 "저장 잠금 문구" 표) — v2.1에서 잠긴 것은 공유가 아니라 저장이므로 기존 "공유하려면 로그인이 필요해요"는 사실과 다르다.
 
 4. 부제 분기:
 ```ts
@@ -2602,17 +2602,60 @@ export function ShareActions({ onDownload, onShareX, onOpenMenu, canSave = true 
 `ShareMenu` 에 `canSave?: boolean` prop을 추가하고 Download · "Save both" 버튼에 `disabled={!canSave}` 를 건다. **"Share…"(네이티브)와 "Post to X"는 잠그지 않는다.**
 > ⚠️ `nativeShareCrown` 은 Web Share를 못 쓰면 **다운로드로 폴백**한다(`CrownCanvasPreview.tsx:102`). 게스트에게 그 폴백이 돌면 저장 잠금이 뚫린다. `nativeShareCrown` 에 `allowDownloadFallback: boolean` 인자를 추가하고, 게스트일 때는 폴백 대신 `"fallback"` 만 반환해 토스트로 안내한다.
 
-- [ ] **Step 4: 배너 문구 — 대표 승인 대기**
+- [ ] **Step 4: 저장 잠금 문구 — 2026-09-09 대표 승인본 (글자 그대로)**
 
-`LoginPromptBanner` 의 현재 ko 문구는 **"미리보기는 자유 · 공유·저장은 로그인이 필요합니다"** 로, v2.1에서 **사실과 다르다**(공유는 열렸다). 올바른 취지는 "저장하려면 로그인"이다.
+`LoginPromptBanner` 의 기존 ko 문구 **"미리보기는 자유 · 공유·저장은 로그인이 필요합니다"** 는 v2.1에서 **사실과 다르다** — 공유는 열렸고 잠긴 것은 저장뿐이다. `LoginModal` 의 `share` 도 같은 문장이었다. 두 건 모두 **2026-09-09 대표 승인**을 받았다.
 
-> 🛑 **이 문구는 §8 표에 없다.** §5 DO 7 / 프롬프트 §5에 따라 **구현하지 말고 대표님께 승인을 요청한다.** 승인 전까지는 배너를 **`arena.guest.remaining` 의 뒷부분("저장하려면 로그인")과 톤이 일치하는 임시 문구 없이** 두지 말고, 이 태스크를 여기서 멈추고 보고한다.
-> 제안 초안 (승인용, 3언어):
-> - ko: 미리보기와 공유는 자유 · 저장하려면 로그인
-> - en: Preview and share freely · sign in to save
-> - es: Previsualiza y comparte · inicia sesión para guardar
->
-> 같은 요청에 `LoginModal` 의 `share` ko 문구("공유하려면 로그인이 필요해요" → "저장하려면 로그인이 필요해요")도 함께 올린다 — 둘 다 v2.1에서 사실과 어긋난 같은 문장이다.
+**저장 잠금 문구 (승인본 · 한 글자도 임의 변경 금지 — 마침표까지 포함한다)**
+
+| 위치 | ko | en | es |
+|---|---|---|---|
+| `LoginPromptBanner` 부제 (`sub`) | 미리보기와 공유는 자유 · 저장하려면 로그인이 필요해요. | Preview and share freely · Sign in to save. | Previsualiza y comparte libremente · Inicia sesión para guardar. |
+| `LoginModal` `share` 제목 | 저장하려면 로그인이 필요해요 | Sign in to save your Crown Card | Inicia sesión para guardar tu Crown Card |
+
+⚠️ 승인본은 `·` 뒤가 **대문자 `Sign in`** 이고 ko·es는 **마침표로 끝난다.** 제가 올린 초안과 다른 지점이니 초안이 아니라 이 표를 옮긴다.
+
+`LoginPromptBanner` 는 지금 자체 `TEXT` 상수에 **ko·en 두 언어만** 가지고 있어 es 팬이 영어를 본다. 이 태스크에서 세 언어를 채운다. `title`("Sign in to share your Crown")도 저장 기준으로 바꿔야 하지만 **표 밖 문구이므로 건드리지 않는다** — 대신 `title` 을 없애고 부제 한 줄만 남긴다(승인본이 그 자체로 완결된 문장이다).
+
+`LoginModal` 의 `share` 3언어도 위 표대로 교체한다.
+
+**이 문구도 글자 단위로 고정한다.** 승인본이 컴포넌트 지역 상수에 살면 §8 표의 문구들과 달리 CI가 지켜 주지 않는다 — Task 11의 테스트와 같은 방식으로 `lib/__tests__/crown/lockCopy.test.ts` 를 만든다:
+
+```ts
+/**
+ * 저장 잠금 문구 — 2026-09-09 대표 승인본을 글자 단위로 고정한다.
+ *
+ * v2.1에서 공유가 열리면서 "공유·저장은 로그인이 필요합니다"가 **사실과 다른 문장**이 됐다.
+ * 잠긴 것은 저장뿐이다. 승인본은 마침표까지 포함해 그대로 쓴다(§5 DO 7).
+ */
+import { describe, expect, it } from "vitest";
+import { LOCK_COPY } from "@/components/crown/LoginPromptBanner";
+
+describe("저장 잠금 배너 (2026-09-09 승인본)", () => {
+  it("ko — 마침표까지 승인본과 같다", () => {
+    expect(LOCK_COPY.ko.sub).toBe("미리보기와 공유는 자유 · 저장하려면 로그인이 필요해요.");
+  });
+  it("en — '·' 뒤는 대문자 Sign in 이다", () => {
+    expect(LOCK_COPY.en.sub).toBe("Preview and share freely · Sign in to save.");
+  });
+  it("es — libremente 가 들어간다", () => {
+    expect(LOCK_COPY.es.sub).toBe("Previsualiza y comparte libremente · Inicia sesión para guardar.");
+  });
+  it("세 언어가 모두 있다 — es 팬이 영어를 보지 않는다", () => {
+    for (const lang of ["ko", "en", "es"] as const) {
+      expect(LOCK_COPY[lang].sub, lang).toBeTruthy();
+    }
+  });
+  it("공유가 잠겼다고 말하지 않는다", () => {
+    // v2.1의 사실: 잠긴 것은 저장뿐이다.
+    for (const lang of ["ko", "en", "es"] as const) {
+      expect(LOCK_COPY[lang].sub).not.toMatch(/공유는 로그인|share.*sign in to share/i);
+    }
+  });
+});
+```
+
+`LoginPromptBanner` 는 내부 `TEXT` 를 `export const LOCK_COPY` 로 바꿔 테스트가 읽게 한다.
 
 - [ ] **Step 5: 호출부 2곳 갱신 + 검증 + 커밋**
 
@@ -2830,8 +2873,8 @@ git commit -m "feat(run-1): 마감 강제 복원 — 문구·화면과 한 쌍�
 - 복합 인덱스 — PR 1이 3개를 배포했다(§13). `votes(userId, tournamentId, runIndex)` 가 Task 12의 쿼리를 덮는다.
 - E2E — §11.3의 의무 대상("5판 완주 → 6판째 차단" · 비로그인 게이트)은 프리뷰가 필요하므로 §7 수동 검증(Task 18 이후)으로 대신한다.
 
-**미해결 — 대표 승인 대기 1건**
-Task 16 Step 4: `LoginPromptBanner` 와 `LoginModal.share` 의 ko 문구가 v2.1에서 **사실과 다르다**("공유·저장은 로그인이 필요합니다" — 공유는 열렸다). §8 표에 없는 문구라 구현하지 않고 승인을 요청한다.
+**미해결 — 없음.**
+저장 잠금 문구 2건(`LoginPromptBanner` · `LoginModal.share`)은 **2026-09-09 대표 승인 완료** — Task 16 Step 4의 표가 정본이다. 승인본은 `·` 뒤가 대문자 `Sign in` 이고 ko·es가 마침표로 끝난다(초안과 다르다). `LoginPromptBanner` 는 es가 없어 영어로 떨어지던 것도 이 태스크에서 함께 채운다.
 
 ---
 
