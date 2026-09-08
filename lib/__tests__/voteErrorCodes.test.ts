@@ -46,3 +46,25 @@ describe("voteErrorMessageKey (#12 — 3-language mapping)", () => {
     expect(voteErrorMessageKey(new Error("x"))).toBe("arena.vote.failed");
   });
 });
+
+describe("RUN-1 — 마감·게스트 코드 (v2.1)", () => {
+  it("deadline_passed 는 마감 안내로 간다 — 일반 실패 배너가 아니다", () => {
+    // 2026-09-06 P0: 마감 거부가 "투표에 실패했어요"로 보였다. 그게 사고의 전부였다.
+    expect(
+      voteErrorMessageKey({
+        code: "functions/failed-precondition",
+        details: { code: "deadline_passed" },
+      }),
+    ).toBe("arena.run.deadlinePassed");
+  });
+
+  it("guest_limit 은 토스트 키로 매핑되지 않는다 — 모달로 간다 (AC 17)", () => {
+    // 토스트로 흘리면 Google 버튼이 없는 안내가 되어 전환 경로가 사라진다.
+    expect(
+      voteErrorMessageKey({
+        code: "functions/permission-denied",
+        details: { code: "guest_limit" },
+      }),
+    ).toBe("arena.vote.failed");
+  });
+});
