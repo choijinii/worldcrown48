@@ -34,6 +34,7 @@ import {
   roundParam,
 } from "@/lib/analytics/funnelEvents";
 import { voteErrorDetailCode, voteErrorMessageKey, VOTE_ERROR_CODES } from "@/lib/voteErrorCodes";
+import { GUEST_DAILY_RUN_LIMIT } from "@/lib/run/guestRun";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { LoginModal, type LoginReason } from "@/components/auth/LoginModal";
 import type { Contestant } from "@/lib/types/tournament";
@@ -108,6 +109,7 @@ export default function ArenaPage(): JSX.Element {
   const tournamentStartFiredRef = useRef<string | null>(null);
   const roundAdvanceFiredRef = useRef<number | null>(null);
   const championFiredRef = useRef<string | null>(null);
+  const guestLimitFiredRef = useRef(false);
 
   useEffect(() => {
     if (!tournament) return;
@@ -151,6 +153,11 @@ export default function ArenaPage(): JSX.Element {
     });
   }, [tournament, progress?.complete, progress?.championId, isGuest, lang]);
 
+  // guest_limit_view (EVENT_SPEC v1.2 §9, 신설) — 게스트가 3판 소진 모달을 본 시점에 1회.
+  // v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 "3판 소진"으로 옮겨갔으므로 **이 이벤트가
+  // 전환율의 분모다.** 없으면 게스트 전환율 30% 판정 자체가 불가능하다.
+  // 모달은 tournament·category를 모르기 때문에 페이지에서 쏜다.
+
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState<LoginReason | null>(null);
@@ -159,6 +166,15 @@ export default function ArenaPage(): JSX.Element {
   useEffect(() => {
     if (uid) void loadTournament(tournamentId, uid, isGuest);
   }, [uid, tournamentId, loadTournament, isGuest]);
+
+  useEffect(() => {
+    if (modal !== "guest_limit" || !tournament || guestLimitFiredRef.current) return;
+    guestLimitFiredRef.current = true;
+    void trackWithConsent("guest_limit_view", {
+      ...commonEventParams(tournament, isGuest, lang),
+      runs_today: run?.runsToday ?? GUEST_DAILY_RUN_LIMIT,
+    });
+  }, [modal, tournament, isGuest, lang, run?.runsToday]);
 
   // [다시 참여]로 회차가 올라가면 씨앗도 그 회차 문서에서 새로 받아야 한다 — 안 그러면
   // seed 0으로 대진이 만들어져 "판마다 대진표가 다르다"(AC 3)가 깨진다.
