@@ -11,6 +11,11 @@
  *
  * 날짜를 여기서 다시 세지 않는다 — 호출자가 `effectiveRunsToday` 로 자정 리셋을 반영한
  * 값을 넘긴다. 리셋 판정은 `_run/kstReset` 한 곳에만 있다.
+ *
+ * **v2.1 (2026-09-06)**: `guestRuns` 에서 `tournamentId` 를 뺐다. 게스트 한도가 대회를
+ * 가로지르게 되면서 "마지막 대회 하나"를 기억할 이유가 사라졌고, 남겨 두면 다음 사람이 그
+ * 필드로 이어하기를 판정해 §16 실측 3의 버그(A 미완주 → B → C 3판 소진 → A 이어하기 거부)를
+ * 되살린다. 쓰지 않는 필드를 지우는 것이 아니라, **되살아나면 안 되는 필드를 지우는 것이다.**
  */
 import type { RunDecision } from "../_run/decideRun";
 
@@ -20,13 +25,12 @@ export interface RunWritePlan {
   /** null이면 쓰지 않는다(이어하기 — 한도를 소모하지 않는다). */
   tournamentRuns: { runIndex: number; runsToday: number; lastRunDate: string } | null;
   /** 게스트일 때만 호출자가 사용한다. null이면 쓰지 않는다. */
-  guestRuns: { runsToday: number; lastRunDate: string; tournamentId: string } | null;
+  guestRuns: { runsToday: number; lastRunDate: string } | null;
 }
 
 export function planRunWrite(args: {
   decision: RunDecision;
   todayKST: string;
-  tournamentId: string;
   /** 이 Tournament에서 오늘 이미 쓴 판 수(자정 리셋 반영). 기본 0. */
   runsTodayBefore?: number;
   /** 게스트가 오늘 이미 쓴 판 수(Tournament를 가로지른다, 자정 리셋 반영). 기본 0. */
@@ -35,7 +39,6 @@ export function planRunWrite(args: {
   const {
     decision,
     todayKST,
-    tournamentId,
     runsTodayBefore = 0,
     guestRunsTodayBefore = 0,
   } = args;
@@ -59,7 +62,6 @@ export function planRunWrite(args: {
     guestRuns: {
       runsToday: guestRunsTodayBefore + 1,
       lastRunDate: todayKST,
-      tournamentId,
     },
   };
 }

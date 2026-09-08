@@ -10,20 +10,18 @@ import { describe, expect, it } from "vitest";
 import { planRunWrite } from "../core/planRunWrite";
 
 const TODAY = "2026-09-06";
-const TID = "gen4_idol_48";
 
 describe("planRunWrite", () => {
   it("① 새 판이면 회차·오늘 판 수·날짜를 갱신한다", () => {
     const p = planRunWrite({
       decision: { status: "new_run", runIndex: 3 },
       todayKST: TODAY,
-      tournamentId: TID,
       runsTodayBefore: 2, // 오늘 2판을 썼고 지금이 3판째다
     });
     expect(p).toEqual({
       runIndex: 3,
       tournamentRuns: { runIndex: 3, runsToday: 3, lastRunDate: TODAY },
-      guestRuns: { runsToday: 1, lastRunDate: TODAY, tournamentId: TID },
+      guestRuns: { runsToday: 1, lastRunDate: TODAY },
     });
   });
 
@@ -32,7 +30,6 @@ describe("planRunWrite", () => {
     const p = planRunWrite({
       decision: { status: "new_run", runIndex: 6 },
       todayKST: TODAY,
-      tournamentId: TID,
       runsTodayBefore: 0,
     });
     expect(p.tournamentRuns).toEqual({ runIndex: 6, runsToday: 1, lastRunDate: TODAY });
@@ -42,7 +39,6 @@ describe("planRunWrite", () => {
     const p = planRunWrite({
       decision: { status: "continue", runIndex: 2 },
       todayKST: TODAY,
-      tournamentId: TID,
       runsTodayBefore: 2,
     });
     expect(p).toEqual({ runIndex: 2, tournamentRuns: null, guestRuns: null });
@@ -52,29 +48,34 @@ describe("planRunWrite", () => {
     const p = planRunWrite({
       decision: { status: "new_run", runIndex: 1 },
       todayKST: TODAY,
-      tournamentId: "best_stage_48",
       guestRunsTodayBefore: 0,
     });
-    expect(p.guestRuns).toEqual({
-      runsToday: 1,
-      lastRunDate: TODAY,
-      tournamentId: "best_stage_48",
-    });
+    expect(p.guestRuns).toEqual({ runsToday: 1, lastRunDate: TODAY });
   });
 
-  it("⑤ 차단 판정을 넘기면 던진다 — 쓸 것이 없는데 쓰기 계획을 물으면 호출부가 잘못된 것이다", () => {
+  it("⑤ 게스트 원장은 Tournament를 기억하지 않는다 (v2.1)", () => {
+    // §16 실측 3: 이 필드가 있으면 "마지막 대회 하나"로 이어하기를 판정하는 버그가 되살아난다.
+    // A 미완주 → B → C(3판 소진) → A 이어하기가 거부되던 그 지점이다.
+    const p = planRunWrite({
+      decision: { status: "new_run", runIndex: 1 },
+      todayKST: TODAY,
+      guestRunsTodayBefore: 2,
+    });
+    expect(p.guestRuns).not.toHaveProperty("tournamentId");
+    expect(p.guestRuns).toEqual({ runsToday: 3, lastRunDate: TODAY });
+  });
+
+  it("⑥ 차단 판정을 넘기면 던진다 — 쓸 것이 없는데 쓰기 계획을 물으면 호출부가 잘못된 것이다", () => {
     expect(() =>
       planRunWrite({
         decision: { status: "limit_reached" },
         todayKST: TODAY,
-        tournamentId: TID,
       }),
     ).toThrow(/limit_reached/);
     expect(() =>
       planRunWrite({
         decision: { status: "deadline_passed" },
         todayKST: TODAY,
-        tournamentId: TID,
       }),
     ).toThrow(/deadline_passed/);
   });
