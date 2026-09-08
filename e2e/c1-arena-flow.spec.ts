@@ -129,6 +129,11 @@ async function seedRound1Votes(n: number): Promise<void> {
       matchId: matchId(1, i),
       contestantId: ids[i * 2], // left of seeded pair i
       date: SEED_PAST_DATE,
+      // RUN-1: 클라이언트가 `where("runIndex","==",n)` 로 그 판의 선택만 읽는다(§9 함정 9).
+      // 시드에 이 필드가 없으면 화면이 진행을 전혀 못 보고 m0으로 되돌아간다.
+      runIndex: 1,
+      // v2.1: 서버가 sign_in_provider 로 판정해 적는 필드. 시드도 같은 모양이어야 한다.
+      isGuest: false,
     });
   }
   await batch.commit();
@@ -236,6 +241,11 @@ test.describe("C-1 The Arena — Voter critical path", () => {
           matchId: matchId(round, i),
           contestantId: `${TID}_c${round === 1 ? i * 2 + 1 : i + 1}`,
           date: SEED_PAST_DATE,
+        // RUN-1: 클라이언트가 `where("runIndex","==",n)` 로 그 판의 선택만 읽는다
+        // (§9 함정 9). 시드에 이 필드가 없으면 화면이 진행을 전혀 못 보고 m0으로 되돌아간다.
+        runIndex: 1,
+        // v2.1: 서버가 sign_in_provider 로 판정해 적는 필드. 시드도 같은 모양이어야 한다.
+        isGuest: false,
         });
       }
     }
