@@ -21,6 +21,7 @@ import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { ReturningCardBanner } from "@/components/crown/ReturningCardBanner";
 import { ModuleNav } from "@/components/arena/ModuleNav";
 import { resolveChampionId, toCrownData } from "@/lib/crown/championLoader";
+import { crownActionState } from "@/lib/crown/crownActions";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
   return (
@@ -46,17 +47,21 @@ export default function ChampionPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
   const user = useAuthStore((s) => s.user);
   const uid = user?.uid;
-  const canShare = Boolean(user && !user.isAnonymous);
+  const isGuest = Boolean(user?.isAnonymous);
+  // v2.1: 공유는 게스트에게도 열려 있고 저장(다운로드)만 로그인 게이트다 (§16 2·3).
+  const { canShare, canSave } = crownActionState({ isSignedIn: Boolean(user) && !isGuest });
 
   const tournament = useVoteStore((s) => s.tournament);
   const contestants = useVoteStore((s) => s.contestants);
   const loadTournament = useVoteStore((s) => s.loadTournament);
-  const progress = useRoundTransition(uid, tournamentId);
+  const run = useVoteStore((s) => s.run);
+  // 회차마다 진행 문서가 다르다 — 딥링크로 들어와도 그 계정의 현재 회차를 본다.
+  const progress = useRoundTransition(uid, tournamentId, run?.displayRunIndex);
   const [loginOpen, setLoginOpen] = useState(false);
 
   useEffect(() => {
-    if (uid) void loadTournament(tournamentId, uid);
-  }, [uid, tournamentId, loadTournament]);
+    if (uid) void loadTournament(tournamentId, uid, isGuest);
+  }, [uid, tournamentId, loadTournament, isGuest]);
 
   // No confirmed Champion yet (or still loading the per-Voter doc).
   if (!progress?.complete || !progress.championId) {
@@ -84,7 +89,7 @@ export default function ChampionPage(): JSX.Element {
     <>
       <ReturningCardBanner tournamentId={tournamentId} />
       <ModuleNav tournamentId={tournamentId} />
-      <CrownCardModal data={data} canShare={canShare} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} />
+      <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} />
       <LoginModal
         isOpen={loginOpen}
         reason="share"
