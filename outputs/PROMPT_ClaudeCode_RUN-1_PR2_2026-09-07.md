@@ -60,6 +60,10 @@ git rebase origin/main
 4. **공유 개방 / 저장 잠금 분리** — `CrownCardModal` · `ShareActions` · `CrownCanvasPreview` · `ShareMenu`: `canShare`(로그인) 하나로 잠그던 것을 **공유(X · 네이티브 공유 시트 · 링크)는 게스트에게 열고, 다운로드(Story PNG 등 `downloadCrown`)만 로그인 게이트**. `LoginPromptBanner` 문구는 "저장하려면 로그인" 취지로(§8 `arena.guest.remaining` 뒷부분과 톤 일치 — 새 문구가 필요하면 **구현 전 대표 승인**). 공유 링크 규격은 로그인과 동일(`withShareUtm` 그대로). `crown_shared_x` · `crown_shared_native` 이벤트에 **`is_guest`** 파라미터 추가(`crown_card_created`와 같은 방식).
 5. **게스트 안내 3지점** — ① 첫 진입(`arena.guest.welcome`) ② 1판 완주 후 Crown Card 화면(`arena.guest.remaining`, n = `3 − effectiveRunsToday`) ③ 소진 시 `guest_limit` 모달. 표시 위치·존재가 이 PR 범위, 시각 다듬기는 아레나 개편.
 6. `firestore.rules` — 옛 `daily_participation` 블록은 **Phase 3에서** 지운다(이 PR에서 지우지 마라).
+7. **계측 2건 (2026-09-08 대표 확정 — EVENT_SPEC v1.2)** — LoginModal·Crown Card를 어차피 만지는 PR이라 여기서 한다.
+   - **`guest_limit_view` 신설**: 게스트가 3판 소진으로 `guest_limit` 모달을 본 시점에 1회. 파라미터 = 공통 4개(`commonEventParams`) + `runs_today`(3). v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 "3판 소진"으로 옮겨갔으므로 이 이벤트가 전환율의 **분모**다.
+   - **`guest_signin_convert`의 `trigger_point`에 `guest_limit` 버킷 추가** — `LoginModal.tsx`의 reason→trigger_point 매핑에 `reason === "guest_limit" → "guest_limit"`. 기존 `card_modal`(공유 잠금 배너) 매핑은 "저장 잠금 배너"로 의미만 바뀌고 이름은 유지.
+   - `share_locked_view`는 **이름 유지, 의미만 "저장(다운로드) 잠금 배너를 본 시점"으로** — 코드 주석과 EVENT_SPEC v1.2를 맞춘다. 공유 3이벤트(`crown_shared_x`·`crown_shared_native`·`crown_downloaded`)에 공통 4파라미터를 붙이는 것은 C-4와 같은 일이다.
 
 **D. 히어로 문구 정정** — `lib/i18n/messages.ts` `pitch.hero.sub` 3언어: "예측도, 배당도 없이 —" 구절 삭제 + "당신의 한 표가 Champion을 만듭니다" → §8 승인본. (금지어 "표" 정정)
 
@@ -97,6 +101,8 @@ Superpowers 미설치면 멈추고 대표님께 알려라. `.claude/`·`marketin
 
 ## 8. 완료 조건 (핸드오프 §4 — 이 PR 해당분)
 1·2 같은 Tournament 5판, 다른 Tournament 별도 5판 · 3 판마다 대진표 상이(화면에서 확인) · 4·5 카드 회차별 생성·보존, 목록에서 각각 조회·공유 · **6 게스트 하루 통틀어 3판 — 대회 오가기 가능, 미완주 판은 한도 무관 이어하기, 4판째 `guest_limit`(Google 버튼 노출), 공유는 열리고 저장은 잠김, 안내 3지점 노출** · 7 KST 리셋 · 8 이어하기 · **9·16 마감 지난 Tournament: 새 판 차단 + 첫 진입·완주 화면 모두 `deadlinePassed` 안내, 진행 중 판은 계속** · 12 문구 3언어 글자 단위 일치 · 13 분당 40회, 41회째 `rateLimited` 안내 · 17 게스트 차단 사유 안내 · **신규: vote 문서에 `isGuest` 기록(익명 true / 로그인 false), `linkSessionVote` 후 false**
+
+**계측 완료 조건(신규)**: 게스트 4판째 시도 → `guest_limit_view` 1회(공통 4파라미터 + runs_today) · 그 모달에서 Google 로그인 → `guest_signin_convert{trigger_point:"guest_limit"}` · 공유 3이벤트에 `is_guest`·`category`·`lang`·`tournament_id`가 붙는다.
 
 금지어 게이트: `grep -rn "5표\|46표\|투표 무제한" app lib components` = 0건 **+** `grep -rn "한 표\|표가 \|표를 " lib/i18n/messages.ts components app --include=*.ts --include=*.tsx | grep -v "표시\|목표\|대표\|발표\|도표\|표기\|표준\|표현\|표본"` 에 팬 노출 문구가 **0건**.
 
