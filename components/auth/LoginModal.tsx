@@ -1,21 +1,26 @@
 /**
- * LoginModal — sign-in prompt shown when the visitor hits a gate.
+ * LoginModal — 팬이 게이트에 걸렸을 때 뜨는 로그인 안내.
  *
- * Three reasons (handoff §4-2 / §부록 C):
- *   - "vote"        → "Sign in to keep voting" + Google button (HF-3: shown when
- *                     a Guest Run is complete or a second Tournament is attempted;
- *                     the guest's first run itself needs no sign-in)
- *   - "share"       → "Sign in to share your Crown Card" + Google button
- *   - "daily_limit" → "You've joined all 5 Tournaments for today (5/5)" + Close
+ * 네 가지 이유:
+ *   - "vote"        → 계속하려면 로그인 + Google 버튼
+ *   - "share"       → Crown Card **저장(다운로드)**에 로그인이 필요할 때 + Google 버튼
+ *                     (v2.1: **공유는 게스트에게 열려 있다** — 잠긴 것은 저장뿐이다)
+ *   - "guest_limit" → 게스트가 오늘 3판을 다 썼다 + Google 버튼 (v2.1의 주 전환 지점)
+ *   - "daily_limit" → 로그인 팬이 이 Tournament의 하루 5판을 다 썼다 + 닫기만
  *
- * The "daily_limit" variant is informational — the visitor is already signed
- * in and has used the Daily Participation Limit (5 NEW Tournaments / KST day;
- * HF-1). Voting inside an already-joined Tournament is unlimited, so there's
- * nothing the modal can do but tell them to come back tomorrow. Hiding the
- * Google button keeps the affordance honest.
+ * `daily_limit` 만 Google 버튼을 숨긴다 — 이미 로그인 상태라 버튼이 할 일이 없다. 나머지
+ * 셋은 실제로 갈 길이 있어 버튼을 노출한다 (차단 문구 원칙, 2026-09-05 대표 확정:
+ * 막고 나서 길을 열어준다. "할 수 없다"는 이미 비활성 버튼이 눈으로 말한다).
+ *
+ * ⚠️ 참가 규칙은 **일일 판 한도**다 (LANGUAGE.md §2 · v2.0 2026-09-03 · v2.1 2026-09-06):
+ *   · 로그인 = 계정당·**대회당** 하루 5판 (대회마다 각각 5판)
+ *   · 게스트 = 하루 **통틀어** 3판 (대회 자유, 대회 수가 늘어도 3판 고정)
+ * HF-1의 "5 NEW Tournaments / KST day"(Daily Participation Limit)는 **폐기된 정의**이며
+ * LANGUAGE.md §7 금지어다. 이 주석이 옛 규칙으로 남아 있으면 다음 사람이 그걸 읽고
+ * 되돌린다 — Stale-Doc Guard는 코드 주석에도 적용된다.
  *
  * Success path (popup): signInWithGoogle resolves → onSuccess?.() fires →
- * onClose() collapses the modal so the caller (VoteGate) can retry the
+ * onClose() collapses the modal so the caller (Arena) can retry the
  * pending vote against the new uid. linkSessionVote runs in parallel,
  * inside AuthProvider.
  *
@@ -34,7 +39,7 @@ import type { Lang } from "@/lib/cookieConsent";
 import { showToast } from "@/lib/toast";
 import { useEscapeClose } from "@/lib/ui/dismiss";
 
-export type LoginReason = "vote" | "share" | "daily_limit";
+export type LoginReason = "vote" | "share" | "daily_limit" | "guest_limit";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -71,13 +76,20 @@ export function LoginModal({
     try {
       // 계측 소킥 A: reason을 trigger_point 버킷으로 매핑해 guest_signin_convert가
       // "어느 화면에서 로그인했는지" 알 수 있게 한다.
-      // "share"       → Crown Card 모달의 잠금 배너에서 온 것 → "card_modal"
-      // "daily_limit" → 일일 참가 한도에 걸려 뜬 것 → "quota_limit"
-      //                 (showGoogleButton이 false라 실제론 여기까지 안 오지만,
-      //                 매핑 자체는 정확하게 맞춰 둔다)
-      // "vote"        → 투표 도중 게이트에 걸려 뜬 것 → 전용 버킷이 없어 "other"
+      // EVENT_SPEC v1.2 (2026-09-08): v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서
+      // "3판 소진"으로 옮겨갔다.
+      // "share"       → Crown Card의 **저장 잠금** 배너 → "card_modal" (이름 유지, 의미 변경)
+      // "guest_limit" → 게스트 3판 소진 모달 → "guest_limit" (신설, v2.1의 주 전환 지점)
+      // "daily_limit" → 로그인 팬의 일일 한도 → "quota_limit" (버튼이 숨겨져 실제론 거의 0)
+      // "vote"        → 전용 버킷 없음 → "other"
       const triggerPoint =
-        reason === "share" ? "card_modal" : reason === "daily_limit" ? "quota_limit" : "other";
+        reason === "share"
+          ? "card_modal"
+          : reason === "guest_limit"
+            ? "guest_limit"
+            : reason === "daily_limit"
+              ? "quota_limit"
+              : "other";
       await signInWithGoogle(triggerPoint);
       onSuccess?.();
       onClose();
@@ -130,29 +142,20 @@ export function LoginModal({
           >
             {t[reason]}
           </h2>
-          {reason !== "daily_limit" ? (
-            <p
-              style={{
-                margin: "8px 0 24px",
-                fontSize: 13,
-                color: "var(--color-text-sub-light)",
-                lineHeight: 1.5,
-              }}
-            >
-              {t.subtitle}
-            </p>
-          ) : (
-            <p
-              style={{
-                margin: "8px 0 24px",
-                fontSize: 13,
-                color: "var(--color-text-sub-light)",
-                lineHeight: 1.5,
-              }}
-            >
-              {t.dailyLimitSub}
-            </p>
-          )}
+          <p
+            style={{
+              margin: "8px 0 24px",
+              fontSize: 13,
+              color: "var(--color-text-sub-light)",
+              lineHeight: 1.5,
+            }}
+          >
+            {reason === "daily_limit"
+              ? t.dailyLimitSub
+              : reason === "guest_limit"
+                ? t.guestLimitSub
+                : t.subtitle}
+          </p>
 
           {showGoogleButton ? (
             <button
@@ -223,8 +226,10 @@ interface ModalStrings {
   vote: string;
   share: string;
   daily_limit: string;
+  guest_limit: string;
   subtitle: string;
   dailyLimitSub: string;
+  guestLimitSub: string;
   googleCta: string;
   signingIn: string;
   close: string;
@@ -232,14 +237,19 @@ interface ModalStrings {
 }
 
 // ko/en/es — es is first-class here (LANGUAGE.md: Tournament stays verbatim in
-// every language). daily_limit copy = HF-1 §6 (Daily Participation Limit, 5/5).
+// every language). daily_limit·guest_limit 문구 = RUN-1 §8 대표 승인 최종본(2026-09-07),
+// share 문구 = 저장 잠금 승인본(2026-09-09). 한 글자도 임의 변경 금지 (§5 DO 7) —
+// lib/__tests__/crown/lockCopy.test.ts 와 messagesContent.test.ts 가 글자 단위로 고정한다.
 const STRINGS: Record<Lang, ModalStrings> = {
   ko: {
     vote: "계속하려면 로그인이 필요해요",
-    share: "공유하려면 로그인이 필요해요",
-    daily_limit: "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
+    share: "저장하려면 로그인이 필요해요",
+    daily_limit: "이 Tournament는 오늘 5번 참여를 모두 하셨어요 (5/5)",
+    guest_limit: "오늘의 서비스(3번 참여)를 모두 소진하셨어요.",
     subtitle: "Google 계정으로 1초 만에 시작해요.",
-    dailyLimitSub: "한국 시간 자정에 새 Tournament 5개에 다시 참가할 수 있어요.",
+    dailyLimitSub:
+      "한국 시간 자정에 참여 횟수가 다시 채워져요. 다른 Tournament는 지금 바로 참여하실 수 있어요.",
+    guestLimitSub: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요.",
     googleCta: "Google로 계속하기",
     signingIn: "로그인 중…",
     close: "닫기",
@@ -247,10 +257,14 @@ const STRINGS: Record<Lang, ModalStrings> = {
   },
   en: {
     vote: "Sign in to keep voting",
-    share: "Sign in to share your Crown Card",
-    daily_limit: "You've joined all 5 Tournaments for today (5/5)",
+    share: "Sign in to save your Crown Card",
+    daily_limit: "You've played all 5 runs of this Tournament today (5/5)",
+    guest_limit: "You've used all 3 of today's free entries.",
     subtitle: "One tap with Google.",
-    dailyLimitSub: "You can join 5 new Tournaments again at Seoul midnight.",
+    dailyLimitSub:
+      "Your 5 runs reset at Seoul midnight. Other Tournaments are open right now.",
+    guestLimitSub:
+      "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
     googleCta: "Continue with Google",
     signingIn: "Signing in…",
     close: "Close",
@@ -258,11 +272,14 @@ const STRINGS: Record<Lang, ModalStrings> = {
   },
   es: {
     vote: "Inicia sesión para seguir votando",
-    share: "Inicia sesión para compartir tu Crown Card",
-    daily_limit: "Ya has participado en los 5 Tournaments de hoy (5/5)",
+    share: "Inicia sesión para guardar tu Crown Card",
+    daily_limit: "Ya has jugado las 5 partidas de este Tournament hoy (5/5)",
+    guest_limit: "Has usado tus 3 participaciones gratis de hoy.",
     subtitle: "Un toque con Google.",
     dailyLimitSub:
-      "Puedes participar en 5 Tournaments nuevos otra vez a medianoche de Seúl.",
+      "Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora.",
+    guestLimitSub:
+      "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
     googleCta: "Continuar con Google",
     signingIn: "Iniciando sesión…",
     close: "Cerrar",

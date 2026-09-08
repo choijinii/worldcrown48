@@ -101,9 +101,12 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
   for (const [key, langs] of Object.entries(APPROVED)) {
     for (const [lang, text] of Object.entries(langs)) {
       it(`${key}.${lang} 이 승인본과 글자 단위로 같다`, () => {
-        expect(
-          MESSAGES[key as keyof typeof MESSAGES][lang as "ko" | "en" | "es"],
-        ).toBe(text);
+        const entry = MESSAGES[key as keyof typeof MESSAGES] as {
+          ko: string;
+          en: string;
+          es?: string;
+        };
+        expect(entry[lang as "ko" | "en" | "es"]).toBe(text);
       });
     }
   }

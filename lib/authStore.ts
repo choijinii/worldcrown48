@@ -49,7 +49,19 @@ export const PENDING_ANON_UID_KEY = "wc48_pending_anon_uid";
  * sessionStorage에 적어두고, AuthProvider의 linkPendingVote가 성공한 뒤
  * 그대로 읽어 이벤트에 실어 보낸다 (EVENT_SPEC.md §6).
  */
-export type SignInTriggerPoint = "card_modal" | "quota_limit" | "header" | "other";
+/**
+ * guest_signin_convert 의 trigger_point 버킷 (EVENT_SPEC v1.2).
+ *
+ * v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 **"게스트 3판 소진"**으로 옮겨갔다 —
+ * `guest_limit` 이 그 지점이다. `card_modal` 은 이름을 유지하되 의미가 "저장(다운로드) 잠금
+ * 배너"로 바뀌었다(GA 과거 데이터와 끊기지 않게).
+ */
+export type SignInTriggerPoint =
+  | "card_modal"
+  | "guest_limit"
+  | "quota_limit"
+  | "header"
+  | "other";
 export const PENDING_TRIGGER_POINT_KEY = "wc48_pending_trigger_point";
 
 interface AuthState {
