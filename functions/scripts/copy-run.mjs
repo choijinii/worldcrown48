@@ -22,7 +22,7 @@ const dest = join(here, "..", "src", "_run");
 
 mkdirSync(dest, { recursive: true });
 
-const files = ["kstReset.ts", "runDocId.ts", "decideRun.ts", "guestRun.ts"];
+const files = ["kstReset.ts", "runDocId.ts", "decideRun.ts", "guestRun.ts", "deadline.ts"];
 
 for (const f of files) {
   copyFileSync(join(libRun, f), join(dest, f));
