@@ -1,226 +1,63 @@
 /**
- * Vote and share gates — client-side authorisation for The Arena.
+ * Vote gate — The Arena의 클라이언트 인가 (RUN-1 v2.1).
  *
- * `useVoteGate().checkCanVote(tournamentId)` is what the VS Battle view
- * calls before opening a vote: it returns one of three statuses that the
- * caller maps to either "fire the onVote Cloud Function" or "open the
- * LoginModal with the right reason".
+ * **게이트는 스스로 읽지 않는다.** `voteStore.loadTournament` 가 판 원장(`tournament_runs`)·
+ * 게스트 원장(`guest_runs`)·진행(`roundProgress`)·마감을 한 번에 읽어 `decideRun`/
+ * `decideGuestRun` 판정을 만들고, 이 함수는 그것을 화면 언어로 번역만 한다. 읽기가 두 곳이면
+ * 답도 두 개가 되고 그게 §9 함정 5다(2026-07-05 사고가 정확히 이 유형이었다).
  *
- *   - `allowed`              → call onVote
- *   - `login_required`       → open <LoginModal reason={result.reason} />
- *   - `daily_limit_reached`  → open <LoginModal reason="daily_limit" />
+ * 서버(`onVote`)가 최종 판정자이고 이건 UX용이다(§5 DO 2). 두 곳은 **같은 순수 함수**를
+ * 돌리므로 같은 답에 도달한다.
  *
- * Step 1 (1-minute rate limit) is NOT checked here. That lives in the
- * onVote Cloud Function — see handoff §9 trap … and the function throws
- * `resource-exhausted`, which the caller surfaces as a cooldown toast.
- *
- * Daily Participation Limit (HF-1): a Voter may JOIN at most 5 NEW Tournaments
- * per KST day; voting inside an already-joined Tournament is unlimited. The
- * gate mirrors the server: one read of `daily_participation/${uid}_${kstDate}`
- * (no votes query, no composite index) yields the joined-Tournament set.
+ * ⚠️ 폐기된 것들: HF-1의 `daily_participation`("하루 새 대회 5개")과 HF-3의 sessionStorage
+ * 마커(`GUEST_RUN_TID_KEY`)·`getGuestRunState`. 규칙이 v2.0에서 **판(Run)** 기준으로 바뀌면서
+ * 정의 자체가 폐기됐다 — "하루 새 대회 5개"는 LANGUAGE.md §7 금지어다. 남겨 두면 다음 사람이
+ * 옛 규칙으로 되돌린다.
  */
 import { useCallback } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import type { User } from "firebase/auth";
-import { getDb } from "./firebase";
+import type { RunDecision } from "@/lib/run/decideRun";
+import type { GuestRunDecision } from "@/lib/run/guestRun";
 import { useAuthStore } from "./authStore";
-import { getTodayKST } from "./kst";
 
 export type VoteGateResult =
   | { status: "allowed" }
-  | { status: "login_required"; reason: "vote" | "share" }
-  | { status: "daily_limit_reached" };
-
-export const DAILY_PARTICIPATION_LIMIT = 5;
+  | { status: "login_required"; reason: "vote" | "share" | "guest_limit" }
+  | { status: "daily_limit_reached" }
+  | { status: "deadline_passed" };
 
 /**
- * Pure gate decision — exported separately so the branch logic can be
- * unit-tested without React or Firestore. The hook below is a thin wrapper
- * that supplies `user`/`isAnonymous`, the guest-run snapshot, and the
- * participation snapshot.
- *
- * Guest discriminator is `isAnonymous` (or a null user), NOT `!user`: the site
- * signs visitors in anonymously, so `user` is almost never null. HF-3 fixes the
- * spec pollution where the old `!user` branch never fired for anon uids.
+ * 순수 판정. 우선순위는 서버와 **같은 순서**여야 한다 — 화면과 서버가 다른 이유를 말하면
+ * 팬은 둘 중 하나를 고장으로 읽는다.
  */
 export function decideVoteGate(args: {
-  user: User | null;
   isAnonymous: boolean;
-  tournamentId: string;
-  guestTournamentId: string | null;
-  guestCompleted: boolean;
-  participatedThisTournament: boolean;
-  participationCount: number;
-  limit?: number;
+  runDecision: RunDecision;
+  guestDecision: GuestRunDecision;
 }): VoteGateResult {
-  const {
-    user,
-    isAnonymous,
-    tournamentId,
-    guestTournamentId,
-    guestCompleted,
-    participatedThisTournament,
-    participationCount,
-    limit = DAILY_PARTICIPATION_LIMIT,
-  } = args;
+  const { isAnonymous, runDecision, guestDecision } = args;
 
-  // ── Guest Run (HF-3): anonymous uid (or the brief pre-anon null) ──────────
-  // One Tournament, run to completion. Signing in migrates the run (W4).
-  if (!user || isAnonymous) {
-    // Already completed a Guest Run → sign in to keep going anywhere.
-    if (guestCompleted) return { status: "login_required", reason: "vote" };
-    // Entered one Tournament already and this is a different one → one run only.
-    if (guestTournamentId !== null && guestTournamentId !== tournamentId) {
-      return { status: "login_required", reason: "vote" };
-    }
-    // First Tournament, or the same one still in progress → run it.
+  // ① 게스트 한도가 먼저다. 대회를 가로지르는 한도라 "이 대회의 사정"보다 상위다.
+  //    막히는 모든 경우가 같은 이유(오늘 3판을 다 썼다)라 문구도 하나로 묶인다 —
+  //    guest_limit 은 Google 버튼이 함께 뜨는 전환 지점이다(AC 17).
+  if (isAnonymous && guestDecision.status === "login_required") {
+    return { status: "login_required", reason: "guest_limit" };
+  }
+  // ② 이어하기와 새 판은 통과. 이어하기는 마감·한도와 무관하다(AC 8·9).
+  if (runDecision.status === "continue" || runDecision.status === "new_run") {
     return { status: "allowed" };
   }
-
-  // ── Signed-in (non-anonymous): HF-1 Daily Participation Limit (unchanged) ──
-  // Already joined this Tournament today → unlimited within it.
-  if (participatedThisTournament) return { status: "allowed" };
-  // A new Tournament today, but the daily participation quota is exhausted.
-  if (participationCount >= limit) return { status: "daily_limit_reached" };
-  return { status: "allowed" };
+  if (runDecision.status === "deadline_passed") return { status: "deadline_passed" };
+  return { status: "daily_limit_reached" };
 }
 
 /**
- * sessionStorage key for the guest's single Guest Run Tournament (HF-3, W2).
- *
- * §확인 필요 1 (emulator-verified 2026-07-08): the doc-id-prefix read rules on
- * bracket_seeds / roundProgress authorize a `get` but DENY a `list` (the wildcard
- * is null for a list op → `split('_')` throws). So the client cannot self-discover
- * which Tournament an anon uid entered by querying. We instead remember the
- * entered Tournament here — a per-tab, cleared-on-tab-close marker (same class as
- * PENDING_ANON_UID_KEY; NOT localStorage, per D-1 handoff §5 DON'T). This is a UX
- * optimisation for a proactive LoginModal; the onVote server guard (W3) is the
- * authoritative boundary, so a missing/stale marker only costs one round-trip.
+ * 공유 게이트 — v2.1에서 **공유는 게스트에게 열렸다.** 저장(다운로드)만 로그인이 필요하다.
+ * 잠금 판정 자체는 `lib/crown/crownActions.ts` 에 있고, 여기는 로그인 여부만 나른다.
  */
-export const GUEST_RUN_TID_KEY = "wc48_guest_run_tid";
-
-/** Record the guest's Guest Run Tournament once (their first vote joins it). */
-export function markGuestRunTournament(tournamentId: string): void {
-  if (typeof window === "undefined") return;
-  if (!sessionStorage.getItem(GUEST_RUN_TID_KEY)) {
-    sessionStorage.setItem(GUEST_RUN_TID_KEY, tournamentId);
-  }
-}
-
-/**
- * Guest Run snapshot for the gate (HF-3, W2). `guestTournamentId` comes from the
- * marker above; `guestCompleted` is a DIRECT get of the tournament-in-view's
- * roundProgress (rules-allowed even before the doc exists — HF-1.6). A read error
- * never blocks the gate (returns not-completed) — the server guard still holds.
- */
-export async function getGuestRunState(
-  uid: string,
-  tournamentId: string,
-): Promise<{ guestTournamentId: string | null; guestCompleted: boolean }> {
-  const guestTournamentId =
-    typeof window !== "undefined"
-      ? sessionStorage.getItem(GUEST_RUN_TID_KEY)
-      : null;
-  let guestCompleted = false;
-  try {
-    const ref = doc(getDb(), "roundProgress", `${uid}_${tournamentId}`);
-    const snap = await getDoc(ref);
-    guestCompleted = snap.exists() && snap.data().complete === true;
-  } catch {
-    guestCompleted = false;
-  }
-  return { guestTournamentId, guestCompleted };
-}
-
-/**
- * Reads today's Daily Participation doc (`${userId}_${kstDate}`) and returns
- * the set of Tournaments this Voter has already joined today. A single doc
- * read — cheaper than the old 3-where votes query and needs no index.
- */
-export async function getDailyParticipation(
-  userId: string,
-): Promise<{ participatedTournamentIds: string[] }> {
-  const ref = doc(getDb(), "daily_participation", `${userId}_${getTodayKST()}`);
-  // Retry on the transient "[code=unavailable] Could not reach Cloud Firestore
-  // backend" — a single dropped connection here would otherwise throw out of
-  // checkCanVote and silently skip the vote gate.
-  for (let attempt = 0; ; attempt++) {
-    try {
-      const snap = await getDoc(ref);
-      const ids = snap.exists()
-        ? ((snap.data().tournamentIds as string[] | undefined) ?? [])
-        : [];
-      return { participatedTournamentIds: ids };
-    } catch (e) {
-      const code = (e as { code?: string }).code;
-      if (attempt < 2 && code === "unavailable") {
-        await new Promise((r) => setTimeout(r, 400));
-        continue;
-      }
-      throw e;
-    }
-  }
-}
-
-export function useVoteGate() {
-  const user = useAuthStore((s) => s.user);
-
-  const checkCanVote = useCallback(
-    async (tournamentId: string): Promise<VoteGateResult> => {
-      const isAnonymous = Boolean(user?.isAnonymous);
-
-      // Guest Run path (anonymous, or the brief pre-anon null): read the guest
-      // snapshot (marker + current-tournament completion), not participation.
-      if (!user || isAnonymous) {
-        const { guestTournamentId, guestCompleted } = user
-          ? await getGuestRunState(user.uid, tournamentId)
-          : { guestTournamentId: null, guestCompleted: false };
-        return decideVoteGate({
-          user,
-          isAnonymous,
-          tournamentId,
-          guestTournamentId,
-          guestCompleted,
-          participatedThisTournament: false,
-          participationCount: 0,
-        });
-      }
-
-      // Signed-in path — HF-1 Daily Participation snapshot (single doc read).
-      const { participatedTournamentIds } = await getDailyParticipation(user.uid);
-      return decideVoteGate({
-        user,
-        isAnonymous: false,
-        tournamentId,
-        guestTournamentId: null,
-        guestCompleted: false,
-        participatedThisTournament: participatedTournamentIds.includes(tournamentId),
-        participationCount: participatedTournamentIds.length,
-      });
-    },
-    [user],
-  );
-
-  const onVoteSuccess = useCallback(
-    (tournamentId: string) => {
-      // A guest's first vote joins their one Guest Run — remember it so the gate
-      // can proactively block a second Tournament (W2 marker; set-once).
-      if (user?.isAnonymous) markGuestRunTournament(tournamentId);
-    },
-    [user],
-  );
-
-  return { checkCanVote, onVoteSuccess };
-}
-
 export function useShareGate() {
   const user = useAuthStore((s) => s.user);
-
-  const checkCanShare = useCallback((): VoteGateResult => {
-    return user
-      ? { status: "allowed" }
-      : { status: "login_required", reason: "share" };
-  }, [user]);
-
-  return { checkCanShare };
+  const isSignedIn = Boolean(user && !user.isAnonymous);
+  // 공유는 언제나 열려 있다. 저장 잠금은 Crown Card 화면이 crownActionState 로 처리한다.
+  const checkCanShare = useCallback((): VoteGateResult => ({ status: "allowed" }), []);
+  return { checkCanShare, isSignedIn };
 }
