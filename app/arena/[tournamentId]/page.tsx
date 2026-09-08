@@ -320,6 +320,25 @@ export default function ArenaPage(): JSX.Element {
     );
   }
 
+  // 마감된 Tournament에 **한 판도 안 돈 팬**이 처음 들어온 경우 (AC 16).
+  // 완주 화면의 [다시 참여] 비활성만으로는 부족하다 — 그 팬에게는 완주 화면이 없다.
+  // 이 안내와 서버의 마감 강제는 한 쌍이다(§14): 강제만 있고 설명이 없던 것이
+  // 2026-09-06 P0였고, 그래서 이 화면과 onVote 의 deadlinePassed 복원이 같은 커밋에 있다.
+  if (run?.screen === "deadline_passed") {
+    return (
+      <div className={styles.arena} data-arena-surface="deadline">
+        <Center>
+          <div>
+            <p style={{ marginBottom: 16 }}>{t("arena.run.deadlinePassed")}</p>
+            <a href="/" style={{ color: "var(--color-gold)" }}>
+              {t("arena.load.home")}
+            </a>
+          </div>
+        </Center>
+      </div>
+    );
+  }
+
   // 게스트가 오늘 3판을 다 쓰고 새 대회에 들어온 경우 — 안내 3지점 중 ③.
   // 완주 화면보다 앞에 둘 수 없다: 완주한 판이 있으면 그 카드를 먼저 보여줘야 한다.
   if (run?.screen === "guest_limit") {
