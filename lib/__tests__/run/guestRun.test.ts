@@ -1,82 +1,77 @@
 /**
- * decideGuestRun — 비로그인은 하루 **통틀어** 1판 (§5 DO 3, 2026-09-03 대표 확정 (가)안).
+ * decideGuestRun — 비로그인은 하루 **통틀어 3판** (§5 DO 3 · v2.1 2026-09-06 대표 확정).
  *
- * §9 함정 4: 게스트 uid는 브라우저마다 새로 생기고 게스트의 선택도 랭킹에 집계된다.
- * 이 한도를 느슨하게 만들면 랭킹 조작 비용이 0이 된다.
+ * v2.0의 "하루 1판 + 그 Tournament만"을 대체한다. 판정에서 Tournament를 아예 보지 않는
+ * 것이 이 개정의 핵심이다 — 한도는 대회를 가로지르고(대회 수가 늘어도 3판 고정), 이어하기는
+ * 그 Tournament의 decideRun 이 이미 내린 답(`continue`)을 그대로 받는다(§16 실측 3).
  *
- * 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 문서 하나로 센다.
- * (회차 번호 자체는 게스트도 `tournament_runs` 에서 받는다 — 설계서 §1.4.)
+ * §9 함정 4: 게스트 uid는 브라우저마다 새로 생겨 사람 단위 상한이 없다. v2.1은 한도를 늘리는
+ * 대신 **게스트의 선택을 랭킹에서 제외**해(PR 3) 조작 동기를 없앤다.
  */
 import { describe, expect, it } from "vitest";
 import { decideGuestRun, GUEST_DAILY_RUN_LIMIT } from "@/lib/run/guestRun";
 
-const TODAY = "2026-09-05";
-const YESTERDAY = "2026-09-04";
-const A = "gen4_idol_48";
-const B = "best_stage_48";
+const TODAY = "2026-09-09";
+const YESTERDAY = "2026-09-08";
 
 const base = {
   lastRunDate: null as string | null,
   runsToday: 0,
-  runTournamentId: null as string | null,
   todayKST: TODAY,
-  tournamentId: A,
-  currentRunComplete: false,
+  isContinue: false,
 };
 
-describe("decideGuestRun", () => {
-  it("① 오늘 아직 안 돌았으면 허용한다", () => {
+describe("decideGuestRun — 하루 통틀어 3판", () => {
+  it("① 한도 상수는 3이다 — 이 숫자는 여기 한 곳에만 있다", () => {
+    expect(GUEST_DAILY_RUN_LIMIT).toBe(3);
+  });
+
+  it("② 오늘 아직 안 돌았으면 허용한다", () => {
     expect(decideGuestRun(base)).toEqual({ status: "allow" });
   });
 
-  it("② 오늘 시작한 그 판이 미완주면 이어하기를 허용한다 — 판을 새로 세지 않는다", () => {
-    const r = decideGuestRun({
-      ...base, lastRunDate: TODAY, runsToday: 1, runTournamentId: A, currentRunComplete: false,
-    });
-    expect(r).toEqual({ status: "allow" });
+  it("③ 오늘 1판·2판을 썼어도 새 판이 열린다", () => {
+    for (const used of [1, 2]) {
+      expect(
+        decideGuestRun({ ...base, lastRunDate: TODAY, runsToday: used }),
+      ).toEqual({ status: "allow" });
+    }
   });
 
-  it("③ 완주한 판의 재도전은 로그인을 요구한다 (AC 6)", () => {
-    const r = decideGuestRun({
-      ...base, lastRunDate: TODAY, runsToday: 1, runTournamentId: A, currentRunComplete: true,
-    });
-    expect(r).toEqual({ status: "login_required" });
+  it("④ 3판을 다 쓰면 4판째는 로그인을 요구한다 (AC 6)", () => {
+    expect(
+      decideGuestRun({ ...base, lastRunDate: TODAY, runsToday: 3 }),
+    ).toEqual({ status: "login_required" });
   });
 
-  it("④ 다른 Tournament 진입은 로그인을 요구한다 — 하루 통틀어 1판이다 (AC 6)", () => {
-    const r = decideGuestRun({
-      ...base, lastRunDate: TODAY, runsToday: 1, runTournamentId: A,
-      tournamentId: B, currentRunComplete: false,
-    });
-    expect(r).toEqual({ status: "login_required" });
+  it("⑤ 3판을 다 썼어도 미완주 판은 이어할 수 있다 — 한도와 무관 (AC 6)", () => {
+    // A 미완주 → B → C 로 3판 소진 → A로 돌아옴. isContinue 가 그 사실을 나른다.
+    expect(
+      decideGuestRun({
+        ...base, lastRunDate: TODAY, runsToday: 3, isContinue: true,
+      }),
+    ).toEqual({ status: "allow" });
   });
 
-  it("⑤ 자정이 지나면 게스트도 1판이 다시 채워진다 (AC 7)", () => {
-    // 날짜가 없으면 게스트가 영원히 1판만 하고 막힌다.
-    const r = decideGuestRun({
-      ...base, lastRunDate: YESTERDAY, runsToday: 1, runTournamentId: A, currentRunComplete: true,
-    });
-    expect(r).toEqual({ status: "allow" });
+  it("⑥ 자정이 지나면 3판이 다시 채워진다 (AC 7)", () => {
+    // 리셋이 없으면 게스트가 첫날 3판을 쓴 뒤 영영 막힌다.
+    expect(
+      decideGuestRun({ ...base, lastRunDate: YESTERDAY, runsToday: 3 }),
+    ).toEqual({ status: "allow" });
   });
 
-  it("⑥ 어제 돌던 Tournament와 다른 곳이어도 오늘의 1판은 열린다", () => {
-    const r = decideGuestRun({
-      ...base, lastRunDate: YESTERDAY, runsToday: 1, runTournamentId: A, tournamentId: B,
-    });
-    expect(r).toEqual({ status: "allow" });
+  it("⑦ Tournament를 판정에 쓰지 않는다 — 대회 수가 늘어도 3판 고정", () => {
+    // 인자에 tournamentId 자리가 없다는 것 자체가 계약이다. 같은 입력이면 어느 대회에서
+    // 불러도 같은 답이 나온다(§16 실측 3이 고친 바로 그 지점).
+    const args = { ...base, lastRunDate: TODAY, runsToday: 2 };
+    expect(decideGuestRun(args)).toEqual(decideGuestRun({ ...args }));
+    expect(Object.keys(args)).not.toContain("tournamentId");
+    expect(Object.keys(args)).not.toContain("runTournamentId");
   });
 
-  it("⑦ 한도 기본값은 1이다", () => {
-    expect(GUEST_DAILY_RUN_LIMIT).toBe(1);
-  });
-
-  it("⑧ 게스트가 막히는 두 경우는 같은 판정을 낸다 — 문구도 하나(guest_limit)로 묶인다", () => {
-    const 재도전 = decideGuestRun({
-      ...base, lastRunDate: TODAY, runsToday: 1, runTournamentId: A, currentRunComplete: true,
-    });
-    const 다른대회 = decideGuestRun({
-      ...base, lastRunDate: TODAY, runsToday: 1, runTournamentId: A, tournamentId: B,
-    });
-    expect(재도전).toEqual(다른대회);
+  it("⑧ limit 을 주입해 경계를 확인할 수 있다", () => {
+    expect(
+      decideGuestRun({ ...base, lastRunDate: TODAY, runsToday: 1, limit: 1 }),
+    ).toEqual({ status: "login_required" });
   });
 });
