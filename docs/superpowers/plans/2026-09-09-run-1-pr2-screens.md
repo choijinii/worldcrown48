@@ -44,7 +44,7 @@
   grep -rn "5표\|46표\|투표 무제한" app lib components          # 0건이어야 한다
   grep -rn "한 표\|표가 \|표를 " lib/i18n/messages.ts components app \
     --include=*.ts --include=*.tsx \
-    | grep -v "표시\|목표\|대표\|발표\|도표\|표기\|표준\|표현\|표본"   # 팬 노출 문구 0건
+    | grep -v "표시\|목표\|대표\|발표\|도표\|표기\|표준\|표현\|표본\|대진표"   # 팬 노출 문구 0건
   ```
 
 ### 문구 (§8 대표 승인 최종본 — 한 글자도 임의 변경 금지)
@@ -2829,7 +2829,7 @@ npm run lint
 grep -rn "5표\|46표\|투표 무제한" app lib components
 grep -rn "한 표\|표가 \|표를 " lib/i18n/messages.ts components app \
   --include=*.ts --include=*.tsx \
-  | grep -v "표시\|목표\|대표\|발표\|도표\|표기\|표준\|표현\|표본"
+  | grep -v "표시\|목표\|대표\|발표\|도표\|표기\|표준\|표현\|표본\|대진표"
 ```
 
 - [ ] **Step 5: 커밋 — 서버·문구·화면이 한 커밋에 들어 있는지 확인하고 커밋한다**
