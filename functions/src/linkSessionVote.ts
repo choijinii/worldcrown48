@@ -17,6 +17,15 @@
  *     a malicious caller from passing another real user's uid and getting
  *     us to delete their account)
  *
+ * **v2.1 (2026-09-06)**: 게스트 한도가 하루 3판이 되면서 한 대회에 여러 회차가 생길 수 있다.
+ * `GUEST_RUN_INDEX = 1` 고정은 "게스트는 하루 1판"이라는 v2.0 전제에 기대고 있었고, 그 전제가
+ * 깨지면 2·3판째의 진행·씨앗·카드가 이관되지 않고 사라진다 — votes 는 통째로 재부모화되므로
+ * 그 판들의 선택만 남고 진행이 없어져, 로그인 직후 팬이 완주했던 판이 사라진 것처럼 보인다.
+ * 이제 게스트의 `tournament_runs.runIndex` 를 읽어 회차 1..R을 전부 옮긴다.
+ *
+ * 재부모화한 vote 에는 `isGuest: false` 를 찍는다 — "로그인하면 내 선택이 랭킹에 반영된다"가
+ * 실제로 성립하려면 필수다(§16 5). 이 줄이 없으면 옮겨온 선택이 PR 3의 필터에 계속 걸린다.
+ *
  * sessionId scoping (handoff §4-6 #2): the spec asks for an additional
  * `sessionId == current` constraint. sessionId is written to vote rows
  * by C-1's onVote, which is not yet implemented; until it is, querying by
@@ -42,12 +51,6 @@ import { kstDate } from "./core/voteRecord";
 import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
 import { effectiveRunsToday } from "./_run/decideRun";
 
-/**
- * 게스트 판의 회차. 게스트는 하루 통틀어 1판이므로(§5 DO 3) 이관 대상은 정의상 1회차다.
- * 1회차는 접미사가 없어(§3.0 B안) 이관되는 문서 이름이 현행과 같다.
- */
-const GUEST_RUN_INDEX = 1;
-
 const BATCH_LIMIT = 500;
 const TIMEOUT_SECONDS = 30;
 
@@ -65,6 +68,21 @@ interface LinkSessionVoteResponse {
 }
 
 /**
+ * 게스트가 그 대회에서 돈 판의 수 R (= 마지막 회차) — v2.1.
+ *
+ * 한도가 3판이 되면서 한 대회에 회차가 여럿일 수 있다. R을 모르면 2·3판째의 진행·씨앗·카드가
+ * 이관되지 않고 사라진다. 문서가 없으면(회차 도입 전 게스트) 1이다 — 접미사 없는 옛 문서가
+ * 곧 1회차 문서다(§3.0 B안).
+ */
+async function guestRunCount(anonUid: string, tid: string): Promise<number> {
+  const snap = await adminDb
+    .doc(`tournament_runs/${tournamentRunsDocId(anonUid, tid)}`)
+    .get();
+  const n = Number(snap.get("runIndex") ?? 0);
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}
+
+/**
  * Read the roundProgress facts for each tournament the guest voted in (HF-3.1:
  * fetched ONCE, up front — the caller needs `conflictTournamentIds(facts)` to
  * branch the votes write phase BEFORE any vote is moved). Pure decision-making
@@ -75,21 +93,36 @@ async function fetchRoundProgressFacts(
   googleUid: string,
   tids: string[],
 ): Promise<RoundProgressFacts[]> {
-  return Promise.all(
+  const perTid = await Promise.all(
     tids.map(async (tid) => {
-      const [guestSnap, googleSnap] = await Promise.all([
-        adminDb.doc(`roundProgress/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`).get(),
-        adminDb.doc(`roundProgress/${runDocId(googleUid, tid, GUEST_RUN_INDEX)}`).get(),
-      ]);
-      return {
-        tournamentId: tid,
-        guestExists: guestSnap.exists,
-        guestComplete: guestSnap.get("complete") === true,
-        googleExists: googleSnap.exists,
-        googleComplete: googleSnap.get("complete") === true,
-      };
+      const runs = await guestRunCount(anonUid, tid);
+      // 충돌 판정은 **대회 단위**다: Google이 1회차 문서를 가지고 있으면 그 계정은 이미 그
+      // 대회에 판이 있다(회차는 단조 증가라 1회차 없이 2회차가 생기지 않는다). 그러면 게스트
+      // 회차 전부를 버린다 — HF-3.1 케이스 2 무변경.
+      const googleFirst = await adminDb
+        .doc(`roundProgress/${runDocId(googleUid, tid, 1)}`)
+        .get();
+      const googleExists = googleFirst.exists;
+      const googleComplete = googleFirst.get("complete") === true;
+
+      return Promise.all(
+        Array.from({ length: runs }, (_, i) => i + 1).map(async (runIndex) => {
+          const guestSnap = await adminDb
+            .doc(`roundProgress/${runDocId(anonUid, tid, runIndex)}`)
+            .get();
+          return {
+            tournamentId: tid,
+            runIndex,
+            guestExists: guestSnap.exists,
+            guestComplete: guestSnap.get("complete") === true,
+            googleExists,
+            googleComplete,
+          };
+        }),
+      );
     }),
   );
+  return perTid.flat();
 }
 
 /**
@@ -110,12 +143,13 @@ async function executeRoundProgressPlan(
   for (const decision of plan) {
     if (decision.action === "skip") continue;
     const tid = decision.tournamentId;
+    // v2.1: 회차마다 문서가 따로다. 1로 고정하면 2·3판째가 1판째 문서를 덮어쓴다.
     const guestSnap = await adminDb
-      .doc(`roundProgress/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`)
+      .doc(`roundProgress/${runDocId(anonUid, tid, decision.runIndex)}`)
       .get();
     const guestData = guestSnap.data() ?? {};
     const targetRef = adminDb.doc(
-      `roundProgress/${runDocId(googleUid, tid, GUEST_RUN_INDEX)}`,
+      `roundProgress/${runDocId(googleUid, tid, decision.runIndex)}`,
     );
 
     if (decision.action === "copy") {
@@ -159,12 +193,14 @@ async function executeRoundProgressPlan(
  * Tournament는 옮겨온 판이 없으므로 한도도 소모하지 않는다.
  *
  * 이관이 일어났다는 것은 Google 계정에 그 Tournament의 판이 없었다는 뜻이라(충돌 판정이
- * 곧 그 검사다) 회차는 1이 된다. 그래도 기존 값을 읽어 확인한다 — 예상은 확인이 아니다.
- * 실패는 비치명적이다: 표는 이미 옮겨졌고, 한도 한 판이 덜 세어지는 것이 로그인 직후
+ * 곧 그 검사다) 회차는 **게스트가 돈 판 수 R** 이 된다. v2.1 전에는 게스트가 하루 1판이라
+ * 언제나 1이었다. 그래도 기존 값을 읽어 확인한다 — 예상은 확인이 아니다.
+ * 실패는 비치명적이다: 선택은 이미 옮겨졌고, 한도 몇 판이 덜 세어지는 것이 로그인 직후
  * 전체 실패보다 낫다.
  */
 async function mergeTournamentRuns(
   googleUid: string,
+  anonUid: string,
   transferredTids: string[],
 ): Promise<void> {
   if (transferredTids.length === 0) return;
@@ -177,6 +213,9 @@ async function mergeTournamentRuns(
       const existingRunIndex = Number(stored.runIndex ?? 0);
       // 이미 판이 있으면 충돌이었어야 한다 — 이관되지 않았을 것이므로 손대지 않는다.
       if (existingRunIndex > 0) continue;
+      // v2.1: 게스트가 그 대회에서 돈 판이 여럿일 수 있다. 1로 고정하면 회차가 뒤로 감겨
+      // 다음 판이 이미 있는 문서 위에 올라탄다(create-once 씨앗이라 어제 대진표가 나온다).
+      const runs = await guestRunCount(anonUid, tid);
       const runsToday = effectiveRunsToday({
         lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
         runsToday: Number(stored.runsToday ?? 0),
@@ -184,8 +223,8 @@ async function mergeTournamentRuns(
       });
       await ref.set(
         {
-          runIndex: GUEST_RUN_INDEX,
-          runsToday: runsToday + 1,
+          runIndex: runs,
+          runsToday: runsToday + runs,
           lastRunDate: date,
           updatedAt: FieldValue.serverTimestamp(),
         },
@@ -300,7 +339,13 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
               typeof (d.data() as { runIndex?: unknown }).runIndex === "number";
             batch.update(d.ref, {
               userId: googleUid,
-              ...(hasRunIndex ? {} : { runIndex: GUEST_RUN_INDEX }),
+              // v2.1 (§16 5): 로그인 계정으로 옮겨온 선택은 더 이상 게스트의 것이 아니다.
+              // "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수다 — 이 줄이
+              // 없으면 이관된 선택이 PR 3의 필터에 계속 걸려 랭킹에서 빠진다.
+              isGuest: false,
+              // 회차 필드가 없는 문서는 회차 도입 전의 1회차다(§3.0 B안). "게스트는 1판"이
+              // 아니라 "옛 문서가 곧 1회차 문서"라는 사실이다.
+              ...(hasRunIndex ? {} : { runIndex: 1 }),
             });
             reparentedInPage += 1;
           }
@@ -318,16 +363,25 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
     // fresh seed → the bracket reshuffles → an already-won Contestant reappears
     // downstream → duplicate winners → the round transition breaks. create-once
     // makes conflict tids a no-op (the Google uid already owns its seed).
-    const anonSeeds: AnonSeed[] = await Promise.all(
-      tids.map(async (tid) => {
-        const s = await adminDb
-          .doc(`bracket_seeds/${runDocId(anonUid, tid, GUEST_RUN_INDEX)}`)
-          .get();
-        return s.exists
-          ? { tournamentId: tid, seed: (s.data() as { seed: number }).seed }
-          : null;
-      }),
-    );
+    // v2.1: 씨앗은 판마다 다르다(AC 3). 회차별로 옮기지 않으면 2판째가 로그인 후 새 씨앗을
+    // 뽑아 대진표가 다시 섞이고, 이미 이긴 Contestant가 되살아난다.
+    const anonSeeds: AnonSeed[] = (
+      await Promise.all(
+        tids.map(async (tid) => {
+          const runs = await guestRunCount(anonUid, tid);
+          return Promise.all(
+            Array.from({ length: runs }, (_, i) => i + 1).map(async (runIndex) => {
+              const s = await adminDb
+                .doc(`bracket_seeds/${runDocId(anonUid, tid, runIndex)}`)
+                .get();
+              return s.exists
+                ? { tournamentId: tid, runIndex, seed: (s.data() as { seed: number }).seed }
+                : null;
+            }),
+          );
+        }),
+      )
+    ).flat();
     for (const w of planSeedTransfer(googleUid, anonSeeds)) {
       try {
         // create-once: preserves the seed's immutability. An already-present
@@ -350,6 +404,7 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
     // 충돌로 버려진 Tournament는 빠진다 — 옮겨온 판이 없으면 한도도 안 쓴다.
     await mergeTournamentRuns(
       googleUid,
+      anonUid,
       tids.filter((tid) => !conflictTids.has(tid)),
     );
 
