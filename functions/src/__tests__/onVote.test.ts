@@ -15,19 +15,21 @@ import {
 
 beforeEach(() => __resetRateBucketsForTest());
 
-describe("onVote rate limit (HF-1.5: 20 / uid / min)", () => {
-  it("the constant is 20 (was 5)", () => {
-    expect(RATE_LIMIT).toBe(20);
+describe("onVote rate limit (RUN-1: 40 / uid / min)", () => {
+  it("상수는 40이다 (HF-1.5의 20 → RUN-1에서 40, 2026-09-03 대표 확정)", () => {
+    // 5판 = 선택 230번. 분당 20이면 규칙이 최소 11.5분을 강제해 "판을 늘려 결과물을
+    // 늘린다"는 v2.0 설계와 정면으로 충돌한다. 40이면 1.5초에 한 번까지 허용된다.
+    expect(RATE_LIMIT).toBe(40);
   });
 
-  it("passes the first 20 calls within a window", () => {
+  it("한 창에서 40번까지 통과한다 (AC 13)", () => {
     const now = 1_000_000;
     for (let i = 0; i < RATE_LIMIT; i++) {
       expect(checkRateLimit("u1", now)).toBe(true);
     }
   });
 
-  it("rejects the 21st call in the same window", () => {
+  it("41번째에 막는다 (AC 13)", () => {
     const now = 1_000_000;
     for (let i = 0; i < RATE_LIMIT; i++) checkRateLimit("u1", now);
     expect(checkRateLimit("u1", now)).toBe(false);

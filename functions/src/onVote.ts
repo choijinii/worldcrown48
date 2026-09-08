@@ -17,8 +17,9 @@
  * ⚠️ 2026-09-06: Tournament Deadline 강제는 **꺼져 있다**(아래 `deadlinePassed: false`).
  * 화면·문구가 PR 2에 있어 팬에게는 고장으로 보였다 — 그 P0의 대응이다.
  *
- * 익명 uid는 허용된다(게스트의 하루 1판 — D-1 linkSessionVote가 로그인 후 재부모화한다).
- * 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다(§5 DO 3).
+ * 익명 uid는 허용된다(게스트는 하루 **통틀어 3판** — v2.1 · D-1 linkSessionVote가 로그인 후
+ * 재부모화한다). 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다
+ * (§5 DO 3). vote 문서에는 `isGuest` 를 서버가 판정해 적는다 — PR 3의 랭킹 제외가 읽는다.
  * uid별 인메모리 속도 제한은 Firestore를 읽기 전에 홍수를 막는다. `date` 는 서버가 KST로
  * 계산한다 — 클라이언트를 믿지 않는다.
  */
@@ -33,10 +34,13 @@ import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
 import { planRunWrite } from "./core/planRunWrite";
 import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
 
-// Per-uid token bucket — 20 calls / uid / minute / instance (HF-1.5 완화).
+// Per-uid token bucket — 40 calls / uid / minute / instance.
+// RUN-1 (2026-09-03 대표 확정): HF-1.5의 20 → 40. 5판 = 선택 230번인데 분당 20이면 규칙이
+// 최소 11.5분을 강제해 "판을 늘려 결과물을 늘린다"는 v2.0 설계와 정면으로 충돌했다. 40이면
+// 1.5초에 한 번까지 허용된다 — 사람이 고르는 속도는 넘지 않으면서 홍수는 막는다.
 // Same algorithm as before (handoff §8.1: token bucket 패턴 유지). Exported below
 // for unit testing (handoff §8.3) without invoking the onCall wrapper / Firestore.
-export const RATE_LIMIT = 20;
+export const RATE_LIMIT = 40;
 export const RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -126,33 +130,9 @@ export const onVote = onCall(
         todayKST: date,
       });
 
-      // ── 게스트 한도가 먼저다 (§5 DO 3: 하루 통틀어 1판) ──────────────────
-      const guest = guestSnap.data() ?? {};
-      const guestRunsTodayBefore = effectiveRunsToday({
-        lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
-        runsToday: Number(guest.runsToday ?? 0),
-        todayKST: date,
-      });
-      if (isAnonymous) {
-        const guestDecision = decideGuestRun({
-          lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
-          runsToday: Number(guest.runsToday ?? 0),
-          runTournamentId: (guest.tournamentId as string | undefined) ?? null,
-          todayKST: date,
-          tournamentId: tid,
-          currentRunComplete,
-        });
-        if (guestDecision.status === "login_required") {
-          // 막히는 두 경우(완주한 판의 재도전 · 다른 Tournament 진입)는 같은 이유다 →
-          // 화면은 하나의 문구(login.guest_limit)로 안내한다 (2026-09-05 대표 확정).
-          throw new HttpsError(
-            "permission-denied",
-            "Guest Run already used today — sign in to keep playing.",
-          );
-        }
-      }
-
-      // ── 회차·한도·마감 판정 (클라이언트 게이트와 같은 함수) ─────────────
+      // ── 회차·한도·마감 판정이 먼저다 (클라이언트 게이트와 같은 함수) ────
+      // v2.1: 게스트 게이트가 이 판정의 결과(이어하기 여부)를 입력으로 받는다. 게스트 한도는
+      // 대회를 가로지르므로 "마지막 대회 하나"로는 이어하기를 판정할 수 없다(§16 실측 3).
       const decision = decideRun({
         runIndex,
         lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
@@ -174,6 +154,34 @@ export const onVote = onCall(
         // ⚠️ 화면 처리 없이 이 줄만 true로 돌리지 말 것 — 같은 P0가 재발한다.
         deadlinePassed: false,
       });
+
+      // ── 게스트 한도 (§5 DO 3 · v2.1: 하루 통틀어 3판) ────────────────────
+      const guest = guestSnap.data() ?? {};
+      const guestRunsTodayBefore = effectiveRunsToday({
+        lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(guest.runsToday ?? 0),
+        todayKST: date,
+      });
+      if (isAnonymous) {
+        const guestDecision = decideGuestRun({
+          lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
+          runsToday: Number(guest.runsToday ?? 0),
+          todayKST: date,
+          // 이어하기는 한도를 쓰지 않는다 — A 미완주 → B → C(3판 소진) → A 이어하기 허용.
+          isContinue: decision.status === "continue",
+        });
+        if (guestDecision.status === "login_required") {
+          // 막히는 모든 경우가 같은 이유(오늘 3판을 다 썼다)라 화면 문구도 하나로 묶인다.
+          // details.code 를 실어야 화면이 "계속하려면 로그인"이 아니라 login.guest_limit
+          // 을 띄운다 — Google 버튼이 함께 뜨는 전환 지점이다 (AC 17).
+          throw new HttpsError(
+            "permission-denied",
+            "Guest daily run limit reached — sign in to keep playing.",
+            { code: VOTE_ERROR_CODES.GUEST_LIMIT },
+          );
+        }
+      }
+
       if (decision.status === "limit_reached") {
         // #12: 하드코딩 한국어를 던지지 않는다 — 화면이 details.code로 3언어를 고른다.
         throw new HttpsError("resource-exhausted", "daily run limit reached", {
@@ -186,7 +194,6 @@ export const onVote = onCall(
       const plan = planRunWrite({
         decision,
         todayKST: date,
-        tournamentId: tid,
         runsTodayBefore,
         guestRunsTodayBefore,
       });
@@ -201,6 +208,9 @@ export const onVote = onCall(
           contestantId: data.contestantId ?? "",
           date,
           runIndex: plan.runIndex,
+          // 서버가 로그인 제공자로 판정한다 — 클라이언트가 보낸 플래그가 아니다(§16 실측 1).
+          // PR 3의 랭킹 집계가 이 필드로 게스트의 선택을 건너뛴다.
+          isGuest: isAnonymous,
         });
       } catch (e) {
         if (e instanceof VoteValidationError) {
