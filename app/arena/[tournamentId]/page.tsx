@@ -190,6 +190,33 @@ export default function ArenaPage(): JSX.Element {
     };
   }, [uid, tournamentId, run?.displayRunIndex, seed]);
 
+  // 판이 끝나는 순간 판 상태를 서버에서 **다시 읽는다**.
+  //
+  // `run` 은 `loadTournament` 시점의 값이라 방금 끝낸 판이 반영돼 있지 않다. 그대로 두면
+  // 완주 화면이 한 판 뒤처진 숫자를 보인다 — 게스트가 1판을 막 끝냈는데 "다시 참여 (0/3)"
+  // 와 "오늘 남은 참여 가능 횟수는 : 3판" 이 뜬다(2026-09-09 프로덕션 §7 검증에서 실측).
+  //
+  // 숫자만의 문제가 아니다. `canPlayAgain`·`blockedReason` 도 진입 시점 기준이라
+  // 이어하던 판을 끝낸 팬은 [다시 참여]가 **비활성인 채로 이유도 없이** 남는다
+  // (진입 시 판정이 `continue` → canPlayAgain false). 즉 이 PR의 주 기능이 새로고침
+  // 전까지 죽어 있다.
+  //
+  // championId 로 가드해 판마다 한 번만 다시 읽는다.
+  const runRefreshedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!uid || !progress?.complete || !progress.championId) return;
+    if (runRefreshedForRef.current === progress.championId) return;
+    runRefreshedForRef.current = progress.championId;
+    void loadTournament(tournamentId, uid, isGuest);
+  }, [
+    uid,
+    tournamentId,
+    isGuest,
+    loadTournament,
+    progress?.complete,
+    progress?.championId,
+  ]);
+
   const byId = useCallback(
     (id: string): Contestant | undefined => contestants.find((c) => c.id === id),
     [contestants],

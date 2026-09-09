@@ -55,8 +55,27 @@ export default function ChampionPage(): JSX.Element {
   const contestants = useVoteStore((s) => s.contestants);
   const loadTournament = useVoteStore((s) => s.loadTournament);
   const run = useVoteStore((s) => s.run);
-  // 회차마다 진행 문서가 다르다 — 딥링크로 들어와도 그 계정의 현재 회차를 본다.
-  const progress = useRoundTransition(uid, tournamentId, run?.displayRunIndex);
+
+  // `?run=n` — 완주 화면의 "이전 참여의 Crown Card" 목록이 붙이는 회차. 없으면 현재 회차다.
+  //
+  // 이게 없으면 목록의 모든 링크가 **최신 카드로** 간다(2026-09-09 §7 검증에서 실측:
+  // 1회차 링크를 눌렀는데 2회차 Champion이 떴다). AC 5의 "지난 판의 카드를 각각 조회"가
+  // 보존만 되고 조회가 안 되던 지점이다.
+  //
+  // useSearchParams 대신 window 에서 읽는다 — 정적 렌더 경로에서 Suspense 경계를
+  // 요구하지 않아 이 한 줄 때문에 빌드 형태를 바꾸지 않아도 된다.
+  const [requestedRun, setRequestedRun] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    const raw = Number(new URLSearchParams(window.location.search).get("run"));
+    setRequestedRun(Number.isInteger(raw) && raw >= 1 ? raw : undefined);
+  }, []);
+
+  // 회차마다 진행 문서가 다르다 — 딥링크로 들어와도 그 계정의 그 회차를 본다.
+  const progress = useRoundTransition(
+    uid,
+    tournamentId,
+    requestedRun ?? run?.displayRunIndex,
+  );
   const [loginOpen, setLoginOpen] = useState(false);
 
   useEffect(() => {
