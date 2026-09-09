@@ -73,11 +73,17 @@ export async function downloadCrown(fmt: FormatKey, data: CrownData, img: HTMLIm
 /**
  * Native Web Share when supported, else download fallback (AC-8). Returns
  * "shared" | "fallback" so the caller can pick the right toast.
+ *
+ * ⚠️ v2.1 (§16 3): 폴백이 **다운로드**라서 게스트에게 그대로 두면 저장 잠금이 뚫린다 —
+ * Web Share를 지원하지 않는 브라우저에서 "공유"를 누르면 그냥 파일이 저장된다. 그래서
+ * `allowDownloadFallback` 을 받아 게스트일 때는 저장 없이 "fallback" 만 돌려주고, 호출부가
+ * 토스트로 안내한다. 공유를 여는 것과 저장을 잠그는 것이 같은 버튼에서 만나는 지점이다.
  */
 export async function nativeShareCrown(
   fmt: FormatKey,
   data: CrownData,
   img: HTMLImageElement | null,
+  allowDownloadFallback: boolean = true,
 ): Promise<"shared" | "fallback"> {
   const blob = await crownBlob(fmt, data, img);
   if (!blob) return "fallback";
@@ -99,7 +105,7 @@ export async function nativeShareCrown(
       return "fallback";
     }
   }
-  await downloadCrown(fmt, data, img);
+  if (allowDownloadFallback) await downloadCrown(fmt, data, img);
   return "fallback";
 }
 

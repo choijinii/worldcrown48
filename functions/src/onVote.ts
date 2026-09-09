@@ -14,11 +14,14 @@
  * 같은 순수 함수(`_run/decideRun`)를 돌려 같은 답에 도달한다(§9 함정 5: 두 게이트가
  * 어긋나면 P0다).
  *
- * ⚠️ 2026-09-06: Tournament Deadline 강제는 **꺼져 있다**(아래 `deadlinePassed: false`).
- * 화면·문구가 PR 2에 있어 팬에게는 고장으로 보였다 — 그 P0의 대응이다.
+ * ✅ 2026-09-09: Tournament Deadline 강제를 **되살렸다**(PR 2). 09-06에 끈 이유는 강제만
+ * 있고 그것을 설명하는 화면·문구가 없어 팬에게 고장으로 보였기 때문이다 — 이제 §8
+ * `arena.run.deadlinePassed` 문구와 첫 진입 안내(AC 16)가 같은 PR에 있고, 배포 전 0단계에서
+ * 노출 중인 Tournament 4개가 전부 마감이 남도록 정리했다.
  *
- * 익명 uid는 허용된다(게스트의 하루 1판 — D-1 linkSessionVote가 로그인 후 재부모화한다).
- * 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다(§5 DO 3).
+ * 익명 uid는 허용된다(게스트는 하루 **통틀어 3판** — v2.1 · D-1 linkSessionVote가 로그인 후
+ * 재부모화한다). 게스트 한도는 Tournament를 가로지르므로 `guest_runs/{uid}` 로 따로 센다
+ * (§5 DO 3). vote 문서에는 `isGuest` 를 서버가 판정해 적는다 — PR 3의 랭킹 제외가 읽는다.
  * uid별 인메모리 속도 제한은 Firestore를 읽기 전에 홍수를 막는다. `date` 는 서버가 KST로
  * 계산한다 — 클라이언트를 믿지 않는다.
  */
@@ -30,13 +33,17 @@ import { buildVoteDoc, kstDate, VoteValidationError } from "./core/voteRecord";
 import { decideRun, effectiveRunsToday, normalizeRunIndex } from "./_run/decideRun";
 import { decideGuestRun } from "./_run/guestRun";
 import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
+import { isDeadlinePassed, toDeadlineMs } from "./_run/deadline";
 import { planRunWrite } from "./core/planRunWrite";
 import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
 
-// Per-uid token bucket — 20 calls / uid / minute / instance (HF-1.5 완화).
+// Per-uid token bucket — 40 calls / uid / minute / instance.
+// RUN-1 (2026-09-03 대표 확정): HF-1.5의 20 → 40. 5판 = 선택 230번인데 분당 20이면 규칙이
+// 최소 11.5분을 강제해 "판을 늘려 결과물을 늘린다"는 v2.0 설계와 정면으로 충돌했다. 40이면
+// 1.5초에 한 번까지 허용된다 — 사람이 고르는 속도는 넘지 않으면서 홍수는 막는다.
 // Same algorithm as before (handoff §8.1: token bucket 패턴 유지). Exported below
 // for unit testing (handoff §8.3) without invoking the onCall wrapper / Firestore.
-export const RATE_LIMIT = 20;
+export const RATE_LIMIT = 40;
 export const RATE_WINDOW_MS = 60_000;
 const uidBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -98,13 +105,16 @@ export const onVote = onCall(
     const guestRef = adminDb.collection("guest_runs").doc(uid);
     // 접미사 없는 옛 진행 문서 = 회차 도입 전의 1회차 판 (§3.0 B안 · AC 11).
     const legacyProgressRef = adminDb.doc(`roundProgress/${runDocId(uid, tid, 1)}`);
+    // 마감은 트랜잭션 안에서 확인한다 — 판정과 쓰기 사이에 마감이 지나면 안 된다.
+    const tournamentRef = adminDb.doc(`tournaments/${tid}`);
 
     await adminDb.runTransaction(async (tx) => {
       // ── 읽기 (Firestore는 모든 읽기가 쓰기보다 앞서야 한다) ──────────────
-      const [runsSnap, guestSnap, legacySnap] = await Promise.all([
+      const [runsSnap, guestSnap, legacySnap, tournamentSnap] = await Promise.all([
         tx.get(runsRef),
         tx.get(guestRef),
         tx.get(legacyProgressRef),
+        tx.get(tournamentRef),
       ]);
 
       const stored = runsSnap.data() ?? {};
@@ -126,7 +136,34 @@ export const onVote = onCall(
         todayKST: date,
       });
 
-      // ── 게스트 한도가 먼저다 (§5 DO 3: 하루 통틀어 1판) ──────────────────
+      // ── 회차·한도·마감 판정이 먼저다 (클라이언트 게이트와 같은 함수) ────
+      // v2.1: 게스트 게이트가 이 판정의 결과(이어하기 여부)를 입력으로 받는다. 게스트 한도는
+      // 대회를 가로지르므로 "마지막 대회 하나"로는 이어하기를 판정할 수 없다(§16 실측 3).
+      const decision = decideRun({
+        runIndex,
+        lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
+        runsToday: Number(stored.runsToday ?? 0),
+        todayKST: date,
+        currentRunComplete,
+        // 🟢 2026-09-09 복원 (§14 · AC 9). PR 1에서 껐던 것을 **문구·화면과 같은 PR에서**
+        // 되살린다 — 막는 것과 왜 막혔는지 알려주는 것은 한 쌍이다(2026-09-06 P0의 교훈).
+        //
+        // 이 값이 true 가 되려면 세 가지가 이미 있어야 하고, 전부 이 PR에 있다:
+        //   ① §8 arena.run.deadlinePassed 문구 3언어
+        //   ② 첫 진입 화면 안내(AC 16) + 완주 화면의 [다시 참여] 비활성 안내(AC 9)
+        //   ③ 클라이언트가 details.code 로 그 문구를 고르는 경로(voteErrorMessageKey)
+        //
+        // 마감이 없는 문서는 "마감 아님"으로 읽는다(toDeadlineMs → null). 0단계에서 마감
+        // 없는 대회를 전부 숨겼지만, 코드가 데이터를 믿고 막으면 그게 다음 P0다.
+        //
+        // 진행 중인 판은 decideRun 의 ① 분기가 먼저 잡아 이 값과 무관하게 이어진다(AC 9).
+        deadlinePassed: isDeadlinePassed(
+          toDeadlineMs(tournamentSnap.get("tournamentDeadline")),
+          Date.now(),
+        ),
+      });
+
+      // ── 게스트 한도 (§5 DO 3 · v2.1: 하루 통틀어 3판) ────────────────────
       const guest = guestSnap.data() ?? {};
       const guestRunsTodayBefore = effectiveRunsToday({
         lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
@@ -137,56 +174,39 @@ export const onVote = onCall(
         const guestDecision = decideGuestRun({
           lastRunDate: (guest.lastRunDate as string | undefined) ?? null,
           runsToday: Number(guest.runsToday ?? 0),
-          runTournamentId: (guest.tournamentId as string | undefined) ?? null,
           todayKST: date,
-          tournamentId: tid,
-          currentRunComplete,
+          // 이어하기는 한도를 쓰지 않는다 — A 미완주 → B → C(3판 소진) → A 이어하기 허용.
+          isContinue: decision.status === "continue",
         });
         if (guestDecision.status === "login_required") {
-          // 막히는 두 경우(완주한 판의 재도전 · 다른 Tournament 진입)는 같은 이유다 →
-          // 화면은 하나의 문구(login.guest_limit)로 안내한다 (2026-09-05 대표 확정).
+          // 막히는 모든 경우가 같은 이유(오늘 3판을 다 썼다)라 화면 문구도 하나로 묶인다.
+          // details.code 를 실어야 화면이 "계속하려면 로그인"이 아니라 login.guest_limit
+          // 을 띄운다 — Google 버튼이 함께 뜨는 전환 지점이다 (AC 17).
           throw new HttpsError(
             "permission-denied",
-            "Guest Run already used today — sign in to keep playing.",
+            "Guest daily run limit reached — sign in to keep playing.",
+            { code: VOTE_ERROR_CODES.GUEST_LIMIT },
           );
         }
       }
 
-      // ── 회차·한도·마감 판정 (클라이언트 게이트와 같은 함수) ─────────────
-      const decision = decideRun({
-        runIndex,
-        lastRunDate: (stored.lastRunDate as string | undefined) ?? null,
-        runsToday: Number(stored.runsToday ?? 0),
-        todayKST: date,
-        currentRunComplete,
-        // 🔴 2026-09-06 P0 대응 — 마감 강제를 껐다(대표 결정).
-        //
-        // AC 9(마감 지난 Tournament는 새 판 불가)는 유효하고 `decideRun` 의 판정
-        // 로직·테스트도 그대로 있다. 끈 것은 **서버 강제**뿐이다.
-        //
-        // 왜: 마감 강제를 PR 1(서버)에 넣었는데 그걸 설명할 화면·문구는 PR 2에 있다.
-        // 그래서 마감 지난 Tournament에서 팬이 본 것은 "마감됐어요"가 아니라
-        // 일반 실패 배너("투표에 실패했어요")였다. 배포 시점에 `active` Tournament
-        // 19개 중 14개가 마감을 지나 있어 사실상 투표가 막혔다.
-        //
-        // 설명 없는 강제는 고장으로 보인다. PR 2에서 §8 `arena.run.deadlinePassed`
-        // 문구와 첫 진입 화면 안내(AC 16)를 함께 올릴 때 이 값을 되살린다.
-        // ⚠️ 화면 처리 없이 이 줄만 true로 돌리지 말 것 — 같은 P0가 재발한다.
-        deadlinePassed: false,
-      });
       if (decision.status === "limit_reached") {
         // #12: 하드코딩 한국어를 던지지 않는다 — 화면이 details.code로 3언어를 고른다.
         throw new HttpsError("resource-exhausted", "daily run limit reached", {
           code: VOTE_ERROR_CODES.DAILY_LIMIT,
         });
       }
-      // `deadline_passed` 분기는 위에서 강제를 껐으므로 지금은 도달하지 않는다.
-      // PR 2가 화면·문구와 함께 되살린다 (VOTE_ERROR_CODES.DEADLINE_PASSED는 유지).
+      if (decision.status === "deadline_passed") {
+        // 화면은 이 코드로 arena.run.deadlinePassed("이 Tournament는 마감됐어요. 다른
+        // Tournament에 참여해 보세요.")를 고른다 — 일반 실패 배너가 아니다.
+        throw new HttpsError("failed-precondition", "tournament deadline passed", {
+          code: VOTE_ERROR_CODES.DEADLINE_PASSED,
+        });
+      }
 
       const plan = planRunWrite({
         decision,
         todayKST: date,
-        tournamentId: tid,
         runsTodayBefore,
         guestRunsTodayBefore,
       });
@@ -201,6 +221,9 @@ export const onVote = onCall(
           contestantId: data.contestantId ?? "",
           date,
           runIndex: plan.runIndex,
+          // 서버가 로그인 제공자로 판정한다 — 클라이언트가 보낸 플래그가 아니다(§16 실측 1).
+          // PR 3의 랭킹 집계가 이 필드로 게스트의 선택을 건너뛴다.
+          isGuest: isAnonymous,
         });
       } catch (e) {
         if (e instanceof VoteValidationError) {

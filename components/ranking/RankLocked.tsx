@@ -1,6 +1,6 @@
 /**
  * RankLocked — the W-7 "locked" state: the ranking is sealed until the Tournament
- * Deadline passes (마감 전 노출은 표심 쏠림 위험 → 공정한 한 표 보존). Pure
+ * Deadline passes (마감 전 노출은 선택 쏠림 위험 → 공정한 선택 보존). Pure
  * presentational; the page decides locked vs loaded from the Tournament deadline,
  * and firestore.rules enforces the same gate server-side (defense in depth).
  *

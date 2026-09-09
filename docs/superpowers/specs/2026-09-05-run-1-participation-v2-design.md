@@ -1,3 +1,5 @@
+> ⚠️ **2026-09-07 개정 안내** — 이 문서의 "게스트 하루 통틀어 1판"·`guest_runs.tournamentId`는 **참가 규칙 v2.1(2026-09-06 대표 확정)로 바뀌었다**: 게스트 하루 통틀어 **3판**, `guest_runs`는 `{lastRunDate, runsToday}`만(이어하기는 회차 `continue`가 판정), 게스트 공유 개방·저장 잠금, **게스트의 선택은 랭킹 제외**(vote `isGuest`). PR 1 구현 기록으로만 읽을 것. 정본 = `outputs/참가규칙_정본v2.1_판Run_2026-09-07.html` · 핸드오프 §16.
+
 # RUN-1 참가 규칙 v2.0 — 설계서
 
 > **작성**: 2026-09-05 · Claude Code (Superpowers brainstorming Phase 1 산출물)

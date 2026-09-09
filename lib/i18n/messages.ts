@@ -94,10 +94,13 @@ export const MESSAGES = {
   "pitch.hero.l1": { ko: "왕관의 주인은", en: "Who wears the", es: "¿Quién lleva la" },
   // en MUST stay exactly "Ultimate Crown?" (route-swap/CDN grep target, §9 trap 4).
   "pitch.hero.l2": { ko: "Ultimate Crown?", en: "Ultimate Crown?" },
+  // 2026-09-07 대표 승인: "예측도, 배당도 없이 —" 삭제(도박·투기 연상 — 서비스 정체성
+  // 금지 항목) + 뒷부분 교체. 금지어 정정: "당신의 한 표가" → "당신의 선택이"
+  // ("표"는 낱말 자체가 금지 — LANGUAGE.md §7). 앞부분은 3언어 그대로 둔다.
   "pitch.hero.sub": {
-    ko: "48 Contestants. Five Rounds. Match를 거치며 하나의 Crown만 남을 때까지 전진합니다. 예측도, 배당도 없이 — 오직 팬의 선택. 당신의 한 표가 Champion을 만듭니다.",
-    en: "48 Contestants. Five Rounds. You advance Match by Match until one Crown remains. No predictions, no odds — pure fan choice. Your vote crowns the Champion.",
-    es: "48 Contestants. Cinco Rounds. Avanzas Match a Match hasta que queda una sola Crown. Sin predicciones ni apuestas — solo la elección de los fans. Tu voto corona al Champion.",
+    ko: "48 Contestants. Five Rounds. Match를 거치며 하나의 Crown만 남을 때까지 전진합니다. 오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다.",
+    en: "48 Contestants. Five Rounds. You advance Match by Match until one Crown remains. Pure fan choice. Your pick crowns the Champion.",
+    es: "48 Contestants. Cinco Rounds. Avanzas Match a Match hasta que queda una sola Crown. Solo la elección de los fans. Tu elección corona al Champion.",
   },
   "pitch.hero.cta.start": {
     ko: "투표 시작",
@@ -210,20 +213,74 @@ export const MESSAGES = {
   // ── Arena vote errors (Domain 3, castVote) — #12 3-language mapping ──
   // Server sends a stable details.code; the client resolves the localized toast
   // (no more hardcoded Korean from onVote). "Tournament" stays verbatim.
+  // RUN-1 §8 대표 승인 최종본 (2026-09-07). HF-1의 "하루 새 대회 5개" 문구를 대체한다 —
+  // 그 정의는 v2.0에서 폐기됐고 LANGUAGE.md §7 금지어다.
   "arena.vote.dailyLimit": {
-    ko: "오늘 참가할 수 있는 Tournament를 모두 사용했어요 (5/5)",
-    en: "You've joined all 5 Tournaments for today (5/5)",
-    es: "Ya has participado en los 5 Tournaments de hoy (5/5)",
+    ko: "이 Tournament는 오늘 5번 참여를 모두 하셨어요 (5/5)",
+    en: "You've played all 5 runs of this Tournament today (5/5)",
+    es: "Ya has jugado las 5 partidas de este Tournament hoy (5/5)",
   },
+  "arena.vote.dailyLimitSub": {
+    ko: "한국 시간 자정에 참여 횟수가 다시 채워져요. 다른 Tournament는 지금 바로 참여하실 수 있어요.",
+    en: "Your 5 runs reset at Seoul midnight. Other Tournaments are open right now.",
+    es: "Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora.",
+  },
+  // 차단 문구 원칙(2026-09-05 대표 확정): 막고 나서 길을 열어준다. "할 수 없다"는 이미
+  // 비활성 버튼이 눈으로 말하므로 문구는 갈 곳을 말해야 한다 — 몇 초 뒤 이어가기로.
   "arena.vote.rateLimited": {
-    ko: "잠시 후 다시 시도해주세요.",
-    en: "Please try again in a moment.",
-    es: "Vuelve a intentarlo en un momento.",
+    ko: "조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요.",
+    en: "You're choosing quickly. Take a few seconds, then keep going.",
+    es: "Estás eligiendo muy rápido. Espera unos segundos y continúa.",
   },
   "arena.vote.failed": {
     ko: "투표에 실패했어요. 다시 시도해주세요.",
     en: "Your vote didn't go through. Please try again.",
     es: "No se registró tu voto. Inténtalo de nuevo.",
+  },
+
+  // ── 판(Run) 화면 · 게스트 안내 (RUN-1 v2.1) ──
+  // §8 대표 승인 최종본(2026-09-07). 표시 용어 v2.2: 화면의 '판'은 "참여"로 순화하고
+  // "표"는 낱말 자체가 금지어다(LANGUAGE.md §7). {n}·{limit} 은 resolveMessage 의 보간
+  // 토큰 — 로그인 5 · 게스트 3을 주입한다(2026-09-08 대표 확정). 승인본의 한국어 낱말은
+  // 한 글자도 다르지 않고 숫자만 사실에 맞춘다.
+  "arena.run.playAgain": {
+    ko: "다시 참여 ({n}/{limit})",
+    en: "Play again ({n}/{limit})",
+    es: "Jugar otra vez ({n}/{limit})",
+  },
+  "arena.run.pastCards": {
+    ko: "이전 참여의 Crown Card",
+    en: "Your earlier Crown Cards",
+    es: "Tus Crown Cards anteriores",
+  },
+  // AC 9·16. 2026-09-06 P0의 직접 대응 — 마감 거부가 "투표에 실패했어요"로 보이던 자리다.
+  "arena.run.deadlinePassed": {
+    ko: "이 Tournament는 마감됐어요. 다른 Tournament에 참여해 보세요.",
+    en: "This Tournament has closed. Try a new run in another Tournament.",
+    es: "Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament.",
+  },
+  // 게스트 안내 3지점 중 ①(첫 진입) · ②(Crown Card 화면의 남은 횟수).
+  "arena.guest.welcome": {
+    ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
+    en: "Join up to 3 times a day — no sign-in needed!",
+    es: "¡Participa hasta 3 veces al día — sin iniciar sesión!",
+  },
+  "arena.guest.remaining": {
+    ko: "오늘 남은 참여 가능 횟수는 : {n}판 · 저장하려면 로그인",
+    en: "Entries left today: {n} · Sign in to save",
+    es: "Participaciones restantes hoy: {n} · Inicia sesión para guardar",
+  },
+  // ③ 소진 시 모달. LoginModal 은 Lang 을 직접 받아 자체 STRINGS 를 쓰지만, 승인본의
+  // 단일 출처는 여기다 — 모달이 이 두 키를 resolveMessage 로 읽는다.
+  "login.guest_limit.title": {
+    ko: "오늘의 서비스(3번 참여)를 모두 소진하셨어요.",
+    en: "You've used all 3 of today's free entries.",
+    es: "Has usado tus 3 participaciones gratis de hoy.",
+  },
+  "login.guest_limit.sub": {
+    ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요.",
+    en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
+    es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
   },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──

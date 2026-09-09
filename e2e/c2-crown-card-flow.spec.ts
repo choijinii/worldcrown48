@@ -79,6 +79,11 @@ async function seedToFinal(): Promise<void> {
         matchId: matchId(round, i),
         contestantId: `${TID}_c${round === 1 ? i * 2 + 1 : i + 1}`,
         date: SEED_PAST_DATE,
+        // RUN-1: 클라이언트가 `where("runIndex","==",n)` 로 그 판의 선택만 읽는다
+        // (§9 함정 9). 시드에 이 필드가 없으면 THE FINAL에 도달하지 못한다.
+        runIndex: 1,
+        // v2.1: 서버가 sign_in_provider 로 판정해 적는 필드.
+        isGuest: false,
       });
     }
   }

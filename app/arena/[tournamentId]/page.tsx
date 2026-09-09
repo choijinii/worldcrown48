@@ -2,13 +2,19 @@
  * /arena/[tournamentId] — The Arena (Domain 3, Voter-facing).
  *
  * Wires the tested logic to the wireframe-matched components:
- *   voteStore.loadTournament → selectCurrentMatch → MatchView / FinalPickView
- *   vote → useVoteGate (guest 1 / daily 5) → onVote callable → optimistic addVote
- *   round complete → advanceRound writes roundProgress → useRoundTransition →
- *     RoundTransition overlay → (THE FINAL) Champion
+ *   voteStore.loadTournament → resolveActiveRun(회차) → selectCurrentMatch →
+ *     MatchView / FinalPickView
+ *   vote → onVote callable → optimistic addVote (클라 게이트 없음 — 아래 참조)
+ *   round complete → advanceRound writes roundProgress/{uid}_{tid}[_r{n}] →
+ *     useRoundTransition → RoundTransition overlay → (THE FINAL) Champion
+ *   완주 → CrownCardModal + RunCompleteActions([다시 참여] · 이전 참여 카드)
  *
  * The bracket is never stored — it's recomputed from votes each render
  * (ADR-0001), so a refresh resumes at the exact current match.
+ *
+ * RUN-1 v2.1: **회차와 한도 판정은 `voteStore` 한 곳에만 있다.** 이 페이지는 `run.screen`
+ * 을 그리고 서버 오류의 `details.code` 로 모달을 고를 뿐, 스스로 판정하지 않는다 —
+ * 판정이 두 곳이면 답도 두 개가 되고 그게 §9 함정 5다.
  */
 "use client";
 
@@ -17,7 +23,6 @@ import { useParams } from "next/navigation";
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
-import { useVoteGate } from "@/lib/voteGate";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/useT";
 import { trackWithConsent } from "@/lib/analytics";
@@ -28,7 +33,8 @@ import {
   resolveEntryPoint,
   roundParam,
 } from "@/lib/analytics/funnelEvents";
-import { voteErrorMessageKey } from "@/lib/voteErrorCodes";
+import { voteErrorDetailCode, voteErrorMessageKey, VOTE_ERROR_CODES } from "@/lib/voteErrorCodes";
+import { GUEST_DAILY_RUN_LIMIT } from "@/lib/run/guestRun";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { LoginModal, type LoginReason } from "@/components/auth/LoginModal";
 import type { Contestant } from "@/lib/types/tournament";
@@ -46,7 +52,11 @@ import { ModuleNav } from "@/components/arena/ModuleNav";
 import { FinalPickView } from "@/components/arena/FinalPickView";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
+import { RunCompleteActions } from "@/components/arena/RunCompleteActions";
 import { toCrownData } from "@/lib/crown/championLoader";
+import { crownActionState } from "@/lib/crown/crownActions";
+import { loadOrCreateBracketSeed } from "@/lib/arena/bracketSeed";
+import { getDb } from "@/lib/firebase";
 import styles from "@/components/arena/arena.module.css";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
@@ -75,8 +85,9 @@ export default function ArenaPage(): JSX.Element {
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const uid = user?.uid;
-  // Share/download require a real (non-anonymous) sign-in (AC-9/10).
-  const canShare = Boolean(user && !user.isAnonymous);
+  const isGuest = Boolean(user?.isAnonymous);
+  // v2.1 (§16 2·3): 공유는 게스트에게 열렸고 **저장(다운로드)만** 로그인 게이트다.
+  const { canShare, canSave } = crownActionState({ isSignedIn: Boolean(user) && !isGuest });
 
   const tournament = useVoteStore((s) => s.tournament);
   const contestants = useVoteStore((s) => s.contestants);
@@ -84,10 +95,11 @@ export default function ArenaPage(): JSX.Element {
   const error = useVoteStore((s) => s.error);
   const loadTournament = useVoteStore((s) => s.loadTournament);
   const addVote = useVoteStore((s) => s.addVote);
+  // 회차는 스토어가 단독으로 정한다 — 화면은 읽기만 한다(§9 함정 5).
+  const run = useVoteStore((s) => s.run);
+  const seed = useVoteStore((s) => s.seed);
 
-  const { checkCanVote, onVoteSuccess } = useVoteGate();
-  const progress = useRoundTransition(uid, tournamentId);
-  const isGuest = !canShare;
+  const progress = useRoundTransition(uid, tournamentId, run?.displayRunIndex);
 
   // ── 계측 소킥 A (2026-08-30) — 투표 퍼널 4단계 ────────────────────────────
   // tournament_start / round_advance(48·24·12·6·final) / champion_confirmed.
@@ -97,6 +109,7 @@ export default function ArenaPage(): JSX.Element {
   const tournamentStartFiredRef = useRef<string | null>(null);
   const roundAdvanceFiredRef = useRef<number | null>(null);
   const championFiredRef = useRef<string | null>(null);
+  const guestLimitFiredRef = useRef(false);
 
   useEffect(() => {
     if (!tournament) return;
@@ -140,14 +153,42 @@ export default function ArenaPage(): JSX.Element {
     });
   }, [tournament, progress?.complete, progress?.championId, isGuest, lang]);
 
+  // guest_limit_view (EVENT_SPEC v1.2 §9, 신설) — 게스트가 3판 소진 모달을 본 시점에 1회.
+  // v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 "3판 소진"으로 옮겨갔으므로 **이 이벤트가
+  // 전환율의 분모다.** 없으면 게스트 전환율 30% 판정 자체가 불가능하다.
+  // 모달은 tournament·category를 모르기 때문에 페이지에서 쏜다.
+
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState<LoginReason | null>(null);
   const [dismissedTo, setDismissedTo] = useState(0);
 
   useEffect(() => {
-    if (uid) void loadTournament(tournamentId, uid);
-  }, [uid, tournamentId, loadTournament]);
+    if (uid) void loadTournament(tournamentId, uid, isGuest);
+  }, [uid, tournamentId, loadTournament, isGuest]);
+
+  useEffect(() => {
+    if (modal !== "guest_limit" || !tournament || guestLimitFiredRef.current) return;
+    guestLimitFiredRef.current = true;
+    void trackWithConsent("guest_limit_view", {
+      ...commonEventParams(tournament, isGuest, lang),
+      runs_today: run?.runsToday ?? GUEST_DAILY_RUN_LIMIT,
+    });
+  }, [modal, tournament, isGuest, lang, run?.runsToday]);
+
+  // [다시 참여]로 회차가 올라가면 씨앗도 그 회차 문서에서 새로 받아야 한다 — 안 그러면
+  // seed 0으로 대진이 만들어져 "판마다 대진표가 다르다"(AC 3)가 깨진다.
+  useEffect(() => {
+    const idx = run?.displayRunIndex;
+    if (!uid || !idx || seed !== 0) return;
+    let cancelled = false;
+    void loadOrCreateBracketSeed(getDb(), uid, tournamentId, idx).then((s) => {
+      if (!cancelled) useVoteStore.setState({ seed: s });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [uid, tournamentId, run?.displayRunIndex, seed]);
 
   const byId = useCallback(
     (id: string): Contestant | undefined => contestants.find((c) => c.id === id),
@@ -160,16 +201,9 @@ export default function ArenaPage(): JSX.Element {
       const match = selectCurrentMatch(state);
       if (!match || submitting) return;
 
-      const gate = await checkCanVote(tournamentId);
-      if (gate.status === "login_required") {
-        setModal(gate.reason);
-        return;
-      }
-      if (gate.status === "daily_limit_reached") {
-        setModal("daily_limit");
-        return;
-      }
-
+      // 클라이언트 게이트를 여기서 다시 돌리지 않는다. `run.screen` 이 이미 그 답이고,
+      // "play" 가 아니면 이 화면 자체가 안 그려져 vote() 가 호출되지 않는다 — 판정이
+      // 스토어 한 곳에만 남아 §9 함정 5가 구조로 막힌다. 서버가 최종 판정자다(§5 DO 2).
       setPickedId(contestantId);
       setSubmitting(true);
       try {
@@ -181,25 +215,27 @@ export default function ArenaPage(): JSX.Element {
           contestantId,
         });
         addVote({ round: match.round, matchId: match.matchId, contestantId });
-        onVoteSuccess(tournamentId);
       } catch (e) {
-        const code = (e as { code?: string }).code;
-        // HF-3 W3: the Guest Run server guard rejects a policy-violating anon
-        // vote (completed run / second Tournament) with permission-denied even
-        // if the client gate was bypassed — surface the LoginModal, not a toast.
-        if (code === "functions/permission-denied") {
-          setModal("vote");
+        const detail = voteErrorDetailCode(e);
+        // 막는 것과 왜 막혔는지 알려주는 것은 한 쌍이다(§14). 서버가 실은 코드로 갈라
+        // 각각 제 화면을 띄운다 — 전부 일반 실패 배너로 흘리면 2026-09-06 P0가 재발한다.
+        if (detail === VOTE_ERROR_CODES.GUEST_LIMIT) {
+          // Google 버튼이 함께 뜨는 전환 지점 (AC 17).
+          setModal("guest_limit");
+        } else if (detail === VOTE_ERROR_CODES.DAILY_LIMIT) {
+          setModal("daily_limit");
         } else {
-          // #12: localize off the server's details.code (daily_limit /
-          // rate_limited) — no more hardcoded Korean for en/es Voters.
+          // deadline_passed 는 voteErrorMessageKey 가 마감 안내로 매핑한다.
           showToast(t(voteErrorMessageKey(e)), "error");
         }
+        // 서버 판정과 화면을 다시 맞춘다 — 클라 게이트를 없앴으므로 재로드가 정합의 수단이다.
+        if (uid) void loadTournament(tournamentId, uid, isGuest);
       } finally {
         setSubmitting(false);
         setPickedId(null);
       }
     },
-    [tournamentId, submitting, checkCanVote, addVote, onVoteSuccess, t],
+    [tournamentId, submitting, addVote, t, uid, isGuest, loadTournament],
   );
 
   const loginModal = (
@@ -243,7 +279,9 @@ export default function ArenaPage(): JSX.Element {
             // is upstream (auth never resolved a user), so a reload is the only
             // thing that can actually recover.
             onClick={() =>
-              uid ? void loadTournament(tournamentId, uid) : window.location.reload()
+              uid
+                ? void loadTournament(tournamentId, uid, isGuest)
+                : window.location.reload()
             }
             style={{
               background: "var(--color-gold)",
@@ -282,6 +320,55 @@ export default function ArenaPage(): JSX.Element {
     );
   }
 
+  // 마감된 Tournament에 **한 판도 안 돈 팬**이 처음 들어온 경우 (AC 16).
+  // 완주 화면의 [다시 참여] 비활성만으로는 부족하다 — 그 팬에게는 완주 화면이 없다.
+  // 이 안내와 서버의 마감 강제는 한 쌍이다(§14): 강제만 있고 설명이 없던 것이
+  // 2026-09-06 P0였고, 그래서 이 화면과 onVote 의 deadlinePassed 복원이 같은 커밋에 있다.
+  if (run?.screen === "deadline_passed") {
+    return (
+      <div className={styles.arena} data-arena-surface="deadline">
+        <Center>
+          <div>
+            <p style={{ marginBottom: 16 }}>{t("arena.run.deadlinePassed")}</p>
+            <a href="/" style={{ color: "var(--color-gold)" }}>
+              {t("arena.load.home")}
+            </a>
+          </div>
+        </Center>
+      </div>
+    );
+  }
+
+  // 게스트가 오늘 3판을 다 쓰고 새 대회에 들어온 경우 — 안내 3지점 중 ③.
+  // 완주 화면보다 앞에 둘 수 없다: 완주한 판이 있으면 그 카드를 먼저 보여줘야 한다.
+  if (run?.screen === "guest_limit") {
+    return (
+      <div className={styles.arena} data-arena-surface="guest-limit">
+        <Center>
+          <div>
+            <p style={{ marginBottom: 16 }}>{t("login.guest_limit.title")}</p>
+            <button
+              type="button"
+              onClick={() => setModal("guest_limit")}
+              style={{
+                background: "var(--color-gold)",
+                color: "var(--color-bg-default)",
+                border: "none",
+                borderRadius: 8,
+                padding: "10px 20px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {t("login.guest_limit.sub")}
+            </button>
+          </div>
+        </Center>
+        {loginModal}
+      </div>
+    );
+  }
+
   const state = useVoteStore.getState();
   const complete = selectIsComplete(state) || Boolean(progress?.complete);
   if (complete) {
@@ -293,7 +380,18 @@ export default function ArenaPage(): JSX.Element {
       const data = toCrownData(champ, tournament);
       return (
         <div className={styles.arena} data-arena-surface="champion">
-          <CrownCardModal data={data} canShare={canShare} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} />
+          <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} />
+          {run && uid ? (
+            <RunCompleteActions
+              run={run}
+              uid={uid}
+              tournamentId={tournamentId}
+              isGuest={isGuest}
+              nameOf={(id) => byId(id)?.name}
+              onPlayAgain={() => useVoteStore.getState().startNextRun()}
+              onSignIn={() => setModal("guest_limit")}
+            />
+          ) : null}
           {loginModal}
         </div>
       );
@@ -331,6 +429,19 @@ export default function ArenaPage(): JSX.Element {
     <>
       <ModuleNav tournamentId={tournamentId} />
       <div className={styles.arena} data-arena-surface="vs">
+        {/* 게스트 안내 ① — 첫 진입(아직 한 판도 안 쓴 상태)에만 보인다. */}
+        {isGuest && run?.runsToday === 0 ? (
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: 12,
+              color: "var(--color-text-muted)",
+              margin: "var(--space-3) 0 0",
+            }}
+          >
+            {t("arena.guest.welcome")}
+          </p>
+        ) : null}
         <MatchView
           title={localizedTitle(tournament, lang)}
           left={left}

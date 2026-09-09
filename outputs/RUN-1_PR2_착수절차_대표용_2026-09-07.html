@@ -1,0 +1,97 @@
+<title>RUN-1 PR 2 착수 절차</title>
+<style>
+:root{color-scheme:light;
+  --ink:#141b2d;--ink-2:#3b465e;--muted:#6b7590;--line:#dfe4ee;--paper:#f5f6f9;--card:#ffffff;
+  --navy:#1b2540;--gold:#fcd006;--gold-ink:#7a5a00;--gold-bg:#fff7cc;--ok:#1f7a4d;--ok-bg:#e9f7ef;--warn:#9a3b12;--warn-bg:#fdefe6;
+  --mono:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:32px 20px 80px}
+header{background:var(--navy);color:#fff;border-radius:18px;padding:28px 32px;margin-bottom:22px}
+header .kicker{font-size:12px;letter-spacing:.18em;color:var(--gold);font-weight:700;margin-bottom:8px}
+header h1{margin:0 0 6px;font-size:26px;text-wrap:balance}
+header p{margin:0;color:#c3cbe0;font-size:14.5px}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 28px;margin-bottom:18px}
+h2{margin:0 0 12px;font-size:19px;display:flex;gap:10px;align-items:center}
+h2 .no{background:var(--navy);color:#fff;font-size:12.5px;border-radius:8px;padding:2px 9px;font-weight:700}
+p{margin:8px 0}
+.map{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 4px}
+.step{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:#fbfcfe}
+.step .n{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.step .t{font-weight:600}
+.step .s{font-size:12.5px;letter-spacing:.06em;padding:3px 10px;border-radius:999px;font-weight:700}
+.done{background:var(--ok-bg);color:var(--ok)}
+.now{background:var(--gold-bg);color:var(--gold-ink);border:1px solid var(--gold)}
+.todo{background:#eef1f7;color:var(--muted)}
+.cmd{margin:10px 0 4px}
+.cmd .why{font-size:13.5px;color:var(--ink-2);margin:0 0 4px}
+pre{margin:0;background:#0f1424;color:#e9edf7;border-radius:10px;padding:12px 14px;font:14px/1.6 var(--mono);overflow-x:auto}
+.ok{font-size:13px;color:var(--ok);margin:4px 0 0}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f9fc;font-weight:700}
+.note{background:var(--warn-bg);border-left:4px solid var(--warn);padding:10px 14px;border-radius:8px;font-size:14px;margin-top:12px}
+.tip{background:var(--gold-bg);border-left:4px solid var(--gold);padding:10px 14px;border-radius:8px;font-size:14px;margin-top:12px}
+code{font-family:var(--mono);font-size:.92em;background:#eef1f7;padding:1px 5px;border-radius:5px}
+footer{color:var(--muted);font-size:12.5px;margin-top:20px}
+</style>
+<div class="wrap">
+<header>
+  <div class="kicker">WORLDCROWN48 · RUN-1 · PR 2</div>
+  <h1>PR 2 착수 절차 — 화면·문구 + 게스트 정책 v2.1</h1>
+  <p>2026-09-07 · 티오 → 대표님. 명령 3줄 + 붙여넣기 1번이면 Claude Code가 시작합니다.</p>
+</header>
+
+<section>
+  <h2><span class="no">1</span> 지금 어디까지 왔나</h2>
+  <div class="map">
+    <div class="step"><span class="n">PR 1</span><span class="t">서버 코어 — 회차(runIndex) 도입 · #90 #91 #92</span><span class="s done">완료 · 눈검사 통과</span></div>
+    <div class="step"><span class="n">문서</span><span class="t">참가 규칙 v2.1 전파 + 승인 문구 확정 · 커밋 e273782 · c800093</span><span class="s done">완료 (오늘)</span></div>
+    <div class="step"><span class="n">PR 2</span><span class="t">화면·문구 · 마감 강제 복원 · 게스트 3판/공유 개방/저장 잠금 · 안내 3지점</span><span class="s now">지금 착수</span></div>
+    <div class="step"><span class="n">PR 3</span><span class="t">계측·정리 — 게스트의 선택 랭킹 제외 · match_session_id 회차 · 랭킹 12시간</span><span class="s todo">대기</span></div>
+  </div>
+  <p style="font-size:14px;color:var(--ink-2)">브랜치 <code>feat/run-1-pr2-screens-v2.1</code>은 이미 만들어져 있고, 그 위에 오늘 문서 커밋 2개가 올라가 있습니다. Claude Code는 이 브랜치에서 코드를 시작합니다.</p>
+</section>
+
+<section>
+  <h2><span class="no">2</span> 대표님이 하실 일 — 터미널 명령 3줄</h2>
+  <div class="cmd"><p class="why">① 프로젝트 폴더로 이동합니다.</p><pre>cd ~/Projects/worldcrown48</pre></div>
+  <div class="cmd"><p class="why">② 티오가 작업하며 남긴 임시 잠금 파일을 치웁니다 (티오 쪽에서는 삭제 권한이 없어 모아 두었습니다). 아무 메시지가 없으면 성공입니다.</p><pre>rm -rf .git/_to_delete .git/objects/*/tmp_obj_*</pre></div>
+  <div class="cmd"><p class="why">③ 지금 브랜치가 맞는지 확인합니다. <b>feat/run-1-pr2-screens-v2.1</b> 이 찍히면 성공입니다.</p><pre>git branch --show-current</pre></div>
+  <div class="cmd"><p class="why">④ Claude Code를 켭니다.</p><pre>claude</pre></div>
+  <p class="ok">✓ 성공 신호: 입력창이 뜨면 다음 단계로.</p>
+</section>
+
+<section>
+  <h2><span class="no">3</span> 붙여넣기 1번</h2>
+  <p>파일 <code>outputs/PROMPT_ClaudeCode_RUN-1_PR2_2026-09-07.md</code>를 열어 <b><code>---8&lt;---</code> 사이의 내용을 통째로 복사</b>해 Claude Code 입력창에 붙여넣고 Enter.</p>
+  <p style="font-size:14px;color:var(--ink-2)">프롬프트 안에 오늘 승인하신 문구 표(3언어), 절대 규칙, 완료 조건, 눈검사 5단계가 전부 들어 있습니다. Claude Code가 먼저 <b>자가검증 결과</b>를 출력하고, 그다음 <b>0단계(대회 정리) 보고 표</b>를 올릴 것입니다.</p>
+</section>
+
+<section>
+  <h2><span class="no">4</span> Claude Code가 중간에 물어볼 것 — 미리 정해 두시면 빠릅니다</h2>
+  <table>
+    <tr><th style="width:38%">물어볼 것</th><th>오늘 확정된 답 / 대표님이 정하실 것</th></tr>
+    <tr><td>0단계 — 팬용 4개 Tournament의 <b>새 마감 날짜</b></td><td>런칭(10/08) 이후여야 합니다. 제안값 <b>2026-11-30</b>. 다른 날짜를 원하시면 그때 말씀하시면 됩니다.</td></tr>
+    <tr><td>0단계 — 숨길 목록 확인</td><td>테스트·미리보기용 전부 + <b>마감이 없는 5개</b>(발로란트·라면·아름다운 여자아이돌·남자아이돌 비주얼·축구선수 전설). 이 5개 중 살리고 싶은 게 있으면 "마감 부여"로 바꿔 말씀해 주세요.</td></tr>
+    <tr><td>0단계 — 09-06 테스트 데이터 삭제</td><td>확인 후 삭제 (오늘 대표님 답: "아직 안 됐다/모르겠다").</td></tr>
+    <tr><td>Superpowers 플러그인이 없다고 할 때</td><td>건너뛰지 말고 설치: <code>/plugin install superpowers@claude-plugins-official</code></td></tr>
+    <tr><td>표에 없는 새 문구가 필요하다고 할 때</td><td>구현 전 승인이 규칙입니다 — 티오에게 가져오시면 초안을 드립니다.</td></tr>
+  </table>
+  <div class="note"><b>⛔ 배포 전제:</b> 0단계(대회 정리)가 끝나기 전에는 배포하지 않습니다. 마감 강제가 살아나는데 마감 남은 대회가 하나도 없으면 09-06과 같은 P0가 문구만 붙은 채 재발합니다.</div>
+</section>
+
+<section>
+  <h2><span class="no">5</span> 핵심 눈검증 4가지 (Claude Code가 먼저 완주한 뒤 대표님께 요청)</h2>
+  <table>
+    <tr><th style="width:6%">#</th><th>무엇을 보나</th><th style="width:34%">성공 모습</th></tr>
+    <tr><td>1</td><td>로그인 후 1판 완주 → <b>[다시 참여 (2/5)]</b> → 2판째 48강 첫 매치</td><td>1판째와 <b>다른 대진</b></td></tr>
+    <tr><td>2</td><td>마감 지난 Tournament에 처음 들어갔을 때</td><td>"이 Tournament는 마감됐어요…" 한 줄이 보이고, 선택하면 일반 실패 배너가 <b>아닌</b> 같은 안내</td></tr>
+    <tr><td>3</td><td>시크릿 창(게스트) 첫 진입 → 1판 완주 → Crown Card 화면</td><td>"하루 3번까지 참여" 안내 → 남은 횟수 표시 → <b>공유는 되고 다운로드만 로그인 요구</b></td></tr>
+    <tr><td>4</td><td>게스트 4판째 시도</td><td>"오늘의 서비스(3번 참여)를 모두 소진하셨어요." + Google 버튼</td></tr>
+  </table>
+  <div class="tip">Chrome 확장이 오늘 연결됐습니다. Claude Code가 눈검사를 요청하면 티오도 같은 경로를 병행해서 확인해 드릴 수 있습니다 — 그 Chrome 탭에서 <b>[Google로 계속하기]</b>만 대표님이 눌러 주시면 운영자 화면까지 읽을 수 있습니다.</div>
+</section>
+
+<footer>WorldCrown48 · RUN-1 PR 2 착수 절차 · 2026-09-07 · 티오(Cowork)</footer>
+</div>

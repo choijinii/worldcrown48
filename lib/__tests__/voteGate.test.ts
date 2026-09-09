@@ -1,155 +1,127 @@
 /**
- * lib/voteGate — decision table for the Guest Run policy (HF-3) layered over
- * the Daily Participation Limit (HF-1).
+ * decideVoteGate — 클라이언트 게이트 (v2.1).
  *
- * The site signs every visitor in with `signInAnonymously` (lib/firebase.ts), so
- * `user` is almost never null — the guest discriminator is `isAnonymous`, NOT
- * `!user` (that was the HF-3 spec-pollution root cause: the `!user` branch never
- * fired, so anon uids took the signed-in path). Branches:
+ * HF-1의 "하루 새 대회 5개"(`daily_participation`)와 HF-3의 sessionStorage 마커는 v2.0/v2.1로
+ * **폐기**됐다. 이제 게이트는 스스로 읽지 않는다 — `voteStore` 가 한 번 읽어 만든
+ * `decideRun`·`decideGuestRun` 판정을 받아 화면 언어로 번역만 한다. 읽기가 두 곳이면 답도
+ * 두 개가 되고, 그게 §9 함정 5다(2026-07-05 사고가 정확히 이 유형이었다).
  *
- *   Guest (anonymous / no user) — Guest Run = one Tournament, run to completion:
- *     - first Tournament, not completed        → allowed (the whole run)
- *     - the SAME Tournament, still in progress  → allowed (continue)
- *     - a DIFFERENT Tournament than they entered → login_required(vote)
- *     - already completed a run                 → login_required(vote)
- *
- *   Signed-in (non-anonymous) — HF-1 Daily Participation Limit, unchanged:
- *     - joined this Tournament                  → allowed (unlimited within it)
- *     - new Tournament, quota exhausted         → daily_limit_reached
- *     - new Tournament, room                    → allowed
- *
- * The hook depends on React + Firestore; testing pure `decideVoteGate` keeps the
- * unit small while covering the branch logic that matters. HOW the guest fields
- * (guestTournamentId, guestCompleted) are sourced is W2 (see voteGate.ts).
+ * 우선순위는 서버(`onVote`)와 같다: 게스트 한도 → 이어하기/새 판 → 마감 → 일일 한도.
  */
 import { describe, expect, it } from "vitest";
-import type { User } from "firebase/auth";
-import { DAILY_PARTICIPATION_LIMIT, decideVoteGate } from "../voteGate";
+import { decideVoteGate } from "../voteGate";
 
-const anonUser = { uid: "anon1", isAnonymous: true } as User;
-const googleUser = { uid: "g1", isAnonymous: false } as User;
+const allowGuest = { status: "allow" } as const;
+const blockGuest = { status: "login_required" } as const;
 
-/** Defaults for the signed-in HF-1 fields (irrelevant on the guest path). */
-const base = {
-  guestTournamentId: null as string | null,
-  guestCompleted: false,
-  participatedThisTournament: false,
-  participationCount: 0,
-};
-
-describe("decideVoteGate — Guest Run (HF-3)", () => {
-  it("guest, first Tournament, not completed → allowed", () => {
+describe("로그인 팬", () => {
+  it("새 판이면 통과", () => {
     expect(
       decideVoteGate({
-        ...base,
-        user: anonUser,
-        isAnonymous: true,
-        tournamentId: "t1",
-      }),
-    ).toEqual({ status: "allowed" });
-  });
-
-  it("guest, SAME Tournament still in progress → allowed", () => {
-    expect(
-      decideVoteGate({
-        ...base,
-        user: anonUser,
-        isAnonymous: true,
-        tournamentId: "t1",
-        guestTournamentId: "t1",
-      }),
-    ).toEqual({ status: "allowed" });
-  });
-
-  it("guest, DIFFERENT Tournament than the one entered → login_required(vote)", () => {
-    expect(
-      decideVoteGate({
-        ...base,
-        user: anonUser,
-        isAnonymous: true,
-        tournamentId: "t2",
-        guestTournamentId: "t1",
-      }),
-    ).toEqual({ status: "login_required", reason: "vote" });
-  });
-
-  it("guest, already completed a run → login_required(vote)", () => {
-    expect(
-      decideVoteGate({
-        ...base,
-        user: anonUser,
-        isAnonymous: true,
-        tournamentId: "t1",
-        guestTournamentId: "t1",
-        guestCompleted: true,
-      }),
-    ).toEqual({ status: "login_required", reason: "vote" });
-  });
-
-  it("null user (pre-anon race) is treated as a guest first vote → allowed", () => {
-    expect(
-      decideVoteGate({
-        ...base,
-        user: null,
         isAnonymous: false,
-        tournamentId: "t1",
+        runDecision: { status: "new_run", runIndex: 2 },
+        guestDecision: allowGuest,
+      }),
+    ).toEqual({ status: "allowed" });
+  });
+
+  it("이어하기도 통과 — 한도를 쓰지 않는다 (AC 8)", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: false,
+        runDecision: { status: "continue", runIndex: 3 },
+        guestDecision: allowGuest,
+      }),
+    ).toEqual({ status: "allowed" });
+  });
+
+  it("5판 소진이면 daily_limit_reached (AC 1)", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: false,
+        runDecision: { status: "limit_reached" },
+        guestDecision: allowGuest,
+      }),
+    ).toEqual({ status: "daily_limit_reached" });
+  });
+
+  it("마감이면 deadline_passed (AC 9)", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: false,
+        runDecision: { status: "deadline_passed" },
+        guestDecision: allowGuest,
+      }),
+    ).toEqual({ status: "deadline_passed" });
+  });
+
+  it("게스트 원장이 막혀 있어도 로그인 팬에게는 영향이 없다", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: false,
+        runDecision: { status: "new_run", runIndex: 1 },
+        guestDecision: blockGuest,
       }),
     ).toEqual({ status: "allowed" });
   });
 });
 
-describe("decideVoteGate — signed-in Daily Participation Limit (HF-1, unchanged)", () => {
-  it("signed-in, already joined this Tournament → allowed even at full quota", () => {
+describe("게스트 (AC 6·17)", () => {
+  it("3판을 다 쓰면 guest_limit 이유로 로그인을 요구한다", () => {
+    // reason 이 "vote" 가 아니라 "guest_limit" 인 것이 핵심이다 — 왜 막혔는지를 말해야
+    // Google 버튼이 있는 전환 화면으로 간다(2026-09-05 대표 확정).
     expect(
       decideVoteGate({
-        ...base,
-        user: googleUser,
-        isAnonymous: false,
-        tournamentId: "t1",
-        participatedThisTournament: true,
-        participationCount: DAILY_PARTICIPATION_LIMIT,
+        isAnonymous: true,
+        runDecision: { status: "new_run", runIndex: 1 },
+        guestDecision: blockGuest,
+      }),
+    ).toEqual({ status: "login_required", reason: "guest_limit" });
+  });
+
+  it("게스트 한도가 마감보다 먼저다 — 서버와 같은 순서", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: true,
+        runDecision: { status: "deadline_passed" },
+        guestDecision: blockGuest,
+      }),
+    ).toEqual({ status: "login_required", reason: "guest_limit" });
+  });
+
+  it("한도가 남았으면 통과", () => {
+    expect(
+      decideVoteGate({
+        isAnonymous: true,
+        runDecision: { status: "new_run", runIndex: 1 },
+        guestDecision: allowGuest,
       }),
     ).toEqual({ status: "allowed" });
   });
 
-  it(`signed-in, NEW Tournament at ${DAILY_PARTICIPATION_LIMIT} joins → daily_limit_reached`, () => {
+  it("3판을 다 썼어도 이어하기는 통과 (AC 6)", () => {
     expect(
       decideVoteGate({
-        ...base,
-        user: googleUser,
-        isAnonymous: false,
-        tournamentId: "t1",
-        participationCount: DAILY_PARTICIPATION_LIMIT,
-      }),
-    ).toEqual({ status: "daily_limit_reached" });
-  });
-
-  it("signed-in, NEW Tournament under the limit → allowed", () => {
-    expect(
-      decideVoteGate({
-        ...base,
-        user: googleUser,
-        isAnonymous: false,
-        tournamentId: "t1",
-        participationCount: DAILY_PARTICIPATION_LIMIT - 1,
+        isAnonymous: true,
+        runDecision: { status: "continue", runIndex: 1 },
+        guestDecision: allowGuest,
       }),
     ).toEqual({ status: "allowed" });
   });
+});
 
-  it("signed-in path ignores leftover guest fields (no accidental login gate)", () => {
-    // A freshly-linked Google user may still carry a guestTournamentId/completed
-    // from their guest run; the signed-in branch must NOT gate on them.
-    expect(
-      decideVoteGate({
-        ...base,
-        user: googleUser,
-        isAnonymous: false,
-        tournamentId: "t2",
-        guestTournamentId: "t1",
-        guestCompleted: true,
-        participatedThisTournament: true,
-        participationCount: DAILY_PARTICIPATION_LIMIT,
-      }),
-    ).toEqual({ status: "allowed" });
+describe("폐기된 HF-1/HF-3 표면", () => {
+  it("옛 상수·헬퍼가 남아 있지 않다", async () => {
+    // 남겨 두면 다음 사람이 "하루 새 대회 5개"로 되돌린다 (Stale-Doc Guard는 코드에도 적용).
+    const mod = await import("../voteGate");
+    for (const gone of [
+      "DAILY_PARTICIPATION_LIMIT",
+      "GUEST_RUN_TID_KEY",
+      "markGuestRunTournament",
+      "getGuestRunState",
+      "getDailyParticipation",
+    ]) {
+      expect(mod, gone).not.toHaveProperty(gone);
+    }
   });
 });

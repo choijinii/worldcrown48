@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FORMATS, type FormatKey, type CrownData } from "@/lib/crown/formats";
 import { useI18n } from "@/lib/i18n";
-import { track } from "@/lib/analytics";
+import { track, trackWithConsent } from "@/lib/analytics";
 import { FormatChips } from "./FormatChips";
 import { CrownToast } from "./CrownToast";
 import {
@@ -33,6 +33,10 @@ interface ShareMenuProps {
   tournamentId?: string;
   /** Format preselected when the menu opens (ready "X" → link, "Instagram" → story). */
   initialFmt?: FormatKey;
+  /** v2.1: 저장(다운로드)만 로그인 게이트. 공유 경로는 게스트에게 열려 있다 (§16 2·3). */
+  canSave?: boolean;
+  /** 계측 공통 파라미터용 (EVENT_SPEC v1.2 §5). */
+  category?: string;
 }
 
 function strings(lang: "ko" | "en") {
@@ -61,7 +65,7 @@ function strings(lang: "ko" | "en") {
   };
 }
 
-export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: ShareMenuProps): JSX.Element {
+export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story", canSave = true, category }: ShareMenuProps): JSX.Element {
   const { lang } = useI18n();
   const t = strings(lang === "ko" ? "ko" : "en");
   const [fmt, setFmt] = useState<FormatKey>(initialFmt);
@@ -85,6 +89,16 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
   const base: Record<string, string> = {};
   if (tournamentId) base.tournamentId = tournamentId;
 
+  // EVENT_SPEC v1.2 §5 (2026-09-08 실측): 공유 3이벤트에 공통 4파라미터가 붙어 있지 않았다.
+  // v2.1로 게스트 공유가 열렸으므로 **is_guest 로 나눠 보지 않으면 회원 공유율이 부풀려
+  // 보인다.** 저장이 잠겼다는 것이 곧 게스트라는 뜻이다.
+  const shareParams = {
+    is_guest: !canSave,
+    lang,
+    ...(tournamentId ? { tournament_id: tournamentId } : {}),
+    ...(category ? { category: category.toLowerCase() } : {}),
+  };
+
   const changeFmt = (next: FormatKey): void => {
     if (next === fmt) return;
     void track("crown_format_changed", { ...base, fromFmt: fmt, toFmt: next });
@@ -93,13 +107,14 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
 
   const onDownload = async (): Promise<void> => {
     await downloadCrown(fmt, data, img);
-    void track("crown_downloaded", { ...base, fmt });
+    void trackWithConsent("crown_downloaded", { ...shareParams, fmt });
     showToast(t.savedFmt(fmt));
   };
 
   const onNative = async (): Promise<void> => {
-    const result = await nativeShareCrown(fmt, data, img);
-    if (result === "shared") void track("crown_shared_native", { ...base, fmt });
+    // 게스트에게는 다운로드 폴백을 주지 않는다 — 그게 저장 잠금이 뚫리는 유일한 경로다.
+    const result = await nativeShareCrown(fmt, data, img, canSave);
+    if (result === "shared") void trackWithConsent("crown_shared_native", { ...shareParams, fmt });
     else showToast(t.shareFallback);
   };
 
@@ -109,13 +124,13 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
     // downloads so the second isn't blocked.
     await downloadCrown("story", data, img);
     await downloadCrown("feed", data, img);
-    void track("crown_downloaded", { ...base, fmt: "both" });
+    void trackWithConsent("crown_downloaded", { ...shareParams, fmt: "both" });
     showToast(t.savedBoth);
   };
 
   const onPostX = async (): Promise<void> => {
     await shareCrownToX(data, img);
-    void track("crown_shared_x", { ...base });
+    void trackWithConsent("crown_shared_x", { ...shareParams });
     showToast(t.xOpened);
   };
 
@@ -138,7 +153,7 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
       </div>
 
       <div className={styles.smActions}>
-        <button type="button" className={`${styles.shareBtn} ${styles.primary}`} onClick={onDownload} aria-label={t.download}>
+        <button type="button" className={`${styles.shareBtn} ${styles.primary}`} onClick={onDownload} disabled={!canSave} data-locked={!canSave} aria-label={t.download}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 3v12M7 11l5 4 5-4" />
             <path d="M5 19h14" />
@@ -157,7 +172,7 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story" }: 
       </div>
 
       <div className={styles.smNet}>
-        <button type="button" className={styles.shareOpt} onClick={onBoth} aria-label={t.both}>
+        <button type="button" className={styles.shareOpt} onClick={onBoth} disabled={!canSave} data-locked={!canSave} aria-label={t.both}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="5" />
             <circle cx="12" cy="12" r="4" />

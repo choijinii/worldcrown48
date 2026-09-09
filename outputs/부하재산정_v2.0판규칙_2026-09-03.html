@@ -1,0 +1,174 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>부하 재산정 v1.1 — 참가 규칙 v2.0</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#141b2d;font:16px/1.72 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+header{background:#1b2540;color:#fff;border-radius:18px;padding:30px 32px;margin-bottom:22px}
+header .kicker{font-size:12px;letter-spacing:.18em;color:#f0c66b;font-weight:700;margin-bottom:10px}
+header h1{margin:0 0 8px;font-size:27px}header p{margin:0;color:#c3cbe0;font-size:14.5px}
+section{background:#fff;border:1px solid #e2e7f0;border-radius:16px;padding:24px 26px;margin-bottom:20px}
+h2{margin:0 0 12px;font-size:19px;display:flex;gap:10px;align-items:center}
+h2 .no{background:#1b2540;color:#fff;font-size:12.5px;border-radius:8px;padding:3px 9px;font-weight:700}
+h3{font-size:15px;margin:20px 0 8px;color:#1b2540}
+table{width:100%;border-collapse:collapse;font-size:13.8px;margin:10px 0}
+th,td{border:1px solid #e2e7f0;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f7f9fc;font-weight:700}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.danger td{background:#fdf3f3}tr.warn td{background:#fffaf0}tr.ok td{background:#f2fbf5}
+.verdict{border-radius:14px;padding:18px 20px;margin:12px 0;font-size:15px}
+.verdict.red{background:#fdf3f3;border:2px solid #c25353}
+.verdict.red b{color:#8a3b3b}
+.verdict.green{background:#f2fbf5;border:2px solid #2e9e6b}
+.verdict.green b{color:#1c6b47}
+.note{background:#fffaf0;border:1px solid #f2e0b8;border-radius:12px;padding:14px 16px;margin:12px 0;font-size:14px}
+.note b{color:#8a6410}
+code{background:#eef1f7;border-radius:5px;padding:1px 5px;font-size:12.4px;font-family:ui-monospace,Menlo,monospace}
+ul{margin:8px 0;padding-left:20px}li{margin-bottom:6px;font-size:14.5px}
+.big{font-size:20px;font-weight:700}
+footer{color:#5d6a85;font-size:13px;text-align:center;margin-top:22px}
+</style></head><body><div class="wrap">
+
+<header>
+  <div class="kicker">WORLDCROWN48 · 런칭 부하 재산정 (D-35)</div>
+  <h1>참가 규칙 v2.0이 서버에 주는 부담 — 다시 계산했습니다</h1>
+  <p>8/31 부하 회신은 "한 사람이 한 대회를 한 번" 전제로 계산한 것입니다. v2.0(대회당 하루 5판)에서 그 숫자가 어떻게 달라지는지 재산정했습니다. 근거 = 코드 실측 + Google 공식 요금표(2026-09 조회).</p>
+</header>
+
+<section>
+  <h2><span class="no">0</span> 결론 두 줄</h2>
+  <div class="verdict red">
+    <b>① 랭킹 캐시가 런칭 후 며칠 안에 멈춥니다.</b> 이건 v2.0이 만든 새 문제가 아니라, <b>원래 있던 문제의 도착 시각이 5배 빨라진</b> 것입니다. W4로 예정된 "랭킹 증분 집계"는 이제 <b>개선이 아니라 런칭 필수 조건</b>입니다.
+  </div>
+  <div class="verdict green">
+    <b>② 투표 서버는 여전히 여유가 있습니다.</b> 한 사람이 누를 수 있는 속도는 그대로(분당 상한 유지)라, v2.0이 늘리는 것은 순간 부하가 아니라 <b>체류 시간</b>입니다. 사이트가 "안 열리는" 조건은 8/31 답변 그대로 <b>Firebase 결제 끊김 하나뿐</b>입니다.
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">1</span> 무엇이 5배가 되나</h2>
+  <table>
+    <tr><th style="width:34%">항목</th><th style="width:22%">종전 전제(8/31)</th><th style="width:22%">v2.0</th><th>배수</th></tr>
+    <tr><td>1인 하루 최대 판 수 (대회 4종)</td><td class="num">4판</td><td class="num">20판</td><td>×5</td></tr>
+    <tr><td>1인 하루 최대 서버 호출</td><td class="num">184회</td><td class="num">920회</td><td>×5</td></tr>
+    <tr><td>1인 하루 최대 체류</td><td class="num">약 15~25분</td><td class="num">약 75~125분</td><td>×5</td></tr>
+    <tr><td>대회에 쌓이는 기록 문서</td><td class="num">판 수 × 46</td><td class="num">판 수 × 46</td><td>판 수가 ×5</td></tr>
+    <tr class="ok"><td>1인 순간 입력 속도</td><td class="num">분당 상한 고정</td><td class="num">동일</td><td><b>×1 (변화 없음)</b></td></tr>
+  </table>
+  <p style="font-size:14px;color:#3b465e;margin:6px 0 0">마지막 줄이 중요합니다. <b>한 사람이 1초에 두 번 누를 수는 없으므로 순간 부하는 그대로</b>이고, 늘어나는 것은 총량과 머무는 시간입니다. 그래서 위험이 "투표가 안 된다"가 아니라 <b>"쌓인 기록을 매시간 통째로 다시 읽는 작업"</b> 쪽에 몰립니다.</p>
+</section>
+
+<section>
+  <h2><span class="no">2</span> 진짜 위험 — 랭킹 캐시</h2>
+  <p style="font-size:14.5px;color:#3b465e;margin:0 0 10px">현재 <code>scheduleRankingCache</code>는 <b>매 60분마다 활성 대회의 기록을 처음부터 끝까지 전부 다시 읽어</b> 랭킹을 계산합니다(메모리 512MiB, 제한 시간 540초). 기록이 쌓일수록 매시간 읽어야 할 양이 계속 커지는 구조입니다.</p>
+
+  <h3>언제 한계에 닿나 (대회 1개 기준)</h3>
+  <p style="font-size:14px;color:#5d6a85;margin:0 0 6px">메모리 512MiB로 담을 수 있는 기록은 대략 <b>50만~130만 문서</b>(문서 하나를 400~1,000바이트로 잡은 추정 — 실측 아님). 안전선을 <b>50만 문서 = 약 1만 판</b>으로 잡으면:</p>
+  <table>
+    <tr><th style="width:26%">시나리오 (하루 활성 팬 · 평균 판 수)</th><th style="width:18%">대회당 하루 판</th><th style="width:28%">한계 도달 시점 — v2.0</th><th>종전 전제였다면</th></tr>
+    <tr class="ok"><td>A 보수 — 500명 × 2판</td><td class="num">250판</td><td>약 40일</td><td>약 200일 (사실상 무관)</td></tr>
+    <tr class="warn"><td>B 목표 — 2,000명 × 2.5판</td><td class="num">1,250판</td><td><b>약 8일</b></td><td>약 40일</td></tr>
+    <tr class="danger"><td>C 총공 성공 — 10,000명 × 3판</td><td class="num">7,500판</td><td><b>약 1.5일</b></td><td>약 7일</td></tr>
+  </table>
+  <div class="note"><b>읽는 법:</b> 총공이 성공할수록 랭킹이 먼저 멈춥니다. 사이트·투표는 정상이고 <b>랭킹 숫자만 옛날 값으로 굳습니다</b>(8/31 답변과 동일한 고장 모습). 하지만 런칭 총공 직후 랭킹이 멈추는 건 <b>마케팅 자산을 잃는 것</b>이라 그냥 두면 안 됩니다.</div>
+
+  <h3>비용도 같은 곳에서 터집니다</h3>
+  <p style="font-size:14px;color:#5d6a85;margin:0 0 6px">Google 공식 요금(2026-09 조회): 문서 읽기 10만 건당 <b>$0.03</b>, 쓰기 10만 건당 <b>$0.09</b>. 무료 한도는 하루 읽기 5만·쓰기 2만 건(작습니다).</p>
+  <table>
+    <tr><th style="width:26%">시나리오</th><th style="width:24%">투표 자체 비용/일</th><th style="width:26%">랭킹 캐시 비용/일 (30일차)</th><th>합계 월 환산</th></tr>
+    <tr class="ok"><td>A 보수</td><td class="num">$0.05</td><td class="num">약 $2</td><td class="num">약 $60</td></tr>
+    <tr class="warn"><td>B 목표</td><td class="num">$0.35</td><td class="num">약 $50</td><td class="num"><b>약 $1,500</b></td></tr>
+    <tr class="danger"><td>C 총공 성공</td><td class="num">$2.1</td><td class="num">약 $300</td><td class="num"><b>약 $9,000</b></td></tr>
+  </table>
+  <div class="verdict red" style="font-size:14.5px">
+    <b>비용의 99%가 "매시간 전량 다시 읽기" 한 군데에서 나옵니다.</b> 팬들이 실제로 투표하는 비용은 시나리오 C에서도 하루 $2 남짓입니다. 즉 <b>돈이 새는 곳과 서버가 멈추는 곳이 같은 한 곳</b>이고, 고치는 방법도 하나입니다 — <b>증분 집계</b>(전부 다시 읽지 말고, 지난번 이후 새로 생긴 것만 더하기).
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">3</span> 투표 서버 — 재확인 결과 여유 있음</h2>
+  <table>
+    <tr><th style="width:30%">항목</th><th style="width:26%">현재 설정</th><th>v2.0에서의 판단</th></tr>
+    <tr class="ok"><td>동시 처리 천장</td><td>인스턴스 10 × 80 = 800건</td><td>1인 입력 속도가 분당 상한으로 묶여 있어, 계산상 <b>동시 투표자 수천 명까지 여유</b>. 8/31 판단 유지</td></tr>
+    <tr class="warn"><td>보수 안전선</td><td>동시 투표자 300명</td><td><b>같은 유입이라도 체류가 5배</b>라 동시 접속이 겹쳐 늘어남 → 마케팅에는 "동시 투표자" 대신 <b>"시간당 유입"</b> 기준으로 다시 안내하는 편이 정확</td></tr>
+    <tr class="warn"><td>1인 속도 제한 (분당)</td><td>20</td><td>한 판이 최소 2.3분, 5판이면 <b>최소 11.5분을 규칙이 강제</b>. 열성 팬이 막힐 확률이 5배 → <b>완화 우선순위 상승</b>(40~60 안)</td></tr>
+    <tr class="warn"><td>첫 접속 지연(cold start)</td><td>대기 인스턴스 없음</td><td>총공 첫 1분 느려짐 — 종전 판단 유지. 런칭 전 대기 1~2대 예약 권고</td></tr>
+    <tr class="danger"><td>어드민 대시보드 KPI</td><td>최근 48시간 기록 전량 읽기</td><td>같은 구조의 축소판 — <b>5배</b>. 총공 중 대표님이 대시보드를 열면 느리고 비쌉니다</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="no">4</span> 권고 — 런칭 일정을 지키면서</h2>
+  <p style="font-size:14px;color:#5d6a85;margin:0 0 10px">대표님이 런칭 10/08을 그대로 가신다고 하셨으므로, <b>일정을 늘리지 않는 선</b>에서 정리했습니다.</p>
+  <table>
+    <tr><th style="width:6%">순위</th><th style="width:30%">조치</th><th style="width:20%">크기</th><th>시점</th></tr>
+    <tr class="danger"><td>1</td><td><b>랭킹 증분 집계</b> — 전량 재읽기를 "지난번 이후 새로 생긴 것만 더하기"로</td><td>중간 (W4 랭킹 개편에 이미 포함된 항목)</td><td><b>W4 유지하되 "런칭 게이트"로 격상</b> — 이게 안 끝나면 런칭 불가 항목으로</td></tr>
+    <tr class="warn"><td>2</td><td><b>랭킹 갱신 주기 60분 → 6시간</b> (임시 방어)</td><td>매우 작음 (설정 한 줄)</td><td><b>지금 바로 가능</b> — 1번이 늦어져도 비용·수명이 6배 늘어남</td></tr>
+    <tr class="warn"><td>3</td><td>동시 처리 상향(10 → 20~50) + 대기 인스턴스 1~2</td><td>작음 (설정)</td><td>W5~6 (기존 계획 유지)</td></tr>
+    <tr class="warn"><td>4</td><td>1인 속도 제한 20 → 40~60 완화</td><td>작음</td><td>아레나 개편에 포함 (기존 계획)</td></tr>
+    <tr><td>5</td><td>어드민 KPI 캐시화</td><td>작음</td><td>런칭 후로 미뤄도 됨</td></tr>
+    <tr><td>6</td><td><b>9/17 부하 테스트에 v2.0 전제 반영</b> — 가상 팬이 같은 대회를 여러 판 도는 시나리오 추가</td><td>기존 약속 범위</td><td>W3 (9/17)</td></tr>
+  </table>
+  <div class="note"><b>2번은 오늘 결정만 주시면 다음 세션에 바로 넣습니다.</b> 랭킹이 1시간마다가 아니라 6시간마다 갱신되는 것이 팬 경험에 큰 차이가 없다면(대회 마감까지 몇 주짜리 랭킹입니다), 가장 싸게 시간을 버는 방법입니다.</div>
+</section>
+
+<section>
+  <h2><span class="no">5</span> 이 계산에서 확실한 것과 추정인 것</h2>
+  <table>
+    <tr><th style="width:50%">확실 (코드·공식 요금표 실측)</th><th>추정 (9/17 부하 테스트로 확인 필요)</th></tr>
+    <tr><td>랭킹 캐시가 매 60분 전량 재읽기 · 메모리 512MiB · 제한 540초<br>동시 처리 천장 800건 · 1인 속도 제한 분당 20<br>읽기 $0.03/10만 · 쓰기 $0.09/10만 · 무료 한도 하루 읽기 5만<br>1판 = 46회 선택 = 호출 46회<br>v2.0의 1인 상한이 정확히 5배</td><td>기록 문서 하나의 실제 메모리 크기(400~1,000바이트 가정)<br>하루 활성 팬 수와 <b>평균 판 수</b>(상한 20판이 아니라 평균이 부하를 정합니다)<br>함수 1회 실행 시간(동시 처리 여유 계산의 근거)<br>완주율(중도 이탈 비율)</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="no">6</span> 대회 마감 한도 — 대표 질문에 대한 계산 (09-03 추가)</h2>
+
+  <div class="verdict green">
+    <b>먼저 좋은 소식: 마감 스위치는 이미 코드에 있습니다.</b> 랭킹 집계는 <code>마감일 &gt; 지금</code>인 대회만 돕니다(실측). 즉 <b>대회가 마감되는 순간 그 대회는 부하에서 완전히 빠지고 최종 순위로 굳습니다.</b> 새로 만들 필요 없이, <b>마감일을 얼마로 두느냐</b>만 정하면 됩니다.
+  </div>
+
+  <h3>수명이 곧 "그 대회가 최대 얼마나 무거워지는가"</h3>
+  <table>
+    <tr><th style="width:26%">시나리오 (대회당 하루 판)</th><th style="width:18%">30일 열면</th><th style="width:18%">60일</th><th style="width:18%">90일</th><th>전량 재읽기로 버티는 한계</th></tr>
+    <tr class="ok"><td>A 보수 (250판)</td><td class="num">34만 문서</td><td class="num">69만</td><td class="num">104만</td><td>약 40일</td></tr>
+    <tr class="warn"><td>B 목표 (1,250판)</td><td class="num">173만</td><td class="num">345만</td><td class="num">518만</td><td><b>약 8일</b></td></tr>
+    <tr class="danger"><td>C 총공 성공 (7,500판)</td><td class="num">1,035만</td><td class="num">2,070만</td><td class="num">3,105만</td><td><b>약 1.5일</b></td></tr>
+  </table>
+  <div class="note"><b>읽는 법:</b> 지금 방식(매번 전량 재읽기)이라면 <b>어떤 마감 기한을 정해도 답이 안 됩니다</b> — 목표 시나리오에서도 8일짜리 대회밖에 못 만듭니다. <b>증분 집계가 먼저이고, 마감 한도는 그 위에 얹는 안전판</b>입니다.</div>
+
+  <h3>저장 비용은 마감의 이유가 못 됩니다</h3>
+  <p style="font-size:14px;color:#3b465e;margin:0 0 8px">Firestore 저장 요금은 월 환산 <b>약 $0.15/GiB</b>(무료 1GiB). 가장 큰 시나리오인 <b>C를 90일</b> 열어도 대회 하나가 약 9GB → <b>월 $1.4</b>입니다. 쌓인 기록이 자리를 많이 차지해서 돈이 드는 게 아니라, <b>그걸 반복해서 다시 읽는 것</b>이 비쌌던 겁니다.</p>
+
+  <div class="verdict red" style="font-size:14.5px">
+    <b>그래서 마감 한도의 진짜 이유는 돈이 아니라 세 가지입니다.</b>
+    <ul style="margin-top:8px">
+      <li><b>재계산 안전판</b> — 증분 집계가 언젠가 어긋나면 처음부터 다시 세야 합니다. 그때 다시 셀 양의 <b>최대 크기를 정해 두는 것</b>이 마감 기한입니다.</li>
+      <li><b>활성 대회 수 통제</b> — 랭킹 집계는 <b>열려 있는 대회마다</b> 돕니다. 마감이 없으면 활성 대회가 계속 쌓이고, 부하는 대회 수만큼 곱해집니다. MVP1.5에서 유저가 대회를 만들기 시작하면 이게 결정적입니다.</li>
+      <li><b>제품</b> — 끝나야 챔피언이 확정되고, 아카이브·뉴스 기사가 생기고, "지금 안 하면 끝난다"는 참여 동기가 생깁니다. 마감 없는 대회에는 이야기가 없습니다.</li>
+    </ul>
+  </div>
+
+  <h3>티오 권고안 (대표 확정 대기)</h3>
+  <table>
+    <tr><th style="width:30%">대상</th><th style="width:22%">권고</th><th>이유</th></tr>
+    <tr><td><b>런칭 4대회</b></td><td><b>런칭 + 30일</b><br>(2026-11-07 마감)</td><td>총공(10/9~11) → 4주 열기 → 챔피언 발표 → 다음 시즌. 제품에 리듬이 생기고, 마감 발표가 그 자체로 뉴스·마케팅 자산</td></tr>
+    <tr><td><b>유저 생성 대회</b> (MVP1.5)</td><td>기본 30일 · <b>상한 90일</b>을 코드에 고정</td><td>유저가 "마감 없음"을 고를 수 없게. 재계산 최악 크기가 유한해짐</td></tr>
+    <tr><td><b>동시 활성 대회 수</b></td><td>상한을 두고 감시 (예: 200)</td><td>증분 집계 후에도 대회 수는 부하의 곱셈 인자로 남음. MVP1.5 검수 설계의 생성 쿼터와 함께 볼 것</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="no">7</span> 확정 사항 (2026-09-03 대표)</h2>
+  <table>
+    <tr><th style="width:34%">항목</th><th style="width:22%">확정</th><th>어디서 실행</th></tr>
+    <tr class="ok"><td>1인 속도 제한</td><td><b>분당 20 → 40</b> + <b>안내 문구 신설</b></td><td>RUN-1 Phase 2 (아레나까지 기다리지 않음)</td></tr>
+    <tr class="ok"><td>랭킹 갱신 주기</td><td><b>12시간</b></td><td>RUN-1 Phase 3 (설정 한 줄)</td></tr>
+    <tr class="ok"><td>갱신 시각 공개 ("발표")</td><td><b>만든다</b> — 매일 정해진 시각에 순위 발표</td><td>W4 랭킹 개편 (화면 작업)</td></tr>
+    <tr class="ok"><td>W4 랭킹 개편(증분 집계)</td><td><b>런칭 게이트로 격상</b> — 미완료 시 런칭 불가</td><td>W4, 일정 변동 없음</td></tr>
+    <tr class="warn"><td>대회 마감 한도</td><td>§6 권고안 — <b>대표 확정 대기</b></td><td>런칭 4대회 = 대회 생성 시 입력 / 유저 대회 = MVP1.5 코드 상한</td></tr>
+  </table>
+</section>
+
+<footer>WorldCrown48 · 부하 재산정 v1.1 · 2026-09-03 (마감 한도 계산·확정 사항 추가) · 8/31 실측 회신의 v2.0 갱신본 · 요금 출처: Google Cloud Firestore 공식 요금표(2026-09 조회)</footer>
+</div></body></html>

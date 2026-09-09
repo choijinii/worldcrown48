@@ -104,3 +104,66 @@ describe("voteStore", () => {
     expect(selectCurrentMatch(useVoteStore.getState())).toBeNull();
   });
 });
+
+describe("회차 상태 (RUN-1)", () => {
+  const runState = (over: Record<string, unknown> = {}) => ({
+    screen: "complete" as const,
+    displayRunIndex: 1,
+    nextRunIndex: 2,
+    runsToday: 1,
+    limit: 5,
+    canPlayAgain: true,
+    blockedReason: null,
+    ...over,
+  });
+
+  beforeEach(() => useVoteStore.getState().reset());
+
+  it("startNextRun 은 표시 회차를 올리고 이전 판의 선택을 비운다", () => {
+    // 비우지 않으면 2판째가 1판째 선택을 물려받아 시작하자마자 완주 상태가 된다(§9 함정 9).
+    useVoteStore.setState({
+      votes: [{ round: 1, matchId: "t1:r1:m0", contestantId: "c1" }],
+      run: runState(),
+      seed: 111,
+    });
+    useVoteStore.getState().startNextRun();
+    const s = useVoteStore.getState();
+    expect(s.votes).toEqual([]);
+    expect(s.run?.displayRunIndex).toBe(2);
+    expect(s.run?.screen).toBe("play");
+  });
+
+  it("씨앗을 0으로 되돌린다 — 새 회차 문서에서 다시 받아야 대진표가 달라진다 (AC 3)", () => {
+    useVoteStore.setState({ votes: [], run: runState(), seed: 111 });
+    useVoteStore.getState().startNextRun();
+    expect(useVoteStore.getState().seed).toBe(0);
+  });
+
+  it("다시 참여할 수 없으면 아무것도 하지 않는다", () => {
+    useVoteStore.setState({
+      votes: [{ round: 1, matchId: "t1:r1:m0", contestantId: "c1" }],
+      run: runState({
+        displayRunIndex: 5,
+        nextRunIndex: 6,
+        runsToday: 5,
+        canPlayAgain: false,
+        blockedReason: "daily_limit",
+      }),
+    });
+    useVoteStore.getState().startNextRun();
+    expect(useVoteStore.getState().run?.displayRunIndex).toBe(5);
+    expect(useVoteStore.getState().votes).toHaveLength(1);
+  });
+
+  it("회차 상태가 없으면 아무것도 하지 않는다 — 로드 전 클릭 방어", () => {
+    useVoteStore.setState({ votes: [], run: null });
+    expect(() => useVoteStore.getState().startNextRun()).not.toThrow();
+    expect(useVoteStore.getState().run).toBeNull();
+  });
+
+  it("reset 은 회차 상태도 지운다", () => {
+    useVoteStore.setState({ run: runState({ screen: "play" }) });
+    useVoteStore.getState().reset();
+    expect(useVoteStore.getState().run).toBeNull();
+  });
+});
