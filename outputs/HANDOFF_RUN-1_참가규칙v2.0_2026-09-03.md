@@ -336,7 +336,7 @@ decideRun({
 |---|---|---|---|
 | `arena.vote.dailyLimit` **✅ ko 순화 승인 (2026-09-07)** | 이 Tournament는 오늘 5번 참여를 모두 하셨어요 (5/5) | You've played all 5 runs of this Tournament today (5/5) | Ya has jugado las 5 partidas de este Tournament hoy (5/5) |
 | `dailyLimitSub` **✅ ko 순화 승인 (2026-09-07)** | 한국 시간 자정에 참여 횟수가 다시 채워져요. 다른 Tournament는 지금 바로 참여하실 수 있어요. | Your 5 runs reset at Seoul midnight. Other Tournaments are open right now. | Tus 5 partidas se reinician a medianoche de Seúl. Otros Tournaments están abiertos ahora. |
-| `arena.run.playAgain` (신설) **✅ ko 순화 승인 (2026-09-07)** | 다시 참여 (n/5) | Play again (n/5) | Jugar otra vez (n/5) |
+| `arena.run.playAgain` (신설) **✅ ko 순화 승인 (2026-09-07) · ✅ 변수화 승인 (2026-09-09)** — 한도 숫자를 토큰으로 뺀다(로그인 5 · 게스트 3). 한국어 낱말은 09-07 승인본 그대로이고 숫자만 사실에 맞춘다 | 다시 참여 ({n}/{limit}) | Play again ({n}/{limit}) | Jugar otra vez ({n}/{limit}) |
 | `arena.run.pastCards` (신설) **✅ ko 순화 승인 (2026-09-07)** | 이전 참여의 Crown Card | Your earlier Crown Cards | Tus Crown Cards anteriores |
 | `arena.vote.rateLimited` **✅ 승인 (2026-09-04)** | 조금 빠르게 고르고 계시네요. 몇 초만 쉬었다 이어가 주세요. | You're choosing quickly. Take a few seconds, then keep going. | Estás eligiendo muy rápido. Espera unos segundos y continúa. |
 | ~~`login.guest_limit.title` (신설) ✅ 승인 (2026-09-05)~~ **❌ v2.1로 무효** | ~~오늘의 무료 1판을 다 도셨어요~~ | ~~You've played today's free run~~ | ~~Ya has jugado tu partida gratis de hoy~~ |
@@ -345,6 +345,9 @@ decideRun({
 | `login.guest_limit.sub` **✅ 승인 (2026-09-07, 대표 원문)** | 로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요. | Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking. | Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking. |
 | `arena.guest.welcome` (신설) **✅ 승인 (2026-09-07, 대표 원문)** | 로그인 없이 하루 3번까지 참여가 가능해요! | Join up to 3 times a day — no sign-in needed! | ¡Participa hasta 3 veces al día — sin iniciar sesión! |
 | `arena.guest.remaining` (신설) **✅ 승인 (2026-09-07, 대표 원문)** | 오늘 남은 참여 가능 횟수는 : n판 · 저장하려면 로그인 | Entries left today: n · Sign in to save | Participaciones restantes hoy: n · Inicia sesión para guardar |
+| `crown.lock.sub` (신설) **✅ 승인 (2026-09-09, 대표 원문)** — Crown Card **저장 잠금 배너**. v2.0의 "미리보기는 자유 · 공유·저장은 로그인"은 v2.1에서 공유가 열리며 사실과 달라졌다(§16 2·3). 코드 위치 `lib/crown/lockCopy.ts` | 미리보기와 공유는 자유 · 저장하려면 로그인이 필요해요. | Preview and share freely · Sign in to save. | Previsualiza y comparte libremente · Inicia sesión para guardar. |
+| `crown.lock.cta` (신설) **✅ 승인 (2026-09-09)** — 위 배너의 버튼 | 로그인 | Sign in | Iniciar sesión |
+| `login.modal.share` **✅ 승인 (2026-09-09, 대표 원문)** — LoginModal의 `reason="share"` 제목. v2.0에서는 "공유하려면"이었다 → 잠긴 것은 저장뿐 | 저장하려면 로그인이 필요해요 | Sign in to save your Crown Card | Inicia sesión para guardar tu Crown Card |
 | 히어로 `pitch.hero.sub` 뒷부분 (`lib/i18n/messages.ts:98`) **✅ 승인 (2026-09-07)** — 앞부분 "48 Contestants. Five Rounds. Match를 거치며 하나의 Crown만 남을 때까지 전진합니다." 는 3언어 그대로, **"예측도, 배당도 없이 —" 구절은 3언어 모두 삭제**(도박·투기 연상) | 오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다. | Pure fan choice. Your pick crowns the Champion. | Solo la elección de los fans. Tu elección corona al Champion. |
 | `arena.run.deadlinePassed` (신설) **✅ 승인 (2026-09-05) · ko 순화 승인 (2026-09-07)** | 이 Tournament는 마감됐어요. 다른 Tournament에 참여해 보세요. | This Tournament has closed. Try a new run in another Tournament. | Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament. |
 | `ranking.nextUpdate.today` **✅ 승인 (2026-09-04)** | 다음 발표: 오늘 21:00 | Next update: today 21:00 KST | Próxima actualización: hoy 21:00 KST |
@@ -353,6 +356,8 @@ decideRun({
 > "Tournament" · "Crown Card"는 3언어 모두 **원문 그대로** 유지(LANGUAGE.md RULE 1).
 >
 > **표시 용어 규칙 (2026-09-07 대표 확정)** — 화면 문구에서 **'판'은 "참여 / N번 참여 / 참여 횟수"로 순화**한다(시스템 용어 Run(판)은 불변 — LANGUAGE.md §1 표시 용어 층). **"표"는 낱말 자체 금지 → "선택"**. 위 표의 ko는 전부 이 규칙을 반영한 **최종본**이며 한 글자도 임의 변경 금지. en/es는 기승인 문구의 run/partida를 유지하고 신규 문구는 entry/participación (대표 확정).
+>
+> **2026-09-09 추가 승인 (PR 2 프로덕션 검증 직후)** — 저장 잠금 3건(`crown.lock.sub` · `crown.lock.cta` · `login.modal.share`)과 `arena.run.playAgain` 의 `{n}/{limit}` 변수화. 세 문구는 컴포넌트가 아니라 `lib/crown/lockCopy.ts` · `lib/i18n/messages.ts` 에 살고, `lib/__tests__/crown/lockCopy.test.ts` · `lib/__tests__/messagesContent.test.ts` 가 마침표까지 글자 단위로 고정한다(§5 DO 7). **PR 2에서 이미 배포·검증 완료** — 이 표 등재는 기록 정합이지 새 작업이 아니다.
 
 > **차단 문구 원칙 (2026-09-05 대표 확정)**
 > **막고 나서 길을 열어준다.** 승인된 차단 문구는 전부 다음 행동을 함께 준다 — `dailyLimit`은 다른 Tournament로, `rateLimited`는 몇 초 뒤 이어가기로, `deadlinePassed`는 다른 Tournament의 새 판으로, `guest_limit`은 로그인으로.
