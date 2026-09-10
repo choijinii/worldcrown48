@@ -52,6 +52,7 @@
 - **2026-09-06/07 (대표) v2.1**: 게스트는 하루 통틀어 **3판**, 게스트 공유 개방·저장 잠금, **게스트의 선택은 랭킹 집계 제외**.
 - **2026-09-07 (대표) 표시 용어**: 화면 글에서 **'판'은 "참여·N번 참여·참여 횟수"로 순화**(시스템 용어 Run(판)은 코드·문서에서 그대로). **"표"는 낱말 자체 금지 → "선택"**. "예측·배당" 금지.
 - **2026-09-09 (대표) 세계관 = 스포츠 확정**: 시상식 계열 서사 배제. 아레나·토너먼트·랭킹·우수선수 뉴스 같은 스포츠 구조 유지. **'투표' 낱말을 서비스에서 없애고 싶다** — "Vote Now"는 다른 강한 단어로 교체(문구 승인 게이트).
+- **2026-09-10 (대표) 대관 연출 방향 = 스포츠 우승 순간**: 대관식(왕관을 씌워 주는 의식)이 아니라 **경기에서 이겨 챔피언이 확정되는 순간**의 문법. 조명이 쏟아지고 화면이 한 사람에게 집중되며 왕관은 챔피언의 표식으로 등장한다. 09-09 세계관 스포츠 확정과 정합. '대관 연출'이라는 이름은 임시 유지(재검토는 아레나 개편 후). 자산 6종은 그대로 유효.
 - **2026-09-10 (대표) W-7 폐기**: **랭킹은 마감 전에도 항상 볼 수 있게 게시한다.** 발표(하루 두 번)마다 바뀌는 순위를 팬이 봐야 한다. 근거 — "발표는 보여주려고 하는 것인데 안 보여줄 거면 발표를 왜 하나". W-7은 선거(개표) 개념의 잔재이고 월크48은 투표가 아니다. → M9.
 
 **용어**: Tournament · Contestant · Match · Voter(코드·DB 전용) / 팬·Fan(팬 노출 문구) · Champion · Crown Card · Tournament Deadline · THE FINAL · Run(판, 시스템 용어) / 참여(화면 표시). FIFA 명칭(ROUND OF 16/QUARTERFINAL/SEMIFINAL) 금지. 전투 은유 금지.
@@ -167,7 +168,7 @@ A 무엇을 했나 · B 어떻게 확인했나(실측 수치·캡처) · C 판�
 
 - 타임라인: `useCeremonyTimeline(root, { reducedMotion })` — `element.animate(keyframes, { duration, delay, easing, fill: 'forwards' })` 7개를 한 컨트롤러로 묶고, `skip()` = 모든 `Animation.finish()`. 완료 콜백 후 `data-ceremony="hold"` → 탭 리스너 등록 → `CrownCardModal`.
 - 레이어 z-order(아래→위): dim(1) · loser×2(2) · champion(3) · glow_back(4) · crown(5) · sparkle×N(6) · CROWNED(7). `glow_front`(선택) = crown 위, sparkle 아래.
-- 크라운 하강 이징: `cubic-bezier(.2,.9,.3,1.15)`(오버슈트) 또는 keyframes 3점(−120%→+4%→0). 닿는 순간(≈0.8s)에 `glow_back` 확대 0.6→1.0 + opacity 0→.9, crown 밝기는 **두 겹 SVG 크로스페이드**(filter 애니메이션 금지 — R5).
+- 크라운 등장 이징: **등장 방식(점등·확대·솟아오름 등)은 Claude Design 번들을 따른다** — 위에서 내려와 씌워지는 하강은 쓰지 않는다(2026-09-10 대표 확정). 오버슈트가 필요하면 `cubic-bezier(.2,.9,.3,1.15)`. 등장 절정(≈0.8s)에 `glow_back` 확대 0.6→1.0 + opacity 0→.9, crown 밝기는 **두 겹 SVG 크로스페이드**(filter 애니메이션 금지 — R5).
 - 자산 로딩: 결승 화면 진입 시 6종 `<link rel=preload as=image>`.
 - reduced-motion: 정지 프레임 즉시 렌더, 탭 대기 동일. `ceremony_viewed` 파라미터 `reduced_motion: true`.
 - 계측: `ceremony_viewed { tournament_id, champion_id, reduced_motion, match_session_id }` 정지 프레임 도달 시, `ceremony_skipped { elapsed_ms, match_session_id }` 도중 탭 시. **`match_session_id`는 RUN-1 PR 3의 `lib/analytics/matchSessionId.ts` 를 그대로 쓴다 — 새로 만들지 마라.**
