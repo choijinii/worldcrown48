@@ -77,17 +77,26 @@ export function resolveEntryPoint(): EntryPoint {
 const START_KEY_PREFIX = "wc48_tournament_started_at_";
 
 /**
- * 시작 시각 마커의 키 — **회차를 포함한다** (RUN-1 PR 3).
+ * 시작 시각 마커의 키 — **uid와 회차를 함께 포함한다** (RUN-1 PR 3 · 2026-09-11 정정).
  *
- * 참가 규칙 v2.0 전에는 "사람 × 대회 = 1:1" 이라 대회 id만으로 충분했다. 지금은 한 사람이
- * 같은 대회를 하루 5판까지 돈다. 회차가 빠지면 2판째가 **1판째 시작 시각**을 그대로 물려받아
- * `duration_sec` 이 "1판 시작 ~ 2판 완주"가 된다 — 완주 소요 시간이 통째로 거짓이 된다.
+ * 회차가 필요한 이유: 참가 규칙 v2.0 전에는 "사람 × 대회 = 1:1" 이라 대회 id만으로 충분했다.
+ * 지금은 한 사람이 같은 대회를 하루 5판까지 돈다. 회차가 빠지면 2판째가 **1판째 시작 시각**을
+ * 물려받아 `duration_sec` 이 "1판 시작 ~ 2판 완주"가 된다.
+ *
+ * uid가 필요한 이유(프로덕션 실측): `sessionStorage` 는 **탭 단위**라 계정이 바뀌어도 남는다.
+ * uid가 없으면 같은 탭에서 로그아웃→게스트, 게스트→로그인 할 때 회차 번호가 겹치는 순간
+ * 앞 계정의 마커를 새 계정이 물려받는다. 실측된 피해: 게스트 2판째 `first_vote` 미발화,
+ * `duration_sec` 3901초. 하필 **게스트→로그인**이 v2.1의 주 전환 경로다.
+ *
+ * uid에는 `_` 가 없다(Firebase uid는 영숫자 — `runDocId`·`firestore.rules` 도 같은 전제를 쓴다)
+ * 므로 `{uid}_{tid}_r{n}` 은 모호해지지 않는다.
  */
 export function tournamentStartKey(
+  uid: string,
   tournamentId: string,
   runIndex: number,
 ): string {
-  return `${START_KEY_PREFIX}${tournamentId}_r${runIndex}`;
+  return `${START_KEY_PREFIX}${uid}_${tournamentId}_r${runIndex}`;
 }
 
 /**
@@ -97,11 +106,12 @@ export function tournamentStartKey(
  * 시각이 밀리지 않도록). 새 판은 키가 달라 새로 기록된다.
  */
 export function markTournamentStart(
+  uid: string,
   tournamentId: string,
   runIndex: number,
 ): void {
   if (typeof window === "undefined") return;
-  const key = tournamentStartKey(tournamentId, runIndex);
+  const key = tournamentStartKey(uid, tournamentId, runIndex);
   try {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, String(Date.now()));
@@ -112,12 +122,13 @@ export function markTournamentStart(
 
 /** markTournamentStart 이후 지난 초. 기록이 없으면 null(이 경우 duration_sec은 생략). */
 export function readTournamentDurationSec(
+  uid: string,
   tournamentId: string,
   runIndex: number,
 ): number | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(tournamentStartKey(tournamentId, runIndex));
+    const raw = sessionStorage.getItem(tournamentStartKey(uid, tournamentId, runIndex));
     if (!raw) return null;
     const startedAt = Number(raw);
     if (!Number.isFinite(startedAt)) return null;
@@ -132,11 +143,16 @@ const FIRST_VOTE_KEY_PREFIX = "wc48_first_vote_";
 /**
  * `first_vote` 의 "이 판에서 이미 쐈는가" 마커 키 (EVENT_SPEC v1.2 ⑩).
  *
- * ⚠️ **회차가 키에 반드시 들어간다.** 빠지면 2판째에 이미 마커가 있어 영영 발화하지 않는다 —
- * 참가 규칙 v2.0(한 대회 하루 5판)에서 판 단위 계측 전체가 1판째만 남는다는 뜻이다.
+ * ⚠️ **uid와 회차가 키에 반드시 들어간다.** 회차가 빠지면 2판째에 이미 마커가 있어 영영
+ * 발화하지 않고, uid가 빠지면 같은 탭에서 계정이 바뀔 때 앞 계정의 마커를 물려받아 새 계정의
+ * 판이 조용히 눌린다(2026-09-11 프로덕션 실측 — `tournamentStartKey` 주석 참조).
  */
-export function firstVoteKey(tournamentId: string, runIndex: number): string {
-  return `${FIRST_VOTE_KEY_PREFIX}${tournamentId}_r${runIndex}`;
+export function firstVoteKey(
+  uid: string,
+  tournamentId: string,
+  runIndex: number,
+): string {
+  return `${FIRST_VOTE_KEY_PREFIX}${uid}_${tournamentId}_r${runIndex}`;
 }
 
 /**
@@ -152,9 +168,13 @@ export function firstVoteKey(tournamentId: string, runIndex: number): string {
  * 저장소를 못 쓰면(프라이빗 모드 등) `false` — 중복을 막을 수단이 없으면 안 쏘는 쪽이 안전하다.
  * 판당 1회라는 성질이 깨진 이벤트는 없느니만 못하다.
  */
-export function markFirstVote(tournamentId: string, runIndex: number): boolean {
+export function markFirstVote(
+  uid: string,
+  tournamentId: string,
+  runIndex: number,
+): boolean {
   if (typeof window === "undefined") return false;
-  const key = firstVoteKey(tournamentId, runIndex);
+  const key = firstVoteKey(uid, tournamentId, runIndex);
   try {
     if (sessionStorage.getItem(key)) return false;
     sessionStorage.setItem(key, "1");

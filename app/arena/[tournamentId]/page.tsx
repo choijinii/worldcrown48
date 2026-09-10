@@ -129,16 +129,16 @@ export default function ArenaPage(): JSX.Element {
 
   useEffect(() => {
     // msid 는 tournament 과 함께(같은 set()) 채워지므로 여기서 기다릴 일이 없다.
-    if (!tournament || !msid || !runIndex) return;
+    if (!tournament || !msid || !runIndex || !uid) return;
     if (tournamentStartFiredRef.current === msid) return;
     tournamentStartFiredRef.current = msid;
-    markTournamentStart(tournament.id, runIndex);
+    markTournamentStart(uid, tournament.id, runIndex);
     void trackWithConsent("tournament_start", {
       ...commonEventParams(tournament, isGuest, lang),
       match_session_id: msid,
       entry_point: resolveEntryPoint(),
     });
-  }, [tournament, isGuest, lang, msid, runIndex]);
+  }, [tournament, isGuest, lang, msid, runIndex, uid]);
 
   useEffect(() => {
     if (!tournament || !progress?.toRound || progress.complete) return;
@@ -156,7 +156,7 @@ export default function ArenaPage(): JSX.Element {
   }, [tournament, progress?.toRound, progress?.fromRound, progress?.complete, isGuest, lang, msid]);
 
   useEffect(() => {
-    if (!tournament || !progress?.complete || !progress.championId || !runIndex) return;
+    if (!tournament || !progress?.complete || !progress.championId || !runIndex || !uid) return;
     // 판까지 포함한 키 — 2판째에 같은 Champion이 나와도 반드시 다시 쏜다.
     const championKey = `${msid ?? tournament.id}:${progress.championId}`;
     if (championFiredRef.current === championKey) return;
@@ -168,14 +168,14 @@ export default function ArenaPage(): JSX.Element {
       ...(msid ? { match_session_id: msid } : {}),
       round: "final",
     });
-    const durationSec = readTournamentDurationSec(tournament.id, runIndex);
+    const durationSec = readTournamentDurationSec(uid, tournament.id, runIndex);
     void trackWithConsent("champion_confirmed", {
       ...commonEventParams(tournament, isGuest, lang),
       ...(msid ? { match_session_id: msid } : {}),
       champion_id: progress.championId,
       ...(durationSec !== null ? { duration_sec: durationSec } : {}),
     });
-  }, [tournament, progress?.complete, progress?.championId, isGuest, lang, msid, runIndex]);
+  }, [tournament, progress?.complete, progress?.championId, isGuest, lang, msid, runIndex, uid]);
 
   // guest_limit_view (EVENT_SPEC v1.2 §9, 신설) — 게스트가 3판 소진 모달을 본 시점에 1회.
   // v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 "3판 소진"으로 옮겨갔으므로 **이 이벤트가
@@ -277,7 +277,8 @@ export default function ArenaPage(): JSX.Element {
           tournament &&
           state.votes.length === 0 &&
           runIndex &&
-          markFirstVote(tournamentId, runIndex)
+          uid &&
+          markFirstVote(uid, tournamentId, runIndex)
         ) {
           void trackWithConsent("first_vote", {
             ...commonEventParams(tournament, isGuest, lang),
