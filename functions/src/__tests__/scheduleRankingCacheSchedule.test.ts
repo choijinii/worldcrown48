@@ -37,6 +37,13 @@ describe("scheduleRankingCache 스케줄 (AC 14)", () => {
     expect(SOURCE).toContain("timeoutSeconds: 540");
   });
 
+  it("조회 하한이 마감 유예 창이다 — 마감 직전 선택이 최종 랭킹에서 빠지지 않는다", () => {
+    // `> now` 로 되돌아가면 팬이 보는 최종 랭킹에서 마감 직전 최대 12시간이 사라지고
+    // (팬은 W-7 때문에 마감 후에만 본다) `onChampionForNews` 의 기사 Champion까지 틀어진다.
+    expect(SOURCE).toContain("rankingWindowStartMs");
+    expect(SOURCE).not.toMatch(/where\("tournamentDeadline",\s*">",\s*now\)/);
+  });
+
   it("HISTORY_KEEP 이 2다 — 하루 2회 발표에서 '24시간 전'이 되는 세대 수", () => {
     // 60분 주기 시절의 24는 12일 전을 가리키게 된다. T-3(#1 +200% over 24h)의 기준선이
     // 사실과 맞으려면 발표 2회 전이어야 한다.

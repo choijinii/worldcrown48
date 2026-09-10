@@ -1,8 +1,9 @@
 /**
  * scheduleRankingCache — v2 scheduler (KST 09:00·21:00 · asia-northeast3).
  *
- * For every ACTIVE Tournament (tournamentDeadline > now — handoff §9 trap #4; a
- * per-Voter bracket model has no global round to key off) it:
+ * For every Tournament inside the ranking window (마감 전 + 마감 후 유예 —
+ * `core/rankingWindow`; handoff §9 trap #4: a per-Voter bracket model has no global
+ * round to key off) it:
  *   1. loads `votes` ONCE and groups in memory (rankingAggregator — trap #2: no
  *      per-contestant aggregation query, just one collection read),
  *   2. joins contestant metadata so the cache is denormalized for the UI,
@@ -25,6 +26,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { buildTallies, tallyVotes, type VoteLike } from "./core/rankingAggregator";
 import { buildRankingUpdate } from "./core/scheduleRankingCacheCore";
+import { rankingWindowStartMs } from "./core/rankingWindow";
 import type { AnomalyTag, RankingCache, RankingSnapshot } from "./_ranking/rankingTypes";
 
 /**
@@ -67,13 +69,19 @@ export const scheduleRankingCache = onSchedule(
   async () => {
     const now = Timestamp.now();
 
-    // Active = Tournament still open. Single-field range → auto-indexed.
-    const active = await adminDb
+    // 집계 대상 = 마감 전 대회 **+ 방금 마감된 대회**. Single-field range → auto-indexed.
+    //
+    // 마감 전만 보면 팬이 실제로 보는 최종 랭킹이 "마감 직전 마지막 크론 사진"이 된다
+    // (팬은 W-7 때문에 마감 후에만 랭킹을 본다) → 발표가 하루 두 번이 된 지금은 **마감 직전
+    // 최대 12시간의 선택이 최종 랭킹에서 빠진다.** `onChampionForNews` 가 이 캐시의 #1으로
+    // 기사 Champion을 정하므로 기사까지 틀어진다. 사유·경계는 `core/rankingWindow` 참조.
+    const windowStart = Timestamp.fromMillis(rankingWindowStartMs(now.toMillis()));
+    const inWindow = await adminDb
       .collection("tournaments")
-      .where("tournamentDeadline", ">", now)
+      .where("tournamentDeadline", ">", windowStart)
       .get();
 
-    for (const tournamentDoc of active.docs) {
+    for (const tournamentDoc of inWindow.docs) {
       const tournamentId = tournamentDoc.id;
       const cacheRef = adminDb.collection("ranking_cache").doc(tournamentId);
       const historyRef = cacheRef.collection("history");
