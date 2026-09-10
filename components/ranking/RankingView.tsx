@@ -38,6 +38,11 @@ export interface RankingViewProps {
   deadlineText: string | null;
   entries: RankingEntry[];
   labels: RankingViewLabels;
+  /**
+   * RUN-1 PR 3 (AC 15) — "다음 발표" 한 줄. `labels` 와 달리 이 문구는 3언어 카탈로그
+   * (`lib/i18n/messages.ts`)에서 오므로 따로 받는다. `null` 이면 줄을 감춘다.
+   */
+  nextUpdateText?: string | null;
 }
 
 const STYLE = `
@@ -91,6 +96,7 @@ export function RankingView({
   deadlineText,
   entries,
   labels,
+  nextUpdateText,
 }: RankingViewProps): JSX.Element {
   return (
     <section className="sf-ranking" data-rank={state} data-testid="ranking-view">
@@ -100,6 +106,7 @@ export function RankingView({
           kicker={labels.kicker}
           title={title}
           note={labels.note}
+          nextUpdateText={nextUpdateText}
           deadlineLabel={labels.deadlineLabel}
           deadlineText={deadlineText}
         />

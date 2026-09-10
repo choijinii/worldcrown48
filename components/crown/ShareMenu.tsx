@@ -37,6 +37,8 @@ interface ShareMenuProps {
   canSave?: boolean;
   /** 계측 공통 파라미터용 (EVENT_SPEC v1.2 §5). */
   category?: string;
+  /** 판(회차) 열쇠 (EVENT_SPEC v1.2 ⑩) — 공유·저장이 **어느 판의** 카드에서 나왔는지 묶는다. */
+  matchSessionId?: string;
 }
 
 function strings(lang: "ko" | "en") {
@@ -65,7 +67,7 @@ function strings(lang: "ko" | "en") {
   };
 }
 
-export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story", canSave = true, category }: ShareMenuProps): JSX.Element {
+export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story", canSave = true, category, matchSessionId }: ShareMenuProps): JSX.Element {
   const { lang } = useI18n();
   const t = strings(lang === "ko" ? "ko" : "en");
   const [fmt, setFmt] = useState<FormatKey>(initialFmt);
@@ -92,11 +94,15 @@ export function ShareMenu({ data, onBack, tournamentId, initialFmt = "story", ca
   // EVENT_SPEC v1.2 §5 (2026-09-08 실측): 공유 3이벤트에 공통 4파라미터가 붙어 있지 않았다.
   // v2.1로 게스트 공유가 열렸으므로 **is_guest 로 나눠 보지 않으면 회원 공유율이 부풀려
   // 보인다.** 저장이 잠겼다는 것이 곧 게스트라는 뜻이다.
+  // ⑩ (PR 3): match_session_id 를 함께 싣는다 — 한 사람이 같은 대회를 하루 5판까지 돌기
+  // 때문에 대회 id만으로는 "몇 판째 카드를 공유했는가"가 안 나뉜다. 모르는 자리에서는 키를
+  // 빼고 지어내지 않는다.
   const shareParams = {
     is_guest: !canSave,
     lang,
     ...(tournamentId ? { tournament_id: tournamentId } : {}),
     ...(category ? { category: category.toLowerCase() } : {}),
+    ...(matchSessionId ? { match_session_id: matchSessionId } : {}),
   };
 
   const changeFmt = (next: FormatKey): void => {

@@ -96,6 +96,18 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
       en: "Entries left today: {n} · Sign in to save",
       es: "Participaciones restantes hoy: {n} · Inicia sesión para guardar",
     },
+    // AC 15 (2026-09-04 승인) — 랭킹 발표가 하루 두 번이 되면서 생긴 "다음 발표" 한 줄.
+    // en·es는 시간대를 명시한다(§8 발표 시각 표기 규칙: 시각은 KST 고정).
+    "ranking.nextUpdate.today": {
+      ko: "다음 발표: 오늘 21:00",
+      en: "Next update: today 21:00 KST",
+      es: "Próxima actualización: hoy 21:00 KST",
+    },
+    "ranking.nextUpdate.tomorrow": {
+      ko: "다음 발표: 내일 09:00",
+      en: "Next update: tomorrow 09:00 KST",
+      es: "Próxima actualización: mañana 09:00 KST",
+    },
   } as const;
 
   for (const [key, langs] of Object.entries(APPROVED)) {

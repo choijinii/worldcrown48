@@ -269,4 +269,29 @@ test.describe("@c3 Ranking — Vote Rate surface", () => {
     // W-2 guard: no anomaly "이상 징후" language anywhere on the Voter surface.
     await expect(page.locator("text=이상 징후")).toHaveCount(0);
   });
+
+  /**
+   * RUN-1 PR 3 · AC 15 — "다음 발표" 한 줄은 **노출 보류 상태**다 (2026-09-10 대표 확정).
+   *
+   * 판정 함수(`lib/ranking/nextRankingUpdate`)와 §8 승인 문구 2키는 들어가 있고 단위 테스트가
+   * 시각 경계·글자까지 못박는다. 막힌 것은 화면 노출뿐이다 — 이 화면은 W-7 때문에 **마감 후에만**
+   * 보이는데 크론은 **마감 전** 대회만 집계하므로, 보이는 자리에서 "다음 발표"가 늘 거짓이 된다.
+   *
+   * 그래서 여기서 지키는 것은 **줄이 없다는 사실**이고, 동시에 그 부재가 "테스트가 아무것도 안
+   * 본 것"이 아님을 확인한다 — 기존 안내 한 줄(`.rank-note`)이 실제로 그려졌는지 함께 본다.
+   * W-7 결정이 뒤집혀 노출이 켜지면 이 테스트가 먼저 빨개져 짝을 맞추라고 알린다.
+   */
+  for (const lang of ["ko", "en", "es"] as const) {
+    test(`AC 15 — 다음 발표 한 줄은 아직 노출되지 않는다 (${lang})`, async ({ page }) => {
+      await page.goto(`/arena/${TID_LOADED}/ranking?lang=${lang}`);
+      await expect(page.getByTestId("ranking-view")).toHaveAttribute(
+        "data-rank",
+        "loaded",
+        { timeout: 30_000 },
+      );
+      // 헤더가 실제로 그려졌다는 증거 — 이게 없으면 아래 부재 단언이 공허해진다.
+      await expect(page.locator(".rank-head .rank-note")).toHaveCount(1);
+      await expect(page.getByTestId("ranking-next-update")).toHaveCount(0);
+    });
+  }
 });
