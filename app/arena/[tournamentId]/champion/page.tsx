@@ -22,6 +22,7 @@ import { ReturningCardBanner } from "@/components/crown/ReturningCardBanner";
 import { ModuleNav } from "@/components/arena/ModuleNav";
 import { resolveChampionId, toCrownData } from "@/lib/crown/championLoader";
 import { crownActionState } from "@/lib/crown/crownActions";
+import { matchSessionId } from "@/lib/analytics/matchSessionId";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
   return (
@@ -78,6 +79,14 @@ export default function ChampionPage(): JSX.Element {
   );
   const [loginOpen, setLoginOpen] = useState(false);
 
+  // 판(회차) 열쇠 (EVENT_SPEC v1.2 ⑩) — 공유·저장 이벤트를 **그 판**에 묶는다. 딥링크로 들어온
+  // 경우엔 `?run=` 이 가리키는 회차가 곧 그 판이다. 회차를 못 정했으면 키를 싣지 않는다.
+  const shownRunIndex = requestedRun ?? run?.displayRunIndex;
+  const msid =
+    uid && shownRunIndex
+      ? matchSessionId(uid, tournamentId, shownRunIndex)
+      : null;
+
   useEffect(() => {
     if (uid) void loadTournament(tournamentId, uid, isGuest);
   }, [uid, tournamentId, loadTournament, isGuest]);
@@ -108,7 +117,7 @@ export default function ChampionPage(): JSX.Element {
     <>
       <ReturningCardBanner tournamentId={tournamentId} />
       <ModuleNav tournamentId={tournamentId} />
-      <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} />
+      <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} matchSessionId={msid ?? undefined} />
       <LoginModal
         isOpen={loginOpen}
         reason="share"

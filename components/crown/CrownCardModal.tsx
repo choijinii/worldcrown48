@@ -40,9 +40,15 @@ interface CrownCardModalProps {
   tournamentId?: string;
   /** Tournament category id (e.g. "KPOP") — threaded into 계측 소킥 A 공통 파라미터. */
   category?: string;
+  /**
+   * 판(회차) 열쇠 (EVENT_SPEC v1.2 ⑩ · RUN-1 PR 3). 이 카드가 어느 판의 결과인지 묶는다 —
+   * 한 사람이 같은 대회를 하루 5판까지 돌기 때문에 대회 id만으로는 판이 안 나뉜다.
+   * 모르는 자리(회차를 못 정한 딥링크 등)에서는 넘기지 않는다. 지어내지 않는다.
+   */
+  matchSessionId?: string;
 }
 
-export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, tournamentId, category }: CrownCardModalProps): JSX.Element {
+export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, tournamentId, category, matchSessionId }: CrownCardModalProps): JSX.Element {
   const [view, setView] = useState<"ready" | "menu">("ready");
   const [menuFmt, setMenuFmt] = useState<FormatKey>("story");
   // Bumped on each open so the menu remounts and re-applies the preselected
@@ -84,9 +90,10 @@ export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, to
       lang,
       ...(tournamentId ? { tournament_id: tournamentId } : {}),
       ...(category ? { category: category.toLowerCase() } : {}),
+      ...(matchSessionId ? { match_session_id: matchSessionId } : {}),
       card_id: `${tournamentId ?? "unknown"}_${slug(data.name)}`,
     });
-  }, [canSave, lang, tournamentId, category, data.name]);
+  }, [canSave, lang, tournamentId, category, data.name, matchSessionId]);
 
   // Ready-state quick Download → Story PNG (wireframe dlBtn, silent).
   const onDownload = (): void => {
@@ -142,7 +149,7 @@ export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, to
             canSave={canSave}
           />
 
-          <ShareMenu key={openNonce} data={data} initialFmt={menuFmt} onBack={() => setView("ready")} tournamentId={tournamentId} canSave={canSave} category={category} />
+          <ShareMenu key={openNonce} data={data} initialFmt={menuFmt} onBack={() => setView("ready")} tournamentId={tournamentId} canSave={canSave} category={category} matchSessionId={matchSessionId} />
 
           <LoginPromptBanner onSignIn={onSignIn} />
         </div>

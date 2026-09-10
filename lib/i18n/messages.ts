@@ -283,6 +283,23 @@ export const MESSAGES = {
     es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
   },
 
+  // ── 랭킹 "다음 발표" 한 줄 (RUN-1 PR 3 · AC 15) ──
+  // §8 승인본(2026-09-04) 그대로. 랭킹 갱신이 하루 두 번(KST 09:00·21:00)이 되면서, 이 한 줄이
+  // 없으면 팬이 12시간 멈춘 숫자를 "고장"으로 읽는다 — 주기 연장의 필수 동반 조건이다.
+  // 어느 키를 쓸지는 `lib/ranking/nextRankingUpdate.ts` 가 정한다. 새벽(KST 00:00~08:59)은
+  // 맞는 문구가 없어 줄 자체를 감춘다 — 그 구간 문구는 대표 승인 대기다.
+  // en·es는 시간대를 명시한다(§8: 시각은 KST 고정).
+  "ranking.nextUpdate.today": {
+    ko: "다음 발표: 오늘 21:00",
+    en: "Next update: today 21:00 KST",
+    es: "Próxima actualización: hoy 21:00 KST",
+  },
+  "ranking.nextUpdate.tomorrow": {
+    ko: "다음 발표: 내일 09:00",
+    en: "Next update: tomorrow 09:00 KST",
+    es: "Próxima actualización: mañana 09:00 KST",
+  },
+
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.
   "lab.header.title": { ko: "Tournament 만들기", en: "Create Tournament", es: "Crear Tournament" },

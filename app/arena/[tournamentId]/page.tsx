@@ -28,11 +28,13 @@ import { useT } from "@/lib/i18n/useT";
 import { trackWithConsent } from "@/lib/analytics";
 import {
   commonEventParams,
+  markFirstVote,
   markTournamentStart,
   readTournamentDurationSec,
   resolveEntryPoint,
   roundParam,
 } from "@/lib/analytics/funnelEvents";
+import { matchSessionId } from "@/lib/analytics/matchSessionId";
 import { voteErrorDetailCode, voteErrorMessageKey, VOTE_ERROR_CODES } from "@/lib/voteErrorCodes";
 import { GUEST_DAILY_RUN_LIMIT } from "@/lib/run/guestRun";
 import { localizedTitle } from "@/lib/tournamentTitle";
@@ -101,57 +103,79 @@ export default function ArenaPage(): JSX.Element {
 
   const progress = useRoundTransition(uid, tournamentId, run?.displayRunIndex);
 
+  // ── 판(회차) 단위 계측 (EVENT_SPEC v1.2 ⑩ · RUN-1 PR 3) ────────────────────
+  // 한 사람이 같은 대회를 하루 5판까지 돈다. 회차가 이벤트에 안 실리면 완주율·이탈 라운드가
+  // 판 단위로 안 나뉜다. `run` 은 `tournament` 와 **같은 set() 으로 함께** 들어오므로
+  // (voteStore.loadTournament), 아래 이벤트들이 도는 시점엔 이미 값이 있다.
+  const runIndex = run?.displayRunIndex;
+  const msid =
+    uid && runIndex ? matchSessionId(uid, tournamentId, runIndex) : null;
+
   // ── 계측 소킥 A (2026-08-30) — 투표 퍼널 4단계 ────────────────────────────
   // tournament_start / round_advance(48·24·12·6·final) / champion_confirmed.
   // 전부 "실제 이 화면에서 지금 막 일어난 일"만 기록한다 — /champion 딥링크
   // 재방문·타인의 공유 링크 열람에서는 안 찍히도록 이 페이지(투표 세션 본인)
   // 쪽에만 붙였다. ref들은 같은 값으로 두 번 안 쏘게 막는 가드일 뿐이다.
+  //
+  // 🔴 RUN-1 PR 3 — **가드 키가 대회가 아니라 판(msid)이다.** [다시 참여]는 페이지를
+  // 언마운트하지 않고 스토어만 바꾸므로(`startNextRun`), 대회 id로 잠근 ref는 2판째에도
+  // 그대로 살아 있어 이벤트를 통째로 삼킨다. 그러면 이 PR이 붙인 회차 계측에
+  // **분모(tournament_start)가 없고**, 같은 Champion으로 두 번 이기면(팬에게는 흔한 일)
+  // 2판째가 완주하지 않은 것처럼 보인다.
   const tournamentStartFiredRef = useRef<string | null>(null);
-  const roundAdvanceFiredRef = useRef<number | null>(null);
+  const roundAdvanceFiredRef = useRef<string | null>(null);
   const championFiredRef = useRef<string | null>(null);
   const guestLimitFiredRef = useRef(false);
 
   useEffect(() => {
-    if (!tournament) return;
-    if (tournamentStartFiredRef.current === tournament.id) return;
-    tournamentStartFiredRef.current = tournament.id;
-    markTournamentStart(tournament.id);
+    // msid 는 tournament 과 함께(같은 set()) 채워지므로 여기서 기다릴 일이 없다.
+    if (!tournament || !msid || !runIndex) return;
+    if (tournamentStartFiredRef.current === msid) return;
+    tournamentStartFiredRef.current = msid;
+    markTournamentStart(tournament.id, runIndex);
     void trackWithConsent("tournament_start", {
       ...commonEventParams(tournament, isGuest, lang),
+      match_session_id: msid,
       entry_point: resolveEntryPoint(),
     });
-  }, [tournament, isGuest, lang]);
+  }, [tournament, isGuest, lang, msid, runIndex]);
 
   useEffect(() => {
     if (!tournament || !progress?.toRound || progress.complete) return;
-    if (roundAdvanceFiredRef.current === progress.toRound) return;
-    roundAdvanceFiredRef.current = progress.toRound;
+    const roundKey = `${msid ?? tournament.id}:${progress.toRound}`;
+    if (roundAdvanceFiredRef.current === roundKey) return;
+    roundAdvanceFiredRef.current = roundKey;
     // toRound로 전환 중이라는 건 방금 fromRound를 다 통과했다는 뜻 — round_advance는
     // "막 완료한 라운드" 값을 보낸다.
     const completedRound = (progress.fromRound ?? progress.toRound - 1) as RoundIndex;
     void trackWithConsent("round_advance", {
       ...commonEventParams(tournament, isGuest, lang),
+      ...(msid ? { match_session_id: msid } : {}),
       round: roundParam(completedRound),
     });
-  }, [tournament, progress?.toRound, progress?.fromRound, progress?.complete, isGuest, lang]);
+  }, [tournament, progress?.toRound, progress?.fromRound, progress?.complete, isGuest, lang, msid]);
 
   useEffect(() => {
-    if (!tournament || !progress?.complete || !progress.championId) return;
-    if (championFiredRef.current === progress.championId) return;
-    championFiredRef.current = progress.championId;
+    if (!tournament || !progress?.complete || !progress.championId || !runIndex) return;
+    // 판까지 포함한 키 — 2판째에 같은 Champion이 나와도 반드시 다시 쏜다.
+    const championKey = `${msid ?? tournament.id}:${progress.championId}`;
+    if (championFiredRef.current === championKey) return;
+    championFiredRef.current = championKey;
     // THE FINAL 통과도 round_advance 시퀀스의 마지막 한 걸음이라 같이 보낸다
     // (EVENT_SPEC.md §2: "48 → 24 → 12 → 6 → FINAL").
     void trackWithConsent("round_advance", {
       ...commonEventParams(tournament, isGuest, lang),
+      ...(msid ? { match_session_id: msid } : {}),
       round: "final",
     });
-    const durationSec = readTournamentDurationSec(tournament.id);
+    const durationSec = readTournamentDurationSec(tournament.id, runIndex);
     void trackWithConsent("champion_confirmed", {
       ...commonEventParams(tournament, isGuest, lang),
+      ...(msid ? { match_session_id: msid } : {}),
       champion_id: progress.championId,
       ...(durationSec !== null ? { duration_sec: durationSec } : {}),
     });
-  }, [tournament, progress?.complete, progress?.championId, isGuest, lang]);
+  }, [tournament, progress?.complete, progress?.championId, isGuest, lang, msid, runIndex]);
 
   // guest_limit_view (EVENT_SPEC v1.2 §9, 신설) — 게스트가 3판 소진 모달을 본 시점에 1회.
   // v2.1에서 회원 전환의 주 지점이 "공유 잠금"에서 "3판 소진"으로 옮겨갔으므로 **이 이벤트가
@@ -242,6 +266,25 @@ export default function ArenaPage(): JSX.Element {
           contestantId,
         });
         addVote({ round: match.round, matchId: match.matchId, contestantId });
+
+        // first_vote (EVENT_SPEC v1.2 ⑩) — **한 판의 첫 선택에 정확히 1회.**
+        // 판정은 두 겹이다: ① `state.votes.length === 0` — 이 호출 직전에 그 판의 선택이
+        // 하나도 없었다(이어하기로 돌아온 판은 여기서 걸린다. 탭을 닫았다 열어 마커가
+        // 사라져도 마찬가지다) ② `markFirstVote` 의 회차별 sessionStorage 마커 — 같은 세션의
+        // 새로고침을 막는다. 반대로 **새 판(회차 +1)은 키가 달라 반드시 다시 발화**한다.
+        // ⚠️ 성공 직후에만 쏜다 — 서버가 거절한 선택은 판을 시작시키지 않는다.
+        if (
+          tournament &&
+          state.votes.length === 0 &&
+          runIndex &&
+          markFirstVote(tournamentId, runIndex)
+        ) {
+          void trackWithConsent("first_vote", {
+            ...commonEventParams(tournament, isGuest, lang),
+            ...(msid ? { match_session_id: msid } : {}),
+            run_index: runIndex,
+          });
+        }
       } catch (e) {
         const detail = voteErrorDetailCode(e);
         // 막는 것과 왜 막혔는지 알려주는 것은 한 쌍이다(§14). 서버가 실은 코드로 갈라
@@ -262,7 +305,19 @@ export default function ArenaPage(): JSX.Element {
         setPickedId(null);
       }
     },
-    [tournamentId, submitting, addVote, t, uid, isGuest, loadTournament],
+    [
+      tournamentId,
+      submitting,
+      addVote,
+      t,
+      uid,
+      isGuest,
+      loadTournament,
+      tournament,
+      lang,
+      msid,
+      runIndex,
+    ],
   );
 
   const loginModal = (
@@ -407,7 +462,7 @@ export default function ArenaPage(): JSX.Element {
       const data = toCrownData(champ, tournament);
       return (
         <div className={styles.arena} data-arena-surface="champion">
-          <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} />
+          <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} matchSessionId={msid ?? undefined} />
           {run && uid ? (
             <RunCompleteActions
               run={run}

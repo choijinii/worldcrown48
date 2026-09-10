@@ -238,30 +238,28 @@ describe("crown_cards (C-2) — owner read, featured public, no client write", (
   });
 });
 
-describe("daily_participation (HF-1) — owner read, no client write", () => {
+/**
+ * RUN-1 PR 3 (§3.0 대표 조건 4) — `daily_participation` 규칙 블록을 **삭제**했다.
+ *
+ * "하루 새 대회 5개"라는 HF-1의 정의 자체가 참가 규칙 v2.0에서 폐기되고 `tournament_runs` 가
+ * 대신한다. 규칙이 없으면 기본 거부이므로 소유자조차 읽지 못하는 것이 **의도한 상태**다 —
+ * 이 테스트는 누군가 블록을 되살리면 알아차리기 위한 자리다. 옛 문서는 읽지 않고 버린다
+ * (그날 자정에 자연 소멸 · 일괄 삭제 스크립트는 §5 DON'T 3으로 금지).
+ */
+describe("daily_participation — 규칙 삭제됨(기본 거부). RUN-1 PR 3", () => {
   const DATE = "2026-07-05";
 
-  it("lets the owner read their own participation doc (`${uid}_${date}`)", async () => {
+  it("소유자도 더 이상 읽지 못한다 — 규칙 블록이 사라졌다", async () => {
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), `daily_participation/${VOTER}_${DATE}`), {
         tournamentIds: ["t1", "t2"],
       });
     });
     const db = testEnv.authenticatedContext(VOTER).firestore();
-    await assertSucceeds(getDoc(doc(db, `daily_participation/${VOTER}_${DATE}`)));
+    await assertFails(getDoc(doc(db, `daily_participation/${VOTER}_${DATE}`)));
   });
 
-  it("forbids reading another Voter's participation doc", async () => {
-    await testEnv.withSecurityRulesDisabled(async (c) => {
-      await setDoc(doc(c.firestore(), `daily_participation/${OTHER}_${DATE}`), {
-        tournamentIds: ["t1"],
-      });
-    });
-    const db = testEnv.authenticatedContext(VOTER).firestore();
-    await assertFails(getDoc(doc(db, `daily_participation/${OTHER}_${DATE}`)));
-  });
-
-  it("DENIES a Voter writing their participation doc (onVote/admin only)", async () => {
+  it("쓰기도 여전히 막혀 있다", async () => {
     const db = testEnv.authenticatedContext(VOTER).firestore();
     await assertFails(
       setDoc(doc(db, `daily_participation/${VOTER}_${DATE}`), {
