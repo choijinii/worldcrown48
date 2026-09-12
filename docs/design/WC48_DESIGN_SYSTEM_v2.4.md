@@ -277,7 +277,7 @@ AIReportCard (Newsroom AI-Report 칼럼의 카드) 시각 처리 가이드:
 
 ```
 ✅ TournamentCard에 표시 가능한 정보:
-  - 카테고리 배지 (FOOTBALL / K-POP / OTHER)
+  - 카테고리 배지 (K-POP / OTHER)
   - Tournament 제목
   - Contestant 수 (예: "48 Contestants")
   - Tournament Deadline (예: "Jun 30")
@@ -424,7 +424,7 @@ Arena VS Battle 카드 (2026-06-04 v2.4 패치 — Tournament Deadline 필수화
 캔버스 내부 `crown-card-info` 메타 라인:
 ```
 {championName} · {tournamentTitle} · {tournamentDeadlineFormatted}
-예: "M. Adeyemi · Strikers of the Century · May 31, 2026"
+예: "미나 · 올해의 무대 · May 31, 2026"
 ```
 → Champion 확정 후에도 마감일을 역사 기록으로 영구 보존.
 
@@ -453,7 +453,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SAMPLE_TOURNAMENTS = [
-  { label: "FOOTBALL",  title: "World's Greatest Striker",    count: "48 Players" },
+  { label: "K-POP",     title: "최고의 퍼포먼스 무대",        count: "48 무대" },
   { label: "K-POP",     title: "Idol of the Decade",          count: "48 Artists" },
   { label: "ANIME",     title: "Most Iconic Hero",            count: "48 Heroes"  },
 ];
@@ -523,8 +523,8 @@ export function TournamentShuffler() {
 import { useState, useEffect, useRef } from 'react';
 
 const VOTE_MESSAGES = [
-  "Fan #4,812 just voted for Son Heung-min",
-  "New Crown candidate: Kylian Mbappé",
+  "Fan #4,812 just picked 미나",
+  "New Crown candidate: 슬기",
   "Upset: Underdog Choi takes 56% lead",
   "48강 Round begins · 24 matches to go",
   "Fan #7,301 crowned their Champion",
