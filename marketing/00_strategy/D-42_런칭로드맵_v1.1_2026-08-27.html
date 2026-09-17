@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorldCrown48 · 런칭 로드맵 v1.1 (확정)</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F7F7F9; color:#1A1A2E; font-family:'Apple SD Gothic Neo','Pretendard',system-ui,sans-serif; padding:36px 16px 80px; line-height:1.65; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:26px; margin-bottom:6px; }
+  .lede { color:#555A6E; font-size:14.5px; line-height:1.75; margin-bottom:10px; }
+  .badge { display:inline-block; background:#E6F7EC; color:#1B6B3A; font-size:12.5px; padding:3px 10px; border-radius:999px; margin-bottom:24px; margin-right:6px; }
+  h2 { font-size:18px; margin:34px 0 12px; }
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #E3E4EC; border-radius:10px; overflow:hidden; font-size:13.5px; }
+  th, td { border:1px solid #E9EAF1; padding:10px 10px; vertical-align:top; line-height:1.65; text-align:left; }
+  th { background:#F0F1F7; font-size:12.5px; }
+  .wk { white-space:nowrap; font-weight:700; background:#FAFAFD; width:104px; }
+  .dev { border-left:4px solid #4A5BD4; }
+  .mkt { border-left:4px solid #C9861A; font-size:12.8px; color:#5C4A1A; }
+  .ops { color:#B03030; font-weight:600; font-size:12.5px; }
+  .gate { background:#FFF4F4; font-weight:600; }
+  .launch td { background:#FFF9E6; font-weight:700; }
+  .after td { background:#F3F0FF; }
+  .note { background:#EEF1FB; border-radius:10px; padding:16px 20px; font-size:14px; line-height:1.85; color:#2C3150; margin-top:10px; }
+  ul.tight { margin:0 0 0 18px; }
+  ul.tight li { margin:4px 0; line-height:1.7; }
+  .small { font-size:12.5px; color:#7A7F92; margin-top:8px; line-height:1.7; }
+  .tbl-scroll { overflow-x:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WorldCrown48 · 런칭 로드맵 <span style="color:#1B6B3A">v1.1 확정</span></h1>
+  <p class="lede">기준일 2026-08-27 · 🚀 <strong>런칭 2026-10-08(목) 확정</strong> (D-42) · 연휴 총공 10/9–11 · 마케팅 일정표 v1.1과 상호 확정 · 사전등록 목표 500명</p>
+  <span class="badge">개발 ↔ 마케팅 합의 완료 2026-08-27</span>
+
+  <h2>주 단위 확정 계획</h2>
+  <div class="tbl-scroll">
+  <table>
+    <tr><th class="wk">주차</th><th style="width:40%">🔧 개발</th><th style="width:36%">📣 마케팅 (요약)</th><th>⚠️ 마감·게이트</th></tr>
+    <tr>
+      <td class="wk">W1<br>8/28–9/3</td>
+      <td class="dev">LAB-UX-1 종료(골든·스모크) · OG 연결 → GA 연결 → UTM 자동 부착 · TOG-1 · <strong>계측 소킥 A</strong>: ⑥ guest_signin_convert ⑦ share_locked_view 신설 + 공통 파라미터 4종(is_guest·tournament_id·<strong>category★</strong>·lang) 정비</td>
+      <td class="mkt">토너먼트 4종 설계 · 기사 이미지 템플릿 · X 계정 · Crown Card 확정 · UTM 규칙표 정합 · 명단 30곳</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="wk">W2<br>9/4–9/10</td>
+      <td class="dev" rowspan="2"><strong>Arena 매치 대수술</strong> — 계측 ① tournament_start ② round_advance(round★) ③ champion_confirmed <strong>내장</strong><br><br>병행 소킥: sitemap+Search Console · 공유 링크 도착지 수정 · <strong>발신 메일 구축 착수</strong>(서비스 선정+DNS 인증)</td>
+      <td class="mkt">기사 1호 착수(공정 정립) · 툴팁 문안 준비 · 토너먼트 발행 개시 · 명단 60곳</td>
+      <td class="ops">GCP 결제 9/10<br><br>🔍 W2 말 검증:<br>④⑤⑥⑦⑧+공통</td>
+    </tr>
+    <tr>
+      <td class="wk">W3<br>9/11–9/17</td>
+      <td class="mkt">사전등록 소프트 개시(D-27) · 기사 1~2호 발행 · 팬베이스 테스트 10곳 실측</td>
+      <td class="ops">YouTube 쿼터 신청<br>발신 메일 가동<br><br>🔍 W3 말 검증:<br>전체 8종</td>
+    </tr>
+    <tr>
+      <td class="wk">W4<br>9/18–9/24</td>
+      <td class="dev"><strong>랭킹 개편(Crown Score)</strong> + 산식 툴팁 + /policies 산정 기준 항목 — Crown Score 문안 한 벌로 동시 출고</td>
+      <td class="mkt">매치 영상 24개 · <strong>클로즈드 베타</strong>(완주율·이탈 라운드) · 사전등록 부스팅 · GA↔Firestore 동의율 보정계수 1회 산출</td>
+      <td class="gate">🚧 베타 스모크 게이트:<br>대표 1회 완주 → GA 실시간에서 ①/②×4/③ 수신 확인 → 통과 시에만 베타 초대 발송, 누락 시 베타 연기</td>
+    </tr>
+    <tr>
+      <td class="wk">W5<br>9/25–10/1</td>
+      <td class="dev"><strong>Pitch 쇼케이스(우선)</strong> + 뉴스룸 승격 핵심(지면·schema 최소판)<br><span class="small">밀리면 뉴스룸만 W6 이월 — W6 내 순위: 베타 반영 &gt; QA &gt; 뉴스룸 (QA를 밀어내는 이월 불가)</span></td>
+      <td class="mkt">베타 데이터 판정 · Creator 당사자 접촉 · 팬베이스 본격(누적 60곳) · 사전등록 중간점검 300명</td>
+      <td class="ops">Node 20 소킥</td>
+    </tr>
+    <tr>
+      <td class="wk">W6<br>10/2–10/7</td>
+      <td class="dev"><strong>베타 반영(이탈 지점 수정만) · 최종 QA · 전 화면 스모크</strong> — 버퍼 주간</td>
+      <td class="mkt">총공 카드 3언어 · 웨이트리스트 메일 예약 · 카운트다운 · 연휴 3일치 예약 발행</td>
+      <td></td>
+    </tr>
+    <tr class="launch"><td class="wk">D-DAY<br>10/8(목)</td><td>🚀 배포 · 실시간 모니터링</td><td>🚀 런칭 캠페인 · 웨이트리스트 발송 · 상주 대응</td><td></td></tr>
+    <tr class="after"><td class="wk">연휴<br>10/9–11</td><td>긴급 대응 대기</td><td><strong>총공 3일</strong> · 10/10(토) 신규 토너먼트 공개 · utm_medium 실시간 확인</td><td></td></tr>
+  </table>
+  </div>
+
+  <h2>계측 이벤트 8종 — 실측 대조 확정 (EVENT_SPEC.md 연동)</h2>
+  <div class="note">
+    <ul class="tight">
+      <li>✅ 기존 구현: ⑤ share_click → <code>crown_downloaded / crown_shared_x / crown_shared_native</code> · ⑧ waitlist_signup → <code>waitlist_submit</code></li>
+      <li>△ 근사: ④ ≈ <code>crown_modal_opened</code>(재방문 중복 포함 — 카드 수 정본은 Firestore crown_cards)</li>
+      <li>❌ 신규 구현: ①②③ = Arena 킥 내장(W2~3) · ⑥⑦ = W1 계측 소킥 A · 공통 파라미터 4종 정비(category 최우선)</li>
+      <li>카카오 채널: 당장 분리 안 함 — native로 통일, GA 리퍼러로 추정, W4 실측 확인</li>
+      <li>동의율 보정: GA champion_confirmed ÷ Firestore 실기록 = 보정계수, W4 베타 때 1회 산출</li>
+    </ul>
+  </div>
+
+  <h2>MVP2 이관 확정 목록 (범위 동결)</h2>
+  <div class="note">
+    <ul class="tight">
+      <li>랭킹 산식 전용 페이지 (툴팁 + /policies 항목으로 1차 대체)</li>
+      <li>사이트 내 검색 기능 (참가자 DB와 묶어 구현)</li>
+      <li>참가자 DB 3층(마스터 표·관리 화면·대시보드 그래프) · 32/16강 브래킷 · 얼굴 스마트 크롭</li>
+      <li>카카오 공유 채널 분리 계측</li>
+      <li>STEP 2 초안 저장/불러오기 (2026-08-27 대표 확정 — W1 여유 확보 우선)</li>
+    </ul>
+  </div>
+
+  <p class="small" style="margin-top:28px">WorldCrown48 · 런칭 로드맵 v1.1 · 2026-08-27 확정 · 마케팅 일정표 v1.1 · EVENT_SPEC.md와 한 세트 · 변경 시 양측 합의로 v1.2</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마케팅 문서 인계 일정표 — WorldCrown48</title>
+<style>
+  :root{
+    --navy:#1a1b4b; --gold:#e8b84b; --ink:#1c1c1e;
+    --muted:#6b6b76; --line:#e3e3ea; --bg:#faf9f7;
+    --done:#e8f4ec; --doneline:#a8cfb8;
+    --now:#fff4e0; --nowline:#f0d9a8;
+    --later:#f2f1f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; padding:0 18px 80px; background:var(--bg); color:var(--ink);
+       font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+       line-height:1.7; font-size:16.5px; -webkit-text-size-adjust:100%}
+  header{margin:0 -18px 28px; padding:34px 18px 24px; background:var(--navy); color:#fff}
+  header .crown{font-size:25px; color:var(--gold); line-height:1}
+  header h1{margin:10px 0 6px; font-size:22px; letter-spacing:-.02em}
+  header p{margin:0; font-size:14px; color:#b9bad6}
+  h2{margin:40px 0 12px; font-size:18.5px; padding-bottom:8px; border-bottom:2px solid var(--navy)}
+  .lead{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:16px 0}
+  .lead p{margin:0 0 10px} .lead p:last-child{margin:0}
+  .wk{border-radius:12px; padding:16px 18px; margin:14px 0; border:1px solid var(--line); background:#fff}
+  .wk.done{background:var(--done); border-color:var(--doneline)}
+  .wk.now{background:var(--now); border-color:var(--nowline)}
+  .wk.later{background:var(--later)}
+  .wk h3{margin:0 0 4px; font-size:17px}
+  .wk .when{font-size:13.5px; color:var(--muted); margin:0 0 12px}
+  .doc{padding:11px 0; border-top:1px solid rgba(0,0,0,.07)}
+  .doc:first-of-type{border-top:none}
+  .doc b{display:block; font-size:16px; margin-bottom:2px}
+  .doc .why{font-size:14.5px; color:var(--muted)}
+  .tag{display:inline-block; font-size:12px; padding:2px 8px; border-radius:12px;
+       background:var(--navy); color:#fff; margin-left:6px; vertical-align:2px}
+  .tag.ok{background:#2e7d52}
+  .tag.me{background:#8a6d1f}
+  code{background:#eceaf5; color:#2a2b6b; padding:1px 6px; border-radius:5px;
+       font-family:ui-monospace,Menlo,monospace; font-size:14.5px}
+  .note{font-size:14.5px; color:var(--muted); border-left:3px solid var(--gold);
+        padding:2px 0 2px 12px; margin:14px 0}
+  table{width:100%; border-collapse:collapse; font-size:15px; margin:14px 0}
+  th,td{border:1px solid var(--line); padding:9px 10px; text-align:left; background:#fff}
+  th{background:#f2f1f7; font-weight:600}
+  footer{margin-top:46px; padding-top:18px; border-top:1px solid var(--line);
+         font-size:13.5px; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="crown">♕</div>
+  <h1>마케팅 문서 인계 일정표</h1>
+  <p>WorldCrown48 · 어느 문서를 언제 Cowork에 넘길 것인가</p>
+</header>
+
+<div class="lead">
+  <p><b>문서를 한꺼번에 넘기지 않는 이유</b></p>
+  <p>Cowork이 한 번에 여러 건을 받으면 무엇부터 할지 판단해야 하고, 그 판단에 토큰이 듭니다.
+  그리고 아직 결정이 안 끝난 문서를 미리 넘기면, 나중에 다시 넘겨야 합니다.</p>
+  <p><b>필요한 시점에 하나씩 넘기는 것이 가장 적은 일로 끝납니다.</b></p>
+</div>
+
+<h2>범례</h2>
+<table>
+  <tr><th>표시</th><th>뜻</th></tr>
+  <tr><td><span class="tag ok">완료</span></td><td>이미 전달했고 회신까지 받음</td></tr>
+  <tr><td><span class="tag">Cowork</span></td><td>Cowork에 넘길 문서</td></tr>
+  <tr><td><span class="tag me">대표님</span></td><td>대표님이 직접 보고 실행하는 문서. 넘기지 않음</td></tr>
+</table>
+
+<h2>W1 — 완료</h2>
+
+<div class="wk done">
+  <h3>이미 전달됨</h3>
+  <p class="when">8/31 ~ 9/3</p>
+
+  <div class="doc">
+    <b>UTM_RULES_v1.0.md <span class="tag ok">완료</span></b>
+    <span class="why">티오가 구현·배포 완료. <code>marketing/00_strategy/</code>에 저장됨</span>
+  </div>
+  <div class="doc">
+    <b>부하점검요청_마케팅.md <span class="tag ok">완료</span></b>
+    <span class="why">회신 받음. 동시 투표자 300명 기준으로 총공 계획</span>
+  </div>
+  <div class="doc">
+    <b>대관연출_인계_Crown_Ceremony.md <span class="tag ok">완료</span></b>
+    <span class="why">ARENA-1 킥에 정식 편성됨</span>
+  </div>
+  <div class="doc">
+    <b>PRELAUNCH_GATE_요구사항.md <span class="tag ok">완료</span></b>
+    <span class="why">전달됨. 적용 여부는 티오 진행 상황 확인 필요</span>
+  </div>
+</div>
+
+<h2>W2 — 지금</h2>
+
+<div class="wk now">
+  <h3>이번 주에 넘길 것</h3>
+  <p class="when">9/4 ~ 9/10 · 3건</p>
+
+  <div class="doc">
+    <b>게스트정책_v2.1_결정.md <span class="tag">Cowork</span></b>
+    <span class="why"><b>가장 급합니다.</b> 게스트가 지금 아무것도 못 하는 상태로 돌고 있습니다.
+    참가 규칙 정본 갱신 + 코드 반영이 필요하고, RUN-1이 이미 배포된 뒤라 빠를수록 좋습니다.</span>
+  </div>
+  <div class="doc">
+    <b>EVENT_SPEC_v1.1.md <span class="tag">Cowork</span></b>
+    <span class="why">ARENA-1 구현이 시작되기 전에 들어가야 합니다.
+    <code>match_session_id</code>는 나중에 붙이면 그 전 데이터가 전부 못 쓰게 됩니다.</span>
+  </div>
+  <div class="doc">
+    <b>X_계정개설안_정보계정명단.md <span class="tag">Cowork</span></b>
+    <span class="why">X 계정 개설 후. Cowork이 게시물 큐 파일과 정보 계정 명단 파일을 만들어야
+    대표님이 채워 넣을 자리가 생깁니다.</span>
+  </div>
+</div>
+
+<div class="wk now">
+  <h3>대표님이 직접 보시는 문서</h3>
+  <p class="when">넘기지 않음 · 2건</p>
+
+  <div class="doc">
+    <b>X계정_개설순서.html <span class="tag me">대표님</span></b>
+    <span class="why"><code>accounts@worldcrown48.com</code> 으로 가입</span>
+  </div>
+  <div class="doc">
+    <b>GA4_채널그룹_설정순서.html <span class="tag me">대표님</span></b>
+    <span class="why">GA4 콘솔 작업. 대표님 계정에서만 가능</span>
+  </div>
+</div>
+
+<h2>W3</h2>
+
+<div class="wk later">
+  <h3>9/11 ~ 9/17 · 2건</h3>
+
+  <div class="doc">
+    <b>EMAIL_POLICY.md <span class="tag">Cowork</span></b>
+    <span class="why">주소 10개는 이미 다 만들어졌습니다. Cowork이 할 일은
+    <b>발신 가능 여부 4가지 확인</b>과 서비스 내 표기 위치 정리입니다.<br>
+    <b>주의</b> — 이 확인이 끝나야 <code>partners@</code> 로 소속사 문의를 보낼 수 있습니다.
+    회신을 기다리는 업무라, 늦어지는 만큼 런칭일 사진 카드가 줄어듭니다.</span>
+  </div>
+  <div class="doc">
+    <b>X_운영_자동화_방침.md <span class="tag">Cowork</span></b>
+    <span class="why">게시물 큐 파일 생성. 계정이 열리고 문안이 나온 뒤에 넘기는 것이 맞습니다.</span>
+  </div>
+</div>
+
+<h2>W4 이후</h2>
+
+<div class="wk later">
+  <h3>9/18 ~ · 결정이 끝난 뒤</h3>
+
+  <div class="doc">
+    <b>참가자 명단 CSV 4종 + README <span class="tag">Cowork</span></b>
+    <span class="why">아직 못 넘깁니다. <b>③번은 4·5세대로 다시 짜야 하고, ④번은 9행뿐</b>입니다.
+    대표님이 커버 크리에이터를 채우시고 제가 ③번을 다시 만든 뒤에 넘깁니다.<br>
+    Cowork이 할 일은 <code>video_id</code> 수집과 <code>agency</code> 검증입니다.</span>
+  </div>
+  <div class="doc">
+    <b>확정사항_20260831.md <span class="tag">Cowork</span></b>
+    <span class="why">기록용 문서입니다. 급하지 않지만, 새 세션이 맥락을 잡을 때 필요하니
+    어느 시점엔 폴더에 들어가 있어야 합니다.<br>
+    <b>다만 그 뒤로 결정이 많이 바뀌었습니다</b> — 참가 규칙 v2.0/v2.1, 대회 제목 4종,
+    파운딩 보터, LAB 10/23. 넘기기 전에 제가 갱신본을 만들어야 합니다.</span>
+  </div>
+</div>
+
+<h2>기억할 원칙 3가지</h2>
+
+<div class="lead">
+  <p><b>1. 결정이 끝난 문서만 넘긴다.</b><br>
+  미결이 남은 문서를 넘기면 Cowork이 두 번 일합니다.</p>
+  <p><b>2. 대표님이 직접 하는 일은 HTML, Cowork에 넘기는 것은 MD.</b><br>
+  용도가 다르므로 형식도 다릅니다.</p>
+  <p><b>3. 계측 관련 문서는 구현 전에 넘긴다.</b><br>
+  나중에 붙이면 그 전 데이터가 전부 못 쓰게 됩니다. 다른 문서와 급한 정도가 다릅니다.</p>
+</div>
+
+<div class="note">
+  주차 구분(W1~W6)은 런칭 2026-10-08을 기준으로 역산한 것입니다.
+  대표님 일정표 v1.1의 주차 정의와 다르면 그쪽을 따르십시오.
+</div>
+
+<footer>
+  WorldCrown48 · 마케팅 문서 인계 일정표<br>
+  이 표는 새 문서가 나올 때마다 갱신합니다.
+</footer>
+
+</body>
+</html>

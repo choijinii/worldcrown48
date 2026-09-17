@@ -281,7 +281,7 @@ function AIReportInline() {
 
 ```
 ✅ TournamentCard에 표시 가능한 정보:
-  - 카테고리 배지 (FOOTBALL / K-POP / OTHER)
+  - 카테고리 배지 (K-POP / OTHER)
   - Tournament 제목
   - Contestant 수 (예: "48 Contestants")
   - Tournament Deadline (예: "Jun 30")
@@ -375,7 +375,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SAMPLE_TOURNAMENTS = [
-  { label: "FOOTBALL",  title: "World's Greatest Striker",    count: "48 Players" },
+  { label: "K-POP",     title: "최고의 퍼포먼스 무대",        count: "48 무대" },
   { label: "K-POP",     title: "Idol of the Decade",          count: "48 Artists" },
   { label: "ANIME",     title: "Most Iconic Hero",            count: "48 Heroes"  },
 ];
@@ -445,8 +445,8 @@ export function TournamentShuffler() {
 import { useState, useEffect, useRef } from 'react';
 
 const VOTE_MESSAGES = [
-  "Fan #4,812 just voted for Son Heung-min",
-  "New Crown candidate: Kylian Mbappé",
+  "Fan #4,812 just picked 미나",
+  "New Crown candidate: 슬기",
   "Upset: Underdog Choi takes 56% lead",
   "48강 Round begins · 24 matches to go",
   "Fan #7,301 crowned their Champion",

@@ -107,7 +107,8 @@
 > **순서 주의**: v0.95에서 대관 연출을 **선행 소킥 ARENA-1a**로 분리했다. 자산 6종이 도착해 있으면 **F를 먼저** 하고 A~E로 간다. 자산이 없으면 A부터 시작하고 F는 자산 도착 후.
 
 - **F ★대관 연출 (ARENA-1a, 선행 가능)**: 현재 `FinalPickView` 위에 `CeremonyStage` 7층 레이어 + `useCeremonyTimeline`(WAAPI) + 탭 건너뛰기(`finish()`) + reduced-motion 정지 프레임 + `ceremony_viewed/skipped` 계측 + 탭 후 `CrownCardModal`. **2판째 이후 재생·건너뛰기 테스트 필수(R11).** E2E `arena1-ceremony`.
-- **A 무대 골격**: `SplitStage`(100vw/vh flex, 좌우 `StageSide`) + 상태 머신(`idle | focusL | focusR | pickedL | pickedR | loading`) 순수 모듈 `lib/arena/stageState.ts`(유닛 테스트) → `MatchView` 교체. 문구 0개. 모바일 = 상하 2탭.
+- **A 무대 골격**: `SplitStage`(100vw/vh flex, 좌우 `StageSide`) + 상태 머신(`idle | focusL | focusR | pickedL | pickedR | loading`) 순수 모듈 `lib/arena/stageState.ts`(유닛 테스트) → `MatchView` 교체. 모바일 = 상하 2탭.
+  - ⚠️ **2026-09-12 정정**: 이 줄에 있던 "문구 0개"는 티오가 만든 말로 대표 승인이 없어 삭제한다. 무대에서 금지된 것은 §합격기준 29행의 **라운드 라벨·득표율·마감 타이머·고지문(`vs-foot`)** 네 가지뿐이며, **이름·국적·소속·영상 설명은 무대 위 오버랩 허용**이다. 배치는 대표 그림이 정본(결정 원장 D-11).
 - **B 재생·프리로드**: `StageSide`에 LoopPlayer 조건 마운트(focus 쪽만, R3/R4), 반대쪽 포스터. `useNextMatchPreload`. 유닛: focus 전환 시 마운트 수 ≤ 1.
 - **C 픽 연출 + 오버레이 축소**: 픽 시 선택 쪽 확장 절정(320ms) → 서버 응답 대기 스피너는 선택 쪽 안에서만. 실패 시 원위치 + 토스트(기존 오류 키).
 - **D 라운드 전환 재설계**: 와이어프레임 `.rt-rings`·코너 라벨·`.rt-meta` 복원, 문구 i18n, 표시 용어, reduced-motion 시 hold 2000→0.
