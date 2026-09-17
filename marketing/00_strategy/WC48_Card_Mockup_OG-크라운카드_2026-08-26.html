@@ -1,0 +1,372 @@
+<!-- WorldCrown48 · Share Asset Mockup · Twilight Stadium v2.3 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorldCrown48 — Share Asset Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,500;1,600;1,700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --gold:#FCD006;
+  --crimson:#D7063A;
+  --turquoise:#00A3B7;
+  --velvet-900:#0D0824;
+  --velvet-800:#140D33;
+  --velvet-700:#1D1447;
+  --velvet-600:#2A1D63;
+  --velvet-500:#3B2A80;
+  --ink-100:#F2EFFF;
+  --ink-300:#BCB2E0;
+  --ink-500:#8579B8;
+  --f-ui:'Inter','Noto Sans KR',system-ui,sans-serif;
+  --f-dis:'Playfair Display',serif;
+  --f-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--velvet-900);color:var(--ink-100);font-family:var(--f-ui);line-height:1.6;padding:0 20px 90px}
+.wrap{max-width:1120px;margin:0 auto}
+
+header{padding:56px 0 32px;border-bottom:1px solid var(--velvet-600)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:16px}
+h1{font-size:clamp(30px,5vw,48px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+h1 em{font-family:var(--f-dis);font-style:italic;color:var(--gold);font-weight:500}
+.lede{margin-top:16px;color:var(--ink-300);max-width:64ch}
+
+section{margin-top:64px}
+h2{font-family:var(--f-mono);font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
+   padding-bottom:12px;border-bottom:1px solid var(--velvet-600);margin-bottom:10px}
+.h2sub{color:var(--ink-300);font-size:14px;margin-bottom:28px;max-width:70ch}
+
+.grid{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.unit{flex:0 0 auto}
+.cap{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--ink-500);
+     text-transform:uppercase;margin-bottom:10px}
+.cap b{color:var(--turquoise)}
+
+/* ============ CARD BASE ============ */
+.card{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #2E1F6B 0%, #1A1140 55%, #0D0824 100%);
+  border:1px solid var(--velvet-600);
+  display:flex;flex-direction:column;
+}
+.card::after{ /* gold hairline top */
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);
+}
+.safe{position:absolute;inset:0;pointer-events:none;border:1px dashed rgba(252,208,6,.22);margin:6%}
+.safe-note{position:absolute;right:7%;bottom:7.4%;font-family:var(--f-mono);font-size:9px;
+  color:rgba(252,208,6,.5);letter-spacing:.1em}
+
+.brandline{display:flex;align-items:center;gap:8px}
+.crown{width:1em;height:1em;flex:none}
+.brandname{font-weight:800;letter-spacing:-.01em}
+
+/* ============ OG 1200x630 (rendered 480x252) ============ */
+.og{width:480px;height:252px;padding:34px 38px;justify-content:space-between}
+.og .kicker{font-family:var(--f-mono);font-size:10px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase}
+.og .headline{font-size:34px;font-weight:900;line-height:1.18;letter-spacing:-.02em}
+.og .headline em{font-family:var(--f-dis);font-style:italic;color:var(--gold);font-weight:600}
+.og .sub{font-family:var(--f-mono);font-size:11px;color:var(--ink-300);letter-spacing:.06em;margin-top:8px}
+.og .foot{display:flex;align-items:flex-end;justify-content:space-between}
+.og .brandline{font-size:15px}
+.og .domain{font-family:var(--f-mono);font-size:10px;color:var(--ink-500);letter-spacing:.1em}
+
+/* ============ CROWN CARD 1:1 (rendered 400x400) ============ */
+.cc{width:400px;height:400px;padding:26px}
+.cc .top{display:flex;justify-content:space-between;align-items:center}
+.cc .tname{font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;color:var(--ink-500);
+  text-transform:uppercase;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc .badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;color:var(--gold);
+  border:1px solid rgba(252,208,6,.45);padding:2px 8px;border-radius:999px}
+
+.portrait{
+  flex:1;margin:16px 0 14px;position:relative;
+  border:1px solid var(--velvet-500);
+  background:
+    repeating-linear-gradient(135deg,rgba(59,42,128,.5) 0 12px,rgba(42,29,99,.5) 12px 24px);
+  display:flex;align-items:center;justify-content:center;
+}
+.portrait span{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;color:var(--ink-500);text-align:center}
+.crown-mark{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:52px;height:38px;
+}
+.cc .name{font-size:30px;font-weight:900;letter-spacing:-.02em;line-height:1.05}
+.cc .role{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--ink-500);margin-top:4px}
+.cc .copy{font-family:var(--f-dis);font-style:italic;font-size:19px;color:var(--gold);margin-top:12px;line-height:1.25}
+.cc .bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px}
+.cc .brandline{font-size:12px}
+.cc .domain{font-family:var(--f-mono);font-size:9px;color:var(--ink-500);letter-spacing:.08em}
+
+/* ============ STORY 9:16 (rendered 270x480) ============ */
+.st{width:270px;height:480px;padding:24px 22px}
+.st .top{text-align:center}
+.st .kicker{font-family:var(--f-mono);font-size:9px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+.st .portrait{margin:18px 0 16px}
+.st .name{font-size:26px;font-weight:900;line-height:1.05;text-align:center}
+.st .copy{font-family:var(--f-dis);font-style:italic;font-size:16px;color:var(--gold);text-align:center;margin-top:10px}
+.st .bottom{text-align:center;margin-top:auto;padding-top:14px}
+.st .brandline{font-size:12px;justify-content:center}
+.st .domain{font-family:var(--f-mono);font-size:9px;color:var(--ink-500);letter-spacing:.1em;margin-top:4px}
+
+/* ============ spec ============ */
+.spec{border:1px solid var(--velvet-600);background:var(--velvet-800);padding:22px 24px;margin-top:26px}
+.spec h3{font-size:15px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--velvet-700);vertical-align:top}
+th{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-500);
+   border-bottom:1px solid var(--velvet-500)}
+td b{color:var(--gold)}
+.fixed{color:var(--turquoise);font-family:var(--f-mono);font-size:10px}
+.dyn{color:var(--crimson);font-family:var(--f-mono);font-size:10px}
+
+.note{border-left:3px solid var(--gold);background:var(--velvet-800);padding:16px 20px;margin-top:20px;font-size:14px;color:var(--ink-300)}
+.note b{color:var(--ink-100)}
+
+footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--velvet-600);
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--ink-500)}
+
+@media(max-width:560px){
+  .og,.cc,.st{transform-origin:top left}
+  .og{transform:scale(.66)}
+  .cc{transform:scale(.78)}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">WorldCrown48 · Share Asset Mockup</div>
+  <h1>OG 이미지 <em>&</em> Crown Card</h1>
+  <p class="lede">
+    두 자산은 <b>목적·카피·이미지가 모두 다르므로 공유할 수 없습니다.</b>
+    아래는 각각의 정보 위계를 확인하기 위한 목업입니다. 점선은 안전 여백(12%),
+    빗금 영역은 챔피언 이미지가 들어갈 자리입니다.
+  </p>
+</header>
+
+<!-- ================= A. OG ================= -->
+<section>
+  <h2>A · OG Image — 1200 × 630</h2>
+  <p class="h2sub">
+    쓰임: 링크를 붙였을 때 자동으로 뜨는 미리보기. <b>초대장</b> 역할.
+    챔피언이 등장하지 않으며, X에서는 제목이 표시되지 않으므로 문구를 이미지 안에 직접 넣습니다.
+  </p>
+
+  <div class="grid">
+    <div class="unit">
+      <div class="cap">A-1 · 공용 <b>Universal</b></div>
+      <div class="card og">
+        <div class="safe"></div><div class="safe-note">SAFE 12%</div>
+        <div>
+          <div class="kicker">Fan Tournament · 48</div>
+          <div class="headline" style="margin-top:12px">당신을<br><em>대관식</em>에 초대합니다</div>
+          <div class="sub">YOU ARE INVITED TO THE CORONATION</div>
+        </div>
+        <div class="foot">
+          <div class="brandline">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+          <div class="domain">worldcrown48.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit">
+      <div class="cap">A-2 · 토너먼트별 <b>Per Tournament</b></div>
+      <div class="card og">
+        <div class="safe"></div><div class="safe-note">SAFE 12%</div>
+        <div>
+          <div class="kicker">K-POP · Now Open</div>
+          <div class="headline" style="margin-top:12px">왕관은 하나.<br><em>씌우는 사람</em>은 당신.</div>
+          <div class="sub">ONE CROWN. YOU DECIDE WHO WEARS IT.</div>
+        </div>
+        <div class="foot">
+          <div class="brandline">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+          <div class="domain">worldcrown48.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <h3>OG 명세</h3>
+    <table>
+      <tr><th>요소</th><th>고정/가변</th><th>규칙</th></tr>
+      <tr><td>헤드라인</td><td><span class="fixed">고정</span></td><td>2줄 이내. 골드 강조어 1개만. <b>축소 시 읽히는 크기</b></td></tr>
+      <tr><td>영문 서브</td><td><span class="fixed">고정</span></td><td>모노 대문자. 해외 노출 대비</td></tr>
+      <tr><td>킥커</td><td><span class="dyn">가변</span></td><td>카테고리명만 (K-POP / Creator)</td></tr>
+      <tr><td>챔피언</td><td>—</td><td><b>넣지 않음</b> — 아직 안 온 사람 대상이므로</td></tr>
+      <tr><td>제작 수량</td><td>—</td><td>공용 1 + 카테고리 2 = <b>3종</b></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= B. CROWN CARD ================= -->
+<section>
+  <h2>B · Crown Card — 1080 × 1080</h2>
+  <p class="h2sub">
+    쓰임: 완주한 Voter가 만든 결과물. <b>자랑거리</b> 역할.
+    주인공은 브랜드가 아니라 챔피언입니다. 화면의 절반 이상을 챔피언이 차지합니다.
+  </p>
+
+  <div class="grid">
+    <div class="unit">
+      <div class="cap">B-1 · K-POP</div>
+      <div class="card cc">
+        <div class="safe"></div>
+        <div class="top">
+          <span class="tname">BEST K-POP VOCAL 48</span>
+          <span class="badge">CHAMPION</span>
+        </div>
+        <div class="portrait">
+          <svg class="crown-mark" viewBox="0 0 52 38" fill="none"><path d="M2 12l11 8 13-17 13 17 11-8-5 24H7L2 12z" fill="#FCD006"/></svg>
+          <span>CHAMPION<br>IMAGE</span>
+        </div>
+        <div class="name">CONTESTANT<br>NAME</div>
+        <div class="role">KOREA · GROUP NAME</div>
+        <div class="copy">My bias wears the crown.</div>
+        <div class="bottom">
+          <div class="brandline">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+          <div class="domain">worldcrown48.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit">
+      <div class="cap">B-2 · Creator</div>
+      <div class="card cc">
+        <div class="safe"></div>
+        <div class="top">
+          <span class="tname">TOP CREATOR 48</span>
+          <span class="badge">CHAMPION</span>
+        </div>
+        <div class="portrait">
+          <svg class="crown-mark" viewBox="0 0 52 38" fill="none"><path d="M2 12l11 8 13-17 13 17 11-8-5 24H7L2 12z" fill="#FCD006"/></svg>
+          <span>CHAMPION<br>IMAGE</span>
+        </div>
+        <div class="name">CREATOR<br>NAME</div>
+        <div class="role">GLOBAL · CHANNEL</div>
+        <div class="copy">My pick wears the crown.</div>
+        <div class="bottom">
+          <div class="brandline">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+          <div class="domain">worldcrown48.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit">
+      <div class="cap">B-3 · Story 1080 × 1920</div>
+      <div class="card st">
+        <div class="safe"></div>
+        <div class="top"><span class="kicker">My Champion</span></div>
+        <div class="portrait">
+          <svg class="crown-mark" viewBox="0 0 52 38" fill="none"><path d="M2 12l11 8 13-17 13 17 11-8-5 24H7L2 12z" fill="#FCD006"/></svg>
+          <span>CHAMPION<br>IMAGE</span>
+        </div>
+        <div class="name">CONTESTANT<br>NAME</div>
+        <div class="copy">My bias wears<br>the crown.</div>
+        <div class="bottom">
+          <div class="brandline">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+          <div class="domain">worldcrown48.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <h3>Crown Card 명세</h3>
+    <table>
+      <tr><th>요소</th><th>고정/가변</th><th>규칙</th></tr>
+      <tr><td>챔피언 이미지</td><td><span class="dyn">가변</span></td><td>영상 썸네일 사용. <b>화면의 45~55%</b>. 얼굴 중앙 정렬</td></tr>
+      <tr><td>왕관 마크</td><td><span class="fixed">고정</span></td><td>이미지 상단에 걸침 — '씌워진' 상태를 시각화</td></tr>
+      <tr><td>이름</td><td><span class="dyn">가변</span></td><td>가장 큰 텍스트. 엄지손톱 크기에서 읽혀야 함</td></tr>
+      <tr><td>카피</td><td><span class="dyn">가변</span></td><td>K-POP: My bias / Creator: My pick — <b>카테고리 분기</b></td></tr>
+      <tr><td>토너먼트명</td><td><span class="dyn">가변</span></td><td>상단 작게. 한 줄 넘으면 말줄임</td></tr>
+      <tr><td>브랜드</td><td><span class="fixed">고정</span></td><td>하단. <b>주인공이 아님</b></td></tr>
+      <tr><td>넣지 않을 것</td><td>—</td><td>순위표 · 날짜 · 긴 URL · 브래킷 도해 · QR</td></tr>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>엄지손톱 테스트</b> — 이 페이지를 축소(Ctrl/⌘ + −)해서 카드가 5cm 정도가 되었을 때
+    "누가 챔피언인지" 읽히면 통과입니다. 안 읽히면 이름을 더 키우거나 요소를 덜어내야 합니다.
+  </div>
+</section>
+
+<!-- ================= C. DYNAMIC OG ================= -->
+<section>
+  <h2>C · 동적 OG — Crown Card 공유 링크 전용</h2>
+  <p class="h2sub">
+    Voter가 자기 Crown Card 링크를 공유했을 때, 그 <b>주소에만</b> 적용되는 미리보기입니다.
+    Crown Card와 같은 정보를 담되 <b>가로 비율로 재구성</b>합니다 — 같은 파일을 쓸 수 없습니다.
+  </p>
+
+  <div class="grid">
+    <div class="unit">
+      <div class="cap">C-1 · 1200 × 630 · 가로 재구성</div>
+      <div class="card og" style="flex-direction:row;align-items:center;gap:24px;padding:28px 34px">
+        <div class="safe"></div>
+        <div style="width:150px;height:100%;position:relative;border:1px solid var(--velvet-500);
+             background:repeating-linear-gradient(135deg,rgba(59,42,128,.5) 0 12px,rgba(42,29,99,.5) 12px 24px);
+             display:flex;align-items:center;justify-content:center;flex:none">
+          <svg style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:44px" viewBox="0 0 52 38" fill="none"><path d="M2 12l11 8 13-17 13 17 11-8-5 24H7L2 12z" fill="#FCD006"/></svg>
+          <span style="font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;color:var(--ink-500);text-align:center">CHAMPION<br>IMAGE</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;height:100%;justify-content:center">
+          <div class="kicker">K-POP · Champion</div>
+          <div style="font-size:30px;font-weight:900;line-height:1.06;margin-top:8px">CONTESTANT<br>NAME</div>
+          <div style="font-family:var(--f-dis);font-style:italic;font-size:17px;color:var(--gold);margin-top:10px">My bias wears the crown.</div>
+          <div class="brandline" style="font-size:13px;margin-top:14px">
+            <svg class="crown" viewBox="0 0 24 24" fill="none"><path d="M2 8l4.5 3.5L12 4l5.5 7.5L22 8l-2 11H4L2 8z" fill="#FCD006"/></svg>
+            <span class="brandname">WorldCrown48</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>왜 별도로 필요한가</b> — 1:1 Crown Card를 그대로 OG에 쓰면 좌우가 잘리거나 상하 여백이 크게 남습니다.
+    같은 데이터로 <b>레이아웃만 가로형으로 다시 조립</b>하면 되므로, 서버에서 템플릿 하나만 추가하면 됩니다.
+  </div>
+</section>
+
+<!-- ================= D. SUMMARY ================= -->
+<section>
+  <h2>D · 자산 3종 정리</h2>
+  <table>
+    <tr><th>자산</th><th>비율</th><th>챔피언</th><th>카피</th><th>목적</th><th>시점</th></tr>
+    <tr>
+      <td><b>OG 이미지</b></td><td>1.91:1</td><td>없음</td>
+      <td>당신을 대관식에 초대합니다</td><td>유입 · 초대</td><td>W1 필수</td>
+    </tr>
+    <tr>
+      <td><b>Crown Card</b></td><td>1:1 · 9:16</td><td><b>주인공</b></td>
+      <td>나의 최애가 크라운을 썼다</td><td>확산 · 자랑</td><td>W1~W2</td>
+    </tr>
+    <tr>
+      <td><b>동적 OG</b></td><td>1.91:1</td><td>있음</td>
+      <td>Crown Card와 동일</td><td>확산의 완성</td><td>런칭 후</td>
+    </tr>
+  </table>
+</section>
+
+<footer>WorldCrown48 · Share Asset Mockup · Twilight Stadium v2.3 · 2026.08.26</footer>
+
+</div>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorldCrown48 · D-45 런칭 로드맵 v0.1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F7F7F9; color:#1A1A2E; font-family:'Apple SD Gothic Neo','Pretendard',system-ui,sans-serif; padding:36px 16px 80px; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:26px; margin-bottom:6px; }
+  .lede { color:#555A6E; font-size:14.5px; line-height:1.7; margin-bottom:8px; }
+  .badge { display:inline-block; background:#FFF3CC; color:#7A5C00; font-size:12.5px; padding:3px 10px; border-radius:999px; margin-bottom:26px; }
+  h2 { font-size:18px; margin:34px 0 12px; }
+  table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #E3E4EC; border-radius:10px; overflow:hidden; font-size:13.5px; }
+  th, td { border:1px solid #E9EAF1; padding:10px 10px; vertical-align:top; line-height:1.6; text-align:left; }
+  th { background:#F0F1F7; font-size:12.5px; }
+  .wk { white-space:nowrap; font-weight:700; background:#FAFAFD; width:110px; }
+  .dev { border-left:4px solid #4A5BD4; }
+  .mkt { border-left:4px solid #C9861A; }
+  .ops { color:#B03030; font-weight:600; font-size:12.5px; }
+  .big { background:#EEF1FB; }
+  .launch td { background:#FFF9E6; font-weight:700; }
+  .note { background:#EEF1FB; border-radius:10px; padding:16px 20px; font-size:14px; line-height:1.8; color:#2C3150; margin-top:10px; }
+  ul.tight { margin:0 0 0 18px; }
+  ul.tight li { margin:4px 0; line-height:1.65; }
+  .lane-label { font-size:12px; color:#7A7F92; }
+  pre.copy { background:#23263A; color:#E8EAF2; border-radius:10px; padding:16px; font-size:12.5px; line-height:1.7; white-space:pre-wrap; word-break:break-all; font-family:inherit; }
+  .tbl-scroll { overflow-x:auto; }
+  .small { font-size:12.5px; color:#7A7F92; margin-top:8px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WorldCrown48 · D-45 런칭 로드맵</h1>
+  <p class="lede">기준일 2026-08-27 · 런칭 목표 <strong>2026-10-11 전후 (D-45)</strong> · 개발 레인은 티오의 실측 어림(최근 킥 속도 기준), 마케팅 레인은 <strong>조율용 제안</strong>입니다 — 오늘 저녁 마케팅 협의에서 마케팅 우선으로 바꿔 확정하세요.</p>
+  <span class="badge">v0.1 초안 — 확정 아님 · 대표 조율용</span>
+
+  <h2>주 단위 계획표 (두 레인 병렬)</h2>
+  <div class="tbl-scroll">
+  <table>
+    <tr>
+      <th class="wk">주차</th>
+      <th style="width:38%">🔧 개발 (티오 + Claude Code) <span class="lane-label">— 실측 어림</span></th>
+      <th style="width:38%">📣 마케팅·콘텐츠 (대표 + 마케팅 클로드) <span class="lane-label">— 제안, 조율 대상</span></th>
+      <th>⚠️ 운영 마감</th>
+    </tr>
+    <tr>
+      <td class="wk">W1<br>8/28–9/3</td>
+      <td class="dev">LAB-UX-1 종료(골든·스모크) · <strong>마케팅 인프라 소킥 몰아치기</strong>: OG 연결 → GA 연결 → UTM 자동 부착 · TOG-1 · STEP 2 초안 저장</td>
+      <td class="mkt"><strong>계측 기반 완성 대기 → 즉시 계측 시작</strong> · UTM 규칙표 확정(개발과 파라미터 정합) · SNS 채널 개설 · 총공 문법 확정(게스트 1판 → 로그인 5판+카드 공유)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="wk">W2<br>9/4–9/10</td>
+      <td class="dev big" rowspan="2"><strong>Arena 매치 대수술</strong> (가장 큰 킥 — VS 스플릿 스크린 · 임베드 10초 루프 매치 무대 · 첫 입장 팝업)</td>
+      <td class="mkt">티저 콘텐츠 제작 시작 · 토너먼트 발행 개시(새 편집기로, 주 2~3개) · 사전등록 페이지 점검</td>
+      <td class="ops">GCP 결제 활성화<br>9/10 마감</td>
+    </tr>
+    <tr>
+      <td class="wk">W3<br>9/11–9/17</td>
+      <td class="mkt"><strong>사전등록 캠페인 개시(≈D-30)</strong> · 커뮤니티 시딩 시작</td>
+      <td class="ops">YouTube 쿼터 증설 신청<br>(유저 공개 3~4주 전)</td>
+    </tr>
+    <tr>
+      <td class="wk">W4<br>9/18–9/24</td>
+      <td class="dev">Pitch 쇼케이스 (모형 6카드 삭제 · NewsRail 정식판)</td>
+      <td class="mkt">사전등록 부스팅 · 토너먼트 라인업 공개 콘텐츠</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="wk">W5<br>9/25–10/1</td>
+      <td class="dev">뉴스룸 승격 (NEWS-1: 홈+지면+SEO·sitemap·Article schema)</td>
+      <td class="mkt">뉴스룸 기사 축적(검색 색인용) · 인플루언서/커뮤니티 접촉</td>
+      <td class="ops">Node 20 소킥<br>10월 전</td>
+    </tr>
+    <tr>
+      <td class="wk">W6<br>10/2–10/8</td>
+      <td class="dev">랭킹 개편 (Crown Score + 산식 공개 페이지) + <strong>버퍼</strong></td>
+      <td class="mkt">런칭 시퀀스 준비(프레스·커뮤니티 총공 예고·카운트다운)</td>
+      <td></td>
+    </tr>
+    <tr class="launch">
+      <td class="wk">W7<br>10/9–10/11</td>
+      <td>최종 QA · 전 화면 스모크 · 🚀 <strong>런칭</strong></td>
+      <td>🚀 런칭 캠페인 실행 · 첫 주 대응 체제</td>
+      <td></td>
+    </tr>
+  </table>
+  </div>
+  <p class="small">개발 어림 근거: 최근 실측 속도(큰 킥 LAB-UX-1 ≈ 5일, 소PR 하루 2~3사이클). 합계 약 6주 + 버퍼 반 주 = D-45. 버퍼가 얇으므로 <strong>새 기능은 큐에 적고 런칭 후로</strong>가 전제.</p>
+
+  <h2>마케팅이 개발에 이미 걸어둔 전제 (W1에 반영됨)</h2>
+  <div class="note">
+    <ul class="tight">
+      <li><strong>OG 이미지 연결</strong> — 확정본(og.jpg) 제작 완료, 코드 연결만 남음 → W1. 이게 없으면 모든 공유 링크가 글자만 뜸.</li>
+      <li><strong>GA 연결 + UTM 자동 부착</strong> — 실측 결과 현재 미구현(수집 0). 캠페인 시작(W3) 전에 반드시 완료해야 사전등록 성과를 잴 수 있음 → W1.</li>
+      <li><strong>크라운 카드 공유(바이럴 루프)</strong> — 이미 구현됨. 게스트는 카드 열람까지, 공유·다운로드는 로그인 보상(코드 실측 확인).</li>
+    </ul>
+  </div>
+
+  <h2>오늘 저녁 조율 포인트 (마케팅 우선으로 움직일 수 있는 레버)</h2>
+  <div class="note">
+    <ul class="tight">
+      <li><strong>뉴스룸 승격을 앞당길까?</strong> — 검색(SEO) 색인은 2~4주 걸리므로, 마케팅이 검색 유입을 중시하면 W5 → W4로 당기고 Pitch 쇼케이스와 순서 교환 가능. 개발상 큰 무리 없음.</li>
+      <li><strong>사전등록 개시일(≈D-30, 9/11)</strong> — 마케팅이 더 이르게 원하면 W1 인프라 완료 직후(9/4)부터도 가능. 단 콘텐츠(토너먼트)가 몇 개 쌓인 뒤가 전환율에 유리.</li>
+      <li><strong>런칭일 확정</strong> — 10/11 전후에서 요일·이벤트(팬덤 캘린더) 맞춰 마케팅이 지정. 개발은 W6 버퍼로 흡수.</li>
+      <li><strong>범위 동결 합의</strong> — 참가자 DB 3층·32/16강 브래킷·얼굴 크롭 등은 런칭 후(MVP2). 새 아이디어는 큐에 기록만.</li>
+    </ul>
+  </div>
+
+  <h2>마케팅 클로드에게 붙여넣을 요약 (복사용)</h2>
+  <pre class="copy">[WC48 개발 일정 요약 — 티오(Cowork) 실측 기준, 2026-08-27]
+런칭 목표 D-45 = 10/11 전후. 개발 남은 일 ≈ 6주 + 버퍼 0.5주.
+· W1(–9/3): 마케팅 인프라 완료 — OG 이미지 연결, GA 연결, UTM 자동 부착 (이후부터 계측 가능)
+· W2–3(–9/17): Arena 매치 대수술(핵심 UX) / 9/10 GCP 결제 활성화, 9월 중순 YouTube 쿼터 증설 신청
+· W4(–9/24): Pitch(홈) 쇼케이스
+· W5(–10/1): 뉴스룸 승격(SEO·sitemap) — 검색 중시하면 W4와 교환 가능
+· W6(–10/8): 랭킹 개편(Crown Score+산식 페이지) + 버퍼
+· W7: QA → 🚀 런칭
+현재 사실: GA/UTM 미구현(W1에 해결), OG 이미지 확정본 준비 완료, 크라운 카드 공유 구현됨(게스트 열람/로그인 공유).
+사전등록 캠페인은 W1 인프라 완료 후 언제든 시작 가능(제안 ≈D-30=9/11).
+마케팅 일정 우선으로 조정 가능한 레버: 뉴스룸 승격 앞당기기, 사전등록 조기 개시, 런칭일 지정.</pre>
+  <p class="small">저녁에 모바일 채팅에서는 위 회색 상자를 길게 눌러 복사 → 마케팅 클로드에게 붙여넣으면 파일 없이도 논의가 됩니다.</p>
+
+  <p class="small" style="margin-top:28px">WorldCrown48 · D-45 런칭 로드맵 v0.1 · 작성 티오(Cowork) 2026-08-27 · 확정 시 v1.0으로 갱신 예정</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorldCrown48 · OG 이미지 시안 4종 (1200×630)</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@1,600;1,700;1,900&family=JetBrains+Mono:wght@600;700&display=swap");
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F2F2F5; color:#241754; font-family:"Inter","Pretendard",system-ui,sans-serif; line-height:1.65; padding:40px 24px 80px; }
+  .wrap { max-width:1280px; margin:0 auto; }
+  .doc-kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; color:#B08F00; font-weight:700; }
+  .doc-title { font-size:27px; font-weight:800; margin-top:6px; }
+  .doc-sub { font-size:13.5px; color:#484B67; margin-top:8px; max-width:920px; }
+  .cap { margin:14px 0 40px; font-size:13px; color:#484B67; max-width:920px; }
+  .cap b { color:#241754; }
+  .sec-label { font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; color:#B08F00; letter-spacing:.1em; margin:44px 0 10px; }
+
+  /* 1200×630 프레임 — zoom으로 축소 표시 */
+  .frame-outer { border:1px solid #D9DBE1; border-radius:5px; overflow:hidden; width:fit-content; box-shadow:0 6px 24px rgba(0,0,58,.14); }
+  .frame { width:1200px; height:630px; position:relative; overflow:hidden; zoom:0.62; font-family:"Inter","Pretendard",sans-serif; }
+  @media (max-width:860px){ .frame{ zoom:0.32; } }
+
+  /* 공용 */
+  .noise { position:absolute; inset:0; opacity:.06; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:128px 128px; }
+  .wordmark { height:30px; }
+  .site { font-family:"JetBrains Mono",monospace; font-weight:700; letter-spacing:.14em; color:#EEDA7D; font-size:20px; }
+
+  /* ── 시안 A ── */
+  .A { background:radial-gradient(ellipse 900px 560px at 50% 115%, #362261 0%, #0E0944 55%, #00003A 100%); }
+  .A .glow { position:absolute; left:50%; top:118px; transform:translateX(-50%); width:520px; height:520px; border-radius:999px; background:radial-gradient(circle, rgba(252,208,6,.32) 0%, rgba(252,208,6,0) 62%); }
+  .A .crown { position:absolute; left:50%; top:88px; transform:translateX(-50%); width:210px; filter:drop-shadow(0 0 44px rgba(252,208,6,.55)); }
+  .A .h1 { position:absolute; left:0; right:0; top:318px; text-align:center; font-weight:900; font-size:88px; letter-spacing:-0.015em; color:#F2F2F5; line-height:1.02; }
+  .A .h2 { position:absolute; left:0; right:0; top:412px; text-align:center; font-weight:900; font-size:88px; letter-spacing:-0.01em; color:#FCD006; line-height:1.02; }
+  .A .sub { position:absolute; left:0; right:0; top:516px; text-align:center; font-weight:600; font-size:25px; color:#B1B5C4; letter-spacing:.02em; }
+  .A .foot { position:absolute; left:64px; right:64px; bottom:38px; display:flex; justify-content:space-between; align-items:center; }
+
+  /* ── 시안 B ── */
+  .B { background:#00003A; }
+  .B .half { position:absolute; top:0; bottom:0; width:50%; }
+  .B .half.l { left:0; background:linear-gradient(160deg, #0E2E4A 0%, #003A46 70%); }
+  .B .half.r { right:0; background:linear-gradient(200deg, #3A0E28 0%, #4A0618 70%); }
+  .B .halo { position:absolute; top:96px; width:340px; height:340px; border-radius:999px; }
+  .B .halo.l { left:118px; background:radial-gradient(circle, rgba(0,163,183,.55) 0%, rgba(0,163,183,0) 70%); }
+  .B .halo.r { right:118px; background:radial-gradient(circle, rgba(215,6,58,.5) 0%, rgba(215,6,58,0) 70%); }
+  .B .ring { position:absolute; top:132px; width:268px; height:268px; border-radius:999px; border:6px solid rgba(242,242,245,.85); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:120px; color:rgba(242,242,245,.28); }
+  .B .ring.l { left:154px; border-color:#00A3B7; }
+  .B .ring.r { right:154px; border-color:#D7063A; }
+  .B .vs { position:absolute; left:50%; top:186px; transform:translateX(-50%); width:160px; height:160px; border-radius:999px; background:#FCD006; box-shadow:0 0 70px rgba(252,208,6,.55); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:72px; color:#0E0944; letter-spacing:-.02em; }
+  .B .top { position:absolute; top:52px; left:0; right:0; text-align:center; font-weight:800; font-size:34px; color:#F2F2F5; letter-spacing:.22em; }
+  .B .bot { position:absolute; bottom:104px; left:0; right:0; text-align:center; font-weight:600; font-size:26px; color:#EEDA7D; }
+  .B .foot { position:absolute; left:0; right:0; bottom:36px; display:flex; justify-content:center; }
+
+  /* ── 시안 C ── */
+  .C { background:linear-gradient(115deg, #00003A 0%, #0E0944 60%, #241754 100%); }
+  .C .tree { position:absolute; left:82px; top:110px; display:flex; gap:56px; align-items:center; height:410px; }
+  .C .col { display:flex; flex-direction:column; justify-content:center; gap:7px; }
+  .C .dot { width:13px; height:13px; border-radius:999px; background:#FCD006; opacity:.9; }
+  .C .col.c2 .dot { opacity:.75; } .C .col.c3 .dot { opacity:.62; } .C .col.c4 .dot { opacity:.5; } .C .col.c5 .dot { width:18px; height:18px; opacity:1; }
+  .C .crown { position:absolute; right:120px; top:120px; width:250px; filter:drop-shadow(0 0 40px rgba(252,208,6,.5)); }
+  .C .mono { position:absolute; right:96px; top:404px; width:300px; text-align:center; font-family:"JetBrains Mono",monospace; font-weight:700; font-size:25px; color:#B1B5C4; letter-spacing:.08em; }
+  .C .h1 { position:absolute; left:82px; bottom:118px; font-weight:900; font-size:74px; color:#F2F2F5; letter-spacing:-.01em; }
+  .C .h1 i { font-family:"Playfair Display",serif; font-style:italic; font-weight:700; color:#FCD006; }
+  .C .foot { position:absolute; left:82px; right:82px; bottom:40px; display:flex; justify-content:space-between; align-items:center; }
+
+  /* ── 시안 D ── */
+  .D { background:#0E0944; }
+  .D .border { position:absolute; inset:30px; border:5px solid rgba(252,208,6,.85); border-radius:5px; }
+  .D .inner { position:absolute; inset:44px; border:1.5px solid rgba(238,218,125,.4); border-radius:5px; }
+  .D .crown { position:absolute; left:50%; top:92px; transform:translateX(-50%); width:150px; filter:drop-shadow(0 0 34px rgba(252,208,6,.5)); }
+  .D .h1 { position:absolute; left:0; right:0; top:262px; text-align:center; font-family:"Playfair Display",serif; font-style:italic; font-weight:700; font-size:92px; color:#FCD006; letter-spacing:.01em; }
+  .D .sub { position:absolute; left:0; right:0; top:396px; text-align:center; font-weight:600; font-size:27px; color:#B1B5C4; letter-spacing:.16em; }
+  .D .foot { position:absolute; left:0; right:0; bottom:64px; display:flex; justify-content:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-kicker">MARKETING · OG IMAGE 시안 v1 — 2026-08-24 · 티오</div>
+    <div class="doc-title">공유 카드(OG 이미지) 시안 4종 — 원본 규격 1200×630</div>
+    <div class="doc-sub">
+      링크를 카카오톡·X·페이스북 등에 붙였을 때 뜨는 미리보기 카드입니다. 동영상은 대부분 플랫폼이 지원하지 않아 정적 이미지가 표준이고,
+      대신 빛·구도·색으로 "움직일 것 같은" 느낌을 담았습니다. 전부 브랜드 계약(Crown Gold 단일 포인트 · 트와일라잇 배경 · Inter/Playfair · 모서리 0/5px) 안에서 그렸고,
+      실제 로고 SVG 원본을 그대로 사용했습니다. 마음에 드는 방향을 고르시면(수정 지시 환영) 1200×630 PNG로 확정본을 뽑아 적용 절차로 넘어갑니다.
+    </div>
+  </header>
+
+  <!-- 시안 A -->
+  <div class="sec-label">시안 A · "WHO RULES THE WORLD?" — 브랜드 정공법</div>
+  <div class="frame-outer"><div class="frame A">
+    <div class="noise"></div>
+    <div class="glow"></div>
+    <svg class="crown" viewBox="0 0 144 135" xmlns="http://www.w3.org/2000/svg"><path fill="#FCD006" d="M141.13,72.455c-0.728-0.064-1.409,0.143-1.972,0.521c-0.097,0.066-0.188,0.132-0.285,0.199c-9.776,6.764-26.054,14.975-38.315,5.759C87.99,69.486,80.666,51.155,77.34,40.736c-0.006-0.019-0.011-0.036-0.018-0.054c-0.376-1.129-1.389-1.985-2.649-2.096c-1.26-0.11-2.407,0.557-2.974,1.604c-0.009,0.017-0.016,0.033-0.026,0.05c-5.084,9.684-15.481,26.464-29.498,33.585C28.5,80.771,13.895,69.859,5.442,61.5c-0.084-0.083-0.163-0.164-0.246-0.246c-0.489-0.47-1.125-0.792-1.852-0.855c-1.692-0.148-3.185,1.104-3.333,2.797c-0.018,0.205-0.013,0.407,0.008,0.605l0.013,0.077l10.049,58.828l0.03,0.168c0.216,1.361,1.325,2.455,2.76,2.581l53.787,4.706l0.004,0l0.004,0l53.786,4.706c1.435,0.125,2.717-0.76,3.165-2.062l0.059-0.161l20.111-56.189l0.026-0.073c0.057-0.19,0.096-0.389,0.113-0.595C144.075,74.095,142.822,72.603,141.13,72.455z"/><circle fill="#FCD006" cx="77.036" cy="11.563" r="11.562"/></svg>
+    <div class="h1">WHO RULES THE WORLD?</div>
+    <div class="h2">YOU DECIDE.</div>
+    <div class="sub">Vote for who you love. Crown your Champion.</div>
+    <div class="foot">
+      <svg class="wordmark" viewBox="0 0 284 32" xmlns="http://www.w3.org/2000/svg"><g fill="#F2F2F5"><path d="M0,5.103h7.813l5.28,16.275h0.286L19.373,0h7.372l6.042,21.416h0.238l5.327-16.313h7.784l-8.83,25.44h-7.802l-6.279-18.568h-0.285L16.66,30.543h-7.85L0,5.103z"/><path d="M45.332,20.402c0-6.275,3.87-10.52,10.256-10.52s10.255,4.244,10.255,10.52c0,6.272-3.869,10.517-10.255,10.517S45.332,26.675,45.332,20.402z M59.382,20.364c0-3.419-1.353-5.786-3.757-5.786c-2.48,0-3.831,2.367-3.831,5.786c0,3.418,1.351,5.785,3.831,5.785C58.029,26.149,59.382,23.782,59.382,20.364z"/><path d="M69.114,10.146h6.162v3.681h0.188c0.751-2.666,2.554-3.981,4.808-3.981c0.602,0,1.277,0.112,1.804,0.227v5.521c-0.602-0.188-1.729-0.301-2.518-0.301c-2.366,0-4.094,1.653-4.094,4.096v11.155h-6.35V10.146z"/><path d="M90.981,30.543h-6.349V3.347h6.349V30.543z"/><path d="M94.326,20.364c0-7.175,3.869-10.481,8.152-10.481c3.268,0,4.996,1.917,5.785,3.757h0.151V3.347h6.311v27.196h-6.273v-3.304h-0.188c-0.826,1.841-2.629,3.605-5.747,3.605C97.97,30.845,94.326,27.277,94.326,20.364z M108.526,20.327c0-3.382-1.39-5.486-3.87-5.486c-2.479,0-3.831,2.18-3.831,5.486c0,3.38,1.389,5.56,3.831,5.56C107.099,25.887,108.526,23.707,108.526,20.327z"/><path d="M130.755,8.606c-4.021,0-6.461,3.042-6.461,8.339c0,5.484,2.516,8.34,6.423,8.34c2.931,0,4.959-1.578,5.446-4.245l6.463,0.038c-0.526,4.846-4.658,9.841-12.021,9.841c-7.363,0-12.847-5.032-12.847-13.974c0-8.979,5.596-13.975,12.847-13.975c6.538,0,11.345,3.682,12.021,10.181h-6.463C135.789,10.372,133.797,8.606,130.755,8.606z"/><path d="M145.545,10.146h6.163v3.681h0.188c0.75-2.666,2.555-3.981,4.808-3.981c0.6,0,1.278,0.112,1.802,0.227v5.521c-0.6-0.188-1.726-0.301-2.516-0.301c-2.366,0-4.094,1.653-4.094,4.096v11.155h-6.35V10.146z"/><path d="M159.635,20.402c0-6.275,3.869-10.52,10.255-10.52c6.387,0,10.256,4.244,10.256,10.52c0,6.272-3.869,10.517-10.256,10.517C163.504,30.919,159.635,26.675,159.635,20.402z M173.684,20.364c0-3.419-1.35-5.786-3.755-5.786c-2.479,0-3.831,2.367-3.831,5.786c0,3.418,1.352,5.785,3.831,5.785C172.334,26.149,173.684,23.782,173.684,20.364z"/><path d="M180.702,10.146h6.346l2.855,13.185h0.15l3.045-13.185h6.197l3.117,13.109h0.15l2.742-13.109h6.387l-5.371,20.396h-6.762l-3.23-12.095h-0.264l-3.232,12.095h-6.76L180.702,10.146z"/><path d="M219.834,30.543h-6.348V10.146h6.01v3.72h0.227c0.939-2.48,3.193-3.983,6.197-3.983c4.283,0,7.102,3.043,7.063,7.664v12.996h-6.311V18.748c0-2.291-1.24-3.682-3.342-3.682c-2.105,0-3.496,1.428-3.496,3.795V30.543z"/><path d="M236.555,20.964l11.27-17.617h8.078v17.581h3.305v5.034h-3.305v5.848h-6.125v-5.848h-13.223V20.964z M249.893,20.928V10.146h-0.227l-6.723,10.556v0.226H249.893z"/><path d="M261.489,23.823c0-3.488,1.902-6.318,5.357-6.86V16.77c-3.004-0.582-4.342-3.101-4.342-6.201c0-4.381,4.207-7.598,9.992-7.598c5.711,0,9.955,3.217,9.955,7.598c0,3.101-1.412,5.619-4.344,6.201v0.193c3.381,0.542,5.357,3.372,5.357,6.86c0,4.574-4.621,7.986-10.969,7.986C266.11,31.81,261.489,28.397,261.489,23.823z M276.741,23.127c0-2.21-1.803-3.838-4.244-3.838c-2.479,0-4.32,1.628-4.281,3.838c-0.039,2.208,1.727,3.797,4.281,3.797C275.014,26.924,276.741,25.335,276.741,23.127z M276.178,11.266c0-1.977-1.541-3.411-3.682-3.411c-2.215,0-3.719,1.396-3.719,3.411s1.539,3.489,3.719,3.489C274.637,14.755,276.178,13.32,276.178,11.266z"/></g></svg>
+      <span class="site">WORLDCROWN48.COM</span>
+    </div>
+  </div></div>
+  <div class="cap"><b>컨셉</b>: 런치 히어로의 확정 슬로건을 그대로 무대에 올린 정공법. 어떤 페이지에 붙어도 어색하지 않은 <b>사이트 기본 카드</b>로 추천합니다. 왕관의 골드 글로우가 "빛나는 순간"의 움직임 느낌을 냅니다.</div>
+
+  <!-- 시안 B -->
+  <div class="sec-label">시안 B · VS SPLIT — 제품의 심장(매치)을 그대로</div>
+  <div class="frame-outer"><div class="frame B">
+    <div class="half l"></div><div class="half r"></div>
+    <div class="noise"></div>
+    <div class="halo l"></div><div class="halo r"></div>
+    <div class="ring l">?</div><div class="ring r">?</div>
+    <div class="vs">VS</div>
+    <div class="top">WHICH ONE DO YOU LOVE MORE?</div>
+    <div class="bot">48 Contestants · One Crown · Your Vote</div>
+    <div class="foot"><svg class="wordmark" viewBox="0 0 284 32" xmlns="http://www.w3.org/2000/svg"><use href="#wm"/></svg><svg width="0" height="0"><defs><g id="wm"><path fill="#F2F2F5" d="M0,5.103h7.813l5.28,16.275h0.286L19.373,0h7.372l6.042,21.416h0.238l5.327-16.313h7.784l-8.83,25.44h-7.802l-6.279-18.568h-0.285L16.66,30.543h-7.85L0,5.103z"/><path fill="#F2F2F5" d="M45.332,20.402c0-6.275,3.87-10.52,10.256-10.52s10.255,4.244,10.255,10.52c0,6.272-3.869,10.517-10.255,10.517S45.332,26.675,45.332,20.402z M59.382,20.364c0-3.419-1.353-5.786-3.757-5.786c-2.48,0-3.831,2.367-3.831,5.786c0,3.418,1.351,5.785,3.831,5.785C58.029,26.149,59.382,23.782,59.382,20.364z"/><path fill="#F2F2F5" d="M69.114,10.146h6.162v3.681h0.188c0.751-2.666,2.554-3.981,4.808-3.981c0.602,0,1.277,0.112,1.804,0.227v5.521c-0.602-0.188-1.729-0.301-2.518-0.301c-2.366,0-4.094,1.653-4.094,4.096v11.155h-6.35V10.146z"/><path fill="#F2F2F5" d="M90.981,30.543h-6.349V3.347h6.349V30.543z"/><path fill="#F2F2F5" d="M94.326,20.364c0-7.175,3.869-10.481,8.152-10.481c3.268,0,4.996,1.917,5.785,3.757h0.151V3.347h6.311v27.196h-6.273v-3.304h-0.188c-0.826,1.841-2.629,3.605-5.747,3.605C97.97,30.845,94.326,27.277,94.326,20.364z M108.526,20.327c0-3.382-1.39-5.486-3.87-5.486c-2.479,0-3.831,2.18-3.831,5.486c0,3.38,1.389,5.56,3.831,5.56C107.099,25.887,108.526,23.707,108.526,20.327z"/><path fill="#F2F2F5" d="M130.755,8.606c-4.021,0-6.461,3.042-6.461,8.339c0,5.484,2.516,8.34,6.423,8.34c2.931,0,4.959-1.578,5.446-4.245l6.463,0.038c-0.526,4.846-4.658,9.841-12.021,9.841c-7.363,0-12.847-5.032-12.847-13.974c0-8.979,5.596-13.975,12.847-13.975c6.538,0,11.345,3.682,12.021,10.181h-6.463C135.789,10.372,133.797,8.606,130.755,8.606z"/><path fill="#F2F2F5" d="M145.545,10.146h6.163v3.681h0.188c0.75-2.666,2.555-3.981,4.808-3.981c0.6,0,1.278,0.112,1.802,0.227v5.521c-0.6-0.188-1.726-0.301-2.516-0.301c-2.366,0-4.094,1.653-4.094,4.096v11.155h-6.35V10.146z"/><path fill="#F2F2F5" d="M159.635,20.402c0-6.275,3.869-10.52,10.255-10.52c6.387,0,10.256,4.244,10.256,10.52c0,6.272-3.869,10.517-10.256,10.517C163.504,30.919,159.635,26.675,159.635,20.402z M173.684,20.364c0-3.419-1.35-5.786-3.755-5.786c-2.479,0-3.831,2.367-3.831,5.786c0,3.418,1.352,5.785,3.831,5.785C172.334,26.149,173.684,23.782,173.684,20.364z"/><path fill="#F2F2F5" d="M180.702,10.146h6.346l2.855,13.185h0.15l3.045-13.185h6.197l3.117,13.109h0.15l2.742-13.109h6.387l-5.371,20.396h-6.762l-3.23-12.095h-0.264l-3.232,12.095h-6.76L180.702,10.146z"/><path fill="#F2F2F5" d="M219.834,30.543h-6.348V10.146h6.01v3.72h0.227c0.939-2.48,3.193-3.983,6.197-3.983c4.283,0,7.102,3.043,7.063,7.664v12.996h-6.311V18.748c0-2.291-1.24-3.682-3.342-3.682c-2.105,0-3.496,1.428-3.496,3.795V30.543z"/><path fill="#F2F2F5" d="M236.555,20.964l11.27-17.617h8.078v17.581h3.305v5.034h-3.305v5.848h-6.125v-5.848h-13.223V20.964z M249.893,20.928V10.146h-0.227l-6.723,10.556v0.226H249.893z"/><path fill="#F2F2F5" d="M261.489,23.823c0-3.488,1.902-6.318,5.357-6.86V16.77c-3.004-0.582-4.342-3.101-4.342-6.201c0-4.381,4.207-7.598,9.992-7.598c5.711,0,9.955,3.217,9.955,7.598c0,3.101-1.412,5.619-4.344,6.201v0.193c3.381,0.542,5.357,3.372,5.357,6.86c0,4.574-4.621,7.986-10.969,7.986C266.11,31.81,261.489,28.397,261.489,23.823z M276.741,23.127c0-2.21-1.803-3.838-4.244-3.838c-2.479,0-4.32,1.628-4.281,3.838c-0.039,2.208,1.727,3.797,4.281,3.797C275.014,26.924,276.741,25.335,276.741,23.127z M276.178,11.266c0-1.977-1.541-3.411-3.682-3.411c-2.215,0-3.719,1.396-3.719,3.411s1.539,3.489,3.719,3.489C274.637,14.755,276.178,13.32,276.178,11.266z"/></g></defs></svg></div>
+  </div></div>
+  <div class="cap"><b>컨셉</b>: 터콰이즈 vs 크림슨 50:50 — Arena 매치 무대(VS 스플릿 확정 스펙)의 예고편. 물음표 링은 "누가 올라올까"의 호기심 장치이고, 나중에 <b>토너먼트별 OG</b>(실제 두 참가자 썸네일이 링에 들어가는 동적 카드)로 발전시키기 가장 좋은 뼈대입니다. 캠페인·티저용 추천.</div>
+
+  <!-- 시안 C -->
+  <div class="sec-label">시안 C · 48 → 1 — 반감 트리(제품 구조)의 시각화</div>
+  <div class="frame-outer"><div class="frame C">
+    <div class="noise"></div>
+    <div class="tree">
+      <div class="col c1"></div><div class="col c2"></div><div class="col c3"></div><div class="col c4"></div><div class="col c5"></div>
+    </div>
+    <svg class="crown" viewBox="0 0 144 135" xmlns="http://www.w3.org/2000/svg"><path fill="#FCD006" d="M141.13,72.455c-0.728-0.064-1.409,0.143-1.972,0.521c-0.097,0.066-0.188,0.132-0.285,0.199c-9.776,6.764-26.054,14.975-38.315,5.759C87.99,69.486,80.666,51.155,77.34,40.736c-0.006-0.019-0.011-0.036-0.018-0.054c-0.376-1.129-1.389-1.985-2.649-2.096c-1.26-0.11-2.407,0.557-2.974,1.604c-0.009,0.017-0.016,0.033-0.026,0.05c-5.084,9.684-15.481,26.464-29.498,33.585C28.5,80.771,13.895,69.859,5.442,61.5c-0.084-0.083-0.163-0.164-0.246-0.246c-0.489-0.47-1.125-0.792-1.852-0.855c-1.692-0.148-3.185,1.104-3.333,2.797c-0.018,0.205-0.013,0.407,0.008,0.605l0.013,0.077l10.049,58.828l0.03,0.168c0.216,1.361,1.325,2.455,2.76,2.581l53.787,4.706l0.004,0l0.004,0l53.786,4.706c1.435,0.125,2.717-0.76,3.165-2.062l0.059-0.161l20.111-56.189l0.026-0.073c0.057-0.19,0.096-0.389,0.113-0.595C144.075,74.095,142.822,72.603,141.13,72.455z"/><circle fill="#FCD006" cx="77.036" cy="11.563" r="11.562"/></svg>
+    <div class="mono">48 → 24 → 12 → 6 → THE FINAL</div>
+    <div class="h1">One <i>Champion</i>. Your pick.</div>
+    <div class="foot">
+      <svg class="wordmark" viewBox="0 0 284 32"><use href="#wm"/></svg>
+      <span class="site">WORLDCROWN48.COM</span>
+    </div>
+  </div></div>
+  <div class="cap"><b>컨셉</b>: 48개의 골드 점이 라운드마다 반으로 줄며 왕관으로 수렴 — 우리 서비스의 규칙 자체가 그림이 됩니다. Playfair 이탤릭 "Champion"이 브랜드의 연극성을 살립니다. <b>서비스 소개·프레스·SEO용</b> 추천.</div>
+
+  <!-- 시안 D -->
+  <div class="sec-label">시안 D · CROWN INVITATION — 초대장</div>
+  <div class="frame-outer"><div class="frame D">
+    <div class="noise"></div>
+    <div class="border"></div><div class="inner"></div>
+    <svg class="crown" viewBox="0 0 144 135" xmlns="http://www.w3.org/2000/svg"><path fill="#FCD006" d="M141.13,72.455c-0.728-0.064-1.409,0.143-1.972,0.521c-0.097,0.066-0.188,0.132-0.285,0.199c-9.776,6.764-26.054,14.975-38.315,5.759C87.99,69.486,80.666,51.155,77.34,40.736c-0.006-0.019-0.011-0.036-0.018-0.054c-0.376-1.129-1.389-1.985-2.649-2.096c-1.26-0.11-2.407,0.557-2.974,1.604c-0.009,0.017-0.016,0.033-0.026,0.05c-5.084,9.684-15.481,26.464-29.498,33.585C28.5,80.771,13.895,69.859,5.442,61.5c-0.084-0.083-0.163-0.164-0.246-0.246c-0.489-0.47-1.125-0.792-1.852-0.855c-1.692-0.148-3.185,1.104-3.333,2.797c-0.018,0.205-0.013,0.407,0.008,0.605l0.013,0.077l10.049,58.828l0.03,0.168c0.216,1.361,1.325,2.455,2.76,2.581l53.787,4.706l0.004,0l0.004,0l53.786,4.706c1.435,0.125,2.717-0.76,3.165-2.062l0.059-0.161l20.111-56.189l0.026-0.073c0.057-0.19,0.096-0.389,0.113-0.595C144.075,74.095,142.822,72.603,141.13,72.455z"/><circle fill="#FCD006" cx="77.036" cy="11.563" r="11.562"/></svg>
+    <div class="h1">Crown your Champion</div>
+    <div class="sub">THE GLOBAL FAN-VOTING TOURNAMENT</div>
+    <div class="foot"><svg class="wordmark" viewBox="0 0 284 32"><use href="#wm"/></svg></div>
+  </div></div>
+  <div class="cap"><b>컨셉</b>: 골드 이중 프레임의 초대장 — 사전등록(웨이트리스트) 캠페인과 짝이 가장 좋습니다. "당신을 대관식에 초대합니다"의 정서. <b>사전등록 유도·이메일·인쇄물 겸용</b> 추천.</div>
+
+  <div class="sec-label">확정 후 절차 (참고)</div>
+  <div class="cap">
+    ① 대표님이 방향 선택 + 수정 지시(문구·배치·색 비중 등 무엇이든) → ② 티오가 확정판을 다듬고 <b>1200×630 PNG로 추출</b> →
+    ③ Claude Code 소PR: public/og.png 추가 + 메타에 <b>openGraph.images 지정</b>(몇 줄) → ④ 카카오톡·X 캐시 갱신 확인.
+    이후 원하시면 <b>기사별 OG</b>(제목 자동 합성)와 <b>토너먼트별 OG</b>(시안 B 뼈대)로 확장할 수 있습니다 — 이것은 뉴스룸 승격 킥과 자연스럽게 이어집니다.
+  </div>
+
+</div>
+</body>
+</html>
