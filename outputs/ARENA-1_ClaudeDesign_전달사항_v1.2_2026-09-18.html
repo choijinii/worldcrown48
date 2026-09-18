@@ -1,0 +1,105 @@
+<title>ARENA-1 디자인 전달 v1.2</title>
+<style>
+:root{--bg:#FBFAF7;--ink:#1B1D2B;--mute:#5E6275;--line:#DDD9CF;--gold:#C99A00;--gold-bg:#FFF6D0;--red:#B9052F;--red-bg:#FDEDF0;--teal:#007E8F;--teal-bg:#E3F5F7;--box:#FFFFFF;}
+body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.6;padding-block:32px;padding-inline:20px;max-width:900px;margin:0 auto}
+h1{font-size:24px;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--mute);font-size:13px;margin-bottom:24px}
+h2{font-size:17px;margin:36px 0 10px;padding-top:14px;border-top:2px solid var(--ink)}
+h3{font-size:14px;margin:18px 0 6px}
+p,li{font-size:14px}
+ul{padding-left:18px;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0 14px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:#F1EEE5}
+code{background:#EFECE3;padding:1px 5px;border-radius:3px;font-size:12.5px}
+.warn{background:var(--red-bg);border-left:4px solid var(--red);padding:10px 14px;margin:10px 0;font-size:14px}
+.ok{background:var(--teal-bg);border-left:4px solid var(--teal);padding:10px 14px;margin:10px 0;font-size:14px}
+.gold{background:var(--gold-bg);border-left:4px solid var(--gold);padding:10px 14px;margin:10px 0;font-size:14px}
+.tree{background:var(--box);border:1px solid var(--line);padding:14px 18px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.7;white-space:pre;overflow-x:auto}
+figure{margin:12px 0;background:var(--box);border:1px solid var(--line);padding:10px}
+figcaption{font-size:12px;color:var(--mute);margin-top:6px}
+svg text{font-family:inherit}
+.copy{background:#1B1D2B;color:#F4F1EA;padding:14px 16px;border-radius:4px;font-size:13.5px;white-space:pre-wrap;line-height:1.65}
+</style>
+
+<h1>ARENA-1 · 클로드 디자인 전달사항 v1.2</h1>
+<div class="sub">2026-09-18 · 티오 → 클로드 디자인 (프로젝트 "K-pop 아이돌 VS 무대 디자인" · 파일 Arena Match Stage.dc.html) · 승인 대표 · 근거 결정 원장 D-08·D-11·D-17·D-18·D-19</div>
+
+<div class="warn"><b>첫 줄 — 폐기 컨셉 경고.</b> "WorldCrown48 아레나 무대 리디자인"(축구 선수·축구 경기 컨셉)은 폐기된 프로젝트입니다. 참조하지 마십시오. 세계관은 K-pop 무대 대결(스포츠 문법)입니다.</div>
+
+<div class="ok"><b>화면 1A 합격.</b> 프레임 1320×680 · 칸 640 · 띠 투명도(현재 값 그대로) · 모바일 가로 366 정사각 — 전부 확정. 이번 요청은 <b>메뉴바와 그 아래 한 줄</b>만 고칩니다. 무대는 건드리지 않습니다.</div>
+
+<h2>1. 메뉴바(64 높이) — 고칠 것 4가지</h2>
+<table>
+<tr><th style="width:38%">지금 (1A)</th><th>고친 뒤</th></tr>
+<tr><td>☰ 없음</td><td><b>왼쪽 끝에 ☰ 복원</b> (로고 앞). 실제 사이트에 이미 있는 부품</td></tr>
+<tr><td>The Pitch · The Lab · The Arena · Locker Room</td><td><b>The Pitch · The Arena · Newsroom · Locker Room</b> — The Lab은 운영자 전용이라 팬 메뉴에서 제외, Newsroom 추가</td></tr>
+<tr><td>오른쪽: KO · 노란 버튼 "선택 이어가기"</td><td>오른쪽: <b>KO 토글 → 로그인 버튼(비로그인) 또는 아바타 32px(로그인)</b>. 노란 버튼은 메뉴바에서 <b>삭제</b> — 2절로 이사</td></tr>
+<tr><td>—</td><td>아트보드 2장: <b>비로그인 상태 / 로그인 상태</b> (오른쪽 끝만 다름)</td></tr>
+</table>
+<p>모바일 세로(390): 메뉴 단어 4개는 숨기고 <b>☰ · 로고 · KO · 로그인/아바타</b>만. 모바일 가로(844×390): 메뉴바 없음(D-17, 변경 없음).</p>
+
+<h2>2. "선택 이어가기" 버튼 — 새 자리</h2>
+<figure>
+<svg viewBox="0 0 720 250" width="100%" role="img" aria-label="층 구조와 버튼 위치">
+<rect x="10" y="10" width="700" height="44" fill="#1B1D2B"/>
+<text x="24" y="38" fill="#FFF" font-size="13">☰  WorldCrown48   The Pitch  The Arena  Newsroom  Locker Room</text>
+<text x="560" y="38" fill="#FFF" font-size="13">KO</text>
+<circle cx="680" cy="32" r="14" fill="#C99A00"/><text x="674" y="36" fill="#1B1D2B" font-size="11">아바타</text>
+<rect x="10" y="60" width="700" height="52" fill="#F1EEE5"/>
+<text x="24" y="82" fill="#5E6275" font-size="12">② 안내 문구 층 — The Arena / 대회 제목 / 설명 (기존 그대로, 가운데 정렬)</text>
+<rect x="556" y="72" width="140" height="28" rx="14" fill="#FCD006"/>
+<text x="574" y="91" fill="#1B1D2B" font-size="12" font-weight="700">▶ 선택 이어가기</text>
+<line x1="680" y1="46" x2="680" y2="72" stroke="#B9052F" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text x="600" y="120" fill="#B9052F" font-size="11">아바타와 오른쪽 끝 세로 정렬 · 메뉴바 밖</text>
+<rect x="10" y="130" width="700" height="100" fill="#0B1020"/>
+<text x="24" y="185" fill="#FFF" font-size="12">③ 무대 프레임 1320×680 (변경 없음)</text>
+</svg>
+<figcaption>버튼은 메뉴 층(①) 안이 아니라 바로 아래 안내 문구 층(②)의 오른쪽 끝. 그래서 KO·아바타와 절대 겹치지 않는다.</figcaption>
+</figure>
+<table>
+<tr><th style="width:26%">항목</th><th>확정</th></tr>
+<tr><td>보일 조건</td><td><b>끝내지 않은 참여가 있을 때만.</b> 없으면 그 자리는 비어 있다(자리 잡아 두지 않음). 지금 그 대회의 매치 화면에서는 숨김</td></tr>
+<tr><td>모양</td><td>노란 알약(Crown Gold), 높이 28~32, 글자 굵게. 강조색은 이 버튼 하나뿐 — 주변에 다른 노란 요소 금지</td></tr>
+<tr><td>3언어 문구</td><td>ko <b>선택 이어가기</b> · en <b>Continue your picks</b> · es <b>Continuar tus elecciones</b></td></tr>
+<tr><td>비로그인</td><td>로그인 버튼 밑, 같은 자리</td></tr>
+<tr><td>모바일 세로</td><td>같은 규칙, 오른쪽 끝. 모바일 가로: 없음</td></tr>
+<tr><td>그릴 상태</td><td>데스크톱 2장(있음/없음) · 모바일 세로 1장(있음)</td></tr>
+</table>
+
+<h2>3. ☰ 사이트맵 서랍 — 재설계</h2>
+<div class="gold"><b>참조: GitHub 왼쪽 햄버거 패널.</b> 박스가 층층이 쌓인 카드 목록이 아니라, <b>단어만 깔끔히 세로로 나열</b>하고 오른쪽 <b>▸ 토글</b>로 하위 페이지를 펼치는 형태. 왼쪽에서 밀려 나오는 서랍, 폭 데스크톱 320 / 모바일 화면폭−56. 바탕은 메뉴바와 같은 다크, 글자 흰색, 강조는 Crown Gold 한 곳(현재 페이지 표시).</div>
+<h3>목록 — 실제로 존재하는 페이지만</h3>
+<div class="tree">The Pitch
+The Arena                       ▸  (열면) 진행 중인 대회 이름들 · 선택 이어가기(있을 때)
+Newsroom                        ▸  (열면) 최신 기사 3개 제목 · 전체 기사
+Locker Room                        내 Crown Card · 프로필  ← 한 페이지라 토글 없음
+Policy Hub                      ▸  (열면) 개인정보처리방침 · 이용약관 · 커뮤니티 가이드 · 쿠키 정책
+──────────────
+언어  KO · EN · ES
+로그인  /  로그아웃
+──────────────  (관리자로 로그인했을 때만 보임)
+The Lab
+Admin Dashboard</div>
+<ul>
+<li>제외: Launch Pad(사전등록 페이지), 그리고 팬에게 The Lab·Admin.</li>
+<li>낱말 금지: "투표·Vote·표·예측·배당". 설명글이 필요 없으면 쓰지 않는다(단어만).</li>
+<li>그릴 상태 4장: 닫힘 / 데스크톱 열림(1440) / 모바일 세로 열림(390) / Policy Hub 펼친 상태 1장.</li>
+</ul>
+
+<h2>4. 바뀌지 않는 것 (건드리면 불합격)</h2>
+<ul>
+<li>무대 프레임 1320×680 · 칸 640 · VS 위치 · 띠 · 오버랩 글씨 (화면 1A 합격분)</li>
+<li>무대 위 금지 4가지: 라운드 라벨 · 득표율 · 마감 타이머 · 개발자 고지문</li>
+<li>모바일 가로 844×390: 메뉴 없음 · 칸 366 · 여백 56</li>
+<li>색 토큰: 바탕 #0B1020 · Crown Gold #FCD006(강조 하나뿐) · Turquoise #00A3B7(왼쪽) · Crimson #D7063A(오른쪽)</li>
+</ul>
+
+<h2>5. 클로드 디자인 입력창에 붙여 넣을 문장</h2>
+<div class="copy">"WorldCrown48 아레나 무대 리디자인"(축구 컨셉)은 폐기된 프로젝트다. 참조 금지. 이 파일(Arena Match Stage)의 화면 1A 무대는 확정이므로 무대는 건드리지 말고, 메뉴바와 그 아래 한 줄, 그리고 ☰ 서랍만 고쳐라.
+
+1) 메뉴바(64): 왼쪽 끝에 ☰ 추가. 메뉴는 The Pitch · The Arena · Newsroom · Locker Room. 오른쪽 끝은 KO 토글 다음에 로그인 버튼(비로그인) 또는 32px 아바타(로그인). 노란 "선택 이어가기" 버튼은 메뉴바에서 삭제. 비로그인/로그인 두 상태를 아트보드로.
+2) "선택 이어가기"(en Continue your picks / es Continuar tus elecciones)는 메뉴바 바로 아래 안내 문구 층의 오른쪽 끝, 아바타와 세로 정렬된 노란 알약(높이 28~32)으로. 끝내지 않은 참여가 있을 때만 보이고 없으면 자리도 비운다. 데스크톱 있음/없음 2장, 모바일 세로 있음 1장.
+3) ☰ 서랍: GitHub 왼쪽 햄버거 패널처럼 단어만 세로 나열 + 오른쪽 ▸ 토글로 하위 펼침. 폭 320(모바일 화면폭−56), 다크 바탕, 현재 페이지만 Crown Gold. 항목: The Pitch / The Arena ▸(진행 중인 대회·선택 이어가기) / Newsroom ▸(최신 기사 3·전체 기사) / Locker Room / Policy Hub ▸(개인정보처리방침·이용약관·커뮤니티 가이드·쿠키 정책) / 구분선 / 언어 KO·EN·ES / 로그인·로그아웃 / 구분선 / (관리자만) The Lab · Admin Dashboard. Launch Pad 제외. "투표·Vote·표" 낱말 금지. 닫힘·데스크톱 열림·모바일 열림·Policy Hub 펼침 4장.
+4) 모바일 세로 메뉴바는 ☰·로고·KO·로그인/아바타만. 모바일 가로는 메뉴 없음 그대로.
+5) 색은 토큰 그대로: #0B1020 · #FCD006(강조 하나뿐) · #00A3B7 · #D7063A.</div>
