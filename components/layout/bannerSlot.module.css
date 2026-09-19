@@ -1,0 +1,75 @@
+/**
+ * BannerSlot — 배너 자리 (원장 D-21). 크기는 놓는 쪽이 정한다(자리마다 다르다):
+ * 아레나 매치 무대 아래 = --arena-banner-w × --arena-banner-h (1320×140).
+ * 색은 토큰만(불변 원칙 #2-1).
+ */
+
+.slot {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-height: var(--banner-slot-h, auto);
+  background: var(--arena-banner-bg);
+  outline: var(--arena-frame-border);
+  outline-offset: -1px;
+  border-radius: 2px;
+}
+
+.action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 18px 24px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action:hover .arrow,
+.action:focus-visible .arrow {
+  transform: translateX(3px);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.body {
+  font-size: 13px;
+  color: var(--color-text-sub);
+}
+
+.arrow {
+  color: var(--color-gold);
+  font-weight: 700;
+  transition: transform 160ms ease;
+}
+
+@media (max-width: 1023px) {
+  .action {
+    padding: 14px 16px;
+  }
+  .title {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}

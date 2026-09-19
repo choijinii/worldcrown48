@@ -139,7 +139,8 @@ describe("recommendKillingPart — 3층 폴백", () => {
       description: "",
       durationSec: 40,
     });
-    expect(r.candidates[0].startSec).toBe(15);
+    // 가운데 15초(D-12): floor(40/2 − 15/2) = 12
+    expect(r.candidates[0].startSec).toBe(12);
   });
 
   it("영상 길이를 넘는 댓글 타임스탬프는 버린다 (오타·다른 영상 얘기)", () => {

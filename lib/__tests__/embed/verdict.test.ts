@@ -117,7 +117,7 @@ describe("buildVerdicts — 경고 (노랑)", () => {
     expect(v.reasons).toContain("live");
   });
 
-  it("10초보다 짧은 영상 → 경고 (루프가 성립하지 않는다)", () => {
+  it("15초(루프 길이 · D-12)보다 짧은 영상 → 경고 (루프가 성립하지 않는다)", () => {
     const [v] = buildVerdicts([ID], [item({ contentDetails: { duration: "PT8S" } })]);
     expect(v.status).toBe("warn");
     expect(v.reasons).toContain("too-short");

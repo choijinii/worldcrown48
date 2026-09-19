@@ -1,0 +1,441 @@
+/**
+ * VS 스플릿 무대 (ARENA-1 PR 1) — 원장 D-08 · D-11 · D-17 · 디자인 시스템 v4.2 §3.
+ * 실측 원본: docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html
+ *            (아트보드 1 데스크톱 · 6 모바일 세로 · 9 모바일 가로)
+ *
+ * 색·크기·움직임은 전부 var(--arena-*) / var(--color-*) (app/arena_stage_tokens.css ·
+ * app/globals.css). 칸 한 변(--stage-cell)은 기기별 숫자가 아니라 useStageViewport 가
+ * "주어진 자리의 짧은 쪽" 규칙(lib/arena/stageLayout)으로 계산해 넣는다 (D-17).
+ */
+
+/* ── 화면 (4층: 메뉴 → 안내 문구 → 무대 → 배너) ─────────────────────── */
+.page {
+  /* 측정 전 첫 그림 — 데스크톱 규칙과 같은 식. 측정되면 인라인 값이 덮는다. */
+  --stage-cell: min(var(--arena-cell), calc((100vw - 160px) / 2));
+  --stage-frame-w: calc(var(--stage-cell) * 2 + var(--arena-frame-pad) * 2);
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 60px 60px;
+  background: var(--arena-page-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.page[data-stage-mode="portrait"],
+.page[data-stage-mode="landscape"] {
+  padding: 0 12px 24px;
+  background: var(--arena-page-bg-mobile);
+}
+
+/* 첫 측정 전에는 그리지 않는다(자리만 잡는다). 칸 크기는 무대 윗변을 재야 정해지는데,
+   재기 전 임시 크기로 먼저 그리면 곧바로 튀어 CLS 가 된다(2026-09-19 Lighthouse 0.348 실측).
+   visibility 는 배치에서 빠지지 않아 측정은 그대로 된다. */
+.page:not([data-stage-ready="true"]) .frame,
+.page:not([data-stage-ready="true"]) .rotateHint,
+.page:not([data-stage-ready="true"]) .bannerRow {
+  visibility: hidden;
+}
+
+/* ── ② 안내 문구 층 ─────────────────────────────────────────────── */
+.guide {
+  width: min(1100px, 100%);
+  padding-top: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.page[data-stage-mode="portrait"] .guide {
+  padding-top: 0;
+  margin-bottom: 10px;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 35px;
+  line-height: 30.8px;
+  letter-spacing: 0.01em;
+  color: var(--color-gold);
+}
+
+.title {
+  margin: 6px 0 0;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+.desc {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-sub);
+}
+
+/* ── ③ 무대 프레임 ──────────────────────────────────────────────── */
+.frame {
+  position: relative;
+  box-sizing: content-box;
+  padding: var(--arena-frame-pad);
+  background: var(--arena-frame-bg);
+  /* 테두리가 자리를 먹지 않게 안쪽 outline — 1320 = 칸 640×2 + 패딩 20×2 그대로 */
+  outline: var(--arena-frame-border);
+  outline-offset: -1px;
+}
+
+.page[data-stage-mode="portrait"] .frame {
+  padding: 0;
+  background: none;
+  outline: none;
+  border: var(--arena-frame-border);
+}
+
+.page[data-stage-mode="landscape"] .frame {
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  outline: none;
+}
+
+.cells {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+}
+
+.page[data-stage-mode="portrait"] .cells {
+  flex-direction: column;
+}
+
+/* ── 칸 ─────────────────────────────────────────────────────────── */
+.cell {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: var(--stage-cell);
+  height: var(--stage-cell);
+  transform: scale(1);
+  /* 빠질 때 — 바운스 없음 */
+  transition:
+    transform var(--arena-t-out) var(--arena-ease-out),
+    filter var(--arena-t-out) var(--arena-ease-out);
+}
+
+/* 커지는 방향 = 옆칸 쪽(안쪽). 바깥 여백은 그대로 (D-11 조작 ①). */
+.cell[data-side="L"] {
+  transform-origin: left center;
+}
+.cell[data-side="R"] {
+  transform-origin: right center;
+}
+.page[data-stage-mode="portrait"] .cell[data-side="L"] {
+  transform-origin: center top;
+}
+.page[data-stage-mode="portrait"] .cell[data-side="R"] {
+  transform-origin: center bottom;
+}
+
+/* 들어갈 때 — 끝에서 살짝 넘쳤다 돌아온다. 확대·줌인·채도가 한 몸으로 (D-11 움직임). */
+.cell[data-armed="true"],
+.cell[data-confirmed="true"] {
+  z-index: 4;
+  transform: scale(var(--arena-hover-scale));
+  transition:
+    transform var(--arena-t-in-transform) var(--arena-ease-in),
+    filter var(--arena-t-in-filter) var(--arena-ease-in);
+}
+
+.cell[data-confirmed="true"] {
+  z-index: 7;
+}
+
+/* 옆칸은 크기 그대로 채도만 50% (기본은 양쪽 100%). */
+.cell[data-dimmed="true"] {
+  filter: saturate(var(--arena-side-desat));
+}
+
+/* 옆칸이 확정되면 어둡게. */
+.cell[data-lost="true"] {
+  filter: saturate(var(--arena-side-desat)) brightness(0.4);
+}
+
+.hit {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: var(--arena-cell-border);
+  background: var(--arena-cell-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hit:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: -2px;
+}
+
+.cell[data-confirmed="true"] .hit {
+  border: var(--arena-cell-confirm-border);
+  box-shadow: var(--arena-cell-confirm-shadow);
+}
+
+/* 포스터 + 영상 — 같은 상자라 함께 줌인한다 (칸 확대와 별개 효과 · D-11 조작 ②). */
+.media {
+  position: absolute;
+  inset: 0;
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform var(--arena-t-out) var(--arena-ease-out);
+}
+
+.cell[data-armed="true"] .media,
+.cell[data-confirmed="true"] .media {
+  transform: scale(var(--arena-poster-zoom));
+  transition: transform var(--arena-t-in-transform) var(--arena-ease-in);
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(var(--stage-cell) * 0.36);
+  color: var(--color-text);
+  opacity: 0.13;
+}
+
+/* 포스터 → 영상 크로스페이드 0.25초 (D-15 ②). 재생이 실제로 시작돼야 덮는다. */
+.video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.video[data-ready="true"] {
+  opacity: 1;
+}
+
+.shade,
+.glow {
+  position: absolute;
+  inset: 0;
+}
+
+.shade {
+  background: var(--arena-cell-shade);
+  /* 방패 — iframe 의 pointer-events:none 만으로는 Chrome 이 커서를 유튜브 창까지 흘려보내
+     재생 중에 유튜브 자체 UI(가운데 일시정지 버튼·제목 줄)가 떠 있었다(2026-09-19 실측).
+     영상 위를 덮는 이 겹이 커서를 받는다 — 버튼 안이라 클릭은 그대로 선택이 된다. */
+  pointer-events: auto;
+}
+
+.glow {
+  background: var(--arena-cell-glow);
+  pointer-events: none;
+}
+
+/* ── 띠 (이름 · 국적 · 소속) — 칸 안쪽 오버랩 ──────────────────────── */
+.band {
+  position: absolute;
+  left: var(--arena-band-inset);
+  right: var(--arena-band-inset);
+  bottom: var(--arena-band-inset);
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 14px;
+  box-sizing: border-box;
+  padding: var(--arena-band-pad);
+  background: var(--arena-band-left-bg);
+  border: var(--arena-band-left-border);
+  backdrop-filter: var(--arena-band-blur);
+  -webkit-backdrop-filter: var(--arena-band-blur);
+  pointer-events: none;
+}
+
+.band[data-side="R"] {
+  flex-direction: row-reverse;
+  background: var(--arena-band-right-bg);
+  border: var(--arena-band-right-border);
+}
+
+.bandName {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--arena-band-name-size);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bandMeta {
+  font-family: var(--font-mono);
+  font-size: var(--arena-band-meta-size);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--arena-icon);
+  white-space: nowrap;
+}
+
+.page[data-stage-mode="portrait"] .band,
+.page[data-stage-mode="landscape"] .band {
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 12px;
+}
+
+.page[data-stage-mode="portrait"] .band {
+  /* 상하 배치는 좌우 거울이 아니다 — 디자인 아트보드 6 은 둘 다 row */
+  flex-direction: row;
+}
+
+.page[data-stage-mode="portrait"] .bandName,
+.page[data-stage-mode="landscape"] .bandName {
+  font-size: 17px;
+}
+
+.page[data-stage-mode="portrait"] .bandMeta,
+.page[data-stage-mode="landscape"] .bandMeta {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+/* 출처 칩 (R4 임베드 파사드 법리) — 원본으로 나가는 유일한 통로. */
+.sourceChip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--arena-ink) 70%, transparent);
+  color: var(--color-text-sub);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.sourceChip:hover,
+.sourceChip:focus-visible {
+  color: var(--color-text);
+}
+
+/* ── VS — 맞닿는 선 정중앙 고정. 칸이 요동쳐도 흔들리지 않는다 (D-11). ── */
+.vs {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: var(--arena-vs-size);
+  line-height: 1;
+  color: var(--arena-vs-color);
+  text-shadow: var(--arena-vs-shadow);
+}
+
+.page[data-stage-mode="portrait"] .vs,
+.page[data-stage-mode="landscape"] .vs {
+  font-size: 58px;
+  text-shadow: var(--arena-vs-shadow-mobile);
+}
+
+/* 모바일 가로 — 메뉴·안내 문구 층이 없어 대회 제목을 무대 위 알약 하나로 (아트보드 9). */
+.pill {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  z-index: 9;
+  max-width: 80%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  background: color-mix(in srgb, var(--arena-ink) 66%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 11px;
+  color: var(--arena-icon);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 모바일 세로에서만 (D-17 ②). */
+.rotateHint {
+  margin: 12px 0 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-sub);
+}
+
+/* ── ④ 배너 자리 — 첫 화면 밖(스크롤) ─────────────────────────────── */
+.bannerRow {
+  width: var(--stage-frame-w);
+  max-width: 100%;
+  margin-top: 60px;
+}
+
+.banner {
+  min-height: var(--arena-banner-h);
+}
+
+/* 모바일 세로 = 프레임 폭(366) × 문구 높이. 모바일 가로는 배너 없음 (D-21 바뀜). */
+.page[data-stage-mode="portrait"] .bannerRow {
+  margin-top: 16px;
+}
+
+.page[data-stage-mode="portrait"] .banner {
+  min-height: 0;
+}
+
+/* R5 — 모션 제거 (대기 시간은 SplitStage 가 0 으로). */
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .cell[data-armed="true"],
+  .cell[data-confirmed="true"],
+  .media,
+  .cell[data-armed="true"] .media,
+  .cell[data-confirmed="true"] .media,
+  .video {
+    transition: none;
+  }
+}

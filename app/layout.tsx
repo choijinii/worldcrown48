@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+// ARENA-1 (원장 D-20) — 아레나 무대 층 토큰. 클로드 디자인 내보내기 사본, 손편집 금지.
+import "./arena_stage_tokens.css";
 import { I18nProvider } from "@/lib/i18n";
 import { CookieBanner } from "@/components/policy/CookieBanner";
 import { ConsentModal } from "@/components/policy/ConsentModal";

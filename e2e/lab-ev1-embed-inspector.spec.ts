@@ -231,9 +231,9 @@ test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {
       new RegExp(`youtube\\.com/watch\\?v=${PASS_ID}`),
     );
 
-    // 추천 칩을 누르면 루프 구간이 그 지점으로 옮겨간다 (1:30 → 90~100초).
+    // 추천 칩을 누르면 루프 구간이 그 지점으로 옮겨간다 (1:30 → 90~105초 · 루프 15초, 원장 D-12).
     await page.getByTestId("slot-tuner-candidate-90").click();
-    await expect(tuner).toContainText("90초 ~ 100초");
+    await expect(tuner).toContainText("90초 ~ 105초");
 
     await page.getByRole("button", { name: "완료" }).click();
     await expect(page.getByTestId("slot-video-tuner")).toHaveCount(0);

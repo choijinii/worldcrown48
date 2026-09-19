@@ -49,9 +49,11 @@ import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import {
   applyVideoAssignments,
   clearVideo,
+  reframeDraft,
   releaseRenamedSlot,
   retimeDraft,
 } from "@/lib/lab/videoDraft";
+import type { EmbedOrientation } from "@/lib/media/mediaSlot";
 import {
   applySourcingResults,
   buildSourcingTargets,
@@ -628,6 +630,15 @@ export function TournamentCreator(): JSX.Element {
     });
   }
 
+  function reframeSlot(index: number, patch: { orientation?: EmbedOrientation; focusY?: number }) {
+    setContestants((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = reframeDraft(next[index], patch);
+      return next;
+    });
+  }
+
   function removeSlotVideo(index: number) {
     setContestants((prev) => {
       const next = [...prev];
@@ -887,6 +898,7 @@ export function TournamentCreator(): JSX.Element {
           index={tuningIndex}
           draft={contestants[tuningIndex]}
           onRetime={(startSec, durationSec) => retimeSlot(tuningIndex, startSec, durationSec)}
+          onReframe={(patch) => reframeSlot(tuningIndex, patch)}
           onRemove={() => removeSlotVideo(tuningIndex)}
           onClose={() => setTuningIndex(null)}
         />
