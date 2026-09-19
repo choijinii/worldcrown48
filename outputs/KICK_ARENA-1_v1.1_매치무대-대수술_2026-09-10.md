@@ -200,6 +200,12 @@ A 무엇을 했나 · B 어떻게 확인했나(실측 수치·캡처) · C 판�
 - **☰ 사이트맵 서랍 재설계 (D-19)** — `lib/layout/domains.ts`·`SiteMapSheet` 교체: 단어 나열 + ▸ 토글 하위 펼침, 팬용 5항목(The Pitch · The Arena ▸ · Newsroom ▸ · Locker Room · Policy Hub ▸) + 언어 + 로그인 · 관리자 항목은 로그인 시만. Launch Pad 제외. Locker Room "Coming soon" 해제. The Arena 링크 `/arena/dev-preview` → 아레나 홈(ARENA-2 전까지는 진행 중인 대회 목록). 3언어.
 - 이유: 메뉴바·서랍은 다섯 도메인 공통 부품이라 아레나 킥에 넣으면 범위가 새고 E2E가 전 도메인에 걸린다. 디자인만 지금 클로드 디자인 1A 아트보드에서 함께 그린다 (`outputs/ARENA-1_ClaudeDesign_전달사항_v1.2_2026-09-18.html`).
 
+**B-2. 배너 자리 (D-21 · 2026-09-19 추가) — 이 킥에서 하는 것**
+- 공통 부품 `components/layout/BannerSlot.tsx` 신설 — `slot` 이름으로 `banners` 컬렉션에서 켜진 배너 1건을 읽어 보여 준다. 없으면 **기본 공지**(i18n 키 `banner.default.*`, 3언어, 문구 승인 게이트)를 보여 준다. **빈 상자를 그리지 않는다.**
+- 매치 화면 무대 아래 자리 `arena-match-below` **1320×140**(데스크톱) / 모바일 366×(디자인 실측)에 `<BannerSlot slot="arena-match-below" />`.
+- 관리자 CRUD·나머지 자리(아레나 홈·피치·뉴스룸)는 **소킥 BANNER-1**(OUT).
+- 디자인 토큰은 D-20에 따라 클로드 디자인 내보내기 css를 쓴다. `arena_stage_tokens.css`는 임시.
+
 **D. 디자인 진행 상태** — 화면 1A(VS 스플릿 무대, 상태 5종, 데스크톱+모바일 세로+모바일 가로) **합격 2026-09-18**. 다음 = 메뉴바·서랍 수정(위 전달사항) → 화면 1B(선택 확정 연출).
 
 *v1.2 부록 · 2026-09-18 · 티오*
