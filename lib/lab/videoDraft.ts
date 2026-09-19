@@ -16,6 +16,7 @@ import type { LinkVerdict } from "@/lib/embed/verdict";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
 import { isRenamedTo } from "@/lib/lab/nameKey";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
+import type { EmbedOrientation } from "@/lib/media/mediaSlot";
 
 export interface VideoDraftFields {
   videoId: string;
@@ -58,7 +59,8 @@ export function applyVideoAssignments(
     if (!verdict || verdict.status === "blocked") continue;
     const index = a.slot - 1;
     if (index < 0 || index >= total) continue;
-    next[index] = { ...next[index], ...buildVideoFields(verdict, a.startSec) };
+    // clearVideo 먼저 — 이전 영상의 비율·잘림 위치(ARENA-1)가 새 영상에 따라붙지 않게.
+    next[index] = { ...clearVideo(next[index]), ...buildVideoFields(verdict, a.startSec) };
   }
 
   return next;
@@ -104,10 +106,39 @@ export function releaseRenamedSlot(
 
 /** 영상만 지운다 — 이름·이미지는 남긴다(운영자가 링크만 갈아 끼우는 흐름). */
 export function clearVideo(draft: ContestantDraft): ContestantDraft {
-  const { videoId, videoStartSec, videoEndSec, videoSourceUrl, ...rest } = draft;
+  const {
+    videoId,
+    videoStartSec,
+    videoEndSec,
+    videoSourceUrl,
+    videoOrientation,
+    videoFocusY,
+    ...rest
+  } = draft;
   void videoId;
   void videoStartSec;
   void videoEndSec;
   void videoSourceUrl;
+  void videoOrientation;
+  void videoFocusY;
   return rest;
+}
+
+/**
+ * 슬롯 하나의 영상 비율·세로 잘림 위치 (ARENA-1 · 원장 D-11 · D-14).
+ *
+ * 무대 재생기는 iframe 비율을 이 값으로 정한다 — 세로 숏츠를 가로로 두면 유튜브가 검은
+ * 띠를 넣는다. focusY 는 위에서 버리는 비율(0~100, 기본 40)이라 정수로 자른다.
+ */
+export function reframeDraft(
+  draft: ContestantDraft,
+  patch: { orientation?: EmbedOrientation; focusY?: number },
+): ContestantDraft {
+  if (!draft.videoId) return draft;
+  const next = { ...draft };
+  if (patch.orientation) next.videoOrientation = patch.orientation;
+  if (typeof patch.focusY === "number" && Number.isFinite(patch.focusY)) {
+    next.videoFocusY = Math.min(100, Math.max(0, Math.round(patch.focusY)));
+  }
+  return next;
 }

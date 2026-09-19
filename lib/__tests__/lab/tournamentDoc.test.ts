@@ -196,6 +196,20 @@ describe("buildContestantDocs", () => {
       const docs = buildContestantDocs("t1", "host-1", all);
       expect(docs[0].media?.embed?.end).toBe(40);
     });
+
+    // ARENA-1 (원장 D-11 · D-14) — 무대 재생기가 세로 숏츠를 받는 칸. 선택 필드 추가만.
+    it("세로 영상이면 orientation·focusY 를 media.embed 에 싣는다", () => {
+      const all = withVideo();
+      all[0] = { ...all[0], videoOrientation: "portrait", videoFocusY: 35 };
+      const docs = buildContestantDocs("t1", "host-1", all);
+      expect(docs[0].media?.embed).toMatchObject({ orientation: "portrait", focusY: 35 });
+    });
+
+    it("orientation·focusY 를 안 건드린 draft 는 키 자체가 없다 (옛 문서와 같은 모양)", () => {
+      const docs = buildContestantDocs("t1", "host-1", withVideo());
+      expect("orientation" in (docs[0].media?.embed ?? {})).toBe(false);
+      expect("focusY" in (docs[0].media?.embed ?? {})).toBe(false);
+    });
   });
 });
 

@@ -16,7 +16,7 @@ import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
-import type { ContestantMedia } from "@/lib/media/mediaSlot";
+import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
 import {
   TOTAL_CONTESTANTS,
   type Category,
@@ -72,6 +72,10 @@ export interface ContestantDraft {
   videoEndSec?: number;
   /** [원본 열기]·출처 칩이 가리키는 watch URL (ADR-EV-3). */
   videoSourceUrl?: string;
+  /** ARENA-1 (D-11) — 영상 비율. 비우면 가로. */
+  videoOrientation?: EmbedOrientation;
+  /** ARENA-1 (D-11) — 세로 영상 잘림 기준 0~100 (비우면 40). */
+  videoFocusY?: number;
 }
 
 /** A Contestant doc minus the Firestore-owned `id`. */
@@ -147,6 +151,9 @@ function mediaOf(d: ContestantDraft): ContestantMedia | undefined {
       start: d.videoStartSec ?? 0,
       end: d.videoEndSec ?? (d.videoStartSec ?? 0) + LOOP_SECONDS,
       sourceUrl: d.videoSourceUrl ?? "",
+      // ARENA-1 — 운영자가 손댄 경우에만 싣는다(Firestore는 undefined를 거부한다).
+      ...(d.videoOrientation ? { orientation: d.videoOrientation } : {}),
+      ...(typeof d.videoFocusY === "number" ? { focusY: d.videoFocusY } : {}),
     },
   };
 }

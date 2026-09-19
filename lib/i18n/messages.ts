@@ -694,6 +694,15 @@ export const MESSAGES = {
   },
   "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
   "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
+  // ARENA-1 (원장 D-11 · D-14) — 무대 재생기가 세로 숏츠를 받는 칸. 운영자 전용 화면.
+  "lab.embed.tuner.orientation": { ko: "영상 비율", en: "Video shape", es: "Formato del video" },
+  "lab.embed.tuner.landscape": { ko: "가로 16:9", en: "Landscape 16:9", es: "Horizontal 16:9" },
+  "lab.embed.tuner.portrait": { ko: "세로 9:16", en: "Portrait 9:16", es: "Vertical 9:16" },
+  "lab.embed.tuner.focusY": {
+    ko: "세로 영상 자르는 위치 (위에서 %)",
+    en: "Portrait crop position (% from top)",
+    es: "Posición de recorte vertical (% desde arriba)",
+  },
   "lab.embed.tuner.blockedNote": {
     ko: "재생이 막힌 영상입니다. 링크를 교체해주세요.",
     en: "This video cannot play here. Replace the link.",

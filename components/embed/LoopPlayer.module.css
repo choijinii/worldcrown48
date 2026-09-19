@@ -1,8 +1,9 @@
 /**
  * LoopPlayer — 1:1 크롭 · 클릭 차단 · 출처 칩 (LAB-EV-1 W3 · ADR-EV-3).
  *
- * 색은 토큰만 쓴다(불변 원칙 #2-1). 16:9 영상을 1:1 카드에 넣는 방법은
- * "가로를 177.78%로 늘리고 가운데 정렬" — 세로가 꽉 차고 좌우가 잘린다.
+ * 색은 토큰만 쓴다(불변 원칙 #2-1). 영상을 1:1 카드에 넣는 방법은 "영상과 같은
+ * 비율의 상자를 정사각 창문으로 자른다" — 가로 16:9 는 폭 177.78%(좌우 잘림),
+ * 세로 9:16 은 높이 177.78%(위 focusY% 잘림). 수치는 lib/media/stageCrop.
  */
 
 .frame {
@@ -13,25 +14,32 @@
   background: var(--color-bg-soft);
 }
 
-/* 16:9 → 1:1 중앙 크롭. 100 * 16 / 9 = 177.78% */
+/* 무대 칸을 꽉 채우는 모드 — 칸이 정사각·모서리·바탕을 이미 갖고 있다. */
+.fill {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* 정사각 창문. 안쪽 .crop 이 영상과 같은 비율의 상자(인라인 style = videoCrop()). */
 .stage {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   /* ADR-EV-3: 카드 위 영상은 조작 대상이 아니다 — 클릭은 카드가 받는다. */
   pointer-events: none;
 }
 
-.stage > * {
+.crop {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 177.78%;
-  height: 100%;
-  transform: translate(-50%, -50%);
-  border: 0;
 }
 
-.stage iframe {
+/* IFrame API 가 host div 를 iframe 으로 갈아 끼운다 — 그 iframe 이 상자를 꽉 채운다. */
+.crop > * {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: 0;

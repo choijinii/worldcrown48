@@ -10,6 +10,7 @@ import {
   applyVideoAssignments,
   buildVideoFields,
   clearVideo,
+  reframeDraft,
   releaseRenamedSlot,
   retimeDraft,
 } from "@/lib/lab/videoDraft";
@@ -184,6 +185,50 @@ describe("clearVideo", () => {
       affiliation: "",
       imageSearchKeyword: "k",
     });
+  });
+});
+
+// ── ARENA-1 (원장 D-11 · D-14) — 세로 숏츠 칸: orientation · focusY ──
+describe("reframeDraft — 영상 비율·세로 잘림 위치", () => {
+  const withVideo: ContestantDraft = { ...emptyDraft(), videoId: A, videoStartSec: 30 };
+
+  it("비율과 잘림 위치를 draft 에 적는다", () => {
+    expect(reframeDraft(withVideo, { orientation: "portrait", focusY: 35 })).toMatchObject({
+      videoOrientation: "portrait",
+      videoFocusY: 35,
+    });
+  });
+
+  it("focusY 는 0~100 정수로 자른다", () => {
+    expect(reframeDraft(withVideo, { focusY: 140 }).videoFocusY).toBe(100);
+    expect(reframeDraft(withVideo, { focusY: -3 }).videoFocusY).toBe(0);
+    expect(reframeDraft(withVideo, { focusY: 41.6 }).videoFocusY).toBe(42);
+  });
+
+  it("영상이 없는 칸은 그대로", () => {
+    const plain = emptyDraft();
+    expect(reframeDraft(plain, { orientation: "portrait" })).toBe(plain);
+  });
+
+  it("clearVideo 는 비율·잘림 위치도 함께 지운다", () => {
+    const framed = reframeDraft(withVideo, { orientation: "portrait", focusY: 30 });
+    const cleared = clearVideo(framed);
+    expect("videoOrientation" in cleared).toBe(false);
+    expect("videoFocusY" in cleared).toBe(false);
+  });
+
+  it("다른 영상을 주입하면 이전 영상의 비율이 따라오지 않는다", () => {
+    const framed = reframeDraft(withVideo, { orientation: "portrait", focusY: 30 });
+    const next = applyVideoAssignments(
+      [framed],
+      [{ slot: 1, index: 1, videoId: B, startSec: null }],
+      [verdict(B)],
+      48,
+      emptyDraft,
+    );
+    expect(next[0].videoId).toBe(B);
+    expect(next[0].videoOrientation).toBeUndefined();
+    expect(next[0].videoFocusY).toBeUndefined();
   });
 });
 
