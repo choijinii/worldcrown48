@@ -694,6 +694,13 @@ export const MESSAGES = {
   },
   "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
   "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
+  // ARENA-1 (원장 D-17 ②) — 모바일 세로에서만 보이는 한 줄. ko = 디자인 파일 그대로,
+  // en·es = ARENA-1 PR 1 §5 게이트 2 대표 승인 2026-09-19.
+  "arena.stage.rotateHint": {
+    ko: "가로로 돌리면 무대가 더 크게 열립니다",
+    en: "Turn sideways for a bigger stage",
+    es: "Gira el móvil para un escenario más grande",
+  },
   // ARENA-1 (원장 D-21) — 배너 자리 기본 공지. 관리자가 아무것도 넣지 않았을 때 보인다
   // (빈칸 런칭 금지). 문구 = ARENA-1 PR 1 §5 게이트 1(게스트)·4(로그인) 대표 승인 2026-09-19.
   "banner.default.guest.title": {
