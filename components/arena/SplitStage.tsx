@@ -153,6 +153,7 @@ export function SplitStage({
     <section
       className={styles.page}
       data-stage-mode={mode}
+      data-stage-ready={layout !== null}
       data-stage-status={status}
       data-testid="split-stage"
       style={stageVars}

@@ -31,6 +31,15 @@
   background: var(--arena-page-bg-mobile);
 }
 
+/* 첫 측정 전에는 그리지 않는다(자리만 잡는다). 칸 크기는 무대 윗변을 재야 정해지는데,
+   재기 전 임시 크기로 먼저 그리면 곧바로 튀어 CLS 가 된다(2026-09-19 Lighthouse 0.348 실측).
+   visibility 는 배치에서 빠지지 않아 측정은 그대로 된다. */
+.page:not([data-stage-ready="true"]) .frame,
+.page:not([data-stage-ready="true"]) .rotateHint,
+.page:not([data-stage-ready="true"]) .bannerRow {
+  visibility: hidden;
+}
+
 /* ── ② 안내 문구 층 ─────────────────────────────────────────────── */
 .guide {
   width: min(1100px, 100%);

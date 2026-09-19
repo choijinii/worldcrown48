@@ -49,6 +49,12 @@ interface StageSideProps {
   onPress: (side: StageSideKey, pointer: StagePointer) => void;
 }
 
+/**
+ * 포스터는 이 화면의 LCP 다 — 글꼴보다 먼저 받게 한다. React 18.3 은 fetchPriority prop 을
+ * 모르므로 소문자 HTML 속성을 그대로 넘긴다(19 로 올리면 fetchPriority="high" 로 바꾼다).
+ */
+const HIGH_PRIORITY = { fetchpriority: "high" } as Record<string, string>;
+
 /** 유튜브가 "그런 썸네일 없음" 대신 돌려주는 회색 자리표시 그림의 폭. */
 const YT_PLACEHOLDER_WIDTH = 120;
 
@@ -128,6 +134,7 @@ export function StageSide({
               className={styles.poster}
               src={posterSrc}
               alt=""
+              {...HIGH_PRIORITY}
               style={posterCrop(media!.orientation, media!.focusY)}
               onError={() => setSourceIndex((i) => i + 1)}
               onLoad={(e) => {
