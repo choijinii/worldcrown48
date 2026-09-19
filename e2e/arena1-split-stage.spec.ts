@@ -131,6 +131,23 @@ const stage = (page: Page) => page.getByTestId("split-stage");
 async function openStage(page: Page, lang = "ko"): Promise<void> {
   await page.goto(`/arena/${TID}?lang=${lang}`);
   await expect(stage(page)).toBeVisible({ timeout: 30_000 });
+  await dismissCookieBanner(page);
+}
+
+/**
+ * 첫 방문 쿠키 배너(하단 고정)는 모바일 가로 390 높이에서 무대 아래쪽을 덮어 탭을 가로챈다.
+ * 이 스펙은 무대를 본다 — 배너 자신의 [필수만] 버튼으로 닫고 시작한다. (흔적 쿠키를 미리
+ * 심는 방법은 쓸 수 없다: 버전 "1.0" 의 점 때문에 앱이 그 쿠키를 읽지 못한다 — 별도 보고.)
+ */
+async function dismissCookieBanner(page: Page): Promise<void> {
+  const reject = page.getByRole("button", { name: /Reject non-essential/ });
+  const shown = await reject
+    .waitFor({ state: "visible", timeout: 8_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!shown) return;
+  await reject.click();
+  await expect(reject).toBeHidden();
 }
 
 async function box(page: Page, selector: string) {
@@ -150,6 +167,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
 
   test.beforeEach(async ({ page }) => {
     await resetVoterProgress();
+
     consoleErrors = [];
     page.on("console", (m) => {
       if (m.type() !== "error") return;

@@ -59,6 +59,15 @@ const HIDE_MENU_IN_LANDSCAPE = ".wc-nav, .module-nav { display: none !important;
 /** 확정 연출 유지 시간 — 토큰 --arena-t-confirm-hold 와 같은 값 (디자인 confirm() 520ms). */
 const CONFIRM_HOLD_MS = 520;
 
+/**
+ * 호버가 되는 기기인가. 터치 기기는 탭 뒤에 배치가 바뀌면(회전 등) 손가락 밑에서 마우스형
+ * pointerleave 를 흘린다 — 그걸 믿으면 arm 이 풀려 "돌려도 그대로"(D-17 ①)가 깨진다
+ * (2026-09-19 실측). 호버가 없는 기기에서는 enter/leave 를 아예 듣지 않는다.
+ */
+function canHover(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.("(hover: hover)").matches === true;
+}
+
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -114,14 +123,12 @@ export function SplitStage({
 
   const armed = armedSide(status);
   const locked = isStageLocked(status) || loading;
-  const onEnter = useCallback(
-    (side: StageSideKey, pointer: StagePointer) => dispatch({ type: "enter", side, pointer }),
-    [],
-  );
-  const onLeave = useCallback(
-    (side: StageSideKey, pointer: StagePointer) => dispatch({ type: "leave", side, pointer }),
-    [],
-  );
+  const onEnter = useCallback((side: StageSideKey, pointer: StagePointer) => {
+    if (canHover()) dispatch({ type: "enter", side, pointer });
+  }, []);
+  const onLeave = useCallback((side: StageSideKey, pointer: StagePointer) => {
+    if (canHover()) dispatch({ type: "leave", side, pointer });
+  }, []);
   const onPress = useCallback(
     (side: StageSideKey, pointer: StagePointer) => {
       if (loading) return;
