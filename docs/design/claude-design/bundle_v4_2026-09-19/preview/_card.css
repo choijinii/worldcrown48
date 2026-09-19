@@ -1,0 +1,156 @@
+/* Shared card chrome for the Design System tab.
+   Each card is a small standalone HTML file. ~700px wide.
+   Default theme: dark. Cards may override with class="card light".
+*/
+
+@import url("../colors_and_type.css");
+@import url("../arena_stage_tokens.css");
+
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--color-bg-deep);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+.card {
+  width: 700px;
+  padding: 24px;
+  box-sizing: border-box;
+  position: relative;
+}
+.card.light {
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+}
+
+/* layout helpers */
+.row { display: flex; align-items: stretch; gap: 12px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.center { align-items: center; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+
+/* labels — the mono "kicker" style used everywhere in the system */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-gold);
+  margin: 0 0 12px 0;
+}
+.kicker--mut { color: var(--color-text-muted); }
+
+/* swatch — 96px fill + meta strip */
+.swatch {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-border);
+  overflow: hidden;
+  background: var(--color-bg-default);
+}
+.swatch__fill { height: 84px; position: relative; }
+.swatch__tag {
+  position: absolute; top: 8px; left: 10px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 3px;
+  background: rgba(0,0,0,0.4); color: #fff;
+}
+.card.light .swatch__tag { background: rgba(255,255,255,0.7); color: var(--color-text-light); }
+.swatch__body { padding: 10px 12px 12px; }
+.swatch__name {
+  font-size: 12px; font-weight: 600;
+  margin-bottom: 1px;
+  color: var(--color-text);
+}
+.card.light .swatch__name { color: var(--color-text-light); }
+.swatch__meta {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--color-text-sub);
+  letter-spacing: 0.04em;
+}
+.card.light .swatch__meta { color: var(--color-text-muted-light); }
+
+/* panel — outlined "stage" for component examples */
+.panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-border);
+  padding: 18px;
+  background: var(--color-bg-default);
+  position: relative;
+}
+.panel__label {
+  position: absolute;
+  top: -8px;
+  left: 16px;
+  background: var(--color-bg-deep);
+  padding: 1px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+/* status pill — used in chips card */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: var(--radius-chip);
+  font-family: var(--font-mono);
+  font-size: 10.5px; letter-spacing: 0.14em;
+  font-weight: 600; text-transform: uppercase;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-default);
+  color: var(--color-text-sub);
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-sub); }
+.pill.is-gold { color: var(--color-gold); border-color: var(--color-border-gold); background: var(--color-gold-subtle); }
+.pill.is-gold .dot { background: var(--color-gold); }
+.pill.is-warn { color: var(--color-crimson); border-color: rgba(215,6,58,0.4); background: rgba(215,6,58,0.08); }
+.pill.is-warn .dot { background: var(--color-crimson); }
+.pill.is-ok   { color: var(--color-turquoise); border-color: rgba(0,163,183,0.4); background: rgba(0,163,183,0.08); }
+.pill.is-ok .dot { background: var(--color-turquoise); }
+.pill.is-aura { color: var(--color-aura); border-color: rgba(238,218,125,0.4); }
+
+/* AI-report */
+.ai-byline {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  color: var(--color-gold);
+  letter-spacing: 0.08em;
+}
+
+/* small DO/DONT rule cards */
+.rule {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-border);
+  padding: 14px 16px;
+  background: var(--color-bg-default);
+  position: relative;
+}
+.rule.is-do   { border-color: rgba(0, 163, 183, 0.35); }
+.rule.is-dont { border-color: rgba(215, 6, 58, 0.35); }
+.rule__flag {
+  position: absolute; top: 10px; right: 14px;
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.22em; font-weight: 700;
+}
+.rule.is-do   .rule__flag { color: var(--color-turquoise); }
+.rule.is-dont .rule__flag { color: var(--color-crimson); }
+.rule h4 { margin: 0 0 4px; font-size: 13.5px; font-weight: 600; padding-right: 48px; }
+.rule p  { margin: 0; font-size: 12px; line-height: 1.45; color: var(--color-text-sub); }
+.rule code {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--color-text);
+}

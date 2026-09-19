@@ -18,13 +18,14 @@ ul{padding-left:18px}
 hr{border:0;border-top:1px solid var(--line);margin:24px 0}
 </style>
 <div class="wrap"><h1>🎨 WorldCrown48 (월클48) — UI 디자인 시스템 v4</h1>
-<h1>Twilight Stadium Edition — Arena Match Stage 편입 | v4.1 2026-09-19 | 작성 티오 · 승인 대표</h1>
+<h1>Twilight Stadium Edition — Arena Match Stage 편입 | v4.2 2026-09-19 | 작성 티오 · 승인 대표</h1>
 <h1>기반: v2.4 토큰 100% 계승 + 아레나 매치 무대(ARENA-1)·메뉴바·☰ 서랍·"선택 이어가기" 신규 편입</h1>
 <h1>실측 원본: <code>docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html</code> (대표 수정본, 2026-09-19 04:18 저장) — 이 문서의 모든 신규 수치는 이 파일에서 뽑았다.</h1>
 <blockquote>
 <p><strong>이 파일의 지위</strong> — 디자인 토큰·컴포넌트 규격의 단일 진실 공급원. 단, <strong>결정의 뜻·이유·기각안은 <code>outputs/DECISIONS_결정원장_v1.0_2026-09-11.md</code>(원장)가 정본</strong>이며, 이 문서와 원장이 다르면 원장이 이긴다. 이 문서는 원장의 결정을 "그리는 사람·코드가 쓰는 값"으로 옮긴 것이다.</p>
 <p><strong>v4에서 v2.4를 버리지 않는다.</strong> v2.4의 토큰·금지 규칙은 그대로 유효하고, v4는 그 위에 아레나 무대 층을 얹는다. v2.4에만 있는 랜딩 연출 절(§4-C·§10-A·§10-B 등)은 v4에 다시 쓰지 않고 v2.4를 참조한다.</p>
-<p><strong>정본 규칙 (원장 D-20 · 2026-09-19)</strong> — 색·크기·부품의 <strong>정본은 클로드 디자인 "WorldCrown48 Design System"</strong> 이다. 저장소의 <code>colors_and_type.css</code>·<code>kit.css</code>는 그 <strong>내보낸 사본</strong>(손편집 금지). 이 문서는 해설서이며, 아래 §2-B 표는 <strong>2026-09-19 실측 스냅샷</strong>이다 — 내보낸 css가 들어오면 css가 이기고, 어긋나면 이 표를 고친다. <code>arena_stage_tokens.css</code>는 내보내기 전까지의 <strong>임시 파일</strong>이다.</p>
+<p><strong>정본 규칙 (원장 D-20 · 2026-09-19)</strong> — 색·크기·부품의 <strong>정본은 클로드 디자인 "WorldCrown48 Design System"</strong> 이다. 저장소의 <code>colors_and_type.css</code>·<code>kit.css</code>는 그 <strong>내보낸 사본</strong>(손편집 금지). 이 문서는 해설서이며, 아래 §2-B 표는 <strong>2026-09-19 실측 스냅샷</strong>이다 — 내보낸 css가 들어오면 css가 이기고, 어긋나면 이 표를 고친다. <code>arena_stage_tokens.css</code>는 2026-09-19 내보내기에 <strong>정본 파일로 포함</strong>되었으므로 이제 임시가 아니다(내보낸 사본).</p>
+<p><strong>v4.2 동기화 기록 (2026-09-19)</strong> — 클로드 디자인 내보내기(<code>docs/design/claude-design/bundle_v4_2026-09-19/</code>)로 <code>colors_and_type.css</code>·<code>arena_stage_tokens.css</code>를 덮어썼다. <strong>발견</strong>: 저장소에 있던 옛 <code>colors_and_type.css</code>(2026-05-25판)는 정본과 이미 갈라져 있었다 — 모서리 반경 5px(옛 파일 8~32px), <code>--color-gold-bright <span class="sw" style="background:#FBB03B"></span>#FBB03B</code>(옛 <span class="sw" style="background:#FFE25C"></span>#FFE25C), 간격 토큰 <code>--space-N</code>(옛 <code>--spacing-*</code>), 글자 크기 <code>--text-*</code>·줄높이 <code>--lh-*</code> 45개는 옛 파일에만 있었고 코드(<code>app/globals.css</code>)는 <strong>정본 쪽</strong>을 쓰고 있었다. 옛 파일은 <code>docs/design/reference/colors_and_type_2026-05-25_stale.css</code>로 보관. §2-A 표의 13개 색 값은 정본과 같음을 확인.</p>
 <p><strong>코드 반영 파일</strong> — <code>docs/design/arena_stage_tokens.css</code> (이 문서 §2-B·§3·§4를 CSS 변수로 옮긴 것). Claude Code는 이 CSS 파일을 <code>app/globals.css</code> 옆에 넣고 <code>var(--…)</code>로만 쓴다(raw hex 금지).</p>
 </blockquote>
 <hr />
@@ -566,6 +567,7 @@ hr{border:0;border-top:1px solid var(--line);margin:24px 0}
 </ol>
 <h2>변경 이력</h2>
 <ul>
+<li><strong>v4.2 (2026-09-19)</strong> — 클로드 디자인 내보내기로 css 사본 동기화, 옛 colors_and_type.css 보관, arena_stage_tokens.css = 내보낸 사본.</li>
 <li><strong>v4.1 (2026-09-19)</strong> — 대표 수정본(<code>Arena Match Stage.dc (1).html</code>)에서 실측 값 전부 채움. 바탕색 3중 불일치를 수정본 기준으로 해소(§2-C). <code>arena_stage_tokens.css</code> 동봉.</li>
 <li>v4.0 (2026-09-19, 초안) — v2.4 계승 + 아레나 무대·메뉴바·서랍·이어가기 편입.</li>
 </ul></div>

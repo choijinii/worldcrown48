@@ -1,0 +1,84 @@
+<!-- @dsCard group="Components" viewport="700x900" name="Nav bar · ☰ Drawer · 선택 이어가기" subtitle="메뉴바 1320×64 · 서랍 320 · 조건부 알약 (NAV-1)" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.navscale{width:652px;height:32px;overflow:hidden;margin-bottom:2px}
+.nav{width:1320px;height:var(--arena-nav-h);box-sizing:border-box;padding:0 10px 0 14px;background:var(--arena-nav-bg);border:var(--arena-nav-border);border-radius:var(--arena-nav-radius);display:flex;align-items:center;gap:26px;transform:scale(.4939);transform-origin:top left}
+.burger{width:44px;height:44px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:none}
+.burger i{width:18px;height:1.75px;background:var(--arena-icon);display:block}
+.nlogo{font-size:15px;font-weight:800;color:var(--color-text);letter-spacing:-.01em}
+.nlink{font-size:14px;color:var(--arena-nav-text)}
+.nlink.is-on{color:var(--arena-nav-text-active)}
+.nchip{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;padding:7px 14px;border-radius:999px;border:1px solid var(--arena-lang-chip-border);color:var(--arena-nav-text)}
+.navatar{width:32px;height:32px;border-radius:50%;background:var(--arena-avatar-bg);border:var(--arena-avatar-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--arena-icon)}
+.drawer{width:var(--arena-drawer-w);background:var(--arena-drawer-bg);border-right:var(--arena-drawer-border);box-shadow:var(--arena-drawer-shadow);border-radius:2px;overflow:hidden}
+.dhead{height:64px;display:flex;align-items:center;padding:0 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.dclose{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--arena-icon)}
+.drow{height:var(--arena-drawer-row-h);padding-left:16px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--arena-drawer-row)}
+.drow.is-on{font-weight:700;color:var(--arena-drawer-row-active);border-left:var(--arena-drawer-row-mark);padding-left:14px}
+.darrow{margin-left:auto;margin-right:14px;font-size:10px;color:var(--arena-drawer-arrow)}
+.dchild{height:var(--arena-drawer-child-h);padding-left:34px;display:flex;align-items:center;font-size:13px;font-weight:500;color:var(--arena-drawer-child)}
+.dsep{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
+.dchip{font-family:var(--font-mono);font-size:11px;padding:5px 9px;border-radius:999px;border:var(--arena-drawer-chip-border);color:var(--arena-drawer-chip-off)}
+.dchip.is-on{background:var(--arena-drawer-chip-on-bg);color:var(--arena-drawer-chip-on)}
+.pillc{height:var(--arena-continue-h);padding:0 16px;border-radius:999px;background:var(--arena-continue-bg);color:var(--arena-continue-text);font-size:13px;font-weight:700;display:inline-flex;align-items:center}
+.spec{width:100%;border-collapse:collapse}
+.spec td{padding:7px 10px;border-bottom:1px solid var(--color-border);font-size:11.5px;color:var(--color-text-sub);vertical-align:top}
+.spec tr:last-child td{border-bottom:0}
+.spec td:first-child{font-family:var(--font-mono);font-size:10.5px;color:var(--color-gold);white-space:nowrap;width:158px}
+</style></head><body><div class="card">
+
+<div class="kicker">메뉴바 · left 60 · top 20 · 1320×64 (0.49배 축소) — ☰ · 로고 · 4메뉴 · 언어 · 아바타</div>
+<div class="navscale"><div class="nav">
+  <span class="burger"><i></i><i></i><i></i></span>
+  <span class="nlogo">WorldCrown48</span>
+  <span class="nlink">The Pitch</span>
+  <span class="nlink is-on">The Arena</span>
+  <span class="nlink">Newsroom</span>
+  <span class="nlink">Locker Room</span>
+  <span style="margin-left:auto;display:flex;align-items:center;gap:26px">
+    <span class="nchip">KO</span>
+    <span class="navatar">S</span>
+  </span>
+</div></div>
+<div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-muted);letter-spacing:.06em">The Lab은 관리자만 · "Vote Now" 삭제 (D-19)</div>
+
+<div class="kicker" style="margin-top:20px">☰ 서랍 320 · 실제 크기 &nbsp;|&nbsp; 선택 이어가기 알약</div>
+<div style="display:flex;gap:20px;align-items:flex-start">
+  <div class="drawer">
+    <div class="dhead"><span class="dclose">×</span></div>
+    <div class="drow">The Pitch</div>
+    <div class="drow is-on">The Arena <span class="darrow">▾</span></div>
+    <div class="dchild">진행 중인 매치</div>
+    <div class="dchild">지난 결과</div>
+    <div class="drow">Newsroom <span class="darrow">▸</span></div>
+    <div class="drow">Locker Room</div>
+    <div class="drow">Policy Hub <span class="darrow">▸</span></div>
+    <div class="dsep"></div>
+    <div style="display:flex;gap:6px;padding:4px 16px 10px">
+      <span class="dchip is-on">KO</span><span class="dchip">EN</span><span class="dchip">ES</span>
+    </div>
+    <div class="drow" style="height:40px;font-size:13px">로그아웃</div>
+  </div>
+  <div style="flex:1;min-width:0">
+    <div style="background:var(--arena-page-bg-mobile);border:1px solid var(--color-border);border-radius:var(--radius-border);padding:16px;display:flex;justify-content:flex-end">
+      <span class="pillc">선택 이어가기</span>
+    </div>
+    <table class="spec" style="margin-top:10px"><tbody>
+    <tr><td>--arena-continue-h</td><td>30px · 패딩 0 16 · 999 · Inter 13px 700 (모바일 28px · 0 14 · 12px)</td></tr>
+    <tr><td>자리</td><td>데스크톱 right 70 · top 98 / 모바일 right 12 · top 64</td></tr>
+    <tr><td>조건</td><td><code>roundProgress</code> 있을 때만 · 그 대회 매치 화면에서는 숨김</td></tr>
+    <tr><td>3언어</td><td>ko 선택 이어가기 · en Continue your picks · es Continuar tus elecciones</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<div class="kicker" style="margin-top:20px">서랍 규격 · §4-B</div>
+<table class="spec"><tbody>
+<tr><td>--arena-drawer-w</td><td>320 · 화면 높이 전부 (모바일 calc(100vw − 56px))</td></tr>
+<tr><td>--arena-drawer-row-h</td><td>1단계 44 · 왼쪽 패딩 16 · 15px 500 <span style="color:var(--arena-drawer-row)">#D8D9E4</span> / 현재 700 흰 + 왼쪽 선 2px 흰 .55</td></tr>
+<tr><td>--arena-drawer-child-h</td><td>하위 34 · 왼쪽 패딩 34 · 13px 500 <span style="color:var(--arena-drawer-child)">#B1B5C4</span></td></tr>
+<tr><td>--arena-drawer-arrow</td><td>▸ 10px <span style="color:var(--arena-drawer-arrow)">#8E90A6</span> · 열리면 90° 회전 160ms</td></tr>
+<tr><td>머리 64</td><td>× 닫기 44×44 (19px #EAEAF2) · 아래 구분선 흰 .08</td></tr>
+<tr><td>항목</td><td>The Pitch / The Arena ▸ / Newsroom ▸ / Locker Room / Policy Hub ▸ / ─ / 언어 / 로그인·로그아웃 — Launch Pad 없음</td></tr>
+</tbody></table>
+</div></body></html>

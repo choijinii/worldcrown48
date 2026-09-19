@@ -254,7 +254,7 @@ AI 에이전트가 혼용하면 즉시 지적하고 공식 용어로 교정하�
 | 서비스명 | 월크48 | WorldCrown48 | 공식 문서, UI |
 | 슬로건 | 팬의 열정으로 왕관을 | Crown the World's Favorite | 마케팅 |
 | 대진 생성 CTA | 대진 만들기 | Create Tournament | 버튼 텍스트 |
-| 투표 CTA | 지금 투표하기 | Vote Now | 버튼 텍스트 |
+| 참가 CTA | 참가하기 | Pick Now (es: Elige ahora) | 버튼 텍스트 · ★ 2026-09-19 대표 확정(원장 D-23) — 옛 "지금 투표하기 / Vote Now" 폐기 |
 | 우승 선언 | 왕관을 차지했다! | The Crown Goes To... | 결과 화면 |
 | 공유 유도 | 내 왕관 공유하기 | Share My Crown | Crown Card |
 | 라운드 안내 | N강 진행 중 | Round of N — In Progress | 상태 표시 |

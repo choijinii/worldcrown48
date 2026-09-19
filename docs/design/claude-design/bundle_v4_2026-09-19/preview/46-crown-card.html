@@ -1,0 +1,64 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.share-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:stretch; max-width:360px; margin:14px auto 0; }
+.share-link {
+  flex:1 1 200px; min-width:0; display:flex; align-items:center; gap:8px;
+  background:var(--color-bg-soft); border:1px solid var(--color-border);
+  border-radius:var(--radius-border); padding:0 6px 0 12px; height:40px;
+}
+.share-link svg { flex:none; width:13px; height:13px; color:var(--color-gold); }
+.share-link__url {
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:var(--font-mono); font-size:11px; color:var(--color-text-sub); letter-spacing:0.02em;
+}
+.share-link__copy {
+  flex:none; border:0; cursor:pointer; background:var(--color-gold-subtle); color:var(--color-gold);
+  font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:0.1em;
+  padding:0 12px; height:28px; border-radius:var(--radius-border); text-transform:uppercase;
+}
+.share-btn {
+  flex:none; display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  background:var(--color-gold); color:var(--color-bg-default); border:0;
+  border-radius:var(--radius-border); height:40px; padding:0 18px;
+  font-family:var(--font-sans); font-weight:700; font-size:13px; letter-spacing:0.01em;
+}
+.share-btn svg { width:14px; height:14px; }
+</style></head><body><div class="card">
+<div class="kicker">Crown Card · Instagram Story · 1080 × 1920 (9:16 portrait) · full-bleed photo · framed in Crown Gold</div>
+<div style="aspect-ratio: 1080/1920; height:470px; margin:0 auto; background:var(--color-bg-deep); border:2px solid var(--color-gold); border-radius:6px; position:relative; overflow:hidden; box-shadow: var(--shadow-gold);">
+  <!-- full-bleed portrait -->
+  <div style="position:absolute; inset:0; background: linear-gradient(180deg, rgba(252,208,6,0.30), rgba(36,23,84,0.78)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-style:italic; font-weight:900; font-size:104px; color:var(--color-gold); padding-bottom:22%;">MN</div>
+
+  <!-- top crown logo + eyebrow -->
+  <div style="position:absolute; top:5%; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:10px;">
+    <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+      <div style="position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(252,208,6,0.55) 0%, rgba(252,208,6,0.22) 38%, transparent 70%); filter:blur(2px);"></div>
+      <img src="../assets/wc48-crown-filled.svg" style="position:relative; width:66px; height:66px; filter: drop-shadow(0 0 14px rgba(252,208,6,0.9)) drop-shadow(0 0 28px rgba(252,208,6,0.5)) drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+    </div>
+    <div style="font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.32em; color:var(--color-gold); text-shadow:0 1px 6px rgba(0,0,0,0.6);">WORLDCROWN48 · CHAMPION</div>
+  </div>
+
+  <!-- bottom scrim + text -->
+  <div style="position:absolute; left:0; right:0; bottom:0; padding:26% 7% 7%; text-align:center; background: linear-gradient(180deg, transparent, rgba(0,0,58,0.6) 42%, rgba(0,0,58,0.94));">
+    <div style="font-family:var(--font-sans); font-weight:800; font-size:40px; color:var(--color-gold); line-height:1.05; letter-spacing:-0.02em; text-wrap:balance; text-shadow:0 2px 14px rgba(0,0,0,0.55);">미나</div>
+    <div style="font-family:var(--font-sans); font-weight:600; font-size:12px; color:#F2F2F5; margin-top:4%;">최고의 퍼포먼스 무대 · 2026</div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-mono); font-size:8px; color:var(--color-gold); letter-spacing:0.14em; margin-top:7%;">
+      <span style="width:18px; height:1px; background:var(--color-gold-glow);"></span>
+      WorldCrown48 · 2026-05-26 KST
+      <span style="width:18px; height:1px; background:var(--color-gold-glow);"></span>
+    </div>
+  </div>
+</div>
+<div class="share-bar">
+  <div class="share-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+    <span class="share-link__url">worldcrown48.com/c/son-heung-min</span>
+    <button class="share-link__copy">Copy</button>
+  </div>
+  <button class="share-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"></line><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"></line></svg>
+    Share
+  </button>
+</div>
+</div></body></html>

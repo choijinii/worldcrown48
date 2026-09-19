@@ -1,0 +1,97 @@
+/* ============================================================
+   WorldCrown48 · Arena Match Stage tokens — v4.1 (2026-09-19)
+   출처: docs/design/WC48_DESIGN_SYSTEM_v4.md §2-B·§2-C·§3·§4
+   실측 원본: docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html (대표 수정본)
+   규칙: 아레나 범위(.arena-stage 이하)에서만 쓴다. 다른 도메인은
+         colors_and_type.css 토큰 그대로. raw hex는 이 파일에만.
+   ============================================================ */
+:root {
+  /* 바탕 */
+  --arena-page-bg: linear-gradient(0deg, #0C0F18 0%, #1B1931 100%);
+  --arena-page-bg-mobile: #0F0F1E;
+  --arena-ink: #0B1020;                       /* rgba(11,16,32,α) 기준색 */
+
+  /* 메뉴바 */
+  --arena-nav-h: 64px;
+  --arena-nav-bg: linear-gradient(90deg, #0F0F1D, #171740);
+  --arena-nav-bg-mobile: linear-gradient(90deg, #171740, #16163C);
+  --arena-nav-border: 1px solid rgba(255,255,255,.08);
+  --arena-nav-radius: 2px;
+  --arena-nav-text: #B1B5C4;
+  --arena-nav-text-active: #FFFFFF;
+  --arena-icon: #EAEAF2;
+  --arena-lang-chip-border: rgba(255,255,255,.22);
+  --arena-avatar-bg: linear-gradient(180deg, #362261, #241754);
+  --arena-avatar-border: 1px solid rgba(255,255,255,.22);
+
+  /* 선택 이어가기 알약 */
+  --arena-continue-bg: #FCD006;
+  --arena-continue-text: #241754;
+  --arena-continue-h: 30px;                   /* 모바일 28px */
+
+  /* 무대 프레임 · 칸 */
+  --arena-frame-w: 1320px;
+  --arena-frame-h: 680px;
+  --arena-frame-pad: 20px;
+  --arena-frame-bg: #07070D;
+  --arena-frame-border: 1px solid rgba(252,208,6,.16);
+  --arena-cell: 640px;
+  --arena-cell-bg: #241754;
+  --arena-cell-border: 1px solid rgba(255,255,255,.10);
+  --arena-cell-confirm-border: 2px solid #FCD006;
+  --arena-cell-confirm-shadow: 0 0 0 1px rgba(252,208,6,.55), 0 26px 64px rgba(252,208,6,.26);
+  --arena-cell-shade: linear-gradient(180deg, rgba(11,16,32,.42) 0%, rgba(11,16,32,0) 34%, rgba(11,16,32,0) 52%, rgba(11,16,32,.72) 100%);
+  --arena-cell-glow: radial-gradient(circle at 50% 46%, rgba(252,208,6,.30) 0%, rgba(252,208,6,0) 68%);
+
+  /* 띠(오버랩) */
+  --arena-band-inset: 24px;                   /* 모바일 12px */
+  --arena-band-pad: 12px 16px;                /* 모바일 9px 12px */
+  --arena-band-left-bg: rgba(0,163,183,.22);
+  --arena-band-left-border: 1px solid rgba(0,163,183,.65);
+  --arena-band-right-bg: rgba(215,6,58,.22);
+  --arena-band-right-border: 1px solid rgba(215,6,58,.65);
+  --arena-band-blur: blur(8px);
+  --arena-band-name-size: 24px;               /* 700, -0.01em */
+  --arena-band-meta-size: 11px;               /* JetBrains Mono 600 .14em, #EAEAF2 */
+  --arena-band-desc: #DDDDEA;                 /* 13px */
+
+  /* VS */
+  --arena-vs-color: #FCD006;
+  --arena-vs-size: 136px;                     /* 모바일 58px */
+  --arena-vs-shadow: 0 8px 40px rgba(12,13,16,.9);
+  --arena-vs-shadow-mobile: 0 6px 28px rgba(11,16,32,.9);
+
+  /* 조작 */
+  --arena-hover-scale: 1.2;
+  --arena-poster-zoom: 1.06;
+  --arena-side-desat: 50%;
+  --arena-ease-in: cubic-bezier(.2,.9,.3,1.15);
+  --arena-ease-out: cubic-bezier(.4,0,.2,1);
+  --arena-t-in-transform: 300ms;
+  --arena-t-in-filter: 280ms;
+  --arena-t-out: 200ms;
+  --arena-t-confirm-hold: 520ms;
+
+  /* 배너 자리 */
+  --arena-banner-w: 1320px;
+  --arena-banner-h: 140px;
+  --arena-banner-border: 1px dashed rgba(255,255,255,.16);
+  --arena-banner-bg: rgba(36,23,84,.4);
+
+  /* ☰ 서랍 */
+  --arena-drawer-w: 320px;                    /* 모바일 calc(100vw - 56px) */
+  --arena-drawer-bg: #0E0944;
+  --arena-drawer-border: 1px solid rgba(255,255,255,.10);
+  --arena-drawer-shadow: 24px 0 64px rgba(0,0,0,.5);
+  --arena-drawer-row-h: 44px;                 /* 15px, 500 */
+  --arena-drawer-row: #D8D9E4;
+  --arena-drawer-row-active: #FFFFFF;         /* 700 + 왼쪽 선 */
+  --arena-drawer-row-mark: 2px solid rgba(255,255,255,.55);
+  --arena-drawer-child-h: 34px;               /* 13px, padL 34 */
+  --arena-drawer-child: #B1B5C4;
+  --arena-drawer-arrow: #8E90A6;
+  --arena-drawer-chip-on-bg: rgba(255,255,255,.16);
+  --arena-drawer-chip-on: #FFFFFF;
+  --arena-drawer-chip-off: #8E90A6;
+  --arena-drawer-chip-border: 1px solid rgba(255,255,255,.14);
+}

@@ -1,0 +1,58 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.gnb {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 3px 8px;
+  background: var(--color-bg-elevated);
+  border: 1px solid rgba(252,208,6,0.16);
+  border-radius: var(--radius-border);
+  box-shadow: var(--shadow-gnb);
+}
+.gnb--compact { padding: 2px 6px; gap: 6px; }
+.gnb__brand { display: flex; align-items: center; gap: 7px; padding: 2px 9px; }
+.gnb__brand img { width: 16px; height: 16px; }
+.gnb__wm { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--color-gold); font-weight: 700; }
+.gnb__sep { width: 1px; height: 14px; background: rgba(255,255,255,0.10); }
+.gnb__link { padding: 3px 11px; border-radius: var(--radius-border); font-size: 13px; font-weight: 500; color: var(--color-text-sub); cursor: pointer; }
+.gnb__link.is-active { color: var(--color-gold); background: var(--color-gold-subtle); }
+.gnb__cta { padding: 4px 13px; background: var(--color-gold); color: var(--color-bg-default); border: 0; border-radius: var(--radius-border); font-size: 12px; font-weight: 700; letter-spacing: 0.02em; cursor: pointer; }
+.v4dep{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(215,6,58,.45);background:rgba(215,6,58,.10);border-radius:var(--radius-border);padding:10px 13px;margin-bottom:16px}
+.v4dep b{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--color-crimson);white-space:nowrap;padding-top:1px}
+.v4dep span{font-size:11.5px;color:var(--color-text-sub);line-height:1.55}
+.v4dep a{color:var(--color-gold);font-weight:600;text-decoration:none}
+</style></head><body><div class="card">
+<div class="v4dep"><b>⚠ v4에서 폐기</b><span>대체: <a href="49-nav-drawer.html">49-nav-drawer</a> — 이 GNB는 v4에서 폐기되었습니다. 메뉴바 1320×64 · ☰ 서랍 320 · 선택 이어가기 알약을 쓰세요.</span></div>
+
+<div class="kicker">Floating Island GNB · Twilight Indigo · rectangular · never flush against the edge</div>
+<div class="panel" style="padding:18px;">
+  <span class="panel__label">Default · top of page</span>
+  <div style="display:flex; justify-content:center; padding:12px 0 4px;">
+    <nav class="gnb">
+      <a class="gnb__brand"><img src="../assets/wc48-crown-filled.svg"><span class="gnb__wm">WorldCrown48</span></a>
+      <div class="gnb__sep"></div>
+      <a class="gnb__link is-active">Pitch</a>
+      <a class="gnb__link">Trending</a>
+      <a class="gnb__link">Newsroom</a>
+      <a class="gnb__link">Lab</a>
+      <div class="gnb__sep"></div>
+      <button class="gnb__cta">Pick Now</button>
+    </nav>
+  </div>
+</div>
+<div style="height:10px;"></div>
+<div class="panel" style="padding:18px;">
+  <span class="panel__label">Compact · after scroll</span>
+  <div style="display:flex; justify-content:center; padding:12px 0 4px;">
+    <nav class="gnb gnb--compact">
+      <a class="gnb__brand" style="padding: 4px 4px 4px 8px;"><img src="../assets/wc48-crown-filled.svg"></a>
+      <div class="gnb__sep"></div>
+      <a class="gnb__link is-active" style="padding: 4px 8px;">Pitch</a>
+      <a class="gnb__link" style="padding: 4px 8px;">Trending</a>
+      <a class="gnb__link" style="padding: 4px 8px;">Newsroom</a>
+      <a class="gnb__link" style="padding: 4px 8px;">Lab</a>
+      <button class="gnb__cta" style="padding: 6px 12px;">Vote</button>
+    </nav>
+  </div>
+</div>
+</div></body></html>

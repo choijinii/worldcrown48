@@ -1,0 +1,12 @@
+<!-- @dsCard group="Spacing" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head><body><div class="card">
+<div class="kicker">Noise overlay · film grain · kills the AI-flat look</div>
+<div style="position:relative; height:200px; border:1px solid var(--color-border); border-radius:5px; background:var(--color-bg-deep); overflow:hidden;">
+  <div style="position:absolute; inset:0; opacity:0.18; mix-blend-mode:overlay; background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>&quot;);"></div>
+  <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-style:italic; font-weight:900; font-size:52px; color:var(--color-gold); letter-spacing:-0.025em;">Twilight, with grain.</div>
+  <div style="position:absolute; top:10px; left:14px; font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.22em; color:var(--color-text-muted);">NOISE · 0.05 · MIX-BLEND OVERLAY</div>
+</div>
+<div style="margin-top:12px; font-size:12px; color:var(--color-text-sub); line-height:1.5;">
+  <code style="font-family:var(--font-mono); background:var(--color-bg-soft); padding:1px 6px; border-radius:3px; font-size:11px; color:var(--color-gold);">.wc-noise</code> is mandatory on every dark surface. The SVG <code style="font-family:var(--font-mono); background:var(--color-bg-soft); padding:1px 6px; border-radius:3px; font-size:11px;">feTurbulence</code> filter runs once and stitches — no PNG, no library.
+</div>
+</div></body></html>

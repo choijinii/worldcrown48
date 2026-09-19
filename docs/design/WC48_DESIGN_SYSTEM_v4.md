@@ -1,6 +1,6 @@
 # 🎨 WorldCrown48 (월클48) — UI 디자인 시스템 v4
 # WC48_DESIGN_SYSTEM_v4.md
-# Twilight Stadium Edition — Arena Match Stage 편입 | v4.1 2026-09-19 | 작성 티오 · 승인 대표
+# Twilight Stadium Edition — Arena Match Stage 편입 | v4.2 2026-09-19 | 작성 티오 · 승인 대표
 # 기반: v2.4 토큰 100% 계승 + 아레나 매치 무대(ARENA-1)·메뉴바·☰ 서랍·"선택 이어가기" 신규 편입
 # 실측 원본: `docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html` (대표 수정본, 2026-09-19 04:18 저장) — 이 문서의 모든 신규 수치는 이 파일에서 뽑았다.
 
@@ -8,7 +8,9 @@
 >
 > **v4에서 v2.4를 버리지 않는다.** v2.4의 토큰·금지 규칙은 그대로 유효하고, v4는 그 위에 아레나 무대 층을 얹는다. v2.4에만 있는 랜딩 연출 절(§4-C·§10-A·§10-B 등)은 v4에 다시 쓰지 않고 v2.4를 참조한다.
 >
-> **정본 규칙 (원장 D-20 · 2026-09-19)** — 색·크기·부품의 **정본은 클로드 디자인 "WorldCrown48 Design System"** 이다. 저장소의 `colors_and_type.css`·`kit.css`는 그 **내보낸 사본**(손편집 금지). 이 문서는 해설서이며, 아래 §2-B 표는 **2026-09-19 실측 스냅샷**이다 — 내보낸 css가 들어오면 css가 이기고, 어긋나면 이 표를 고친다. `arena_stage_tokens.css`는 내보내기 전까지의 **임시 파일**이다.
+> **정본 규칙 (원장 D-20 · 2026-09-19)** — 색·크기·부품의 **정본은 클로드 디자인 "WorldCrown48 Design System"** 이다. 저장소의 `colors_and_type.css`·`kit.css`는 그 **내보낸 사본**(손편집 금지). 이 문서는 해설서이며, 아래 §2-B 표는 **2026-09-19 실측 스냅샷**이다 — 내보낸 css가 들어오면 css가 이기고, 어긋나면 이 표를 고친다. `arena_stage_tokens.css`는 2026-09-19 내보내기에 **정본 파일로 포함**되었으므로 이제 임시가 아니다(내보낸 사본).
+>
+> **v4.2 동기화 기록 (2026-09-19)** — 클로드 디자인 내보내기(`docs/design/claude-design/bundle_v4_2026-09-19/`)로 `colors_and_type.css`·`arena_stage_tokens.css`를 덮어썼다. **발견**: 저장소에 있던 옛 `colors_and_type.css`(2026-05-25판)는 정본과 이미 갈라져 있었다 — 모서리 반경 5px(옛 파일 8~32px), `--color-gold-bright #FBB03B`(옛 #FFE25C), 간격 토큰 `--space-N`(옛 `--spacing-*`), 글자 크기 `--text-*`·줄높이 `--lh-*` 45개는 옛 파일에만 있었고 코드(`app/globals.css`)는 **정본 쪽**을 쓰고 있었다. 옛 파일은 `docs/design/reference/colors_and_type_2026-05-25_stale.css`로 보관. §2-A 표의 13개 색 값은 정본과 같음을 확인.
 >
 > **코드 반영 파일** — `docs/design/arena_stage_tokens.css` (이 문서 §2-B·§3·§4를 CSS 변수로 옮긴 것). Claude Code는 이 CSS 파일을 `app/globals.css` 옆에 넣고 `var(--…)`로만 쓴다(raw hex 금지).
 
@@ -166,5 +168,6 @@
 3. 내보낸 css를 `docs/design/`에 덮어쓴다 → `arena_stage_tokens.css` 삭제 → 티오가 이 문서 §2-B를 css 기준으로 대조·정정(v4.2).
 
 ## 변경 이력
+- **v4.2 (2026-09-19)** — 클로드 디자인 내보내기로 css 사본 동기화, 옛 colors_and_type.css 보관, arena_stage_tokens.css = 내보낸 사본.
 - **v4.1 (2026-09-19)** — 대표 수정본(`Arena Match Stage.dc (1).html`)에서 실측 값 전부 채움. 바탕색 3중 불일치를 수정본 기준으로 해소(§2-C). `arena_stage_tokens.css` 동봉.
 - v4.0 (2026-09-19, 초안) — v2.4 계승 + 아레나 무대·메뉴바·서랍·이어가기 편입.

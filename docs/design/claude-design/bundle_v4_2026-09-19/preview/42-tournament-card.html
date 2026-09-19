@@ -1,0 +1,125 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.tcard {
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--color-bg-default);
+  display: flex; flex-direction: column;
+  transition: all 220ms ease;
+}
+.tcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-gold); border-color: var(--color-border-gold); }
+.tcard__cover {
+  height: 130px; position: relative; overflow: hidden;
+}
+.tcard__cover-vs {
+  position: absolute; right: 14px; bottom: 4px;
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 84px; color: rgba(255,255,255,0.06); line-height: 0.8;
+}
+.tcard__chips { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+.tcard__cat {
+  padding: 3px 8px; background: rgba(0,0,0,0.4);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-gold);
+  border-radius: 5px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.22em; font-weight: 600;
+}
+.tcard__status {
+  padding: 3px 8px; background: rgba(0,0,0,0.55);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.16em; font-weight: 600; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--color-text-sub);
+}
+.tcard__status.is-active { color: var(--color-gold); border-color: var(--color-border-gold); background: var(--color-gold-subtle); }
+.tcard__status.is-active::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--color-gold); display:inline-block; }
+.tcard__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.tcard__title {
+  font-size: 16px; font-weight: 700;
+  line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text);
+}
+.tcard__meta {
+  display: flex; gap: 8px; align-items: center;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--color-text-sub); letter-spacing: 0.02em;
+}
+.tcard__meta .sep { opacity: 0.3; }
+.tcard__foot {
+  display: flex; align-items: center;
+  margin-top: 8px;
+}
+.tcard__enter {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 38px; border: 1px solid var(--color-border-gold); border-radius: 5px;
+  background: var(--color-gold-subtle); color: var(--color-gold);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; font-weight: 700;
+  text-transform: uppercase; cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+.tcard__enter svg { width: 14px; height: 14px; transition: transform 180ms ease; }
+.tcard:hover .tcard__enter { background: var(--color-gold); color: var(--color-bg-default); box-shadow: var(--shadow-gold); }
+.tcard:hover .tcard__enter svg { transform: translateX(3px); }
+</style></head><body><div class="card">
+<div class="kicker">Tournament card · The Pitch · NO Round progress · NO LIVE badge</div>
+<div class="grid-3" style="gap:10px;">
+  <article class="tcard">
+    <div class="tcard__cover" style="background: linear-gradient(135deg, rgba(252,208,6,0.22), rgba(215,6,58,0.14) 60%, var(--color-bg-soft));">
+      <span class="tcard__cover-vs">48</span>
+      <div class="tcard__chips">
+        <span class="tcard__cat">K-POP</span>
+        <span class="tcard__status is-active">active</span>
+      </div>
+    </div>
+    <div class="tcard__body">
+      <div class="tcard__title">최고의 퍼포먼스 무대</div>
+      <div class="tcard__meta"><span>48 Contestants</span><span class="sep">·</span><span>Closes Jun 30</span></div>
+      <div class="tcard__foot">
+        <button class="tcard__enter">ENTER <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg></button>
+      </div>
+    </div>
+  </article>
+
+  <article class="tcard">
+    <div class="tcard__cover" style="background: linear-gradient(135deg, rgba(0,163,183,0.20), rgba(238,218,125,0.10) 60%, var(--color-bg-soft));">
+      <span class="tcard__cover-vs">48</span>
+      <div class="tcard__chips">
+        <span class="tcard__cat">K-POP</span>
+        <span class="tcard__status is-active">active</span>
+      </div>
+    </div>
+    <div class="tcard__body">
+      <div class="tcard__title">Idol of the Decade</div>
+      <div class="tcard__meta"><span>48 무대</span><span class="sep">·</span><span>Closes Jul 04</span></div>
+      <div class="tcard__foot">
+        <button class="tcard__enter">ENTER <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg></button>
+      </div>
+    </div>
+  </article>
+
+  <article class="tcard">
+    <div class="tcard__cover" style="background: linear-gradient(135deg, rgba(54,34,97,0.7), rgba(0,0,58,0.4) 60%, var(--color-bg-soft));">
+      <span class="tcard__cover-vs">48</span>
+      <div class="tcard__chips">
+        <span class="tcard__cat">OTHER</span>
+        <span class="tcard__status">published</span>
+      </div>
+    </div>
+    <div class="tcard__body">
+      <div class="tcard__title">올해의 무대</div>
+      <div class="tcard__meta"><span>48 무대</span><span class="sep">·</span><span>Closes Jul 11</span></div>
+      <div class="tcard__foot">
+        <button class="tcard__enter">ENTER <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg></button>
+      </div>
+    </div>
+  </article>
+</div>
+<div style="margin-top:12px; font-family:var(--font-mono); font-size:10.5px; color:var(--color-text-sub); letter-spacing:0.06em; line-height:1.55;">
+  ✅ category · title · {N} Contestants · Tournament Deadline — that's the whole meta.<br>
+  ❌ Round progress · Round number · LIVE pill · vote count · "In Progress" — all banned.
+</div>
+</div></body></html>

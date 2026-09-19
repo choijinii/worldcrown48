@@ -1,0 +1,30 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head><body><div class="card">
+<div class="kicker">★ v2.3 · Round Scope Lock — where Round may appear</div>
+<div class="grid-3" style="gap:10px;">
+  <div class="rule is-do">
+    <span class="rule__flag">DO</span>
+    <h4>Arena VS Battle header — only</h4>
+    <p>The single allowed surface for any Round identifier. Format: <code>ROUND OF N · MATCH X/Y</code>. Visible only while a Fan is inside an active Match — never aggregated globally.</p>
+  </div>
+  <div class="rule is-dont">
+    <span class="rule__flag">DON'T</span>
+    <h4>Round Card UI · all forms</h4>
+    <p>No <code>&lt;RoundCard /&gt;</code>, no Round list, no Round grid. Round has no DB document — there is nothing to render as an independent card.</p>
+  </div>
+  <div class="rule is-dont">
+    <span class="rule__flag">DON'T</span>
+    <h4>Round on Pitch / Launch / GNB</h4>
+    <p>The Pitch (TournamentCard), Launch Pad, GNB, footers and every other surface outside Arena must never display Round name, number, or progress.</p>
+  </div>
+</div>
+<div class="kicker" style="margin-top:14px;">Round names — five values only</div>
+<div style="display:flex; flex-wrap:wrap; gap:8px;">
+  <span class="pill is-gold">ROUND OF 48</span>
+  <span class="pill is-gold">ROUND OF 24</span>
+  <span class="pill is-gold">ROUND OF 12</span>
+  <span class="pill is-gold">ROUND OF 6</span>
+  <span class="pill is-gold">THE FINAL</span>
+  <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--color-crimson); letter-spacing:0.06em; align-self:center; margin-left:8px;">❌ QUARTERFINAL · SEMIFINAL · ROUND OF 16 · FIFA terms — banned</span>
+</div>
+</div></body></html>

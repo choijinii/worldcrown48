@@ -1,0 +1,49 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding: 12px 22px; height: 44px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 14.5px;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  border-radius: var(--radius-border);
+  transition: all 200ms ease;
+  cursor: pointer;
+}
+.btn--primary { background: var(--color-gold); color: #241754; }
+.btn--primary:hover { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
+.btn--secondary { background: transparent; color: var(--color-gold); border-color: var(--color-border-gold); }
+.btn--secondary:hover { box-shadow: var(--shadow-gold); }
+.btn--ghost { background: transparent; color: var(--color-text); border-color: var(--color-border); }
+.btn--ghost:hover { background: var(--color-bg-soft); }
+.btn--crimson { background: var(--color-crimson); color: #fff; }
+.btn--crimson:hover { box-shadow: var(--shadow-crimson); transform: translateY(-1px); }
+.btn--disabled { background: var(--color-bg-soft); color: var(--color-text-muted); border-color: var(--color-border); cursor: not-allowed; }
+.btn--success { background: var(--color-turquoise); color: #fff; box-shadow: var(--shadow-turquoise); }
+.btn--loading { background: var(--color-gold); color: #241754; }
+.spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: wc-spin 0.8s linear infinite; }
+</style></head><body><div class="card">
+<div class="kicker">Buttons · magnetic primary + variants</div>
+<div class="panel" style="padding:16px;">
+  <span class="panel__label">Primary · Crimson · Secondary · Ghost</span>
+  <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:6px;">
+    <button class="btn btn--primary">Pick Now</button>
+    <button class="btn btn--crimson">PICK RIGHT</button>
+    <button class="btn btn--secondary">View Crown Card</button>
+    <button class="btn btn--ghost">Skip</button>
+  </div>
+</div>
+<div style="height:10px;"></div>
+<div class="panel" style="padding:16px;">
+  <span class="panel__label">States · disabled · loading · success</span>
+  <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:6px;">
+    <button class="btn btn--disabled" disabled>Vote Cast (5/5 today)</button>
+    <button class="btn btn--loading"><span class="spinner"></span>Submitting…</button>
+    <button class="btn btn--success">✓ Vote Recorded</button>
+  </div>
+</div>
+<div style="margin-top:10px; font-family:var(--font-mono); font-size:10.5px; color:var(--color-text-muted); letter-spacing:0.1em; line-height:1.5;">
+  Magnetic translation tracks the pointer at <strong style="color:var(--color-gold)">0.05×</strong> strength inside the hit area. Hit targets ≥ <strong style="color:var(--color-gold)">44px</strong>.
+</div>
+</div></body></html>
