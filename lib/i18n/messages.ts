@@ -694,6 +694,18 @@ export const MESSAGES = {
   },
   "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
   "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
+  // ARENA-1 (원장 D-21) — 배너 자리 기본 공지. 관리자가 아무것도 넣지 않았을 때 보인다
+  // (빈칸 런칭 금지). 문구 = ARENA-1 PR 1 §5 게이트 1(게스트)·4(로그인) 대표 승인 2026-09-19.
+  "banner.default.guest.title": {
+    ko: "로그인하면 크라운 카드를 간직하고, 대회마다 하루 5번 참여할 수 있어요",
+    en: "Sign in to keep your Crown Card and play up to 5 times a day per tournament",
+    es: "Inicia sesión para guardar tu Crown Card y participar hasta 5 veces al día por torneo",
+  },
+  "banner.default.member.title": {
+    ko: "대회를 마치면 크라운 카드가 생겨요 — 친구에게 공유해 보세요",
+    en: "Finish a tournament to earn your Crown Card — share it with friends",
+    es: "Termina un torneo y consigue tu Crown Card — compártela con tus amigos",
+  },
   // ARENA-1 (원장 D-11 · D-14) — 무대 재생기가 세로 숏츠를 받는 칸. 운영자 전용 화면.
   "lab.embed.tuner.orientation": { ko: "영상 비율", en: "Video shape", es: "Formato del video" },
   "lab.embed.tuner.landscape": { ko: "가로 16:9", en: "Landscape 16:9", es: "Horizontal 16:9" },

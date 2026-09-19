@@ -12,6 +12,7 @@ rules_version = '2';
 //   /admin_alerts/{id}     — admin-claim read/write only (anomaly flags)
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
+//   /banners/{id}          — public read (배너 자리 · D-21); admin-claim write
 //
 // All other paths are denied by default.
 // ════════════════════════════════════════════════════════════════════
@@ -342,6 +343,16 @@ service cloud.firestore {
     // Voter must NEVER add, hide, or reorder a category (it would reshape
     // discovery for everyone), so every client write is denied here.
     match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ── banners (ARENA-1 · 원장 D-21 배너 자리) ─────────────────────
+    // 사이트 전체의 배너 자리(slot)에 무엇을 보일지. 팬 화면(비로그인 포함)이 자리
+    // 이름으로 읽어 1건을 고르고, 없으면 기본 공지를 보인다 — 그래서 읽기는 공개.
+    // 쓰기는 관리자 클레임만(관리 화면 = 소킥 BANNER-1). 팬이 자리 내용을 바꾸면 모든
+    // 팬의 화면이 바뀌므로 클라이언트 쓰기는 전부 거부한다(categories와 같은 모양).
+    match /banners/{bannerId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
