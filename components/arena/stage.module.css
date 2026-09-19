@@ -418,13 +418,12 @@
   min-height: var(--arena-banner-h);
 }
 
-.page[data-stage-mode="portrait"] .bannerRow,
-.page[data-stage-mode="landscape"] .bannerRow {
+/* 모바일 세로 = 프레임 폭(366) × 문구 높이. 모바일 가로는 배너 없음 (D-21 바뀜). */
+.page[data-stage-mode="portrait"] .bannerRow {
   margin-top: 16px;
 }
 
-.page[data-stage-mode="portrait"] .banner,
-.page[data-stage-mode="landscape"] .banner {
+.page[data-stage-mode="portrait"] .banner {
   min-height: 0;
 }
 

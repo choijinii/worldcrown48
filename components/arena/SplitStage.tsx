@@ -6,7 +6,7 @@
  *
  *   데스크톱(≥1024) : 프레임 안 칸 두 개 좌우 50:50, 틈 0, VS 는 맞닿는 선 정중앙 고정
  *   모바일 세로      : 상하 2분할 + "가로로 돌리면…" 한 줄 (D-17 ②)
- *   모바일 가로      : 좌우 50:50, 상단 메뉴 없음 (D-17 ③), 안내 문구는 무대 위 알약 하나
+ *   모바일 가로      : 좌우 50:50, 상단 메뉴·배너 없음 (D-17 ③ · D-21 바뀜), 안내 문구는 무대 위 알약 하나
  *
  * 칸 크기는 기기별 숫자가 아니라 "주어진 자리의 짧은 쪽" 규칙으로 계산한다
  * (lib/arena/stageLayout). 조작은 lib/arena/stageState 상태 머신 하나가 정한다.
@@ -49,12 +49,12 @@ interface SplitStageProps {
 }
 
 /**
- * 모바일 가로에서만 상단 메뉴(공통 Navbar)와 아레나 탭 줄을 뺀다 (D-17 ③ · D-08 유일한 예외).
+ * 모바일 가로에서만 상단 메뉴(공통 Navbar)를 뺀다 (D-17 ③ · D-08 유일한 예외).
  * 메뉴바 부품은 NAV-1 소관이라 손대지 않고, 무대가 가로 배치로 떠 있는 동안에만 이 규칙을
  * 문서에 싣는다 — 세로로 돌리거나 무대를 떠나면 규칙이 사라지고 메뉴가 돌아온다(나가는 길).
  * (CSS Modules 는 전역 선택자만 있는 규칙을 받지 않아 여기 둔다 — ModuleNav 와 같은 방식.)
  */
-const HIDE_MENU_IN_LANDSCAPE = ".wc-nav, .module-nav { display: none !important; }";
+const HIDE_MENU_IN_LANDSCAPE = ".wc-nav { display: none !important; }";
 
 /** 확정 연출 유지 시간 — 토큰 --arena-t-confirm-hold 와 같은 값 (디자인 confirm() 520ms). */
 const CONFIRM_HOLD_MS = 520;
@@ -201,9 +201,13 @@ export function SplitStage({
         </p>
       ) : null}
 
-      <div className={styles.bannerRow} data-stage-layer="banner">
-        <BannerSlot slot="arena-match-below" onSignIn={onSignIn} className={styles.banner} />
-      </div>
+      {/* 배너 자리: 데스크톱 1320×140 · 모바일 세로 = 프레임 폭 × 문구 높이 · 모바일 가로 = 없음
+          (원장 D-21 바뀜 2026-09-19 — 가로는 집중 모드, 메뉴를 빼는 D-17 ③과 같은 논리). */}
+      {mode !== "landscape" ? (
+        <div className={styles.bannerRow} data-stage-layer="banner">
+          <BannerSlot slot="arena-match-below" onSignIn={onSignIn} className={styles.banner} />
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -186,19 +186,17 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.describe("데스크톱 1440", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test("① 스플릿 렌더 — 칸 정사각 두 개 맞붙음(틈 0), 프레임 = 칸×2 + 패딩 20, VS 정중앙", async ({ page }) => {
+    test("① 스플릿 렌더 — 프레임 1320×680(좌 60), 칸 640 정사각 두 개 맞붙음, VS 정중앙, 탭 줄 없음", async ({ page }) => {
       await openStage(page);
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "desktop");
       const frame = await box(page, '[data-stage-layer="frame"]');
       const left = await box(page, '[data-testid="vote-left"]');
       const right = await box(page, '[data-testid="vote-right"]');
-      // D-17 규칙: 한 변 = min(가로 자리 (1440-120-40)/2=640, 세로 자리 900-프레임위-40), 상한 640.
-      // 기기별 숫자가 아니라 규칙을 검산한다(메뉴 높이가 바뀌어도 규칙은 같다).
-      const expected = Math.min(640, Math.floor(900 - frame.y - 40));
-      expect([left.w, left.h, right.w, right.h]).toEqual([expected, expected, expected, expected]);
-      expect(frame.w).toBe(expected * 2 + 40);
-      expect(frame.h).toBe(expected + 40);
+      expect([frame.x, frame.w, frame.h]).toEqual([60, 1320, 680]);
+      expect([left.w, left.h, right.w, right.h]).toEqual([640, 640, 640, 640]);
       expect(right.x - (left.x + left.w)).toBe(0); // 틈 0
+      // D-08 네 층 — 아레나 탭 줄(ModuleNav)은 매치 화면에 없다 (대표 판정 2026-09-19).
+      await expect(page.getByTestId("module-nav")).toHaveCount(0);
       await expect(stage(page).getByText("VS", { exact: true })).toBeVisible();
       await page.screenshot({ path: "playwright-report/arena1-desktop-1440.png", fullPage: true });
     });
@@ -228,9 +226,13 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       expect(await stage(page).locator("iframe").count()).toBeLessThanOrEqual(1);
       await page.hover('[data-testid="vote-right"]', { position: { x: 560, y: 320 } });
       await page.waitForTimeout(1500);
-      await expect(page.getByTestId("stage-player")).toHaveCount(1);
-      expect(await stage(page).locator("iframe").count()).toBeLessThanOrEqual(1);
+      // arm 이 오른쪽으로 옮겨가고, 왼쪽 재생기는 내려간다 — 동시 재생 ≤ 1 (R3).
+      // 오른쪽 재생기가 떠 있는지는 단언하지 않는다: 유튜브가 CI 의 데이터센터 IP 에 재생 오류를
+      // 돌려주면 StageSide 는 설계대로 재생기를 내리고 포스터로 산다(2026-09-19 CI 실측).
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusR");
+      await expect(page.getByTestId("vote-left").locator('[data-testid="stage-player"]')).toHaveCount(0);
+      expect(await page.getByTestId("stage-player").count()).toBeLessThanOrEqual(1);
+      expect(await stage(page).locator("iframe").count()).toBeLessThanOrEqual(1);
     });
 
     test("⑥ 세로 숏츠 — 원본 비율 포스터(oar2) · 위 40% 크롭 · 검은 띠 없음", async ({ page }) => {
@@ -255,15 +257,6 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.getByTestId("vote-left").click();
       await expect(page.getByTestId("vote-left")).not.toContainText(nameOf(m0Left), { timeout: 15_000 });
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
-    });
-
-    test("화면이 충분히 높으면 디자인 값 그대로 — 프레임 1320×680 · 좌우 여백 60 · 칸 640", async ({ page }) => {
-      await page.setViewportSize({ width: 1440, height: 1100 });
-      await openStage(page);
-      const frame = await box(page, '[data-stage-layer="frame"]');
-      expect([frame.x, frame.w, frame.h]).toEqual([60, 1320, 680]);
-      const left = await box(page, '[data-testid="vote-left"]');
-      expect([left.w, left.h]).toEqual([640, 640]);
     });
 
     for (const lang of ["ko", "en", "es"] as const) {
@@ -303,6 +296,12 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       expect(right.y - (left.y + left.h)).toBe(0); // 위아래로 맞붙음
       expect(left.x).toBe(right.x);
       await expect(page.getByTestId("stage-rotate-hint")).toHaveText("가로로 돌리면 무대가 더 크게 열립니다");
+      // 배너 — 폭 = 프레임 폭 366, 높이 = 문구 높이 (원장 D-21 바뀜 2026-09-19)
+      const frame = await box(page, '[data-stage-layer="frame"]');
+      const banner = await box(page, '[data-testid="banner-slot"]');
+      expect(frame.w).toBe(366);
+      expect(banner.w).toBe(366);
+      expect(banner.h).toBeGreaterThan(0);
       await page.screenshot({ path: "playwright-report/arena1-portrait-390.png", fullPage: true });
     });
 
@@ -329,6 +328,8 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "landscape");
       await expect(page.locator(".wc-nav")).toBeHidden(); // D-17 ③
       await expect(page.getByTestId("stage-rotate-hint")).toHaveCount(0); // D-17 ②
+      await expect(page.getByTestId("banner-slot")).toHaveCount(0); // D-21 바뀜 — 가로는 배너 없음
+      await expect(page.getByTestId("module-nav")).toHaveCount(0);
       expect(await page.evaluate(() => (window as unknown as { __stageMarker?: number }).__stageMarker)).toBe(1);
       expect((await page.getByTestId("vote-left").innerText()).trim()).toBe(m1Left);
       const l = await box(page, '[data-testid="vote-left"]');

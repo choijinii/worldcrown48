@@ -50,7 +50,6 @@ import { arenaScreenState } from "@/lib/arena/arenaScreen";
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { SplitStage } from "@/components/arena/SplitStage";
-import { ModuleNav } from "@/components/arena/ModuleNav";
 import { FinalPickView } from "@/components/arena/FinalPickView";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
@@ -510,7 +509,8 @@ export default function ArenaPage(): JSX.Element {
 
   return (
     <>
-      <ModuleNav tournamentId={tournamentId} />
+      {/* 아레나 탭 줄(ModuleNav)은 매치 화면에 두지 않는다 — D-08 네 층(메뉴→안내→무대→배너)·
+          정본 디자인(D-20)에 없다. 랭킹 경로는 NAV-1 서랍이 맡는다 (대표 판정 2026-09-19). */}
       <div className={styles.arena} data-arena-surface="vs">
         {/* ARENA-1 PR 1 — VS 스플릿 무대 (원장 D-08·D-11·D-17). 선택 엔진은 그대로:
             무대가 확정 연출(520ms) 뒤 같은 vote(contestantId) 를 부른다 (R1). */}
