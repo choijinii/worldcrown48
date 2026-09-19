@@ -1,0 +1,571 @@
+<title>WC48 디자인 시스템 v4</title>
+<style>
+:root{--bg:#FBFAF7;--ink:#1B1D2B;--mute:#5E6275;--line:#DDD9CF;--gold:#C99A00;--chip:#EFECE3}
+body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.6;padding-block:32px;padding-inline:20px;max-width:980px;margin:0 auto;font-size:14px}
+h1{font-size:24px;margin:0 0 6px;text-wrap:balance}
+h2{font-size:18px;margin:38px 0 10px;padding-top:14px;border-top:2px solid var(--ink)}
+h3{font-size:15px;margin:22px 0 8px;color:#3B3E52}
+blockquote{margin:12px 0;padding:10px 14px;border-left:4px solid var(--gold);background:#FFF6D0;font-size:13.5px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0 16px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#F1EEE5}
+code{background:var(--chip);padding:1px 5px;border-radius:3px;font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+pre{background:#1B1D2B;color:#F4F1EA;padding:12px 14px;border-radius:4px;overflow-x:auto;font-size:12.5px}
+pre code{background:none;color:inherit;padding:0}
+.sw{display:inline-block;width:14px;height:14px;border:1px solid rgba(0,0,0,.25);vertical-align:-2px;margin-right:5px;border-radius:3px;background-color:#1B1931}
+.wrap{overflow-x:auto}
+ul{padding-left:18px}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+</style>
+<div class="wrap"><h1>🎨 WorldCrown48 (월클48) — UI 디자인 시스템 v4</h1>
+<h1>Twilight Stadium Edition — Arena Match Stage 편입 | v4.1 2026-09-19 | 작성 티오 · 승인 대표</h1>
+<h1>기반: v2.4 토큰 100% 계승 + 아레나 매치 무대(ARENA-1)·메뉴바·☰ 서랍·"선택 이어가기" 신규 편입</h1>
+<h1>실측 원본: <code>docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html</code> (대표 수정본, 2026-09-19 04:18 저장) — 이 문서의 모든 신규 수치는 이 파일에서 뽑았다.</h1>
+<blockquote>
+<p><strong>이 파일의 지위</strong> — 디자인 토큰·컴포넌트 규격의 단일 진실 공급원. 단, <strong>결정의 뜻·이유·기각안은 <code>outputs/DECISIONS_결정원장_v1.0_2026-09-11.md</code>(원장)가 정본</strong>이며, 이 문서와 원장이 다르면 원장이 이긴다. 이 문서는 원장의 결정을 "그리는 사람·코드가 쓰는 값"으로 옮긴 것이다.</p>
+<p><strong>v4에서 v2.4를 버리지 않는다.</strong> v2.4의 토큰·금지 규칙은 그대로 유효하고, v4는 그 위에 아레나 무대 층을 얹는다. v2.4에만 있는 랜딩 연출 절(§4-C·§10-A·§10-B 등)은 v4에 다시 쓰지 않고 v2.4를 참조한다.</p>
+<p><strong>정본 규칙 (원장 D-20 · 2026-09-19)</strong> — 색·크기·부품의 <strong>정본은 클로드 디자인 "WorldCrown48 Design System"</strong> 이다. 저장소의 <code>colors_and_type.css</code>·<code>kit.css</code>는 그 <strong>내보낸 사본</strong>(손편집 금지). 이 문서는 해설서이며, 아래 §2-B 표는 <strong>2026-09-19 실측 스냅샷</strong>이다 — 내보낸 css가 들어오면 css가 이기고, 어긋나면 이 표를 고친다. <code>arena_stage_tokens.css</code>는 내보내기 전까지의 <strong>임시 파일</strong>이다.</p>
+<p><strong>코드 반영 파일</strong> — <code>docs/design/arena_stage_tokens.css</code> (이 문서 §2-B·§3·§4를 CSS 변수로 옮긴 것). Claude Code는 이 CSS 파일을 <code>app/globals.css</code> 옆에 넣고 <code>var(--…)</code>로만 쓴다(raw hex 금지).</p>
+</blockquote>
+<hr />
+<h2>0. 폐기 컨셉 경고 (클로드 디자인·코드 공통 첫 줄)</h2>
+<ul>
+<li>"WorldCrown48 아레나 무대 리디자인"(2026-06, 축구 선수·축구 경기 컨셉) — <strong>폐기.</strong> 어떤 브리프에도 참조 금지. (원장 D-07)</li>
+<li>세계관 = <strong>스포츠</strong>(팬이 관중이 아니라 선수). 시상식·대관식 프레임 금지. (D-07)</li>
+</ul>
+<h2>1. v2.4 → v4 변경 요약</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>항목</th>
+<th>v2.4</th>
+<th>v4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>아레나 매치 화면</td>
+<td>카드 2장 그리드 + VS 배지</td>
+<td><strong>VS 스플릿 무대</strong> — 프레임 1320×680, 칸 640×640 두 개 맞붙음 (D-11)</td>
+</tr>
+<tr>
+<td>②</td>
+<td>무대 위 글씨</td>
+<td>(미정)</td>
+<td>이름·국적·소속·영상 제목을 <strong>반투명 색 띠</strong> 위에 오버랩 (D-11 바뀜 09-17)</td>
+</tr>
+<tr>
+<td>③</td>
+<td>무대 조작</td>
+<td>(미정)</td>
+<td>호버 칸 1.2배 + 포스터 줌 1.06 + 옆칸 채도 50% + 클릭 = 선택 (D-11)</td>
+</tr>
+<tr>
+<td>④</td>
+<td>모바일</td>
+<td>상하 2분할</td>
+<td>세로 = 상하 / <strong>가로 = 좌우 50:50 자동 전환, 메뉴 없음</strong> (D-17)</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td>메뉴바</td>
+<td>The Pitch · The Lab · Locker Room · Vote Now</td>
+<td><strong>☰ · 로고 · The Pitch · The Arena · Newsroom · Locker Room · 언어 · 로그인/아바타</strong> (D-19)</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td>☰ 서랍</td>
+<td>카드 8줄</td>
+<td><strong>단어 나열 + ▸ 토글</strong>, 팬용 5항목 (D-19)</td>
+</tr>
+<tr>
+<td>⑦</td>
+<td>"선택 이어가기"</td>
+<td>없음</td>
+<td>메뉴바 아래 안내 문구 층 오른쪽 끝, 조건부 (D-18)</td>
+</tr>
+<tr>
+<td>⑧</td>
+<td>라운드·득표율·타이머</td>
+<td>매치 화면 금지</td>
+<td>유지 + <strong>개발자 고지문(vs-foot)도 금지</strong> — 무대 금지 4종 (D-11)</td>
+</tr>
+<tr>
+<td>⑨</td>
+<td><strong>아레나 바탕색</strong></td>
+<td><code><span class="sw" style="background:#00003A"></span>#00003A</code>(로고 토큰) / 코드 <code><span class="sw" style="background:#00001F"></span>#00001F</code> / 원장 <code><span class="sw" style="background:#0B1020"></span>#0B1020</code> 3중 불일치</td>
+<td><strong>대표 수정본 기준으로 확정</strong> — §2-C</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 색 토큰</h2>
+<h3>2-A. 계승 (v2.4 · <code>docs/design/colors_and_type.css</code> 그대로 · 로고 앵커 ▸logo)</h3>
+<table>
+<thead>
+<tr>
+<th>토큰</th>
+<th>값</th>
+<th>쓰임</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--color-bg-deep</code></td>
+<td><code><span class="sw" style="background:#00003A"></span>#00003A</code> ▸logo</td>
+<td>페이지 바탕(피치·랜딩 등 <strong>아레나 밖</strong> 다크 면)</td>
+</tr>
+<tr>
+<td><code>--color-bg-default</code></td>
+<td><code><span class="sw" style="background:#0E0944"></span>#0E0944</code></td>
+<td>기본 면 (아레나에서는 <strong>서랍 바탕</strong>으로 씀)</td>
+</tr>
+<tr>
+<td><code>--color-bg-soft</code></td>
+<td><code><span class="sw" style="background:#241754"></span>#241754</code> ▸logo</td>
+<td>카드 (아레나에서는 <strong>칸 바탕·알약 글자색</strong>)</td>
+</tr>
+<tr>
+<td><code>--color-bg-elevated</code></td>
+<td><code><span class="sw" style="background:#362261"></span>#362261</code></td>
+<td>떠 있는 면 (아바타 그라데이션 위쪽)</td>
+</tr>
+<tr>
+<td><code>--color-gold</code></td>
+<td><code><span class="sw" style="background:#FCD006"></span>#FCD006</code> ▸logo</td>
+<td><strong>강조 하나뿐</strong> (Crown Gold) — VS·알약·The Arena 제목</td>
+</tr>
+<tr>
+<td><code>--color-gold-hover</code></td>
+<td><code><span class="sw" style="background:#E3BB05"></span>#E3BB05</code></td>
+<td>골드 눌림</td>
+</tr>
+<tr>
+<td><code>--color-turquoise</code></td>
+<td><code><span class="sw" style="background:#00A3B7"></span>#00A3B7</code> ▸logo</td>
+<td><strong>왼쪽</strong> 상태색 (띠)</td>
+</tr>
+<tr>
+<td><code>--color-crimson</code></td>
+<td><code><span class="sw" style="background:#D7063A"></span>#D7063A</code> ▸logo</td>
+<td><strong>오른쪽</strong> 상태색 (띠)</td>
+</tr>
+<tr>
+<td><code>--color-text</code></td>
+<td><code><span class="sw" style="background:#F2F2F5"></span>#F2F2F5</code> ▸logo</td>
+<td>본문</td>
+</tr>
+<tr>
+<td><code>--color-text-sub</code></td>
+<td><code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code> ▸logo</td>
+<td>보조 (메뉴 글자·설명·언어 칩)</td>
+</tr>
+<tr>
+<td><code>--color-text-muted</code></td>
+<td><code><span class="sw" style="background:#484B67"></span>#484B67</code> ▸logo</td>
+<td>흐림</td>
+</tr>
+</tbody>
+</table>
+<h3>2-B. 신규 — 아레나 무대 층 (대표 수정본 실측 · 2026-09-19)</h3>
+<table>
+<thead>
+<tr>
+<th>토큰</th>
+<th>값</th>
+<th>어디에</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--arena-page-bg</code></td>
+<td><code><span class="sw" style="background:linear-gradient(0deg, #0C0F18 0%, #1B1931 100%)"></span>linear-gradient(0deg, #0C0F18 0%, #1B1931 100%)</code></td>
+<td>데스크톱 아레나 화면 바탕 (아래가 어둡고 위가 밝음)</td>
+</tr>
+<tr>
+<td><code>--arena-page-bg-mobile</code></td>
+<td><code><span class="sw" style="background:#0F0F1E"></span>#0F0F1E</code></td>
+<td>모바일 세로·가로 바탕 (단색)</td>
+</tr>
+<tr>
+<td><code>--arena-ink</code></td>
+<td><code><span class="sw" style="background:#0B1020"></span>#0B1020</code></td>
+<td>어두운 덮개·그림자의 기준색 — <code><span class="sw" style="background:rgba(11,16,32,α)"></span>rgba(11,16,32,α)</code>로만 씀</td>
+</tr>
+<tr>
+<td><code>--arena-nav-bg</code></td>
+<td><code><span class="sw" style="background:linear-gradient(90deg, #0F0F1D, #171740)"></span>linear-gradient(90deg, #0F0F1D, #171740)</code></td>
+<td>메뉴바 (모바일: <code><span class="sw" style="background:#171740"></span>#171740 → <span class="sw" style="background:#16163C"></span>#16163C</code>)</td>
+</tr>
+<tr>
+<td><code>--arena-nav-border</code></td>
+<td><code><span class="sw" style="background:rgba(255,255,255,.08)"></span>rgba(255,255,255,.08)</code></td>
+<td>메뉴바 테두리 1px, 모서리 2px</td>
+</tr>
+<tr>
+<td><code>--arena-nav-text</code></td>
+<td><code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code> · 현재 페이지 <code><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</code></td>
+<td>메뉴 글자 14px</td>
+</tr>
+<tr>
+<td><code>--arena-icon</code></td>
+<td><code><span class="sw" style="background:#EAEAF2"></span>#EAEAF2</code></td>
+<td>☰ 선(18×1.75, 간격 5)·아바타 글자·띠의 국적·소속</td>
+</tr>
+<tr>
+<td><code>--arena-frame-bg</code></td>
+<td><code><span class="sw" style="background:#07070D"></span>#07070D</code></td>
+<td>무대 프레임 바탕(칸 바깥 패딩 20 영역)</td>
+</tr>
+<tr>
+<td><code>--arena-frame-border</code></td>
+<td><code>1px solid <span class="sw" style="background:rgba(252,208,6,.16)"></span>rgba(252,208,6,.16)</code></td>
+<td>프레임 테두리 (연한 골드)</td>
+</tr>
+<tr>
+<td><code>--arena-cell-bg</code></td>
+<td><code><span class="sw" style="background:#241754"></span>#241754</code></td>
+<td>칸 바탕(포스터 없을 때)</td>
+</tr>
+<tr>
+<td><code>--arena-cell-border</code></td>
+<td><code>1px solid <span class="sw" style="background:rgba(255,255,255,.10)"></span>rgba(255,255,255,.10)</code></td>
+<td>칸 테두리 기본</td>
+</tr>
+<tr>
+<td><code>--arena-cell-confirm-border</code></td>
+<td><code>2px solid <span class="sw" style="background:#FCD006"></span>#FCD006</code></td>
+<td>선택 확정 순간 칸 테두리</td>
+</tr>
+<tr>
+<td><code>--arena-cell-confirm-shadow</code></td>
+<td><code>0 0 0 1px <span class="sw" style="background:rgba(252,208,6,.55)"></span>rgba(252,208,6,.55), 0 26px 64px <span class="sw" style="background:rgba(252,208,6,.26)"></span>rgba(252,208,6,.26)</code></td>
+<td>선택 확정 순간</td>
+</tr>
+<tr>
+<td><code>--arena-cell-shade</code></td>
+<td><code><span class="sw" style="background:linear-gradient(180deg, rgba(11,16,32,.42)"></span>linear-gradient(180deg, rgba(11,16,32,.42) 0%, <span class="sw" style="background:rgba(11,16,32,0)"></span>rgba(11,16,32,0) 34%, <span class="sw" style="background:rgba(11,16,32,0)"></span>rgba(11,16,32,0) 52%, <span class="sw" style="background:rgba(11,16,32,.72)"></span>rgba(11,16,32,.72) 100%)</code></td>
+<td>칸 위 세로 덮개(위·아래 어둡게)</td>
+</tr>
+<tr>
+<td><code>--arena-cell-glow</code></td>
+<td><code><span class="sw" style="background:radial-gradient(circle at 50% 46%, rgba(252,208,6,.30)"></span>radial-gradient(circle at 50% 46%, rgba(252,208,6,.30) 0%, <span class="sw" style="background:rgba(252,208,6,0)"></span>rgba(252,208,6,0) 68%)</code></td>
+<td>칸 가운데 골드 빛</td>
+</tr>
+<tr>
+<td><code>--arena-band-left-bg</code></td>
+<td><code><span class="sw" style="background:rgba(0,163,183,.22)"></span>rgba(0,163,183,.22)</code></td>
+<td>왼쪽 띠 바탕 — <strong>투명도 22% = 대표 그림 값</strong></td>
+</tr>
+<tr>
+<td><code>--arena-band-left-border</code></td>
+<td><code>1px solid <span class="sw" style="background:rgba(0,163,183,.65)"></span>rgba(0,163,183,.65)</code></td>
+<td>왼쪽 띠 테두리</td>
+</tr>
+<tr>
+<td><code>--arena-band-right-bg</code></td>
+<td><code><span class="sw" style="background:rgba(215,6,58,.22)"></span>rgba(215,6,58,.22)</code></td>
+<td>오른쪽 띠 바탕</td>
+</tr>
+<tr>
+<td><code>--arena-band-right-border</code></td>
+<td><code>1px solid <span class="sw" style="background:rgba(215,6,58,.65)"></span>rgba(215,6,58,.65)</code></td>
+<td>오른쪽 띠 테두리</td>
+</tr>
+<tr>
+<td><code>--arena-band-blur</code></td>
+<td><code>blur(8px)</code></td>
+<td>띠 <code>backdrop-filter</code></td>
+</tr>
+<tr>
+<td><code>--arena-band-desc</code></td>
+<td><code><span class="sw" style="background:#DDDDEA"></span>#DDDDEA</code></td>
+<td>띠의 영상 제목 글자</td>
+</tr>
+<tr>
+<td><code>--arena-vs</code></td>
+<td><code><span class="sw" style="background:#FCD006"></span>#FCD006</code> · 그림자 <code>0 8px 40px <span class="sw" style="background:#0C0D10E6"></span>#0C0D10E6</code></td>
+<td>VS 표식 (모바일 그림자 <code>0 6px 28px <span class="sw" style="background:rgba(11,16,32,.9)"></span>rgba(11,16,32,.9)</code>)</td>
+</tr>
+<tr>
+<td><code>--arena-continue-bg</code> / <code>-text</code></td>
+<td><code><span class="sw" style="background:#FCD006"></span>#FCD006</code> / <code><span class="sw" style="background:#241754"></span>#241754</code></td>
+<td>"선택 이어가기" 알약</td>
+</tr>
+<tr>
+<td><code>--arena-lang-chip-border</code></td>
+<td><code><span class="sw" style="background:#FFFFFF38"></span>#FFFFFF38</code> (= <span class="sw" style="background:rgba(255,255,255,.22)"></span>rgba(255,255,255,.22))</td>
+<td>언어 칩 테두리, 글자 <code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code></td>
+</tr>
+<tr>
+<td><code>--arena-avatar-bg</code></td>
+<td><code><span class="sw" style="background:linear-gradient(180deg, #362261, #241754)"></span>linear-gradient(180deg, #362261, #241754)</code> · 테두리 <code><span class="sw" style="background:rgba(255,255,255,.22)"></span>rgba(255,255,255,.22)</code></td>
+<td>아바타 32px</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-bg</code></td>
+<td><code><span class="sw" style="background:#0E0944"></span>#0E0944</code></td>
+<td>☰ 서랍 바탕</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-border</code></td>
+<td><code>1px solid <span class="sw" style="background:rgba(255,255,255,.10)"></span>rgba(255,255,255,.10)</code> · 그림자 <code>24px 0 64px <span class="sw" style="background:rgba(0,0,0,.5)"></span>rgba(0,0,0,.5)</code></td>
+<td>서랍 오른쪽 경계</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-row</code></td>
+<td><code><span class="sw" style="background:#D8D9E4"></span>#D8D9E4</code> 500 / 현재 페이지 <code><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</code> 700 + 왼쪽 선 <code>2px solid <span class="sw" style="background:rgba(255,255,255,.55)"></span>rgba(255,255,255,.55)</code></td>
+<td>서랍 1단계 항목</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-child</code></td>
+<td><code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code> 500</td>
+<td>서랍 하위 항목</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-arrow</code></td>
+<td><code><span class="sw" style="background:#8E90A6"></span>#8E90A6</code></td>
+<td>▸ 토글 (열리면 90° 회전, 160ms)</td>
+</tr>
+<tr>
+<td><code>--arena-drawer-chip</code></td>
+<td>켜짐 <code><span class="sw" style="background:rgba(255,255,255,.16)"></span>rgba(255,255,255,.16)</code> + <code><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</code> / 꺼짐 투명 + <code><span class="sw" style="background:#8E90A6"></span>#8E90A6</code> · 테두리 <code><span class="sw" style="background:rgba(255,255,255,.14)"></span>rgba(255,255,255,.14)</code></td>
+<td>서랍 하단 KO·EN·ES</td>
+</tr>
+<tr>
+<td><code>--arena-banner</code></td>
+<td>점선 <code>1px dashed <span class="sw" style="background:rgba(255,255,255,.16)"></span>rgba(255,255,255,.16)</code> · 바탕 <code><span class="sw" style="background:rgba(36,23,84,.4)"></span>rgba(36,23,84,.4)</code></td>
+<td>배너 자리(비움)</td>
+</tr>
+</tbody>
+</table>
+<h3>2-C. 바탕색 3중 불일치 — 해소 (2026-09-19 · 대표 지시 "수정본 기준")</h3>
+<table>
+<thead>
+<tr>
+<th>어디</th>
+<th>값</th>
+<th>처분</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대표 수정본(아레나)</td>
+<td><code><span class="sw" style="background:#0C0F18"></span>#0C0F18 → <span class="sw" style="background:#1B1931"></span>#1B1931</code> 그라데이션 / 모바일 <code><span class="sw" style="background:#0F0F1E"></span>#0F0F1E</code></td>
+<td><strong>아레나 화면 바탕 = 이것.</strong> 토큰 <code>--arena-page-bg(-mobile)</code></td>
+</tr>
+<tr>
+<td>원장 D-08 색 줄 <code><span class="sw" style="background:#0B1020"></span>#0B1020</code></td>
+<td>수정본에서 <strong>덮개·그림자 기준색</strong>으로 쓰임 (<code><span class="sw" style="background:rgba(11,16,32,α)"></span>rgba(11,16,32,α)</code>)</td>
+<td>바탕이 아니라 잉크색. 토큰 <code>--arena-ink</code>. 원장 D-08에 바뀜 줄로 정정</td>
+</tr>
+<tr>
+<td>코드 <code>--color-bg-void: <span class="sw" style="background:#00001F"></span>#00001F</code></td>
+<td>아레나 옛 코드 값</td>
+<td>ARENA-1 구현 때 아레나 범위에서 <code>--arena-page-bg</code>로 교체. 다른 도메인은 손대지 않음</td>
+</tr>
+<tr>
+<td>로고 토큰 <code>--color-bg-deep <span class="sw" style="background:#00003A"></span>#00003A</code></td>
+<td>피치·랜딩 등 아레나 밖</td>
+<td><strong>유지.</strong> 아레나만 예외</td>
+</tr>
+</tbody>
+</table>
+<h2>3. 아레나 매치 무대 — 규격 (수정본 실측 + 원장 D-08·D-11·D-12·D-15·D-17)</h2>
+<h3>3-A. 데스크톱 1440 — 좌표는 화면 왼쪽 위 기준</h3>
+<table>
+<thead>
+<tr>
+<th>층</th>
+<th>자리</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 메뉴바</td>
+<td>left 60 · top 20 · <strong>1320×64</strong> · 안쪽 패딩 0 10 0 14 · 항목 간격 26</td>
+<td>☰ 44×44 원형 호버 <code><span class="sw" style="background:rgba(255,255,255,.08)"></span>rgba(255,255,255,.08)</code> → 로고(글자 15px 800) → 메뉴 4개 14px → (오른쪽) 언어 칩(JetBrains Mono 11px, .14em, 패딩 7×14, 999) → 아바타 32</td>
+</tr>
+<tr>
+<td>② 안내 문구 층</td>
+<td>left 171 · top 94 · 폭 1100 · 가운데 정렬</td>
+<td>"The Arena" Playfair Display italic <strong>35px</strong> 300 골드 / 대회 제목 <strong>27px</strong> 700 −.02em lh 1.25 / 설명 14px <code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code></td>
+</tr>
+<tr>
+<td>② "선택 이어가기"</td>
+<td><strong>right 70 · top 98</strong> · 높이 30 · 패딩 0 16 · 999</td>
+<td>Inter 13px 700, 골드 바탕·<code><span class="sw" style="background:#241754"></span>#241754</code> 글자</td>
+</tr>
+<tr>
+<td>③ 무대 프레임</td>
+<td>left 60 · <strong>top 220</strong> · <strong>1320×680</strong> · 패딩 20</td>
+<td>프레임 바탕 <code><span class="sw" style="background:#07070D"></span>#07070D</code>, 테두리 골드 .16</td>
+</tr>
+<tr>
+<td>③ 칸</td>
+<td><strong>640×640</strong> ×2, 틈 0</td>
+<td>바탕 <code><span class="sw" style="background:#241754"></span>#241754</code>, 테두리 흰 .10, <code>overflow:hidden</code></td>
+</tr>
+<tr>
+<td>③ VS</td>
+<td>프레임 정중앙 고정</td>
+<td>Playfair italic 700 <strong>136px</strong> 골드, z 9, <code>pointer-events:none</code></td>
+</tr>
+<tr>
+<td>— 첫 화면 경계</td>
+<td>top 900</td>
+<td>이 아래는 스크롤</td>
+</tr>
+<tr>
+<td>④ 배너 자리</td>
+<td>left 60 · <strong>top 960</strong> · <strong>1320×140</strong></td>
+<td>비워 둠(런칭 후 MVP2)</td>
+</tr>
+</tbody>
+</table>
+<h3>3-B. 띠(오버랩) — 칸 안쪽</h3>
+<ul>
+<li>자리: 칸 안쪽 <strong>left 24 · right 24 · bottom 24</strong>, 패딩 12 16, 항목 간격 14, <code>backdrop-filter: blur(8px)</code>, <code>pointer-events:none</code></li>
+<li>왼쪽 칸은 이름→국적·소속→영상 제목 순(row), 오른쪽 칸은 <strong>거울 배치</strong>(row-reverse)</li>
+<li>이름 <strong>24px 700</strong> −.01em / 국적·소속 JetBrains Mono <strong>11px 600 .14em</strong> <code><span class="sw" style="background:#EAEAF2"></span>#EAEAF2</code> (<code>국적 · 소속</code>) / 영상 제목 <strong>13px</strong> <code><span class="sw" style="background:#DDDDEA"></span>#DDDDEA</code> (넘치면 …)</li>
+<li>칸 위 덮개 2겹: <code>--arena-cell-shade</code>(세로) + <code>--arena-cell-glow</code>(골드 빛), 둘 다 <code>pointer-events:none</code></li>
+</ul>
+<h3>3-C. 조작 (수정본 코드 그대로)</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>호버 칸</td>
+<td><code>transform: scale(1.2)</code> · 기준점 왼쪽 칸 <code>left center</code> / 오른쪽 칸 <code>right center</code> (모바일 상하: <code>center top</code> / <code>center bottom</code>) · z 4</td>
+</tr>
+<tr>
+<td>포스터 줌</td>
+<td>칸 안 포스터 <code>scale(1.06)</code> (별개 효과)</td>
+</tr>
+<tr>
+<td>옆칸</td>
+<td><code>filter: saturate(50%)</code> 크기 그대로</td>
+</tr>
+<tr>
+<td>들어갈 때</td>
+<td><code>transform 300ms cubic-bezier(.2,.9,.3,1.15), filter 280ms cubic-bezier(.2,.9,.3,1.15)</code></td>
+</tr>
+<tr>
+<td>빠질 때</td>
+<td><code>transform 200ms cubic-bezier(.4,0,.2,1), filter 200ms cubic-bezier(.4,0,.2,1)</code></td>
+</tr>
+<tr>
+<td>선택 확정</td>
+<td>커진 칸 클릭 → 테두리 <code>2px <span class="sw" style="background:#FCD006"></span>#FCD006</code> + 골드 그림자, 옆칸 <code>brightness(.4)</code>, z 7, <strong>520ms 뒤 다음 매치</strong></td>
+</tr>
+<tr>
+<td>모바일</td>
+<td>1탭 = 확대·재생(arm) / 2탭 = 확정. 세로·가로 동일 (D-17)</td>
+</tr>
+<tr>
+<td>영상</td>
+<td>유튜브 iframe <code>autoplay=1&amp;mute=1&amp;controls=0&amp;loop=1&amp;playlist={id}&amp;start={s}&amp;end={e}&amp;modestbranding=1&amp;rel=0&amp;disablekb=1&amp;playsinline=1&amp;iv_load_policy=3</code>, <code>pointer-events:none</code>, 호버/탭한 쪽 1개만 (D-12)</td>
+</tr>
+<tr>
+<td>포스터→영상</td>
+<td>0.2~0.3초 크로스페이드, 잘리는 위치 일치 (D-15)</td>
+</tr>
+</tbody>
+</table>
+<h3>3-D. 크롭 (수정본 <code>crop()</code> 그대로)</h3>
+<ul>
+<li>세로 9:16: <code>width 100% · height 177.78% · top = −(77.78 × focusY ÷ 100)%</code> (focusY 기본 40 → top −31.11%)</li>
+<li>가로 16:9: <code>width 177.78% · height 100% · left −38.89%</code></li>
+<li>포스터·영상 같은 상자에 같은 식 적용 → 전환 때 튀지 않음 (D-15)</li>
+<li>참가자 자료 칸: <code>orientation</code> · <code>focusY</code> · <code>start</code> · <code>end</code> (+ <code>videoId</code>)</li>
+</ul>
+<h3>3-E. 모바일 (D-17 · 수정본 실측)</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>세로 390×844</th>
+<th>가로 844×390</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>바탕</td>
+<td><code><span class="sw" style="background:#0F0F1E"></span>#0F0F1E</code></td>
+<td><code><span class="sw" style="background:#0F0F1E"></span>#0F0F1E</code></td>
+</tr>
+<tr>
+<td>메뉴바</td>
+<td>left 12 · top 10 · <strong>366×48</strong>, <code><span class="sw" style="background:#171740"></span>#171740→<span class="sw" style="background:#16163C"></span>#16163C</code>, ☰ 40×40 · 로고 · 언어 칩(10px) · 아바타 32</td>
+<td><strong>없음</strong></td>
+</tr>
+<tr>
+<td>"선택 이어가기"</td>
+<td>right 12 · top 64 · 높이 28 · 패딩 0 14 · 12px 700</td>
+<td>없음</td>
+</tr>
+<tr>
+<td>무대 프레임</td>
+<td>left 12 · top 68 · <strong>366×732</strong>, 테두리 골드 .16, 상하 2분할</td>
+<td>left 56 · top 12 · <strong>732×366</strong>, 좌우 50:50</td>
+</tr>
+<tr>
+<td>칸</td>
+<td>364×365 ×2 (위/아래)</td>
+<td>366×366 ×2</td>
+</tr>
+<tr>
+<td>띠</td>
+<td>inset 12 · 패딩 9 12 · 간격 8 · 이름 (수정본 값) · 국적·소속 10px · 제목 11px</td>
+<td>세로와 동일</td>
+</tr>
+<tr>
+<td>VS</td>
+<td><strong>58px</strong>, 그림자 <code>0 6px 28px <span class="sw" style="background:rgba(11,16,32,.9)"></span>rgba(11,16,32,.9)</code></td>
+<td>58px</td>
+</tr>
+<tr>
+<td>한 줄 안내</td>
+<td>top 812 · JetBrains Mono 10px .1em <code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code> "가로로 돌리면 무대가 더 크게 열립니다"</td>
+<td>없음 (대신 상단 가운데 안내 알약 1개)</td>
+</tr>
+</tbody>
+</table>
+<h2>4. 메뉴바 · ☰ 서랍 · "선택 이어가기" (D-18·D-19 · 구현 = NAV-1)</h2>
+<h3>4-A. 메뉴바 — §3-A ① 참조. 항목: ☰ · 로고 · The Pitch · The Arena · Newsroom · Locker Room · 언어 · 로그인/아바타. The Lab은 관리자만. "Vote Now" 삭제. 낱말 금지: 투표·Vote·표·예측·배당 (D-03).</h3>
+<h3>4-B. ☰ 서랍 (수정본 실측)</h3>
+<ul>
+<li>왼쪽에서 밀려 나옴. <strong>폭 320 · 화면 높이 전부</strong>(데스크톱) / 모바일 화면폭−56. 바탕 <code><span class="sw" style="background:#0E0944"></span>#0E0944</code>, 오른쪽 경계 흰 .10, 그림자 <code>24px 0 64px <span class="sw" style="background:rgba(0,0,0,.5)"></span>rgba(0,0,0,.5)</code>.</li>
+<li>머리 64: × 닫기 44×44 (19px <code><span class="sw" style="background:#EAEAF2"></span>#EAEAF2</code>), 아래 구분선 흰 .08.</li>
+<li>1단계 행: 높이 <strong>44</strong>, 왼쪽 패딩 16, 글자 <strong>15px</strong>, 기본 500 <code><span class="sw" style="background:#D8D9E4"></span>#D8D9E4</code>, 현재 페이지 700 <code><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</code> + 왼쪽 선 2px 흰 .55. ▸ 10px <code><span class="sw" style="background:#8E90A6"></span>#8E90A6</code>, 열리면 90° 회전 160ms.</li>
+<li>하위 행: 높이 <strong>34</strong>, 왼쪽 패딩 34, 글자 13px 500 <code><span class="sw" style="background:#B1B5C4"></span>#B1B5C4</code>.</li>
+<li>바닥: 구분선 → 언어 칩 KO·EN·ES(JetBrains Mono 11px, 패딩 5 9) → 로그인/로그아웃.</li>
+<li>항목: The Pitch / The Arena ▸ / Newsroom ▸ / Locker Room(부제 없음) / Policy Hub ▸ / ─ / 언어 / 로그인·로그아웃 / ─(관리자만) / The Lab / Admin Dashboard. Launch Pad 없음.</li>
+</ul>
+<h3>4-C. "선택 이어가기" — §3-A ②·§3-E 참조. 조건: 끝내지 않은 참여가 있을 때만(<code>roundProgress</code>), 그 대회 매치 화면에서는 숨김. 3언어: ko 선택 이어가기 · en Continue your picks · es Continuar tus elecciones.</h3>
+<h2>5. 계승 금지 규칙 (v2.4 그대로 · 재확인)</h2>
+<ul>
+<li>Round Scope Lock — 라운드명은 RoundTransition 화면에서만. 무대 금지 4종: 라운드 라벨 · 득표율 · 마감 타이머 · 개발자 고지문.</li>
+<li>TournamentCard에 LIVE 배지 금지 · Round Card 금지.</li>
+<li><code>✦ AI-Report</code>는 기사 푸터 1곳만.</li>
+<li>raw hex 금지 — 코드는 <code>var(--token)</code>만. 순수 블랙 <code><span class="sw" style="background:#000000"></span>#000000</code> 금지 (수정본도 <code><span class="sw" style="background:#07070D"></span>#07070D</code>까지만 내려감).</li>
+<li>강조색은 Crown Gold 하나. Turquoise/Crimson은 좌/우 상태색으로만.</li>
+</ul>
+<h2>6. 클로드 디자인 "WorldCrown48 Design System" 프로젝트에 넣는 법</h2>
+<ol>
+<li>이 파일(v4)과 <code>docs/design/arena_stage_tokens.css</code>를 ＋로 첨부.</li>
+<li>입력: "첨부한 WC48_DESIGN_SYSTEM_v4 §2-B·§2-C의 토큰과 §3·§4의 컴포넌트(아레나 바탕·메뉴바·무대 프레임·칸·띠·VS·선택 이어가기 알약·☰ 서랍)를 디자인 시스템에 <strong>추가</strong>하라. 기존 v2.4 토큰은 값을 바꾸지 마라. arena_stage_tokens.css를 colors_and_type.css 옆에 그대로 넣어라. 끝나면 추가한 토큰 목록을 표로 보고하고, <strong>디자인 시스템을 내보내기(Export)</strong> 해서 <code>colors_and_type.css</code>·<code>kit.css</code>를 새 버전으로 만들어라."</li>
+<li>내보낸 css를 <code>docs/design/</code>에 덮어쓴다 → <code>arena_stage_tokens.css</code> 삭제 → 티오가 이 문서 §2-B를 css 기준으로 대조·정정(v4.2).</li>
+</ol>
+<h2>변경 이력</h2>
+<ul>
+<li><strong>v4.1 (2026-09-19)</strong> — 대표 수정본(<code>Arena Match Stage.dc (1).html</code>)에서 실측 값 전부 채움. 바탕색 3중 불일치를 수정본 기준으로 해소(§2-C). <code>arena_stage_tokens.css</code> 동봉.</li>
+<li>v4.0 (2026-09-19, 초안) — v2.4 계승 + 아레나 무대·메뉴바·서랍·이어가기 편입.</li>
+</ul></div>
