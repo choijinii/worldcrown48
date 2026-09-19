@@ -1,0 +1,69 @@
+<!-- @dsCard group="Components" viewport="700x1000" name="Arena Match Stage" subtitle="프레임 1320×680 · 칸 640×640 · 띠 오버랩 · VS 136px" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.scaler{width:652px;height:336px;overflow:hidden}
+.stage{width:1320px;height:680px;padding:20px;box-sizing:border-box;background:var(--arena-frame-bg);border:var(--arena-frame-border);position:relative;display:flex;transform:scale(.4939);transform-origin:top left}
+.cell{width:640px;height:640px;background:var(--arena-cell-bg);border:var(--arena-cell-border);position:relative;overflow:hidden}
+.cell--r{border-left:0}
+.poster{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-style:italic;font-weight:900;font-size:150px;color:rgba(242,242,245,.13)}
+.shade{position:absolute;inset:0;background:var(--arena-cell-shade);pointer-events:none}
+.glow{position:absolute;inset:0;background:var(--arena-cell-glow);pointer-events:none}
+.band{position:absolute;left:var(--arena-band-inset);right:var(--arena-band-inset);bottom:var(--arena-band-inset);padding:var(--arena-band-pad);display:flex;align-items:center;gap:14px;backdrop-filter:var(--arena-band-blur);pointer-events:none;border-radius:2px}
+.band--l{background:var(--arena-band-left-bg);border:var(--arena-band-left-border)}
+.band--r{background:var(--arena-band-right-bg);border:var(--arena-band-right-border);flex-direction:row-reverse}
+.bname{font-size:var(--arena-band-name-size);font-weight:700;letter-spacing:-.01em;color:var(--color-text);white-space:nowrap}
+.bmeta{font-family:var(--font-mono);font-size:var(--arena-band-meta-size);font-weight:600;letter-spacing:.14em;color:var(--arena-icon);white-space:nowrap}
+.bdesc{font-size:13px;color:var(--arena-band-desc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-display);font-style:italic;font-weight:700;font-size:var(--arena-vs-size);line-height:1;color:var(--arena-vs-color);text-shadow:var(--arena-vs-shadow);z-index:9;pointer-events:none}
+.spec{width:100%;border-collapse:collapse;margin-top:4px}
+.spec td{padding:7px 10px;border-bottom:1px solid var(--color-border);font-size:11.5px;color:var(--color-text-sub);vertical-align:top}
+.spec tr:last-child td{border-bottom:0}
+.spec td:first-child{font-family:var(--font-mono);font-size:10.5px;color:var(--color-gold);white-space:nowrap;width:150px}
+</style></head><body><div class="card">
+
+<div class="kicker">무대 프레임 · 데스크톱 1440 — left 60 · top 220 · 1320×680 · 패딩 20 (0.49배 축소)</div>
+<div class="scaler"><div class="stage">
+  <div class="cell">
+    <div class="poster">SG</div><div class="shade"></div><div class="glow"></div>
+    <div class="band band--l">
+      <span class="bname">슬기</span>
+      <span class="bmeta">KR · VOCAL</span>
+      <span class="bdesc">최고의 퍼포먼스 무대 — 2026 스테이지 컷</span>
+    </div>
+  </div>
+  <div class="cell cell--r">
+    <div class="poster">MN</div><div class="shade"></div><div class="glow"></div>
+    <div class="band band--r">
+      <span class="bname">미나</span>
+      <span class="bmeta">JP · DANCE</span>
+      <span class="bdesc">올해의 무대 — 리허설 직캠</span>
+    </div>
+  </div>
+  <div class="vs">VS</div>
+</div></div>
+
+<div class="kicker" style="margin-top:20px">띠(오버랩) · §3-B — 왼쪽 row · 오른쪽 거울 배치(row-reverse)</div>
+<table class="spec"><tbody>
+<tr><td>--arena-band-inset</td><td>칸 안쪽 left·right·bottom <b style="color:var(--color-text)">24</b> (모바일 12)</td></tr>
+<tr><td>--arena-band-pad</td><td>12 16 (모바일 9 12) · 항목 간격 14 · <code>pointer-events:none</code></td></tr>
+<tr><td>--arena-band-name-size</td><td>이름 <b style="color:var(--color-text)">24px 700</b> −.01em</td></tr>
+<tr><td>--arena-band-meta-size</td><td>국적·소속 JetBrains Mono 11px 600 .14em · <span style="color:var(--arena-icon)">#EAEAF2</span></td></tr>
+<tr><td>--arena-band-desc</td><td>영상 제목 13px <span style="color:var(--arena-band-desc)">#DDDDEA</span> (넘치면 …)</td></tr>
+<tr><td>--arena-band-blur</td><td>backdrop-filter: blur(8px)</td></tr>
+</tbody></table>
+
+<div class="kicker" style="margin-top:18px">조작 · §3-C</div>
+<table class="spec"><tbody>
+<tr><td>--arena-hover-scale</td><td>호버 칸 scale(1.2) · 기준점 왼쪽 <code>left center</code> / 오른쪽 <code>right center</code> · z 4</td></tr>
+<tr><td>--arena-poster-zoom</td><td>칸 안 포스터 scale(1.06) — 별개 효과</td></tr>
+<tr><td>--arena-side-desat</td><td>옆칸 filter: saturate(50%) — 크기 그대로</td></tr>
+<tr><td>--arena-t-in-*</td><td>들어갈 때 transform 300ms / filter 280ms · <code>cubic-bezier(.2,.9,.3,1.15)</code></td></tr>
+<tr><td>--arena-t-out</td><td>빠질 때 200ms · <code>cubic-bezier(.4,0,.2,1)</code></td></tr>
+<tr><td>--arena-cell-confirm-*</td><td>확정 = 테두리 2px #FCD006 + 골드 그림자 · 옆칸 brightness(.4) · z 7</td></tr>
+<tr><td>--arena-t-confirm-hold</td><td>520ms 뒤 다음 매치</td></tr>
+</tbody></table>
+
+<div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--color-crimson);letter-spacing:.06em;line-height:1.6;border-top:1px solid var(--color-border);padding-top:12px">
+  ⛔ 무대 금지 4종 (D-11) — 라운드 라벨 · 득표율 · 마감 타이머 · 개발자 고지문(vs-foot). 낱말 금지: 투표·Vote·표·예측·배당 (D-03).
+</div>
+</div></body></html>

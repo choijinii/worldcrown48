@@ -1,0 +1,14 @@
+<!-- @dsCard group="Components" viewport="760x300" name="TournamentCard" subtitle="category · title · {N} Contestants · Deadline · status" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;padding:28px;background:var(--color-bg-default);font-family:var(--font-sans)}#r{display:flex;flex-wrap:wrap;gap:14px;align-items:center}</style></head>
+<body><div id="r"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+const { TournamentCard } = window.WorldCrown48DesignSystem_ea92b8;
+ReactDOM.createRoot(document.getElementById("r")).render(React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12,width:"100%"}},
+    React.createElement(TournamentCard,{category:"K-POP",title:"최고의 퍼포먼스 무대",deadline:"Jun 30",status:"active"}),
+    React.createElement(TournamentCard,{category:"OTHER",title:"올해의 무대",deadline:"Jul 11",status:"published",cover:"linear-gradient(135deg, rgba(54,34,97,0.7), rgba(0,0,58,0.4) 60%, var(--color-bg-soft))"})));
+</script>
+</body></html>

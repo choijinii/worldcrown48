@@ -1,0 +1,48 @@
+<!-- @dsCard group="Colors" viewport="700x940" name="Color — Arena stage" subtitle="v4 아레나 층 · 로고 9색 잠금 · raw hex는 토큰 안에만" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.aw{border:1px solid var(--color-border);border-radius:var(--radius-border);overflow:hidden}
+.aw__f{height:72px;position:relative}
+.aw__t{position:absolute;top:7px;left:9px;font-family:var(--font-mono);font-size:8px;letter-spacing:.16em;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.45);color:#fff}
+.aw__b{padding:8px 10px 10px;background:var(--color-bg-soft)}
+.aw__n{font-size:11.5px;font-weight:600;color:var(--color-text)}
+.aw__v{font-family:var(--font-mono);font-size:9px;color:var(--color-text-sub);margin-top:2px;word-break:break-all;line-height:1.35}
+.aw__r{font-size:10px;color:var(--color-text-muted);margin-top:4px;line-height:1.4}
+</style></head><body><div class="card">
+
+<div class="kicker">아레나 바탕 · §2-C 3중 불일치 해소 — 아레나 범위에서만 교체</div>
+<div class="grid-3">
+  <div class="aw"><div class="aw__f" style="background:linear-gradient(0deg,#0C0F18 0%,#1B1931 100%)"><span class="aw__t" style="color:#FCD006">PAGE</span></div><div class="aw__b"><div class="aw__n">--arena-page-bg</div><div class="aw__v">linear-gradient(0deg,#0C0F18,#1B1931)</div><div class="aw__r">데스크톱 아레나 바탕</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0F0F1E"><span class="aw__t">MOBILE</span></div><div class="aw__b"><div class="aw__n">--arena-page-bg-mobile</div><div class="aw__v">#0F0F1E</div><div class="aw__r">모바일 세로·가로 단색</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0B1020"><span class="aw__t">INK</span></div><div class="aw__b"><div class="aw__n">--arena-ink</div><div class="aw__v">#0B1020</div><div class="aw__r">덮개·그림자 기준색 — 바탕 아님</div></div></div>
+</div>
+
+<div class="kicker" style="margin-top:18px">무대 프레임 · 칸</div>
+<div class="grid-4">
+  <div class="aw"><div class="aw__f" style="background:#07070D"><span class="aw__t">FRAME</span></div><div class="aw__b"><div class="aw__n">--arena-frame-bg</div><div class="aw__v">#07070D</div><div class="aw__r">순수 블랙 금지 — 여기까지</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#241754"><span class="aw__t">CELL</span></div><div class="aw__b"><div class="aw__n">--arena-cell-bg</div><div class="aw__v">#241754 ▸logo</div><div class="aw__r">칸 바탕(포스터 없을 때)</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#241754"><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,16,32,.42) 0%,rgba(11,16,32,0) 34%,rgba(11,16,32,0) 52%,rgba(11,16,32,.72) 100%)"></div><span class="aw__t">SHADE</span></div><div class="aw__b"><div class="aw__n">--arena-cell-shade</div><div class="aw__v">rgba(11,16,32,.42→.72)</div><div class="aw__r">칸 위 세로 덮개</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#241754"><div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,rgba(252,208,6,.30) 0%,rgba(252,208,6,0) 68%)"></div><span class="aw__t">GLOW</span></div><div class="aw__b"><div class="aw__n">--arena-cell-glow</div><div class="aw__v">rgba(252,208,6,.30)</div><div class="aw__r">칸 가운데 골드 빛</div></div></div>
+</div>
+
+<div class="kicker" style="margin-top:18px">띠(오버랩) · VS · 알약 — 좌/우 상태색은 로고 앵커</div>
+<div class="grid-4">
+  <div class="aw"><div class="aw__f" style="background:rgba(0,163,183,.22);border-bottom:1px solid rgba(0,163,183,.65)"><span class="aw__t" style="color:#00A3B7">LEFT</span></div><div class="aw__b"><div class="aw__n">--arena-band-left-bg</div><div class="aw__v">rgba(0,163,183,.22)</div><div class="aw__r">왼쪽 띠 · ▸logo #00A3B7</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:rgba(215,6,58,.22);border-bottom:1px solid rgba(215,6,58,.65)"><span class="aw__t" style="color:#D7063A">RIGHT</span></div><div class="aw__b"><div class="aw__n">--arena-band-right-bg</div><div class="aw__v">rgba(215,6,58,.22)</div><div class="aw__r">오른쪽 띠 · ▸logo #D7063A</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0B1020;display:flex;align-items:center;justify-content:center"><span style="font-family:var(--font-display);font-style:italic;font-weight:700;font-size:38px;color:#FCD006;text-shadow:0 8px 40px rgba(12,13,16,.9)">VS</span></div><div class="aw__b"><div class="aw__n">--arena-vs-color</div><div class="aw__v">#FCD006 ▸logo</div><div class="aw__r">136px · 모바일 58px</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0F0F1E;display:flex;align-items:center;justify-content:center"><span style="height:30px;padding:0 16px;border-radius:999px;background:#FCD006;color:#241754;font-size:13px;font-weight:700;display:inline-flex;align-items:center">선택 이어가기</span></div><div class="aw__b"><div class="aw__n">--arena-continue-bg / -text</div><div class="aw__v">#FCD006 / #241754</div><div class="aw__r">둘 다 ▸logo</div></div></div>
+</div>
+
+<div class="kicker" style="margin-top:18px">메뉴바 · ☰ 서랍</div>
+<div class="grid-4">
+  <div class="aw"><div class="aw__f" style="background:linear-gradient(90deg,#0F0F1D,#171740)"><span class="aw__t">NAV</span></div><div class="aw__b"><div class="aw__n">--arena-nav-bg</div><div class="aw__v">#0F0F1D → #171740</div><div class="aw__r">모바일 #171740→#16163C</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0E0944"><span class="aw__t">DRAWER</span></div><div class="aw__b"><div class="aw__n">--arena-drawer-bg</div><div class="aw__v">#0E0944</div><div class="aw__r">= --color-bg-default 재사용</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#171740;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:12px;color:#EAEAF2">EAEAF2</span></div><div class="aw__b"><div class="aw__n">--arena-icon</div><div class="aw__v">#EAEAF2</div><div class="aw__r">☰ 선 · 아바타 글자 · 띠 메타</div></div></div>
+  <div class="aw"><div class="aw__f" style="background:#0E0944;display:flex;align-items:center;justify-content:center;gap:6px"><span style="font-size:11px;color:#D8D9E4">D8D9E4</span><span style="font-size:11px;color:#B1B5C4">B1B5C4</span><span style="font-size:11px;color:#8E90A6">8E90A6</span></div><div class="aw__b"><div class="aw__n">--arena-drawer-row / -child / -arrow</div><div class="aw__v">#D8D9E4 · #B1B5C4 · #8E90A6</div><div class="aw__r">서랍 1단계 · 하위 · ▸</div></div></div>
+</div>
+
+<div style="margin-top:16px;font-family:var(--font-mono);font-size:10px;color:var(--color-text-sub);letter-spacing:.05em;line-height:1.6;border-top:1px solid var(--color-border);padding-top:12px">
+  🔒 로고 9색 잠금 — <span style="color:#FCD006">#FCD006</span> <span style="color:#EEDA7D">#EEDA7D</span> <span style="color:#B1B5C4">#241754</span> <span style="color:#B1B5C4">#00003A</span> <span style="color:#F2F2F5">#F2F2F5</span> <span style="color:#B1B5C4">#B1B5C4</span> <span style="color:#8E90A6">#484B67</span> <span style="color:#D7063A">#D7063A</span> <span style="color:#00A3B7">#00A3B7</span> · 새 브랜드색 만들지 않음. 위 신규 값은 <b style="color:var(--color-text)">면·덮개·그림자</b>일 뿐이다.<br>
+  아레나 밖 다크 면은 <span style="color:var(--color-gold)">--color-bg-deep #00003A</span> 유지 · <span style="color:var(--color-gold)">--color-bg-void #00001F</span>는 아레나 범위에서만 --arena-page-bg로 교체.
+</div>
+</div></body></html>

@@ -1,0 +1,18 @@
+<!-- @dsCard group="Components" viewport="760x620" name="VSBattle" subtitle="⚠ v4에서 폐기 — 대체: 48-arena-stage" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;padding:28px;background:var(--color-bg-default);font-family:var(--font-sans)}#r{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.v4dep{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(215,6,58,.45);background:rgba(215,6,58,.10);border-radius:var(--radius-border);padding:10px 13px;margin-bottom:16px}
+.v4dep b{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--color-crimson);white-space:nowrap;padding-top:1px}
+.v4dep span{font-size:11.5px;color:var(--color-text-sub);line-height:1.55}
+.v4dep a{color:var(--color-gold);font-weight:600;text-decoration:none}</style></head>
+<body>
+<div class="v4dep"><b>⚠ v4에서 폐기</b><span>대체: <a href="../../preview/48-arena-stage.html">48-arena-stage</a> — 이 VS 배틀 컴포넌트는 v4에서 폐기되었습니다. 아레나 매치 무대(프레임 1320×680 · 칸 640×640 · 띠 오버랩)를 쓰세요.</span></div>
+<div id="r"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+const { VSBattle } = window.WorldCrown48DesignSystem_ea92b8;
+ReactDOM.createRoot(document.getElementById("r")).render(React.createElement("div",{style:{width:"100%"}},React.createElement(VSBattle,null)));
+</script>
+</body></html>

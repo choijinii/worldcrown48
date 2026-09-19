@@ -1,0 +1,13 @@
+<!-- @dsCard group="Components" viewport="700x120" name="StatusPill" subtitle="The five Tournament states — never LIVE, never In Progress" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;padding:28px;background:var(--color-bg-default);font-family:var(--font-sans)}#r{display:flex;flex-wrap:wrap;gap:14px;align-items:center}</style></head>
+<body><div id="r"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+const { StatusPill } = window.WorldCrown48DesignSystem_ea92b8;
+ReactDOM.createRoot(document.getElementById("r")).render(React.createElement(React.Fragment,null,
+    ["draft","published","active","closed","completed"].map(s=>React.createElement(StatusPill,{key:s,status:s}))));
+</script>
+</body></html>

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Components" viewport="700x220" name="AIReportFooter" subtitle="✦ AI-Report — news-article footer only, never on a card" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;padding:28px;background:var(--color-bg-default);font-family:var(--font-sans)}#r{display:flex;flex-wrap:wrap;gap:14px;align-items:center}</style></head>
+<body><div id="r"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script>
+const { AIReportFooter } = window.WorldCrown48DesignSystem_ea92b8;
+ReactDOM.createRoot(document.getElementById("r")).render(React.createElement("div",{style:{maxWidth:520}},
+    React.createElement("div",{style:{fontFamily:"var(--font-display)",fontWeight:700,fontSize:22,color:"var(--color-text)",lineHeight:1.25}},"Fan sentiment surges as the 24강 bracket tightens"),
+    React.createElement("p",{style:{fontSize:13.5,lineHeight:1.65,color:"var(--color-text-sub)"}},"Voter momentum shifted decisively toward the top seed over the past day."),
+    React.createElement(AIReportFooter,{timestamp:"2 hours ago"})));
+</script>
+</body></html>

@@ -1,0 +1,82 @@
+<!-- @dsCard group="00 — v4 Rules" viewport="700x1080" name="v4 정본 규칙" subtitle="아래 옛 페이지와 충돌하면 이 페이지가 이긴다" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.win{border:1px solid var(--color-gold);background:rgba(252,208,6,.08);border-radius:var(--radius-border);padding:14px 16px;margin-bottom:18px}
+.win b{color:var(--color-gold)}
+.sec{margin-top:20px}
+.spec{width:100%;border-collapse:collapse}
+.spec td{padding:8px 10px;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-sub);vertical-align:top}
+.spec tr:last-child td{border-bottom:0}
+.spec td:first-child{width:186px;color:var(--color-text);font-weight:600}
+.no{color:var(--color-crimson);text-decoration:line-through}
+.yes{color:var(--color-turquoise);font-weight:600}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.cta span{height:34px;padding:0 18px;border-radius:999px;background:var(--color-gold);color:#241754;font-size:13px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap;flex:none}
+.cta i{font-family:var(--font-mono);font-size:9px;font-style:normal;color:var(--color-text-muted);letter-spacing:.14em;align-self:center}
+.ban{border:1px solid rgba(215,6,58,.4);background:rgba(215,6,58,.07);border-radius:var(--radius-border);padding:12px 14px}
+.ban ol{margin:6px 0 0;padding-left:18px;color:var(--color-text-sub);font-size:12px;line-height:1.75}
+.ok{border:1px solid rgba(0,163,183,.4);background:rgba(0,163,183,.07);border-radius:var(--radius-border);padding:12px 14px;margin-top:10px;font-size:12px;color:var(--color-text-sub);line-height:1.6}
+</style></head><body><div class="card">
+
+<div class="win">
+  <b>⚖ 이 페이지가 정본이다.</b>
+  <div style="font-size:12.5px;color:var(--color-text-sub);line-height:1.6;margin-top:6px">
+    이 페이지와 아래 옛 페이지의 내용이 충돌하면 <b>언제나 이 페이지가 이긴다.</b> 옛 페이지는 기록으로 남겨 둔 것이며, 「⚠ v4에서 폐기」 배지가 붙은 것은 참고만 하고 따르지 않는다.
+  </div>
+</div>
+
+<div class="kicker">(b) 낱말 규칙 — 팬에게 보이는 글 (D-03)</div>
+<table class="spec"><tbody>
+<tr><td><span class="no">투표 · Vote · 표 · 예측 · 배당</span></td><td>팬에게 보이는 글에서 <b style="color:var(--color-crimson)">전면 금지.</b> 예측·배당 문구는 삭제한다(대체어 없음).</td></tr>
+<tr><td><span class="yes">선택 · 고르다</span></td><td>'투표'의 대체어. 단위 '표'도 <b class="yes">선택</b>으로 센다.</td></tr>
+<tr><td><span class="no">Voter</span> → <span class="yes">Fan / 팬</span></td><td><code>Voter</code>는 <b>코드·DB 전용</b>. 화면에 보이는 글은 반드시 <b class="yes">Fan / 팬</b>.</td></tr>
+<tr><td><span class="no">판 (Run)</span> → <span class="yes">참여</span></td><td>화면에서는 <b class="yes">참여</b>. <code>run</code>은 코드 전용.</td></tr>
+</tbody></table>
+
+<div class="sec">
+<div class="kicker">행동 버튼 — 3언어 정본</div>
+<div class="cta">
+  <span>참가하기</span><i>KO</i>
+  <span>Pick Now</span><i>EN</i>
+  <span>Elige ahora</span><i>ES</i>
+</div>
+<div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-muted);letter-spacing:.06em;margin-top:8px">옛 "Vote Now"는 전부 이 셋으로 교체됨.</div>
+</div>
+
+<div class="sec">
+<div class="kicker">(c) 세계관 = 스포츠</div>
+<div class="ban">
+  <div style="font-size:12.5px;color:var(--color-text)"><b>팬은 관중이 아니라 선수다.</b></div>
+  <ol>
+    <li><span class="no">시상식 · 대관식 프레임</span> — 금지</li>
+    <li><span class="no">축구 · 월드컵 · 선수 컨셉</span> — 폐기 (D-07). 2026-06 "아레나 무대 리디자인"은 어떤 브리프에도 참조 금지.</li>
+  </ol>
+</div>
+</div>
+
+<div class="sec">
+<div class="kicker">(d) 매치 무대 금지 4종 (D-11)</div>
+<div class="ban">
+  <ol>
+    <li><span class="no">라운드 라벨</span> — 라운드명은 RoundTransition 화면에서만</li>
+    <li><span class="no">득표율 (%)</span> — 랭킹 화면 전용</li>
+    <li><span class="no">마감 타이머</span> — Tournament Deadline만 존재</li>
+    <li><span class="no">개발자 고지문 (vs-foot)</span></li>
+  </ol>
+</div>
+<div class="ok">
+  ✔ <b style="color:var(--color-turquoise)">허용</b> — 이름 · 국적 · 소속 · 영상 제목은 <b style="color:var(--color-text)">띠 위 오버랩</b>으로 표시한다. → <b style="color:var(--color-gold)">48-arena-stage</b>
+</div>
+</div>
+
+<div class="sec">
+<div class="kicker">(e) 정본 규칙 (원장 D-20)</div>
+<table class="spec"><tbody>
+<tr><td>이 디자인 시스템</td><td><b class="yes">정본.</b> 색 · 크기 · 부품의 단일 진실 공급원.</td></tr>
+<tr><td>저장소 css</td><td><code>colors_and_type.css</code> · <code>kit.css</code>는 여기서 <b>내보낸 사본</b> — 손편집 금지.</td></tr>
+<tr><td>어긋나면</td><td>내보낸 css가 들어오면 <b>css가 이기고</b>, 해설 문서를 고친다.</td></tr>
+<tr><td>arena_stage_tokens.css</td><td>내보내기 전까지의 <b>임시 파일</b>.</td></tr>
+</tbody></table>
+</div>
+
+</div></body></html>

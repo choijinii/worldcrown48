@@ -1,0 +1,109 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css">
+<style>
+.vs-stage {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-default);
+  padding: 18px 20px;
+}
+.vs-stage::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 60% at 12% 50%, rgba(0,163,183,0.20), transparent 55%),
+    radial-gradient(ellipse 50% 60% at 88% 50%, rgba(215,6,58,0.20), transparent 55%);
+}
+.vs-header {
+  position: relative; text-align: center;
+  margin-bottom: 22px;
+}
+.vs-eyebrow {
+  display: inline-flex; align-items: center; gap: 12px; white-space: nowrap;
+  font-family: var(--font-display); font-style: italic; font-weight: 700;
+  font-size: 19px; line-height: 1; letter-spacing: 0;
+  color: var(--color-gold); margin-bottom: 10px;
+}
+.vs-eyebrow::before, .vs-eyebrow::after {
+  content: ""; width: 26px; height: 1px; flex: none;
+  background: linear-gradient(90deg, transparent, var(--color-gold-glow), var(--color-gold));
+}
+.vs-eyebrow::after { background: linear-gradient(90deg, var(--color-gold), var(--color-gold-glow), transparent); }
+.vs-title {
+  font-family: var(--font-sans); font-weight: 800;
+  font-size: 40px; line-height: 1.04; letter-spacing: -0.02em;
+  text-transform: none; color: var(--color-text); text-wrap: balance;
+}
+.vs-year {
+  display: block; margin-top: 8px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.28em; color: var(--color-text-sub);
+}
+.vs-body {
+  position: relative; display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px; align-items: center;
+}
+.vs-card {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.vs-portrait {
+  aspect-ratio: 4 / 5; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 56px;
+}
+.vs-card--left  .vs-portrait { background: linear-gradient(180deg, rgba(0,163,183,0.28), rgba(36,23,84,0.65)); border: 1px solid rgba(0,163,183,0.45); color: var(--color-turquoise); }
+.vs-card--right .vs-portrait { background: linear-gradient(180deg, rgba(215,6,58,0.28),  rgba(36,23,84,0.65)); border: 1px solid rgba(215,6,58,0.45); color: var(--color-crimson); }
+.vs-name { font-family: var(--font-sans); font-weight: 700; font-size: 18px; letter-spacing: -0.015em; }
+.vs-meta { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-sub); letter-spacing: 0.1em; }
+.vs-card--right .vs-name, .vs-card--right .vs-meta { text-align: right; }
+.vs-glyph {
+  font-family: var(--font-display); font-style: italic; font-weight: 900;
+  font-size: 66px; line-height: 1;
+  color: var(--color-gold);
+  text-shadow: 0 2px 18px rgba(252,208,6,0.45);
+}
+.vote-btn {
+  margin-top: 4px; padding: 10px 14px; height: 44px;
+  border: 0; border-radius: 5px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 13px;
+  display: flex; flex-direction: column; align-items: stretch; cursor: pointer;
+}
+.vote-btn small { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; opacity: 0.85; font-weight: 600; }
+.vs-card--left  .vote-btn { background: var(--color-turquoise); color: #00181B; box-shadow: var(--shadow-turquoise); }
+.vs-card--left  .vote-btn small { color: rgba(0,24,27,0.7); }
+.vs-card--right .vote-btn { background: var(--color-crimson); color: #fff; }
+.v4dep{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(215,6,58,.45);background:rgba(215,6,58,.10);border-radius:var(--radius-border);padding:10px 13px;margin-bottom:16px}
+.v4dep b{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--color-crimson);white-space:nowrap;padding-top:1px}
+.v4dep span{font-size:11.5px;color:var(--color-text-sub);line-height:1.55}
+.v4dep a{color:var(--color-gold);font-weight:600;text-decoration:none}
+</style></head><body style="font-size: 30px"><div class="card">
+<div class="v4dep"><b>⚠ v4에서 폐기</b><span>대체: <a href="48-arena-stage.html">48-arena-stage</a> — 이 VS 배틀 레이아웃은 v4에서 폐기되었습니다. 아레나 매치 무대(프레임 1320×680 · 칸 640×640 · 띠 오버랩)를 쓰세요.</span></div>
+
+<div class="kicker">VS Battle · The Arena · the only Match-level UI · NO pick rate while picking</div>
+<div class="vs-stage">
+  <div class="vs-header">
+    <div class="vs-eyebrow">The Arena</div>
+    <h2 class="vs-title">최고의 퍼포먼스 무대<span class="vs-year">2026</span></h2>
+  </div>
+  <div class="vs-body">
+    <div class="vs-card vs-card--left">
+      <div class="vs-portrait">SG</div>
+      <div class="vs-name">슬기</div>
+      <div class="vs-meta">KR · VOCAL · MAIN</div>
+      <button class="vote-btn"><small>PICK LEFT</small><span style="margin-top:2px;">슬기</span></button>
+    </div>
+    <div class="vs-glyph" style="width: 64px; height: 66px; padding: 0px 0px 50px; border-style: none">vs</div>
+    <div class="vs-card vs-card--right">
+      <div class="vs-portrait">MN</div>
+      <div class="vs-name">미나</div>
+      <div class="vs-meta">JP · DANCE · MAIN</div>
+      <button class="vote-btn"><small>PICK RIGHT</small><span style="margin-top:2px;">미나</span></button>
+    </div>
+  </div>
+</div>
+<div style="margin-top:10px; font-family:var(--font-mono); font-size:10.5px; color:var(--color-text-sub); letter-spacing:0.06em; line-height:1.55;">
+  No Round/Match counter, no <span style="color:var(--color-gold)">"VOTE 3/5"</span> quota — these don't fit the Arena concept. No ENDS-IN timer (Match/Round have no deadline). <strong style="color:var(--color-text)">No Vote Rate %</strong> — it would bias the next Voter. Rate appears only on the Ranking screen.
+</div>
+</div></body></html>
