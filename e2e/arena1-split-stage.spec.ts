@@ -186,14 +186,19 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.describe("데스크톱 1440", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test("① 스플릿 렌더 — 프레임 1320×680(좌 60), 칸 640 정사각 두 개 맞붙음, VS 정중앙, 탭 줄 없음", async ({ page }) => {
+    test("① 스플릿 렌더 — 칸 정사각 두 개 맞붙음(틈 0), 프레임 = 칸×2 + 패딩 20, VS 정중앙, 탭 줄 없음", async ({ page }) => {
       await openStage(page);
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "desktop");
       const frame = await box(page, '[data-stage-layer="frame"]');
       const left = await box(page, '[data-testid="vote-left"]');
       const right = await box(page, '[data-testid="vote-right"]');
-      expect([frame.x, frame.w, frame.h]).toEqual([60, 1320, 680]);
-      expect([left.w, left.h, right.w, right.h]).toEqual([640, 640, 640, 640]);
+      // D-17 규칙: 한 변 = min(가로 자리 (1440-120-40)/2=640, 세로 자리 900-프레임위-40), 상한 640.
+      // 프레임 윗변은 글꼴 렌더에 따라 몇 px 달라진다(CI 리눅스 222 · 로컬 195) — 숫자가 아니라
+      // 규칙을 검산한다. 디자인 값 그대로(1320×680·640)는 아래 "충분히 높은 화면" 테스트가 본다.
+      const expected = Math.min(640, Math.floor(900 - frame.y - 40));
+      expect([left.w, left.h, right.w, right.h]).toEqual([expected, expected, expected, expected]);
+      expect(frame.w).toBe(expected * 2 + 40);
+      expect(frame.h).toBe(expected + 40);
       expect(right.x - (left.x + left.w)).toBe(0); // 틈 0
       // D-08 네 층 — 아레나 탭 줄(ModuleNav)은 매치 화면에 없다 (대표 판정 2026-09-19).
       await expect(page.getByTestId("module-nav")).toHaveCount(0);
@@ -257,6 +262,15 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.getByTestId("vote-left").click();
       await expect(page.getByTestId("vote-left")).not.toContainText(nameOf(m0Left), { timeout: 15_000 });
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
+    });
+
+    test("화면이 충분히 높으면 디자인 값 그대로 — 프레임 1320×680 · 좌우 여백 60 · 칸 640", async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1100 });
+      await openStage(page);
+      const frame = await box(page, '[data-stage-layer="frame"]');
+      expect([frame.x, frame.w, frame.h]).toEqual([60, 1320, 680]);
+      const left = await box(page, '[data-testid="vote-left"]');
+      expect([left.w, left.h]).toEqual([640, 640]);
     });
 
     for (const lang of ["ko", "en", "es"] as const) {
