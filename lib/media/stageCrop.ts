@@ -14,6 +14,7 @@
  * 48강 그리드(D-14, 런칭 후)도 만들 때 이 모듈을 그대로 쓴다.
  */
 import { isValidVideoId } from "@/lib/embed/youtubeUrl";
+import { LOOP_SECONDS } from "@/lib/embed/constants";
 import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
 
 export type { EmbedOrientation };
@@ -21,8 +22,8 @@ export type { EmbedOrientation };
 /** 세로 영상의 기본 잘림 기준 — 위 40 : 아래 60 (D-11). */
 export const DEFAULT_FOCUS_Y = 40;
 
-/** 무대 루프 길이 — 15초 (D-12: 10초는 반복이 티 나서 기각). */
-export const STAGE_LOOP_SECONDS = 15;
+/** 무대 루프 길이 = 검수기·functions 와 같은 한 값 (D-12: 15초). */
+export const STAGE_LOOP_SECONDS = LOOP_SECONDS;
 
 /** 16:9 ↔ 9:16 을 정사각에 채울 때 긴 변 = 짧은 변 × 16/9 = 177.78%. 넘치는 양은 77.78%. */
 const LONG_SIDE = 177.78;

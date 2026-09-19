@@ -582,9 +582,9 @@ export const MESSAGES = {
     es: "Transmisión en vivo · no sirve para un bucle",
   },
   "lab.embed.reason.tooShort": {
-    ko: "10초보다 짧은 영상",
-    en: "Shorter than 10 seconds",
-    es: "Dura menos de 10 segundos",
+    ko: "15초보다 짧은 영상",
+    en: "Shorter than 15 seconds",
+    es: "Dura menos de 15 segundos",
   },
   "lab.embed.reason.duplicate": {
     ko: "{n}번 링크와 중복",

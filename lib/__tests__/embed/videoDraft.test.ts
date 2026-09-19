@@ -44,11 +44,11 @@ function verdict(videoId: string, overrides: Partial<LinkVerdict> = {}): LinkVer
 }
 
 describe("buildVideoFields", () => {
-  it("링크의 t=를 시작점으로 쓰고 10초 구간을 만든다", () => {
+  it("링크의 t=를 시작점으로 쓰고 15초 구간을 만든다 (D-12)", () => {
     expect(buildVideoFields(verdict(A), 90)).toEqual({
       videoId: A,
       videoStartSec: 90,
-      videoEndSec: 100,
+      videoEndSec: 105,
       videoSourceUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0&t=90s",
     });
   });
@@ -157,7 +157,7 @@ describe("retimeDraft — 슬라이더·추천 칩 (W5)", () => {
     const next = retimeDraft(withVideo, 120, 232);
     expect(next).toMatchObject({
       videoStartSec: 120,
-      videoEndSec: 130,
+      videoEndSec: 135,
       videoSourceUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0&t=120s",
     });
   });

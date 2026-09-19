@@ -190,11 +190,11 @@ describe("buildContestantDocs", () => {
       expect(docs[0].media?.type).toBe("embed");
     });
 
-    it("끝점이 비면 시작+10초로 채운다 (ADR-EV-1)", () => {
+    it("끝점이 비면 시작+15초로 채운다 (D-12)", () => {
       const all = drafts(48);
       all[0] = { ...all[0], videoId: "9bZkp7q19f0", videoStartSec: 30 };
       const docs = buildContestantDocs("t1", "host-1", all);
-      expect(docs[0].media?.embed?.end).toBe(40);
+      expect(docs[0].media?.embed?.end).toBe(45);
     });
 
     // ARENA-1 (원장 D-11 · D-14) — 무대 재생기가 세로 숏츠를 받는 칸. 선택 필드 추가만.

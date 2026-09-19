@@ -68,7 +68,7 @@ export interface ContestantDraft {
   videoId?: string;
   /** 루프 시작 초. */
   videoStartSec?: number;
-  /** 루프 끝 초 (기본 start+10 · ADR-EV-1). */
+  /** 루프 끝 초 (기본 start+LOOP_SECONDS = 15 · D-12). */
   videoEndSec?: number;
   /** [원본 열기]·출처 칩이 가리키는 watch URL (ADR-EV-3). */
   videoSourceUrl?: string;

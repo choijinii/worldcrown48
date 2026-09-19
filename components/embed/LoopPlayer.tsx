@@ -38,7 +38,7 @@ const TICK_MS = 250;
 export interface LoopPlayerProps {
   videoId: string;
   startSec: number;
-  /** 기본 start+10 (ADR-EV-1). 영상이 짧으면 resolveLoopRange가 접는다. */
+  /** 기본 start+LOOP_SECONDS(15 · D-12). 영상이 짧으면 resolveLoopRange가 접는다. */
   endSec?: number;
   durationSec?: number | null;
   /** 카드 색감 훅 — 시안 트랙이 값을 정하기 전의 자리표시. */

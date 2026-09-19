@@ -32,7 +32,7 @@ export interface EmbedMedia {
   videoId: string;
   /** 시작 초 (선택). */
   start?: number;
-  /** 종료 초 (선택 — LAB-EV-1의 10초 루프 끝점 · clip 예약 겸용). */
+  /** 종료 초 (선택 — 루프 끝점(15초 · D-12) · clip 예약 겸용). */
   end?: number;
   /**
    * LAB-EV-1 W6 — 출처 원본 watch URL(ADR-EV-3 출처 칩·[원본 열기]).
