@@ -3,7 +3,7 @@
  *
  * Wires the tested logic to the wireframe-matched components:
  *   voteStore.loadTournament → resolveActiveRun(회차) → selectCurrentMatch →
- *     MatchView / FinalPickView
+ *     SplitStage(ARENA-1 VS 스플릿 무대) / FinalPickView
  *   vote → onVote callable → optimistic addVote (클라 게이트 없음 — 아래 참조)
  *   round complete → advanceRound writes roundProgress/{uid}_{tid}[_r{n}] →
  *     useRoundTransition → RoundTransition overlay → (THE FINAL) Champion
@@ -49,8 +49,7 @@ import {
 import { arenaScreenState } from "@/lib/arena/arenaScreen";
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
-import { MatchView } from "@/components/arena/MatchView";
-import { ModuleNav } from "@/components/arena/ModuleNav";
+import { SplitStage } from "@/components/arena/SplitStage";
 import { FinalPickView } from "@/components/arena/FinalPickView";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
@@ -510,28 +509,34 @@ export default function ArenaPage(): JSX.Element {
 
   return (
     <>
-      <ModuleNav tournamentId={tournamentId} />
+      {/* 아레나 탭 줄(ModuleNav)은 매치 화면에 두지 않는다 — D-08 네 층(메뉴→안내→무대→배너)·
+          정본 디자인(D-20)에 없다. 랭킹 경로는 NAV-1 서랍이 맡는다 (대표 판정 2026-09-19). */}
       <div className={styles.arena} data-arena-surface="vs">
-        {/* 게스트 안내 ① — 첫 진입(아직 한 판도 안 쓴 상태)에만 보인다. */}
-        {isGuest && run?.runsToday === 0 ? (
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              color: "var(--color-text-muted)",
-              margin: "var(--space-3) 0 0",
-            }}
-          >
-            {t("arena.guest.welcome")}
-          </p>
-        ) : null}
-        <MatchView
+        {/* ARENA-1 PR 1 — VS 스플릿 무대 (원장 D-08·D-11·D-17). 선택 엔진은 그대로:
+            무대가 확정 연출(520ms) 뒤 같은 vote(contestantId) 를 부른다 (R1). */}
+        <SplitStage
           title={localizedTitle(tournament, lang)}
+          description={tournament.description?.[lang] || undefined}
           left={left}
           right={right}
-          pickedId={pickedId}
           loading={submitting}
           onVote={vote}
+          onSignIn={() => setModal("vote")}
+          notice={
+            // 게스트 안내 ① — 첫 진입(아직 한 판도 안 쓴 상태)에만 보인다.
+            isGuest && run?.runsToday === 0 ? (
+              <p
+                style={{
+                  textAlign: "center",
+                  fontSize: 12,
+                  color: "var(--color-text-muted)",
+                  margin: "var(--space-3) 0 0",
+                }}
+              >
+                {t("arena.guest.welcome")}
+              </p>
+            ) : null
+          }
         />
         {loginModal}
       </div>

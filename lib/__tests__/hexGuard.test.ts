@@ -87,6 +87,12 @@ describe("isScannedPath — path exclusion (ADR-TOK-4)", () => {
     expect(isScannedPath("outputs/handoffs-staging/KICK.md")).toBe(false);
   });
 
+  it("skips the arena stage token ledger — Claude Design export copy (ARENA-1 · 원장 D-20)", () => {
+    expect(isScannedPath("app/arena_stage_tokens.css")).toBe(false);
+    // 원장이 아닌 아레나 파일은 그대로 검사한다.
+    expect(isScannedPath("components/arena/stage.module.css")).toBe(true);
+  });
+
   it("skips the token ledger itself — globals.css is where hex is allowed to live", () => {
     expect(isScannedPath("app/globals.css")).toBe(false);
   });

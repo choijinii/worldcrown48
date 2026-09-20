@@ -32,7 +32,7 @@ export interface EmbedMedia {
   videoId: string;
   /** 시작 초 (선택). */
   start?: number;
-  /** 종료 초 (선택 — LAB-EV-1의 10초 루프 끝점 · clip 예약 겸용). */
+  /** 종료 초 (선택 — 루프 끝점(15초 · D-12) · clip 예약 겸용). */
   end?: number;
   /**
    * LAB-EV-1 W6 — 출처 원본 watch URL(ADR-EV-3 출처 칩·[원본 열기]).
@@ -42,7 +42,20 @@ export interface EmbedMedia {
   sourceUrl?: string;
   /** LAB-EV-1 W6 — 최근 검증 결과(크론이 갱신). */
   status?: EmbedStatus;
+  /**
+   * ARENA-1 (원장 D-11 · D-14) — 영상 비율. 무대 재생기가 iframe 비율을 이 값으로 정한다
+   * (영상과 비율이 다르면 유튜브가 검은 띠를 넣는다). 없으면 가로 — 선택 필드 추가일 뿐
+   * 기존 문서는 그대로 읽힌다(마이그레이션 없음 · R1).
+   */
+  orientation?: EmbedOrientation;
+  /**
+   * ARENA-1 (원장 D-11) — 세로 영상을 정사각으로 자를 때 위에서 버리는 비율(0~100, 기본 40).
+   * 포스터 object-position 과 iframe top 이 같은 값을 쓴다(D-15). 가로 영상은 쓰지 않는다.
+   */
+  focusY?: number;
 }
+
+export type EmbedOrientation = "landscape" | "portrait";
 
 export interface ContestantMedia {
   type: MediaKind;

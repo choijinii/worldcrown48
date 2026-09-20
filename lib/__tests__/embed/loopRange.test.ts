@@ -1,7 +1,7 @@
 /**
  * LAB-EV-1 Phase A — 루프 구간·플레이어 파라미터 (W3 · ADR-EV-1 · ADR-EV-3).
  *
- * 루프는 10초 무음 고정(ADR-EV-1). 영상이 그보다 짧거나 시작점이 끝에 붙어
+ * 루프는 15초 무음 고정(원장 D-12 — ADR-EV-1의 10초는 기각). 영상이 그보다 짧거나 시작점이 끝에 붙어
  * 있으면 구간을 접어 넣어야 재생이 성립한다(§8). 카드 노출 조합(크롭·클릭
  * 차단·controls=0·출처 칩)은 ADR-EV-3 — 파라미터 쪽 절반을 여기서 잠근다.
  */
@@ -9,11 +9,11 @@ import { describe, expect, it } from "vitest";
 import { LOOP_SECONDS, MAX_CONCURRENT_PLAYERS, BRACKET_SIZES } from "@/lib/embed/constants";
 import { resolveLoopRange, buildPlayerVars, buildWatchUrl } from "@/lib/embed/loopRange";
 
-describe("resolveLoopRange — 10초 구간 (§8)", () => {
-  it("보통 영상 → start ~ start+10", () => {
+describe("resolveLoopRange — 15초 구간 (§8 · D-12)", () => {
+  it("보통 영상 → start ~ start+15", () => {
     expect(resolveLoopRange({ startSec: 60, durationSec: 232 })).toEqual({
       startSec: 60,
-      endSec: 70,
+      endSec: 75,
     });
   });
 
@@ -24,14 +24,14 @@ describe("resolveLoopRange — 10초 구간 (§8)", () => {
     });
   });
 
-  it("시작점이 영상 밖 → 마지막 10초로 당긴다", () => {
+  it("시작점이 영상 밖 → 마지막 15초로 당긴다", () => {
     expect(resolveLoopRange({ startSec: 300, durationSec: 232 })).toEqual({
-      startSec: 222,
+      startSec: 217,
       endSec: 232,
     });
   });
 
-  it("10초보다 짧은 영상 → 전체가 루프", () => {
+  it("15초보다 짧은 영상 → 전체가 루프", () => {
     expect(resolveLoopRange({ startSec: 5, durationSec: 8 })).toEqual({
       startSec: 0,
       endSec: 8,
@@ -41,19 +41,19 @@ describe("resolveLoopRange — 10초 구간 (§8)", () => {
   it("음수 시작점은 0으로", () => {
     expect(resolveLoopRange({ startSec: -5, durationSec: 232 })).toEqual({
       startSec: 0,
-      endSec: 10,
+      endSec: 15,
     });
   });
 
-  it("길이를 모르면 start+10을 그대로 믿는다 (플레이어가 알아서 끝난다)", () => {
+  it("길이를 모르면 start+15를 그대로 믿는다 (플레이어가 알아서 끝난다)", () => {
     expect(resolveLoopRange({ startSec: 60, durationSec: null })).toEqual({
       startSec: 60,
-      endSec: 70,
+      endSec: 75,
     });
   });
 
-  it("루프 길이는 상수로 주입 가능 (후속 킥이 3초를 다시 꺼내지 않도록 기본은 10)", () => {
-    expect(LOOP_SECONDS).toBe(10);
+  it("루프 길이는 상수로 주입 가능 (기본 15 — D-12. 3초·10초는 기각)", () => {
+    expect(LOOP_SECONDS).toBe(15);
     expect(resolveLoopRange({ startSec: 0, durationSec: 100, loopSec: 4 })).toEqual({
       startSec: 0,
       endSec: 4,

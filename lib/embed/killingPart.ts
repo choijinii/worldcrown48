@@ -1,5 +1,5 @@
 /**
- * killingPart — 10초 루프의 시작점 추천 3층 (LAB-EV-1 W2 · ADR-EV-2).
+ * killingPart — 15초(D-12) 루프의 시작점 추천 3층 (LAB-EV-1 W2 · ADR-EV-2).
  *
  * 유튜브의 "가장 많이 다시 본 구간"(Most Replayed)은 공식 API가 주지 않는다.
  * ADR-EV-2는 비공식 스크래핑을 영구 금지했으므로, 공식 데이터만으로 근사한다:

@@ -19,6 +19,7 @@ import { useEscapeClose } from "@/lib/ui/dismiss";
 import { showToast } from "@/lib/toast";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import { buildWatchUrl, resolveLoopRange } from "@/lib/embed/loopRange";
+import { DEFAULT_FOCUS_Y, type EmbedOrientation } from "@/lib/media/stageCrop";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import {
   inspectErrorCode,
@@ -34,6 +35,8 @@ interface SlotVideoTunerProps {
   index: number;
   draft: ContestantDraft;
   onRetime: (startSec: number, durationSec: number | null) => void;
+  /** ARENA-1 (D-11) — 영상 비율·세로 잘림 위치. 무대 재생기가 이 값으로 자른다. */
+  onReframe: (patch: { orientation?: EmbedOrientation; focusY?: number }) => void;
   onRemove: () => void;
   onClose: () => void;
 }
@@ -45,6 +48,7 @@ export function SlotVideoTuner({
   index,
   draft,
   onRetime,
+  onReframe,
   onRemove,
   onClose,
 }: SlotVideoTunerProps): JSX.Element | null {
@@ -54,6 +58,8 @@ export function SlotVideoTuner({
 
   const videoId = draft.videoId ?? "";
   const startSec = draft.videoStartSec ?? 0;
+  const orientation: EmbedOrientation = draft.videoOrientation ?? "landscape";
+  const focusY = draft.videoFocusY ?? DEFAULT_FOCUS_Y;
   const durationSec = suggestion?.durationSec ?? null;
   const range = resolveLoopRange({ startSec, durationSec });
   const maxStart = Math.max(
@@ -143,7 +149,40 @@ export function SlotVideoTuner({
               durationSec={durationSec}
               showSourceChip={false}
               title={draft.name}
+              orientation={orientation}
+              focusY={focusY}
             />
+          </div>
+
+          {/* ARENA-1 (D-11) — 무대와 같은 정사각 창문으로 미리 본다. */}
+          <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
+            <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: lab.textSub }}>
+              {t("lab.embed.tuner.orientation")}
+              <select
+                value={orientation}
+                onChange={(e) => onReframe({ orientation: e.target.value as EmbedOrientation })}
+                data-testid="slot-tuner-orientation"
+                style={{ ...nudgeStyle, padding: "5px 8px" }}
+              >
+                <option value="landscape">{t("lab.embed.tuner.landscape")}</option>
+                <option value="portrait">{t("lab.embed.tuner.portrait")}</option>
+              </select>
+            </label>
+            {orientation === "portrait" && (
+              <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: lab.textSub }}>
+                {t("lab.embed.tuner.focusY")}
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={focusY}
+                  onChange={(e) => onReframe({ focusY: Number(e.target.value) })}
+                  data-testid="slot-tuner-focus-y"
+                  style={{ ...nudgeStyle, width: 64, padding: "5px 8px" }}
+                />
+              </label>
+            )}
           </div>
 
           <p style={{ margin: 0, textAlign: "center", fontSize: 12, color: lab.textSub }}>

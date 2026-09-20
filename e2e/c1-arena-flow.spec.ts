@@ -275,12 +275,16 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     }) => {
       // Reset this Voter to a fresh bracket (m0). The FINAL test above left them
       // with a COMPLETED tournament; loading it renders the champion screen
-      // (no MatchView → no ".vs-foot"), which is exactly the flake this test
-      // hit — deterministically caught here once retries were disabled. (ADR-0004.)
+      // (no match stage), which is exactly the flake this test hit —
+      // deterministically caught here once retries were disabled. (ADR-0004.)
       await resetVoterProgress();
       await page.setViewportSize({ width, height: 800 });
       await page.goto(`/arena/${TID}`);
-      await expect(page.getByText("No Vote Rate %")).toBeVisible(); // canonical .vs-foot
+      // ARENA-1 PR 1: 개발자 고지문(.vs-foot "No Vote Rate %")은 무대 금지 4종이라 삭제됐다
+      // (원장 D-11 ④). 매치 화면 = VS 스플릿 무대가 떴는지로 본다.
+      await expect(page.getByTestId("split-stage")).toBeVisible();
+      await expect(page.getByTestId("vote-left")).toBeVisible();
+      await expect(page.getByText("No Vote Rate %")).toHaveCount(0);
       await page.screenshot({
         path: `playwright-report/c1-arena-${width}.png`,
         fullPage: true,
