@@ -119,15 +119,12 @@ export function SplitStage({
   }, [mode]);
 
   // 세로로 돌아가면 자동 해제하고, 다음 가로 진입을 위해 "이미 요청함"을 잊는다.
+  // ⚠️ 여기서는 해제와 초기화만 한다. 요청은 반드시 탭(사용자 동작) 안에서만 일어나므로,
+  //    이 효과가 "request" 판정까지 기록해 버리면 정작 첫 탭이 none 이 된다(09-21 프리플라이트 실측).
   useEffect(() => {
-    const action = fullscreenAction({
-      mode,
-      isFullscreen: isFullscreenNow(),
-      supported: supportsFullscreen(),
-      requestedThisLandscape: requestedRef.current,
-    });
-    if (action === "exit") void document.exitFullscreen?.().catch(() => {});
-    requestedRef.current = nextRequestedThisLandscape(requestedRef.current, mode, action);
+    if (mode === "landscape") return;
+    if (isFullscreenNow()) void document.exitFullscreen?.().catch(() => {});
+    requestedRef.current = false;
   }, [mode]);
 
   // 다음 매치가 들어오면 처음으로.
