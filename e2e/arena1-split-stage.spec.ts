@@ -367,6 +367,11 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
     });
 
     test("④⑤ 1탭 arm · 2탭 확정 · 회전해도 진행 유지 · 가로는 메뉴 없음", async ({ page }) => {
+      // 이 테스트가 보는 것은 탭 규칙과 회전이다. 스파이를 심어 **진짜** 전체화면을 막는다 —
+      // PR 2a 이후 가로에서 탭하면 실제로 전체화면에 들어가고, 그 상태의 창은 크기를 바꿀 수
+      // 없어 아래 setViewportSize 가 거부된다(2026-09-21 CI 실측). 전체화면 동작 자체는
+      // 아래 전용 테스트가 호출 횟수로 본다.
+      await installFullscreenSpy(page);
       await openStage(page);
       const [m0Left] = seededRound1Ids();
 
