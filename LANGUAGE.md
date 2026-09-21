@@ -57,6 +57,15 @@
 | **Vote** (DB `votes`·`onVote`만) | **"선택"** — "표"는 낱말 자체 금지(§7) | pick / elección | 제품이 투표에서 선택의 개념으로 넘어갔다 |
 | (히어로) "예측도, 배당도 없이" | **삭제** — "오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다." | "Pure fan choice. Your pick crowns the Champion." / "Solo la elección de los fans. Tu elección corona al Champion." | 예측·배당은 도박·투기를 연상시킨다(대표) |
 
+**최애 / Choe-ae (2026-09-20 대표 확정 · 원장 D-25):**
+| 시스템 층 | 표시 층 ko | 표시 층 en / es | 쓰는 자리 |
+| --- | --- | --- | --- |
+| **Champion** (§1 정의·코드·DB 불변) | **최애** | **Choe-ae** (로마자 철자 고정 — 공식 표기가 없어 월클48이 정해 쓴다) | **결승(THE FINAL) 화면 제목 한 곳.** ko "당신의 최애를 골라 주세요" · en "Pick your Choe-ae" · es "Elige a tu Choe-ae" |
+
+> *최애* = 가장 아끼는 한 사람. **표시 낱말이며 Champion의 정의를 바꾸지 않는다**(RULE 1 — 새 개념은 새 용어).
+> 다른 자리의 Champion 표기는 그대로다. "Choe ea"(띄어 쓴 표기)·en/es "bias" 는 기각(원장 D-25).
+> "최애"를 다른 화면 문구로 넓힐지는 아직 정하지 않았다.
+
 승인 문구 정본: RUN-1 핸드오프 §8 (`outputs/HANDOFF_RUN-1_참가규칙v2.0_2026-09-03.md`).
 
 **박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `lib/displayTerms.ts`.
