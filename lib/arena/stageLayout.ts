@@ -48,6 +48,25 @@ const SPACING: Record<StageMode, ModeSpacing> = {
   landscape: { side: 12, pad: 0, border: 0, bottom: 12 },
 };
 
+/**
+ * 무대가 실제로 쓸 수 있는 높이 (ARENA-1 PR 2a).
+ *
+ * 크롬 안드로이드의 `window.innerHeight` 는 주소창이 접히고 펴져도 그대로라(레이아웃 뷰포트),
+ * 그 값으로 칸을 계산하면 주소창이 펴진 동안 무대가 화면 밖으로 밀린다(09-20 눈검사).
+ * 지금 눈에 보이는 높이는 `visualViewport.height` 다 — 있으면 그쪽을 쓴다.
+ * 전체화면에 들어가면 둘이 같아진다.
+ */
+export function pickViewportHeight(
+  innerHeight: number,
+  visualViewportHeight: number | null | undefined,
+): number {
+  return typeof visualViewportHeight === "number" &&
+    Number.isFinite(visualViewportHeight) &&
+    visualViewportHeight > 0
+    ? visualViewportHeight
+    : innerHeight;
+}
+
 export function stageMode(width: number, height: number): StageMode {
   if (width >= STAGE_DESKTOP_MIN_WIDTH) return "desktop";
   return width > height ? "landscape" : "portrait";

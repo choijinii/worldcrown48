@@ -260,11 +260,6 @@ export const MESSAGES = {
     es: "Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament.",
   },
   // 게스트 안내 3지점 중 ①(첫 진입) · ②(Crown Card 화면의 남은 횟수).
-  "arena.guest.welcome": {
-    ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
-    en: "Join up to 3 times a day — no sign-in needed!",
-    es: "¡Participa hasta 3 veces al día — sin iniciar sesión!",
-  },
   "arena.guest.remaining": {
     ko: "오늘 남은 참여 가능 횟수는 : {n}판 · 저장하려면 로그인",
     en: "Entries left today: {n} · Sign in to save",

@@ -86,11 +86,6 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
       en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
       es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
     },
-    "arena.guest.welcome": {
-      ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
-      en: "Join up to 3 times a day — no sign-in needed!",
-      es: "¡Participa hasta 3 veces al día — sin iniciar sesión!",
-    },
     "arena.guest.remaining": {
       ko: "오늘 남은 참여 가능 횟수는 : {n}판 · 저장하려면 로그인",
       en: "Entries left today: {n} · Sign in to save",
