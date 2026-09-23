@@ -754,11 +754,8 @@ export const MESSAGES = {
   "arena.intro.start": { ko: "시작하기", en: "Start", es: "Empezar" },
   // ARENA-1 PR 2a — 라운드 전환 화면 (라운드명이 나오는 유일한 화면 · 킥 R2).
   // 문구 정본 = PR 2a 프롬프트 §5 표 (2026-09-20 대표 승인). 모양은 그대로, 글자만 키로 옮겼다.
-  "arena.round.spectatorNote": {
-    ko: "✦ 잠시 숨을 고르는 시간",
-    en: "✦ A moment to breathe",
-    es: "✦ Un momento para respirar",
-  },
+  // ※ "✦ 잠시 숨을 고르는 시간"(spectatorNote)은 PR 2b 에서 삭제했다 — 새 전환 화면의
+  //    코너 라벨 4개(arena.round.corner*)가 그 자리를 대체한다(2026-09-23 대표 판정).
   // {round} 자리에 라운드 이름이 굵게 들어간다 (lib/i18n/splitAround).
   "arena.round.completed": {
     ko: "방금 마친 라운드 {round}",

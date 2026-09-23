@@ -146,12 +146,8 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
     },
     "arena.intro.start": { ko: "시작하기", en: "Start", es: "Empezar" },
     // ARENA-1 PR 2a §5 표 — 2026-09-20 대표 승인본. 모양은 그대로, 글자만 키로 옮긴 건이라
-    // 승인본을 글자 단위로 고정한다(라운드 전환 3건 · 결승 4건).
-    "arena.round.spectatorNote": {
-      ko: "✦ 잠시 숨을 고르는 시간",
-      en: "✦ A moment to breathe",
-      es: "✦ Un momento para respirar",
-    },
+    // 승인본을 글자 단위로 고정한다(라운드 전환 2건 · 결승 4건).
+    // ※ spectatorNote 는 PR 2b 에서 삭제 — 코너 라벨 4개가 대체(2026-09-23 대표 판정).
     "arena.round.completed": {
       ko: "방금 마친 라운드 {round}",
       en: "You completed {round}",
