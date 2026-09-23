@@ -132,6 +132,14 @@ test.describe("RUN-1 일일 판 한도 — 5판 소진 후 [다시 참여] 차�
   test.afterAll(async () => cleanup(uid!));
 
   test.beforeEach(async ({ page }) => {
+    // ARENA-1 PR 2b — 첫 입장 안내 팝업이 칸 클릭을 가로채지 않게 "이미 본 기기"로 시작한다.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+      }
+    });
     consoleErrors = [];
     page.on("console", (m) => {
       if (m.type() !== "error") return;

@@ -191,6 +191,15 @@ test.describe("C-1 The Arena — Voter critical path", () => {
   test.afterAll(async () => cleanup());
 
   test.beforeEach(async ({ page }) => {
+    // ARENA-1 PR 2b — 첫 입장 안내 팝업(기기당 1회)이 칸 클릭을 가로채지 않게, 이 스펙은
+    // "이미 본 기기"로 시작한다. 팝업 자체는 arena1-split-stage 의 전용 테스트가 본다.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+      }
+    });
     consoleErrors = [];
     page.on("console", (m) => {
       if (m.type() !== "error") return;

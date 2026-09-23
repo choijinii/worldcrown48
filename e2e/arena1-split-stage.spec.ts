@@ -121,6 +121,54 @@ async function cleanup(): Promise<void> {
   await d.doc(`tournaments/${TID}`).delete().catch(() => {});
 }
 
+/** 1라운드 24매치 중 n개를 미리 채운다(관리자 시드) — 진행 지점을 만드는 가장 싼 방법. */
+async function seedRound1Votes(n: number): Promise<void> {
+  const d = db();
+  const ids = seededRound1Ids();
+  const batch = d.batch();
+  for (let i = 0; i < n; i++) {
+    batch.set(d.doc(`votes/${TID}_${UID}_r1_m${i}`), {
+      userId: UID,
+      tournamentId: TID,
+      round: 1,
+      matchId: `${TID}:r1:m${i}`,
+      contestantId: ids[i * 2],
+      date: "2020-01-01", // 과거 날짜 — 오늘의 판 한도에 잡히지 않는다
+      runIndex: 1,
+      isGuest: false,
+    });
+  }
+  await batch.commit();
+}
+
+/**
+ * 2~4라운드를 관리자 시드로 채워 **결승만 남긴다**(c1 의 THE FINAL 테스트와 같은 방식).
+ * 라운드별 매치 수: 2라운드 12 · 3라운드 6 · 4라운드 3.
+ */
+async function seedLaterRounds(): Promise<void> {
+  const d = db();
+  const batch = d.batch();
+  for (const [round, count] of [
+    [2, 12],
+    [3, 6],
+    [4, 3],
+  ] as const) {
+    for (let i = 0; i < count; i++) {
+      batch.set(d.doc(`votes/${TID}_${UID}_r${round}_m${i}`), {
+        userId: UID,
+        tournamentId: TID,
+        round,
+        matchId: `${TID}:r${round}:m${i}`,
+        contestantId: `${TID}_c${i + 1}`,
+        date: "2020-01-01",
+        runIndex: 1,
+        isGuest: false,
+      });
+    }
+  }
+  await batch.commit();
+}
+
 async function votesFor(): Promise<number> {
   const snap = await db().collection("votes").where("userId", "==", UID).where("tournamentId", "==", TID).get();
   return snap.size;
@@ -213,6 +261,15 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.afterAll(async () => cleanup());
 
   test.beforeEach(async ({ page }) => {
+    // ARENA-1 PR 2b — 첫 입장 안내 팝업(기기당 1회)이 칸 클릭을 가로채지 않게, 이 스펙은
+    // "이미 본 기기"로 시작한다. 팝업 자체는 arena1-split-stage 의 전용 테스트가 본다.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+      }
+    });
     await resetVoterProgress();
 
     consoleErrors = [];
@@ -481,5 +538,118 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
         await expect(page.getByText(GUEST_NOTICE[lang])).toHaveCount(0);
       });
     }
+  });
+
+  // ══ ARENA-1 PR 2b — 네 화면 (디자인 정본 10~27) ══
+  test.describe("PR 2b · 확정 연출 · 결승 · 배너", () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test("확정 연출 — 금색 고리 두 겹 · 크라운 0건 · 520ms 뒤 다음 매치", async ({ page }) => {
+      await openStage(page);
+      const [m0Left] = seededRound1Ids();
+      await page.getByTestId("vote-left").click();
+      // 고리는 확정 순간에만, 두 겹 (D-11 · 디자인 10)
+      await expect(page.getByTestId("confirm-ring")).toHaveCount(2);
+      // 크라운 표식은 무대 어디에도 없다 (D-28)
+      await expect(page.locator('[data-testid="split-stage"] [class*="crown" i]')).toHaveCount(0);
+      await expect(page.locator('[data-testid="split-stage"] img[src*="crown" i]')).toHaveCount(0);
+      await expect(page.getByTestId("vote-left")).not.toContainText(nameOf(m0Left), { timeout: 15_000 });
+      await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
+    });
+
+    test("배너 자리 = 광고 표준 크기 (D-21 바뀜 09-21)", async ({ page }) => {
+      await openStage(page);
+      const banner = page.getByTestId("banner-slot");
+      await expect(banner).toHaveAttribute("data-banner-variant", "desktop");
+      const b = await box(page, '[data-testid="banner-slot"]');
+      expect([b.w, b.h]).toEqual([970, 90]);
+    });
+
+    test("결승 3분할 — 세 칸 정사각 · 띠 3색 · 크라운 0건 (D-06 · D-29 · D-28)", async ({ page }) => {
+      await seedRound1Votes(24);
+      await seedLaterRounds(); // 2~4라운드까지 채워 결승만 남긴다
+      await openStage(page);
+      await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
+      const l = await box(page, '[data-testid="vote-left"]');
+      const m = await box(page, '[data-testid="vote-mid"]');
+      const r = await box(page, '[data-testid="vote-right"]');
+      for (const c of [l, m, r]) expect(c.w).toBe(c.h); // 정사각
+      expect([m.x - (l.x + l.w), r.x - (m.x + m.w)]).toEqual([0, 0]); // 균등·틈 0
+      const frame = await box(page, '[data-stage-layer="frame"]');
+      expect(frame.w).toBe(1320); // 매치와 같은 프레임
+      // 띠 3색 — 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (D-29)
+      const bands = await page.evaluate(() =>
+        ["vote-left", "vote-mid", "vote-right"].map((id) => {
+          const el = document.querySelector(`[data-testid="${id}"] [class*="band"]`);
+          return el ? getComputedStyle(el).backgroundColor : "";
+        }),
+      );
+      expect(bands[0]).toContain("0, 163, 183");
+      expect(bands[1]).toContain("252, 208, 6");
+      expect(bands[2]).toContain("215, 6, 58");
+      await expect(page.locator('[data-testid="final-stage"] [class*="crown" i]')).toHaveCount(0);
+      // 무대 금지 4종 (R2)
+      const text = (await page.getByTestId("final-stage").innerText()).replace(/\s+/g, " ");
+      expect(text).not.toMatch(/ROUND OF|\d\s*%|ENDS IN/i);
+      await page.screenshot({ path: "playwright-report/arena1-final-1440.png", fullPage: true });
+    });
+
+    test("라운드 전환 — 라운드 이름은 이 화면에만 · 탭하면 바로 (R2 · D-06)", async ({ page }) => {
+      await seedRound1Votes(23); // 마지막 한 매치만 남긴다
+      await openStage(page);
+      await expect(page.getByTestId("split-stage")).toBeVisible();
+      // 매치 화면에는 라운드 이름이 없다
+      expect((await page.getByTestId("split-stage").innerText())).not.toMatch(/ROUND OF/i);
+      await page.getByTestId("vote-left").click();
+      const transition = page.getByTestId("round-transition");
+      await expect(transition).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("round-prev")).toHaveText("ROUND OF 48");
+      await expect(page.getByTestId("round-next")).toHaveText("ROUND OF 24");
+      await expect(transition).toContainText("24"); // 코너: 다음 라운드에 오르는 인원 수
+      await expect(page.locator(".wc-nav")).toBeHidden(); // 전체화면 · 메뉴 없음
+      await expect(page.getByTestId("banner-slot")).toHaveCount(0); // 배너 없음(D-26)
+      await page.screenshot({ path: "playwright-report/arena1-round-transition.png" });
+      // 탭하면 바로 넘어간다 — 2초를 기다리지 않는다
+      await transition.click();
+      await expect(transition).toBeHidden({ timeout: 3_000 });
+      await expect(page.getByTestId("split-stage")).toBeVisible();
+    });
+  });
+
+  // 첫 입장 팝업은 "아직 안 본 기기"여야 하므로 초기 스크립트를 덮어쓴다.
+  test.describe("PR 2b · 첫 입장 팝업 (D-13)", () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+    test("첫 진입에 1회 · 닫기 전 선택 불가 · 세로에서만 회전 안내 · 두 번째 방문엔 없음", async ({ page }) => {
+      await page.addInitScript(() => {
+        try {
+          localStorage.removeItem("wc48:arena:intro:v1");
+        } catch {
+          /* 막힌 환경 */
+        }
+      });
+      await page.goto(`/arena/${TID}?lang=ko`);
+      await dismissCookieBanner(page);
+      const intro = page.getByTestId("arena-intro");
+      await expect(intro).toBeVisible({ timeout: 30_000 });
+      await expect(intro).toContainText("Crown Card는 Tournament가 끝난 뒤 공개됩니다");
+      await expect(page.getByTestId("arena-intro-rotate")).toBeVisible(); // 세로에서만
+
+      // 닫기 전에는 선택할 수 없다 — 칸을 탭해도 arm 되지 않는다.
+      await page.getByTestId("vote-left").tap({ force: true }).catch(() => {});
+      await expect(page.getByTestId("split-stage")).toHaveAttribute("data-stage-status", "idle");
+      expect(await votesFor()).toBe(0);
+
+      await page.getByTestId("arena-intro-start").tap();
+      await expect(intro).toHaveCount(0);
+      await page.getByTestId("vote-left").tap();
+      await expect(page.getByTestId("split-stage")).toHaveAttribute("data-stage-status", "focusL");
+
+      // 두 번째 방문 — 같은 기기라 다시 뜨지 않는다.
+      await page.reload();
+      await dismissCookieBanner(page);
+      await expect(page.getByTestId("split-stage")).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByTestId("arena-intro")).toHaveCount(0);
+    });
   });
 });

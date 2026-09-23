@@ -121,6 +121,14 @@ test.describe("C-2 Crown Card — Voter share flow", () => {
   test.afterAll(async () => cleanup());
 
   test.beforeEach(async ({ page }) => {
+    // ARENA-1 PR 2b — 첫 입장 안내 팝업이 칸 클릭을 가로채지 않게 "이미 본 기기"로 시작한다.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+      }
+    });
     await resetVoterProgress();
     await seedToFinal();
     consoleErrors = [];
