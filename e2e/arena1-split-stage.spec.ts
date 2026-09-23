@@ -575,8 +575,12 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       const r = await box(page, '[data-testid="vote-right"]');
       for (const c of [l, m, r]) expect(c.w).toBe(c.h); // 정사각
       expect([m.x - (l.x + l.w), r.x - (m.x + m.w)]).toEqual([0, 0]); // 균등·틈 0
+      // 프레임은 매치와 같다. 숫자를 박지 않고 D-17 규칙으로 검산한다 —
+      // 무대 윗변은 글꼴 렌더에 따라 몇 px 달라진다(CI 리눅스 ≈222 · 로컬 195).
       const frame = await box(page, '[data-stage-layer="frame"]');
-      expect(frame.w).toBe(1320); // 매치와 같은 프레임
+      const matchCell = Math.min(640, 900 - frame.y - 40);
+      expect(frame.w).toBe(matchCell * 2 + 40); // 매치와 같은 프레임(1440 기준 1320)
+      expect(l.w).toBe(Math.floor((matchCell * 2) / 3)); // 그 프레임을 셋으로
       // 띠 3색 — 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (D-29)
       const bands = await page.evaluate(() =>
         ["vote-left", "vote-mid", "vote-right"].map((id) => {
