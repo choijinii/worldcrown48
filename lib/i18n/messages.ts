@@ -260,11 +260,6 @@ export const MESSAGES = {
     es: "Este Tournament ha cerrado. Empieza una nueva partida en otro Tournament.",
   },
   // 게스트 안내 3지점 중 ①(첫 진입) · ②(Crown Card 화면의 남은 횟수).
-  "arena.guest.welcome": {
-    ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
-    en: "Join up to 3 times a day — no sign-in needed!",
-    es: "¡Participa hasta 3 veces al día — sin iniciar sesión!",
-  },
   "arena.guest.remaining": {
     ko: "오늘 남은 참여 가능 횟수는 : {n}판 · 저장하려면 로그인",
     en: "Entries left today: {n} · Sign in to save",
@@ -694,6 +689,46 @@ export const MESSAGES = {
   },
   "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
   "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
+  // ARENA-1 PR 2a — 라운드 전환 화면 (라운드명이 나오는 유일한 화면 · 킥 R2).
+  // 문구 정본 = PR 2a 프롬프트 §5 표 (2026-09-20 대표 승인). 모양은 그대로, 글자만 키로 옮겼다.
+  "arena.round.spectatorNote": {
+    ko: "✦ 잠시 숨을 고르는 시간",
+    en: "✦ A moment to breathe",
+    es: "✦ Un momento para respirar",
+  },
+  // {round} 자리에 라운드 이름이 굵게 들어간다 (lib/i18n/splitAround).
+  "arena.round.completed": {
+    ko: "방금 마친 라운드 {round}",
+    en: "You completed {round}",
+    es: "Has completado {round}",
+  },
+  "arena.round.next": {
+    ko: "다음 라운드",
+    en: "Next round",
+    es: "Siguiente ronda",
+  },
+  // ARENA-1 PR 2a — 결승(THE FINAL) 화면. THE FINAL · Crown 은 3언어 모두 영문 원형
+  // (LANGUAGE.md §10 번역 불가 고유명사). "최애 / Choe-ae" 는 원장 D-25.
+  "arena.final.eyebrow": {
+    ko: "결승 · THE FINAL",
+    en: "THE FINAL",
+    es: "THE FINAL",
+  },
+  "arena.final.title": {
+    ko: "당신의 최애를 골라 주세요",
+    en: "Pick your Choe-ae",
+    es: "Elige a tu Choe-ae",
+  },
+  "arena.final.sub": {
+    ko: "세 명 중 한 명을 직접 골라 주세요",
+    en: "Pick one of the three",
+    es: "Elige a uno de los tres",
+  },
+  "arena.final.foot": {
+    ko: "한 번의 선택 · 하나의 Crown · 되돌리기 없음",
+    en: "One pick · One Crown · No do-overs",
+    es: "Una elección · Un Crown · Sin vuelta atrás",
+  },
   // ARENA-1 (원장 D-17 ②) — 모바일 세로에서만 보이는 한 줄. ko = 디자인 파일 그대로,
   // en·es = ARENA-1 PR 1 §5 게이트 2 대표 승인 2026-09-19.
   "arena.stage.rotateHint": {

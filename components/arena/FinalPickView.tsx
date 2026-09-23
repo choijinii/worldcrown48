@@ -31,18 +31,15 @@ export function FinalPickView({
   disabled,
   onPick,
 }: FinalPickViewProps): JSX.Element {
-  const { lang } = useT();
+  const { t, lang } = useT();
   const hasPick = Boolean(pickedId);
 
   return (
     <div className={styles.finalStage}>
       <header className={styles.finalHead}>
-        <div className={styles.finalEyebrow}>결승 · THE FINAL</div>
-        <div className={styles.finalH}>Choose your Champion</div>
-        <div className={styles.finalSub}>
-          3명의 파이널리스트 중 한 명을 직접 선택하세요 · pick one of three,
-          directly
-        </div>
+        <div className={styles.finalEyebrow}>{t("arena.final.eyebrow")}</div>
+        <div className={styles.finalH}>{t("arena.final.title")}</div>
+        <div className={styles.finalSub}>{t("arena.final.sub")}</div>
       </header>
 
       <div className={styles.finalRow}>
@@ -88,9 +85,7 @@ export function FinalPickView({
         })}
       </div>
 
-      <div className={styles.finalFoot}>
-        One pick · One Crown · no second round
-      </div>
+      <div className={styles.finalFoot}>{t("arena.final.foot")}</div>
     </div>
   );
 }

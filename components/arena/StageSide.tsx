@@ -50,10 +50,14 @@ interface StageSideProps {
 }
 
 /**
- * 포스터는 이 화면의 LCP 다 — 글꼴보다 먼저 받게 한다. React 18.3 은 fetchPriority prop 을
- * 모르므로 소문자 HTML 속성을 그대로 넘긴다(19 로 올리면 fetchPriority="high" 로 바꾼다).
+ * 포스터는 이 화면의 LCP 다 — 글꼴보다 먼저 받게 한다.
+ *
+ * Next 가 번들한 React 는 camelCase `fetchPriority` 를 알고 소문자 속성으로 내보낸다.
+ * 소문자로 넘기면 개발 빌드에서 "Invalid DOM property" 경고가 콘솔 에러로 찍힌다
+ * (2026-09-21 프리플라이트 실측 — 운영 빌드에서는 경고가 제거돼 스모크 때 보이지 않았다).
+ * @types/react 18.3 에는 아직 이 prop 이 없어 타입만 넓혀 넘긴다.
  */
-const HIGH_PRIORITY = { fetchpriority: "high" } as Record<string, string>;
+const HIGH_PRIORITY = { fetchPriority: "high" } as unknown as Record<string, string>;
 
 /** 유튜브가 "그런 썸네일 없음" 대신 돌려주는 회색 자리표시 그림의 폭. */
 const YT_PLACEHOLDER_WIDTH = 120;

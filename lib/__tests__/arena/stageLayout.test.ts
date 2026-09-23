@@ -5,7 +5,7 @@
  * 기기별 숫자를 하드코딩하지 않는다 — 아래 숫자는 디자인 파일(아트보드 1·6·9) 검산값.
  */
 import { describe, expect, it } from "vitest";
-import { computeStageLayout, stageMode } from "@/lib/arena/stageLayout";
+import { computeStageLayout, pickViewportHeight, stageMode } from "@/lib/arena/stageLayout";
 
 describe("stageMode — 태블릿 기준 폭 1024 (D-17 ④)", () => {
   it("1024 이상 = 데스크톱", () => {
@@ -75,5 +75,27 @@ describe("computeStageLayout — 디자인 검산값", () => {
 
   it("너무 좁은 화면에서도 칸이 바닥(120) 밑으로 줄지 않는다", () => {
     expect(computeStageLayout({ width: 130, height: 600, top: 68 }).cell).toBe(120);
+  });
+});
+
+// ── ARENA-1 PR 2a — 실제로 남는 높이 (주소창이 접히고 펴지는 기기) ──
+describe("pickViewportHeight — 주소창이 가린 높이 (D-17 칸 규칙의 입력)", () => {
+  it("visualViewport 가 있으면 그 높이를 쓴다 — 크롬 안드로이드의 innerHeight 는 주소창을 반영하지 않는다", () => {
+    expect(pickViewportHeight(844, 731)).toBe(731);
+  });
+
+  it("visualViewport 가 없으면(아이폰 옛 사파리 등) innerHeight", () => {
+    expect(pickViewportHeight(844, undefined)).toBe(844);
+    expect(pickViewportHeight(844, null)).toBe(844);
+  });
+
+  it("말이 안 되는 값(0·음수·NaN)은 무시하고 innerHeight", () => {
+    for (const bad of [0, -10, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(pickViewportHeight(844, bad)).toBe(844);
+    }
+  });
+
+  it("전체화면으로 주소창이 사라지면 두 값이 같아진다", () => {
+    expect(pickViewportHeight(844, 844)).toBe(844);
   });
 });

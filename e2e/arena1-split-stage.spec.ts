@@ -128,6 +128,53 @@ async function votesFor(): Promise<number> {
 
 const stage = (page: Page) => page.getByTestId("split-stage");
 
+/** PR 2a — 매치 화면에서 뺀 게스트 안내 (원장 "RUN-1 게스트 안내 · 바뀜 2026-09-20"). */
+const GUEST_NOTICE = {
+  ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
+  en: "Join up to 3 times a day",
+  es: "Participa hasta 3 veces al día",
+} as const;
+
+/**
+ * PR 2a — 전체화면 호출을 세는 스파이.
+ *
+ * 헤드리스 크로미움에서 실제 전체화면은 불안정해서(요청이 조용히 거부되기도 한다) 화면 크기로
+ * 판정할 수 없다. 대신 requestFullscreen/exitFullscreen 을 감싸 **호출 횟수**로 본다.
+ * `fullscreenElement` 도 흉내 내어 "이미 전체화면이면 다시 요청하지 않는다"까지 볼 수 있게 한다.
+ */
+async function installFullscreenSpy(page: Page, opts: { supported?: boolean } = {}): Promise<void> {
+  await page.addInitScript((supported: boolean) => {
+    const w = window as unknown as { __fsCalls: string[] };
+    w.__fsCalls = [];
+    let fake: Element | null = null;
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      get: () => fake,
+    });
+    if (!supported) {
+      // 아이폰 사파리 흉내 — 기능 자체가 없다.
+      // @ts-expect-error 테스트에서 일부러 지운다
+      delete Element.prototype.requestFullscreen;
+      return;
+    }
+    Element.prototype.requestFullscreen = function requestFullscreen(this: Element) {
+      w.__fsCalls.push("request");
+      fake = this;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    };
+    document.exitFullscreen = function exitFullscreen() {
+      w.__fsCalls.push("exit");
+      fake = null;
+      document.dispatchEvent(new Event("fullscreenchange"));
+      return Promise.resolve();
+    };
+  }, opts.supported ?? true);
+}
+
+const fsCalls = (page: Page): Promise<string[]> =>
+  page.evaluate(() => (window as unknown as { __fsCalls?: string[] }).__fsCalls ?? []);
+
 async function openStage(page: Page, lang = "ko"): Promise<void> {
   await page.goto(`/arena/${TID}?lang=${lang}`);
   await expect(stage(page)).toBeVisible({ timeout: 30_000 });
@@ -320,6 +367,11 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
     });
 
     test("④⑤ 1탭 arm · 2탭 확정 · 회전해도 진행 유지 · 가로는 메뉴 없음", async ({ page }) => {
+      // 이 테스트가 보는 것은 탭 규칙과 회전이다. 스파이를 심어 **진짜** 전체화면을 막는다 —
+      // PR 2a 이후 가로에서 탭하면 실제로 전체화면에 들어가고, 그 상태의 창은 크기를 바꿀 수
+      // 없어 아래 setViewportSize 가 거부된다(2026-09-21 CI 실측). 전체화면 동작 자체는
+      // 아래 전용 테스트가 호출 횟수로 본다.
+      await installFullscreenSpy(page);
       await openStage(page);
       const [m0Left] = seededRound1Ids();
 
@@ -361,5 +413,73 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(page.locator(".wc-nav")).toBeVisible();
     });
+
+    // ── PR 2a — 모바일 가로 첫 탭 전체화면 (원장 "D-17 · 바뀜 2026-09-20") ──
+    test("가로 첫 탭에 전체화면 1회 · 같은 진입에서 추가 0회 · 세로 복귀 시 해제", async ({ page }) => {
+      await installFullscreenSpy(page);
+      await page.setViewportSize({ width: 844, height: 390 });
+      await openStage(page);
+      await expect(stage(page)).toHaveAttribute("data-stage-mode", "landscape");
+      expect(await fsCalls(page)).toEqual([]); // 진입만으로는 요청하지 않는다(사용자 동작 필요)
+
+      // 첫 탭: 전체화면 1회 + 탭 규칙 그대로 arm (전체화면은 탭을 소비하지 않는다)
+      await page.getByTestId("vote-left").tap();
+      expect(await fsCalls(page)).toEqual(["request"]);
+      await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
+      expect(await votesFor()).toBe(0);
+
+      // 두 번째 탭: 추가 요청 없음 + 선택 확정 (2탭 규칙 불변)
+      const [m0Left] = seededRound1Ids();
+      await page.getByTestId("vote-left").tap();
+      expect(await fsCalls(page)).toEqual(["request"]);
+      await expect(page.getByTestId("vote-left")).not.toContainText(nameOf(m0Left), { timeout: 15_000 });
+      await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
+
+      // 같은 가로 진입에서 또 탭해도 추가 요청 없음
+      await page.getByTestId("vote-right").tap();
+      expect(await fsCalls(page)).toEqual(["request"]);
+
+      // 세로로 돌리면 자동 해제, 다시 가로로 오면 새 진입이라 한 번 더
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect(stage(page)).toHaveAttribute("data-stage-mode", "portrait");
+      await expect.poll(() => fsCalls(page), { timeout: 5_000 }).toEqual(["request", "exit"]);
+      await page.setViewportSize({ width: 844, height: 390 });
+      await expect(stage(page)).toHaveAttribute("data-stage-mode", "landscape");
+      await page.getByTestId("vote-left").tap();
+      expect(await fsCalls(page)).toEqual(["request", "exit", "request"]);
+    });
+
+    test("모바일 세로에서는 전체화면을 요청하지 않는다", async ({ page }) => {
+      await installFullscreenSpy(page);
+      await openStage(page);
+      await page.getByTestId("vote-left").tap();
+      await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
+      expect(await fsCalls(page)).toEqual([]);
+    });
+
+    test("전체화면을 지원하지 않는 기기(아이폰 사파리 흉내) — 콘솔 에러 0 · 무대가 화면 밖으로 넘치지 않는다", async ({ page }) => {
+      await installFullscreenSpy(page, { supported: false });
+      await page.setViewportSize({ width: 844, height: 390 });
+      await openStage(page);
+      await page.getByTestId("vote-left").tap();
+      await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
+      expect(await fsCalls(page)).toEqual([]);
+      // 칸은 남는 높이 안에 들어간다 (D-17 칸 규칙 — 기기별 숫자 하드코딩 없음)
+      const l = await box(page, '[data-testid="vote-left"]');
+      const f = await box(page, '[data-stage-layer="frame"]');
+      expect(l.w).toBe(l.h);
+      expect(f.y + f.h).toBeLessThanOrEqual(390);
+    });
+  });
+
+  // ── PR 2a — 매치 화면 게스트 안내 제거 (원장 "RUN-1 게스트 안내 · 바뀜") ──
+  test.describe("게스트 안내", () => {
+    for (const lang of ["ko", "en", "es"] as const) {
+      test(`매치 화면에 게스트 안내가 없다 (${lang})`, async ({ page }) => {
+        await openStage(page, lang);
+        await expect(stage(page)).not.toContainText(GUEST_NOTICE[lang]);
+        await expect(page.getByText(GUEST_NOTICE[lang])).toHaveCount(0);
+      });
+    }
   });
 });

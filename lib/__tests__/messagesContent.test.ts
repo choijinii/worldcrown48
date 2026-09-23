@@ -86,10 +86,42 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
       en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
       es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
     },
-    "arena.guest.welcome": {
-      ko: "로그인 없이 하루 3번까지 참여가 가능해요!",
-      en: "Join up to 3 times a day — no sign-in needed!",
-      es: "¡Participa hasta 3 veces al día — sin iniciar sesión!",
+    // ARENA-1 PR 2a §5 표 — 2026-09-20 대표 승인본. 모양은 그대로, 글자만 키로 옮긴 건이라
+    // 승인본을 글자 단위로 고정한다(라운드 전환 3건 · 결승 4건).
+    "arena.round.spectatorNote": {
+      ko: "✦ 잠시 숨을 고르는 시간",
+      en: "✦ A moment to breathe",
+      es: "✦ Un momento para respirar",
+    },
+    "arena.round.completed": {
+      ko: "방금 마친 라운드 {round}",
+      en: "You completed {round}",
+      es: "Has completado {round}",
+    },
+    "arena.round.next": {
+      ko: "다음 라운드",
+      en: "Next round",
+      es: "Siguiente ronda",
+    },
+    "arena.final.eyebrow": {
+      ko: "결승 · THE FINAL",
+      en: "THE FINAL",
+      es: "THE FINAL",
+    },
+    "arena.final.title": {
+      ko: "당신의 최애를 골라 주세요",
+      en: "Pick your Choe-ae",
+      es: "Elige a tu Choe-ae",
+    },
+    "arena.final.sub": {
+      ko: "세 명 중 한 명을 직접 골라 주세요",
+      en: "Pick one of the three",
+      es: "Elige a uno de los tres",
+    },
+    "arena.final.foot": {
+      ko: "한 번의 선택 · 하나의 Crown · 되돌리기 없음",
+      en: "One pick · One Crown · No do-overs",
+      es: "Una elección · Un Crown · Sin vuelta atrás",
     },
     "arena.guest.remaining": {
       ko: "오늘 남은 참여 가능 횟수는 : {n}판 · 저장하려면 로그인",

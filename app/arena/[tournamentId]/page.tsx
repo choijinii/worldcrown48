@@ -522,21 +522,6 @@ export default function ArenaPage(): JSX.Element {
           loading={submitting}
           onVote={vote}
           onSignIn={() => setModal("vote")}
-          notice={
-            // 게스트 안내 ① — 첫 진입(아직 한 판도 안 쓴 상태)에만 보인다.
-            isGuest && run?.runsToday === 0 ? (
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: 12,
-                  color: "var(--color-text-muted)",
-                  margin: "var(--space-3) 0 0",
-                }}
-              >
-                {t("arena.guest.welcome")}
-              </p>
-            ) : null
-          }
         />
         {loginModal}
       </div>
