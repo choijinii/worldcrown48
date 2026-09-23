@@ -393,10 +393,9 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
           await expect(banner).toContainText(copy);
         }
         expect((await banner.innerText()).trim().length).toBeGreaterThan(0);
+        // PR 2b(D-21 바뀜 09-21): 자리 = 광고 크기. 데스크톱 970×90.
         const b = await box(page, '[data-testid="banner-slot"]');
-        const f = await box(page, '[data-stage-layer="frame"]');
-        expect(b.w).toBe(f.w); // 무대 프레임과 같은 폭 (1440 기준 1320)
-        expect(b.h).toBeGreaterThanOrEqual(140);
+        expect([b.w, b.h]).toEqual([970, 90]);
         await banner.screenshot({ path: `playwright-report/arena1-banner-${lang}.png` });
       });
     }
@@ -414,12 +413,11 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       expect(right.y - (left.y + left.h)).toBe(0); // 위아래로 맞붙음
       expect(left.x).toBe(right.x);
       await expect(page.getByTestId("stage-rotate-hint")).toHaveText("가로로 돌리면 무대가 더 크게 열립니다");
-      // 배너 — 폭 = 프레임 폭 366, 높이 = 문구 높이 (원장 D-21 바뀜 2026-09-19)
+      // 배너 — 모바일 세로 320×100 (원장 D-21 바뀜 2026-09-21 · 광고 표준 크기)
       const frame = await box(page, '[data-stage-layer="frame"]');
       const banner = await box(page, '[data-testid="banner-slot"]');
       expect(frame.w).toBe(366);
-      expect(banner.w).toBe(366);
-      expect(banner.h).toBeGreaterThan(0);
+      expect([banner.w, banner.h]).toEqual([320, 100]);
       await page.screenshot({ path: "playwright-report/arena1-portrait-390.png", fullPage: true });
     });
 
@@ -568,7 +566,9 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
     test("결승 3분할 — 세 칸 정사각 · 띠 3색 · 크라운 0건 (D-06 · D-29 · D-28)", async ({ page }) => {
       await seedRound1Votes(24);
       await seedLaterRounds(); // 2~4라운드까지 채워 결승만 남긴다
-      await openStage(page);
+      // openStage 는 split-stage 를 기다린다 — 결승 화면에는 그것이 없다.
+      await page.goto(`/arena/${TID}?lang=ko`);
+      await dismissCookieBanner(page);
       await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
       const l = await box(page, '[data-testid="vote-left"]');
       const m = await box(page, '[data-testid="vote-mid"]');
@@ -621,9 +621,15 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
     test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
     test("첫 진입에 1회 · 닫기 전 선택 불가 · 세로에서만 회전 안내 · 두 번째 방문엔 없음", async ({ page }) => {
+      // ⚠️ 이 스펙의 beforeEach 는 매 이동마다 "이미 봤다"를 심는다. 여기서는 **첫 문서에서만**
+      // 그 값을 지워 팝업을 띄우고, 새로고침 뒤에는 앱이 적은 값이 그대로 살아 있게 둔다
+      // (매 이동마다 지우면 재방문 검사가 거짓으로 깨진다 — 2026-09-23 CI 실측).
       await page.addInitScript(() => {
         try {
-          localStorage.removeItem("wc48:arena:intro:v1");
+          if (!sessionStorage.getItem("wc48:e2e:intro-cleared")) {
+            sessionStorage.setItem("wc48:e2e:intro-cleared", "1");
+            localStorage.removeItem("wc48:arena:intro:v1");
+          }
         } catch {
           /* 막힌 환경 */
         }
