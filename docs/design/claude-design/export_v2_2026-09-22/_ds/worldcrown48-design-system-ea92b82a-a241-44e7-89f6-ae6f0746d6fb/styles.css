@@ -1,0 +1,4 @@
+/* WorldCrown48 — Design System v2.4 · root entry stylesheet.
+   Consumers link this one file; it pulls in the full closure. */
+@import url("colors_and_type.css");
+@import url("ui_kits/web/kit.css");

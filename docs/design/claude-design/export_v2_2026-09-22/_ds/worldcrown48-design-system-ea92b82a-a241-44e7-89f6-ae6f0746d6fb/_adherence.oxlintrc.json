@@ -1,0 +1,264 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/AIReportFooter/**",
+              "components/Button/**",
+              "components/StatusPill/**",
+              "components/TournamentCard/**",
+              "components/VSBattle/**",
+              "ds/**",
+              "ui_kits/web/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Pretendard|Playfair Display Local|Inter|Playfair Display|JetBrains Mono))/i]",
+        "message": "Font not provided by the design system. Available: Pretendard, Playfair Display Local, Inter, Playfair Display, JetBrains Mono."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='AIReportFooter'] > JSXAttribute > JSXIdentifier[name!=/^(?:timestamp|key|ref|className|style|children)$/]",
+        "message": "<AIReportFooter> doesn't accept that prop. Declared props: timestamp."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|variant|size|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: children, variant, size, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:gold|ghost|quiet)$/]",
+        "message": "<Button> variant must be one of 'gold' | 'ghost' | 'quiet'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StatusPill'] > JSXAttribute > JSXIdentifier[name!=/^(?:status|key|ref|className|style|children)$/]",
+        "message": "<StatusPill> doesn't accept that prop. Declared props: status."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StatusPill'] > JSXAttribute[name.name='status'] > Literal[value!=/^(?:draft|published|active|closed|completed)$/]",
+        "message": "<StatusPill> status must be one of 'draft' | 'published' | 'active' | 'closed' | 'completed'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TournamentCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:category|title|contestants|deadline|status|cover|key|ref|className|style|children)$/]",
+        "message": "<TournamentCard> doesn't accept that prop. Declared props: category, title, contestants, deadline, status, cover."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TournamentCard'] > JSXAttribute[name.name='category'] > Literal[value!=/^(?:K-POP|OTHER)$/]",
+        "message": "<TournamentCard> category must be one of 'K-POP' | 'OTHER'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TournamentCard'] > JSXAttribute[name.name='status'] > Literal[value!=/^(?:draft|published|active|closed|completed)$/]",
+        "message": "<TournamentCard> status must be one of 'draft' | 'published' | 'active' | 'closed' | 'completed'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='VSContestant'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|meta|initial|tint|key|ref|className|style|children)$/]",
+        "message": "<VSContestant> doesn't accept that prop. Declared props: name, meta, initial, tint."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "AIReportFooter": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "StatusPill": {
+        "replaces": []
+      },
+      "TournamentCard": {
+        "replaces": []
+      },
+      "VSContestant": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--bg",
+      "--bg-2",
+      "--bg-3",
+      "--bg-4",
+      "--border",
+      "--color-aura",
+      "--color-bg-charcoal",
+      "--color-bg-deep",
+      "--color-bg-default",
+      "--color-bg-elevated",
+      "--color-bg-light",
+      "--color-bg-soft",
+      "--color-bg-void",
+      "--color-border",
+      "--color-border-gold",
+      "--color-border-light",
+      "--color-crimson",
+      "--color-gold",
+      "--color-gold-bright",
+      "--color-gold-glow",
+      "--color-gold-hover",
+      "--color-gold-subtle",
+      "--color-powder",
+      "--color-surface-light",
+      "--color-text",
+      "--color-text-light",
+      "--color-text-muted",
+      "--color-text-muted-light",
+      "--color-text-sub",
+      "--color-text-sub-light",
+      "--color-turquoise",
+      "--font-body",
+      "--font-display",
+      "--font-heading",
+      "--font-mono",
+      "--font-sans",
+      "--radius-badge",
+      "--radius-border",
+      "--radius-btn",
+      "--radius-card",
+      "--radius-card-hero",
+      "--radius-chip",
+      "--radius-modal",
+      "--radius-panel",
+      "--radius-rect",
+      "--shadow",
+      "--shadow-card",
+      "--shadow-crimson",
+      "--shadow-gnb",
+      "--shadow-gold",
+      "--shadow-light",
+      "--shadow-turquoise",
+      "--space-1",
+      "--space-10",
+      "--space-12",
+      "--space-16",
+      "--space-2",
+      "--space-20",
+      "--space-24",
+      "--space-3",
+      "--space-32",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-8",
+      "--text",
+      "--text-mut",
+      "--text-sub"
+    ],
+    "tokenKinds": {
+      "--color-bg-void": "color",
+      "--color-bg-deep": "color",
+      "--color-bg-default": "color",
+      "--color-bg-soft": "color",
+      "--color-bg-elevated": "color",
+      "--color-bg-charcoal": "color",
+      "--color-gold": "color",
+      "--color-gold-bright": "color",
+      "--color-gold-hover": "color",
+      "--color-gold-subtle": "color",
+      "--color-gold-glow": "color",
+      "--color-aura": "color",
+      "--color-crimson": "color",
+      "--color-turquoise": "color",
+      "--color-powder": "color",
+      "--color-text": "font",
+      "--color-text-sub": "font",
+      "--color-text-muted": "font",
+      "--color-border": "color",
+      "--color-border-gold": "color",
+      "--color-bg-light": "color",
+      "--color-surface-light": "color",
+      "--color-text-light": "font",
+      "--color-text-sub-light": "font",
+      "--color-text-muted-light": "font",
+      "--color-border-light": "color",
+      "--shadow-card": "shadow",
+      "--shadow-gold": "shadow",
+      "--shadow-crimson": "shadow",
+      "--shadow-turquoise": "shadow",
+      "--shadow-gnb": "shadow",
+      "--shadow-light": "shadow",
+      "--radius-rect": "radius",
+      "--radius-border": "radius",
+      "--radius-chip": "radius",
+      "--radius-card": "radius",
+      "--radius-card-hero": "radius",
+      "--radius-modal": "radius",
+      "--radius-panel": "radius",
+      "--radius-btn": "radius",
+      "--radius-badge": "radius",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-8": "spacing",
+      "--space-10": "spacing",
+      "--space-12": "spacing",
+      "--space-16": "spacing",
+      "--space-20": "spacing",
+      "--space-24": "spacing",
+      "--space-32": "spacing",
+      "--font-sans": "font",
+      "--font-display": "font",
+      "--font-mono": "font",
+      "--font-heading": "font",
+      "--font-body": "font",
+      "--bg": "color",
+      "--bg-2": "color",
+      "--bg-3": "color",
+      "--bg-4": "color",
+      "--text": "font",
+      "--text-sub": "font",
+      "--text-mut": "font",
+      "--border": "color",
+      "--shadow": "shadow"
+    },
+    "fontFamilies": [
+      "Inter",
+      "JetBrains Mono",
+      "Playfair Display",
+      "Playfair Display Local",
+      "Pretendard"
+    ]
+  }
+}
