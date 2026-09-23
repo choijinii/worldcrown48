@@ -141,9 +141,15 @@ describe("computeFinalLayout — 결승은 매치 무대 프레임을 셋으로 
       const match = computeStageLayout({ width: w, height: h, top });
       const final = computeFinalLayout({ width: w, height: h, top });
       expect(final.cell).toBeLessThan(match.cell);
-      expect(final.frameW).toBe(match.frameW);
       expect(final.frameH).toBe(match.frameH);
       expect(Number.isInteger(final.cell)).toBe(true);
+      if (final.direction === "row") {
+        expect(final.frameW).toBe(match.frameW); // 좌우 3칸: 매치 프레임 그대로
+      } else {
+        // 상하 3단: 프레임이 화면 폭을 쓰고 좁아진 칸을 가운데 둔다 (아트보드 22)
+        expect(final.frameW).toBeGreaterThanOrEqual(match.frameW);
+        expect(final.frameW).toBe(w - 24);
+      }
     }
   });
 });
