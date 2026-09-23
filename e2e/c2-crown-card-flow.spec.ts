@@ -138,8 +138,10 @@ test.describe("C-2 Crown Card — Voter share flow", () => {
   test("final pick → Crown Card modal auto-opens → format toggle → download → toast", async ({ page }) => {
     await page.goto(`/arena/${TID}?lang=ko`);
 
-    // THE FINAL: pick the first Champion (CROWN button).
-    await page.getByRole("button", { name: /CROWN/ }).first().click();
+    // THE FINAL (ARENA-1 PR 2b): 3분할 무대의 첫 칸을 고른다. CROWN 버튼은 사라졌다 —
+    // 칸 자체가 선택이고(D-11), 마우스 클릭은 한 번에 확정된다. 확정 연출 520ms 뒤 전송.
+    await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
+    await page.getByTestId("vote-left").click();
 
     // advanceRound (Eventarc) writes championId; the client modal then auto-opens.
     await expect

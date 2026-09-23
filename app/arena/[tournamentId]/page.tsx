@@ -3,7 +3,7 @@
  *
  * Wires the tested logic to the wireframe-matched components:
  *   voteStore.loadTournament → resolveActiveRun(회차) → selectCurrentMatch →
- *     SplitStage(ARENA-1 VS 스플릿 무대) / FinalPickView
+ *     SplitStage(VS 스플릿 무대) / FinalStage(THE FINAL 3분할)
  *   vote → onVote callable → optimistic addVote (클라 게이트 없음 — 아래 참조)
  *   round complete → advanceRound writes roundProgress/{uid}_{tid}[_r{n}] →
  *     useRoundTransition → RoundTransition overlay → (THE FINAL) Champion
@@ -50,7 +50,7 @@ import { arenaScreenState } from "@/lib/arena/arenaScreen";
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { SplitStage } from "@/components/arena/SplitStage";
-import { FinalPickView } from "@/components/arena/FinalPickView";
+import { FinalStage } from "@/components/arena/FinalStage";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { RunCompleteActions } from "@/components/arena/RunCompleteActions";
@@ -492,11 +492,13 @@ export default function ArenaPage(): JSX.Element {
       .filter((c): c is Contestant => Boolean(c));
     return (
       <div className={styles.arena} data-arena-surface="final">
-        <FinalPickView
+        {/* ARENA-1 PR 2b — THE FINAL 3분할 무대 (디자인 19~23 · D-06 · D-29).
+            고르면 확정 연출 뒤 기존 vote(contestantId) → 바로 Crown Card (D-24). */}
+        <FinalStage
           finalists={finalists}
-          pickedId={pickedId}
-          disabled={submitting}
+          loading={submitting}
           onPick={vote}
+          onSignIn={() => setModal("vote")}
         />
         {loginModal}
       </div>

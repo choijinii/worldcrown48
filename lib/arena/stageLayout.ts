@@ -73,6 +73,8 @@ export function stageMode(width: number, height: number): StageMode {
 }
 
 export interface StageLayout {
+  /** 칸 수 — 매치 2 · 결승 3 (D-06 THE FINAL). */
+  cells?: 2 | 3;
   mode: StageMode;
   /** row = 좌우 50:50 · column = 상하 2분할. */
   direction: "row" | "column";
@@ -113,4 +115,21 @@ export function computeStageLayout(input: {
     frameH: direction === "row" ? across : along,
     pad: s.pad,
   };
+}
+
+/**
+ * 결승(THE FINAL) 배치 — **매치 무대와 같은 프레임을 셋으로 나눈다** (디자인 정본 19·22·23).
+ *
+ * 프레임이 같아야 결승이 매치와 한 가족으로 보인다(D-29 의도). 그래서 칸 한 변은
+ * "프레임 안쪽 주축 ÷ 3"이고, 매치 칸(= 주축 ÷ 2)보다 작다. 정사각은 그대로다(D-17).
+ *   데스크톱 1280/3 = 426.67 · 모바일 가로 732/3 = 244 · 모바일 세로도 같은 식.
+ */
+export function computeFinalLayout(input: {
+  width: number;
+  height: number;
+  top: number;
+}): StageLayout {
+  const base = computeStageLayout(input);
+  const cell = Math.max(STAGE_MIN_CELL, Math.floor((base.cell * 2) / 3));
+  return { ...base, cells: 3, cell };
 }

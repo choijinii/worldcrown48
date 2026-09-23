@@ -252,8 +252,10 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     await batch.commit();
 
     await page.goto(`/arena/${TID}`);
-    // THE FINAL: 3 finalists → pick the first CROWN button.
-    await page.getByRole("button", { name: /CROWN/ }).first().click();
+    // THE FINAL (ARENA-1 PR 2b): 3분할 무대의 첫 칸을 고른다. CROWN 버튼은 사라졌다 —
+    // 칸 자체가 선택이고(D-11), 마우스 클릭은 한 번에 확정된다. 확정 연출 520ms 뒤 전송.
+    await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
+    await page.getByTestId("vote-left").click();
 
     // roundProgress.championId is set; the tournament doc is unchanged.
     // advanceRound is an async Firestore trigger (Eventarc) — give it time.

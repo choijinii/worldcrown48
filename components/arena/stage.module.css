@@ -116,6 +116,8 @@
 
 /* ── 칸 ─────────────────────────────────────────────────────────── */
 .cell {
+  /* 확대 배율 — 매치 1.2(D-11) · 결승 1.3(D-29). 화면이 덮어쓴다. */
+  --stage-scale: var(--arena-hover-scale);
   position: relative;
   z-index: 1;
   flex: none;
@@ -146,7 +148,7 @@
 .cell[data-armed="true"],
 .cell[data-confirmed="true"] {
   z-index: 4;
-  transform: scale(var(--arena-hover-scale));
+  transform: scale(var(--stage-scale));
   transition:
     transform var(--arena-t-in-transform) var(--arena-ease-in),
     filter var(--arena-t-in-filter) var(--arena-ease-in);
@@ -163,7 +165,58 @@
 
 /* 옆칸이 확정되면 어둡게. */
 .cell[data-lost="true"] {
-  filter: saturate(var(--arena-side-desat)) brightness(0.4);
+  filter: saturate(var(--arena-side-desat)) brightness(var(--arena-confirm-side-brightness));
+}
+
+/* ── 선택 확정 연출 (디자인 10~14 · lib/arena/confirmTimeline) ──────────────
+   0→180ms 크기 스냅(기준 → 기준+0.035 → 기준) · 0→300ms 금색 고리 두 겹.
+   크기·투명도만 움직인다(R5). 크라운 표식은 넣지 않는다(D-28). */
+@keyframes confirmSnap {
+  0% {
+    transform: scale(var(--stage-scale));
+  }
+  50% {
+    transform: scale(calc(var(--stage-scale) + var(--arena-confirm-snap-delta)));
+  }
+  100% {
+    transform: scale(var(--stage-scale));
+  }
+}
+
+.cell[data-confirmed="true"] {
+  animation: confirmSnap var(--arena-confirm-snap-ms) ease-out 1;
+}
+
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  border: 2px solid var(--arena-confirm-ring-color);
+  border-radius: 999px;
+  pointer-events: none;
+  animation: confirmRing var(--arena-confirm-ring-ms) ease-out 1 forwards;
+}
+
+.ring[data-ring="a"] {
+  width: var(--arena-confirm-ring-a);
+  aspect-ratio: 1 / 1;
+}
+
+.ring[data-ring="b"] {
+  width: var(--arena-confirm-ring-b);
+  aspect-ratio: 1 / 1;
+}
+
+@keyframes confirmRing {
+  from {
+    transform: translate(-50%, -50%) scale(var(--arena-confirm-ring-from));
+    opacity: 0.9;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(var(--arena-confirm-ring-to));
+    opacity: 0;
+  }
 }
 
 .hit {
@@ -261,6 +314,37 @@
 .glow {
   background: var(--arena-cell-glow);
   pointer-events: none;
+}
+
+/* ── 결승 3분할 (디자인 19~23 · D-29) ───────────────────────────────
+   같은 프레임을 셋으로 나눈다. 확대는 1.3배, 가운데 칸은 가운데 기준으로 커진다.
+   띠는 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (같은 투명도). */
+.final .cell {
+  --stage-scale: var(--arena-final-hover-scale);
+  --arena-confirm-ring-a: 59%;
+  --arena-confirm-ring-b: 87%;
+}
+
+.final .cell[data-side="M"] {
+  transform-origin: center center;
+}
+
+.final .band[data-side="M"] {
+  flex-direction: row;
+  justify-content: center;
+  text-align: center;
+  background: var(--arena-band-mid-bg);
+  border: var(--arena-band-mid-border);
+}
+
+/* 결승 맨 아래 한 줄 — 매치 무대의 배너 자리 위. */
+.finalFoot {
+  margin: 18px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 /* ── 띠 (이름 · 국적 · 소속) — 칸 안쪽 오버랩 ──────────────────────── */
@@ -435,6 +519,14 @@
 
 /* R5 — 모션 제거 (대기 시간은 SplitStage 가 0 으로). */
 @media (prefers-reduced-motion: reduce) {
+  /* 아트보드 27 — 확대 스냅 없음 · 고리 확장 없음 · 즉시. */
+  .cell[data-confirmed="true"] {
+    animation: none;
+  }
+  .ring {
+    display: none;
+  }
+
   .cell,
   .cell[data-armed="true"],
   .cell[data-confirmed="true"],

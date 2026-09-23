@@ -29,6 +29,7 @@ import {
   type StagePointer,
   type StageSideKey,
 } from "@/lib/arena/stageState";
+import { confirmTimeline } from "@/lib/arena/confirmTimeline";
 import {
   fullscreenAction,
   nextRequestedThisLandscape,
@@ -65,9 +66,6 @@ const supportsFullscreen = (): boolean =>
 
 const isFullscreenNow = (): boolean =>
   typeof document !== "undefined" && document.fullscreenElement !== null;
-
-/** 확정 연출 유지 시간 — 토큰 --arena-t-confirm-hold 와 같은 값 (디자인 confirm() 520ms). */
-const CONFIRM_HOLD_MS = 520;
 
 /**
  * 호버가 되는 기기인가. 터치 기기는 탭 뒤에 배치가 바뀌면(회전 등) 손가락 밑에서 마우스형
@@ -142,6 +140,8 @@ export function SplitStage({
   }, [loading]);
 
   // 확정 → 520ms 확정 연출 → 선택 전송. reduced-motion 이면 대기 시간도 없다 (R5).
+  // 연출의 단계·시각은 lib/arena/confirmTimeline (디자인 10~14 · 27).
+  const timeline = confirmTimeline({ baseScale: 1.2, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
   const onVoteRef = useRef(onVote);
   onVoteRef.current = onVote;
@@ -153,7 +153,7 @@ export function SplitStage({
         dispatch({ type: "submit" });
         onVoteRef.current(id);
       },
-      prefersReducedMotion() ? 0 : CONFIRM_HOLD_MS,
+      timeline.holdMs,
     );
     return () => clearTimeout(timer);
   }, [picked, left.id, right.id]);
@@ -179,6 +179,7 @@ export function SplitStage({
     armed: armed === side,
     dimmed: armed !== null && armed !== side,
     confirmed: picked === side,
+    rings: timeline.rings.count,
     lost: picked !== null && picked !== side,
     locked,
     onEnter,
