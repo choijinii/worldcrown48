@@ -178,7 +178,9 @@ export function FinalStage({
         <header className={styles.guide} data-stage-layer="guide">
           <div className={styles.eyebrow}>{t("arena.final.eyebrow")}</div>
           <h1 className={styles.title}>{t("arena.final.title")}</h1>
-          <p className={styles.desc}>{t("arena.final.sub")}</p>
+          {/* 모바일 세로는 안내 문구 층을 얇게 — 부제를 숨겨 무대를 디자인(칸 232)만큼 키운다
+              (2026-09-23 대표 판정 ③). 문구 값은 그대로 두고 이 화면에서만 감춘다. */}
+          {mode === "desktop" ? <p className={styles.desc}>{t("arena.final.sub")}</p> : null}
         </header>
       ) : null}
 

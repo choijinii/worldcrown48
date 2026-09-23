@@ -351,6 +351,23 @@
   border: var(--arena-band-mid-border);
 }
 
+/* 모바일 세로에서는 안내 문구 층을 얇게 — 부제를 숨기고(컴포넌트) 두 줄을 줄여
+   무대를 디자인 값(칸 232)만큼 키운다 (2026-09-23 대표 판정 ③). 문구 값은 그대로. */
+.page[data-stage-mode="portrait"].final .guide {
+  padding-top: 0;
+  margin-bottom: 0;
+}
+
+.page[data-stage-mode="portrait"].final .eyebrow {
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.page[data-stage-mode="portrait"].final .title {
+  margin-top: 2px;
+  font-size: 18px;
+}
+
 /* 결승 맨 아래 한 줄 — 매치 무대의 배너 자리 위. */
 .finalFoot {
   margin: 18px 0 0;
