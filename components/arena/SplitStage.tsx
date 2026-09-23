@@ -37,6 +37,7 @@ import {
 import { useStageViewport } from "@/lib/arena/useStageViewport";
 import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
+import { ArenaIntroModal } from "./ArenaIntroModal";
 import { StageSide } from "./StageSide";
 import styles from "./stage.module.css";
 
@@ -212,6 +213,8 @@ export function SplitStage({
       onPointerDownCapture={onStagePointerDown}
     >
       {mode === "landscape" ? <style>{HIDE_MENU_IN_LANDSCAPE}</style> : null}
+      {/* 첫 입장 안내 — 기기당 1회, 닫기 전에는 선택할 수 없다(D-13 · 디자인 24~26). */}
+      <ArenaIntroModal mode={mode} />
       {/* ② 안내 문구 층 — 대회 제목·설명만. 게스트 안내 한 줄은 2026-09-20 대표 결정으로
           매치 화면에서 뺐다(원장 "RUN-1 게스트 안내 · 바뀜"). 소진 안내·카드 저장 안내는 그대로.
           모바일 세로·가로는 디자인 아트보드 6·9대로 이 층이 없다. */}
