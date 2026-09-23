@@ -86,6 +86,65 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
       en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
       es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
     },
+    // ARENA-1 PR 2b §5 — 2026-09-23 대표 승인본 (확정 연출 3 · 라운드 전환 7 · 팝업 4).
+    "arena.confirm.waiting": { ko: "확인 중", en: "Confirming", es: "Confirmando" },
+    "arena.confirm.nextMatch": { ko: "다음 매치로", en: "Next Match", es: "Siguiente Match" },
+    "arena.confirm.toCrownCard": {
+      ko: "Crown Card로",
+      en: "Go to Crown Card",
+      es: "A la Crown Card",
+    },
+    "arena.round.cornerTopLeft": {
+      ko: "당신의 선택은 계속됩니다",
+      en: "Your picks continue",
+      es: "Tus elecciones continúan",
+    },
+    "arena.round.cornerTopRight": {
+      ko: "남은 무대 {n}",
+      en: "{n} stages left",
+      es: "{n} escenarios restantes",
+    },
+    "arena.round.cornerBottomLeft": {
+      ko: "다음 라운드 준비",
+      en: "Next round ahead",
+      es: "Siguiente ronda en camino",
+    },
+    "arena.round.cornerBottomRight": {
+      ko: "탭하면 바로",
+      en: "Tap to skip",
+      es: "Toca para saltar",
+    },
+    "arena.round.nextLine": {
+      ko: "다음 무대가 곧 열립니다",
+      en: "The next stage opens now",
+      es: "El siguiente escenario se abre ya",
+    },
+    "arena.round.progress": {
+      ko: "2.0s · 탭하면 바로 넘어갑니다",
+      en: "2.0s · Tap to skip ahead",
+      es: "2.0s · Toca para saltar",
+    },
+    "arena.round.nextRoundButton": {
+      ko: "다음 라운드로",
+      en: "Next round",
+      es: "Siguiente ronda",
+    },
+    "arena.intro.welcome": {
+      ko: "48개의 무대, 당신의 선택은",
+      en: "48 stages. Your pick.",
+      es: "48 escenarios. Tu elección.",
+    },
+    "arena.intro.data": {
+      ko: "선택은 이 기기에 저장되고, 로그인하면 계정으로 이어집니다.",
+      en: "Your picks are saved on this device and carry over to your account when you sign in.",
+      es: "Tus elecciones se guardan en este dispositivo y pasan a tu cuenta al iniciar sesión.",
+    },
+    "arena.intro.crownCard": {
+      ko: "Crown Card는 Tournament가 끝난 뒤 공개됩니다",
+      en: "Your Crown Card is revealed when the Tournament ends",
+      es: "Tu Crown Card se revela cuando termina el Tournament",
+    },
+    "arena.intro.start": { ko: "시작하기", en: "Start", es: "Empezar" },
     // ARENA-1 PR 2a §5 표 — 2026-09-20 대표 승인본. 모양은 그대로, 글자만 키로 옮긴 건이라
     // 승인본을 글자 단위로 고정한다(라운드 전환 3건 · 결승 4건).
     "arena.round.spectatorNote": {

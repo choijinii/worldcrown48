@@ -43,6 +43,10 @@ interface StageSideProps {
   confirmed: boolean;
   /** 확정 순간의 금색 고리 두 겹 (reduced-motion 이면 끈다 · 디자인 10 · 27). */
   rings?: number;
+  /** 서버 응답을 기다리는 중 — 고른 칸 안 오른쪽 위 작은 표시 (디자인 11). */
+  waiting?: boolean;
+  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  errorNote?: string | null;
   /** 옆칸이 선택 확정됐다 — 어둡게. */
   lost: boolean;
   locked: boolean;
@@ -85,13 +89,15 @@ export function StageSide({
   dimmed,
   confirmed,
   rings = 0,
+  waiting = false,
+  errorNote = null,
   lost,
   locked,
   onEnter,
   onLeave,
   onPress,
 }: StageSideProps): JSX.Element {
-  const { lang } = useT();
+  const { t, lang } = useT();
   const media = resolveStageMedia(contestant.media);
   const sources = media ? posterSources(media.videoId, media.orientation) : [];
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -201,6 +207,17 @@ export function StageSide({
               />
             ))
           : null}
+
+        {waiting ? (
+          <span className={styles.waiting} data-testid="confirm-waiting">
+            {t("arena.confirm.waiting")}
+          </span>
+        ) : null}
+        {errorNote ? (
+          <span className={styles.errorNote} data-testid="confirm-error" role="status">
+            {errorNote}
+          </span>
+        ) : null}
 
         <span className={styles.band} data-side={side}>
           <span className={styles.bandName}>{contestant.name}</span>

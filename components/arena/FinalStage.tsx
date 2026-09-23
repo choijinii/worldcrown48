@@ -43,6 +43,8 @@ interface FinalStageProps {
   finalists: Contestant[];
   loading: boolean;
   onPick: (contestantId: string) => void;
+  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  errorNote?: string | null;
   onSignIn?: () => void;
 }
 
@@ -75,6 +77,7 @@ export function FinalStage({
   loading,
   onPick,
   onSignIn,
+  errorNote,
 }: FinalStageProps): JSX.Element {
   const { t } = useT();
   const [status, dispatch] = useReducer(reduceStage, initialStage);
@@ -122,17 +125,19 @@ export function FinalStage({
   // 확정 → 확정 연출 → 선택 전송(= 기존 onPick). 대관 연출은 없다(D-24).
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+  const pickedId = picked ? (finalists[SIDES.indexOf(picked)]?.id ?? null) : null;
+  const sendPick = useCallback(() => {
+    if (!pickedId) return;
+    dispatch({ type: "submit" });
+    onPickRef.current(pickedId);
+  }, [pickedId]);
+
   useEffect(() => {
-    if (!picked) return;
-    const index = SIDES.indexOf(picked);
-    const id = finalists[index]?.id;
-    if (!id) return;
-    const timer = setTimeout(() => {
-      dispatch({ type: "submit" });
-      onPickRef.current(id);
-    }, timeline.holdMs);
+    // reduced-motion 이면 버튼으로 넘어간다 — 문구만 Crown Card 로 (아트보드 27).
+    if (!picked || !timeline.autoAdvance) return;
+    const timer = setTimeout(sendPick, timeline.holdMs);
     return () => clearTimeout(timer);
-  }, [picked, finalKey, finalists, timeline.holdMs]);
+  }, [picked, sendPick, timeline.autoAdvance, timeline.holdMs]);
 
   const onEnter = useCallback((side: StageSideKey, pointer: StagePointer) => {
     if (canHover()) dispatch({ type: "enter", side, pointer });
@@ -195,6 +200,8 @@ export function FinalStage({
                 dimmed={armed !== null && armed !== side}
                 confirmed={picked === side}
                 rings={timeline.rings.count}
+                waiting={picked === side && loading}
+                errorNote={picked === side || armed === side ? errorNote : null}
                 lost={picked !== null && picked !== side}
                 locked={locked}
                 onEnter={onEnter}
@@ -205,6 +212,17 @@ export function FinalStage({
           })}
         </div>
       </div>
+
+      {timeline.needsButton && picked && !loading ? (
+        <button
+          type="button"
+          className={styles.advanceButton}
+          data-testid="confirm-advance"
+          onClick={sendPick}
+        >
+          {t("arena.confirm.toCrownCard")}
+        </button>
+      ) : null}
 
       {mode !== "landscape" ? (
         <p className={styles.finalFoot}>{t("arena.final.foot")}</p>

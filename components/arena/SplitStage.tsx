@@ -48,6 +48,8 @@ interface SplitStageProps {
   /** 서버가 선택을 처리 중 (page.tsx 의 submitting). */
   loading: boolean;
   onVote: (contestantId: string) => void;
+  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  errorNote?: string | null;
   /** 배너 기본 공지(비로그인)의 로그인 화면. */
   onSignIn?: () => void;
 }
@@ -91,6 +93,7 @@ export function SplitStage({
   loading,
   onVote,
   onSignIn,
+  errorNote,
 }: SplitStageProps): JSX.Element {
   const { t } = useT();
   const [status, dispatch] = useReducer(reduceStage, initialStage);
@@ -145,18 +148,19 @@ export function SplitStage({
   const picked = pickedSide(status);
   const onVoteRef = useRef(onVote);
   onVoteRef.current = onVote;
+  const pickedId = picked === "L" ? left.id : picked === "R" ? right.id : null;
+  const sendPick = useCallback(() => {
+    if (!pickedId) return;
+    dispatch({ type: "submit" });
+    onVoteRef.current(pickedId);
+  }, [pickedId]);
+
   useEffect(() => {
-    if (!picked) return;
-    const id = picked === "L" ? left.id : right.id;
-    const timer = setTimeout(
-      () => {
-        dispatch({ type: "submit" });
-        onVoteRef.current(id);
-      },
-      timeline.holdMs,
-    );
+    // reduced-motion 이면 저절로 넘어가지 않는다 — 버튼을 눌러야 간다(아트보드 27 · R5).
+    if (!picked || !timeline.autoAdvance) return;
+    const timer = setTimeout(sendPick, timeline.holdMs);
     return () => clearTimeout(timer);
-  }, [picked, left.id, right.id]);
+  }, [picked, sendPick, timeline.autoAdvance, timeline.holdMs]);
 
   const armed = armedSide(status);
   const locked = isStageLocked(status) || loading;
@@ -180,6 +184,9 @@ export function SplitStage({
     dimmed: armed !== null && armed !== side,
     confirmed: picked === side,
     rings: timeline.rings.count,
+    // 대기·실패 표시는 **고른 칸 안**에만 (디자인 11·12).
+    waiting: picked === side && loading,
+    errorNote: picked === side || armed === side ? errorNote : null,
     lost: picked !== null && picked !== side,
     locked,
     onEnter,
@@ -231,6 +238,17 @@ export function SplitStage({
           {mode === "landscape" ? <div className={styles.pill}>{title}</div> : null}
         </div>
       </div>
+
+      {timeline.needsButton && picked && !loading ? (
+        <button
+          type="button"
+          className={styles.advanceButton}
+          data-testid="confirm-advance"
+          onClick={sendPick}
+        >
+          {t("arena.confirm.nextMatch")}
+        </button>
+      ) : null}
 
       {mode === "portrait" ? (
         <p className={styles.rotateHint} data-testid="stage-rotate-hint">
