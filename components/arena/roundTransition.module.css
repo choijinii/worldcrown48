@@ -1,0 +1,240 @@
+/**
+ * 라운드 전환 (ARENA-1 PR 2b · 디자인 정본 15~18 · 원장 D-06 · R2).
+ *
+ * 서비스에서 **라운드 이름이 나오는 유일한 자리**다(R2 Round Scope Lock).
+ * 전체화면 · 메뉴 없음 · 약 2초 자동 + 탭하면 바로. 배너 자리 없음(D-26).
+ * 바탕은 아레나 화면 바탕 토큰을 쓴다 — 디자인 파일이 쓴 로고 바탕 토큰(--color-bg-deep)은
+ * 원장 D-08 바뀜(2026-09-19)과 달라 원장을 따른다.
+ */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--arena-page-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  /* 동심원 지름 — 데스크톱 기준(디자인 15). 모바일은 아래 미디어 쿼리. */
+  --rt-r1: 1040px;
+  --rt-r2: 820px;
+  --rt-r3: 620px;
+  --rt-r4: 440px;
+  --rt-r5: 268px;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  background: var(--arena-round-glow);
+  pointer-events: none;
+}
+
+/* 동심원 5겹 — 안쪽 2겹만 선명하고 밖으로 갈수록 옅어진다. 움직이지 않는다. */
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.ring[data-ring="1"] {
+  width: var(--rt-r1);
+  height: var(--rt-r1);
+  border: 1px solid var(--arena-round-ring-1);
+}
+.ring[data-ring="2"] {
+  width: var(--rt-r2);
+  height: var(--rt-r2);
+  border: 1px solid var(--arena-round-ring-2);
+}
+.ring[data-ring="3"] {
+  width: var(--rt-r3);
+  height: var(--rt-r3);
+  border: 1px solid var(--arena-round-ring-3);
+}
+.ring[data-ring="4"] {
+  width: var(--rt-r4);
+  height: var(--rt-r4);
+  border: 2px solid var(--arena-round-ring-4);
+}
+.ring[data-ring="5"] {
+  width: var(--rt-r5);
+  height: var(--rt-r5);
+  border: 1px solid var(--arena-round-ring-5);
+}
+
+.center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 47%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.prevLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--arena-round-corner);
+}
+
+.prevRound {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--color-text-sub);
+}
+
+/* 다음 라운드 — 크게·금색. 이름은 WC48 형식(ROUND OF 24 · THE FINAL), FIFA 금지. */
+.nextRound {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 72px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: var(--color-gold);
+}
+
+.nextLine {
+  margin-top: 12px;
+  font-size: 16px;
+  color: var(--arena-icon);
+}
+
+.corner {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--arena-round-corner);
+}
+
+.corner[data-corner="tl"] {
+  left: 56px;
+  top: 48px;
+}
+.corner[data-corner="tr"] {
+  right: 56px;
+  top: 48px;
+}
+.corner[data-corner="bl"] {
+  left: 56px;
+  bottom: 48px;
+}
+.corner[data-corner="br"] {
+  right: 56px;
+  bottom: 48px;
+}
+
+.progressWrap {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  width: 420px;
+  max-width: calc(100% - 48px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar {
+  width: 100%;
+  height: 2px;
+  background: color-mix(in srgb, var(--color-text) 14%, transparent);
+}
+
+.bar i {
+  display: block;
+  width: 0;
+  height: 2px;
+  background: var(--color-gold);
+}
+
+.progressLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--arena-round-corner);
+}
+
+/* 정지 상태(아트보드 18) — 진행 바 대신 버튼, 기다리는 시간 없음. */
+.button {
+  padding: 12px 28px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-gold);
+  color: var(--arena-continue-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  .stage {
+    --rt-r1: 620px;
+    --rt-r2: 480px;
+    --rt-r3: 344px;
+    --rt-r4: 246px;
+    --rt-r5: 150px;
+  }
+  .nextRound {
+    font-size: 40px;
+  }
+  .corner[data-corner="tl"],
+  .corner[data-corner="bl"] {
+    left: 20px;
+  }
+  .corner[data-corner="tr"],
+  .corner[data-corner="br"] {
+    right: 20px;
+  }
+  .progressWrap {
+    bottom: 64px;
+  }
+}
+
+@media (max-width: 1023px) and (orientation: landscape) {
+  .stage {
+    --rt-r1: 560px;
+    --rt-r2: 430px;
+    --rt-r3: 320px;
+    --rt-r4: 226px;
+    --rt-r5: 140px;
+  }
+  .nextRound {
+    font-size: 36px;
+  }
+  .corner {
+    font-size: 10px;
+  }
+  .corner[data-corner="tl"],
+  .corner[data-corner="bl"] {
+    left: 20px;
+  }
+  .corner[data-corner="tr"],
+  .corner[data-corner="br"] {
+    right: 20px;
+  }
+  .progressWrap {
+    bottom: 28px;
+  }
+}

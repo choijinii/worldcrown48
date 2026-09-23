@@ -80,6 +80,16 @@
   --arena-confirm-ring-color: rgba(252,208,6,.55); /* @kind color */
   --arena-confirm-side-brightness: 0.4; /* @kind other */
 
+  /* 라운드 전환 (디자인 15~18) — 동심원 5겹 · 코너 라벨 · 진행 바 */
+  --arena-round-corner: #8E90A6;              /* 코너 라벨 글자 @kind color */
+  --arena-round-glow: radial-gradient(circle at 50% 47%, rgba(252,208,6,.16) 0%, rgba(252,208,6,.04) 32%, rgba(0,0,58,0) 62%); /* @kind color */
+  --arena-round-ring-1: rgba(252,208,6,.05); /* @kind color */
+  --arena-round-ring-2: rgba(252,208,6,.08); /* @kind color */
+  --arena-round-ring-3: rgba(252,208,6,.14); /* @kind color */
+  --arena-round-ring-4: rgba(252,208,6,.36); /* @kind color */
+  --arena-round-ring-5: rgba(252,208,6,.5); /* @kind color */
+  --arena-round-hold-ms: 2000ms;              /* 진행 바 2.0s @kind other */
+
   /* 조작 */
   --arena-hover-scale: 1.2; /* @kind other */
   --arena-poster-zoom: 1.06; /* @kind other */
