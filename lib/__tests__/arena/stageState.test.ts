@@ -133,3 +133,38 @@ describe("selectors", () => {
     expect(isStageLocked("idle")).toBe(false);
   });
 });
+
+// ── ARENA-1 PR 2b — 결승 3칸 (원장 D-06 THE FINAL · D-29) ──
+describe("3칸 (결승) — 가운데 칸 M 이 늘어난 것 말고는 같은 규칙", () => {
+  it("가운데 칸도 호버로 arm 된다", () => {
+    expect(reduceStage("idle", { type: "enter", side: "M" })).toBe("focusM");
+    expect(armedSide("focusM")).toBe("M");
+  });
+
+  it("가운데 칸 마우스 클릭 = 곧바로 확정", () => {
+    expect(reduceStage("focusM", { type: "press", side: "M", pointer: "mouse" })).toBe("pickedM");
+    expect(pickedSide("pickedM")).toBe("M");
+    expect(armedSide("pickedM")).toBe("M");
+  });
+
+  it("터치는 1탭 arm · 2탭 확정 (세 칸 모두 같은 규칙 · D-17)", () => {
+    const once = reduceStage("idle", { type: "press", side: "M", pointer: "touch" });
+    expect(once).toBe("focusM");
+    expect(reduceStage(once, { type: "press", side: "M", pointer: "touch" })).toBe("pickedM");
+  });
+
+  it("다른 칸을 탭하면 arm 이 옮겨간다 (L → M → R)", () => {
+    expect(reduceStage("focusL", { type: "press", side: "M", pointer: "touch" })).toBe("focusM");
+    expect(reduceStage("focusM", { type: "press", side: "R", pointer: "touch" })).toBe("focusR");
+  });
+
+  it("확정 뒤에는 세 칸 모두 잠긴다", () => {
+    expect(isStageLocked("pickedM")).toBe(true);
+    expect(reduceStage("pickedM", { type: "enter", side: "L" })).toBe("pickedM");
+    expect(reduceStage("pickedM", { type: "submit" })).toBe("loading");
+  });
+
+  it("회전해도 가운데 칸 arm 이 유지된다 (D-17 ①)", () => {
+    expect(reduceStage("focusM", { type: "orient" })).toBe("focusM");
+  });
+});

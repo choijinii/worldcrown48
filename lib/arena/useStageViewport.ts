@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useState, type RefObject } from "react";
 import {
+  computeFinalLayout,
   computeStageLayout,
   pickViewportHeight,
   stageMode,
@@ -41,19 +42,23 @@ function readMode(): StageMode {
 export function useStageViewport(
   frameRef: RefObject<HTMLElement>,
   onOrient?: () => void,
+  /** 칸 수 — 매치 2(기본) · 결승 3(D-06). 3이면 같은 프레임을 셋으로 나눈다. */
+  options?: { cells?: 2 | 3 },
 ): { mode: StageMode; layout: StageLayout | null } {
   // 서버 HTML 과 첫 클라이언트 렌더는 같아야 한다(hydration) — 둘 다 desktop 으로 시작하고,
   // 그리기 전(layout effect)에 실제 배치로 바꾼다. 폰에서 데스크톱 배치가 번쩍이지 않는다.
   const [mode, setMode] = useState<StageMode>("desktop");
   const [layout, setLayout] = useState<StageLayout | null>(null);
+  const cells = options?.cells ?? 2;
 
   const measure = useCallback(() => {
     const el = frameRef.current;
     if (!el || typeof window === "undefined") return;
     const top = el.getBoundingClientRect().top + window.scrollY;
     const { width, height } = readViewport();
-    setLayout(computeStageLayout({ width, height, top }));
-  }, [frameRef]);
+    const compute = cells === 3 ? computeFinalLayout : computeStageLayout;
+    setLayout(compute({ width, height, top }));
+  }, [frameRef, cells]);
 
   // 화면 크기·방향 변화 → 배치 다시 계산.
   useEffect(() => {

@@ -41,6 +41,12 @@ interface StageSideProps {
   dimmed: boolean;
   /** 이 칸이 선택 확정됐다. */
   confirmed: boolean;
+  /** 확정 순간의 금색 고리 두 겹 (reduced-motion 이면 끈다 · 디자인 10 · 27). */
+  rings?: number;
+  /** 서버 응답을 기다리는 중 — 고른 칸 안 오른쪽 위 작은 표시 (디자인 11). */
+  waiting?: boolean;
+  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  errorNote?: string | null;
   /** 옆칸이 선택 확정됐다 — 어둡게. */
   lost: boolean;
   locked: boolean;
@@ -59,6 +65,16 @@ interface StageSideProps {
  */
 const HIGH_PRIORITY = { fetchPriority: "high" } as unknown as Record<string, string>;
 
+/**
+ * 칸의 시험용 이름표. 매치는 왼쪽·오른쪽 둘, 결승은 가운데(M)가 하나 더 있다(D-06).
+ * PR 1·2a E2E 가 vote-left / vote-right 를 쓰므로 그 이름은 그대로 둔다.
+ */
+const SIDE_TESTID: Record<StageSideKey, string> = {
+  L: "vote-left",
+  M: "vote-mid",
+  R: "vote-right",
+};
+
 /** 유튜브가 "그런 썸네일 없음" 대신 돌려주는 회색 자리표시 그림의 폭. */
 const YT_PLACEHOLDER_WIDTH = 120;
 
@@ -72,13 +88,16 @@ export function StageSide({
   armed,
   dimmed,
   confirmed,
+  rings = 0,
+  waiting = false,
+  errorNote = null,
   lost,
   locked,
   onEnter,
   onLeave,
   onPress,
 }: StageSideProps): JSX.Element {
-  const { lang } = useT();
+  const { t, lang } = useT();
   const media = resolveStageMedia(contestant.media);
   const sources = media ? posterSources(media.videoId, media.orientation) : [];
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -118,7 +137,7 @@ export function StageSide({
       <button
         type="button"
         className={styles.hit}
-        data-testid={side === "L" ? "vote-left" : "vote-right"}
+        data-testid={SIDE_TESTID[side]}
         aria-pressed={armed}
         aria-disabled={locked}
         onPointerDown={(e) => {
@@ -176,6 +195,29 @@ export function StageSide({
 
         <span className={styles.shade} aria-hidden="true" />
         {confirmed ? <span className={styles.glow} aria-hidden="true" /> : null}
+        {/* 확정 순간 금색 고리 — 크라운 표식은 넣지 않는다(D-28). */}
+        {confirmed && rings > 0
+          ? Array.from({ length: rings }, (_, i) => (
+              <span
+                key={i}
+                className={styles.ring}
+                data-ring={i === 0 ? "a" : "b"}
+                data-testid="confirm-ring"
+                aria-hidden="true"
+              />
+            ))
+          : null}
+
+        {waiting ? (
+          <span className={styles.waiting} data-testid="confirm-waiting">
+            {t("arena.confirm.waiting")}
+          </span>
+        ) : null}
+        {errorNote ? (
+          <span className={styles.errorNote} data-testid="confirm-error" role="status">
+            {errorNote}
+          </span>
+        ) : null}
 
         <span className={styles.band} data-side={side}>
           <span className={styles.bandName}>{contestant.name}</span>

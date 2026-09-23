@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+<link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/ui_kits/web/kit.css">
+<script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+  body { margin:0; background:#07091A; color:#fff; font-family:var(--font-sans); }
+  a { color:#FCD006; text-decoration:none; }
+  a:hover { color:#EEDA7D; }
+  @keyframes wcspin { to { transform: rotate(360deg); } }
+  @keyframes wcprog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes wcring { 0% { opacity:0; transform:scale(.82);} 40%{opacity:1;} 100% { opacity:0; transform:scale(1.12);} }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:96px;padding:72px 64px 140px;background:#07091A">
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:980px">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#B1B5C4">WORLDCROWN48 · THE ARENA · REDESIGN</div>
+    <div style="font-size:32px;font-weight:700;letter-spacing:-.015em;line-height:1.2">아레나 매치 무대 리디자인</div>
+    <div style="font-size:15px;font-weight:500;line-height:1.55;color:#B1B5C4">Twilight Stadium v2.3 · 다섯 층 구조(메뉴바 · 제목 · 설명 · 무대 · 배너)를 모든 화면에 고정했습니다. 데스크톱 1440×900 · 모바일 390×844. 무대 포스터 칸은 비어 있으면 드래그로 유튜브 정지 포스터를 넣을 수 있습니다.</div>
+  </div>
+
+  <!-- ══ 1a · VS 스플릿 무대 ══ -->
+  <div id="1a" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.18em;color:#FCD006;border:1px solid rgba(252,208,6,.5);border-radius:999px;padding:4px 12px">1A</div>
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.01em">VS 스플릿 무대 · 상태 5종</div>
+      <div style="display:flex;gap:8px;margin-left:12px;flex-wrap:wrap">
+        <sc-for list="{{ vsChips }}" as="c" hint-placeholder-count="5">
+          <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">DESKTOP 1440 × 900</div>
+        <div style="width:1440px;height:900px;background:#0B1020;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 0%, rgba(36,23,84,.85) 0%, rgba(11,16,32,0) 70%);pointer-events:none"></div>
+
+          <!-- ① 상단 메뉴바 -->
+          <div style="position:relative;padding:16px 32px 0;flex:0 0 auto">
+            <div style="height:56px;background:#1E1E24;border:1px solid rgba(255,255,255,.07);border-radius:999px;box-shadow:0 14px 40px rgba(0,0,10,.5);display:flex;align-items:center;gap:28px;padding:0 12px 0 22px">
+              <img src="assets/wc48-branding-horizontal-light.svg" alt="WorldCrown48" style="height:22px;width:auto;display:block">
+              <div style="width:1px;height:22px;background:rgba(255,255,255,.12)"></div>
+              <div style="display:flex;gap:22px;align-items:center">
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">The Pitch</div>
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">The Lab</div>
+                <div style="font-size:15px;font-weight:600;color:#fff">The Arena</div>
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">Locker Room</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 14px">KO</div>
+              <div style="font-size:14px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:999px;padding:9px 18px">선택 이어가기</div>
+            </div>
+          </div>
+
+          <!-- ②③ -->
+          <div style="position:relative;padding:34px 160px 0;text-align:center;flex:0 0 auto">
+            <div style="font-family:var(--font-display);font-style:italic;font-weight:700;font-size:20px;color:#FCD006;letter-spacing:-.01em">The Arena</div>
+            <div style="margin-top:8px;font-size:30px;font-weight:700;line-height:1.24;letter-spacing:-.015em;text-wrap:pretty">{{ title }}</div>
+            <sc-if value="{{ hasDesc }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:10px;font-size:15px;font-weight:500;line-height:1.55;color:#B1B5C4">{{ desc }}</div>
+            </sc-if>
+          </div>
+
+          <!-- ④ 무대 -->
+          <div style="position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:26px 0">
+            <div style="width:1120px;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px;padding:24px;box-shadow:0 24px 60px rgba(0,0,15,.45);position:relative">
+              <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+                <div style="height:428px;display:flex;align-items:center;justify-content:center;gap:18px;flex-direction:column">
+                  <div style="width:44px;height:44px;border-radius:999px;border:2px solid rgba(252,208,6,.18);border-top-color:#FCD006;animation:wcspin .9s linear infinite"></div>
+                  <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#B1B5C4">무대 준비 중 · PREPARING STAGE</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:stretch;gap:0;position:relative">
+                  <div style="{{ leftWrap }}">
+                    <div style="{{ leftPoster }}">
+                      <image-slot id="vs-left" shape="rect" fit="cover" placeholder="미나 · 무대 포스터 1280×720"></image-slot>
+                    </div>
+                    <div style="display:flex;align-items:baseline;gap:10px;margin-top:16px">
+                      <div style="font-size:24px;font-weight:700;letter-spacing:-.01em">미나</div>
+                      <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4">일본 · TWICE</div>
+                    </div>
+                    <div style="font-size:13px;font-weight:500;color:#8A8FA8;margin-top:4px">〈I CAN'T STOP ME〉 무대 · 2024</div>
+                    <div style="{{ leftCta }}">{{ leftCtaLabel }}</div>
+                  </div>
+
+                  <div style="width:96px;flex:0 0 96px;display:flex;align-items:center;justify-content:center;position:relative">
+                    <div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(180deg,rgba(238,218,125,0),rgba(238,218,125,.28),rgba(238,218,125,0))"></div>
+                    <div style="{{ vsBadge }}">vs</div>
+                  </div>
+
+                  <div style="{{ rightWrap }}">
+                    <div style="{{ rightPoster }}">
+                      <image-slot id="vs-right" shape="rect" fit="cover" placeholder="슬기 · 무대 포스터 1280×720"></image-slot>
+                    </div>
+                    <div style="display:flex;align-items:baseline;gap:10px;margin-top:16px;justify-content:flex-end">
+                      <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4">대한민국 · Red Velvet</div>
+                      <div style="font-size:24px;font-weight:700;letter-spacing:-.01em">슬기</div>
+                    </div>
+                    <div style="font-size:13px;font-weight:500;color:#8A8FA8;margin-top:4px;text-align:right">〈Chill Kill〉 무대 · 2023</div>
+                    <div style="{{ rightCta }}">{{ rightCtaLabel }}</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <!-- ⑤ 배너 자리 -->
+          <div style="position:relative;flex:0 0 auto;display:flex;justify-content:center;padding:0 0 26px">
+            <div style="width:1120px;height:90px;border:1px dashed rgba(238,218,125,.22);border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(36,23,84,.35)">
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">배너 자리 · BANNER SLOT 1120 × 90</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">MOBILE 390 × 844</div>
+        <div style="width:390px;height:844px;background:#0B1020;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;background:radial-gradient(130% 60% at 50% 0%, rgba(36,23,84,.8) 0%, rgba(11,16,32,0) 70%);pointer-events:none"></div>
+          <div style="position:relative;padding:12px 12px 0">
+            <div style="height:48px;background:#1E1E24;border:1px solid rgba(255,255,255,.07);border-radius:999px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;box-shadow:0 10px 30px rgba(0,0,10,.5)">
+              <div style="display:flex;flex-direction:column;gap:3px;width:16px">
+                <div style="height:1.5px;background:#B1B5C4"></div>
+                <div style="height:1.5px;background:#B1B5C4"></div>
+              </div>
+              <img src="assets/wc48-branding-horizontal-light.svg" alt="WorldCrown48" style="height:16px;width:auto;display:block">
+              <div style="flex:1"></div>
+              <div style="font-size:12px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:999px;padding:7px 12px">선택 이어가기</div>
+            </div>
+          </div>
+          <div style="position:relative;padding:20px 20px 0;text-align:center">
+            <div style="font-family:var(--font-display);font-style:italic;font-weight:700;font-size:14px;color:#FCD006">The Arena</div>
+            <div style="margin-top:6px;font-size:18px;font-weight:700;line-height:1.3;letter-spacing:-.01em;text-wrap:pretty">{{ title }}</div>
+            <sc-if value="{{ hasDesc }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:6px;font-size:13px;font-weight:500;line-height:1.5;color:#B1B5C4">{{ descShort }}</div>
+            </sc-if>
+          </div>
+          <div style="position:relative;flex:1 1 auto;display:flex;align-items:center;padding:16px 16px">
+            <div style="width:100%;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px;padding:14px;display:flex;flex-direction:column;gap:0;position:relative">
+              <div style="{{ mLeftWrap }}">
+                <div style="{{ mLeftPoster }}">
+                  <image-slot id="vs-m-left" shape="rect" fit="cover" placeholder="미나"></image-slot>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-top:10px">
+                  <div style="font-size:17px;font-weight:700">미나</div>
+                  <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;color:#B1B5C4">일본 · TWICE</div>
+                </div>
+              </div>
+              <div style="height:44px;display:flex;align-items:center;justify-content:center;position:relative">
+                <div style="position:absolute;left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,rgba(238,218,125,0),rgba(238,218,125,.28),rgba(238,218,125,0))"></div>
+                <div style="{{ mVsBadge }}">vs</div>
+              </div>
+              <div style="{{ mRightWrap }}">
+                <div style="{{ mRightPoster }}">
+                  <image-slot id="vs-m-right" shape="rect" fit="cover" placeholder="슬기"></image-slot>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-top:10px">
+                  <div style="font-size:17px;font-weight:700">슬기</div>
+                  <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;color:#B1B5C4">대한민국 · Red Velvet</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;color:#8A8FA8;text-align:center">1탭 확대 · 재생 &nbsp;·&nbsp; 2탭 선택 확정</div>
+            </div>
+          </div>
+          <div style="position:relative;padding:0 16px 16px">
+            <div style="height:64px;border:1px dashed rgba(238,218,125,.22);border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(36,23,84,.35)">
+              <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">배너 자리 · 358 × 64</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:1120px;font-size:14px;font-weight:500;line-height:1.6;color:#8A8FA8">50:50은 무대 <em style="font-style:normal;color:#B1B5C4">안쪽</em>의 좌우 비율입니다. 무대는 1120px 프레임 안에 놓여 화면 폭까지 늘어나지 않으므로 1280×720 원본이 확대되지 않습니다. 포커스 상태에서 선택된 쪽은 1.8배로 벌어지며 scale 1.08 · 채도 100%, 반대쪽은 채도 30%로 축소됩니다.</div>
+  </div>
+
+  <!-- ══ 1b · 결승 3분할 ══ -->
+  <div id="1b" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.18em;color:#FCD006;border:1px solid rgba(252,208,6,.5);border-radius:999px;padding:4px 12px">1B</div>
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.01em">결승 3분할 무대</div>
+      <div style="display:flex;gap:8px;margin-left:12px;flex-wrap:wrap">
+        <sc-for list="{{ finChips }}" as="c" hint-placeholder-count="3">
+          <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">DESKTOP 1440 × 900</div>
+        <div style="width:1440px;height:900px;background:#0B1020;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 0%, rgba(36,23,84,.85) 0%, rgba(11,16,32,0) 70%);pointer-events:none"></div>
+          <div style="position:relative;padding:16px 32px 0">
+            <div style="height:56px;background:#1E1E24;border:1px solid rgba(255,255,255,.07);border-radius:999px;box-shadow:0 14px 40px rgba(0,0,10,.5);display:flex;align-items:center;gap:28px;padding:0 12px 0 22px">
+              <img src="assets/wc48-branding-horizontal-light.svg" alt="WorldCrown48" style="height:22px;width:auto;display:block">
+              <div style="width:1px;height:22px;background:rgba(255,255,255,.12)"></div>
+              <div style="display:flex;gap:22px;align-items:center">
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">The Pitch</div>
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">The Lab</div>
+                <div style="font-size:15px;font-weight:600;color:#fff">The Arena</div>
+                <div style="font-size:15px;font-weight:500;color:#B1B5C4">Locker Room</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 14px">KO</div>
+              <div style="font-size:14px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:999px;padding:9px 18px">선택 이어가기</div>
+            </div>
+          </div>
+          <div style="position:relative;padding:34px 160px 0;text-align:center">
+            <div style="font-family:var(--font-display);font-style:italic;font-weight:700;font-size:20px;color:#FCD006">The Final</div>
+            <div style="margin-top:8px;font-size:30px;font-weight:700;line-height:1.24;letter-spacing:-.015em;text-wrap:pretty">{{ title }}</div>
+            <div style="margin-top:10px;font-size:15px;font-weight:500;color:#B1B5C4">세 무대가 남았습니다. 한 명을 직접 선택하면 그대로 왕관이 확정됩니다.</div>
+          </div>
+          <div style="position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:24px 0">
+            <div style="width:1180px;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px;padding:24px;box-shadow:0 24px 60px rgba(0,0,15,.45);display:flex;gap:20px;align-items:stretch">
+              <sc-for list="{{ finalists }}" as="f" hint-placeholder-count="3">
+                <div style="{{ f.wrap }}">
+                  <div style="height:34px;display:flex;align-items:center;justify-content:center">
+                    <img src="assets/wc48-crown-filled.svg" alt="" style="{{ f.crown }}">
+                  </div>
+                  <div style="{{ f.poster }}">
+                    <image-slot id="{{ f.slotId }}" shape="rect" fit="cover" placeholder="{{ f.name }} · 1280×720"></image-slot>
+                  </div>
+                  <div style="margin-top:14px;text-align:center">
+                    <div style="font-size:22px;font-weight:700;letter-spacing:-.01em">{{ f.name }}</div>
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4;margin-top:5px">{{ f.meta }}</div>
+                  </div>
+                  <div style="{{ f.cta }}">{{ f.ctaLabel }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position:relative;display:flex;justify-content:center;padding:0 0 26px">
+            <div style="width:1180px;height:90px;border:1px dashed rgba(238,218,125,.22);border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(36,23,84,.35)">
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">배너 자리 · BANNER SLOT 1180 × 90</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">MOBILE 390 × 844</div>
+        <div style="width:390px;height:844px;background:#0B1020;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;background:radial-gradient(130% 60% at 50% 0%, rgba(36,23,84,.8) 0%, rgba(11,16,32,0) 70%);pointer-events:none"></div>
+          <div style="position:relative;padding:12px 12px 0">
+            <div style="height:48px;background:#1E1E24;border:1px solid rgba(255,255,255,.07);border-radius:999px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px">
+              <div style="display:flex;flex-direction:column;gap:3px;width:16px">
+                <div style="height:1.5px;background:#B1B5C4"></div>
+                <div style="height:1.5px;background:#B1B5C4"></div>
+              </div>
+              <img src="assets/wc48-branding-horizontal-light.svg" alt="WorldCrown48" style="height:16px;width:auto;display:block">
+              <div style="flex:1"></div>
+              <div style="font-size:12px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:999px;padding:7px 12px">선택 이어가기</div>
+            </div>
+          </div>
+          <div style="position:relative;padding:18px 20px 0;text-align:center">
+            <div style="font-family:var(--font-display);font-style:italic;font-weight:700;font-size:14px;color:#FCD006">The Final</div>
+            <div style="margin-top:6px;font-size:18px;font-weight:700;line-height:1.3;text-wrap:pretty">{{ title }}</div>
+            <div style="margin-top:6px;font-size:13px;font-weight:500;color:#B1B5C4">세 무대 중 하나를 선택하세요.</div>
+          </div>
+          <div style="position:relative;flex:1 1 auto;padding:14px 16px;display:flex">
+            <div style="width:100%;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px;padding:12px;display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ finalistsM }}" as="f" hint-placeholder-count="3">
+                <div style="{{ f.wrap }}">
+                  <div style="{{ f.poster }}">
+                    <image-slot id="{{ f.slotId }}" shape="rect" fit="cover" placeholder="{{ f.name }}"></image-slot>
+                  </div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <img src="assets/wc48-crown-filled.svg" alt="" style="{{ f.crown }}">
+                      <div style="font-size:16px;font-weight:700">{{ f.name }}</div>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.12em;color:#B1B5C4">{{ f.meta }}</div>
+                    <div style="{{ f.cta }}">{{ f.ctaLabel }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position:relative;padding:0 16px 16px">
+            <div style="height:64px;border:1px dashed rgba(238,218,125,.22);border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(36,23,84,.35)">
+              <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">배너 자리 · 358 × 64</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 1c · 라운드 전환 ══ -->
+  <div id="1c" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.18em;color:#FCD006;border:1px solid rgba(252,208,6,.5);border-radius:999px;padding:4px 12px">1C</div>
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.01em">라운드 전환 · 전체화면</div>
+      <div style="display:flex;gap:8px;margin-left:12px;flex-wrap:wrap">
+        <sc-for list="{{ roundChips }}" as="c" hint-placeholder-count="5">
+          <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">DESKTOP 1440 × 900</div>
+        <div style="width:1440px;height:900px;background:#0B1020;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;opacity:.28;display:flex;flex-direction:column">
+            <div style="padding:16px 32px 0">
+              <div style="height:56px;background:#1E1E24;border-radius:999px;display:flex;align-items:center;padding:0 22px;gap:24px">
+                <img src="assets/wc48-branding-horizontal-light.svg" alt="" style="height:22px;width:auto;display:block">
+                <div style="font-size:15px;color:#B1B5C4">The Arena</div>
+              </div>
+            </div>
+            <div style="text-align:center;padding:40px 200px 0;font-size:30px;font-weight:700;line-height:1.24">{{ title }}</div>
+          </div>
+          <div style="position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%, rgba(11,16,32,.86) 0%, rgba(11,16,32,.97) 60%)"></div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <div style="position:relative;width:760px;height:760px;display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;width:760px;height:760px;border-radius:999px;border:1px solid rgba(238,218,125,.10)"></div>
+              <div style="position:absolute;width:600px;height:600px;border-radius:999px;border:1px solid rgba(238,218,125,.14)"></div>
+              <div style="position:absolute;width:440px;height:440px;border-radius:999px;border:1px solid rgba(238,218,125,.20)"></div>
+              <div style="position:absolute;width:280px;height:280px;border-radius:999px;border:1px solid rgba(252,208,6,.32);animation:wcring 2.4s ease-out infinite"></div>
+              <div style="position:relative;text-align:center">
+                <img src="assets/wc48-crown-filled.svg" alt="" style="width:44px;height:auto;display:block;margin:0 auto 22px;opacity:.9">
+                <div style="font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.32em;color:#EEDA7D">{{ roundKo }}</div>
+                <div style="font-family:var(--font-display);font-weight:900;font-style:italic;font-size:118px;line-height:1;letter-spacing:-.035em;color:#FCD006;margin-top:12px">{{ roundNum }}</div>
+                <div style="font-family:var(--font-mono);font-size:14px;font-weight:600;letter-spacing:.34em;color:#fff;margin-top:18px">{{ roundEn }}</div>
+                <div style="margin-top:34px;width:240px;height:3px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-left:auto;margin-right:auto">
+                  <div style="height:100%;background:#FCD006;transform-origin:left;animation:wcprog 2s linear infinite"></div>
+                </div>
+                <div style="margin-top:12px;font-size:14px;font-weight:500;color:#B1B5C4">다음 무대를 준비하고 있습니다</div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;top:100px;left:56px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">월드크라운48 · WORLDCROWN48</div>
+          <div style="position:absolute;top:100px;right:56px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8;text-align:right">아레나 · THE ARENA</div>
+          <div style="position:absolute;bottom:56px;left:56px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">{{ roundContestants }}</div>
+          <div style="position:absolute;bottom:56px;right:56px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8;text-align:right">{{ roundMatches }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">MOBILE 390 × 844</div>
+        <div style="width:390px;height:844px;background:#0B1020;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;background:radial-gradient(70% 60% at 50% 45%, rgba(36,23,84,.6) 0%, rgba(11,16,32,.98) 70%)"></div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <div style="position:relative;width:340px;height:340px;display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;width:340px;height:340px;border-radius:999px;border:1px solid rgba(238,218,125,.12)"></div>
+              <div style="position:absolute;width:250px;height:250px;border-radius:999px;border:1px solid rgba(238,218,125,.18)"></div>
+              <div style="position:absolute;width:164px;height:164px;border-radius:999px;border:1px solid rgba(252,208,6,.32);animation:wcring 2.4s ease-out infinite"></div>
+              <div style="position:relative;text-align:center">
+                <img src="assets/wc48-crown-filled.svg" alt="" style="width:30px;height:auto;display:block;margin:0 auto 14px;opacity:.9">
+                <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.28em;color:#EEDA7D">{{ roundKo }}</div>
+                <div style="font-family:var(--font-display);font-weight:900;font-style:italic;font-size:64px;line-height:1;letter-spacing:-.035em;color:#FCD006;margin-top:8px">{{ roundNum }}</div>
+                <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.28em;color:#fff;margin-top:12px">{{ roundEn }}</div>
+                <div style="margin:24px auto 0;width:160px;height:3px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden">
+                  <div style="height:100%;background:#FCD006;transform-origin:left;animation:wcprog 2s linear infinite"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;top:60px;left:24px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">WORLDCROWN48</div>
+          <div style="position:absolute;top:60px;right:24px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">THE ARENA</div>
+          <div style="position:absolute;bottom:40px;left:24px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">{{ roundContestants }}</div>
+          <div style="position:absolute;bottom:40px;right:24px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;color:#8A8FA8">{{ roundMatches }}</div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1120px;font-size:14px;font-weight:500;line-height:1.6;color:#8A8FA8">라운드 이름은 이 화면에만 나타납니다. 48 / 24 / 12 / 6 / THE FINAL 다섯 개만 존재하며, 무대·카드·메뉴바에는 어떤 라운드 표기도 넣지 않습니다.</div>
+  </div>
+
+  <!-- ══ 1d · 대관 연출 ══ -->
+  <div id="1d" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.18em;color:#FCD006;border:1px solid rgba(252,208,6,.5);border-radius:999px;padding:4px 12px">1D</div>
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.01em">대관 연출 · 콘티 5컷 + 프로토타입</div>
+      <button type="button" onClick="{{ play }}" style="margin-left:12px;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.16em;color:#0B1020;background:#FCD006;border:0;border-radius:999px;padding:9px 18px;cursor:pointer">{{ playLabel }}</button>
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#8A8FA8">{{ clock }}</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">콘티 5컷 · STORYBOARD 1440 × 900</div>
+      <div style="width:1440px;height:900px;background:#0B1020;border:1px solid rgba(255,255,255,.06);padding:40px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">CORONATION · 2.6s · 스포츠 우승 순간의 문법</div>
+            <div style="font-size:26px;font-weight:700;letter-spacing:-.015em;margin-top:8px">경기에서 이겨 챔피언이 확정되는 순간</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.06em;color:#8A8FA8;text-align:right;line-height:1.8">레이어 아래→위<br>딤 · 탈락2 · 우승자 · 광채 · 크라운 · 반짝임 · CROWNED</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px">
+          <sc-for list="{{ cuts }}" as="c" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.1em;color:#FCD006">{{ c.time }}</div>
+                <div style="font-size:13px;font-weight:600;color:#fff">{{ c.title }}</div>
+              </div>
+              <div style="position:relative;width:100%;aspect-ratio:16/9;background:#0B1020;border:1px solid rgba(238,218,125,.14);border-radius:5px;overflow:hidden">
+                <div style="position:absolute;inset:0;background:radial-gradient(90% 70% at 50% 30%, rgba(36,23,84,.9), rgba(11,16,32,1))"></div>
+                <div style="{{ c.loserL }}">
+                  <div style="width:100%;height:100%;background:linear-gradient(160deg,#241754,#151A38);border:1px solid rgba(255,255,255,.08);border-radius:3px"></div>
+                </div>
+                <div style="{{ c.loserR }}">
+                  <div style="width:100%;height:100%;background:linear-gradient(160deg,#241754,#151A38);border:1px solid rgba(255,255,255,.08);border-radius:3px"></div>
+                </div>
+                <div style="{{ c.dim }}"></div>
+                <div style="{{ c.champ }}">
+                  <div style="{{ c.glow }}"></div>
+                  <div style="position:absolute;inset:0;background:linear-gradient(160deg,#362261,#1A2044);border:1px solid rgba(238,218,125,.35);border-radius:3px"></div>
+                  <div style="{{ c.beam }}"></div>
+                  <div style="{{ c.crown }}">
+                    <img src="assets/wc48-crown-filled.svg" alt="" style="width:100%;height:auto;display:block">
+                  </div>
+                  <sc-for list="{{ c.sparks }}" as="s" hint-placeholder-count="10">
+                    <div style="{{ s.style }}"></div>
+                  </sc-for>
+                </div>
+                <div style="{{ c.crowned }}">
+                  <div style="font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.3em;color:#FCD006">크라운 획득</div>
+                  <div style="font-family:var(--font-display);font-style:italic;font-weight:900;font-size:22px;line-height:1;letter-spacing:-.03em;color:#fff;margin-top:3px">CROWNED</div>
+                  <div style="font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.3em;color:#B1B5C4;margin-top:3px">CORONADO</div>
+                </div>
+              </div>
+              <div style="font-size:12px;font-weight:500;line-height:1.5;color:#8A8FA8">{{ c.note }}</div>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;justify-content:center;gap:12px;border:1px dashed rgba(238,218,125,.2);border-radius:5px;padding:22px;background:rgba(36,23,84,.28)">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#FCD006">RULES</div>
+            <div style="font-size:13px;font-weight:500;line-height:1.7;color:#B1B5C4">움직임은 위치 · 크기 · 회전 · 투명도만. blur 애니메이션 없음.<br>왕관은 챔피언의 표식으로 아래에서 솟아오르며 점등 — 위에서 내려와 씌워지지 않습니다.<br>0.3초 컷만 봐도 두 명이 물러나고 한 명이 남은 것이 읽힙니다.<br>정지 프레임은 사전등록 캡처로 그대로 씁니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">프로토타입 · PROTOTYPE 1440 × 900 — 재생 버튼으로 확인</div>
+      <div style="width:1440px;height:900px;background:#0B1020;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.06)">
+        <div style="position:absolute;inset:0;background:radial-gradient(110% 70% at 50% 0%, rgba(36,23,84,.8) 0%, rgba(11,16,32,0) 70%);pointer-events:none"></div>
+        <div style="position:relative;padding:16px 32px 0;z-index:6">
+          <div style="height:56px;background:#1E1E24;border:1px solid rgba(255,255,255,.07);border-radius:999px;display:flex;align-items:center;gap:28px;padding:0 12px 0 22px;box-shadow:0 14px 40px rgba(0,0,10,.5)">
+            <img src="assets/wc48-branding-horizontal-light.svg" alt="WorldCrown48" style="height:22px;width:auto;display:block">
+            <div style="width:1px;height:22px;background:rgba(255,255,255,.12)"></div>
+            <div style="display:flex;gap:22px;align-items:center">
+              <div style="font-size:15px;font-weight:500;color:#B1B5C4">The Pitch</div>
+              <div style="font-size:15px;font-weight:600;color:#fff">The Arena</div>
+              <div style="font-size:15px;font-weight:500;color:#B1B5C4">Locker Room</div>
+            </div>
+            <div style="flex:1"></div>
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 14px">KO</div>
+            <div style="font-size:14px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:999px;padding:9px 18px">기록 보기</div>
+          </div>
+        </div>
+        <div style="position:relative;padding:30px 200px 0;text-align:center;z-index:6">
+          <div style="font-size:26px;font-weight:700;line-height:1.24;letter-spacing:-.015em;text-wrap:pretty">{{ title }}</div>
+          <div style="margin-top:8px;font-size:15px;font-weight:500;color:#B1B5C4">48명 중 마지막 한 명이 결정되었습니다.</div>
+        </div>
+        <div style="position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:22px 0">
+          <div style="width:1180px;height:470px;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,15,.45)">
+            <div style="position:absolute;inset:0;background:radial-gradient(80% 80% at 50% 35%, rgba(36,23,84,.95), rgba(11,16,32,1))"></div>
+            <div style="{{ p.loserL }}">
+              <div style="width:100%;height:100%;background:linear-gradient(160deg,#241754,#151A38);border:1px solid rgba(255,255,255,.08);border-radius:4px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box">
+                <div style="font-size:15px;font-weight:600;color:#B1B5C4">슬기</div>
+              </div>
+            </div>
+            <div style="{{ p.loserR }}">
+              <div style="width:100%;height:100%;background:linear-gradient(160deg,#241754,#151A38);border:1px solid rgba(255,255,255,.08);border-radius:4px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box">
+                <div style="font-size:15px;font-weight:600;color:#B1B5C4">카리나</div>
+              </div>
+            </div>
+            <div style="{{ p.dim }}"></div>
+            <div style="{{ p.champ }}">
+              <div style="{{ p.glow }}"></div>
+              <div style="position:absolute;inset:0;border:1px solid rgba(238,218,125,.45);border-radius:4px;overflow:hidden">
+                <image-slot id="crown-champ" shape="rect" fit="cover" placeholder="챔피언 · 미나 무대 포스터 1280×720"></image-slot>
+              </div>
+              <div style="{{ p.beam }}"></div>
+              <div style="{{ p.crown }}">
+                <img src="assets/wc48-crown-filled.svg" alt="" style="width:100%;height:auto;display:block"></div>
+              <sc-for list="{{ p.sparks }}" as="s" hint-placeholder-count="12">
+                <div style="{{ s.style }}"></div>
+              </sc-for>
+            </div>
+            <div style="{{ p.crowned }}">
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.34em;color:#FCD006">크라운 획득</div>
+              <div style="font-family:var(--font-display);font-style:italic;font-weight:900;font-size:64px;line-height:1;letter-spacing:-.035em;color:#fff;margin-top:8px">CROWNED</div>
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.34em;color:#B1B5C4;margin-top:8px">CORONADO</div>
+              <div style="font-size:19px;font-weight:700;color:#fff;margin-top:16px">미나 <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#B1B5C4">일본 · TWICE</span></div>
+            </div>
+            <div style="{{ p.tapHint }}">
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">탭하여 크라운 카드 보기</div>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;display:flex;justify-content:center;padding:0 0 26px;z-index:6">
+          <div style="width:1180px;height:90px;border:1px dashed rgba(238,218,125,.22);border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(36,23,84,.35)">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">배너 자리 · BANNER SLOT 1180 × 90</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 1e · 첫 입장 안내 팝업 ══ -->
+  <div id="1e" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.18em;color:#FCD006;border:1px solid rgba(252,208,6,.5);border-radius:999px;padding:4px 12px">1E</div>
+      <div style="font-size:24px;font-weight:600;letter-spacing:-.01em">첫 입장 안내 팝업 · 기기당 1회</div>
+    </div>
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">DESKTOP 1440 × 900</div>
+        <div style="width:1440px;height:900px;background:#0B1020;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;opacity:.32;display:flex;flex-direction:column">
+            <div style="padding:16px 32px 0">
+              <div style="height:56px;background:#1E1E24;border-radius:999px;display:flex;align-items:center;padding:0 22px;gap:24px">
+                <img src="assets/wc48-branding-horizontal-light.svg" alt="" style="height:22px;width:auto;display:block">
+                <div style="font-size:15px;color:#B1B5C4">The Arena</div>
+              </div>
+            </div>
+            <div style="text-align:center;padding:40px 200px 0;font-size:30px;font-weight:700;line-height:1.24">{{ title }}</div>
+            <div style="display:flex;justify-content:center;padding:40px 0">
+              <div style="width:1120px;height:380px;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px"></div>
+            </div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(7,9,26,.72)"></div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <div style="width:520px;background:#1A1F42;border:1px solid rgba(238,218,125,.2);border-radius:5px;padding:36px;box-shadow:0 30px 80px rgba(0,0,15,.6)">
+              <img src="assets/wc48-crown-filled.svg" alt="" style="width:32px;height:auto;display:block">
+              <div style="font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:18px;line-height:1.35">48개의 무대, 당신의 선택 하나로 왕관이 정해집니다.</div>
+              <div style="font-size:14px;font-weight:500;line-height:1.65;color:#B1B5C4;margin-top:14px">선택 기록은 이 기기에만 저장되며, 계정과 연결되지 않습니다. 무대 영상은 유튜브에서 불러옵니다.</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:26px">
+                <div style="font-size:15px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:5px;padding:13px 26px">시작하기</div>
+                <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:#8A8FA8">이 안내는 한 번만 표시됩니다</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.18em;color:#8A8FA8">MOBILE 390 × 844</div>
+        <div style="width:390px;height:844px;background:#0B1020;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06)">
+          <div style="position:absolute;inset:0;opacity:.3;padding:12px;box-sizing:border-box">
+            <div style="height:48px;background:#1E1E24;border-radius:999px"></div>
+            <div style="margin-top:24px;text-align:center;font-size:18px;font-weight:700;line-height:1.3">{{ title }}</div>
+            <div style="margin-top:20px;height:420px;background:#121A36;border:1px solid rgba(238,218,125,.14);border-radius:5px"></div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(7,9,26,.74)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#1A1F42;border-top:1px solid rgba(238,218,125,.2);border-radius:5px 5px 0 0;padding:24px 20px 28px">
+            <img src="assets/wc48-crown-filled.svg" alt="" style="width:26px;height:auto;display:block">
+            <div style="font-size:18px;font-weight:700;line-height:1.4;margin-top:14px">48개의 무대, 당신의 선택 하나로 왕관이 정해집니다.</div>
+            <div style="font-size:13px;font-weight:500;line-height:1.6;color:#B1B5C4;margin-top:10px">선택 기록은 이 기기에만 저장됩니다. 무대 영상은 유튜브에서 불러옵니다.</div>
+            <div style="margin-top:20px;font-size:15px;font-weight:600;color:#0B1020;background:#FCD006;border-radius:5px;padding:14px;text-align:center">시작하기</div>
+            <div style="margin-top:12px;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;color:#8A8FA8;text-align:center">이 안내는 한 번만 표시됩니다</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showDesc&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;레이아웃&quot;},&quot;crownEntrance&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rise&quot;,&quot;ignite&quot;,&quot;scale&quot;],&quot;default&quot;:&quot;rise&quot;,&quot;tsType&quot;:&quot;'rise'|'ignite'|'scale'&quot;,&quot;section&quot;:&quot;대관 연출&quot;},&quot;playbackSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.4,&quot;max&quot;:1.6,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;대관 연출&quot;}}">
+const GOLD = '#FCD006', AURA = '#EEDA7D', TQ = '#00A3B7', CRIM = '#D7063A';
+const EASE = 'cubic-bezier(.2,.7,.2,1)';
+
+const SPARKS = [];
+for (let i = 0; i < 12; i++) {
+  const a = (i / 12) * Math.PI * 2 + 0.4;
+  SPARKS.push({ a, r: 46 + (i % 4) * 13, s: 2 + (i % 3) });
+}
+
+const KF = [
+  { t: 0,    dim: 0,   lx: 0,   lo: 1,   cs: 1,    glow: 0,   beam: 0,  co: 0, cS: 0.5, cY: 46, cR: -10, sp: 0,    wo: 0, wy: 20, hint: 0 },
+  { t: 300,  dim: 0.5, lx: 78,  lo: 0.2, cs: 1.02, glow: 0.1, beam: 0,  co: 0, cS: 0.5, cY: 46, cR: -10, sp: 0,    wo: 0, wy: 20, hint: 0 },
+  { t: 800,  dim: 0.8, lx: 118, lo: 0.1, cs: 1.08, glow: 0.9, beam: .7, co: 1, cS: 1.1, cY: 0,  cR: 0,   sp: 0.25, wo: 0, wy: 20, hint: 0 },
+  { t: 1000, dim: 0.8, lx: 124, lo: 0.08,cs: 1.08, glow: 0.8, beam: .6, co: 1, cS: 1,   cY: 0,  cR: 0,   sp: 1,    wo: 0, wy: 20, hint: 0 },
+  { t: 1200, dim: 0.8, lx: 126, lo: 0.08,cs: 1.08, glow: 0.75,beam: .5, co: 1, cS: 1,   cY: 0,  cR: 0,   sp: 0.7,  wo: 1, wy: 0,  hint: 0 },
+  { t: 2600, dim: 0.8, lx: 126, lo: 0.08,cs: 1.06, glow: 0.6, beam: .4, co: 1, cS: 1,   cY: 0,  cR: 0,   sp: 0.12, wo: 1, wy: 0,  hint: 1 }
+];
+
+function lerp(a, b, u) { return a + (b - a) * u; }
+function frame(t) {
+  if (t <= 0) return Object.assign({}, KF[0]);
+  if (t >= KF[KF.length - 1].t) return Object.assign({}, KF[KF.length - 1]);
+  let i = 0;
+  while (i < KF.length - 1 && KF[i + 1].t < t) i++;
+  const a = KF[i], b = KF[i + 1];
+  const raw = (t - a.t) / (b.t - a.t);
+  const u = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+  const out = {};
+  for (const k in a) out[k] = k === 't' ? t : lerp(a[k], b[k], u);
+  return out;
+}
+
+class Component extends DCLogic {
+  state = { vs: 'default', fin: 'default', round: 24, t: 2600, playing: false };
+
+  componentWillUnmount() { if (this._raf) cancelAnimationFrame(this._raf); }
+
+  play = () => {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    const speed = this.props.playbackSpeed ?? 1;
+    const start = performance.now();
+    this.setState({ playing: true, t: 0 });
+    const step = (now) => {
+      const t = (now - start) * speed;
+      if (t >= 2600) { this.setState({ t: 2600, playing: false }); this._raf = null; return; }
+      this.setState({ t });
+      this._raf = requestAnimationFrame(step);
+    };
+    this._raf = requestAnimationFrame(step);
+  };
+
+  chip(label, active, go) {
+    return {
+      label, go,
+      style: 'font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.14em;padding:8px 14px;border-radius:999px;cursor:pointer;transition:all .2s ease;'
+        + (active
+          ? 'background:' + GOLD + ';color:#0B1020;border:1px solid ' + GOLD + ';'
+          : 'background:transparent;color:#B1B5C4;border:1px solid rgba(255,255,255,.16);')
+    };
+  }
+
+  // ── VS split panel geometry ──
+  panel(side, vertical) {
+    const s = this.state.vs;
+    const mine = side === 'left';
+    const focus = (s === 'left' && mine) || (s === 'right' && !mine);
+    const off = (s === 'left' || s === 'right') && !focus;
+    const picked = s === 'picked' && mine;
+    const pickedOther = s === 'picked' && !mine;
+
+    let grow = 1, scale = 1, sat = 1, op = 1;
+    if (focus) { grow = 1.8; scale = 1.08; }
+    if (off) { grow = 1; scale = 0.94; sat = 0.3; op = 0.55; }
+    if (picked) { grow = 1.35; scale = 1.04; }
+    if (pickedOther) { grow = 1; scale = 0.92; sat = 0.25; op = 0.45; }
+
+    const wrap = 'flex:' + grow + ' 1 0;min-width:0;display:flex;flex-direction:column;'
+      + (vertical ? '' : (mine ? 'align-items:flex-start;' : 'align-items:flex-end;'))
+      + 'transform:scale(' + scale + ');transform-origin:' + (vertical ? (mine ? 'center top' : 'center bottom') : (mine ? 'left center' : 'right center')) + ';'
+      + 'opacity:' + op + ';transition:flex-grow .45s ' + EASE + ',transform .45s ' + EASE + ',opacity .45s ease;';
+
+    const border = picked ? '2px solid ' + GOLD
+      : focus ? '1px solid ' + (mine ? TQ : CRIM)
+      : '1px solid rgba(238,218,125,.14)';
+    const shadow = picked ? 'box-shadow:0 0 0 1px rgba(252,208,6,.35),0 18px 50px rgba(252,208,6,.22);'
+      : focus ? 'box-shadow:0 16px 44px rgba(0,0,15,.5);' : '';
+
+    const poster = 'width:100%;aspect-ratio:16/9;background:#0B1020;border:' + border + ';border-radius:5px;overflow:hidden;position:relative;'
+      + 'filter:saturate(' + sat + ');' + shadow
+      + 'transition:filter .45s ease,border-color .3s ease,box-shadow .3s ease;';
+
+    return { wrap, poster };
+  }
+
+  cta(side) {
+    const s = this.state.vs;
+    const mine = side === 'left';
+    const col = mine ? TQ : CRIM;
+    const picked = s === 'picked' && mine;
+    const pickedOther = s === 'picked' && !mine;
+    const base = 'margin-top:18px;width:100%;box-sizing:border-box;border-radius:5px;padding:13px 18px;display:flex;align-items:center;justify-content:'
+      + (mine ? 'flex-start' : 'flex-end') + ';gap:10px;font-size:15px;font-weight:600;transition:all .3s ease;'
+      + 'font-family:var(--font-sans);';
+    if (picked) return { style: base + 'background:' + GOLD + ';color:#0B1020;border:1px solid ' + GOLD + ';', label: '선택 확정 · 미나' };
+    if (pickedOther) return { style: base + 'background:transparent;color:#5A5F78;border:1px solid rgba(255,255,255,.08);', label: '선택하지 않음' };
+    return {
+      style: base + 'background:rgba(' + (mine ? '0,163,183' : '215,6,58') + ',.14);color:#fff;border:1px solid ' + col + ';',
+      label: mine ? '미나 선택' : '슬기 선택'
+    };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const hasDesc = this.props.showDesc ?? true;
+
+    const L = this.panel('left', false), R = this.panel('right', false);
+    const ML = this.panel('left', true), MR = this.panel('right', true);
+    const lc = this.cta('left'), rc = this.cta('right');
+
+    const badge = (sz) => 'font-family:var(--font-display);font-style:italic;font-weight:900;font-size:' + sz + 'px;color:' + GOLD
+      + ';background:#121A36;border:1px solid rgba(252,208,6,.4);border-radius:999px;width:' + (sz * 2.3) + 'px;height:' + (sz * 2.3)
+      + 'px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;letter-spacing:-.04em;'
+      + (st.vs === 'picked' ? 'box-shadow:0 0 30px rgba(252,208,6,.35);' : '');
+
+    // finalists
+    const FIN = [
+      { name: '미나', meta: '일본 · TWICE', slotId: 'fin-1' },
+      { name: '슬기', meta: '대한민국 · Red Velvet', slotId: 'fin-2' },
+      { name: '카리나', meta: '대한민국 · aespa', slotId: 'fin-3' }
+    ];
+    const pickedIdx = st.fin === 'picked' ? 0 : st.fin === 'focus' ? 2 : -1;
+    const mkFin = (f, i, mobile) => {
+      const isPick = st.fin === 'picked' && i === pickedIdx;
+      const isFocus = st.fin === 'focus' && i === pickedIdx;
+      const dim = pickedIdx >= 0 && i !== pickedIdx;
+      const scale = isPick ? 1.04 : isFocus ? 1.05 : dim ? 0.95 : 1;
+      const wrap = (mobile
+        ? 'display:flex;gap:12px;align-items:stretch;padding:10px;border-radius:5px;background:rgba(36,23,84,.35);'
+        : 'flex:' + (isPick || isFocus ? 1.25 : 1) + ' 1 0;min-width:0;display:flex;flex-direction:column;')
+        + 'transform:scale(' + scale + ');opacity:' + (dim ? 0.5 : 1) + ';transition:all .45s ' + EASE + ';';
+      const border = isPick ? '2px solid ' + GOLD : isFocus ? '1px solid ' + AURA : '1px solid rgba(238,218,125,.14)';
+      const poster = (mobile ? 'width:132px;flex:0 0 132px;aspect-ratio:16/9;' : 'width:100%;aspect-ratio:16/9;')
+        + 'background:#0B1020;border:' + border + ';border-radius:5px;overflow:hidden;position:relative;'
+        + 'filter:saturate(' + (dim ? 0.3 : 1) + ');' + (isPick ? 'box-shadow:0 16px 44px rgba(252,208,6,.22);' : '')
+        + 'transition:filter .45s ease,border-color .3s ease;';
+      const crown = (mobile ? 'width:16px;' : 'width:26px;') + 'height:auto;display:block;opacity:' + (isPick ? 1 : 0.28)
+        + ';transform:scale(' + (isPick ? 1 : 0.9) + ');transition:all .4s ' + EASE + ';';
+      const ctaBase = 'margin-top:' + (mobile ? '8' : '16') + 'px;border-radius:5px;padding:' + (mobile ? '9px 12px' : '12px 16px')
+        + ';text-align:center;font-size:' + (mobile ? '13' : '15') + 'px;font-weight:600;transition:all .3s ease;';
+      const cta = isPick
+        ? ctaBase + 'background:' + GOLD + ';color:#0B1020;border:1px solid ' + GOLD + ';'
+        : dim
+          ? ctaBase + 'background:transparent;color:#5A5F78;border:1px solid rgba(255,255,255,.08);'
+          : ctaBase + 'background:rgba(238,218,125,.1);color:#fff;border:1px solid rgba(238,218,125,.4);';
+      return Object.assign({}, f, {
+        wrap, poster, crown, cta,
+        ctaLabel: isPick ? '왕관 확정' : dim ? '선택하지 않음' : f.name + ' 선택'
+      });
+    };
+
+    // round transition
+    const ROUNDS = {
+      48: { ko: '마흔여덟 명', num: '48', en: 'ROUND OF 48', c: '48명 진행 중', m: 'MATCH 1 / 24' },
+      24: { ko: '스물네 명', num: '24', en: 'ROUND OF 24', c: '24명 진행 중', m: 'MATCH 1 / 12' },
+      12: { ko: '열두 명', num: '12', en: 'ROUND OF 12', c: '12명 진행 중', m: 'MATCH 1 / 6' },
+      6:  { ko: '여섯 명', num: '6', en: 'ROUND OF 6', c: '6명 진행 중', m: 'MATCH 1 / 3' },
+      0:  { ko: '결승', num: '3', en: 'THE FINAL', c: '3명 진행 중', m: 'FINAL STAGE' }
+    };
+    const rd = ROUNDS[st.round] || ROUNDS[24];
+
+    // coronation composition
+    const entrance = this.props.crownEntrance ?? 'rise';
+    const comp = (t, big) => {
+      const f = frame(t);
+      let cY = f.cY, cS = f.cS, cO = f.co;
+      if (entrance === 'ignite') { cY = 0; cS = lerp(1.35, 1, Math.min(1, f.co)); }
+      if (entrance === 'scale') { cY = 0; cS = lerp(0.35, 1, Math.min(1, f.co)); cO = Math.min(1, f.co * 1.4); }
+      const k = big ? 1 : 0.42;
+      const loser = (dir) => 'position:absolute;top:' + (big ? '28%' : '30%') + ';' + (dir < 0 ? 'left:6%' : 'right:6%')
+        + ';width:' + (big ? '22%' : '22%') + ';aspect-ratio:16/9;z-index:2;'
+        + 'transform:translateX(' + (dir * f.lx * k) + 'px) scale(' + lerp(1, 0.86, Math.min(1, f.dim / 0.8)) + ');'
+        + 'opacity:' + f.lo + ';';
+      return {
+        dim: 'position:absolute;inset:0;background:#07091A;opacity:' + f.dim + ';z-index:3;',
+        loserL: loser(-1), loserR: loser(1),
+        champ: 'position:absolute;left:50%;top:50%;width:' + (big ? '41%' : '44%') + ';aspect-ratio:16/9;z-index:4;'
+          + 'transform:translate(-50%,-52%) scale(' + f.cs + ');',
+        glow: 'position:absolute;left:50%;top:50%;width:230%;height:230%;transform:translate(-50%,-50%);z-index:-1;'
+          + 'background:radial-gradient(50% 50% at 50% 50%, rgba(252,208,6,.55) 0%, rgba(252,208,6,0) 70%);opacity:' + f.glow + ';',
+        beam: 'position:absolute;left:50%;bottom:100%;width:' + (big ? '52%' : '56%') + ';height:' + (big ? '190px' : '80px')
+          + ';transform:translateX(-50%);background:linear-gradient(180deg, rgba(238,218,125,0) 0%, rgba(238,218,125,.30) 100%);'
+          + 'clip-path:polygon(32% 0,68% 0,100% 100%,0 100%);opacity:' + f.beam + ';z-index:1;',
+        crown: 'position:absolute;left:50%;top:' + (big ? '-58px' : '-22px') + ';width:' + (big ? '86px' : '34px') + ';z-index:3;'
+          + 'transform:translateX(-50%) translateY(' + (cY * k) + 'px) scale(' + cS + ') rotate(' + f.cR + 'deg);opacity:' + cO + ';',
+        sparks: SPARKS.map((s, i) => ({
+          style: 'position:absolute;left:50%;top:' + (big ? '-24px' : '-8px') + ';width:' + (s.s * (big ? 1.6 : 0.7)) + 'px;height:'
+            + (s.s * (big ? 1.6 : 0.7)) + 'px;background:' + (i % 3 === 0 ? AURA : GOLD) + ';border-radius:999px;z-index:4;'
+            + 'transform:translate(' + (Math.cos(s.a) * s.r * (big ? 1.5 : 0.6) * (0.3 + f.sp)) + 'px,'
+            + (Math.sin(s.a) * s.r * (big ? 1.5 : 0.6) * (0.3 + f.sp) - (big ? 30 : 12) * f.sp) + 'px) scale('
+            + lerp(0.4, 1, f.sp) + ');opacity:' + (f.sp * (i % 2 ? 0.8 : 1)) + ';'
+        })),
+        crowned: 'position:absolute;left:0;right:0;bottom:' + (big ? '38px' : '10px') + ';text-align:center;z-index:6;'
+          + 'transform:translateY(' + (f.wy * k) + 'px);opacity:' + f.wo + ';',
+        tapHint: 'position:absolute;left:0;right:0;top:26px;text-align:center;z-index:6;opacity:' + f.hint + ';transition:opacity .3s ease;'
+      };
+    };
+
+    const CUTS = [
+      { t: 0, time: '0.0s', title: '결승 픽 직후', note: '세 무대가 같은 밝기로 남아 있는 마지막 프레임. 아직 아무것도 확정되지 않았습니다.' },
+      { t: 300, time: '0.3s', title: '두 명이 물러남', note: '탈락 2인이 어두워지며 좌우로 밀려납니다. 이 컷만 봐도 한 명이 남았다는 사실이 읽힙니다.' },
+      { t: 800, time: '0.8s', title: '빛 집중 · 왕관 등장', note: '조명이 챔피언에게 쏟아지고, 크라운 뒤에서 광채가 퍼집니다. 왕관은 아래에서 솟아오르며 점등됩니다.' },
+      { t: 1200, time: '1.2s', title: '반짝임 · CROWNED', note: '반짝임이 흩어지고 3개 언어로 조판된 CROWNED가 올라옵니다.' },
+      { t: 2600, time: '정지', title: '완성 프레임', note: '그 자체로 완성된 한 장. 사전등록 페이지 캡처로 그대로 사용합니다.' }
+    ];
+
+    return {
+      title: '현재 활동하는 kpop 여자 아이돌 중에 최고의 퍼포먼스를 보여주는 아이돌은 누구?',
+      desc: '48개의 무대가 맞붙습니다. 두 무대를 보고 마음이 남는 쪽을 선택하세요. 선택이 쌓여 하나의 왕관이 정해집니다.',
+      descShort: '두 무대를 보고 마음이 남는 쪽을 선택하세요.',
+      hasDesc,
+
+      vsChips: [
+        this.chip('기본', st.vs === 'default', () => this.setState({ vs: 'default' })),
+        this.chip('왼쪽 포커스', st.vs === 'left', () => this.setState({ vs: 'left' })),
+        this.chip('오른쪽 포커스', st.vs === 'right', () => this.setState({ vs: 'right' })),
+        this.chip('선택 확정', st.vs === 'picked', () => this.setState({ vs: 'picked' })),
+        this.chip('로딩', st.vs === 'loading', () => this.setState({ vs: 'loading' }))
+      ],
+      isLoading: st.vs === 'loading',
+      notLoading: st.vs !== 'loading',
+      leftWrap: L.wrap, leftPoster: L.poster, rightWrap: R.wrap, rightPoster: R.poster,
+      mLeftWrap: ML.wrap, mLeftPoster: ML.poster, mRightWrap: MR.wrap, mRightPoster: MR.poster,
+      leftCta: lc.style, leftCtaLabel: lc.label, rightCta: rc.style, rightCtaLabel: rc.label,
+      vsBadge: badge(24), mVsBadge: badge(15),
+
+      finChips: [
+        this.chip('기본', st.fin === 'default', () => this.setState({ fin: 'default' })),
+        this.chip('카리나 포커스', st.fin === 'focus', () => this.setState({ fin: 'focus' })),
+        this.chip('왕관 확정', st.fin === 'picked', () => this.setState({ fin: 'picked' }))
+      ],
+      finalists: FIN.map((f, i) => mkFin(f, i, false)),
+      finalistsM: FIN.map((f, i) => mkFin({ name: f.name, meta: f.meta, slotId: f.slotId + '-m' }, i, true)),
+
+      roundChips: [48, 24, 12, 6, 0].map((r) => this.chip(ROUNDS[r].en, st.round === r, () => this.setState({ round: r }))),
+      roundKo: rd.ko, roundNum: rd.num, roundEn: rd.en, roundContestants: rd.c, roundMatches: rd.m,
+
+      cuts: CUTS.map((c) => Object.assign({ time: c.time, title: c.title, note: c.note }, comp(c.t, false))),
+      p: comp(st.t, true),
+      play: this.play,
+      playLabel: st.playing ? '재생 중' : '재생 · 2.6s',
+      clock: (st.t / 1000).toFixed(2) + 's'
+    };
+  }
+}
+
+</script>
+</body>
+</html>

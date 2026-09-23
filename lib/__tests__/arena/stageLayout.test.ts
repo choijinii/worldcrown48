@@ -5,7 +5,12 @@
  * 기기별 숫자를 하드코딩하지 않는다 — 아래 숫자는 디자인 파일(아트보드 1·6·9) 검산값.
  */
 import { describe, expect, it } from "vitest";
-import { computeStageLayout, pickViewportHeight, stageMode } from "@/lib/arena/stageLayout";
+import {
+  computeFinalLayout,
+  computeStageLayout,
+  pickViewportHeight,
+  stageMode,
+} from "@/lib/arena/stageLayout";
 
 describe("stageMode — 태블릿 기준 폭 1024 (D-17 ④)", () => {
   it("1024 이상 = 데스크톱", () => {
@@ -97,5 +102,54 @@ describe("pickViewportHeight — 주소창이 가린 높이 (D-17 칸 규칙의 
 
   it("전체화면으로 주소창이 사라지면 두 값이 같아진다", () => {
     expect(pickViewportHeight(844, 844)).toBe(844);
+  });
+});
+
+// ── ARENA-1 PR 2b — 결승 3분할 (디자인 정본 19·22·23 · 원장 D-06 · D-29) ──
+describe("computeFinalLayout — 결승은 매치 무대 프레임을 셋으로 나눈다", () => {
+  it("데스크톱 1440×900 → 프레임 1320×680 그대로, 칸 426 정사각 3개", () => {
+    const f = computeFinalLayout({ width: 1440, height: 900, top: 220 });
+    expect(f.mode).toBe("desktop");
+    expect(f.direction).toBe("row");
+    expect([f.frameW, f.frameH]).toEqual([1320, 680]); // 매치와 같은 프레임
+    expect(f.cell).toBe(426); // 1280 / 3 = 426.67 → 정수
+    expect(f.cells).toBe(3);
+  });
+
+  it("모바일 가로 844×390 → 프레임 732×366 그대로, 칸 244", () => {
+    const f = computeFinalLayout({ width: 844, height: 390, top: 12 });
+    expect(f.direction).toBe("row");
+    expect(f.frameW).toBe(732);
+    expect(f.cell).toBe(244); // 732 / 3
+  });
+
+  it("모바일 세로 390×844 → 위·가운데·아래 3단, 칸은 정사각 (디자인 검산 232 ± 규칙 계산 236)", () => {
+    const match = computeStageLayout({ width: 390, height: 844, top: 90 });
+    const f = computeFinalLayout({ width: 390, height: 844, top: 90 });
+    expect(f.direction).toBe("column");
+    expect(f.cell).toBe(Math.floor((match.cell * 2) / 3)); // 프레임을 셋으로
+    expect(f.cell).toBeLessThanOrEqual(364);
+  });
+
+  it("칸은 언제나 정사각이고 매치 칸보다 작다 (같은 프레임을 셋으로 나누므로)", () => {
+    for (const [w, h, top] of [
+      [1440, 900, 220],
+      [844, 390, 12],
+      [390, 844, 90],
+      [1280, 720, 220],
+    ] as const) {
+      const match = computeStageLayout({ width: w, height: h, top });
+      const final = computeFinalLayout({ width: w, height: h, top });
+      expect(final.cell).toBeLessThan(match.cell);
+      expect(final.frameH).toBe(match.frameH);
+      expect(Number.isInteger(final.cell)).toBe(true);
+      if (final.direction === "row") {
+        expect(final.frameW).toBe(match.frameW); // 좌우 3칸: 매치 프레임 그대로
+      } else {
+        // 상하 3단: 프레임이 화면 폭을 쓰고 좁아진 칸을 가운데 둔다 (아트보드 22)
+        expect(final.frameW).toBeGreaterThanOrEqual(match.frameW);
+        expect(final.frameW).toBe(w - 24);
+      }
+    }
   });
 });

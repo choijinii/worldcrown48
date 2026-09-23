@@ -3,7 +3,7 @@
  *
  * Wires the tested logic to the wireframe-matched components:
  *   voteStore.loadTournament → resolveActiveRun(회차) → selectCurrentMatch →
- *     SplitStage(ARENA-1 VS 스플릿 무대) / FinalPickView
+ *     SplitStage(VS 스플릿 무대) / FinalStage(THE FINAL 3분할)
  *   vote → onVote callable → optimistic addVote (클라 게이트 없음 — 아래 참조)
  *   round complete → advanceRound writes roundProgress/{uid}_{tid}[_r{n}] →
  *     useRoundTransition → RoundTransition overlay → (THE FINAL) Champion
@@ -23,7 +23,6 @@ import { useParams } from "next/navigation";
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
-import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/useT";
 import { trackWithConsent } from "@/lib/analytics";
 import {
@@ -50,7 +49,7 @@ import { arenaScreenState } from "@/lib/arena/arenaScreen";
 import { isFinalRound, type RoundIndex } from "@/lib/arena/roundConfig";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { SplitStage } from "@/components/arena/SplitStage";
-import { FinalPickView } from "@/components/arena/FinalPickView";
+import { FinalStage } from "@/components/arena/FinalStage";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { RunCompleteActions } from "@/components/arena/RunCompleteActions";
@@ -182,6 +181,8 @@ export default function ArenaPage(): JSX.Element {
   // 모달은 tournament·category를 모르기 때문에 페이지에서 쏜다.
 
   const [pickedId, setPickedId] = useState<string | null>(null);
+  /** 무대 위에 보여 줄 선택 실패 한 줄 (기존 오류 키 문구). */
+  const [voteError, setVoteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState<LoginReason | null>(null);
   const [dismissedTo, setDismissedTo] = useState(0);
@@ -255,6 +256,7 @@ export default function ArenaPage(): JSX.Element {
       // "play" 가 아니면 이 화면 자체가 안 그려져 vote() 가 호출되지 않는다 — 판정이
       // 스토어 한 곳에만 남아 §9 함정 5가 구조로 막힌다. 서버가 최종 판정자다(§5 DO 2).
       setPickedId(contestantId);
+      setVoteError(null);
       setSubmitting(true);
       try {
         const call = httpsCallable(getFunctionsInstance(), "onVote");
@@ -296,7 +298,9 @@ export default function ArenaPage(): JSX.Element {
           setModal("daily_limit");
         } else {
           // deadline_passed 는 voteErrorMessageKey 가 마감 안내로 매핑한다.
-          showToast(t(voteErrorMessageKey(e)), "error");
+          // ARENA-1 PR 2b(디자인 12): 무대 위에서는 **고른 칸 안 한 줄**로 알린다 —
+          // 화면 전체를 덮는 토스트 대신. 문구는 기존 오류 키 그대로(새 문구 없음).
+          setVoteError(t(voteErrorMessageKey(e)));
         }
         // 서버 판정과 화면을 다시 맞춘다 — 클라 게이트를 없앴으므로 재로드가 정합의 수단이다.
         if (uid) void loadTournament(tournamentId, uid, isGuest);
@@ -492,11 +496,14 @@ export default function ArenaPage(): JSX.Element {
       .filter((c): c is Contestant => Boolean(c));
     return (
       <div className={styles.arena} data-arena-surface="final">
-        <FinalPickView
+        {/* ARENA-1 PR 2b — THE FINAL 3분할 무대 (디자인 19~23 · D-06 · D-29).
+            고르면 확정 연출 뒤 기존 vote(contestantId) → 바로 Crown Card (D-24). */}
+        <FinalStage
           finalists={finalists}
-          pickedId={pickedId}
-          disabled={submitting}
+          loading={submitting}
           onPick={vote}
+          onSignIn={() => setModal("vote")}
+          errorNote={voteError}
         />
         {loginModal}
       </div>
@@ -522,6 +529,7 @@ export default function ArenaPage(): JSX.Element {
           loading={submitting}
           onVote={vote}
           onSignIn={() => setModal("vote")}
+          errorNote={voteError}
         />
         {loginModal}
       </div>

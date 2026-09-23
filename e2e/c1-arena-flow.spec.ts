@@ -191,6 +191,15 @@ test.describe("C-1 The Arena — Voter critical path", () => {
   test.afterAll(async () => cleanup());
 
   test.beforeEach(async ({ page }) => {
+    // ARENA-1 PR 2b — 첫 입장 안내 팝업(기기당 1회)이 칸 클릭을 가로채지 않게, 이 스펙은
+    // "이미 본 기기"로 시작한다. 팝업 자체는 arena1-split-stage 의 전용 테스트가 본다.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+      }
+    });
     consoleErrors = [];
     page.on("console", (m) => {
       if (m.type() !== "error") return;
@@ -252,8 +261,10 @@ test.describe("C-1 The Arena — Voter critical path", () => {
     await batch.commit();
 
     await page.goto(`/arena/${TID}`);
-    // THE FINAL: 3 finalists → pick the first CROWN button.
-    await page.getByRole("button", { name: /CROWN/ }).first().click();
+    // THE FINAL (ARENA-1 PR 2b): 3분할 무대의 첫 칸을 고른다. CROWN 버튼은 사라졌다 —
+    // 칸 자체가 선택이고(D-11), 마우스 클릭은 한 번에 확정된다. 확정 연출 520ms 뒤 전송.
+    await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
+    await page.getByTestId("vote-left").click();
 
     // roundProgress.championId is set; the tournament doc is unchanged.
     // advanceRound is an async Firestore trigger (Eventarc) — give it time.

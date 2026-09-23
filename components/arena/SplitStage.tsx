@@ -29,12 +29,15 @@ import {
   type StagePointer,
   type StageSideKey,
 } from "@/lib/arena/stageState";
+import { confirmTimeline } from "@/lib/arena/confirmTimeline";
 import {
   fullscreenAction,
   nextRequestedThisLandscape,
 } from "@/lib/arena/fullscreenGate";
 import { useStageViewport } from "@/lib/arena/useStageViewport";
+import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
+import { ArenaIntroModal } from "./ArenaIntroModal";
 import { StageSide } from "./StageSide";
 import styles from "./stage.module.css";
 
@@ -46,6 +49,8 @@ interface SplitStageProps {
   /** 서버가 선택을 처리 중 (page.tsx 의 submitting). */
   loading: boolean;
   onVote: (contestantId: string) => void;
+  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  errorNote?: string | null;
   /** 배너 기본 공지(비로그인)의 로그인 화면. */
   onSignIn?: () => void;
 }
@@ -64,9 +69,6 @@ const supportsFullscreen = (): boolean =>
 
 const isFullscreenNow = (): boolean =>
   typeof document !== "undefined" && document.fullscreenElement !== null;
-
-/** 확정 연출 유지 시간 — 토큰 --arena-t-confirm-hold 와 같은 값 (디자인 confirm() 520ms). */
-const CONFIRM_HOLD_MS = 520;
 
 /**
  * 호버가 되는 기기인가. 터치 기기는 탭 뒤에 배치가 바뀌면(회전 등) 손가락 밑에서 마우스형
@@ -92,6 +94,7 @@ export function SplitStage({
   loading,
   onVote,
   onSignIn,
+  errorNote,
 }: SplitStageProps): JSX.Element {
   const { t } = useT();
   const [status, dispatch] = useReducer(reduceStage, initialStage);
@@ -141,21 +144,24 @@ export function SplitStage({
   }, [loading]);
 
   // 확정 → 520ms 확정 연출 → 선택 전송. reduced-motion 이면 대기 시간도 없다 (R5).
+  // 연출의 단계·시각은 lib/arena/confirmTimeline (디자인 10~14 · 27).
+  const timeline = confirmTimeline({ baseScale: 1.2, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
   const onVoteRef = useRef(onVote);
   onVoteRef.current = onVote;
+  const pickedId = picked === "L" ? left.id : picked === "R" ? right.id : null;
+  const sendPick = useCallback(() => {
+    if (!pickedId) return;
+    dispatch({ type: "submit" });
+    onVoteRef.current(pickedId);
+  }, [pickedId]);
+
   useEffect(() => {
-    if (!picked) return;
-    const id = picked === "L" ? left.id : right.id;
-    const timer = setTimeout(
-      () => {
-        dispatch({ type: "submit" });
-        onVoteRef.current(id);
-      },
-      prefersReducedMotion() ? 0 : CONFIRM_HOLD_MS,
-    );
+    // reduced-motion 이면 저절로 넘어가지 않는다 — 버튼을 눌러야 간다(아트보드 27 · R5).
+    if (!picked || !timeline.autoAdvance) return;
+    const timer = setTimeout(sendPick, timeline.holdMs);
     return () => clearTimeout(timer);
-  }, [picked, left.id, right.id]);
+  }, [picked, sendPick, timeline.autoAdvance, timeline.holdMs]);
 
   const armed = armedSide(status);
   const locked = isStageLocked(status) || loading;
@@ -178,6 +184,10 @@ export function SplitStage({
     armed: armed === side,
     dimmed: armed !== null && armed !== side,
     confirmed: picked === side,
+    rings: timeline.rings.count,
+    // 대기·실패 표시는 **고른 칸 안**에만 (디자인 11·12).
+    waiting: picked === side && loading,
+    errorNote: picked === side || armed === side ? errorNote : null,
     lost: picked !== null && picked !== side,
     locked,
     onEnter,
@@ -203,6 +213,8 @@ export function SplitStage({
       onPointerDownCapture={onStagePointerDown}
     >
       {mode === "landscape" ? <style>{HIDE_MENU_IN_LANDSCAPE}</style> : null}
+      {/* 첫 입장 안내 — 기기당 1회, 닫기 전에는 선택할 수 없다(D-13 · 디자인 24~26). */}
+      <ArenaIntroModal mode={mode} />
       {/* ② 안내 문구 층 — 대회 제목·설명만. 게스트 안내 한 줄은 2026-09-20 대표 결정으로
           매치 화면에서 뺐다(원장 "RUN-1 게스트 안내 · 바뀜"). 소진 안내·카드 저장 안내는 그대로.
           모바일 세로·가로는 디자인 아트보드 6·9대로 이 층이 없다. */}
@@ -230,17 +242,33 @@ export function SplitStage({
         </div>
       </div>
 
+      {timeline.needsButton && picked && !loading ? (
+        <button
+          type="button"
+          className={styles.advanceButton}
+          data-testid="confirm-advance"
+          onClick={sendPick}
+        >
+          {t("arena.confirm.nextMatch")}
+        </button>
+      ) : null}
+
       {mode === "portrait" ? (
         <p className={styles.rotateHint} data-testid="stage-rotate-hint">
           {t("arena.stage.rotateHint")}
         </p>
       ) : null}
 
-      {/* 배너 자리: 데스크톱 1320×140 · 모바일 세로 = 프레임 폭 × 문구 높이 · 모바일 가로 = 없음
-          (원장 D-21 바뀜 2026-09-19 — 가로는 집중 모드, 메뉴를 빼는 D-17 ③과 같은 논리). */}
-      {mode !== "landscape" ? (
+      {/* 배너 자리 = 구글 광고 표준 크기 (원장 D-21 바뀜 2026-09-21):
+          데스크톱 970×90 · 모바일 세로 320×100 · 모바일 가로 없음(집중 모드 · D-17 ③). */}
+      {bannerVariant(mode) ? (
         <div className={styles.bannerRow} data-stage-layer="banner">
-          <BannerSlot slot="arena-match-below" onSignIn={onSignIn} className={styles.banner} />
+          <BannerSlot
+            slot="arena-match-below"
+            onSignIn={onSignIn}
+            className={styles.banner}
+            variant={bannerVariant(mode) ?? undefined}
+          />
         </div>
       ) : null}
     </section>
