@@ -1,5 +1,8 @@
 /**
- * stageState — VS 스플릿 무대의 조작 상태 머신 (ARENA-1 PR 1 · 원장 D-11 · D-17).
+ * stageState — 무대의 조작 상태 머신 (ARENA-1 PR 1 · PR 2b · 원장 D-11 · D-17 · D-06).
+ *
+ * 칸이 둘인 매치(L·R)와 셋인 결승(L·M·R)이 **같은 규칙**을 쓴다 — 가운데 칸이 하나 늘어난 것
+ * 말고는 다르지 않다(THE FINAL 은 1:1 대결이 아니라 셋 중 하나를 고르는 자리 · D-06).
  *
  *   idle ─enter/press─▶ focusL|focusR ─press(확정)─▶ pickedL|pickedR ─submit─▶ loading
  *     ▲                                                                          │
@@ -15,9 +18,18 @@
  * 이 상태를 읽고 한다. 선택 엔진(onVote·roundProgress·voteStore)은 여기서 모른다 (R1).
  */
 
-export type StageSideKey = "L" | "R";
+/** L = 왼쪽(모바일 세로 위) · M = 가운데(결승에만) · R = 오른쪽(모바일 세로 아래). */
+export type StageSideKey = "L" | "M" | "R";
 
-export type StageStatus = "idle" | "focusL" | "focusR" | "pickedL" | "pickedR" | "loading";
+export type StageStatus =
+  | "idle"
+  | "focusL"
+  | "focusM"
+  | "focusR"
+  | "pickedL"
+  | "pickedM"
+  | "pickedR"
+  | "loading";
 
 /**
  * 누른 도구. `mouse` 만 한 번에 확정한다 — 마우스는 누르기 전에 이미 호버로 arm을 거쳤다.
@@ -40,24 +52,22 @@ export type StageEvent =
 
 export const initialStage: StageStatus = "idle";
 
-const focusOf = (side: StageSideKey): StageStatus => (side === "L" ? "focusL" : "focusR");
-const pickOf = (side: StageSideKey): StageStatus => (side === "L" ? "pickedL" : "pickedR");
+const focusOf = (side: StageSideKey): StageStatus => `focus${side}` as StageStatus;
+const pickOf = (side: StageSideKey): StageStatus => `picked${side}` as StageStatus;
 
 export function armedSide(status: StageStatus): StageSideKey | null {
-  if (status === "focusL" || status === "pickedL") return "L";
-  if (status === "focusR" || status === "pickedR") return "R";
-  return null;
+  const m = /^(?:focus|picked)([LMR])$/.exec(status);
+  return m ? (m[1] as StageSideKey) : null;
 }
 
 export function pickedSide(status: StageStatus): StageSideKey | null {
-  if (status === "pickedL") return "L";
-  if (status === "pickedR") return "R";
-  return null;
+  const m = /^picked([LMR])$/.exec(status);
+  return m ? (m[1] as StageSideKey) : null;
 }
 
 /** 확정 이후 — 호버·탭이 더는 아무것도 바꾸지 않는다. */
 export function isStageLocked(status: StageStatus): boolean {
-  return status === "pickedL" || status === "pickedR" || status === "loading";
+  return status === "loading" || pickedSide(status) !== null;
 }
 
 export function reduceStage(status: StageStatus, event: StageEvent): StageStatus {
