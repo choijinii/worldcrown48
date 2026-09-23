@@ -25,16 +25,19 @@ import {
   type BannerDoc,
   type BannerSlotName,
 } from "@/lib/banner/bannerSlot";
+import type { BannerVariant } from "@/lib/banner/bannerVariant";
 import styles from "./bannerSlot.module.css";
 
 interface BannerSlotProps {
   slot: BannerSlotName;
   /** 기본 공지(비로그인)의 "로그인 화면" — 화면이 가진 로그인 모달을 연다. */
   onSignIn?: () => void;
+  /** 크기 변형 — desktop 970×90 · mobile 320×100 (원장 D-21 바뀜 09-21). 화면 밖 판정. */
+  variant?: BannerVariant;
   className?: string;
 }
 
-export function BannerSlot({ slot, onSignIn, className }: BannerSlotProps): JSX.Element {
+export function BannerSlot({ slot, onSignIn, variant, className }: BannerSlotProps): JSX.Element {
   const { t, lang } = useT();
   const user = useAuthStore((s) => s.user);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
@@ -63,6 +66,7 @@ export function BannerSlot({ slot, onSignIn, className }: BannerSlotProps): JSX.
   });
   const resolved = resolveBanner(docs, slot, Date.now(), audience);
   const rootClass = [styles.slot, className ?? ""].filter(Boolean).join(" ");
+  const sizeAttrs = variant ? { "data-banner-variant": variant } : {};
 
   if (resolved.source === "doc") {
     const b = resolved.banner;
@@ -75,7 +79,7 @@ export function BannerSlot({ slot, onSignIn, className }: BannerSlotProps): JSX.
       </>
     );
     return (
-      <aside className={rootClass} data-testid="banner-slot" data-banner-slot={slot} data-banner-source="doc">
+      <aside className={rootClass} data-testid="banner-slot" data-banner-slot={slot} data-banner-source="doc" {...sizeAttrs}>
         {b.href ? (
           <Link href={b.href} className={styles.action}>
             {inner}
@@ -96,6 +100,7 @@ export function BannerSlot({ slot, onSignIn, className }: BannerSlotProps): JSX.
       data-banner-slot={slot}
       data-banner-source="default"
       data-banner-audience={audience}
+      {...sizeAttrs}
     >
       {notice.action === "link" ? (
         <Link href={notice.href} className={styles.action}>

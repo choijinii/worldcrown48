@@ -76,8 +76,14 @@
   --arena-t-confirm-hold: 520ms; /* @kind other */
 
   /* 배너 자리 */
-  --arena-banner-w: 1320px; /* @kind spacing */
-  --arena-banner-h: 140px; /* @kind spacing */
+  /* ⚠ 아래 배너 값은 클로드 디자인 내보내기에 아직 없다(export_v2 에 arena_stage_tokens.css 미포함).
+     출처는 원장 D-21 바뀜(2026-09-21) — 구글 광고 표준 크기 그대로. 다음 내보내기 때
+     docs/design/arena_stage_tokens.css 가 이 값을 담아 오면 그쪽이 정본이 된다(D-20). */
+  --arena-banner-w: 970px;                    /* 데스크톱 대형 리더보드 @kind spacing */
+  --arena-banner-h: 90px; /* @kind spacing */
+  --arena-banner-w-mobile: 320px;             /* 모바일 세로 큰 배너 @kind spacing */
+  --arena-banner-h-mobile: 100px; /* @kind spacing */
+  --arena-banner-pad: 0 28px;                 /* 모바일 0 18px @kind spacing */
   --arena-banner-border: 1px dashed rgba(255,255,255,.16); /* @kind other */
   --arena-banner-bg: rgba(36,23,84,.4); /* @kind color */
 

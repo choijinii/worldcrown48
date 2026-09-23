@@ -9,6 +9,7 @@
   display: flex;
   width: 100%;
   min-height: var(--banner-slot-h, auto);
+  /* 크기는 놓는 쪽이 정한다 — 아레나 매치는 970×90 / 320×100 (원장 D-21 바뀜 09-21). */
   background: var(--arena-banner-bg);
   outline: var(--arena-frame-border);
   outline-offset: -1px;
@@ -22,7 +23,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px 14px;
-  padding: 18px 24px;
+  padding: var(--arena-banner-pad, 18px 24px);
   border: 0;
   background: transparent;
   color: var(--color-text);
@@ -61,7 +62,7 @@
 
 @media (max-width: 1023px) {
   .action {
-    padding: 14px 16px;
+    padding: 0 18px;
   }
   .title {
     font-size: 13px;

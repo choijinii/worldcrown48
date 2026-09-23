@@ -34,6 +34,7 @@ import {
   nextRequestedThisLandscape,
 } from "@/lib/arena/fullscreenGate";
 import { useStageViewport } from "@/lib/arena/useStageViewport";
+import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
 import { StageSide } from "./StageSide";
 import styles from "./stage.module.css";
@@ -236,11 +237,16 @@ export function SplitStage({
         </p>
       ) : null}
 
-      {/* 배너 자리: 데스크톱 1320×140 · 모바일 세로 = 프레임 폭 × 문구 높이 · 모바일 가로 = 없음
-          (원장 D-21 바뀜 2026-09-19 — 가로는 집중 모드, 메뉴를 빼는 D-17 ③과 같은 논리). */}
-      {mode !== "landscape" ? (
+      {/* 배너 자리 = 구글 광고 표준 크기 (원장 D-21 바뀜 2026-09-21):
+          데스크톱 970×90 · 모바일 세로 320×100 · 모바일 가로 없음(집중 모드 · D-17 ③). */}
+      {bannerVariant(mode) ? (
         <div className={styles.bannerRow} data-stage-layer="banner">
-          <BannerSlot slot="arena-match-below" onSignIn={onSignIn} className={styles.banner} />
+          <BannerSlot
+            slot="arena-match-below"
+            onSignIn={onSignIn}
+            className={styles.banner}
+            variant={bannerVariant(mode) ?? undefined}
+          />
         </div>
       ) : null}
     </section>

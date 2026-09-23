@@ -408,23 +408,29 @@
 }
 
 /* ── ④ 배너 자리 — 첫 화면 밖(스크롤) ─────────────────────────────── */
+/* ④ 배너 자리 — 구글 광고 표준 크기(D-21 바뀜 09-21). 무대 프레임 아래 가운데 정렬. */
 .bannerRow {
+  display: flex;
+  justify-content: center;
   width: var(--stage-frame-w);
   max-width: 100%;
   margin-top: 60px;
 }
 
 .banner {
+  width: var(--arena-banner-w);
+  max-width: 100%;
   min-height: var(--arena-banner-h);
 }
 
-/* 모바일 세로 = 프레임 폭(366) × 문구 높이. 모바일 가로는 배너 없음 (D-21 바뀜). */
+/* 모바일 세로 = 320×100 가운데. 모바일 가로는 배너 없음 (D-21 바뀜 09-21). */
 .page[data-stage-mode="portrait"] .bannerRow {
   margin-top: 16px;
 }
 
 .page[data-stage-mode="portrait"] .banner {
-  min-height: 0;
+  width: var(--arena-banner-w-mobile);
+  min-height: var(--arena-banner-h-mobile);
 }
 
 /* R5 — 모션 제거 (대기 시간은 SplitStage 가 0 으로). */
