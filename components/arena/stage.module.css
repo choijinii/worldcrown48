@@ -319,6 +319,20 @@
 /* ── 결승 3분할 (디자인 19~23 · D-29) ───────────────────────────────
    같은 프레임을 셋으로 나눈다. 확대는 1.3배, 가운데 칸은 가운데 기준으로 커진다.
    띠는 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (같은 투명도). */
+/* 프레임은 매치와 같은 크기를 유지하고(1320×680 · 732×366), 세 칸을 가운데 둔다. */
+.final .frame {
+  box-sizing: border-box;
+  width: var(--stage-frame-w);
+  height: var(--stage-frame-h);
+}
+
+.final .cells {
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 .final .cell {
   --stage-scale: var(--arena-final-hover-scale);
   --arena-confirm-ring-a: 59%;

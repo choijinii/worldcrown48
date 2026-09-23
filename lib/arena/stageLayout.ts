@@ -131,5 +131,11 @@ export function computeFinalLayout(input: {
 }): StageLayout {
   const base = computeStageLayout(input);
   const cell = Math.max(STAGE_MIN_CELL, Math.floor((base.cell * 2) / 3));
-  return { ...base, cells: 3, cell };
+  if (base.direction === "row") return { ...base, cells: 3, cell };
+
+  // 상하 3단(모바일 세로)에서는 프레임이 화면 폭을 그대로 쓰고(366), 좁아진 칸을 가운데 둔다
+  // — 디자인 아트보드 22. 칸만 셋으로 나뉘고 프레임은 매치와 같은 폭이다.
+  const s = SPACING[base.mode];
+  const frameW = input.width - 2 * s.side;
+  return { ...base, cells: 3, cell, frameW };
 }

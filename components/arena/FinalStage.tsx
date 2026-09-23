@@ -20,6 +20,10 @@ import type { Contestant } from "@/lib/types/tournament";
 import { useT } from "@/lib/i18n/useT";
 import { confirmTimeline } from "@/lib/arena/confirmTimeline";
 import {
+  fullscreenAction,
+  nextRequestedThisLandscape,
+} from "@/lib/arena/fullscreenGate";
+import {
   armedSide,
   initialStage,
   isStageLocked,
@@ -45,6 +49,16 @@ interface FinalStageProps {
 /** 칸 자리 ↔ 상태 머신의 키. 모바일 세로에서는 위·가운데·아래. */
 const SIDES: StageSideKey[] = ["L", "M", "R"];
 
+/** 모바일 가로 = 집중 모드 — 매치 무대와 같게 상단 메뉴를 뺀다 (D-17 ③ · 아트보드 23). */
+const HIDE_MENU_IN_LANDSCAPE = ".wc-nav { display: none !important; }";
+
+const supportsFullscreen = (): boolean =>
+  typeof document !== "undefined" &&
+  typeof document.documentElement?.requestFullscreen === "function";
+
+const isFullscreenNow = (): boolean =>
+  typeof document !== "undefined" && document.fullscreenElement !== null;
+
 function canHover(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(hover: hover)").matches === true;
 }
@@ -67,6 +81,26 @@ export function FinalStage({
   const frameRef = useRef<HTMLDivElement>(null);
   const onOrient = useCallback(() => dispatch({ type: "orient" }), []);
   const { mode, layout } = useStageViewport(frameRef, onOrient, { cells: 3 });
+
+  // 가로 첫 탭 전체화면 — 매치 무대와 같은 규칙(PR 2a · 원장 D-17 바뀜 09-20).
+  const requestedRef = useRef(false);
+  const onStagePointerDown = useCallback(() => {
+    const action = fullscreenAction({
+      mode,
+      isFullscreen: isFullscreenNow(),
+      supported: supportsFullscreen(),
+      requestedThisLandscape: requestedRef.current,
+    });
+    if (action === "request") {
+      void document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+    requestedRef.current = nextRequestedThisLandscape(requestedRef.current, mode, action);
+  }, [mode]);
+  useEffect(() => {
+    if (mode === "landscape") return;
+    if (isFullscreenNow()) void document.exitFullscreen?.().catch(() => {});
+    requestedRef.current = false;
+  }, [mode]);
 
   const timeline = confirmTimeline({ baseScale: 1.3, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
@@ -118,6 +152,7 @@ export function FinalStage({
     ? ({
         "--stage-cell": `${layout.cell}px`,
         "--stage-frame-w": `${layout.frameW}px`,
+        "--stage-frame-h": `${layout.frameH}px`,
       } as React.CSSProperties)
     : undefined;
 
@@ -129,12 +164,18 @@ export function FinalStage({
       data-stage-status={status}
       data-stage-cells="3"
       data-testid="final-stage"
+      style={stageVars}
+      onPointerDownCapture={onStagePointerDown}
     >
-      <header className={styles.guide} data-stage-layer="guide">
-        <div className={styles.eyebrow}>{t("arena.final.eyebrow")}</div>
-        <h1 className={styles.title}>{t("arena.final.title")}</h1>
-        <p className={styles.desc}>{t("arena.final.sub")}</p>
-      </header>
+      {mode === "landscape" ? <style>{HIDE_MENU_IN_LANDSCAPE}</style> : null}
+      {/* 안내 문구 층 — 모바일 가로에는 없다(아트보드 23: 프레임이 화면 맨 위 12px). */}
+      {mode !== "landscape" ? (
+        <header className={styles.guide} data-stage-layer="guide">
+          <div className={styles.eyebrow}>{t("arena.final.eyebrow")}</div>
+          <h1 className={styles.title}>{t("arena.final.title")}</h1>
+          <p className={styles.desc}>{t("arena.final.sub")}</p>
+        </header>
+      ) : null}
 
       <div
         ref={frameRef}
@@ -165,7 +206,9 @@ export function FinalStage({
         </div>
       </div>
 
-      <p className={styles.finalFoot}>{t("arena.final.foot")}</p>
+      {mode !== "landscape" ? (
+        <p className={styles.finalFoot}>{t("arena.final.foot")}</p>
+      ) : null}
 
       {bannerVariant(mode) ? (
         <div className={styles.bannerRow} data-stage-layer="banner">
