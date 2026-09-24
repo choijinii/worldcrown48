@@ -71,13 +71,17 @@ describe("showNextUpdateLine", () => {
 });
 
 describe("resolveHelpText — Crown Score 설명창(?)", () => {
-  it("문안이 오면 그 문구를 돌려준다", () => {
-    expect(resolveHelpText("점수가 오르는 세 가지 길")).toBe(
-      "점수가 오르는 세 가지 길",
-    );
+  it("줄바꿈으로 나뉜 문구를 줄 배열로 돌려준다 (첫 줄 요약 + 항목 3줄)", () => {
+    expect(
+      resolveHelpText("요약입니다.\n· 하나 40%\n· 둘 30%\n· 셋 30%"),
+    ).toEqual(["요약입니다.", "· 하나 40%", "· 둘 30%", "· 셋 30%"]);
   });
 
-  it("마케팅 대기 표식이면 null — 자리만 두고 그리지 않는다 (킥 §D)", () => {
+  it("빈 줄은 버린다 — 문안 사이 여백이 빈 항목으로 새지 않게", () => {
+    expect(resolveHelpText("요약\n\n· 하나")).toEqual(["요약", "· 하나"]);
+  });
+
+  it("마케팅 대기 표식이면 null — 자리만 두고 그리지 않는다", () => {
     expect(resolveHelpText(MARKETING_PENDING)).toBeNull();
   });
 

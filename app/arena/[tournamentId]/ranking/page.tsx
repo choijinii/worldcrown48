@@ -65,8 +65,8 @@ export default function RankingPage(): JSX.Element {
   const labels = {
     kicker: t("chart.kicker"),
     note: t("chart.note"),
-    // 문안이 오기 전에는 null → 물음표를 그리지 않는다.
-    helpText: resolveHelpText(t("chart.score.help")),
+    // 요약 1줄 + 항목 3줄로 쪼개 넘긴다 (마케팅 2026-09-24 승인본).
+    helpLines: resolveHelpText(t("chart.score.help")),
     deadlineLabel: lang === "ko" ? "토너먼트 마감" : "Tournament Deadline",
     waitingTitle: t("chart.waiting.title"),
   };

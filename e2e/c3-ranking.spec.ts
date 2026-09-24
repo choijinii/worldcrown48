@@ -221,6 +221,54 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await page.screenshot({ path: "playwright-report/c3-ranking-mobile360.png", fullPage: true });
   });
 
+  test("설명창(?) — 눌러야 열리고, 요약 1줄 + 항목 3줄이 나온다", async ({ page }) => {
+    await page.goto(`/arena/${TID_LOADED}/ranking?lang=ko`);
+    await expect(page.getByTestId("ranking-view")).toHaveAttribute(
+      "data-rank",
+      "loaded",
+      { timeout: 30_000 },
+    );
+
+    // 접힌 상태 — 물음표는 있고 패널은 없다.
+    const help = page.getByTestId("chart-score-help");
+    await expect(help).toBeVisible();
+    await expect(help).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByTestId("chart-score-help-panel")).toHaveCount(0);
+
+    await help.click();
+    const panel = page.getByTestId("chart-score-help-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.locator("p")).toHaveCount(4);
+    await expect(panel).toContainText("1000점 만점");
+    // 계산식을 쉬운 말로 — 비중 3종이 다 보인다.
+    await expect(panel).toContainText("40%");
+    await expect(panel).toContainText("30%");
+
+    // 다시 누르면 닫힌다.
+    await help.click();
+    await expect(page.getByTestId("chart-score-help-panel")).toHaveCount(0);
+  });
+
+  test("차트 이름 3언어 — ko 차트 · en CHART · es LISTAS", async ({ page }) => {
+    for (const [lang, kicker] of [
+      ["ko", "차트 · CHART"],
+      ["en", "CHART"],
+      ["es", "LISTAS"],
+    ] as const) {
+      await page.goto(`/arena/${TID_LOADED}/ranking?lang=${lang}`);
+      await expect(page.getByTestId("ranking-view")).toHaveAttribute(
+        "data-rank",
+        "loaded",
+        { timeout: 30_000 },
+      );
+      await expect(page.locator(".rank-kicker")).toHaveText(kicker);
+      // note 는 3언어 모두 "Crown Score" 하나다 (대표 2026-09-24 — 발표 주기는 쓰지 않는다).
+      await expect(page.locator(".rank-head .rank-note").first()).toContainText(
+        "Crown Score",
+      );
+    }
+  });
+
   test("W-3 — mobile shows top 12 only; desktop shows all", async ({ page }) => {
     await page.goto(`/arena/${TID_MANY}/ranking?lang=en`);
     const view = page.getByTestId("ranking-view");

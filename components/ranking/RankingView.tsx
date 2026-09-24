@@ -30,8 +30,8 @@ export type { RankState };
 export interface RankingViewLabels {
   kicker: string;
   note: string;
-  /** Crown Score 설명창(?) 문구. `null` = 문안 대기 → 물음표를 그리지 않는다. */
-  helpText?: string | null;
+  /** Crown Score 설명창(?) 줄 배열. `null` 이면 물음표를 그리지 않는다. */
+  helpLines?: string[] | null;
   deadlineLabel: string;
   /** 판수가 10에 닿기 전 · 캐시가 없을 때의 한 문장 (정본 §5 · 대표 승인 A8). */
   waitingTitle: string;
@@ -57,7 +57,11 @@ const STYLE = `
 .rank-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
 .rank-title { font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: var(--space-1) 0 0; }
 .rank-note { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.04em; margin-top: var(--space-2); }
-.rank-help { margin-left: var(--space-2); width: 14px; height: 14px; line-height: 1; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-gold); background: transparent; color: var(--color-gold); font-family: var(--font-mono); font-size: 10px; cursor: help; }
+.rank-help { margin-left: var(--space-2); width: 16px; height: 16px; line-height: 1; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-gold); background: transparent; color: var(--color-gold); font-family: var(--font-mono); font-size: 10px; cursor: pointer; }
+.rank-help[aria-expanded="true"] { background: var(--color-gold-subtle); }
+.rank-help-panel { margin-top: var(--space-3); max-width: 520px; padding: var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-bg-soft); }
+.rank-help-panel p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--color-text-sub); letter-spacing: normal; }
+.rank-help-panel p:first-child { color: var(--color-text); margin-bottom: var(--space-2); }
 .t-deadline { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; padding: 4px var(--space-3); border: 1px solid var(--color-border-gold); background: var(--color-gold-subtle); border-radius: var(--radius-chip); color: var(--color-gold); text-transform: uppercase; }
 .t-deadline svg { width: 12px; height: 12px; color: var(--color-gold-bright); flex: none; }
 .t-deadline .td-l { color: var(--color-text-sub); font-weight: 600; }
@@ -108,7 +112,7 @@ export function RankingView({
           kicker={labels.kicker}
           title={title}
           note={labels.note}
-          helpText={labels.helpText}
+          helpLines={labels.helpLines}
           nextUpdateText={nextUpdateText}
           deadlineLabel={labels.deadlineLabel}
           deadlineText={deadlineText}

@@ -86,7 +86,7 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
     "login.guest_limit.sub": {
       ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 차트에 반영돼요.",
       en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Charts.",
-      es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
+      es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en las Listas.",
     },
     // ARENA-1 PR 2b §5 — 2026-09-23 대표 승인본 (확정 연출 3 · 라운드 전환 7 · 팝업 4).
     "arena.confirm.waiting": { ko: "확인 중", en: "Confirming", es: "Confirmando" },
@@ -312,8 +312,7 @@ describe("messages — 마케팅 문안 대기", () => {
       .filter((v) => v.lang === "ko" && v.text === MARKETING_PENDING)
       .map((v) => v.key);
 
-    // 설명창 문구만 예외 — 3언어 전부 마케팅이 짓는다(대표 2026-09-24).
-    expect(pendingKo).toEqual(["chart.score.help"]);
+    expect(pendingKo).toEqual([]);
   });
 
   it("남은 대기 자리를 목록으로 드러낸다 — 이게 비어야 머지할 수 있다 (킥 §5)", () => {
@@ -323,13 +322,8 @@ describe("messages — 마케팅 문안 대기", () => {
 
     // ⚠️ 이 단언은 "아직 대기 중"을 **기록**하는 것이다. 문안이 도착하면 이 목록을
     // 비우고 단언도 []로 바꾼다 — 그때가 머지 가능 시점이다.
-    expect(pending).toEqual([
-      "chart.kicker.es",
-      "chart.waiting.title.en",
-      "chart.waiting.title.es",
-      "chart.score.help.ko",
-      "chart.score.help.en",
-      "chart.score.help.es",
-    ]);
+    // 2026-09-24 마케팅 문안 도착·대표 승인 → 대기 자리 없음. 이 목록이 비어 있는
+    // 것이 머지 가능 조건이다(킥 §5).
+    expect(pending).toEqual([]);
   });
 });

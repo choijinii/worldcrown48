@@ -286,12 +286,11 @@ export const MESSAGES = {
     en: "You've used all 3 of today's free entries.",
     es: "Has usado tus 3 participaciones gratis de hoy.",
   },
-  // 화면 이름이 '랭킹' → '차트' 로 바뀌었다 (정본 §1). es 는 차트의 스페인어 이름이
-  // 마케팅에서 올 때까지 옛 문구를 둔다 — 임시로 지어 넣지 않는다(§4 OUT).
+  // 화면 이름이 '랭킹' → '차트' 로 바뀌었다 (정본 §1). es = Listas (마케팅 2026-09-24).
   "login.guest_limit.sub": {
     ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 차트에 반영돼요.",
     en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Charts.",
-    es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
+    es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en las Listas.",
   },
 
   // ── 랭킹 "다음 발표" 한 줄 (RUN-1 PR 3 · AC 15) ──
@@ -317,7 +316,7 @@ export const MESSAGES = {
   "chart.kicker": {
     ko: "차트 · CHART",
     en: "CHART",
-    es: MARKETING_PENDING, // 차트의 스페인어 이름 — 마케팅 대기
+    es: "LISTAS", // 차트의 스페인어 이름 = Listas (마케팅 2026-09-24 승인)
   },
   // 점수가 무엇인지만 말한다. 발표 주기는 바로 아래 "다음 발표" 줄이 말하므로 겹치지
   // 않는다 (대표 2026-09-24).
@@ -327,16 +326,33 @@ export const MESSAGES = {
   // "참가자가 적다"로 읽히면 출전이 모자란다는 뜻이 된다 (정본 §5 · LANGUAGE.md:238).
   "chart.waiting.title": {
     ko: "아직 참여가 적어요. 조금만 기다려주세요!",
-    en: MARKETING_PENDING,
-    es: MARKETING_PENDING,
+    en: "Still warming up — the chart opens as more fans join in.",
+    es: "Aún hay poca participación. ¡Vuelve muy pronto!",
   },
   // Crown Score 옆 "?" 설명창 — 계산식을 쉬운 말로 알려 주는 **공통 문구 하나**
   // (모든 Contestant에게 같은 문구 · 대표 2026-09-24). 문구가 오기 전에는 자리만 두고
   // 숨긴다 — `ChartScoreHelp` 가 이 값이 대기 표식이면 아예 그리지 않는다.
+  // 요약 한 줄 + 항목 세 줄. `resolveHelpText` 가 줄 단위로 쪼개 넘긴다.
+  // 비중(40/30/30)은 정본 §4 그대로다 — 문구만 쉬운 말로 옮긴 것이고 산식이 아니다.
   "chart.score.help": {
-    ko: MARKETING_PENDING,
-    en: MARKETING_PENDING,
-    es: MARKETING_PENDING,
+    ko: [
+      "Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.",
+      "· 오른 순위 40% — 참여마다 결승에 얼마나 가까이 올랐는지",
+      "· 1등 비율 30% — 결승에서 선택받아 1등이 된 비율",
+      "· 선택 비율 30% — Match마다 선택받은 비율",
+    ].join("\n"),
+    en: [
+      "Crown Score is rated out of 1,000 — shaped entirely by fans' picks.",
+      "· Reach 40% — how close to the final they get each time",
+      "· Wins 30% — how often they're picked No. 1 in the final",
+      "· Picks 30% — how often they're chosen in each Match",
+    ].join("\n"),
+    es: [
+      "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.",
+      "· Alcance 40 % — qué tan cerca de la final llega en cada participación",
+      "· Victorias 30 % — cuántas veces lo eligen n.º 1 en la final",
+      "· Elecciones 30 % — cuántas veces lo eligen en cada Match",
+    ].join("\n"),
   },
 
   // ── 메뉴바 CTA (D-23) ───────────────────────────────────────────
