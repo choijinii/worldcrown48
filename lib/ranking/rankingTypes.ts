@@ -38,6 +38,24 @@ export interface RankingEntry {
 }
 
 /**
+ * 차트 한 줄 — Crown Score v1.0 (정본 `marketing/00_strategy/CROWN_SCORE_v1.0.md`).
+ *
+ * 화면은 `crownScore` 정수 하나만 그린다(대표 2026-09-24). 세 비율은 **저장만** 한다 —
+ * 런칭 후 세부 분석 페이지의 재료다. `voteCount`·`rate` 는 옛 필드 그대로 남는데, 지워서는
+ * 안 된다: 이상 징후(T-1~T-4)가 지금처럼 **rate 순 목록**으로 판정하는 근거가 이 둘이다.
+ */
+export interface CrownRankingEntry extends RankingEntry {
+  /** 0~1000 정수. 차트 정렬 기준이자 화면에 나가는 유일한 수치. */
+  crownScore: number;
+  /** 순위점수율 (0~1) — 저장 전용. */
+  placementRate: number;
+  /** 우승율 (0~1) — 저장 전용. */
+  winRate: number;
+  /** 점유율 (0~1) — 저장 전용. 정본의 점유율은 옛 `rate` 와 **분모가 다르다.** */
+  shareRate: number;
+}
+
+/**
  * Timestamp-free core shape consumed by the pure rank/anomaly functions.
  * `RankingCache` extends it with the persisted timestamps; the pure logic only
  * touches `rankings` / `generationSequence`, so it operates on this narrow type.
@@ -70,6 +88,16 @@ export interface TimestampLike {
  * admin-only `admin_alerts` collection ({@link AdminAlert}).
  */
 export interface RankingCache extends RankingSnapshot {
+  /** 차트 목록 — Crown Score 순 (정본 §0). */
+  rankings: CrownRankingEntry[];
+  /**
+   * 대회 전체 완주 판수(게스트 판 제외) — 10판 기준이 읽는 값 (정본 §5).
+   *
+   * **판수 자체는 화면에 그리지 않는다.** 화면은 이 값으로 "점수를 보여 줄 때가 됐는가"만
+   * 판정한다. ARENA-1 PR 3 이전에 쓰인 문서에는 이 필드가 없다 → 화면은 `?? 0` 으로 읽어
+   * 기다림 안내를 보여 준다(다음 발표가 채운다).
+   */
+  runsTotal: number;
   generatedAt: TimestampLike;
   /** Previous generation time. First run is null. */
   previousGeneratedAt: TimestampLike | null;

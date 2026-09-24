@@ -8,6 +8,14 @@ import { describe, expect, it } from "vitest";
 import { buildRankingUpdate } from "../core/scheduleRankingCacheCore";
 import type { ContestantTally } from "../_ranking/rankingTypes";
 import { computeRankings } from "../_ranking/computeRankings";
+import { tallyRuns } from "../_ranking/tallyRuns";
+
+/**
+ * 이 파일은 **경보(T-1~T-4)** 를 지키는 파일이다. 경보는 Crown Score 전환 뒤에도
+ * 선택 수(rate) 순으로 판정하므로(대표 2026-09-24), 판 기록이 없어도 단언이 그대로
+ * 통과해야 한다 — 통과하지 않으면 정렬 기준 변경이 경보까지 흔든 것이다.
+ */
+const noRuns = tallyRuns([]);
 
 const tally = (id: string, voteCount: number, name = id): ContestantTally => ({
   contestantId: id,
@@ -35,6 +43,7 @@ describe("buildRankingUpdate — first run (no history)", () => {
   const update = buildRankingUpdate({
     tournamentId: "t1",
     tallies: [tally("a", 4), tally("b", 3), tally("c", 0)],
+    runs: noRuns,
     prevCache: null,
     history24: null,
     existingUnresolvedTags: [],
@@ -65,6 +74,7 @@ describe("buildRankingUpdate — increments sequence from prevCache", () => {
     const update = buildRankingUpdate({
       tournamentId: "t1",
       tallies: [tally("a", 11), tally("b", 9)],
+      runs: noRuns,
       prevCache: prev,
       history24: null,
       existingUnresolvedTags: [],
@@ -80,6 +90,7 @@ describe("buildRankingUpdate — T-4 (rank jump vs 1h-ago prevCache)", () => {
     const update = buildRankingUpdate({
       tournamentId: "t1",
       tallies: [tally("c", 90, "Neymar"), tally("a", 55), tally("b", 42)],
+      runs: noRuns,
       prevCache: prev,
       history24: null,
       existingUnresolvedTags: [],
@@ -97,6 +108,7 @@ describe("buildRankingUpdate — T-3 (24h growth vs history24)", () => {
     const update = buildRankingUpdate({
       tournamentId: "t1",
       tallies: [tally("a", 30, "Messi"), tally("b", 9)],
+      runs: noRuns,
       prevCache: snapshotOf("t1", [tally("a", 28), tally("b", 9)], 23),
       history24,
       existingUnresolvedTags: [],
@@ -116,6 +128,7 @@ describe("buildRankingUpdate — dedup persistent alerts (trap #8)", () => {
     const update = buildRankingUpdate({
       tournamentId: "t1",
       tallies: dominant,
+      runs: noRuns,
       prevCache: null,
       history24: null,
       existingUnresolvedTags: [],
@@ -128,6 +141,7 @@ describe("buildRankingUpdate — dedup persistent alerts (trap #8)", () => {
     const update = buildRankingUpdate({
       tournamentId: "t1",
       tallies: dominant,
+      runs: noRuns,
       prevCache: null,
       history24: null,
       existingUnresolvedTags: ["T-1"],
