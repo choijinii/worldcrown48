@@ -27,6 +27,7 @@ import { adminDb } from "./admin";
 import { buildTallies, tallyVotes, type VoteLike } from "./core/rankingAggregator";
 import { buildRankingUpdate } from "./core/scheduleRankingCacheCore";
 import { rankingWindowStartMs } from "./core/rankingWindow";
+import { tallyRuns, type RunVote } from "./_ranking/tallyRuns";
 import type { AnomalyTag, RankingCache, RankingSnapshot } from "./_ranking/rankingTypes";
 
 /**
@@ -96,6 +97,9 @@ export const scheduleRankingCache = onSchedule(
       const counts = tallyVotes(
         votesSnap.docs.map((d) => d.data() as VoteLike),
       );
+      // Crown Score의 재료 — **같은 votesSnap 한 번 읽은 것**을 다시 훑는다.
+      // 추가 Firestore 읽기는 없다(trap #2의 "한 번만 읽는다"를 그대로 지킨다).
+      const runs = tallyRuns(votesSnap.docs.map((d) => d.data() as RunVote));
       const tallies = buildTallies(
         counts,
         contestantsSnap.docs.map((d) => ({
@@ -137,6 +141,7 @@ export const scheduleRankingCache = onSchedule(
       const update = buildRankingUpdate({
         tournamentId,
         tallies,
+        runs,
         prevCache,
         history24,
         existingUnresolvedTags,
@@ -160,6 +165,8 @@ export const scheduleRankingCache = onSchedule(
         tournamentId,
         rankings: update.rankings,
         totalVotes: update.totalVotes,
+        // 10판 기준(정본 §5)을 화면이 판정하는 값. 화면은 판수를 따로 세지 않는다.
+        runsTotal: update.runsTotal,
         generationSequence,
         generatedAt: now,
         previousGeneratedAt: (prevData?.generatedAt as Timestamp | undefined) ?? null,

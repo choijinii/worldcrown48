@@ -10,8 +10,9 @@
 
 ---
 
-# WorldCrown48 — CLAUDE.md v2.6 (핵심 압축판)
+# WorldCrown48 — CLAUDE.md v2.7 (핵심 압축판)
 # 에이전트 진입점 — 가장 먼저 읽는 파일
+# v2.7 (2026-09-24): Crown Score v1.0 · 차트 상시 공개(D-30) · Pick Now(D-23) · 대관 연출 폐기(D-24)
 # v2.6 (2026-09-07): 참가 규칙 v2.1(게스트 3판·공유 개방·랭킹 제외) 전파 + "표" 낱말 금지
 # v2.5 (2026-08-16): AI 스택 실측 정정 (모델 ID 2개 + 단일 소스 models.ts)
 # v2.4 (2026-08-13): 기술 스택 표 실측 동기화 + 색 토큰 규칙(불변 원칙 #2-1)
@@ -45,8 +46,8 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 
 월크48 = 팬이 좋아하는 Contestant를 투표하는 서비스 (이상형 월드컵 방식)
 절대 금지: 우승자 예측·베팅, 실제 경기 결과 연동, Vote Count(절대 수치) UI 노출
-— Vote Count 절대 수치는 **랭킹 포함 어디에도** 표시하지 않음(트래픽 종속 값이라 무의미).
-   랭킹 도메인은 % 지표만 허용 → 대진 흐름 #8 (Crown Score, 2026-07-11)
+— Vote Count 절대 수치는 **차트 포함 어디에도** 표시하지 않음(트래픽 종속 값이라 무의미).
+   차트 화면의 수치는 **Crown Score 하나** → 대진 흐름 #8 (Crown Score v1.0, 2026-09-23)
 
 ---
 
@@ -75,9 +76,11 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 5. **Round 정보는 라운드 전환 ANNOUNCEMENT에서만 표시**. 매치 화면에는 Round 배지·HUD 없음. (Voter는 관중이 아닌 선수 — "N강 · X/Y" 같은 진행 HUD는 관중 환상)
 6. 라운드명: `ROUND OF 48` → `ROUND OF 24` → `ROUND OF 12` → `ROUND OF 6` → `THE FINAL`
 7. 금지 라운드명: `ROUND OF 16`, `QUARTERFINAL`, `SEMIFINAL` (FIFA 표준 — WC48에 없음)
-8. Vote Count(절대 수치)는 어디에도 표시 금지. **랭킹 도메인**은 % 지표 3종만 허용: **우승비율 → 점유율(Vote Rate) → 승률** 순서 표시 + 각 지표 **? 마크 툴팁으로 산식 공개**. 순위 기준 = **Crown Score(우승비율×50% + 점유율×50%)** (2026-07-11 대표 확정)
-9. **Ranking Scope Lock (2026-07-11)**: Crown Score·랭킹 지표는 **랭킹 도메인 + AI 뉴스 소재**로만 사용. 매치(배틀)·Crown Card 사용 금지
+8. Vote Count(절대 수치)는 어디에도 표시 금지. **차트(구 랭킹) 화면에 나가는 수치는 Crown Score 정수 하나뿐**이다. 순위 기준 = **Crown Score = (순위점수율×0.4 + 우승율×0.3 + 점유율×0.3) × 1000** → 0~1000 (**v1.0, 2026-09-23 대표 확정** · 정본 `marketing/00_strategy/CROWN_SCORE_v1.0.md`). 세 비율은 캐시에 저장만 하고 화면에 나열하지 않는다. 점수 옆 **? 설명창 = 계산식 안내 공통 문구 하나**. 완주 판수 **10판** 미만이면 점수 없이 기다림 안내(차트로 가는 길은 숨기지 않는다). ~~우승비율×50% + 점유율×50%~~(2026-07-11)·~~우승비율→점유율→승률 3종 나열~~·~~Vote Rate/득표율~~은 **폐기**
+9. **Ranking Scope Lock (2026-07-11)**: Crown Score·차트 지표는 **차트 도메인 + AI 뉴스 소재**로만 사용. 매치(배틀)·Crown Card 사용 금지
 10. **Bracket Size (2026-07-11)**: 후보 풀은 항상 48개, **Voter가 시작 시 12/24/48강 선택**(무작위 추출) — 기존 라운드 경로의 중간 진입. 라운드명 체계·규칙 불변
+11. **차트 상시 공개 (D-30, 2026-09-23)**: 차트는 **대회 마감 전에도, 로그인하지 않아도** 열린다. 마감 전 잠금(W-7)은 폐기 — `firestore.rules` 의 마감 게이트와 화면의 `locked` 상태를 함께 제거했다
+12. **대관 연출 폐기 (D-24)**: 우승의 감정은 Crown Card가 맡는다. 대관 연출(Crown Ceremony)은 만들지 않으며 `ceremony_viewed`·`ceremony_skipped` 계측도 만들지 않는다
 
 **Voter 전체 흐름 (48강 선택 시 — 24강은 ROUND OF 24부터, 12강은 ROUND OF 12부터 시작):**
 ```
@@ -137,7 +140,10 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 | Champion | 우승자, 1등 |
 | Crown Card | 결과 이미지, 결과 카드 |
 | Tournament Deadline | Round Deadline (없는 개념) |
-| Vote Rate (%) | Vote Count (절대 수치) |
+| **Crown Score** (차트의 유일한 표시 수치) | Vote Rate, 득표율 (**폐기** 2026-09-23) |
+| **차트 (Chart)** — 대회별 순위표의 이름 | 랭킹 (화면 이름으로 금지 · 차트 속 등수를 뜻하는 일반 명사로만) |
+| **엔트리** — Contestant의 한국어 표기 (D-31, 화면 적용은 The Pitch 개편 때) | 참가자, 후보자 |
+| **참가하기 / Pick Now / Elige ahora** (D-23) | Vote Now |
 | Crown Score | 점수, 스코어, 랭킹 점수 (임의 명칭) |
 | **Run (판)** | 회, 게임, 라운드 — 참가를 세는 단위는 **판** |
 | **Daily Run Limit (일일 판 한도)** | Daily Vote Limit, Daily Participation Limit, "하루 새 대회 5개", "1일 5표" (전부 폐기) |
@@ -153,7 +159,7 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 - **게스트 Crown Card: 공유는 열림(UTM 동일 규격 + `is_guest` 이벤트 파라미터) · 저장·다운로드는 로그인 필요** (v2.1).
 - **★ 게스트의 선택은 랭킹 집계에서 제외** (v2.1 · 앞으로만, 소급 없음 — 2026-09-07). 이유: 게스트 uid는 브라우저 창마다 새로 생겨 사람 단위 상한이 없다 → 랭킹에서 빼면 조작 동기가 사라지고 "내 선택이 랭킹에 반영되려면 로그인"이 가입 유인이 된다.
 - 🚫 **"표"는 낱말 자체가 금지어다** (2026-09-07 대표 확정 — 단위 금지에서 승격). "게스트 표"·"내 표"·"1일 5표" 전부 금지, 대체어 = **선택**. `votes`·`Vote`는 DB·코드 내부 이름일 뿐.
-- ⚠️ **코드 상태(2026-09-07)**: RUN-1 PR 1(서버 회차)만 배포됨. 게스트 3판·공유 개방·랭킹 제외·화면 문구는 **PR 2·PR 3 진행 중** — 규칙 인용은 반드시 LANGUAGE.md에서.
+- ⚠️ **코드 상태(2026-09-24)**: 게스트 판의 랭킹 제외는 **ARENA-1 PR 3에서 판 단위로 구현**됐다(한 판에 게스트 선택이 하나라도 있으면 그 판 전체 제외 · 2026-09-07 이전 기록은 소급 없이 집계 포함). 규칙 인용은 반드시 LANGUAGE.md에서.
 
 ---
 
@@ -187,7 +193,7 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 | **우측 상설 프레임** | 뉴스뷰+배너: Pitch·Lab·Arena·Locker Room 적용, **매치·Crown Card 제외**. 모바일 = 피드 인라인. Arena 뉴스룸 계획 대체 |
 | **Crown Card** | 팝업화 보류 — **기존 페이지 방식 유지** (SNS 공유 URL이 핵심) |
 | **Bracket Size** | Voter가 시작 시 12/24/48 선택 (풀 48 고정, 무작위 추출) — 대진 흐름 #10 |
-| **Crown Score** | 랭킹 순위 = 우승비율×50% + 점유율×50% — 대진 흐름 #8·#9 |
+| **Crown Score** | ~~랭킹 순위 = 우승비율×50% + 점유율×50%~~ → **v1.0(2026-09-23)으로 대체** — 대진 흐름 #8·#9 |
 | **Voters 이벤트** | Voter Count(참여자 수)는 노출 가능 — "1,000 팬 모으기" 등 런칭 이벤트 소재 (독자 노출 카피이므로 표시 용어 적용 → LANGUAGE.md §1) |
 
 ---
@@ -216,6 +222,7 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 
 | 버전 | 날짜 | 주요 변경 |
 |------|------|-----------|
+| **v2.7** | **2026-09-24** | **★ ARENA-1 PR 3 — Crown Score v1.0 전파.** 원칙 #8을 정본(`marketing/00_strategy/CROWN_SCORE_v1.0.md`) 산식으로 교체(40:30:30 × 1000 · 화면은 점수 하나 · 10판 기준) · 옛 50:50 산식과 "우승비율→점유율→승률 3종"·"Vote Rate/득표율"을 **폐기 표시** · 원칙 #11 **차트 상시 공개(D-30)** · #12 **대관 연출 폐기(D-24)** 신설 · 필수 용어 표에 차트·엔트리·참가하기/Pick Now 추가 |
 | **v2.6** | **2026-09-07** | **★ 참가 규칙 v2.1 전파(게스트 정책 · 2026-09-06 대표 확정) + "표" 낱말 금지 승격(2026-09-07).** ⚖️ 절 재작성: 게스트 하루 통틀어 3판(대회 수 무관) · 공유 개방/저장 잠금 · **게스트의 선택 랭킹 제외(소급 없음)** · 금지어 "표"는 낱말 자체로 확대(대체어 "선택") · 코드 상태 줄을 "PR 1 배포, PR 2·3 진행 중"으로 갱신. 필수 용어 표 Run 행 각주 정정 |
 | **v2.5** | **2026-08-16** | **★ AI 스택 실측 정정 (AI-1).** 기술 스택 표 AI 줄이 `claude-sonnet-4-20250514`로 적혀 있었으나 코드에 없는 모델이었다(Stale-Doc Guard 재발). 실측 모델 2개(`claude-sonnet-5` · `claude-haiku-4-5`) + **단일 소스 = `functions/src/core/models.ts`** 명시. Sonnet 4.6 → 5 업그레이드는 ID 교체 + thinking 명시 비활성(생략 시 adaptive 자동 ON) 동반 |
 | **v2.4** | **2026-08-13** | **★ 기술 스택 표 실측 동기화 (TOK-1).** Tailwind·Shadcn/UI·framer-motion 제거 — package.json에 없는데 v2.3까지 적혀 있었다(Stale-Doc Guard 사고 재발). 실제 스타일 층(CSS 변수 + CSS Modules + inline style)·애니메이션(CSS)·npm 명시 + "없는 것" 경고 블록 신설 · 불변 원칙 **#2-1 색은 토큰만**(raw hex 금지 · 가드 check-hex) 추가 |
@@ -224,4 +231,4 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 
 ---
 
-*© 2026 WorldCrown48 | CLAUDE.md v2.6 (2026-09-07) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | CLAUDE.md v2.7 (2026-09-24) | CONFIDENTIAL*

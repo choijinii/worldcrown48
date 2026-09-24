@@ -19,8 +19,18 @@ const dest = join(here, "..", "src", "_ranking");
 mkdirSync(dest, { recursive: true });
 
 // Import-free pure modules the cron needs. rateFormatter is UI-only (skipped).
-for (const file of ["rankingTypes.ts", "computeRankings.ts", "anomalyRules.ts"]) {
+for (const file of [
+  "rankingTypes.ts",
+  "computeRankings.ts",
+  "anomalyRules.ts",
+  // Crown Score v1.0 (정본 CROWN_SCORE_v1.0.md) — 크론이 차트를 만드는 데 쓴다.
+  "crownScore.ts",
+  "tallyRuns.ts",
+  "crownRankings.ts",
+]) {
   copyFileSync(join(libRanking, file), join(dest, file));
 }
 
-console.log("[copy-ranking] mirrored lib/ranking/{rankingTypes,computeRankings,anomalyRules} → functions/src/_ranking");
+console.log(
+  "[copy-ranking] mirrored lib/ranking/{rankingTypes,computeRankings,anomalyRules,crownScore,tallyRuns,crownRankings} → functions/src/_ranking",
+);

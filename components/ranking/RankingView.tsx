@@ -1,9 +1,14 @@
 /**
- * RankingView — wireframe `sf-ranking` surface (Domain 3 dark). Presentational:
- * the page container subscribes to ranking_cache and maps it to one of four
- * `data-rank` states (loaded · loading · empty · locked — W-7 Deadline gate).
- * Anomaly signal NEVER reaches
- * this Voter surface (W-2, ADR-0006 amendment) — it lives only in admin_alerts.
+ * RankingView — 차트 화면 (wireframe `sf-ranking` · Domain 3 dark).
+ *
+ * 표시만 한다. 페이지가 `ranking_cache` 를 구독해 **세 가지** `data-rank` 상태로
+ * 옮긴다: loading · waiting · loaded.
+ *
+ * ⚠️ `locked` 상태는 없어졌다 — 마감 전 잠금(W-7)은 **D-30으로 폐기**됐다. 차트는
+ * 마감 전에도, 로그인하지 않아도 열린다. 대신 `waiting` 이 생겼다(완주 판수 10 미만 ·
+ * 정본 §5). 판정은 `lib/ranking/rankState` 에 있다.
+ *
+ * 이상 징후는 이 화면에 절대 닿지 않는다 (W-2, ADR-0006 amendment) — admin_alerts 전용.
  * The CSS below is
  * PORTED VERBATIM from `docs/design/wireframes/Domain 3 · The Arena.html`
  * (lines 119~131 t-deadline, 372~404 rank-*, plus the narrow-viewport rule) so
@@ -13,30 +18,30 @@
  * Round Scope Lock (§9 trap #11): import ONLY from app/arena/[id]/ranking/.
  * Never render this on the Match VS surface (Vote Rate is ranking-only).
  */
-import type { RankingEntry } from "@/lib/ranking/rankingTypes";
+import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
+import type { RankState } from "@/lib/ranking/rankState";
 import { RankingHeader } from "./RankingHeader";
 import { RankList } from "./RankList";
 import { RankSkeleton } from "./RankSkeleton";
-import { RankEmpty } from "./RankEmpty";
-import { RankLocked } from "./RankLocked";
+import { RankWaiting } from "./RankWaiting";
 
-export type RankState = "loading" | "empty" | "loaded" | "locked";
+export type { RankState };
 
 export interface RankingViewLabels {
   kicker: string;
   note: string;
+  /** Crown Score 설명창(?) 줄 배열. `null` 이면 물음표를 그리지 않는다. */
+  helpLines?: string[] | null;
   deadlineLabel: string;
-  emptyTitle: string;
-  emptySubtitle: string;
-  lockedTitle: string;
-  lockedSub: string;
+  /** 판수가 10에 닿기 전 · 캐시가 없을 때의 한 문장 (정본 §5 · 대표 승인 A8). */
+  waitingTitle: string;
 }
 
 export interface RankingViewProps {
   state: RankState;
   title: string;
   deadlineText: string | null;
-  entries: RankingEntry[];
+  entries: CrownRankingEntry[];
   labels: RankingViewLabels;
   /**
    * RUN-1 PR 3 (AC 15) — "다음 발표" 한 줄. `labels` 와 달리 이 문구는 3언어 카탈로그
@@ -52,6 +57,11 @@ const STYLE = `
 .rank-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
 .rank-title { font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: var(--space-1) 0 0; }
 .rank-note { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.04em; margin-top: var(--space-2); }
+.rank-help { margin-left: var(--space-2); width: 16px; height: 16px; line-height: 1; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-gold); background: transparent; color: var(--color-gold); font-family: var(--font-mono); font-size: 10px; cursor: pointer; }
+.rank-help[aria-expanded="true"] { background: var(--color-gold-subtle); }
+.rank-help-panel { margin-top: var(--space-3); max-width: 520px; padding: var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-bg-soft); }
+.rank-help-panel p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--color-text-sub); letter-spacing: normal; }
+.rank-help-panel p:first-child { color: var(--color-text); margin-bottom: var(--space-2); }
 .t-deadline { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; padding: 4px var(--space-3); border: 1px solid var(--color-border-gold); background: var(--color-gold-subtle); border-radius: var(--radius-chip); color: var(--color-gold); text-transform: uppercase; }
 .t-deadline svg { width: 12px; height: 12px; color: var(--color-gold-bright); flex: none; }
 .t-deadline .td-l { color: var(--color-text-sub); font-weight: 600; }
@@ -78,10 +88,6 @@ const STYLE = `
 .rank-empty img { width: 64px; opacity: 0.85; filter: drop-shadow(0 0 12px rgba(252, 208, 6, 0.18)); }
 .rank-empty .et { font-weight: 600; font-size: 16px; }
 .rank-empty .es { font-size: 13px; color: var(--color-text-sub); }
-.rank-locked { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-20) var(--space-6); border: 1px dashed var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-gold-subtle); }
-.rank-locked svg { width: 40px; height: 40px; color: var(--color-gold); filter: drop-shadow(0 0 12px rgba(252, 208, 6, 0.18)); }
-.rank-locked .rl-title { font-weight: 600; font-size: 16px; }
-.rank-locked .rl-sub { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-sub); letter-spacing: 0.04em; }
 @media (max-width: 520px) { .rank-row { grid-template-columns: 28px 36px 1fr 80px; } }
 /* Mobile shows top 12 only (W-3, 대표 결정 2026-06-26) — desktop keeps all active
    rows so a Voter can find their own Contestant. Rows are direct .rank-list
@@ -106,6 +112,7 @@ export function RankingView({
           kicker={labels.kicker}
           title={title}
           note={labels.note}
+          helpLines={labels.helpLines}
           nextUpdateText={nextUpdateText}
           deadlineLabel={labels.deadlineLabel}
           deadlineText={deadlineText}
@@ -113,16 +120,8 @@ export function RankingView({
 
         {state === "loading" ? <RankSkeleton /> : null}
 
-        {state === "locked" ? (
-          <RankLocked
-            title={labels.lockedTitle}
-            subtitle={labels.lockedSub}
-            deadlineText={deadlineText}
-          />
-        ) : null}
-
-        {state === "empty" ? (
-          <RankEmpty title={labels.emptyTitle} subtitle={labels.emptySubtitle} />
+        {state === "waiting" ? (
+          <RankWaiting title={labels.waitingTitle} />
         ) : null}
 
         {state === "loaded" ? (

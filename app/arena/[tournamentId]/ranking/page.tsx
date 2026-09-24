@@ -1,16 +1,22 @@
 /**
- * /arena/[tournamentId]/ranking — the RANKING tab destination.
+ * /arena/[tournamentId]/ranking — **차트** 화면 (주소·폴더 이름은 그대로 둔다).
  *
- * Thin glue (E2E-covered): subscribes to the single `ranking_cache/{tournamentId}`
- * doc via onSnapshot (one client read — DevTools verifies; §10.2 step 7) and reads
- * the Tournament doc once for the title + deadline chip. Maps the cache to one of
- * four RankingView states. NEVER renders voteCount (Vote Count 금지, trap #7) — it
- * only passes `rate` rows down. RTDB is never used.
+ * 얇은 접착층: `ranking_cache/{tournamentId}` 한 문서를 onSnapshot 으로 구독하고
+ * (클라이언트 읽기 1회), Tournament 문서를 한 번 읽어 제목·마감 칩을 만든다. 캐시를
+ * 세 가지 RankingView 상태로 옮긴다. `voteCount` 는 절대 그리지 않는다 (Vote Count
+ * 금지 · trap #7). RTDB는 쓰지 않는다.
  *
- * W-7 Deadline gate (defense in depth): BEFORE the Tournament Deadline the ranking
- * is "locked" — the UI shows RankLocked and firestore.rules independently denies
- * the read (a legit popular-vote ranking pre-close would skew 표심). The cache is
- * only surfaced once `tournamentDeadline` has passed.
+ * ## 바뀐 것 — D-30 (2026-09-23 대표)
+ *
+ * 마감 전 잠금(W-7)이 **폐기**됐다. 차트는 마감 전에도, 로그인하지 않아도 열린다.
+ * `firestore.rules` 의 마감 게이트도 같은 PR에서 지웠다 — 둘 중 하나만 고치면 화면은
+ * 열렸는데 읽기가 막힌다.
+ *
+ * ## 바뀐 것 — Crown Score v1.0 (정본 CROWN_SCORE_v1.0.md)
+ *
+ * 화면에 나가는 수치는 Crown Score 정수 하나뿐이다. 세 비율은 캐시에 실려 오지만
+ * 그리지 않는다. 완주 판수가 10에 닿기 전에는 점수 대신 기다림 안내를 보여 주되
+ * **차트로 가는 길은 숨기지 않는다**(정본 §5).
  */
 "use client";
 
@@ -22,31 +28,15 @@ import { useI18n } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { kstHour, nextRankingUpdate } from "@/lib/ranking/nextRankingUpdate";
-import { RankingView, type RankState } from "@/components/ranking/RankingView";
+import {
+  deriveRankState,
+  resolveHelpText,
+  showNextUpdateLine,
+} from "@/lib/ranking/rankState";
+import { RankingView } from "@/components/ranking/RankingView";
 import { ModuleNav } from "@/components/arena/ModuleNav";
 import type { RankingCache } from "@/lib/ranking/rankingTypes";
 import type { LocalizedText } from "@/lib/types/tournament";
-
-const LABELS = {
-  ko: {
-    kicker: "랭킹 · RANKING",
-    note: "VOTE RATE (%) · 투표 완료 후 공개",
-    deadlineLabel: "토너먼트 마감",
-    emptyTitle: "아직 랭킹이 없어요",
-    emptySubtitle: "투표가 모이면 Vote Rate 랭킹이 여기에 표시됩니다",
-    lockedTitle: "토너먼트 진행 중",
-    lockedSub: "마감 후 공개됩니다",
-  },
-  en: {
-    kicker: "RANKING",
-    note: "VOTE RATE (%) · published after vote close",
-    deadlineLabel: "Tournament Deadline",
-    emptyTitle: "No ranking yet",
-    emptySubtitle: "vote to reveal the ranking",
-    lockedTitle: "Tournament in progress",
-    lockedSub: "Published after the tournament closes",
-  },
-} as const;
 
 /** Wireframe deadline chip format — "2026·06·20". */
 function formatDeadline(value: unknown): string | null {
@@ -63,33 +53,6 @@ function deadlineMillis(value: unknown): number | null {
   return ts?.toMillis ? ts.toMillis() : null;
 }
 
-/**
- * 🛑 "다음 발표" 한 줄의 **노출 보류 스위치** (2026-09-10 대표 확정).
- *
- * 판정 함수·§8 승인 문구 2키·단위 테스트 19건은 전부 들어가 있고, 막힌 것은 화면 노출뿐이다.
- * 이 화면에서는 그 문구가 사실이 될 수 없기 때문이다:
- *   · `firestore.rules` 는 `ranking_cache` 를 **마감 후에만** 읽게 한다 (W-7)
- *   · 아래 `deriveState` 도 마감 전이면 `locked` 로 숫자를 감춘다
- *   · `functions/src/scheduleRankingCache.ts` 는 **마감 전** 대회만 집계한다
- * → 팬이 숫자를 볼 수 있는 순간, 그 캐시는 다시 갱신될 일이 없다. "다음 발표: 오늘 21:00" 은
- *   그 자리에서 늘 거짓이고, 이 줄을 넣은 목적(멈춘 숫자를 고장으로 읽지 않게)이 거꾸로 뒤집힌다.
- *
- * 마감 전 랭킹 공개(W-7) 여부는 제품 결정(표심 왜곡 방지 · ADR-0006 계열)이라 이 PR의 범위가
- * 아니다. 그 결정이 나면 **이 한 줄을 `true` 로 바꾸는 것만으로** 되살아난다.
- */
-const SHOW_NEXT_UPDATE_LINE = false;
-
-function deriveState(
-  cache: RankingCache | null | undefined,
-  deadlineMs: number | null | undefined,
-  nowMs: number,
-): RankState {
-  if (cache === undefined || deadlineMs === undefined) return "loading";
-  // W-7: still open → locked (the cache, if any, stays sealed).
-  if (deadlineMs !== null && deadlineMs > nowMs) return "locked";
-  if (!cache || cache.rankings.length === 0) return "empty";
-  return "loaded";
-}
 
 export default function RankingPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
@@ -97,7 +60,16 @@ export default function RankingPage(): JSX.Element {
   // 위 LABELS 는 ko/en 2언어뿐이다. "다음 발표" 한 줄은 3언어가 요건(AC 15)이라 카탈로그
   // (`lib/i18n/messages.ts`)에서 뽑는다 — es 가 여기서 나온다.
   const { t } = useT();
-  const labels = LABELS[lang === "ko" ? "ko" : "en"];
+  // 문구는 전부 3언어 카탈로그에서 온다. 예전에는 이 파일 안에 ko·en 두 벌이 박혀 있어
+  // es 팬이 영어를 봤다 — 차트 이름의 es 는 마케팅 문안 대기다(§5 승인표 A6).
+  const labels = {
+    kicker: t("chart.kicker"),
+    note: t("chart.note"),
+    // 요약 1줄 + 항목 3줄로 쪼개 넘긴다 (마케팅 2026-09-24 승인본).
+    helpLines: resolveHelpText(t("chart.score.help")),
+    deadlineLabel: lang === "ko" ? "토너먼트 마감" : "Tournament Deadline",
+    waitingTitle: t("chart.waiting.title"),
+  };
 
   // undefined = still loading the first snapshot; null = no cache doc yet.
   const [cache, setCache] = useState<RankingCache | null | undefined>(undefined);
@@ -145,7 +117,7 @@ export default function RankingPage(): JSX.Element {
     };
   }, [tournamentId]);
 
-  const state = deriveState(cache, deadlineMs, Date.now());
+  const state = deriveRankState(cache);
   const entries = cache?.rankings ?? [];
   const displayTitle = localizedTitle({ title, titleI18n }, lang);
 
@@ -166,8 +138,10 @@ export default function RankingPage(): JSX.Element {
         ? t("ranking.nextUpdate.tomorrow")
         : null;
 
-  // 노출 보류 — 사유는 SHOW_NEXT_UPDATE_LINE 위 주석.
-  const nextUpdateText: string | null = SHOW_NEXT_UPDATE_LINE
+  // D-30 전에는 이 줄이 **늘 거짓말**이었다(팬이 숫자를 보는 시점엔 캐시가 더 갱신되지
+  // 않았다). 상시 공개가 되어 사실이 됐으므로 켠다. 마감 뒤에는 다시 감춘다 — 그때부터는
+  // 더 발표되지 않는다. 새벽(KST 00:00~08:59)은 승인 문구가 없어 줄 자체를 감춘다.
+  const nextUpdateText: string | null = showNextUpdateLine(deadlineMs, Date.now())
     ? nextUpdateCopy
     : null;
 

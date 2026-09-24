@@ -2,7 +2,12 @@
  * rateFormatter — Vote Rate (%) display formatting (handoff §5 DO).
  */
 import { describe, expect, it } from "vitest";
-import { avatarGlyph, barWidth, formatRate } from "../../ranking/rateFormatter";
+import {
+  avatarGlyph,
+  barWidth,
+  formatCrownScore,
+  formatRate,
+} from "../../ranking/rateFormatter";
 
 describe("formatRate", () => {
   it("0 → '0.0%'", () => {
@@ -49,5 +54,24 @@ describe("avatarGlyph", () => {
   });
   it("empty name → '?'", () => {
     expect(avatarGlyph("")).toBe("?");
+  });
+});
+
+describe("formatCrownScore — 차트에 나가는 유일한 수치", () => {
+  it("정수 그대로 찍는다 (소수점·퍼센트 없음)", () => {
+    expect(formatCrownScore(549)).toBe("549");
+  });
+
+  it("0점도 숨기지 않는다", () => {
+    expect(formatCrownScore(0)).toBe("0");
+  });
+
+  it("NaN·Infinity 는 0으로 막는다 — 화면에 'NaN점'이 뜨면 안 된다", () => {
+    expect(formatCrownScore(Number.NaN)).toBe("0");
+    expect(formatCrownScore(Number.POSITIVE_INFINITY)).toBe("0");
+  });
+
+  it("소수가 들어와도 정수로 내린다 (캐시가 옛 값이어도 화면은 정수다)", () => {
+    expect(formatCrownScore(548.8)).toBe("549");
   });
 });

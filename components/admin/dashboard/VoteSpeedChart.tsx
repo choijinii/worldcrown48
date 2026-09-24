@@ -30,27 +30,27 @@ const GOLD = "#FCD006";
 
 function strings(lang: Lang) {
   const ko = {
-    title: "투표 속도 · 최근 24시간",
-    side: "시간당 투표 수",
+    title: "선택 속도 · 최근 24시간",
+    side: "시간당 선택 수",
     laterTip: "다음 단계 예정",
     total24h: "24시간 합계",
     peak: "피크 시간",
     now: "현재",
     perHr: "/시간",
-    emptyTitle: "아직 투표 데이터가 없어요",
-    emptySub: "첫 투표가 들어오면 차트가 나타납니다",
+    emptyTitle: "아직 선택 기록이 없어요",
+    emptySub: "첫 선택이 들어오면 차트가 나타납니다",
     loading: "데이터 동기화 중…",
   };
   const en = {
-    title: "Vote speed · last 24h",
-    side: "votes per hour",
+    title: "Pick speed · last 24h",
+    side: "picks per hour",
     laterTip: "Planned for a later phase",
     total24h: "24h Total",
     peak: "Peak hr",
     now: "Now",
     perHr: "/hr",
-    emptyTitle: "No vote data yet",
-    emptySub: "Chart will appear when the first Vote lands",
+    emptyTitle: "No pick data yet",
+    emptySub: "Chart will appear when the first pick lands",
     loading: "Syncing data…",
   };
   return lang === "ko" ? ko : en;

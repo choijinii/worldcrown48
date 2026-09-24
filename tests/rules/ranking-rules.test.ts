@@ -98,14 +98,17 @@ describe("ranking_cache — public read after Deadline, no client write", () => 
   });
 });
 
-describe("ranking_cache — Tournament Deadline gate (W-7)", () => {
-  it("DENIES read BEFORE the Deadline (locked)", async () => {
+// D-30 (2026-09-23 대표) — W-7 폐기. 차트는 마감 전에도, 로그인하지 않아도 열린다.
+// "발표는 보여 주려고 하는 것"이고, 공유 링크로 들어온 팬이 바로 봐야 퍼진다.
+// 아래 두 단언은 **뒤집힌 것**이다 — 예전에는 마감 전 읽기를 막는 것이 규칙이었다.
+describe("ranking_cache — 상시 공개 (D-30 · W-7 폐기)", () => {
+  it("ALLOWS read BEFORE the Deadline — 비로그인 포함 (뒤집힘: 예전 DENIES)", async () => {
     await seedTournament(30 * DAY_MS); // Deadline 30d ahead → still open
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1"), cache());
     });
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, "ranking_cache/t1")));
+    await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
   });
 
   it("ALLOWS read AFTER the Deadline", async () => {
@@ -117,13 +120,13 @@ describe("ranking_cache — Tournament Deadline gate (W-7)", () => {
     await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
   });
 
-  it("DENIES a history read BEFORE the Deadline (locked)", async () => {
+  it("ALLOWS a history read BEFORE the Deadline (뒤집힘: 예전 DENIES)", async () => {
     await seedTournament(30 * DAY_MS);
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1/history/0"), cache());
     });
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, "ranking_cache/t1/history/0")));
+    await assertSucceeds(getDoc(doc(db, "ranking_cache/t1/history/0")));
   });
 
   it("DENIES read when the parent Tournament doc is missing", async () => {

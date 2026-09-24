@@ -15,6 +15,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import type { User } from "firebase/auth";
 import { UserDropdown } from "./UserDropdown";
 import { DeleteAccountModal } from "./DeleteAccountModal";
@@ -27,10 +28,14 @@ const DISPLAY_NAME_MAX = 24;
 const AVATAR_SIZE_DESKTOP = 56;
 
 export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
+  const { lang } = useI18n();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const rawName = user.displayName ?? user.email ?? "Voter";
+  // D-32 (2026-09-24 대표) — 기본 표시 이름의 "Voter" 예외 폐기. 화면에서 Voter 는
+  // 시스템 용어이고, 팬이 읽는 이름표는 '팬 / Fan' 이다 (LANGUAGE.md §1 표시 용어 층).
+  const rawName =
+    user.displayName ?? user.email ?? (lang === "ko" ? "팬" : "Fan");
   const display =
     rawName.length > DISPLAY_NAME_MAX
       ? rawName.slice(0, DISPLAY_NAME_MAX - 1) + "…"

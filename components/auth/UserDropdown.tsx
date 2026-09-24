@@ -120,7 +120,7 @@ export function UserDropdown({
                 whiteSpace: "nowrap",
               }}
             >
-              {user.displayName ?? "Voter"}
+              {user.displayName ?? (lang === "ko" ? "팬" : "Fan")}
             </div>
             {user.email ? (
               <div

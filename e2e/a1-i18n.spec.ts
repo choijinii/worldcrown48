@@ -64,7 +64,9 @@ test("picking ES flips hero copy and rewrites ?lang=es", async ({ page }) => {
 test("?lang=es boots Spanish directly", async ({ page }) => {
   await page.goto("/?lang=es");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await expect(page.getByText("Empezar a votar")).toBeVisible(); // pitch.hero.cta.start es
+  // D-23 (2026-09-23 대표): "Empezar a votar" → "Elige ahora". 메뉴바 CTA와 같은 낱말이라
+  // 이 자리에 둘이 함께 보이므로 first() 로 좁힌다.
+  await expect(page.getByText("Elige ahora").first()).toBeVisible(); // pitch.hero.cta.start es
 });
 
 test("ko → en → es cycle keeps copy consistent (no blank / raw key)", async ({ page }) => {

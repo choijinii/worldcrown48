@@ -4,7 +4,8 @@ import { resolveMessage } from "@/lib/i18n/messages";
 describe("resolveMessage", () => {
   it("returns the value for the active lang", () => {
     expect(resolveMessage("en", "pitch.hero.l2")).toBe("Ultimate Crown?");
-    expect(resolveMessage("ko", "pitch.hero.cta.start")).toBe("투표 시작");
+    // D-23 (2026-09-23 대표): "투표 시작" → "참가하기". 낱말 규칙 D-03.
+    expect(resolveMessage("ko", "pitch.hero.cta.start")).toBe("참가하기");
   });
 
   it("falls back to en when es is absent (never blank, never the key)", () => {
@@ -16,7 +17,7 @@ describe("resolveMessage", () => {
   });
 
   it("uses the es value when present", () => {
-    expect(resolveMessage("es", "pitch.hero.cta.start")).toBe("Empezar a votar");
+    expect(resolveMessage("es", "pitch.hero.cta.start")).toBe("Elige ahora");
   });
 
   it("interpolates {vars} (plural key)", () => {

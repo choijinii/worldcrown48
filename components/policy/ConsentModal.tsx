@@ -341,8 +341,8 @@ function AnalyticsRow({
           <span className="ml-en">ANALYTICS</span>
         </div>
         <div className="cat-name">
-          <span className="ml-ko">투표 흐름과 페이지 사용 통계</span>
-          <span className="ml-en">Voting flow and page-usage statistics</span>
+          <span className="ml-ko">선택의 흐름과 페이지 사용 통계</span>
+          <span className="ml-en">Pick flow and page-usage statistics</span>
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
