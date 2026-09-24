@@ -22,7 +22,11 @@
 ✅ voteCount props 금지 — ContestantCard에 절대 수치 전달 금지
 ✅ 투표 후 rate(%)만 표시 — ranking_cache에서 조회
 ✅ Round Deadline 없음 — Voter 투표 흐름 기반 자동 전환
-✅ 에이전트 C-1 담당 (투표 엔진), C-2 (Crown Card), C-3 (랭킹/어뷰징)
+✅ 에이전트 C-1 담당 (선택 엔진), C-2 (Crown Card), C-3 (차트/어뷰징)
+
+> **차트 공개 조건 (D-30, 2026-09-23)** — 차트는 **대회 마감 전에도, 로그인하지 않아도**
+> 열린다. 마감 전 잠금(W-7)은 폐기됐다. 판정은 `lib/ranking/rankState` 에 있고,
+> 완주 판수 10판 미만이면 점수 대신 기다림 안내를 보여 준다(정본 §5).
 ```
 
 ---
@@ -83,6 +87,10 @@ const ROUND_CONFIG = {
 
 > ⚠️ 위 표기는 **라운드 전환 이벤트 화면(`<RoundTransition>`)에서만** 사용.
 > 매치 화면 상단·하단·헤더 어디에도 라운드 정보 텍스트 노출 금지.
+
+> 🚫 **THE FINAL 뒤에 대관 연출(Crown Ceremony)은 없다 — 폐기(D-24, 2026-08-31).**
+> 우승의 감정은 **Crown Card** 가 맡는다. `ceremony_viewed`·`ceremony_skipped` 같은
+> 계측도 만들지 않는다. Champion 확정 → Crown Card 로 바로 간다.
 
 ### THE FINAL UI 스펙 (round 5 전용)
 
@@ -256,7 +264,11 @@ interface ContestantCardProps {
 
 ---
 
-## VoteRateBar (투표 후만 표시)
+## ~~VoteRateBar (투표 후만 표시)~~ — **폐기 (D-03 · 2026-09-23)**
+
+> 🚫 **만들지 않는다.** "Vote Rate / 득표율"은 폐기된 낱말이고(2026-09-23 대표), 매치
+> 화면에는 어떤 수치도 올리지 않는다(D-11 금지 4종). 차트 화면의 수치도 **Crown Score
+> 하나뿐**이다 — 아래 스펙은 **기록으로만** 남긴다.
 
 ```ts
 interface VoteRateBarProps {
