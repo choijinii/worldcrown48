@@ -23,13 +23,13 @@ const ROUND_NAMES: Record<number, string> = {
 
 function strings(lang: Lang) {
   const ko = {
-    totalVotes: "총 투표 수",
-    activeVoters: "활성 Voter 수",
-    voteSpeed: "투표 속도",
+    totalVotes: "총 선택 수",
+    activeVoters: "활성 팬 수",
+    voteSpeed: "선택 속도",
     abuseWarnings: "어뷰징 경고",
     roundStatus: "라운드 현황",
-    totalDesc: "Vote Count는 운영자 전용 — Voter 화면에 절대 노출되지 않습니다.",
-    activeDesc: "최근 1시간 내 투표한 유니크 Voter.",
+    totalDesc: "선택 수는 운영자 전용 — 팬 화면에 절대 나오지 않습니다.",
+    activeDesc: "최근 1시간 안에 선택한 서로 다른 팬 수.",
     speedDesc: "60초 롤링 윈도우 · 데이터 동기화 중.",
     abuseDesc: "Rate-limit 발동 + 의심 계정 · 최근 1시간.",
     roundDesc: "진행 중인 Tournament의 라운드 분포.",
@@ -44,13 +44,13 @@ function strings(lang: Lang) {
     none: "—",
   };
   const en = {
-    totalVotes: "Total Votes",
-    activeVoters: "Active Voters",
-    voteSpeed: "Vote Speed",
+    totalVotes: "Total Picks",
+    activeVoters: "Active Fans",
+    voteSpeed: "Pick Speed",
     abuseWarnings: "Abuse Warnings",
     roundStatus: "Round Status",
-    totalDesc: "Vote Count is admin-internal only — never surfaced to Voters.",
-    activeDesc: "Unique Voters who cast a Vote in the last 1 hour.",
+    totalDesc: "Pick count is admin-internal only — never surfaced to fans.",
+    activeDesc: "Unique fans who made a pick in the last 1 hour.",
     speedDesc: "60-second rolling window · syncing data.",
     abuseDesc: "Rate-limit hits + suspicious accounts · last 1 hour.",
     roundDesc: "Round distribution across active Tournaments.",

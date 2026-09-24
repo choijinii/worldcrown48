@@ -21,7 +21,7 @@ import styles from "./newsdesk.module.css";
 const TEMPLATES: { value: ArticleTemplate; label: string }[] = [
   { value: "open", label: "오픈 (Tournament 개막)" },
   { value: "result", label: "결과 (Champion 확정)" },
-  { value: "weekly", label: "주간 랭킹 동향" },
+  { value: "weekly", label: "주간 차트 동향" },
   { value: "column", label: "자유 칼럼 (주제 입력)" },
 ];
 

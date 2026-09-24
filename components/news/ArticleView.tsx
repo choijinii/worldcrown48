@@ -19,7 +19,7 @@ import styles from "./news.module.css";
 const TEMPLATE_CRUMB: Record<string, string> = {
   open: "TOURNAMENT OPEN",
   result: "RESULT",
-  weekly: "WEEKLY RANKING",
+  weekly: "WEEKLY CHART",
   column: "COLUMN",
 };
 

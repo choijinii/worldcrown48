@@ -329,7 +329,7 @@ function strings(lang: Lang) {
       deleteListLabel: "삭제 항목",
       deleteItems: [
         "계정 정보 (Google 연결 끊김, 표시 이름·이메일·프로필 이미지)",
-        "투표 기록 (지금까지 한 모든 Match 투표)",
+        "선택 기록 (지금까지 한 모든 Match 선택)",
         "쿠키 동의 기록",
         "환경설정 (언어·테마 등)",
       ],
@@ -352,7 +352,7 @@ function strings(lang: Lang) {
     deleteListLabel: "Items to be deleted",
     deleteItems: [
       "Account info (Google link, display name, email, avatar)",
-      "Vote history (every Match vote you've cast)",
+      "Pick history (every Match pick you've made)",
       "Cookie consent record",
       "Preferences (language, theme, etc.)",
     ],

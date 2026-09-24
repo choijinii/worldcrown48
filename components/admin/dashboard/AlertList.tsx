@@ -24,7 +24,7 @@ function strings(lang: Lang) {
     emptyTitle: "이상 없음",
     emptySub: "활성 알림이 없습니다",
     sev: { high: "높음", medium: "중간", low: "낮음", dismissed: "처리됨" } as Record<AlertSeverity, string>,
-    typeLabel: "랭킹 이상 징후",
+    typeLabel: "차트 이상 징후",
     ago: (a: RelativeAge) =>
       a.unit === "now" ? "방금 전"
         : a.unit === "minute" ? `${a.value}분 전`
@@ -40,7 +40,7 @@ function strings(lang: Lang) {
     emptyTitle: "All clear",
     emptySub: "No active alerts",
     sev: { high: "HIGH", medium: "MEDIUM", low: "LOW", dismissed: "DISMISSED" } as Record<AlertSeverity, string>,
-    typeLabel: "Ranking anomaly",
+    typeLabel: "Chart anomaly",
     ago: (a: RelativeAge) =>
       a.unit === "now" ? "just now"
         : a.unit === "minute" ? `${a.value} min ago`

@@ -17,6 +17,17 @@ interface Entry {
   es?: string;
 }
 
+/**
+ * 마케팅이 지을 문구의 **자리표시자**.
+ *
+ * 킥 §4 OUT: "마케팅이 지을 문구를 임시로 지어 넣기" 금지. 그렇다고 빈 문자열을 두면
+ * 화면이 조용히 비어 무엇이 빠졌는지 아무도 모른다. 이 표식을 쓰면 프리뷰에서 눈에 띄고,
+ * `messagesContent.test.ts` 가 남은 자리를 목록으로 뽑아 준다.
+ *
+ * ⚠️ **이 값이 하나라도 남아 있으면 머지하지 않는다** (킥 §5).
+ */
+export const MARKETING_PENDING = "\u27EA마케팅 문안 대기\u27EB";
+
 export const MESSAGES = {
   // ── Launch Pad (Domain 0, /launch) ──────────────────────────────
   "launch.hero.kicker": {
@@ -86,10 +97,11 @@ export const MESSAGES = {
   },
 
   // ── The Pitch (Domain 1, /) ─────────────────────────────────────
+  // "Voting/Votación" 은 D-03 금지어다 — Arena 로 바꾼다(§5 승인표 A3).
   "pitch.hero.kicker": {
-    ko: "트렌딩 · The Pitch · Global Fan Voting",
-    en: "Trending · The Pitch · Global Fan Voting",
-    es: "Tendencia · The Pitch · Votación Global de Fans",
+    ko: "트렌딩 · The Pitch · Global Fan Arena",
+    en: "Trending · The Pitch · Global Fan Arena",
+    es: "Tendencia · The Pitch · Arena Global de Fans",
   },
   "pitch.hero.l1": { ko: "왕관의 주인은", en: "Who wears the", es: "¿Quién lleva la" },
   // en MUST stay exactly "Ultimate Crown?" (route-swap/CDN grep target, §9 trap 4).
@@ -102,10 +114,11 @@ export const MESSAGES = {
     en: "48 Contestants. Five Rounds. You advance Match by Match until one Crown remains. Pure fan choice. Your pick crowns the Champion.",
     es: "48 Contestants. Cinco Rounds. Avanzas Match a Match hasta que queda una sola Crown. Solo la elección de los fans. Tu elección corona al Champion.",
   },
+  // D-23 (2026-09-23 대표) — 'Vote Now' 계열 낱말 폐기. 월크48은 투표가 아니다(D-03).
   "pitch.hero.cta.start": {
-    ko: "투표 시작",
-    en: "Start Voting",
-    es: "Empezar a votar",
+    ko: "참가하기",
+    en: "Pick Now",
+    es: "Elige ahora",
   },
   "pitch.hero.cta.explore": { ko: "둘러보기", en: "Explore", es: "Explorar" },
   "pitch.trending.kicker": {
@@ -232,10 +245,11 @@ export const MESSAGES = {
     en: "You're choosing quickly. Take a few seconds, then keep going.",
     es: "Estás eligiendo muy rápido. Espera unos segundos y continúa.",
   },
+  // §5 승인표 A4. 키 이름(`arena.vote.failed`)은 코드 식별자라 그대로 둔다.
   "arena.vote.failed": {
-    ko: "투표에 실패했어요. 다시 시도해주세요.",
-    en: "Your vote didn't go through. Please try again.",
-    es: "No se registró tu voto. Inténtalo de nuevo.",
+    ko: "선택이 저장되지 않았어요. 다시 시도해 주세요.",
+    en: "Your pick wasn't saved. Please try again.",
+    es: "Tu elección no se guardó. Inténtalo de nuevo.",
   },
 
   // ── 판(Run) 화면 · 게스트 안내 (RUN-1 v2.1) ──
@@ -272,9 +286,11 @@ export const MESSAGES = {
     en: "You've used all 3 of today's free entries.",
     es: "Has usado tus 3 participaciones gratis de hoy.",
   },
+  // 화면 이름이 '랭킹' → '차트' 로 바뀌었다 (정본 §1). es 는 차트의 스페인어 이름이
+  // 마케팅에서 올 때까지 옛 문구를 둔다 — 임시로 지어 넣지 않는다(§4 OUT).
   "login.guest_limit.sub": {
-    ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요.",
-    en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
+    ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 차트에 반영돼요.",
+    en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Charts.",
     es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
   },
 
@@ -294,6 +310,38 @@ export const MESSAGES = {
     en: "Next update: tomorrow 09:00 KST",
     es: "Próxima actualización: mañana 09:00 KST",
   },
+
+  // ── 차트 (구 랭킹) — ARENA-1 PR 3 · 정본 §1·§5 ──────────────────
+  // 화면 이름이 '랭킹' → '차트' 로 바뀌었다. '랭킹'이라는 낱말이 없어진 것은 아니다 —
+  // "차트 안에서의 등수"를 뜻하는 일반 명사로 기사 본문에 남는다(정본 §1).
+  "chart.kicker": {
+    ko: "차트 · CHART",
+    en: "CHART",
+    es: MARKETING_PENDING, // 차트의 스페인어 이름 — 마케팅 대기
+  },
+  // 점수가 무엇인지만 말한다. 발표 주기는 바로 아래 "다음 발표" 줄이 말하므로 겹치지
+  // 않는다 (대표 2026-09-24).
+  "chart.note": { ko: "Crown Score", en: "Crown Score", es: "Crown Score" },
+  // 10판 기준 안내 (정본 §5 확정 문구 — ko는 승인 불필요).
+  // '참가자'를 쓰지 않는다: 이 프로젝트에서 대회에 나오는 48개는 Contestant 이고,
+  // "참가자가 적다"로 읽히면 출전이 모자란다는 뜻이 된다 (정본 §5 · LANGUAGE.md:238).
+  "chart.waiting.title": {
+    ko: "아직 참여가 적어요. 조금만 기다려주세요!",
+    en: MARKETING_PENDING,
+    es: MARKETING_PENDING,
+  },
+  // Crown Score 옆 "?" 설명창 — 계산식을 쉬운 말로 알려 주는 **공통 문구 하나**
+  // (모든 Contestant에게 같은 문구 · 대표 2026-09-24). 문구가 오기 전에는 자리만 두고
+  // 숨긴다 — `ChartScoreHelp` 가 이 값이 대기 표식이면 아예 그리지 않는다.
+  "chart.score.help": {
+    ko: MARKETING_PENDING,
+    en: MARKETING_PENDING,
+    es: MARKETING_PENDING,
+  },
+
+  // ── 메뉴바 CTA (D-23) ───────────────────────────────────────────
+  // 계측 이벤트 이름 `a1_gnb_cta_vote_now` 는 **바꾸지 않는다** — 코드 식별자다.
+  "nav.cta.enter": { ko: "참가하기", en: "Pick Now", es: "Elige ahora" },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

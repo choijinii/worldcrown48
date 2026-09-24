@@ -3,11 +3,13 @@
  *
  * Moved from components/auth/ to components/layout/ (it's a layout component).
  * Absorbs the A-1 floating Pitch GNB (The Pitch · The Lab · Locker Room ·
- * Vote Now) so there is ONE nav, not two. Dark "floating tone" head (always
+ * 참가하기/Pick Now) so there is ONE nav, not two. 그 CTA는 2026-09-23까지
+ * "Vote Now" 였다 — D-23으로 교체됐다(월크48은 투표가 아니다 · D-03). 계측 이벤트
+ * 이름 `a1_gnb_cta_vote_now` 는 **코드 식별자라 그대로 둔다** — 지표의 연속성이 끊긴다. Dark "floating tone" head (always
  * dark — brand global constant, Option C); page bodies keep their per-domain
  * theme. Styling is navbar.css (tokens only, no hex), scoped under .wc-nav.
  *
- * Left:   ☰ (SiteMapSheet) · logo SVG · The Pitch / The Lab / Locker Room / Vote Now
+ * Left:   ☰ (SiteMapSheet) · logo SVG · The Pitch / The Lab / Locker Room / 참가하기
  * Right:  LanguageToggle · SignIn ↔ Avatar (auth, unchanged)
  *
  * The Dev Nav (Cmd+Shift+D) is separate and untouched.
@@ -23,6 +25,7 @@ import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { SignInButton } from "@/components/auth/SignInButton";
 import { UserAvatar } from "@/components/auth/UserAvatar";
 import { track } from "@/lib/analytics";
+import { useT } from "@/lib/i18n/useT";
 import { SiteMapSheet } from "./SiteMapSheet";
 import "./navbar.css";
 
@@ -65,6 +68,7 @@ export function Navbar(): JSX.Element {
   const loading = useAuthStore((s) => s.loading);
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { t } = useT();
 
   return (
     <header className="wc-nav">
@@ -112,7 +116,7 @@ export function Navbar(): JSX.Element {
           className="wc-nav-cta"
           onClick={() => track("a1_gnb_cta_vote_now", { from: "navbar" })}
         >
-          Vote Now
+          {t("nav.cta.enter")}
         </Link>
       </nav>
 

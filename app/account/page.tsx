@@ -198,7 +198,7 @@ function strings(lang: Lang) {
       joinedAt: "가입일 (KST)",
       dangerZone: "데이터 삭제",
       dangerCopy:
-        "계정과 투표 기록·환경설정을 영구 삭제합니다. 익명 집계 통계와 법적 감사 로그는 보존됩니다.",
+        "계정과 선택 기록·환경설정을 영구 삭제합니다. 익명 집계 통계와 법적 감사 로그는 보존됩니다.",
       deleteCta: "내 데이터 삭제 요청",
     };
   }
@@ -210,7 +210,7 @@ function strings(lang: Lang) {
     joinedAt: "Joined (KST)",
     dangerZone: "Delete your data",
     dangerCopy:
-      "Permanently deletes your account, vote history, and preferences. Anonymous aggregate stats and the legal audit log are preserved.",
+      "Permanently deletes your account, pick history, and preferences. Anonymous aggregate stats and the legal audit log are preserved.",
     deleteCta: "Delete my data",
   };
 }

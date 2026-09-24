@@ -14,10 +14,10 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "WorldCrown48 — Who Rules the World?",
   description:
-    "WorldCrown48 — the global fan-voting arena. A WorldCrown48 tournament is open. Vote for who you love. Crown your champion.",
+    "WorldCrown48 — the global fan arena. A WorldCrown48 tournament is open. Pick who you love. Crown your Champion.",
   openGraph: {
     title: "전 세계 팬들의 선택이 모이는 곳",
-    description: "A global fan-voting arena where every vote counts toward crowning one champion.",
+    description: "A global fan arena where every pick counts toward crowning one Champion.",
     url: "https://worldcrown48.com/launch",
     siteName: "WorldCrown48",
     type: "website",

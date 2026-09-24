@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MESSAGES } from "@/lib/i18n/messages";
+import { MARKETING_PENDING, MESSAGES } from "@/lib/i18n/messages";
 
 describe("messages content (B-2 편승 · 오탈 정정)", () => {
   it("champion.returning.banner uses the correct Korean particle (는, not 은)", () => {
@@ -81,9 +81,11 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
       en: "You've used all 3 of today's free entries.",
       es: "Has usado tus 3 participaciones gratis de hoy.",
     },
+    // ARENA-1 PR 3 (§5 승인표 A5): 화면 이름이 '랭킹' → '차트' 로 바뀌었다(정본 §1).
+    // es 는 차트의 스페인어 이름이 마케팅에서 올 때까지 옛 문구를 둔다.
     "login.guest_limit.sub": {
-      ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 랭킹에 반영돼요.",
-      en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Ranking.",
+      ko: "로그인하면 Tournament마다 하루 5번까지 참여 — 내 선택이 차트에 반영돼요.",
+      en: "Sign in for up to 5 entries a day in every Tournament — and your picks count in the Charts.",
       es: "Inicia sesión: hasta 5 participaciones al día en cada Tournament — y tus elecciones cuentan en el Ranking.",
     },
     // ARENA-1 PR 2b §5 — 2026-09-23 대표 승인본 (확정 연출 3 · 라운드 전환 7 · 팝업 4).
@@ -244,5 +246,90 @@ describe("히어로 문구 정정 (2026-09-07 승인)", () => {
   it("금지어 '표'가 팬 노출 문구에 없다 (LANGUAGE.md §7)", () => {
     // "당신의 한 표가 Champion을 만듭니다" 가 이 정정의 직접 대상이었다.
     expect(MESSAGES["pitch.hero.sub"].ko).not.toContain("표");
+  });
+});
+
+// ── ARENA-1 PR 3 — 낱말 규칙 검사 (D-03 · LANGUAGE.md §7) ──────────
+type WordEntry = { ko: string; en: string; es?: string };
+
+const entries = Object.entries(MESSAGES) as [string, WordEntry][];
+
+/** 값 하나하나를 (키, 언어, 문자열) 로 펼친다. */
+const values: { key: string; lang: string; text: string }[] = entries.flatMap(
+  ([key, e]) =>
+    (["ko", "en", "es"] as const)
+      .filter((l) => typeof e[l] === "string")
+      .map((l) => ({ key, lang: l, text: e[l] as string })),
+);
+
+/**
+ * 금지 낱말 (D-03 · 2026-09-23 "Vote Rate/득표율" 폐기 · 2026-09-07 "표" 낱말 금지).
+ *
+ * '참가자'는 LANGUAGE.md:238 금지 용어 — 공식은 Contestant.
+ * '표'는 낱말 자체가 금지지만 "표시"·"대진표"·"발표" 같은 합성어는 걸리면 안 되므로
+ * 여기서는 다루지 않는다(그 검사는 사람이 한다). 대신 확실한 것만 기계로 막는다.
+ */
+const FORBIDDEN = [
+  "투표",
+  "득표",
+  "Vote Rate",
+  "VOTE RATE",
+  "참가자",
+  "예측",
+  "배당",
+];
+
+/**
+ * 아직 승인받지 못해 남겨 둔 자리 — **숨기지 않고 여기 적는다.**
+ *
+ * `lab.description.placeholder` 는 The Lab(운영자) 입력칸의 예시 문구인데 '참가자'가 들어
+ * 있다. ARENA-1 PR 3의 §5 승인표에 없던 자리라 임의로 고치지 않았다. '참가자'의 대체는
+ * 단순치 않다 — D-31로 한국어 공식 표기가 "엔트리"가 됐지만 **화면 적용은 The Pitch 개편
+ * 때**로 정해졌기 때문이다(이번 PR은 LANGUAGE.md 사전 등재만).
+ *
+ * → 대표 승인을 받아 이 목록을 비우는 것이 다음 할 일이다.
+ */
+const PENDING_APPROVAL: Record<string, string[]> = {
+  참가자: ["lab.description.placeholder.ko"],
+};
+
+describe("messages — 금지 낱말 0건", () => {
+  FORBIDDEN.forEach((word) => {
+    it(`"${word}" 가 화면 문구에 없다`, () => {
+      const exempt = PENDING_APPROVAL[word] ?? [];
+      const hits = values
+        .filter((v) => v.text.includes(word))
+        .map((v) => `${v.key}.${v.lang}`)
+        .filter((id) => !exempt.includes(id));
+      expect(hits).toEqual([]);
+    });
+  });
+});
+
+describe("messages — 마케팅 문안 대기", () => {
+  it("한국어 문구에는 대기 자리가 없다 — ko는 정본·대표 승인으로 전부 확정됐다", () => {
+    const pendingKo = values
+      .filter((v) => v.lang === "ko" && v.text === MARKETING_PENDING)
+      .map((v) => v.key);
+
+    // 설명창 문구만 예외 — 3언어 전부 마케팅이 짓는다(대표 2026-09-24).
+    expect(pendingKo).toEqual(["chart.score.help"]);
+  });
+
+  it("남은 대기 자리를 목록으로 드러낸다 — 이게 비어야 머지할 수 있다 (킥 §5)", () => {
+    const pending = values
+      .filter((v) => v.text === MARKETING_PENDING)
+      .map((v) => `${v.key}.${v.lang}`);
+
+    // ⚠️ 이 단언은 "아직 대기 중"을 **기록**하는 것이다. 문안이 도착하면 이 목록을
+    // 비우고 단언도 []로 바꾼다 — 그때가 머지 가능 시점이다.
+    expect(pending).toEqual([
+      "chart.kicker.es",
+      "chart.waiting.title.en",
+      "chart.waiting.title.es",
+      "chart.score.help.ko",
+      "chart.score.help.en",
+      "chart.score.help.es",
+    ]);
   });
 });
