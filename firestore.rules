@@ -8,7 +8,7 @@ rules_version = '2';
 //   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //   /votes/{voteId}        — owner-only read; write blocked (callable only)
-//   /ranking_cache/{id}    — read gated by Tournament Deadline (W-7); write blocked
+//   /ranking_cache/{id}    — 차트. 공개 읽기(비로그인 포함 · D-30); write blocked
 //   /admin_alerts/{id}     — admin-claim read/write only (anomaly flags)
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
@@ -265,25 +265,28 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ── ranking_cache (C-3 The Arena) ──────────────────────────────
-    // The ONLY Vote Rate (%) surface. Read is gated by the Tournament Deadline
-    // (W-7, defense in depth): a ranking exposed before close skews 표심, so the
-    // cache only becomes readable once `tournamentDeadline < request.time`. Writes
-    // are blocked — the sole writer is scheduleRankingCache (admin SDK bypasses
-    // rules). `voteCount` rides inside the doc (internal only) — the UI is
-    // forbidden from rendering it (CLAUDE.md 원칙 #8), but rules can't field-mask,
-    // so the no-Vote-Count guard lives in the client + E2E (trap #7), not here.
+    // ── ranking_cache (C-3 The Arena · 화면 이름 = 차트) ───────────
+    // 차트는 **상시 공개**다 — 마감 전에도, 로그인하지 않아도 읽힌다 (D-30, 2026-09-23 대표).
+    //
+    // 예전에는 마감 게이트(W-7)가 있었다: `tournamentDeadline < request.time` 이어야
+    // 읽혔다. 그 조항은 폐기됐다. 사유는 "발표는 **보여 주려고** 하는 것"이다 — 하루 두 번
+    // 발표하기로 해 놓고(D-05) 안 보여 줄 이유가 없고, 공유 링크로 들어온 팬이 로그인 없이
+    // 바로 순위를 봐야 퍼진다. W-7은 투표 개념의 잔재였다(투표는 다 끝나야 개표하지만,
+    // 이건 투표가 아니다).
+    //
+    // 남는 조건은 **부모 Tournament 문서의 존재**뿐이다 — 없는 대회의 캐시는 읽히지 않는다.
+    // 쓰기는 여전히 전면 차단: 유일한 작성자는 scheduleRankingCache(admin SDK, 규칙 우회).
+    // `voteCount` 와 세 비율이 문서 안에 함께 실리지만(내부 전용) 규칙은 필드를 가릴 수
+    // 없다 — 화면에 안 나오게 막는 일은 클라이언트 + E2E가 한다 (trap #7).
     match /ranking_cache/{tournamentId} {
-      allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
-                  && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
+      allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId));
       allow write: if false;
 
-      // history generations (T-3 24h baseline) — same Deadline gate + posture.
+      // history generations (T-3 24h baseline) — 같은 상시 공개 + 쓰기 차단.
       // 보관 세대 수는 `scheduleRankingCache.HISTORY_KEEP` 가 정한다 (RUN-1 PR 3에서
       // 24 → 2. 발표가 하루 두 번이 되면서 "24시간 전" 이 2세대 전이 됐다).
       match /history/{generationSequence} {
-        allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId))
-                    && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.tournamentDeadline < request.time;
+        allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId));
         allow write: if false;
       }
     }
