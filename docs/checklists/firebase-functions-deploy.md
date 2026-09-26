@@ -20,7 +20,7 @@
 
 | 작업 | 검증 명령 | 합격 기준 | 결과 (2026-06-15) |
 |---|---|---|---|
-| Node 20 활성 (functions engines) | `cd functions && node -v` | `v20.*` 출력 | ⚠️ 표기 정밀화 필요 — local Node v25.9.0이지만 **deploy 런타임은 `functions/package.json` engines.node = `"20"`** 가 결정 (위 functions:list 결과도 nodejs20 확인). 검증 명령을 `grep '"node"' functions/package.json`로 교체 권장 |
+| Node 22 런타임 (functions engines) | `grep '"node"' functions/package.json` | `"node": "22"` 출력 | ✅ NODE-1(2026-09-26)에서 명령 교체 — 로컬 `node -v`가 아니라 **engines.node가 deploy 런타임을 결정**한다. 배포 후 `firebase functions:list`의 Runtime 칸이 `nodejs22`인지 함께 확인 |
 | TypeScript 컴파일 클린 | `cd functions && npx tsc --noEmit` | 출력 없음(에러 0) | ✅ 에러 0 |
 | firebase-admin 설치 확인 | `grep firebase-admin functions/package.json` | `"firebase-admin": "^12.*"` 표시 | ✅ `"firebase-admin": "^12.7.0"` |
 | firebase CLI 로그인 | `npx firebase login:list` | 대표 계정 email 표시 | ✅ `Logged in as jounnamu12@gmail.com` |
@@ -83,10 +83,10 @@
 
 본 배포는 통과했으나, 다음 2건은 별도 작업으로 처리:
 
-1. **Node.js 20 runtime decommission 2026-10-30** — `functions/package.json` engines를 `"22"`로 갱신 + `firebase-functions` 최신화. 2026-10-30 이전 별도 PR.
-2. **`firebase-functions` outdated 경고** — 위와 함께 `npm install --save firebase-functions@latest`. breaking change 검토 필요.
+1. ✅ **해소 (NODE-1, 2026-09-26)** — ~~Node.js 20 runtime decommission 2026-10-30~~ engines `"22"` 전환(배포는 머지 후 main에서 전체 함수 재배포). 원래 항목: `functions/package.json` engines를 `"22"`로 갱신 + `firebase-functions` 최신화. 2026-10-30 이전 별도 PR.
+2. ✅ **해소 (NODE-1, 2026-09-26)** — firebase-functions `^7.4.0`으로 갱신(firebase-admin ^12 유지, 7.x 파괴적 변경 해당 코드 0건). 원래 항목: ~~`firebase-functions` outdated 경고~~ — 위와 함께 `npm install --save firebase-functions@latest`. breaking change 검토 필요.
 
-3. **체크리스트 정밀화 사안** — Pre-deploy "Node 20 활성" 검증 명령을 `node -v`(로컬 런타임)에서 `grep '"node"' functions/package.json`(deploy 런타임 결정자)로 교체. 본 파일 다음 갱신 시 적용.
+3. ✅ **해소 (NODE-1, 2026-09-26)** — 23행 검증 명령 교체 완료. 원래 항목: Pre-deploy "Node 20 활성" 검증 명령을 `node -v`(로컬 런타임)에서 `grep '"node"' functions/package.json`(deploy 런타임 결정자)로 교체. 본 파일 다음 갱신 시 적용.
 
 ---
 
