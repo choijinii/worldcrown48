@@ -38,7 +38,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       # 미러 원본(lib/)이 루트에 있으므로 루트 의존성도 필요하다.
