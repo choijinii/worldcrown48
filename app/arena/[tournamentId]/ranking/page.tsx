@@ -2,7 +2,7 @@
  * /arena/[tournamentId]/ranking — **차트** 화면 (주소·폴더 이름은 그대로 둔다).
  *
  * 얇은 접착층: `ranking_cache/{tournamentId}` 한 문서를 onSnapshot 으로 구독하고
- * (클라이언트 읽기 1회), Tournament 문서를 한 번 읽어 제목·마감 칩을 만든다. 캐시를
+ * (클라이언트 읽기 1회), Tournament 문서를 한 번 읽어 제목·마감 한 줄을 만든다. 캐시를
  * 세 가지 RankingView 상태로 옮긴다. `voteCount` 는 절대 그리지 않는다 (Vote Count
  * 금지 · trap #7). RTDB는 쓰지 않는다.
  *
@@ -28,6 +28,7 @@ import { useI18n } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { kstHour, nextRankingUpdate } from "@/lib/ranking/nextRankingUpdate";
+import { lastRankingUpdate } from "@/lib/ranking/lastRankingUpdate";
 import {
   deriveRankState,
   resolveHelpText,
@@ -57,17 +58,16 @@ function deadlineMillis(value: unknown): number | null {
 export default function RankingPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
   const { lang } = useI18n();
-  // 위 LABELS 는 ko/en 2언어뿐이다. "다음 발표" 한 줄은 3언어가 요건(AC 15)이라 카탈로그
-  // (`lib/i18n/messages.ts`)에서 뽑는다 — es 가 여기서 나온다.
   const { t } = useT();
-  // 문구는 전부 3언어 카탈로그에서 온다. 예전에는 이 파일 안에 ko·en 두 벌이 박혀 있어
-  // es 팬이 영어를 봤다 — 차트 이름의 es 는 마케팅 문안 대기다(§5 승인표 A6).
+  // 문구는 전부 3언어 카탈로그(`lib/i18n/messages.ts`)에서 온다. 예전에는 이 파일 안에
+  // ko·en 두 벌이 박혀 있어 es 팬이 영어를 봤다 — 마지막으로 남았던 마감 라벨도
+  // CHART-HEAD(2026-09-27)에서 카탈로그로 옮겼다.
   const labels = {
     kicker: t("chart.kicker"),
     note: t("chart.note"),
     // 요약 1줄 + 항목 3줄로 쪼개 넘긴다 (마케팅 2026-09-24 승인본).
     helpLines: resolveHelpText(t("chart.score.help")),
-    deadlineLabel: lang === "ko" ? "토너먼트 마감" : "Tournament Deadline",
+    deadlineLabel: t("chart.deadline.label"),
     waitingTitle: t("chart.waiting.title"),
   };
 
@@ -145,6 +145,18 @@ export default function RankingPage(): JSX.Element {
     ? nextUpdateCopy
     : null;
 
+  // CHART-HEAD — 발표 시각 알약 앞부분 "지난 발표". `generatedAt` 의 KST 날짜로 오늘·어제·
+  // 날짜를 고른다. 위 `hourKST` 와 같은 이유로 시계는 마운트 후에만 읽는다(null 이면 감춤) —
+  // 렌더 중에 읽으면 서버 HTML과 날짜 경계에서 갈려 하이드레이션이 어긋난다.
+  const generatedAtMs = cache?.generatedAt?.toMillis?.() ?? null;
+  const last =
+    generatedAtMs !== null && hourKST !== null
+      ? lastRankingUpdate(generatedAtMs, Date.now())
+      : null;
+  const updatedText: string | null = last
+    ? t(`ranking.updated.${last.day}`, { time: last.time, date: last.date })
+    : null;
+
   return (
     <>
       <ModuleNav tournamentId={tournamentId} />
@@ -155,6 +167,7 @@ export default function RankingPage(): JSX.Element {
         entries={entries}
         labels={labels}
         nextUpdateText={nextUpdateText}
+        updatedText={updatedText}
       />
     </>
   );
