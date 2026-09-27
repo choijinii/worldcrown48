@@ -271,7 +271,10 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
       await expect(page.locator(".rank-kicker")).toHaveText(kicker);
       // 목록 위 제목은 3언어 모두 "Crown Score" 하나다 (정본 v1.1 §6-1 · RANKING 제목 없음).
       await expect(page.getByTestId("chart-score-title")).toContainText("Crown Score");
-      await expect(page.locator("text=/^Ranking$/i")).toHaveCount(0);
+      // 차트 본문 안에만 한정한다 — 메뉴 줄(ModuleNav)의 "Ranking" 탭은 NAV-1 몫이라 이번엔 그대로다.
+      await expect(
+        page.getByTestId("ranking-view").locator("text=/^Ranking$/i"),
+      ).toHaveCount(0);
       // 마감은 알약 없는 평범한 한 줄 (CHART-HEAD) — 대문자 변환 없이 카탈로그 문구 그대로.
       const deadline = page.getByTestId("tournament-deadline");
       await expect(deadline).toContainText(deadlineLabel);
