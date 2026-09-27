@@ -48,24 +48,33 @@ export interface RankingViewProps {
    * (`lib/i18n/messages.ts`)에서 오므로 따로 받는다. `null` 이면 줄을 감춘다.
    */
   nextUpdateText?: string | null;
+  /** CHART-HEAD — 발표 시각 알약 앞부분 "지난 발표: …". `null` 이면 감춘다. */
+  updatedText?: string | null;
 }
 
+// ⚠️ STYLE 문자열 안에는 따옴표·꺾쇠·앰퍼샌드를 쓰지 않는다(주석 포함). React 18은 서버 렌더에서
+// <style> 속 이 글자들을 HTML 엔티티로 바꾸고, 브라우저는 그 내용을 날 텍스트로 읽는다 → 서버와
+// 클라이언트의 글자가 달라 하이드레이션이 어긋난다. 속성 선택자는 따옴표 없이 쓴다
+// (`[aria-expanded=true]` — 유효한 CSS). CHART-HEAD 승인표 결정 7 · 2026-09-27.
 const STYLE = `
 .sf-ranking { color: var(--color-text); }
 .rank-wrap { padding: var(--space-16) var(--space-8) var(--space-12); max-width: 820px; margin: 0 auto; }
-.rank-head { margin-bottom: var(--space-6); }
-.rank-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
+.rank-head { margin-bottom: var(--space-4); }
+.rank-kicker { font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-gold); }
 .rank-title { font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: var(--space-1) 0 0; }
-.rank-note { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.04em; margin-top: var(--space-2); }
-.rank-help { margin-left: var(--space-2); width: 16px; height: 16px; line-height: 1; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-gold); background: transparent; color: var(--color-gold); font-family: var(--font-mono); font-size: 10px; cursor: pointer; }
-.rank-help[aria-expanded="true"] { background: var(--color-gold-subtle); }
+/* CHART-HEAD: 마감은 제목 밑 평범한 한 줄 (예전 알약 스타일은 발표 시각 알약으로 옮겼다). */
+.rank-deadline { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); letter-spacing: 0.04em; margin-top: var(--space-2); }
+.rank-deadline .td-v { color: var(--color-text-sub); font-weight: 700; }
+/* 목록 바로 위 줄: 왼쪽 Crown Score 제목 · 오른쪽 발표 시각 알약. 좁으면 알약이 다음 줄 왼쪽 끝으로 내려간다. */
+.rank-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: var(--space-6); }
+.rank-score-title { display: inline-flex; align-items: center; margin: 0; font-family: var(--font-mono); font-size: 18px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-gold); }
+.rank-help { margin-left: var(--space-2); width: 20px; height: 20px; line-height: 1; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-gold); background: transparent; color: var(--color-gold); font-family: var(--font-mono); font-size: 12px; cursor: pointer; }
+.rank-help[aria-expanded=true] { background: var(--color-gold-subtle); }
+.rank-pill { display: inline-block; max-width: 100%; text-align: left; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; letter-spacing: 0.06em; padding: 4px var(--space-3); border: 1px solid var(--color-border-gold); background: var(--color-gold-subtle); border-radius: var(--radius-chip); color: var(--color-gold); }
+.rank-pill .rp-part { display: inline-block; }
 .rank-help-panel { margin-top: var(--space-3); max-width: 520px; padding: var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-bg-soft); }
 .rank-help-panel p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--color-text-sub); letter-spacing: normal; }
 .rank-help-panel p:first-child { color: var(--color-text); margin-bottom: var(--space-2); }
-.t-deadline { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; padding: 4px var(--space-3); border: 1px solid var(--color-border-gold); background: var(--color-gold-subtle); border-radius: var(--radius-chip); color: var(--color-gold); text-transform: uppercase; }
-.t-deadline svg { width: 12px; height: 12px; color: var(--color-gold-bright); flex: none; }
-.t-deadline .td-l { color: var(--color-text-sub); font-weight: 600; }
-.t-deadline .td-v { color: var(--color-gold); font-weight: 700; letter-spacing: 0.12em; }
 .rank-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .rank-row { display: grid; grid-template-columns: 36px 44px 1fr 96px; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); }
 .rank-row.top { border: 2px solid var(--color-gold-bright); background: linear-gradient(90deg, var(--color-gold-subtle), transparent 60%); box-shadow: 0 0 24px rgba(252, 208, 6, 0.25); }
@@ -103,6 +112,7 @@ export function RankingView({
   entries,
   labels,
   nextUpdateText,
+  updatedText,
 }: RankingViewProps): JSX.Element {
   return (
     <section className="sf-ranking" data-rank={state} data-testid="ranking-view">
@@ -113,6 +123,7 @@ export function RankingView({
           title={title}
           note={labels.note}
           helpLines={labels.helpLines}
+          updatedText={updatedText}
           nextUpdateText={nextUpdateText}
           deadlineLabel={labels.deadlineLabel}
           deadlineText={deadlineText}

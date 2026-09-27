@@ -309,6 +309,24 @@ export const MESSAGES = {
     en: "Next update: tomorrow 09:00 KST",
     es: "Próxima actualización: mañana 09:00 KST",
   },
+  // ── 발표 시각 알약의 "지난 발표" (CHART-HEAD · 2026-09-27 대표 승인표 결정 5·6) ──
+  // `ranking_cache.generatedAt` 의 KST. 오늘·어제·그 이전(날짜 MM·DD) 중 어느 키를 쓸지는
+  // `lib/ranking/lastRankingUpdate.ts` 가 정한다. ko는 "다음 발표"처럼 KST를 붙이지 않는다.
+  "ranking.updated.today": {
+    ko: "지난 발표: 오늘 {time}",
+    en: "Updated: today {time} KST",
+    es: "Actualizado: hoy {time} KST",
+  },
+  "ranking.updated.yesterday": {
+    ko: "지난 발표: 어제 {time}",
+    en: "Updated: yesterday {time} KST",
+    es: "Actualizado: ayer {time} KST",
+  },
+  "ranking.updated.date": {
+    ko: "지난 발표: {date} {time}",
+    en: "Updated: {date} {time} KST",
+    es: "Actualizado: {date} {time} KST",
+  },
 
   // ── 차트 (구 랭킹) — ARENA-1 PR 3 · 정본 §1·§5 ──────────────────
   // 화면 이름이 '랭킹' → '차트' 로 바뀌었다. '랭킹'이라는 낱말이 없어진 것은 아니다 —
@@ -318,9 +336,16 @@ export const MESSAGES = {
     en: "CHART",
     es: "LISTAS", // 차트의 스페인어 이름 = Listas (마케팅 2026-09-24 승인)
   },
-  // 점수가 무엇인지만 말한다. 발표 주기는 바로 아래 "다음 발표" 줄이 말하므로 겹치지
-  // 않는다 (대표 2026-09-24).
+  // 순위 목록 바로 위 줄 왼쪽의 제목 (정본 v1.1 §6-1 — 3언어 모두 영문 원형). 발표 주기는
+  // 같은 줄 오른쪽의 발표 시각 알약이 말하므로 겹치지 않는다 (대표 2026-09-24 · 09-27).
   "chart.note": { ko: "Crown Score", en: "Crown Score", es: "Crown Score" },
+  // 대회 제목 밑 마감 한 줄 (CHART-HEAD 승인표 결정 1). 예전엔 page.tsx 안에 ko/en 두 벌만
+  // 박혀 있어 es 팬이 "TOURNAMENT DEADLINE"을 봤다.
+  "chart.deadline.label": {
+    ko: "토너먼트 마감",
+    en: "Tournament deadline",
+    es: "Cierre del torneo",
+  },
   // 10판 기준 안내 (정본 §5 확정 문구 — ko는 승인 불필요).
   // '참가자'를 쓰지 않는다: 이 프로젝트에서 대회에 나오는 48개는 Contestant 이고,
   // "참가자가 적다"로 읽히면 출전이 모자란다는 뜻이 된다 (정본 §5 · LANGUAGE.md:238).

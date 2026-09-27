@@ -30,6 +30,12 @@ const ALL = [TID_LOADED, TID_EMPTY, TID_MANY, TID_OPEN, TID_FEW];
 const CLOSED = new Set([TID_LOADED, TID_EMPTY, TID_MANY]);
 /** 차트가 열리는 최소 완주 판수 (lib/ranking/rankState MIN_RUNS_FOR_CHART). */
 const MIN_RUNS = 10;
+/** 발표 시각 알약 앞부분 — 캐시를 방금 심었으므로 오늘(자정 직후면 어제). */
+const UPDATED = {
+  ko: /^지난 발표: (오늘|어제) \d{2}:\d{2}$/,
+  en: /^Updated: (today|yesterday) \d{2}:\d{2} KST$/,
+  es: /^Actualizado: (hoy|ayer) \d{2}:\d{2} KST$/,
+} as const;
 
 // A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
 const SECRET_VOTE_COUNT = 7777;
@@ -249,11 +255,12 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await expect(page.getByTestId("chart-score-help-panel")).toHaveCount(0);
   });
 
-  test("차트 이름 3언어 — ko 차트 · en CHART · es LISTAS", async ({ page }) => {
-    for (const [lang, kicker] of [
-      ["ko", "차트 · CHART"],
-      ["en", "CHART"],
-      ["es", "LISTAS"],
+  test("차트 이름 3언어 — ko 차트 · en CHART · es LISTAS (+ 마감 한 줄 3언어)", async ({ page }) => {
+    for (const [lang, kicker, deadlineLabel] of [
+      ["ko", "차트 · CHART", "토너먼트 마감"],
+      ["en", "CHART", "Tournament deadline"],
+      // CHART-HEAD 이전에는 es 팬이 영어 "TOURNAMENT DEADLINE"을 봤다.
+      ["es", "LISTAS", "Cierre del torneo"],
     ] as const) {
       await page.goto(`/arena/${TID_LOADED}/ranking?lang=${lang}`);
       await expect(page.getByTestId("ranking-view")).toHaveAttribute(
@@ -262,10 +269,13 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
         { timeout: 30_000 },
       );
       await expect(page.locator(".rank-kicker")).toHaveText(kicker);
-      // note 는 3언어 모두 "Crown Score" 하나다 (대표 2026-09-24 — 발표 주기는 쓰지 않는다).
-      await expect(page.locator(".rank-head .rank-note").first()).toContainText(
-        "Crown Score",
-      );
+      // 목록 위 제목은 3언어 모두 "Crown Score" 하나다 (정본 v1.1 §6-1 · RANKING 제목 없음).
+      await expect(page.getByTestId("chart-score-title")).toContainText("Crown Score");
+      await expect(page.locator("text=/^Ranking$/i")).toHaveCount(0);
+      // 마감은 알약 없는 평범한 한 줄 (CHART-HEAD) — 대문자 변환 없이 카탈로그 문구 그대로.
+      const deadline = page.getByTestId("tournament-deadline");
+      await expect(deadline).toContainText(deadlineLabel);
+      await expect(deadline).toHaveCSS("text-transform", "none");
     }
   });
 
@@ -319,8 +329,56 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await expect(page.getByTestId("rank-row")).toHaveCount(0);
     const body = (await page.locator("body").innerText()).toLowerCase();
     expect(body).not.toContain("messi");
-    // 판수 자체는 화면에 그리지 않는다 (킥 §E).
-    expect(body).not.toContain("9");
+    // 판수 자체는 화면에 그리지 않는다 (킥 §E). 머리에는 이제 시각(지난 발표 HH:MM)과
+    // 마감 날짜가 있어 숫자 9가 정당하게 나올 수 있다 → 기다림 상자 안과 "9판" 꼴만 본다.
+    await expect(page.getByTestId("rank-waiting")).not.toContainText("9");
+    expect(body).not.toMatch(/\b9\s*(판|runs?|participaciones)/);
+    // CHART-HEAD — 대기 화면도 같은 머리 구조: Crown Score 줄이 대기 문구 **위**에 있다.
+    const titleBox = await page.getByTestId("chart-score-title").boundingBox();
+    const waitBox = await page.getByTestId("rank-waiting").boundingBox();
+    expect(titleBox && waitBox && titleBox.y < waitBox.y).toBe(true);
+  });
+
+  /**
+   * CHART-HEAD (2026-09-27 대표 판정) — 머리 배치.
+   *   · 넓은 화면: 발표 시각 알약의 오른쪽 끝 = 순위 목록 오른쪽 끝선
+   *   · 좁은 화면: 알약이 다음 줄로 내려가 왼쪽 끝 = 목록 왼쪽 끝선 · 가로 스크롤 없음
+   *   · 휴대폰에서도 눈썹·제목·마감 한 줄은 그대로 나온다
+   */
+  test("CHART-HEAD — 알약은 넓으면 목록 오른쪽 끝, 좁으면 다음 줄 왼쪽 끝", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/arena/${TID_OPEN}/ranking?lang=en`);
+    await expect(page.getByTestId("ranking-view")).toHaveAttribute("data-rank", "loaded", {
+      timeout: 30_000,
+    });
+    const pill = page.getByTestId("ranking-update-pill");
+    const list = page.getByTestId("rank-list");
+    const title = page.getByTestId("chart-score-title");
+    await expect(pill).toBeVisible();
+    let p = (await pill.boundingBox())!;
+    let l = (await list.boundingBox())!;
+    let t = (await title.boundingBox())!;
+    expect(Math.abs(p.x + p.width - (l.x + l.width))).toBeLessThanOrEqual(1);
+    expect(Math.abs(p.y - t.y)).toBeLessThan(t.height); // 같은 줄
+
+    for (const width of [320, 360]) {
+      await page.setViewportSize({ width, height: 800 });
+      for (const id of ["tournament-deadline", "chart-score-title", "ranking-update-pill"]) {
+        await expect(page.getByTestId(id)).toBeVisible();
+      }
+      await expect(page.locator(".rank-kicker")).toBeVisible();
+      await expect(page.locator(".rank-title")).toBeVisible();
+      p = (await pill.boundingBox())!;
+      l = (await list.boundingBox())!;
+      t = (await title.boundingBox())!;
+      expect(Math.abs(p.x - l.x)).toBeLessThanOrEqual(1); // 왼쪽 끝선
+      expect(p.y).toBeGreaterThanOrEqual(t.y + t.height - 1); // 다음 줄
+      await expect(pill).toHaveCSS("text-align", "left");
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    }
   });
 
   test("W-6 — ModuleNav: 4 tabs, Ranking active, Newsroom disabled", async ({ page }) => {
@@ -391,8 +449,13 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
         { timeout: 30_000 },
       );
       // 헤더가 실제로 그려졌다는 증거 — 이게 없으면 아래 단언이 공허해진다.
-      await expect(page.locator(".rank-head .rank-note").first()).toBeVisible();
-      // 새벽(KST 00:00~08:59)은 승인 문구가 없어 줄을 감춘다 — 그 구간에서는 0이 맞다.
+      await expect(page.getByTestId("chart-score-title")).toBeVisible();
+      // CHART-HEAD — 발표 시각은 알약 하나에 모인다. 지난 발표는 방금 심은 캐시라 늘 있다
+      // (seed 직후라 "오늘", 자정을 막 넘긴 드문 경우엔 "어제").
+      const pill = page.getByTestId("ranking-update-pill");
+      await expect(pill).toBeVisible();
+      await expect(page.getByTestId("ranking-updated")).toHaveText(UPDATED[lang]);
+      // 새벽(KST 00:00~08:59)은 승인 문구가 없어 "다음 발표"를 감춘다 — 그 구간에서는 0이 맞다.
       const count = await page.getByTestId("ranking-next-update").count();
       expect(count === 1 || count === 0).toBe(true);
     });
@@ -405,7 +468,9 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
       "loaded",
       { timeout: 30_000 },
     );
-    await expect(page.locator(".rank-head .rank-note").first()).toBeVisible();
+    await expect(page.getByTestId("chart-score-title")).toBeVisible();
     await expect(page.getByTestId("ranking-next-update")).toHaveCount(0);
+    // 마감 후에도 "지난 발표"는 남는다 — 알약은 그 부분만 보인다.
+    await expect(page.getByTestId("ranking-updated")).toHaveText(UPDATED.ko);
   });
 });
