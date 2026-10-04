@@ -12,6 +12,7 @@ import { track } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n";
 import type { Lang } from "@/lib/cookieConsent";
 import { relativeAge, type RelativeAge } from "@/lib/admin/dashboard/formatKpi";
+import { alertTitle } from "@/lib/admin/dashboard/alertTitle";
 import type { AdminAlertView, AlertSeverity } from "@/lib/admin/dashboard/types";
 
 function strings(lang: Lang) {
@@ -24,7 +25,6 @@ function strings(lang: Lang) {
     emptyTitle: "이상 없음",
     emptySub: "활성 알림이 없습니다",
     sev: { high: "높음", medium: "중간", low: "낮음", dismissed: "처리됨" } as Record<AlertSeverity, string>,
-    typeLabel: "차트 이상 징후",
     ago: (a: RelativeAge) =>
       a.unit === "now" ? "방금 전"
         : a.unit === "minute" ? `${a.value}분 전`
@@ -40,7 +40,6 @@ function strings(lang: Lang) {
     emptyTitle: "All clear",
     emptySub: "No active alerts",
     sev: { high: "HIGH", medium: "MEDIUM", low: "LOW", dismissed: "DISMISSED" } as Record<AlertSeverity, string>,
-    typeLabel: "Chart anomaly",
     ago: (a: RelativeAge) =>
       a.unit === "now" ? "just now"
         : a.unit === "minute" ? `${a.value} min ago`
@@ -97,7 +96,7 @@ export function AlertList({ alerts, onDismiss }: AlertListProps): JSX.Element {
                 <div className="alert-key">
                   <span className="ak-sev">{t.sev[a.severity]}</span> · {a.type} · {t.ago(relativeAge(a.createdAtMs, now))}
                 </div>
-                <div className="alert-title">{t.typeLabel}</div>
+                <div className="alert-title">{alertTitle(a.type, lang)}</div>
                 <div className="alert-desc">{a.detail}</div>
               </div>
               {a.severity !== "dismissed" && (
