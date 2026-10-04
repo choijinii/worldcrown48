@@ -136,8 +136,10 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   const page = await context.newPage();
 
   // Block the identitytoolkit anonymous-signup endpoint for the duration of
-  // setup. The bundled app's CookieConsentProvider calls ensureAnonymousUid
-  // on mount, which fires signInAnonymously in parallel with our CDN-side
+  // setup. (ANON-1, 2026-10-04: CookieConsentProvider no longer signs in
+  // anonymously on mount — only consent saves and Arena/Champion entry do — so
+  // on "/" this block is now a belt-and-braces guard.) Historically the app
+  // fired signInAnonymously on mount in parallel with our CDN-side
   // signInWithCustomToken below. Whichever REST call returns LAST wins the
   // localStorage write, so this race produced a non-deterministic
   // storageState (sometimes anonymous, sometimes custom). Blocking
