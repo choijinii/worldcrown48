@@ -197,14 +197,36 @@ async function deleteUserQuietly(uid: string): Promise<void> {
   await ensureAdmin().auth().deleteUser(uid).catch(() => {});
 }
 
-/** Arm + fire the app's real link path for the already-signed-in Voter. */
+/**
+ * Arm + fire the app's real link path for the already-signed-in Voter.
+ *
+ * 실제 앱에서는 Google 로그인에서 돌아온 페이지가 **처음 열릴 때부터** 연결 대기 표시
+ * (PENDING_ANON_UID_KEY)를 갖고 있다. 그래서 앱 스크립트보다 먼저 표시를 심고 페이지를 한 번만
+ * 연다.
+ *
+ * ⚠️ 예전 방식(goto → sessionStorage 심기 → reload)은 경쟁 상태였다(CARD-FIX 검증 중 발견,
+ * 2026-10-04 trace 실측): 첫 페이지의 onAuthStateChanged 가 표시를 보고 linkSessionVote 를
+ * 부르기 시작한 순간 reload 가 그 요청을 끊었고(서버엔 OPTIONS 만 남음), 앱의 finally 가 표시를
+ * 지워 새 페이지는 연결할 것이 없었다. 로그인 확인이 reload 보다 늦으면 통과, 빠르면 실패 —
+ * 그래서 "가끔 착지 실패"로 보였다.
+ *
+ * 표시는 **한 번만** 심는다(arm 표시로 막음) — 착지 이동(/champion) 때 다시 심으면 이미 지워진
+ * 익명 계정으로 연결을 또 부른다.
+ */
 async function triggerLink(page: Page, anonUid: string): Promise<void> {
-  await page.goto("/");
-  await page.evaluate(
-    ({ key, uid }) => sessionStorage.setItem(key, uid),
+  await page.addInitScript(
+    ({ key, uid }) => {
+      try {
+        if (sessionStorage.getItem("e2e_link_armed")) return;
+        sessionStorage.setItem("e2e_link_armed", "1");
+        sessionStorage.setItem(key, uid);
+      } catch {
+        /* 저장소가 막힌 환경 — 연결 자체가 불가능하므로 시험이 착지에서 실패해 드러난다 */
+      }
+    },
     { key: PENDING_ANON_UID_KEY, uid: anonUid },
   );
-  await page.reload();
+  await page.goto("/");
 }
 
 /** A fresh anonymous browser context (bypasses Vercel Preview Protection). */
