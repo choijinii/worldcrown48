@@ -26,8 +26,40 @@ import { buildCrownCardRecord, crownCardId } from "./core/crownCardRecord";
 import { crownCardStoragePath } from "./_run/runDocId";
 import { campaignForTournament } from "./_crown/campaignSlugValidation";
 import { renderCrownPng } from "./core/canvasServer";
+import {
+  CROWN_RENDER_ALERT_TYPE,
+  recordRenderFailure,
+  type AlertStore,
+} from "./core/crownRenderAlert";
 
 const VICTORY_PATH = "48 → 24 → 12 → 6 → THE FINAL";
+
+/** admin_alerts 저장소 — 시각은 서버 시각으로 찍는다(차트 dedup 과 같은 필드 이름). */
+const adminAlertStore: AlertStore = {
+  async findOpen() {
+    const snap = await adminDb
+      .collection("admin_alerts")
+      .where("type", "==", CROWN_RENDER_ALERT_TYPE)
+      .where("resolved", "==", false)
+      .limit(1)
+      .get();
+    const doc = snap.docs[0];
+    return doc ? { id: doc.id, count: Number(doc.get("count")) } : null;
+  },
+  async create(doc) {
+    await adminDb.collection("admin_alerts").add({
+      ...doc,
+      createdAt: FieldValue.serverTimestamp(),
+      firstSeenAt: FieldValue.serverTimestamp(),
+    });
+  },
+  async update(id, patch) {
+    await adminDb
+      .collection("admin_alerts")
+      .doc(id)
+      .update({ ...patch, createdAt: FieldValue.serverTimestamp() });
+  },
+};
 
 export const onChampionConfirmed = onDocumentUpdated(
   "roundProgress/{progressId}",
@@ -60,9 +92,11 @@ export const onChampionConfirmed = onDocumentUpdated(
     const tournamentTitle = String(tournament.title ?? "");
     const tournamentCategory = String(tournament.category ?? "");
 
-    // Render the 1.91:1 PNG. A render failure is PERMANENT (e.g. the optional
-    // node-canvas binary is absent on this instance) — log and return WITHOUT
-    // throwing, so the at-least-once trigger does not retry-storm for days.
+    // Render the 1.91:1 PNG. A render failure is PERMANENT (e.g. the node-canvas
+    // binary is absent on this instance) — log and return WITHOUT throwing, so the
+    // at-least-once trigger does not retry-storm for days. CARD-FIX(2026-10-04):
+    // 로그 한 줄만으로는 1주일 넘게 아무도 몰랐다 → 운영자 페이지 알림에도 남긴다.
+    // ⚠️ 로그 문구의 "render failed" 는 대표 메일 알림(로그 기반 알림)의 조건이다 — 바꾸지 마라.
     let png: Buffer;
     try {
       png = renderCrownPng({
@@ -81,6 +115,7 @@ export const onChampionConfirmed = onDocumentUpdated(
         `[onChampionConfirmed] render failed for ${cardId} (canvas unavailable?) — skipping without retry:`,
         err,
       );
+      await recordRenderFailure(adminAlertStore, { error: err, cardId, tournamentId });
       return;
     }
 
