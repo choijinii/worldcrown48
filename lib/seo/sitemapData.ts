@@ -56,6 +56,7 @@ export async function loadSitemapArticles(): Promise<SitemapArticle[]> {
           slug: String(data.slug ?? d.id),
           status: data.status,
           publishedAtMs: toMs(data.publishedAt),
+          title: (data.title as SitemapArticle["title"]) ?? null,
         };
       });
     })(),

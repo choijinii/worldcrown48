@@ -24,7 +24,12 @@ const TOURNAMENTS: SitemapTournament[] = [
 ];
 
 const ARTICLES: SitemapArticle[] = [
-  { slug: "first-story", status: "published", publishedAtMs: 1_790_000_000_000 },
+  {
+    slug: "first-story",
+    status: "published",
+    publishedAtMs: 1_790_000_000_000,
+    title: { ko: "첫 기사", en: "First story", es: "" },
+  },
   { slug: "draft-story", status: "draft" },
   { slug: "pulled-story", status: "archived" },
 ];
@@ -80,20 +85,80 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
 
   it("고정 공개 페이지(홈·뉴스·정책 4종)는 데이터가 없어도 싣는다", () => {
     const u = buildSitemapEntries({ tournaments: [], articles: [] }).map((e) => e.url);
-    expect(u).toEqual([
-      `${SITE_URL}/`,
-      `${SITE_URL}/news`,
-      `${SITE_URL}/policies/cookies`,
-      `${SITE_URL}/policies/community`,
-      `${SITE_URL}/policies/terms`,
-      `${SITE_URL}/policies/privacy`,
-    ]);
+    for (const path of ["/", "/news", "/policies/cookies", "/policies/community", "/policies/terms", "/policies/privacy"]) {
+      expect(u).toContain(`${SITE_URL}${path}`);
+    }
   });
 
   it("모든 주소는 https://www.worldcrown48.com 으로 시작하고 중복이 없다", () => {
     const u = urls();
     expect(u.every((x) => x.startsWith(`${SITE_URL}/`))).toBe(true);
+    expect(u.every((x) => !x.includes("&"))).toBe(true);
     expect(new Set(u).size).toBe(u.length);
+  });
+});
+
+describe("SEO-2 언어별 주소 안내 (hreflang)", () => {
+  const entries = buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES });
+  const byUrl = (url: string) => entries.find((e) => e.url === url);
+
+  it("홈은 기본 주소 + ko·en·es 언어판 주소를 모두 따로 싣는다", () => {
+    for (const q of ["", "?lang=ko", "?lang=en", "?lang=es"]) {
+      expect(byUrl(`${SITE_URL}/${q}`)).toBeDefined();
+    }
+  });
+
+  it("언어판 묶음은 ko·en·es + x-default(기본 주소)이고, 모든 언어판이 같은 묶음을 단다(양방향)", () => {
+    const expected = {
+      ko: `${SITE_URL}/arena/public-active?lang=ko`,
+      en: `${SITE_URL}/arena/public-active?lang=en`,
+      es: `${SITE_URL}/arena/public-active?lang=es`,
+      "x-default": `${SITE_URL}/arena/public-active`,
+    };
+    for (const url of Object.values(expected)) {
+      expect(byUrl(url)?.alternates?.languages).toEqual(expected);
+    }
+  });
+
+  it("정책은 본문이 있는 ko·en 만 싣는다 (es 없음)", () => {
+    const u = entries.map((e) => e.url);
+    expect(u).toContain(`${SITE_URL}/policies/terms?lang=ko`);
+    expect(u).toContain(`${SITE_URL}/policies/terms?lang=en`);
+    expect(u).not.toContain(`${SITE_URL}/policies/terms?lang=es`);
+    expect(byUrl(`${SITE_URL}/policies/terms`)?.alternates?.languages).toEqual({
+      ko: `${SITE_URL}/policies/terms?lang=ko`,
+      en: `${SITE_URL}/policies/terms?lang=en`,
+      "x-default": `${SITE_URL}/policies/terms`,
+    });
+  });
+
+  it("기사는 제목이 채워진 언어만 싣는다 (빈 es 제외)", () => {
+    const u = entries.map((e) => e.url);
+    expect(u).toContain(`${SITE_URL}/news/first-story?lang=ko`);
+    expect(u).toContain(`${SITE_URL}/news/first-story?lang=en`);
+    expect(u).not.toContain(`${SITE_URL}/news/first-story?lang=es`);
+  });
+
+  it("제목이 한 언어뿐인 기사는 기본 주소만 싣고 언어판 묶음을 달지 않는다", () => {
+    const one = buildSitemapEntries({
+      tournaments: [],
+      articles: [{ slug: "ko-only", status: "published", title: { ko: "한국어만", en: "", es: "" } }],
+    }).filter((e) => e.url.includes("/news/ko-only"));
+    expect(one).toHaveLength(1);
+    expect(one[0].url).toBe(`${SITE_URL}/news/ko-only`);
+    expect(one[0].alternates).toBeUndefined();
+  });
+
+  it("비공개 대회는 언어판 주소로도 새어 나가지 않는다", () => {
+    const joined = entries.map((e) => e.url).join("\n");
+    expect(joined).not.toContain("draft-one");
+    expect(joined).not.toContain("e2e-seed");
+    for (const e of entries) {
+      for (const alt of Object.values(e.alternates?.languages ?? {})) {
+        expect(String(alt)).not.toContain("/admin");
+        expect(String(alt)).not.toContain("draft-one");
+      }
+    }
   });
 });
 

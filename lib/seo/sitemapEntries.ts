@@ -21,13 +21,30 @@
  * - `/launch` — A-0 Launch Pad 보관 경로(홈은 `/`). 같은 사이트의 옛 첫 화면을 검색에
  *   따로 올리지 않는다.
  *
- * 언어(ko/en/es)는 `?lang=` 쿼리로 나뉘지만 이번에는 언어별 주소(hreflang)를 넣지 않는다
- * — 기본 주소 하나만 싣는다 (SEO-1 범위 밖, 보고서에 제안만).
+ * ## 언어별 주소 안내 (hreflang · SEO-2, 2026-10-04)
+ * 화면 언어는 `?lang=ko|en|es` 가 1순위로 정한다(`lib/resolveBootLang.ts`). 그래서 같은
+ * 페이지의 언어판 주소는 `?lang=` 만 다르다. 각 페이지마다
+ *   - 기본 주소(`x-default` — 쿼리 없음, 방문자 브라우저 언어를 따름)
+ *   - 언어판 주소(`?lang=ko` · `?lang=en` · `?lang=es`)
+ * 를 **모두 따로 싣고**, 각 항목에 같은 언어판 묶음(alternates)을 붙인다. 구글 규칙상
+ * 언어판끼리 서로를 가리켜야(양방향) 인정되기 때문이다.
+ *
+ * 페이지마다 실제로 내용이 있는 언어만 싣는다:
+ *   - 홈 · 뉴스룸 목록 · 아레나 · 차트: ko · en · es (화면 문구 3언어)
+ *   - 정책 4종: ko · en (본문 파일이 content/ko, content/en 두 벌뿐)
+ *   - 기사: 제목이 채워진 언어만 (빈 언어는 다른 언어로 대신 보여 주므로 따로 싣지 않음)
  */
 import type { MetadataRoute } from "next";
 import { POLICY_TYPES } from "@/lib/policyTypes";
 
 export const SITE_URL = "https://www.worldcrown48.com";
+
+/** 사이트가 지원하는 화면 언어 — `?lang=` 값과 같다. */
+export const SITEMAP_LANGS = ["ko", "en", "es"] as const;
+export type SitemapLang = (typeof SITEMAP_LANGS)[number];
+
+/** 정책 본문은 content/ko · content/en 두 벌뿐이다. */
+export const POLICY_LANGS: readonly SitemapLang[] = ["ko", "en"];
 
 /** 사이트맵 판단에 필요한 대회 필드만 — Firestore 문서에서 그대로 옮겨 담는다. */
 export interface SitemapTournament {
@@ -43,6 +60,8 @@ export interface SitemapArticle {
   slug: string;
   status?: unknown;
   publishedAtMs?: number | null;
+  /** 언어별 제목 — 채워진 언어만 언어판 주소로 싣는다. 없으면 기본 주소만. */
+  title?: Partial<Record<SitemapLang, unknown>> | null;
 }
 
 /** 시험·시드 데이터의 hostUid 접두어 (seed-operator, seed-chart-preview …). */
@@ -70,28 +89,64 @@ export function isPrivatePath(path: string): boolean {
   );
 }
 
-/** 공개 고정 페이지 — 데이터와 무관하게 늘 들어간다. */
-export const STATIC_PUBLIC_PATHS: readonly string[] = [
-  "/",
-  "/news",
-  ...POLICY_TYPES.map((t) => `/policies/${t}`),
-];
-
 function toDate(ms: number | null | undefined): Date | undefined {
   return typeof ms === "number" && Number.isFinite(ms) ? new Date(ms) : undefined;
+}
+
+/** 경로 + 언어 → 언어판 주소. `null` 이면 기본 주소(x-default). */
+export function langUrl(path: string, lang: SitemapLang | null): string {
+  const base = `${SITE_URL}${path}`;
+  return lang ? `${base}?lang=${lang}` : base;
+}
+
+/** 기사 제목이 채워진 언어 (순서는 SITEMAP_LANGS 기준). */
+export function filledLangs(
+  text: Partial<Record<SitemapLang, unknown>> | null | undefined,
+): SitemapLang[] {
+  if (!text) return [];
+  return SITEMAP_LANGS.filter((l) => {
+    const v = text[l];
+    return typeof v === "string" && v.trim().length > 0;
+  });
+}
+
+type Entry = MetadataRoute.Sitemap[number];
+type PageSpec = Omit<Entry, "url" | "alternates"> & {
+  path: string;
+  langs: readonly SitemapLang[];
+};
+
+/**
+ * 한 페이지 → 기본 주소 1개 + 언어판 주소 N개. 모두 같은 언어판 묶음을 단다.
+ * 언어판이 1개 이하이면 묶음 없이 기본 주소만 싣는다(가리킬 다른 언어가 없음).
+ */
+function expandPage({ path, langs, ...rest }: PageSpec): MetadataRoute.Sitemap {
+  if (langs.length < 2) return [{ url: langUrl(path, null), ...rest }];
+  const languages: Record<string, string> = {};
+  for (const l of langs) languages[l] = langUrl(path, l);
+  languages["x-default"] = langUrl(path, null);
+  const alternates = { languages };
+  return [null, ...langs].map((l) => ({
+    url: langUrl(path, l),
+    ...rest,
+    alternates,
+  }));
 }
 
 export function buildSitemapEntries(input: {
   tournaments: SitemapTournament[];
   articles: SitemapArticle[];
 }): MetadataRoute.Sitemap {
-  const entries: MetadataRoute.Sitemap = [];
+  const pages: PageSpec[] = [];
 
-  for (const path of STATIC_PUBLIC_PATHS) {
-    entries.push({
-      url: `${SITE_URL}${path}`,
-      changeFrequency: path === "/" || path === "/news" ? "daily" : "monthly",
-      priority: path === "/" ? 1 : path === "/news" ? 0.8 : 0.3,
+  pages.push({ path: "/", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 1 });
+  pages.push({ path: "/news", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.8 });
+  for (const t of POLICY_TYPES) {
+    pages.push({
+      path: `/policies/${t}`,
+      langs: POLICY_LANGS,
+      changeFrequency: "monthly",
+      priority: 0.3,
     });
   }
 
@@ -99,35 +154,29 @@ export function buildSitemapEntries(input: {
     if (!isPublicTournament(t)) continue;
     const id = encodeURIComponent(t.id);
     const lastModified = toDate(t.updatedAtMs);
-    entries.push({
-      url: `${SITE_URL}/arena/${id}`,
-      ...(lastModified ? { lastModified } : {}),
-      changeFrequency: "daily",
-      priority: 0.9,
-    });
-    entries.push({
-      url: `${SITE_URL}/arena/${id}/ranking`,
-      ...(lastModified ? { lastModified } : {}),
-      changeFrequency: "daily",
-      priority: 0.7,
-    });
+    const lm = lastModified ? { lastModified } : {};
+    pages.push({ path: `/arena/${id}`, langs: SITEMAP_LANGS, ...lm, changeFrequency: "daily", priority: 0.9 });
+    pages.push({ path: `/arena/${id}/ranking`, langs: SITEMAP_LANGS, ...lm, changeFrequency: "daily", priority: 0.7 });
   }
 
   for (const a of input.articles) {
     if (!isPublishedArticle(a)) continue;
     const lastModified = toDate(a.publishedAtMs);
-    entries.push({
-      url: `${SITE_URL}/news/${encodeURIComponent(a.slug)}`,
+    pages.push({
+      path: `/news/${encodeURIComponent(a.slug)}`,
+      langs: filledLangs(a.title),
       ...(lastModified ? { lastModified } : {}),
       changeFrequency: "weekly",
       priority: 0.6,
     });
   }
 
+  const entries = pages.flatMap(expandPage);
+
   // 마지막 안전망 — 중복 제거 + 비공개 경로 차단.
   const seen = new Set<string>();
   return entries.filter((e) => {
-    const path = e.url.slice(SITE_URL.length) || "/";
+    const path = new URL(e.url).pathname;
     if (isPrivatePath(path)) return false;
     if (seen.has(e.url)) return false;
     seen.add(e.url);
