@@ -1,0 +1,214 @@
+<title>익명 600명 조사 · SEO-1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#f6f7fb; --paper:#ffffff; --ink:#1b2033; --ink2:#4a5270; --line:#dde1ee;
+  --navy:#23306b; --gold:#b8860b; --goldbg:#fbf3dd; --warn:#b3261e; --warnbg:#fdeceb; --ok:#1e7a46; --okbg:#e7f5ec; --muted:#eef0f7;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;font-size:15.5px;line-height:1.7;padding:32px 16px 64px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+h1{font-size:28px;line-height:1.3;margin:6px 0 8px;color:var(--navy);text-wrap:balance}
+h2{font-size:20px;margin:0 0 12px;color:var(--navy);text-wrap:balance}
+h3{font-size:16px;margin:18px 0 6px}
+.meta{color:var(--ink2);font-size:13.5px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px 22px}
+.summary{border-left:4px solid var(--gold);background:var(--goldbg);border-radius:0 10px 10px 0;border-top:none;border-right:none;border-bottom:none}
+.summary ul{margin:0;padding-left:20px}
+.summary li{margin:4px 0}
+p{margin:8px 0;max-width:68ch}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;background:var(--muted);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{background:var(--muted);font-weight:700;color:var(--navy)}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.in{background:var(--okbg);color:var(--ok)} .out{background:var(--warnbg);color:var(--warn)} .mid{background:var(--goldbg);color:var(--gold)}
+.diagram{overflow-x:auto;margin-top:8px}
+.diagram svg{min-width:640px;width:100%;height:auto;display:block}
+.note{font-size:13.5px;color:var(--ink2)}
+.callout{background:var(--warnbg);border:1px solid #f2c4c0;border-radius:8px;padding:12px 14px;margin-top:12px}
+.callout b{color:var(--warn)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:10px}
+.opt{border:1px solid var(--line);border-radius:8px;padding:14px}
+.opt h3{margin:0 0 4px;font-size:15px;color:var(--navy)}
+.opt p{font-size:14px;margin:4px 0}
+.gloss{font-size:13.5px}
+.gloss dt{font-weight:700;margin-top:6px}
+.gloss dd{margin:0 0 4px 0;color:var(--ink2)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">SEO-1 · 코티오 보고 · 2026-09-28 (월)</div>
+  <h1>익명 사용자 600명은 어디서 왔나, 그리고 사이트맵</h1>
+  <div class="meta">작성: 코티오(개발) · 요청: 마코 인계 · 코드만 읽고 쓴 보고서입니다. 파이어베이스 사용자 목록은 직접 열어 보지 못했습니다.</div>
+</header>
+
+<section class="summary">
+  <h2>핵심 요약</h2>
+  <ul>
+    <li><b>익명 로그인은 "페이지를 열자마자" 일어납니다.</b> 참가 버튼과 상관없이, 모든 페이지에 깔린 쿠키 동의 부품이 첫 방문 때 익명 계정을 하나 만듭니다.</li>
+    <li><b>그래서 새 브라우저 하나 = 익명 계정 하나</b>입니다. 사람이든, 자바스크립트를 실행하는 검색 로봇이든, 자동 테스트 브라우저든 똑같습니다.</li>
+    <li><b>(추가) 대표님 화면으로 대조해 보니, 계정이 늘어난 날이 PR 병합일과 겹칩니다.</b> 대부분은 자동 테스트와 미리보기 확인 방문에서 나온 것으로 봅니다. 아래 "추가" 칸을 보세요.</li>
+    <li><b>600명의 유력한 출처는 세 곳</b>입니다 — ① 자동 테스트(E2E)와 미리보기(Preview) 배포, ② 대표님·AI 도구의 확인 방문, ③ 구글 등 검색 로봇. 코드상 파이어베이스 프로젝트가 <code>worldcrown48</code> 하나뿐이라 테스트도 프로덕션과 같은 곳에 계정을 만듭니다.</li>
+    <li><b>사이트맵을 제출하면 로봇 방문이 늘어 익명 계정도 늘어날 수 있습니다.</b> 막을 필요까지는 없지만, 숫자가 늘어도 "진짜 사용자"로 읽지 않도록 미리 알아 두셔야 합니다.</li>
+    <li><b>사이트맵 PR은 준비됐습니다.</b> 공개 페이지만 담고, 비공개 대회와 /admin이 빠지는지 테스트 9건으로 확인했습니다(전체 1208건 통과).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>추가 · 대표님 화면으로 확인한 것 (21:15 KST)</h2>
+  <p>대표님이 보내 주신 파이어베이스 인증 사용량·GA4 화면을 병합(PR 머지) 날짜와 맞춰 보았습니다.</p>
+  <div class="tbl"><table>
+    <tr><th>본 것</th><th>숫자</th><th>뜻</th></tr>
+    <tr><td>인증 월간 활성 사용자(익명 포함)</td><td>704</td><td>9월 1일부터 쌓인 계정 수</td></tr>
+    <tr><td>일일 활성 급등일</td><td>9/19 약 160 · 9/23 약 235 · 9/27 약 85</td><td>모두 PR을 병합한 날(9/18~20, 9/23, 9/25~27)과 겹칩니다</td></tr>
+    <tr><td>조용했던 기간</td><td>9/12~9/18 거의 0</td><td>병합이 없던 기간입니다</td></tr>
+    <tr><td>GA4 국가별 활성 사용자</td><td>미국 125 · 한국 13 · 캐나다 2</td><td>오픈 전인데 미국이 90%. 자동 테스트가 도는 GitHub 서버는 미국에 있습니다</td></tr>
+  </table></div>
+  <p><b>판단:</b> 계정이 늘어난 날이 PR 병합일과 거의 그대로 겹칩니다. 그래서 600여 명의 대부분은 <b>자동 테스트(E2E)와 미리보기 확인 방문</b>에서 나온 것으로 봅니다. 구글 로봇이 원인이었다면 병합과 상관없이 매일 비슷하게 늘었을 것입니다. 날짜가 겹친다는 정황으로 판단한 것이고, 계정 하나하나를 확인한 것은 아닙니다. 그래프는 미국 서부 시간(GMT-7) 기준이라 한국 날짜와 하루쯤 어긋날 수 있습니다.</p>
+  <p><b>실제 사람 수에 가까운 숫자:</b> GA4의 한국 13명입니다. 쿠키 동의 "분석"을 허용한 사람만 세는 숫자입니다.</p>
+</section>
+
+<section>
+  <h2>익명 계정이 만들어지는 흐름</h2>
+  <p class="note">화살표를 따라가면, 어떤 방문이든 "저장된 로그인이 없는 브라우저"면 계정이 새로 생깁니다.</p>
+  <div class="diagram">
+  <svg viewBox="0 0 760 300" role="img" aria-label="익명 계정 생성 흐름도">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4a5270"/></marker></defs>
+    <g font-family="IBM Plex Sans KR, sans-serif" font-size="13" fill="#1b2033">
+      <rect x="10" y="20" width="150" height="46" rx="8" fill="#eef0f7" stroke="#dde1ee"/>
+      <text x="85" y="40" text-anchor="middle">사람 방문</text><text x="85" y="57" text-anchor="middle" font-size="11" fill="#4a5270">새 폰·시크릿 창</text>
+      <rect x="10" y="80" width="150" height="46" rx="8" fill="#eef0f7" stroke="#dde1ee"/>
+      <text x="85" y="100" text-anchor="middle">검색 로봇</text><text x="85" y="117" text-anchor="middle" font-size="11" fill="#4a5270">구글봇 렌더링</text>
+      <rect x="10" y="140" width="150" height="46" rx="8" fill="#eef0f7" stroke="#dde1ee"/>
+      <text x="85" y="160" text-anchor="middle">자동 테스트</text><text x="85" y="177" text-anchor="middle" font-size="11" fill="#4a5270">E2E · PR마다</text>
+      <rect x="10" y="200" width="150" height="46" rx="8" fill="#eef0f7" stroke="#dde1ee"/>
+      <text x="85" y="220" text-anchor="middle">확인 방문</text><text x="85" y="237" text-anchor="middle" font-size="11" fill="#4a5270">미리보기·AI 브라우저</text>
+      <path d="M160,43 L230,125" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <path d="M160,103 L230,130" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <path d="M160,163 L230,137" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <path d="M160,223 L230,142" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <rect x="235" y="106" width="160" height="56" rx="8" fill="#ffffff" stroke="#23306b"/>
+      <text x="315" y="129" text-anchor="middle" font-weight="700" fill="#23306b">아무 페이지나 열림</text>
+      <text x="315" y="148" text-anchor="middle" font-size="11" fill="#4a5270">쿠키 동의 부품이 켜짐</text>
+      <path d="M395,134 L455,134" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <polygon points="535,94 615,134 535,174 455,134" fill="#fbf3dd" stroke="#b8860b"/>
+      <text x="535" y="130" text-anchor="middle" font-size="12">저장된</text><text x="535" y="146" text-anchor="middle" font-size="12">로그인 있음?</text>
+      <path d="M535,94 L535,46 L600,46" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <text x="545" y="68" font-size="11" fill="#1e7a46">예</text>
+      <rect x="602" y="24" width="150" height="44" rx="8" fill="#e7f5ec" stroke="#1e7a46"/>
+      <text x="677" y="51" text-anchor="middle" fill="#1e7a46">기존 계정 그대로</text>
+      <path d="M535,174 L535,222 L600,222" stroke="#4a5270" fill="none" marker-end="url(#a)"/>
+      <text x="545" y="204" font-size="11" fill="#b3261e">아니오</text>
+      <rect x="602" y="198" width="150" height="48" rx="8" fill="#fdeceb" stroke="#b3261e"/>
+      <text x="677" y="219" text-anchor="middle" fill="#b3261e" font-weight="700">익명 계정 +1</text>
+      <text x="677" y="236" text-anchor="middle" font-size="11" fill="#b3261e">signInAnonymously</text>
+      <text x="380" y="285" text-anchor="middle" font-size="11.5" fill="#4a5270">구글봇은 페이지마다 저장 공간을 비우므로, 렌더링할 때마다 "아니오" 쪽으로 갑니다.</text>
+    </g>
+  </svg>
+  </div>
+</section>
+
+<section>
+  <h2>질문별 답</h2>
+
+  <h3>1. 익명 로그인은 언제 호출되나요?</h3>
+  <p><b>페이지를 열자마자</b>입니다. 사이트 전체를 감싸는 틀(<code>app/layout.tsx</code>)에 쿠키 동의 부품(<code>CookieConsentProvider</code>)이 들어 있고, 이 부품이 켜지는 순간 <code>ensureAnonymousUid()</code>를 부릅니다. 저장된 로그인이 없으면 여기서 <code>signInAnonymously</code>(익명 로그인)가 실행됩니다.</p>
+  <p>이유는 설계 때 정한 것입니다. 쿠키 동의 기록을 저장하려면 방문자 번호(uid)가 필요해서, 로그인 전에도 번호를 미리 만들어 두는 방식입니다. 이미 동의한 사람도 "나중에 설정을 바꿀 때를 대비해" 번호를 만듭니다. 참가 버튼을 누를 때 따로 만드는 곳은 없습니다.</p>
+
+  <h3>2. 구글 로봇이 읽을 때마다 새로 생기나요?</h3>
+  <p><b>생길 수 있습니다.</b> 구글봇은 자바스크립트를 실행해서 화면을 그려 봅니다(렌더링). 구글 공식 문서에 따르면 이때 쓰는 브라우저는 페이지를 넘길 때마다 로컬 저장소와 쿠키를 비웁니다. 저장된 로그인이 남지 않으니 렌더링할 때마다 익명 계정이 새로 생길 수 있습니다.</p>
+  <p class="note">자바스크립트를 실행하지 않는 로봇(카카오톡·X의 링크 미리보기 등)은 계정을 만들지 않습니다. 오픈 전이라 구글이 사이트를 얼마나 방문했는지는 아직 모릅니다 — 서치 콘솔 등록 후 "크롤링 통계"에서 확인할 수 있습니다.</p>
+
+  <h3>3. 자동 테스트와 미리보기도 프로덕션에 계정을 만드나요?</h3>
+  <p><b>예, 같은 곳에 만듭니다.</b> 근거는 세 가지입니다.</p>
+  <div class="tbl"><table>
+    <tr><th>확인한 것</th><th>코드에서 본 내용</th></tr>
+    <tr><td>파이어베이스 프로젝트 수</td><td><code>.firebaserc</code>에 <code>worldcrown48</code> 하나뿐. 시험용 프로젝트가 따로 없습니다.</td></tr>
+    <tr><td>E2E(자동 화면 테스트)</td><td>PR마다 미리보기 주소에서 테스트 79개(13개 작업 묶음)가 돌고, 씨앗 데이터도 같은 프로젝트에 씁니다. 로그인 없이 도는 테스트(게스트 3판 테스트 등)는 브라우저를 새로 열 때마다 익명 계정을 만듭니다. 일부만 테스트 끝에 지웁니다.</td></tr>
+    <tr><td>미리보기(Preview) 배포</td><td>같은 설정값을 쓰므로 대표님 확인 방문, Claude in Chrome, Claude Code의 사전 점검 브라우저도 새 창마다 계정을 만듭니다.</td></tr>
+  </table></div>
+  <p class="note">Vercel 설정 화면에서 Preview 환경변수를 직접 열어 본 것은 아닙니다. 다만 프로젝트가 하나뿐이라 다른 곳을 가리킬 수가 없습니다.</p>
+
+  <div class="callout"><b>숫자 해석 주의.</b> 600이라는 숫자는 "사람 수"가 아니라 "저장된 로그인이 없던 브라우저 창의 수"에 가깝습니다. 진짜 방문자 수는 GA4(구글 애널리틱스)로 보시는 게 정확합니다. 단, GA4도 쿠키 동의 "분석" 항목에 동의한 사람만 셉니다.</div>
+
+  <h3>4. 고칠 방법 (제안만 · 결정은 대표님)</h3>
+  <div class="opts">
+    <div class="opt"><h3>제안 1 · 동의 저장 때 계정 만들기</h3>
+      <p>쿠키 동의 부품이 첫 방문에 계정을 만들지 않고, 방문자가 동의 버튼을 누를 때 만듭니다. 동의 여부는 이미 브라우저 쿠키로도 기억하고 있습니다.</p>
+      <p><span class="chip in">효과 큼</span> 홈·뉴스·정책 페이지 방문과 로봇 방문 대부분이 계정을 안 만듭니다.</p>
+      <p><span class="chip in">참가 규칙 영향 없음</span> 아레나는 지금처럼 들어올 때 계정을 만드니 게스트 하루 3판 계산은 그대로입니다.</p>
+      <p><span class="chip mid">크기</span> 소PR 1개. 쿠키 동의 테스트 수정 필요.</p></div>
+    <div class="opt"><h3>제안 2 · 아레나도 첫 선택 때 만들기</h3>
+      <p>아레나 화면도 계정 없이 보여 주다가, 첫 선택을 누르는 순간 계정을 만듭니다.</p>
+      <p><span class="chip mid">참가 규칙 주의</span> 게스트 3판은 익명 계정 번호(<code>guest_runs/{uid}</code>)로 셉니다. 숫자 규칙은 안 바뀌지만, 회차·이어하기 판정이 계정 번호를 먼저 읽기 때문에 손볼 곳이 많습니다.</p>
+      <p><span class="chip out">크기</span> 별도 킥 필요. 런칭 전에는 무리한 범위입니다.</p></div>
+    <div class="opt"><h3>제안 3 · 오래된 익명 계정 정리</h3>
+      <p>한 번도 참가하지 않은 익명 계정을 주기적으로 지웁니다. 파이어베이스 상위 요금제(Identity Platform)에 자동 정리 기능이 있는 것으로 알고 있으나, 이 프로젝트에 해당하는지는 확인하지 못했습니다.</p>
+      <p><span class="chip mid">확인 필요</span> 요금제·기능 여부를 먼저 확인해야 합니다.</p></div>
+    <div class="opt"><h3>제안 4 · 테스트용 파이어베이스 분리</h3>
+      <p>E2E와 미리보기를 별도 프로젝트로 옮겨 프로덕션 숫자를 깨끗하게 만듭니다.</p>
+      <p><span class="chip out">크기</span> 설정·비밀값·씨앗 스크립트를 모두 옮겨야 해서 반나절 이상. 런칭 후가 현실적입니다.</p></div>
+  </div>
+  <p class="note">비용 참고: 기본 파이어베이스 인증의 익명 계정은 개수 자체로 요금이 붙지 않는 것으로 알고 있지만, Identity Platform으로 올린 프로젝트는 월 활성 사용자 기준 과금이 있을 수 있어 확인이 필요합니다.</p>
+</section>
+
+<section>
+  <h2>사이트맵에 넣은 것 · 뺀 것</h2>
+  <p class="note">robots.txt는 <code>app/robots.ts</code>(코드로 만드는 방식)였습니다. 여기에 Sitemap 줄을 추가했습니다.</p>
+  <div class="tbl"><table>
+    <tr><th>주소</th><th>판단</th><th>이유</th></tr>
+    <tr><td><code>/</code> (홈 · 대회 피드)</td><td><span class="chip in">넣음</span></td><td>누구나 보는 첫 화면</td></tr>
+    <tr><td><code>/news</code>, 발행된 <code>/news/{기사}</code></td><td><span class="chip in">넣음</span></td><td>발행(published) 기사만. 초안·내린 기사는 뺌</td></tr>
+    <tr><td><code>/policies/</code> 4종</td><td><span class="chip in">넣음</span></td><td>약관·개인정보·쿠키·커뮤니티 정책</td></tr>
+    <tr><td><code>/arena/{대회}</code></td><td><span class="chip in">넣음</span></td><td>공개(active) 대회만</td></tr>
+    <tr><td><code>/arena/{대회}/ranking</code> (차트)</td><td><span class="chip in">넣음</span></td><td>D-30으로 마감 전·비로그인에도 열림</td></tr>
+    <tr><td><code>/arena/{대회}/champion</code></td><td><span class="chip out">뺌</span></td><td>방문자 개인의 크라운 카드 자리라 로봇에게는 빈 화면</td></tr>
+    <tr><td><code>/launch</code></td><td><span class="chip out">뺌</span></td><td>옛 첫 화면 보관 경로. 홈과 겹침</td></tr>
+    <tr><td><code>/admin</code>, <code>/account</code></td><td><span class="chip out">뺌</span></td><td>운영자 전용·로그인 필요. 마지막 안전망으로 한 번 더 차단</td></tr>
+    <tr><td>draft·ended 대회</td><td><span class="chip out">뺌</span></td><td>미발행·마감 정리된 대회</td></tr>
+    <tr><td>시험·시드 대회</td><td><span class="chip out">뺌</span></td><td>만든 사람 번호가 <code>seed-</code>로 시작(E2E 씨앗 등). active여도 뺌</td></tr>
+  </table></div>
+  <p class="note">대표님이 챔피언 페이지를 꼭 넣고 싶으시면 한 줄 바꾸면 됩니다. 다만 지금 구조로는 검색 결과에 빈 화면이 올라갑니다.</p>
+
+  <h3>언어별 주소(hreflang) — 2026-10-04 반영 (SEO-2)</h3>
+  <p>처음에는 "나중에 작은 PR로" 미뤘지만, 미루지 말라는 대표님 지적에 따라 바로 만들었습니다. 화면 언어는 <code>?lang=ko|en|es</code>가 가장 먼저 정하므로(코드 확인), 각 페이지를 기본 주소와 언어판 주소로 모두 싣고 서로를 가리키게 했습니다.</p>
+  <div class="tbl"><table>
+    <tr><th>페이지</th><th>싣는 언어</th></tr>
+    <tr><td>홈 · 뉴스룸 목록 · 아레나 · 차트</td><td>ko · en · es + 기본 주소</td></tr>
+    <tr><td>정책 4종</td><td>ko · en + 기본 주소 (스페인어 본문 없음)</td></tr>
+    <tr><td>기사</td><td>제목이 채워진 언어만. 한 언어뿐이면 기본 주소만</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>이번 PR 확인 결과</h2>
+  <div class="tbl"><table>
+    <tr><th>항목</th><th>결과</th></tr>
+    <tr><td>브랜치 · 커밋</td><td><code>feat/seo-sitemap</code> · <code>1602b2e</code> (파일 5개, 332줄 추가)</td></tr>
+    <tr><td>타입 검사 (tsc)</td><td>통과</td></tr>
+    <tr><td>사이트맵 단위 테스트</td><td>9/9 통과</td></tr>
+    <tr><td>전체 단위 테스트</td><td>1208/1208 통과 (105개 파일)</td></tr>
+    <tr><td>화면 문구 · 로그인 · 참가 로직</td><td>변경 없음</td></tr>
+    <tr><td>데이터 읽기 실패 시</td><td>5초 넘기거나 오류면 고정 페이지 6개만 담아 정상(200)으로 응답</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>낱말 풀이</h2>
+  <dl class="gloss">
+    <dt>사이트맵 (sitemap.xml)</dt><dd>검색 엔진에게 "우리 사이트에 이런 페이지들이 있어요"라고 알려 주는 목록 파일</dd>
+    <dt>robots.txt</dt><dd>검색 로봇에게 들어가도 되는 곳과 안 되는 곳을 알려 주는 안내문</dd>
+    <dt>익명 로그인 (signInAnonymously)</dt><dd>이름·이메일 없이 방문자 번호(uid)만 발급하는 파이어베이스 기능</dd>
+    <dt>렌더링</dt><dd>페이지의 코드를 실행해 실제 화면을 그려 보는 것</dd>
+    <dt>E2E 테스트</dt><dd>로봇 브라우저가 사람처럼 화면을 눌러 보며 기능을 확인하는 자동 테스트</dd>
+    <dt>미리보기(Preview) 배포</dt><dd>PR마다 Vercel이 만들어 주는 확인용 임시 사이트</dd>
+    <dt>hreflang</dt><dd>같은 페이지의 다른 언어판 주소를 검색 엔진에 알려 주는 표시</dd>
+  </dl>
+  <p class="note">출처: 구글 검색 센터 문서 <a href="https://developers.google.com/search/docs/advanced/javascript/fix-search-javascript">Fix Search-Related JavaScript Problems</a> (구글봇은 페이지마다 저장소·쿠키를 비움), <a href="https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics">JavaScript SEO Basics</a> (구글봇 렌더링 방식)</p>
+</section>
+</div>

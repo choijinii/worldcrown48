@@ -1,0 +1,141 @@
+<title>월크48 GA4 이벤트 목록</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;--ground:#f5f6fa;--paper:#fff;--ink:#1a1f33;--ink2:#4b5370;--line:#dfe2ee;--navy:#22306a;--gold:#a87c0a;--goldbg:#fbf3dc;--key:#b0331e;--keybg:#fdebe8;--ok:#1d7445;--okbg:#e6f4eb;--muted:#eef0f6}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo",sans-serif;font-size:15px;line-height:1.65;padding-block:28px 64px;padding-inline:16px}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+h1{font-size:28px;margin:4px 0 6px;color:var(--navy);text-wrap:balance}
+h2{font-size:19px;margin:0 0 10px;color:var(--navy)}
+.meta{color:var(--ink2);font-size:13.5px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px}
+.summary{background:var(--goldbg);border-color:#efdfae}
+ul,ol{margin:6px 0;padding-left:20px} li{margin:4px 0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:600px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--muted);color:var(--navy);white-space:nowrap}
+td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink2);white-space:nowrap}
+.ev{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:500;background:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 4px 2px 8px;white-space:nowrap}
+.ev button{font:inherit;font-size:11px;border:1px solid var(--line);background:var(--paper);color:var(--navy);border-radius:4px;padding:0 6px;cursor:pointer}
+.ev button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.ev button.done{color:var(--ok);border-color:var(--ok)}
+.key{display:inline-block;font-size:11.5px;font-weight:700;color:var(--key);background:var(--keybg);border-radius:999px;padding:0 8px;margin-left:4px;white-space:nowrap}
+.p{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink2)}
+.note{font-size:13.5px;color:var(--ink2)}
+.warn{background:var(--keybg);border:1px solid #f1c6bf;border-radius:8px;padding:12px 14px}
+.steps li{margin:6px 0}
+b.ui{background:var(--muted);border-radius:4px;padding:0 5px;font-weight:600}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">WORLDCROWN48 · GA4 이벤트 · 코드 기준 2026-10-04 (main #110)</div>
+  <h1>월크48 GA4 이벤트 목록</h1>
+  <div class="meta">사이트 코드에서 실제로 GA로 보내는 이벤트 이름을 모두 뽑았습니다. 순서는 마케팅 계측 명세(EVENT_SPEC v1.2)의 번호 순서입니다. 이름 옆 <b>복사</b>를 누르면 이름이 복사됩니다.</div>
+</header>
+
+<section class="summary">
+  <h2>먼저 알아 두실 것</h2>
+  <ul>
+    <li><b>이벤트는 코드가 자동으로 보냅니다.</b> GA에 새로 "만들" 필요는 없습니다. GA에서 하실 일은 중요한 이벤트를 <b>주요 이벤트(전환으로 세는 이벤트)</b>로 표시하는 것입니다.</li>
+    <li>이벤트가 "최근 활동" 탭에 보이려면 실제로 한 번 이상 들어와야 합니다. 쿠키 동의에서 <b>분석</b>을 허용한 방문자의 행동만 들어옵니다.</li>
+    <li>아직 한 번도 들어오지 않은 이벤트도 미리 주요 이벤트로 등록할 수 있습니다. 방법은 아래 "GA에서 등록하는 순서"에 적었습니다.</li>
+    <li>마케팅 판정에 쓰는 핵심은 <b>1~10번 13개</b>입니다. 관리자 화면용 이벤트(admin_로 시작)는 등록하지 않아도 됩니다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>GA에서 등록하는 순서</h2>
+  <ol class="steps">
+    <li>지금 열어 두신 화면(관리 → 데이터 표시 → <b class="ui">이벤트</b>)에서 파란 <b class="ui">+ 이벤트 만들기</b>를 누릅니다.</li>
+    <li>이벤트 이름 칸에 아래 표의 이름을 <b>그대로</b> 붙여 넣습니다. 대소문자·밑줄(_)까지 같아야 합니다.</li>
+    <li><b class="ui">주요 이벤트로 표시</b>를 켭니다.</li>
+    <li><b class="ui">기본 주요 이벤트 값</b>은 <b>"기본 주요 이벤트 값 설정 안함"</b>을 고릅니다. 이 값은 돈이 나가는 설정이 아니라, 보고서에 "이 행동 1번 = 1달러어치"처럼 <b>가짜 금액</b>을 붙이는 칸입니다. 월크48은 이 행동들에 실제 금액이 없으므로 비워 둡니다. 켜 두면 수익 보고서에 실제로 없는 매출이 쌓여 보입니다.</li>
+    <li><b class="ui">계산 방법</b>은 <b>"이벤트당 한 번"</b>(추천 표시된 것)을 그대로 둡니다. 한 사람이 한 번 방문해서 3번 완주하면 3번으로 셉니다.</li>
+    <li><b class="ui">이벤트 생성 방법 선택</b>에서는 반드시 <b>"코드로 만들기"</b>를 고릅니다. 화면을 열면 "코드 없이 만들기"가 기본으로 골라져 있으니 바꿔야 합니다. 사이트 코드가 이미 이 이름으로 보내고 있기 때문입니다. "코드 없이 만들기"는 page_view 같은 다른 이벤트에 조건을 붙여 <b>새 이벤트를 하나 더</b> 만드는 방식이라, 이름이 겹쳐 숫자가 두 번 세어질 수 있습니다.</li>
+    <li><b class="ui">만들기</b>를 누릅니다. 실제 데이터가 들어오면 "최근 활동"에도 나타납니다.</li>
+  </ol>
+  <p class="note">비용: GA4 기본(무료) 속성은 이벤트·주요 이벤트를 몇 개 만들든 요금이 없습니다. 돈이 나가는 것은 나중에 구글 광고(Google Ads)를 집행할 때뿐이며, 그때도 "기본 주요 이벤트 값"은 광고비가 아니라 광고 성과를 계산하는 기준값입니다.</p>
+  <p class="note">이미 "최근 활동"에 보이는 이벤트는 이름 옆 별표(☆)만 누르면 주요 이벤트가 됩니다. 화면의 버튼 이름은 GA 화면이 바뀌면 조금 다를 수 있습니다. 근거: 구글 애널리틱스 도움말 "Create or modify key events".</p>
+</section>
+
+<section>
+  <h2>① 마케팅 핵심 이벤트 (EVENT_SPEC 1~10번)</h2>
+  <p class="note"><span class="key">주요 이벤트 추천</span> 표시는 티오의 추천입니다. 정하는 것은 대표님입니다. 추천 기준: 사전등록·회원 전환·완주·공유처럼 "성과"로 세는 순간.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>이벤트 이름</th><th>언제 보내나</th><th>붙는 값(파라미터)</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td><span class="ev">tournament_start<button type="button">복사</button></span></td><td>대회에서 첫 매치를 시작할 때</td><td class="p">공통 4 · match_session_id · entry_point</td></tr>
+      <tr><td class="n">2</td><td><span class="ev">round_advance<button type="button">복사</button></span></td><td>라운드를 넘길 때마다 (48→24→12→6→결승)</td><td class="p">공통 4 · match_session_id · round</td></tr>
+      <tr><td class="n">3</td><td><span class="ev">champion_confirmed<button type="button">복사</button></span><span class="key">주요 이벤트 추천</span></td><td>결승에서 챔피언을 고를 때 (완주)</td><td class="p">공통 4 · match_session_id · champion_id · duration_sec</td></tr>
+      <tr><td class="n">4</td><td><span class="ev">crown_card_created<button type="button">복사</button></span></td><td>크라운 카드 그림이 처음 만들어질 때</td><td class="p">공통 4 · match_session_id · card_id</td></tr>
+      <tr><td class="n">5-1</td><td><span class="ev">crown_shared_x<button type="button">복사</button></span><span class="key">주요 이벤트 추천</span></td><td>카드를 X로 공유할 때</td><td class="p">공통 4 · match_session_id</td></tr>
+      <tr><td class="n">5-2</td><td><span class="ev">crown_shared_native<button type="button">복사</button></span><span class="key">주요 이벤트 추천</span></td><td>휴대폰 공유 창으로 공유를 마쳤을 때</td><td class="p">공통 4 · match_session_id · fmt(카드 비율)</td></tr>
+      <tr><td class="n">5-3</td><td><span class="ev">crown_downloaded<button type="button">복사</button></span></td><td>카드를 내려받을 때 (로그인 필요)</td><td class="p">공통 4 · match_session_id · fmt</td></tr>
+      <tr><td class="n">6</td><td><span class="ev">guest_signin_convert<button type="button">복사</button></span><span class="key">주요 이벤트 추천</span></td><td>비로그인 팬이 구글 로그인으로 바꿀 때</td><td class="p">is_guest · lang · trigger_point (guest_limit · card_modal · quota_limit · header · other)</td></tr>
+      <tr><td class="n">7</td><td><span class="ev">share_locked_view<button type="button">복사</button></span></td><td>카드 "저장은 로그인" 안내가 보일 때</td><td class="p">공통 4</td></tr>
+      <tr><td class="n">8</td><td><span class="ev">waitlist_submit<button type="button">복사</button></span><span class="key">주요 이벤트 추천</span></td><td>사전등록 신청을 마쳤을 때</td><td class="p">email_hash (메일 주소를 알아볼 수 없게 바꾼 값)</td></tr>
+      <tr><td class="n">9</td><td><span class="ev">guest_limit_view<button type="button">복사</button></span></td><td>비로그인 하루 3판을 다 써서 안내 창이 뜰 때</td><td class="p">공통 4 · runs_today</td></tr>
+      <tr><td class="n">10</td><td><span class="ev">first_vote<button type="button">복사</button></span></td><td>한 판에서 첫 선택을 했을 때</td><td class="p">공통 4 · match_session_id · run_index(몇 번째 판)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">공통 4 = is_guest(비로그인 여부) · tournament_id(대회) · category(카테고리) · lang(언어). 8번 waitlist_submit은 쿠키 동의와 상관없이 보내는 예외입니다(사전등록 화면이 동의 기능보다 먼저 만들어짐).</p>
+</section>
+
+<section>
+  <h2>② 화면 행동 이벤트 (참고용 · 주요 이벤트로 표시하지 않아도 됨)</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>이벤트 이름</th><th>언제 보내나</th></tr></thead>
+    <tbody>
+      <tr><td class="n">11</td><td><span class="ev">a1_pitch_view<button type="button">복사</button></span></td><td>메인 화면(피치)을 열 때</td></tr>
+      <tr><td class="n">12</td><td><span class="ev">a1_card_click<button type="button">복사</button></span></td><td>피치에서 대회 카드를 누를 때</td></tr>
+      <tr><td class="n">13</td><td><span class="ev">a1_gnb_cta_vote_now<button type="button">복사</button></span></td><td>상단 메뉴의 참여 단추를 누를 때 (옛 이름 그대로)</td></tr>
+      <tr><td class="n">14</td><td><span class="ev">a1_news_click<button type="button">복사</button></span></td><td>피치에서 뉴스를 누를 때</td></tr>
+      <tr><td class="n">15</td><td><span class="ev">a1_see_more_click<button type="button">복사</button></span></td><td>뉴스룸 "더 보기"를 누를 때</td></tr>
+      <tr><td class="n">16</td><td><span class="ev">a1_lab_locked_hover<button type="button">복사</button></span></td><td>잠긴 The Lab 카드에 손을 올릴 때</td></tr>
+      <tr><td class="n">17</td><td><span class="ev">crown_modal_opened<button type="button">복사</button></span></td><td>크라운 카드 창이 열릴 때</td></tr>
+      <tr><td class="n">18</td><td><span class="ev">crown_format_changed<button type="button">복사</button></span></td><td>카드 비율을 바꿀 때</td></tr>
+      <tr><td class="n">19</td><td><span class="ev">featured_tournament_click<button type="button">복사</button></span></td><td>사전등록 화면의 대표 대회를 누를 때</td></tr>
+      <tr><td class="n">20</td><td><span class="ev">sns_link_click<button type="button">복사</button></span></td><td>사전등록 화면의 SNS 링크를 누를 때</td></tr>
+      <tr><td class="n">21</td><td><span class="ev">waitlist_duplicate<button type="button">복사</button></span></td><td>이미 등록한 메일로 다시 신청할 때</td></tr>
+      <tr><td class="n">22</td><td><span class="ev">cookie_lang_switch<button type="button">복사</button></span></td><td>언어를 바꿀 때</td></tr>
+      <tr><td class="n">23</td><td><span class="ev">policy_view<button type="button">복사</button></span></td><td>정책 페이지를 열 때</td></tr>
+      <tr><td class="n">24</td><td><span class="ev">policy_section_view<button type="button">복사</button></span></td><td>정책 페이지의 각 절이 보일 때</td></tr>
+      <tr><td class="n">25</td><td><span class="ev">policy_report_link_click<button type="button">복사</button></span></td><td>정책 페이지의 신고 링크를 누를 때</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>③ 관리자 화면 이벤트 (등록 불필요)</h2>
+  <p class="note">대표님만 쓰는 화면이라 마케팅 판정과 상관없습니다. 이름만 적어 둡니다.</p>
+  <p class="p">admin_gate_state · admin_sidebar_nav · admin_alert_action · admin_kpi_refresh · admin_lab_step1_submit · admin_lab_ai_keywords_success · admin_lab_ai_keywords_error · admin_lab_ai_fill_success · admin_lab_ai_fill_error · admin_lab_paste_extract · admin_lab_chain_images · admin_lab_source_run · admin_lab_source_error · admin_lab_source_preview_error · admin_lab_source_refresh · admin_lab_source_refresh_error · admin_lab_publish · admin_lab_publish_error · admin_lab_featured_toggle · admin_lab_delete · admin_lab_extract_error · admin_lab_embed_validate · admin_lab_embed_validate_error</p>
+</section>
+
+<section>
+  <h2>④ 따로 확인할 것</h2>
+  <div class="warn">
+    <ul>
+      <li><b>문서에는 있는데 코드에는 없는 이벤트 5개</b>: cookie_banner_view · cookie_accept_all · cookie_reject · cookie_customize_open · cookie_save. 코드 설명란(lib/analytics.ts)에 이름만 적혀 있고, 실제로 보내는 곳이 없습니다. 지금 GA에 등록해도 데이터가 들어오지 않습니다. 쿠키 동의 작업(COOKIE-1) 때 넣을지 정하시면 됩니다.</li>
+      <li><b>GA가 스스로 모으는 이벤트</b>(page_view · session_start · first_visit · user_engagement 등)는 코드와 상관없이 들어옵니다. 등록할 필요가 없습니다.</li>
+      <li><b>붙는 값을 보고서에서 보려면</b> GA의 <b class="ui">맞춤 정의</b>에 등록해야 합니다. 최소한 is_guest · category · lang · round · trigger_point · entry_point 6개를 "이벤트 범위 맞춤 측정기준"으로 등록하시길 권합니다. 이 등록이 없으면 이벤트 횟수는 보여도 "비로그인과 로그인 비교", "어느 라운드에서 그만두는지"는 보이지 않습니다.</li>
+    </ul>
+  </div>
+</section>
+</div>
+
+<script>
+document.querySelectorAll('.ev button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var name = b.parentElement.firstChild.textContent.trim();
+    function ok() { b.textContent = '복사됨'; b.classList.add('done'); setTimeout(function () { b.textContent = '복사'; b.classList.remove('done'); }, 1500); }
+    function fallback() {
+      var r = document.createRange(); r.selectNodeContents(b.parentElement.firstChild);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = '선택됨';
+    }
+    try { navigator.clipboard.writeText(name).then(ok, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>

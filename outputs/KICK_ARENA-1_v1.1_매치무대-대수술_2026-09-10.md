@@ -230,3 +230,10 @@ A 무엇을 했나 · B 어떻게 확인했나(실측 수치·캡처) · C 판�
 - **부품 내보내기**: `docs/design/claude-design/export_v2_2026-09-22/_ds/*/components/BannerSlot/` (desktop 970×90 · mobile portrait 320×100).
 - **프롬프트**: `outputs/PROMPT_ClaudeCode_ARENA-1_PR2b_네화면구현_2026-09-23.md`.
 - **정본 우선순위**: 결정 원장 > 디자인 정본 파일 > 킥 §12 부록 > 킥 본문. 디자인 파일 속 옛 문장("1.12배" · "크라운 글리프")은 Tweaks(`finalScale` 1.3)와 원장 D-28·D-29가 이긴다.
+
+### §12-H · PR 3 종료 · 킥 종결 기록 (2026-09-27)
+- **PR 3 #107** 머지(09-25 01:14 KST, main d2e6685) · firestore:rules · scheduleRankingCache 배포(main에서). C-3 판정 보류 4건 → main 재실행 **96/96 초록**(09-26).
+- **NODE-1 #108**(원장 D-33) 머지 · 함수 22개 Node 22 재배포(09-27).
+- **대표 눈검사 합격(2026-09-27)** — 시드 대회 `chart-preview-eyecheck` 로그인 상태 ko/en/es: 제목·Crown Score 5줄 정상. 시드 삭제·키 폐기 완료.
+- 눈검사 지적 → **CHART-HEAD PR #109**(원장 D-34): 머리 배치·CROWN SCORE 제목·발표 시각 알약·es 마감 결함.
+- **ARENA-1 킥 종결.** 남은 넘김: ModuleNav 하이드레이션 오류·"Ranking" 탭 → NAV-1.

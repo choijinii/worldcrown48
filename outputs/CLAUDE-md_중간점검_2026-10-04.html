@@ -1,0 +1,88 @@
+<title>CLAUDE.md 중간 점검</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;--ground:#f5f6fa;--paper:#fff;--ink:#1a1f33;--ink2:#4b5370;--line:#dfe2ee;--navy:#22306a;--gold:#a87c0a;--goldbg:#fbf3dc;--red:#b0331e;--redbg:#fdebe8;--amber:#8a5a00;--amberbg:#fdf1d8;--ok:#1d7445;--okbg:#e6f4eb;--muted:#eef0f6}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo",sans-serif;font-size:15px;line-height:1.65;padding-block:28px 64px;padding-inline:16px}
+.wrap{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+h1{font-size:28px;margin:4px 0 6px;color:var(--navy);text-wrap:balance}
+h2{font-size:19px;margin:0 0 10px;color:var(--navy)}
+.meta{color:var(--ink2);font-size:13.5px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px}
+.summary{background:var(--goldbg);border-color:#efdfae}
+ul{margin:6px 0;padding-left:20px} li{margin:4px 0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:620px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--muted);color:var(--navy);white-space:nowrap}
+.sev{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.s0{background:var(--redbg);color:var(--red)} .s1{background:var(--amberbg);color:var(--amber)} .s2{background:var(--muted);color:var(--ink2)} .ok{background:var(--okbg);color:var(--ok)}
+code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--muted);padding:1px 5px;border-radius:4px}
+.note{font-size:13.5px;color:var(--ink2)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">WORLDCROWN48 · 중간 점검 · 2026-10-04</div>
+  <h1>CLAUDE.md 중간 점검</h1>
+  <div class="meta">대상: 저장소 main(#112)의 <code>CLAUDE.md v2.7</code>(9/24 개정, 234줄). 결정 원장(로컬 최신본 D-01~D-42)·코드와 한 줄씩 대조했습니다. Superpowers(테스트 먼저 → 계획 → 검증 순서로 일하게 하는 Claude Code 도구 묶음) 사용 실태는 PR 이력으로 확인했습니다.</div>
+</header>
+
+<section class="summary">
+  <h2>요약</h2>
+  <ul>
+    <li><b>CLAUDE.md는 9월 24일에서 멈춰 있습니다.</b> 그 뒤 확정된 결정 D-31~D-42 가운데 6건이 반영되지 않았고, 이미 바뀐 규칙이 옛 내용 그대로 적힌 곳이 5곳 있습니다.</li>
+    <li><b>가장 급한 것은 도메인 테마 표입니다.</b> 9/29 인계서에 "맨 앞에 할 일"로 적었는데 아직 하지 못했습니다. 피치·크라운 카드 화면을 만들 에이전트가 옛 표를 보고 다크로 만들 위험이 있습니다.</li>
+    <li><b>결정 원장 자체가 저장소에 덜 올라가 있습니다.</b> 저장소에는 원장 항목이 40개, 대표님 컴퓨터에는 50개입니다. D-33~D-42와 킥 문서 등 20개 파일이 커밋 전입니다.</li>
+    <li><b>Superpowers는 "테스트 먼저"는 잘 지켜지고, "계획 문서"는 RUN-1 이후 끊겼습니다.</b> ARENA-1부터는 킥 문서가 그 역할을 대신했습니다. 티오가 직접 만든 PR #110~#112는 Superpowers를 거치지 않았습니다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>1. 빠졌거나 틀린 곳</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>급함</th><th>CLAUDE.md에 적힌 것</th><th>확정된 사실</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev s0">급함</span></td><td>7개 도메인 표 · 불변 원칙 #1: "Domain 0~3 다크, 4~6 라이트"</td><td>다크 = 매치 무대 · The Lab · 차트 · Launch Pad. 화이트 = 피치 · 아레나 홈 · 크라운 카드 · 뉴스룸 · 정책 · 로커룸 · 관리자</td><td>원장 D-38 → D-40</td></tr>
+      <tr><td><span class="sev s0">급함</span></td><td>"디자인 토큰 단일 진실 = docs/design/WC48_DESIGN_SYSTEM_v2.3.md"</td><td>디자인 정본은 클로드 디자인이고, 저장소의 css는 내보낸 사본입니다. 저장소에는 이미 v4 문서(#101·#102)가 있습니다.</td><td>원장 D-20 · PR #101 #102</td></tr>
+      <tr><td><span class="sev s0">급함</span></td><td>"충돌 우선순위: 결정 문서(outputs/handoffs-staging/ 확정본)가 우선"</td><td>9/12부터 확정 결정은 <b>결정 원장</b>(outputs/DECISIONS_결정원장)에 네 줄 형식으로 적습니다. CLAUDE.md에는 원장이 한 번도 나오지 않습니다.</td><td>PR #98 · 원장 D-00</td></tr>
+      <tr><td><span class="sev s1">중요</span></td><td>대진 흐름 #10: "Voter가 시작 시 12/24/48강 선택"(지금 규칙처럼 적힘)</td><td>대진 크기 선택은 <b>런칭 후</b>로 미뤘습니다.</td><td>원장 D-09</td></tr>
+      <tr><td><span class="sev s1">중요</span></td><td>표시 용어 각주: "기본 닉네임 'Voter' 유지"</td><td>이름 없는 사용자의 기본 표시 이름은 <b>팬 / Fan</b>입니다. Voter 예외는 폐기했습니다.</td><td>원장 D-32</td></tr>
+      <tr><td><span class="sev s1">중요</span></td><td>(없음)</td><td>익명 계정은 쿠키 동의 저장 · 아레나 입장 · 크라운 카드 입장에서만 만듭니다. 허용 파일 3곳 밖에서 부르면 테스트가 막습니다.</td><td>원장 D-41 · PR #112</td></tr>
+      <tr><td><span class="sev s1">중요</span></td><td>MVP 마일스톤 표: MVP1 2026-05-31 등 5~7월 날짜</td><td>런칭 목표일은 <b>2026-10-08(목)</b>이고, 기준은 런칭 로드맵 v1.1(8/27)입니다. 표에 런칭일도, 로드맵 위치도 없습니다.</td><td>로드맵 v1.1 · 원장 D-10</td></tr>
+      <tr><td><span class="sev s1">중요</span></td><td>(없음)</td><td>런칭 전 작업 순서: E2E-1 → COOKIE-1 → NAV-1 → THUMB-1 → FONT-1 → ARENA-2 → 크라운 카드 새 디자인</td><td>원장 D-36</td></tr>
+      <tr><td><span class="sev s2">정리</span></td><td>기술 스택: "Firebase (Firestore + <b>Realtime DB</b> + …)"</td><td>코드(app·components·lib·functions)와 firebase.json 어디에도 Realtime DB를 쓰는 곳이 없습니다.</td><td>저장소 검색 0건</td></tr>
+      <tr><td><span class="sev s2">정리</span></td><td>기술 스택에 서버 실행 환경 표기 없음</td><td>Cloud Functions 실행 환경은 Node.js 22입니다.</td><td>원장 D-33 · PR #108</td></tr>
+      <tr><td><span class="sev s2">정리</span></td><td>대개편 표: "1차 K-POP·CREATOR(2026-07말~08말)"</td><td>날짜가 지났습니다. 첫 런칭 카테고리는 K-POP · 크리에이터 그대로이고, 날짜는 10/8 런칭 기준으로 바뀌었습니다.</td><td>마케팅 인계 9/21</td></tr>
+      <tr><td><span class="sev s2">정리</span></td><td>(없음)</td><td>검색 엔진용 사이트맵(sitemap.xml · 언어별 주소 포함)이 있다는 사실과, 넣고 빼는 규칙을 정한 파일 위치</td><td>원장 D-42 · PR #110 #111</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">맞게 적혀 있는 것: 참가 규칙 v2.1(게스트 하루 3판 · 랭킹 제외) · "표" 금지어 · Crown Score v1.0 · 차트 상시 공개(D-30) · 대관 연출 폐기(D-24) · AI-Report 푸터 전용 · 엔트리(D-31) · 참가하기/Pick Now(D-23) · AI 모델 표기.</p>
+</section>
+
+<section>
+  <h2>2. Superpowers와 스킬 사용 점검</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>점검 항목</th><th>상태</th><th>실제 모습</th></tr></thead>
+    <tbody>
+      <tr><td>테스트 먼저 쓰기(TDD)</td><td><span class="sev ok">잘 됨</span></td><td>ARENA-1 PR들에 테스트 파일이 함께 들어갔습니다(PR 1: 16개, 2a: 5개, 2b: 10개, 3: 12개). CHART-HEAD 2개, SEO-1·2 각 1개, ANON-1 2개. NODE-1은 0개인데, 실행 환경만 바꾼 작업이라 받아들일 만합니다.</td></tr>
+      <tr><td>설계서·계획서 남기기 (docs/superpowers/)</td><td><span class="sev s1">끊김</span></td><td>설계서·계획서는 7/1 다국어 작업과 9/5·9/9 RUN-1 것뿐입니다. ARENA-1(PR 5개) · CHART-HEAD · NODE-1 · SEO · ANON-1은 저장소에 계획서가 없습니다. 킥 문서와 프롬프트가 대신하는데, 그마저 일부는 커밋 전입니다.</td></tr>
+      <tr><td>핸드오프 양식의 Superpowers 칸</td><td><span class="sev ok">있음</span></td><td><code>docs/templates/handoff-v2.1.md</code>에 Superpowers 칸(단계마다 테스트 실패 → 통과 → 정리 → 커밋)이 있습니다.</td></tr>
+      <tr><td>핵심 사용자 흐름 E2E(화면을 실제로 눌러 보는 자동 시험)</td><td><span class="sev s1">일부</span></td><td>ARENA-1은 E2E를 추가했습니다(arena1-split-stage). 티오가 만든 #110~#112는 단위 테스트만 있습니다. ANON-1은 게스트 흐름을 건드렸으므로, 기존 E2E(게스트 완주·하루 한도)가 병합 때 통과했는지 확인이 필요합니다. 티오는 아직 그 결과를 보지 않았습니다.</td></tr>
+      <tr><td>마무리 검증(병합 뒤 실제 사이트 확인)</td><td><span class="sev s1">일부</span></td><td>SEO-1·2는 실제 사이트에서 확인했습니다. ANON-1의 "홈만 열면 계정이 안 생김"은 아직 실측하지 못했습니다.</td></tr>
+      <tr><td>Cowork(티오)의 Superpowers</td><td><span class="sev s1">구조적 빈틈</span></td><td>Superpowers는 Claude Code 쪽 도구라, 이 세션(Cowork)에는 없습니다. 그래서 티오가 직접 코드 PR을 만들면 그 절차를 건너뜁니다. 앞으로 화면·흐름을 바꾸는 코드는 Claude Code로 넘기고, 티오는 작은 설정·문서 PR만 직접 만드는 방식을 권합니다.</td></tr>
+      <tr><td>worldcrown48-design 스킬</td><td><span class="sev s1">낡음 의심</span></td><td>이 세션에 연결된 디자인 스킬은 자기소개에 "v2.3 Twilight Stadium"이라고 적혀 있습니다. 정본은 클로드 디자인 v4.x(D-20)입니다. 화면 작업에 그대로 쓰면 옛 토큰이 섞일 수 있습니다. 스킬 내용을 v4 기준으로 갱신해야 합니다.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>3. 고치는 방법 (다음 세션 첫 작업)</h2>
+  <ul>
+    <li><b>문서 PR 하나로 묶습니다.</b> 내용은 ① CLAUDE.md v2.8: 위 표 12곳 고침 ② 결정 원장 D-33~D-42 커밋 ③ 커밋 전 킥·보고·프롬프트 문서 20개 커밋입니다.</li>
+    <li>대표님은 push와 병합만 하시면 됩니다. 확정 결정을 문서에 옮기는 일이라 대표님의 사전 승인이 필요하지 않은 작업입니다(문서 동기화 규칙, 8/8 확정).</li>
+    <li>그다음 런칭 전 순서대로 E2E-1부터 진행합니다.</li>
+  </ul>
+</section>
+</div>
