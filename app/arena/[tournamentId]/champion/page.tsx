@@ -14,6 +14,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/lib/authStore";
+import { useGuestUidOnEntry } from "@/lib/auth/useGuestUidOnEntry";
 import { useVoteStore } from "@/lib/arena/voteStore";
 import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -46,6 +47,8 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ChampionPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
+  // ANON-1: 카드 링크로 처음 온 방문자의 익명 계정은 여기서 만든다(예전엔 쿠키 동의 부품).
+  useGuestUidOnEntry();
   const user = useAuthStore((s) => s.user);
   const uid = user?.uid;
   const isGuest = Boolean(user?.isAnonymous);

@@ -23,6 +23,7 @@ import { useParams } from "next/navigation";
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
+import { useGuestUidOnEntry } from "@/lib/auth/useGuestUidOnEntry";
 import { useT } from "@/lib/i18n/useT";
 import { trackWithConsent } from "@/lib/analytics";
 import {
@@ -84,6 +85,9 @@ export default function ArenaPage(): JSX.Element {
   const { t, lang } = useT();
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
+  // ANON-1: 비로그인 팬의 익명 계정은 여기(아레나 입장)서 만든다 — 예전엔 모든 페이지의
+  // 쿠키 동의 부품이 만들었다. 준비되는 동안은 "불러오는 중"으로 본다.
+  const guestUidPending = useGuestUidOnEntry();
   const uid = user?.uid;
   const isGuest = Boolean(user?.isAnonymous);
   // v2.1 (§16 2·3): 공유는 게스트에게 열렸고 **저장(다운로드)만** 로그인 게이트다.
@@ -337,7 +341,7 @@ export default function ArenaPage(): JSX.Element {
   // Previously inline here, where an unresolved uid fell through to the
   // not-found branch and flashed "찾을 수 없어요" on every entry (verdict §10.1).
   const screen = arenaScreenState({
-    authLoading,
+    authLoading: authLoading || (guestUidPending && !user),
     uid,
     loading,
     hasTournament: Boolean(tournament),

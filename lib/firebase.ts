@@ -149,7 +149,27 @@ export function getStorageInstance(): FirebaseStorage {
 }
 
 /**
+ * 지금 브라우저에 이미 있는 사용자(구글 로그인 또는 예전에 만든 익명 계정)를 돌려준다.
+ * **새 익명 계정은 절대 만들지 않는다** (ANON-1, 2026-10-04 대표 결정 — 제안 1).
+ *
+ * 쓰는 곳: 쿠키 동의 부품의 첫 화면 판단. 예전에는 여기서 `ensureAnonymousUid()` 를 불러
+ * 아무 페이지나 열기만 해도 익명 계정이 하나씩 생겼다(검색 로봇·자동 테스트 브라우저 포함).
+ * 서버(window 없음)에서는 null.
+ */
+export async function getExistingUser(): Promise<User | null> {
+  if (typeof window === "undefined") return null;
+  const a = getAuthInstance();
+  await ensureAuthReady();
+  await a.authStateReady();
+  return a.currentUser;
+}
+
+/**
  * Resolve a uid for the current visitor, signing in anonymously if needed.
+ *
+ * ANON-1 (2026-10-04): 익명 계정을 **만들어도 되는 곳은 셋뿐**이다 —
+ * ① 쿠키 동의를 저장할 때(버튼을 누른 순간) ② 아레나 입장 ③ 크라운 카드(챔피언) 페이지 입장.
+ * 그 밖의 파일에서 이 함수를 부르면 `lib/__tests__/auth/anonCreationSites.test.ts` 가 막는다.
  *
  * Handoff §9 trap 9: the consent record needs a uid even before the visitor
  * has logged in. Firebase Anonymous Auth gives us a stable per-device uid

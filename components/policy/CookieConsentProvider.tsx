@@ -2,7 +2,9 @@
  * CookieConsentProvider — top-level state for Domain 5 consent surfaces.
  *
  * Responsibilities (handoff §3 / §9):
- *   - Resolve the visitor's uid (anonymous if not signed in)
+ *   - Look up an EXISTING visitor uid on boot — never create one there.
+ *     ANON-1 (2026-10-04 대표 결정 · 제안 1): 익명 계정은 동의 버튼을 눌러 저장하는
+ *     순간에만 만든다. 첫 화면 판단은 `planConsentBoot` (lib/cookieConsentBoot.ts).
  *   - Decide whether to show the banner on boot:
  *       1. wc48_consent breadcrumb cookie present + unexpired  → hide
  *       2. cookieConsents/{uid} Firestore doc unexpired         → hide
@@ -51,8 +53,10 @@ import {
 } from "@/lib/cookieConsent";
 import {
   ensureAnonymousUid,
+  getExistingUser,
   getFunctionsInstance,
 } from "@/lib/firebase";
+import { planConsentBoot } from "@/lib/cookieConsentBoot";
 import { setAnalyticsConsentReader } from "@/lib/analytics";
 
 // ── Public API ────────────────────────────────────────────────────────
@@ -167,41 +171,34 @@ export function CookieConsentProvider({
 
     void (async () => {
       const now = new Date();
-
-      // 1. Cheap-path: breadcrumb cookie says we already consented.
       const cookieSavedAt = readConsentBreadcrumbCookie(now);
-      if (cookieSavedAt) {
+
+      // 1. Cheap-path: breadcrumb cookie says we already consented. Nothing to
+      //    read — and (ANON-1) nothing to create. The uid is resolved at save time.
+      if (planConsentBoot({ cookieSavedAt, existingUid: null }) === "hide-by-cookie") {
         if (cancelled) return;
         setLastSavedAt(cookieSavedAt);
         setBannerState("hidden");
-        // We still resolve the uid in the background so future saves work.
-        try {
-          const user = await ensureAnonymousUid();
-          if (cancelled) return;
-          uidRef.current = user?.uid ?? null;
-        } catch {
-          // Anonymous Auth might fail (network, project misconfig). The
-          // banner stays hidden because the cookie is the source of truth
-          // for UI; the user can reopen if they want to change anything.
-        }
         return;
       }
 
-      // 2. Need Firestore — first resolve uid.
+      // 2. Only an ALREADY-EXISTING user (Google sign-in or an earlier anonymous
+      //    account) can have a consent record. Never sign in anonymously here —
+      //    that is what minted one account per crawler/test browser (SEO-1 조사).
       let uid: string | null = null;
       try {
-        const user = await ensureAnonymousUid();
+        const user = await getExistingUser();
         if (cancelled) return;
         uid = user?.uid ?? null;
         uidRef.current = uid;
       } catch (err) {
         if (process.env.NODE_ENV !== "production") {
-          console.warn("[CookieConsent] anonymous auth failed:", err);
+          console.warn("[CookieConsent] auth state lookup failed:", err);
         }
       }
 
-      if (!uid) {
-        // Without a uid we can't even check Firestore — assume first visit.
+      if (planConsentBoot({ cookieSavedAt, existingUid: uid }) === "show-banner" || !uid) {
+        // First visit (no user yet) — show the banner without creating an account.
         if (cancelled) return;
         setBannerState("visible");
         return;
@@ -242,7 +239,20 @@ export function CookieConsentProvider({
   // ── Persist helper used by all three save paths ──
   const persistAndHide = useCallback(
     async (next: ConsentPreferences, source: "banner" | "modal") => {
-      const uid = uidRef.current;
+      // ANON-1: this is the moment an anonymous account may be created — the
+      // visitor pressed a consent button. ensureAnonymousUid() returns the current
+      // user if there is one (signed-in or an earlier anonymous account), so a
+      // visitor who signed in after boot is saved under their real uid.
+      let uid: string | null = null;
+      try {
+        const user = await ensureAnonymousUid();
+        uid = user?.uid ?? null;
+        uidRef.current = uid;
+      } catch (err) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[CookieConsent] anonymous auth on save failed:", err);
+        }
+      }
       if (!uid) {
         // Auth never resolved — record nothing, but at least hide UI so the
         // user isn't stuck. The save will be retried on next visit.
