@@ -125,7 +125,16 @@ async function seedGuestRun(
         tournamentId: tid,
         round,
         matchId: matchId(tid, round, i),
-        contestantId: round === 1 ? ids[i * 2] : `${tid}_c${i + 1}`,
+        // 결승(5라운드) 선택은 opts.championId 와 같아야 한다. 선택 문서가 생길 때마다
+        // advanceRound 트리거가 돌아 roundProgress.championId 를 **그 선택으로** 덮는다 —
+        // 둘이 다르면 시드한 챔피언이 연결 전에 이미 바뀌어 있다(E2E-1, 2026-10-04 CI 실측:
+        // E2E-5 의 "기존 챔피언 c2" 가 결승 선택 c1 로 덮였다).
+        contestantId:
+          round === 1
+            ? ids[i * 2]
+            : round === 5 && opts.championId
+              ? opts.championId
+              : `${tid}_c${i + 1}`,
         date: SEED_PAST_DATE,
         // RUN-1: 클라이언트가 회차로 걸러 읽는다(§9 함정 9). 게스트 판은 1회차다.
         runIndex: 1,
@@ -224,6 +233,7 @@ async function anonPage(context: BrowserContext): Promise<Page> {
     if (m.type() !== "error") return;
     const t = m.text();
     if (t.includes("Could not reach Cloud Firestore backend")) return;
+    if (/Failed to fetch RSC payload/i.test(t)) return; // beforeEach 와 같은 예외
     consoleErrors.push(t);
   });
   return page;
@@ -272,6 +282,10 @@ test.describe("HF-3 Guest Run", () => {
       if (m.type() !== "error") return;
       const t = m.text();
       if (t.includes("Could not reach Cloud Firestore backend")) return;
+      // Next.js Link 프리페치가 서명된 미리보기에서 RSC 를 못 받아 브라우저 이동으로 물러나는
+      // 경고(예: /admin/lab) — 무해. pitch·a1-i18n·nd1 과 같은 예외이고 "RSC payload" 문구에만
+      // 걸리므로 앱의 진짜 "Failed to fetch" 는 그대로 잡힌다.
+      if (/Failed to fetch RSC payload/i.test(t)) return;
       consoleErrors.push(t);
     });
   });
@@ -280,6 +294,9 @@ test.describe("HF-3 Guest Run", () => {
   });
 
   test("E2E-1: completed guest run → link → Champion landing + full migration", async ({ page }) => {
+    // Crown Card 는 비동기 트리거(onChampionConfirmed)가 그린다 — 냉시동 + 렌더 + 업로드가
+    // 기본 30초 안에 들어오지 않을 수 있어 이 시험만 넉넉히 둔다.
+    test.setTimeout(90_000);
     const d = db();
     await deleteVoterState(GOOGLE_UID, TID_A); // start clean → googleExists=false
     const anonUid = await createAnonAccount();
