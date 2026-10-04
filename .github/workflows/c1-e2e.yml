@@ -14,6 +14,10 @@ on:
       - 'tests/rules/**'
       - 'e2e/c1-**'
       - 'e2e/arena1-**'
+      - 'e2e/run1-**'
+      - 'e2e/hf3-**'
+      - 'e2e/global-setup.ts'
+      - 'tsconfig.e2e.json'
       - 'components/layout/BannerSlot.tsx'
       - 'components/layout/bannerSlot.module.css'
       - 'components/embed/**'
@@ -116,9 +120,15 @@ jobs:
           done
           echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
+      # E2E-1 (2026-10-04): 본 tsconfig.json 은 e2e/ 를 보지 않는다(Vercel 빌드용). 그 틈에
+      # hf3-guest-run.spec.ts 가 문법 오류를 안고 2주 넘게 남았다 — 브라우저를 띄우기 전에 막는다.
+      - name: Typecheck e2e specs
+        run: npm run typecheck:e2e
+
       - name: E2E (Playwright)
         # Scope to C-1's own specs (each workflow targets its own preview/secrets).
-        run: npm run test:e2e -- e2e/c1-arena-flow.spec.ts e2e/run1-daily-run-limit.spec.ts e2e/arena1-split-stage.spec.ts
+        # hf3-guest-run = 게스트 흐름(비로그인 참여 → 로그인 연결 → 하루 3판 한도) — E2E-1 에서 연결.
+        run: npm run test:e2e -- e2e/c1-arena-flow.spec.ts e2e/run1-daily-run-limit.spec.ts e2e/arena1-split-stage.spec.ts e2e/hf3-guest-run.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()

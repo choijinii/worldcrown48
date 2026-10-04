@@ -12,7 +12,8 @@
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
     "test:rules": "firebase emulators:exec --only firestore,storage \"vitest run --config vitest.rules.config.ts\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json --noEmit"
   },
   "dependencies": {
     "firebase": "^12.14.0",

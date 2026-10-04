@@ -1,13 +1,18 @@
 /**
- * HF-3 Guest Run E2E (handoff §5 Phase 4). Four scenarios:
+ * HF-3 Guest Run E2E (handoff §5 Phase 4). Five scenarios:
  *
  *   E2E-1  completed guest run → sign in → lands on /arena/{tid}/champion, the
  *          whole run (votes + bracket_seed + roundProgress + Crown Card +
  *          tournament_runs) migrated to the new uid, anon account deleted.
  *   E2E-4  mid-progress guest run → sign in → bracket + progress preserved, NO
  *          landing (continues in place, AC5).
- *   E2E-2  게스트가 3판을 소진한 뒤 4판째 → guest_limit LoginModal (v2.1).
- *   E2E-3  guest who joined Tournament A → votes in B → LoginModal.
+ *   E2E-5  guest re-completes a Tournament the account already finished →
+ *          conflict (guest votes deleted, existing card + banner, HF-3.1 case 2).
+ *   E2E-3  (v2.1) 게스트가 A에서 판을 시작하고 B로 건너가도 막히지 않는다.
+ *   E2E-2  (v2.1) 3판을 소진한 게스트가 4판째 대회에 들어오면 차단 화면 + Google 버튼.
+ *
+ * CI: C-1 워크플로(c1-e2e.yml)가 돌린다 (E2E-1, 2026-10-04 — 그 전까지 어느 워크플로에도
+ * 연결돼 있지 않았다. 고아 방지 = lib/__tests__/ci/e2eWiring.test.ts).
  *
  * Google OAuth can't be driven headlessly, so the two link scenarios use the
  * signed-in storageState Voter (TEST_UID) as the "new" account and an
@@ -19,7 +24,8 @@
  *
  * The two gate scenarios use a FRESH anonymous browser context (no storageState)
  * so the app's ensureAnonymousUid signs the visitor in anonymously; the anon uid
- * is recovered from localStorage and seeded via admin.
+ * is recovered from localStorage and seeded via admin. D-41(2026-10-04) 이후 익명
+ * 계정은 아레나 입장 때 생긴다 — 그래서 uid 는 언제나 아레나 페이지를 연 뒤에 읽는다.
  *
  * REQUIRES PREVIEW_URL + FIREBASE_ADMIN_SDK_KEY + TEST_UID +
  * NEXT_PUBLIC_FIREBASE_API_KEY (+ VERCEL_AUTOMATION_BYPASS_SECRET on a Protected
@@ -119,7 +125,16 @@ async function seedGuestRun(
         tournamentId: tid,
         round,
         matchId: matchId(tid, round, i),
-        contestantId: round === 1 ? ids[i * 2] : `${tid}_c${i + 1}`,
+        // 결승(5라운드) 선택은 opts.championId 와 같아야 한다. 선택 문서가 생길 때마다
+        // advanceRound 트리거가 돌아 roundProgress.championId 를 **그 선택으로** 덮는다 —
+        // 둘이 다르면 시드한 챔피언이 연결 전에 이미 바뀌어 있다(E2E-1, 2026-10-04 CI 실측:
+        // E2E-5 의 "기존 챔피언 c2" 가 결승 선택 c1 로 덮였다).
+        contestantId:
+          round === 1
+            ? ids[i * 2]
+            : round === 5 && opts.championId
+              ? opts.championId
+              : `${tid}_c${i + 1}`,
         date: SEED_PAST_DATE,
         // RUN-1: 클라이언트가 회차로 걸러 읽는다(§9 함정 9). 게스트 판은 1회차다.
         runIndex: 1,
@@ -182,25 +197,68 @@ async function deleteUserQuietly(uid: string): Promise<void> {
   await ensureAdmin().auth().deleteUser(uid).catch(() => {});
 }
 
-/** Arm + fire the app's real link path for the already-signed-in Voter. */
+/**
+ * Arm + fire the app's real link path for the already-signed-in Voter.
+ *
+ * 실제 앱에서는 Google 로그인에서 돌아온 페이지가 **처음 열릴 때부터** 연결 대기 표시
+ * (PENDING_ANON_UID_KEY)를 갖고 있다. 그래서 앱 스크립트보다 먼저 표시를 심고 페이지를 한 번만
+ * 연다.
+ *
+ * ⚠️ 예전 방식(goto → sessionStorage 심기 → reload)은 경쟁 상태였다(CARD-FIX 검증 중 발견,
+ * 2026-10-04 trace 실측): 첫 페이지의 onAuthStateChanged 가 표시를 보고 linkSessionVote 를
+ * 부르기 시작한 순간 reload 가 그 요청을 끊었고(서버엔 OPTIONS 만 남음), 앱의 finally 가 표시를
+ * 지워 새 페이지는 연결할 것이 없었다. 로그인 확인이 reload 보다 늦으면 통과, 빠르면 실패 —
+ * 그래서 "가끔 착지 실패"로 보였다.
+ *
+ * 표시는 **한 번만** 심는다(arm 표시로 막음) — 착지 이동(/champion) 때 다시 심으면 이미 지워진
+ * 익명 계정으로 연결을 또 부른다.
+ */
 async function triggerLink(page: Page, anonUid: string): Promise<void> {
-  await page.goto("/");
-  await page.evaluate(
-    ({ key, uid }) => sessionStorage.setItem(key, uid),
+  await page.addInitScript(
+    ({ key, uid }) => {
+      try {
+        if (sessionStorage.getItem("e2e_link_armed")) return;
+        sessionStorage.setItem("e2e_link_armed", "1");
+        sessionStorage.setItem(key, uid);
+      } catch {
+        /* 저장소가 막힌 환경 — 연결 자체가 불가능하므로 시험이 착지에서 실패해 드러난다 */
+      }
+    },
     { key: PENDING_ANON_UID_KEY, uid: anonUid },
   );
-  await page.reload();
+  await page.goto("/");
 }
 
 /** A fresh anonymous browser context (bypasses Vercel Preview Protection). */
 async function anonContext(browser: Browser): Promise<BrowserContext> {
   const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  // ARENA-1 PR 2b — 첫 입장 안내 팝업(기기당 1회)이 칸 클릭을 가로채지 않게 "이미 본 기기"로
+  // 시작한다(c1·run1·arena1 과 같은 처리). 빈 컨텍스트라 beforeEach 의 page 설정이 닿지 않는다.
+  await context.addInitScript(() => {
+    try {
+      localStorage.setItem("wc48:arena:intro:v1", "1");
+    } catch {
+      /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
+    }
+  });
   if (BYPASS) {
     const p = await context.newPage();
     await p.goto(`${PREVIEW}?x-vercel-protection-bypass=${encodeURIComponent(BYPASS)}&x-vercel-set-bypass-cookie=true`);
     await p.close();
   }
   return context;
+}
+/** 익명 창의 페이지도 console-error-0 을 지킨다 — beforeEach 는 `page` 픽스처에만 붙는다. */
+async function anonPage(context: BrowserContext): Promise<Page> {
+  const page = await context.newPage();
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    const t = m.text();
+    if (t.includes("Could not reach Cloud Firestore backend")) return;
+    if (/Failed to fetch RSC payload/i.test(t)) return; // beforeEach 와 같은 예외
+    consoleErrors.push(t);
+  });
+  return page;
 }
 /** Recover the app's anonymous uid from the persisted Firebase auth blob. */
 async function anonUidFrom(page: Page): Promise<string> {
@@ -246,6 +304,10 @@ test.describe("HF-3 Guest Run", () => {
       if (m.type() !== "error") return;
       const t = m.text();
       if (t.includes("Could not reach Cloud Firestore backend")) return;
+      // Next.js Link 프리페치가 서명된 미리보기에서 RSC 를 못 받아 브라우저 이동으로 물러나는
+      // 경고(예: /admin/lab) — 무해. pitch·a1-i18n·nd1 과 같은 예외이고 "RSC payload" 문구에만
+      // 걸리므로 앱의 진짜 "Failed to fetch" 는 그대로 잡힌다.
+      if (/Failed to fetch RSC payload/i.test(t)) return;
       consoleErrors.push(t);
     });
   });
@@ -254,6 +316,9 @@ test.describe("HF-3 Guest Run", () => {
   });
 
   test("E2E-1: completed guest run → link → Champion landing + full migration", async ({ page }) => {
+    // Crown Card 는 비동기 트리거(onChampionConfirmed)가 그린다 — 냉시동 + 렌더 + 업로드가
+    // 기본 30초 안에 들어오지 않을 수 있어 이 시험만 넉넉히 둔다.
+    test.setTimeout(90_000);
     const d = db();
     await deleteVoterState(GOOGLE_UID, TID_A); // start clean → googleExists=false
     const anonUid = await createAnonAccount();
@@ -371,24 +436,41 @@ test.describe("HF-3 Guest Run", () => {
     // ⚠️ v2.0에서는 이 시나리오가 **차단**이었다("하루 통틀어 1판, 그 대회만").
     // v2.1(2026-09-06 대표 확정)에서 게스트는 하루 3판을 **대회를 오가며** 쓸 수 있다 —
     // 그래서 같은 조작의 기대 결과가 뒤집혔다. 판정에서 Tournament가 아예 빠졌다(§16 실측 3).
+    // 정본: LANGUAGE.md §2 "게스트 일일 판 한도"(대회 자유 선택 · 하루 통틀어 3판).
     const context = await anonContext(browser);
-    const page = await context.newPage();
+    const page = await anonPage(context);
+    const d = db();
+    let anonUid = "";
     try {
-      // A에서 1판째 첫 선택.
+      // A에서 1판째 첫 선택. D-41: 익명 계정은 아레나 입장 때 생긴다.
       await page.goto(`/arena/${TID_A}?lang=ko`);
-      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 15_000 });
-      await page.getByTestId("vote-left").click();
-      await expect(page.getByTestId("vote-left")).not.toBeVisible({ timeout: 15_000 }); // advanced
+      anonUid = await anonUidFrom(page);
+      const left = page.getByTestId("vote-left");
+      await expect(left).toBeVisible({ timeout: 15_000 });
+      const firstA = (await left.innerText()).trim();
+      await left.click();
+      // 다음 매치로 넘어갔다 — 다음 매치에도 vote-left 가 있으므로 "사라짐"이 아니라
+      // 왼쪽 칸의 이름이 바뀌었는지로 본다(arena1 과 같은 판정).
+      await expect(left).not.toHaveText(firstA, { timeout: 15_000 });
+      // 서버 원장: 첫 선택이 1판째로 세어졌다.
+      await expect
+        .poll(async () => (await d.doc(`guest_runs/${anonUid}`).get()).data()?.runsToday, { timeout: 15_000 })
+        .toBe(1);
 
       // B로 건너간다 → 2판째라 열려 있다.
       await page.goto(`/arena/${TID_B}?lang=ko`);
-      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 15_000 });
-      await page.getByTestId("vote-left").click();
-      // 막히지 않는다 — 매치가 다음으로 넘어간다.
-      await expect(page.getByTestId("vote-left")).not.toBeVisible({ timeout: 15_000 });
+      await expect(left).toBeVisible({ timeout: 15_000 });
+      const firstB = (await left.innerText()).trim();
+      await left.click();
+      // 막히지 않는다 — 매치가 다음으로 넘어가고, 차단 문구는 어디에도 없다.
+      await expect(left).not.toHaveText(firstB, { timeout: 15_000 });
       await expect(page.getByText(/로그인이 필요해요|소진하셨어요/)).toHaveCount(0);
+      // 서버 원장: 대회를 건너가 연 판이 2판째로 세어졌다(대회를 가로질러 센다).
+      await expect
+        .poll(async () => (await d.doc(`guest_runs/${anonUid}`).get()).data()?.runsToday, { timeout: 15_000 })
+        .toBe(2);
     } finally {
-      const anonUid = await anonUidFrom(page).catch(() => "");
+      if (!anonUid) anonUid = await anonUidFrom(page).catch(() => "");
       await context.close();
       if (anonUid) {
         await deleteVoterState(anonUid, TID_A);
@@ -398,13 +480,18 @@ test.describe("HF-3 Guest Run", () => {
     }
   });
 
-  test("E2E-2 (v2.1): 3판을 소진한 게스트의 4판째 → guest_limit + Google 버튼 (AC 17)", async ({ browser }) => {
+  test("E2E-2 (v2.1): 3판을 소진한 게스트가 4판째 대회에 들어오면 차단 화면 + Google 버튼 (AC 17)", async ({ browser }) => {
     // ⚠️ v2.0에서는 "완주한 게스트가 두 번째 대회에서 차단"이었다. v2.1에서 한도가 하루
     // 통틀어 3판이 되면서 차단 지점이 **4판째**로 옮겨갔고, 문구도 이유를 말하는
     // login.guest_limit 으로 바뀌었다(예전엔 "계속하려면 로그인이 필요해요" — 왜 막혔는지를
     // 말하지 않았다). 이 지점이 v2.1의 주 회원 전환 경로다.
+    //
+    // E2E-1(2026-10-04) 기대값 정정: 이 시험은 B에서 매치 칸(vote-left)이 뜬 뒤 눌러야 막힌다고
+    // 가정했다. 지금 제품은 한 판도 안 돈 대회에 3판 소진 게스트가 들어오면 **매치 대신 차단
+    // 화면**을 그린다(lib/run/activeRun.ts ③ "막힌 이유를 화면으로 말한다" — 서버 onVote 와
+    // 같은 순서). 규칙(4판째 차단 + Google 버튼)은 그대로이고, 닿는 길만 화면 → 버튼 → 창이다.
     const context = await anonContext(browser);
-    const page = await context.newPage();
+    const page = await anonPage(context);
     let anonUid = "";
     try {
       await page.goto(`/arena/${TID_A}?lang=ko`);
@@ -421,37 +508,22 @@ test.describe("HF-3 Guest Run", () => {
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-      // 4판째를 열려 하면 막힌다 — 어느 대회든 마찬가지다.
+      // 4판째를 열려 하면 막힌다 — 어느 대회든 마찬가지다. 매치 칸은 아예 그려지지 않는다.
       await page.goto(`/arena/${TID_B}?lang=ko`);
-      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 15_000 });
-      await page.getByTestId("vote-left").click();
+      const blocked = page.locator('[data-arena-surface="guest-limit"]');
+      await expect(blocked).toBeVisible({ timeout: 15_000 });
+      await expect(blocked.getByText("오늘의 서비스(3번 참여)를 모두 소진하셨어요.")).toBeVisible();
+      await expect(page.getByTestId("vote-left")).toHaveCount(0);
 
       // §8 승인 문구 + Google 버튼(갈 길이 있는 차단이라 버튼을 숨기지 않는다).
-      await expect(
-        page.getByText("오늘의 서비스(3번 참여)를 모두 소진하셨어요."),
-      ).toBeVisible({ timeout: 15_000 });
-      await expect(page.locator("#login-google")).toBeVisible();
+      await blocked.getByRole("button").first().click();
+      await expect(page.locator("#login-google")).toBeVisible({ timeout: 15_000 });
     } finally {
       await context.close();
       if (anonUid) {
         await ensureAdmin().firestore().doc(`guest_runs/${anonUid}`).delete().catch(() => {});
         await deleteVoterState(anonUid, TID_A);
         await deleteVoterState(anonUid, TID_B);
-        await deleteUserQuietly(anonUid);
-      }
-    }
-  });
-
-      // A different Tournament → gated. (The marker is A; B ≠ A, and the run is
-      // complete — either branch of decideVoteGate returns login_required.)
-      await page.goto(`/arena/${TID_B}?lang=ko`);
-      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 15_000 });
-      await page.getByTestId("vote-left").click();
-      await expect(page.getByText(/계속하려면 로그인이 필요해요/)).toBeVisible();
-    } finally {
-      await context.close();
-      if (anonUid) {
-        await deleteVoterState(anonUid, TID_A);
         await deleteUserQuietly(anonUid);
       }
     }
