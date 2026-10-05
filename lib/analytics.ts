@@ -7,8 +7,8 @@
  *   featured_tournament_click   { tournament_id: string }
  *   sns_link_click              { platform: string }
  *
- *   E-1 events:
- *   cookie_banner_view          { variant: 'first' | 'reopened' }
+ *   E-1 events (cookie_* sent only under analytics consent — lib/policy/consentEvents):
+ *   cookie_banner_view          — NOT sent (COOKIE-1: the bar is visible only before consent)
  *   cookie_accept_all           { categories: 'all' }
  *   cookie_reject               { categories: 'essential_only' }
  *   cookie_customize_open       { }

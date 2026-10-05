@@ -57,7 +57,12 @@ import {
   getFunctionsInstance,
 } from "@/lib/firebase";
 import { runConsentBoot } from "@/lib/cookieConsentBoot";
-import { setAnalyticsConsent } from "@/lib/analytics";
+import { setAnalyticsConsent, track } from "@/lib/analytics";
+import {
+  recordConsentDecision,
+  trackCustomizeOpen,
+  type ConsentDecision,
+} from "@/lib/policy/consentEvents";
 
 // ── Public API ────────────────────────────────────────────────────────
 
@@ -229,7 +234,11 @@ export function CookieConsentProvider({
 
   // ── Persist helper used by all three save paths ──
   const persistAndHide = useCallback(
-    async (next: ConsentPreferences, source: "banner" | "modal") => {
+    async (
+      next: ConsentPreferences,
+      source: "banner" | "modal",
+      decision: ConsentDecision,
+    ) => {
       // ANON-1: this is the moment an anonymous account may be created — the
       // visitor pressed a consent button. ensureAnonymousUid() returns the current
       // user if there is one (signed-in or an earlier anonymous account), so a
@@ -266,9 +275,13 @@ export function CookieConsentProvider({
           lang,
           savedAt,
         });
-        // COOKIE-1 F-2: apply the new analytics consent synchronously, right
-        // after the record is saved — before any event that depends on it.
-        setAnalyticsConsent(next.analytics);
+        // COOKIE-1 F-2 · E: apply the new analytics consent synchronously,
+        // right after the record is saved, THEN send the cookie_* event under
+        // that consent (F-3 — "필수만" therefore never sends).
+        void recordConsentDecision(decision, next, {
+          applyAnalyticsConsent: setAnalyticsConsent,
+          track,
+        });
         setAnalyticsGranted(next.analytics);
         setPreferences(next);
         setLastSavedAt(savedAt);
@@ -289,17 +302,19 @@ export function CookieConsentProvider({
 
   // ── Banner actions ──
   const acceptAll = useCallback(
-    () => persistAndHide(ACCEPT_ALL_PREFERENCES, "banner"),
+    () => persistAndHide(ACCEPT_ALL_PREFERENCES, "banner", "accept_all"),
     [persistAndHide],
   );
 
   const rejectAll = useCallback(
-    () => persistAndHide(REJECT_ALL_PREFERENCES, "banner"),
+    () => persistAndHide(REJECT_ALL_PREFERENCES, "banner", "reject"),
     [persistAndHide],
   );
 
   const openModal = useCallback(() => {
     setModalState("open");
+    // Recorded only for a fan who already granted analytics (the gate decides).
+    void trackCustomizeOpen(track);
   }, []);
 
   // ── Modal actions ──
@@ -308,7 +323,7 @@ export function CookieConsentProvider({
   }, []);
 
   const savePreferences = useCallback(
-    (next: ConsentPreferences) => persistAndHide(next, "modal"),
+    (next: ConsentPreferences) => persistAndHide(next, "modal", "save"),
     [persistAndHide],
   );
 
