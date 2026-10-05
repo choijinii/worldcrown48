@@ -673,6 +673,31 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await db().doc(`cookieConsents/${UID}`).delete().catch(() => {});
     });
 
+    // 게이트 5 (R2 · R9): 동의 전에는 GA 를 깨우지 않는다 → _ga 쿠키 0. 프리뷰 실측.
+    test("첫 방문 — 피치를 열고 눌러도 _ga 쿠키 없음 · '모두 허용' 뒤 개수는 기록", async ({ page, context }) => {
+      await context.clearCookies({ name: /^_ga/ });
+      await page.goto("/?lang=ko");
+      const bar = page.locator(".cookie-banner");
+      await expect(bar).toBeVisible({ timeout: 15_000 });
+      // 페이지 이동 없는 통계 호출 — 잠긴 Lab 카드 · '자세히' 펼침.
+      await page.locator(".cb-more").click();
+      // a1_pitch_view 는 열자마자 · a1_lab_locked_hover 는 잠긴 Lab 단추(이동 없음).
+      const locked = page.locator(".lab-cta-locked");
+      if (await locked.isVisible().catch(() => false)) await locked.click();
+      await page.waitForTimeout(3_000);
+      const before = (await context.cookies()).filter((c) => c.name.startsWith("_ga"));
+      expect(before.map((c) => c.name), "동의 전 _ga 쿠키").toEqual([]);
+
+      await page.goto("/?lang=ko");
+      await page.getByRole("button", { name: /Accept all/ }).click();
+      await expect(bar).toBeHidden({ timeout: 15_000 });
+      await page.waitForTimeout(5_000);
+      const after = (await context.cookies()).filter((c) => c.name.startsWith("_ga"));
+      // 프리뷰에 측정 ID 가 없으면 0 일 수 있다 — 단언하지 않고 기록만 남긴다.
+      test.info().annotations.push({ type: "cookie1-ga-after-accept", description: String(after.length) });
+      console.log(`[COOKIE-1] _ga cookies before consent=0, after accept-all=${after.length}`);
+    });
+
     for (const [w, h] of [
       [390, 844],
       [360, 780],
