@@ -4,7 +4,8 @@
  * Surface contract (handoff §4 Modal AC):
  *   - 4 categories: ESSENTIAL (locked on) · FUNCTIONAL · ANALYTICS · MARKETING
  *   - MARKETING default OFF (handoff §9 trap 2 — overrides lite-spec)
- *   - KO/EN swap via `data-ml` on the .modal element (CSS hides the other lang)
+ *   - KO/EN/ES swap via `data-ml` on the .modal element (CSS hides the other
+ *     two). Every `.ml-ko` line has an `.ml-es` twin (POLICY-ES-1).
  *   - Save: spinner → "✓ Saved · valid 12 months"
  *   - reduced motion: spinner skipped, goes straight to saved
  *   - Keyboard trap: focus-trap-react handles Tab/Shift+Tab + initial focus
@@ -205,10 +206,12 @@ function ModalHeader({
         <div className="mh-eyebrow">
           <span className="ml-ko">쿠키 설정 · COOKIE PREFERENCES</span>
           <span className="ml-en">COOKIE PREFERENCES</span>
+          <span className="ml-es">Preferencias de cookies · COOKIE PREFERENCES</span>
         </div>
         <h3 className="mh-title" id={titleId}>
           <span className="ml-ko">어떤 데이터를 허용하시겠어요?</span>
           <span className="ml-en">What data may we use?</span>
+          <span className="ml-es">¿Qué datos nos permites usar?</span>
         </h3>
       </div>
       <div className="mh-lang" role="group" aria-label="Modal language">
@@ -225,6 +228,13 @@ function ModalHeader({
           onClick={() => onLangChange("en")}
         >
           EN
+        </button>
+        <button
+          type="button"
+          aria-pressed={lang === "es"}
+          onClick={() => onLangChange("es")}
+        >
+          ES
         </button>
       </div>
       <button
@@ -247,10 +257,12 @@ function EssentialRow(): JSX.Element {
         <div className="cat-key">
           <span className="ml-ko">ESSENTIAL · 필수</span>
           <span className="ml-en">ESSENTIAL</span>
+          <span className="ml-es">ESSENTIAL · Esenciales</span>
         </div>
         <div className="cat-name">
           <span className="ml-ko">서비스 동작에 필요한 쿠키</span>
           <span className="ml-en">Cookies needed for the service to run</span>
+          <span className="ml-es">Cookies necesarias para que el servicio funcione</span>
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
@@ -261,6 +273,11 @@ function EssentialRow(): JSX.Element {
             Login session, security tokens, language preference. Required
             for the service to operate. Cannot be turned off.
           </span>
+          <span className="ml-es">
+            Sesión iniciada, tokens de seguridad, preferencia de idioma, etc.
+            Son necesarias para que el servicio funcione. No se pueden
+            desactivar.
+          </span>
         </div>
         <div className="cat-lock">
           <span className="ml-ko">
@@ -268,6 +285,9 @@ function EssentialRow(): JSX.Element {
           </span>
           <span className="ml-en">
             <b>ALWAYS ON</b> · Cannot be changed
+          </span>
+          <span className="ml-es">
+            <b>ALWAYS ON</b> · Siempre activas — no se pueden cambiar
           </span>
         </div>
       </div>
@@ -296,10 +316,12 @@ function FunctionalRow({
         <div className="cat-key">
           <span className="ml-ko">FUNCTIONAL · 기능</span>
           <span className="ml-en">FUNCTIONAL</span>
+          <span className="ml-es">FUNCTIONAL · Funcionales</span>
         </div>
         <div className="cat-name">
           <span className="ml-ko">편의 기능과 개인화 설정</span>
           <span className="ml-en">Convenience features and personalization</span>
+          <span className="ml-es">Funciones de comodidad y personalización</span>
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
@@ -309,6 +331,12 @@ function FunctionalRow({
           <span className="ml-en">
             Recently viewed Tournaments, preferred language, Fan nickname
             autofill. Turning these off resets those preferences every visit.
+          </span>
+          <span className="ml-es">
+            Cookies para funciones de comodidad como los Tournaments vistos
+            recientemente, el idioma preferido y el autocompletado del apodo
+            de fan. Si las desactivas, algunas de estas funciones se
+            reiniciarán en cada visita.
           </span>
         </div>
       </div>
@@ -339,10 +367,12 @@ function AnalyticsRow({
         <div className="cat-key">
           <span className="ml-ko">ANALYTICS · 분석</span>
           <span className="ml-en">ANALYTICS</span>
+          <span className="ml-es">ANALYTICS · Análisis</span>
         </div>
         <div className="cat-name">
           <span className="ml-ko">선택의 흐름과 페이지 사용 통계</span>
           <span className="ml-en">Pick flow and page-usage statistics</span>
+          <span className="ml-es">Flujo de selecciones y estadísticas de uso de las páginas</span>
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
@@ -352,6 +382,11 @@ function AnalyticsRow({
           <span className="ml-en">
             Anonymous aggregation of which Tournaments are popular and where
             fans drop off. No personally identifying data is stored.
+          </span>
+          <span className="ml-es">
+            Contamos de forma anónima qué Tournaments son populares y en qué
+            punto se abandona la navegación. No guardamos información que
+            permita identificarte.
           </span>
         </div>
       </div>
@@ -381,21 +416,29 @@ function MarketingRow({
         <div className="cat-key">
           <span className="ml-ko">MARKETING · 광고</span>
           <span className="ml-en">MARKETING</span>
+          <span className="ml-es">MARKETING · Publicidad</span>
         </div>
         <div className="cat-name">
           <span className="ml-ko">관심사 기반 광고 노출</span>
           <span className="ml-en">Interest-based ad recommendations</span>
+          <span className="ml-es">Publicidad basada en tus intereses</span>
         </div>
         <div className="cat-desc">
           <span className="ml-ko">
-            선호 카테고리(축구·K-pop 등)에 맞춰 관련 Tournament·파트너
+            선호 카테고리에 맞춰 관련 Tournament·파트너
             콘텐츠를 추천하기 위한 쿠키입니다. 끄더라도 광고 자체가
             사라지지는 않습니다 — 관련도만 떨어집니다.
           </span>
           <span className="ml-en">
-            Cookies that match preferred categories (football, K-pop, etc.)
+            Cookies that match preferred categories
             to recommend related Tournaments and partner content. Turning
             these off does not remove ads — only makes them less relevant.
+          </span>
+          <span className="ml-es">
+            Cookies para recomendarte Tournaments y contenido de socios
+            relacionados con tus categorías preferidas.
+            Desactivarlas no elimina la publicidad: solo hace que sea menos
+            relevante.
           </span>
         </div>
       </div>
@@ -442,6 +485,12 @@ function ModalFooter({
                 {lastSavedAt ? formatDate(lastSavedAt, "en") : "never"}
               </b>
             </span>
+            <span className="ml-es">
+              Último guardado{" "}
+              <b style={{ color: "var(--color-royal)" }}>
+                {lastSavedAt ? formatDate(lastSavedAt, "es") : "ninguno"}
+              </b>
+            </span>
           </span>
         )}
         {isSaving && (
@@ -449,6 +498,7 @@ function ModalFooter({
             <span className="spin" aria-hidden="true" />
             <span className="ml-ko">Firestore에 저장 중…</span>
             <span className="ml-en">Saving to Firestore…</span>
+            <span className="ml-es">Guardando en Firestore…</span>
           </span>
         )}
         {isSaved && (
@@ -458,6 +508,7 @@ function ModalFooter({
             </span>
             <span className="ml-ko">저장됨 · 12개월 유효</span>
             <span className="ml-en">Saved · valid 12 months</span>
+            <span className="ml-es">Guardado · válido durante 12 meses</span>
           </span>
         )}
       </div>
@@ -470,6 +521,7 @@ function ModalFooter({
         >
           <span className="ml-ko">필수만</span>
           <span className="ml-en">Essentials only</span>
+          <span className="ml-es">Solo esenciales</span>
         </button>
         <button
           type="button"
@@ -479,6 +531,7 @@ function ModalFooter({
         >
           <span className="ml-ko">선택 저장 · Save preferences</span>
           <span className="ml-en">Save preferences</span>
+          <span className="ml-es">Guardar selección · Save preferences</span>
         </button>
       </div>
     </footer>
@@ -493,5 +546,6 @@ function formatDate(d: Date, lang: Lang): string {
     month: "short",
     day: "numeric",
   };
-  return new Intl.DateTimeFormat(lang === "ko" ? "ko-KR" : "en-US", opts).format(d);
+  const locale = lang === "ko" ? "ko-KR" : lang === "es" ? "es-ES" : "en-US";
+  return new Intl.DateTimeFormat(locale, opts).format(d);
 }

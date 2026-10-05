@@ -29,7 +29,7 @@ Esta Política explica qué tipos de datos personales recopila WC48, los fines d
 | Dirección de correo electrónico | Registro de cuenta · inscripción en la Waitlist | Obligatorio |
 | Apodo (Voter Name) | Registro de cuenta | Obligatorio |
 | Imagen de perfil (avatar) | Si el usuario la sube | Opcional |
-| Categorías preferidas (fútbol, K-pop, etc.) | Si el usuario las configura | Opcional |
+| Categorías preferidas | Si el usuario las configura | Opcional |
 | Motivo de la denuncia de contenido | Al presentar una denuncia | Obligatorio |
 
 ### 1.2 Información que se recopila automáticamente

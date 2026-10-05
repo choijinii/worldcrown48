@@ -881,9 +881,14 @@ input { font: inherit; }
 .consent-toggle:disabled { cursor: not-allowed; opacity: 0.6; }
 .consent-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 
-/* Bilingual content swap (KO/EN) — scoped to .modal[data-ml] */
-.modal[data-ml="ko"] .ml-en { display: none; }
-.modal[data-ml="en"] .ml-ko { display: none; }
+/* Language swap (KO/EN/ES) — scoped to .modal[data-ml]. es shows only the
+   Spanish lines (which carry their English halves, like the Korean ones). */
+.modal[data-ml="ko"] .ml-en,
+.modal[data-ml="ko"] .ml-es,
+.modal[data-ml="en"] .ml-ko,
+.modal[data-ml="en"] .ml-es,
+.modal[data-ml="es"] .ml-ko,
+.modal[data-ml="es"] .ml-en { display: none; }
 
 /* Footer "Reopen cookie preferences" / "Report content" link */
 .policy-footer-row {

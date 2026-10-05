@@ -29,7 +29,7 @@ This Policy explains what personal data WC48 collects, the purposes of collectio
 | Email address | Sign-up · Waitlist | Required |
 | Nickname (Voter Name) | Sign-up | Required |
 | Profile image (avatar) | When uploaded by the user | Optional |
-| Preferred categories (football, K-pop, etc.) | When set by the user | Optional |
+| Preferred categories | When set by the user | Optional |
 | Report reason for content | When reporting | Required |
 
 ### 1.2 Information collected automatically

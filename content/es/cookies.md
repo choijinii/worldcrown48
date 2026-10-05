@@ -69,7 +69,7 @@ Si desactiva las cookies de análisis, WC48 no recopila datos sobre su comportam
 
 ### MARKETING · Publicidad (**desactivadas por defecto**)
 
-Se utilizan para recomendarle Tournaments relacionados y contenido de socios según sus categorías preferidas (fútbol, K-pop, etc.). Si las desactiva, la publicidad no desaparece; solo será menos relevante.
+Se utilizan para recomendarle Tournaments relacionados y contenido de socios según sus categorías preferidas. Si las desactiva, la publicidad no desaparece; solo será menos relevante.
 
 > ⚠️ **Aviso de la fase MVP 1**: WC48 aún no ha incorporado redes publicitarias externas. Esta categoría se divulga por adelantado en previsión de una futura incorporación; cuando se apliquen efectivamente cookies de publicidad, se lo notificaremos previamente y le solicitaremos de nuevo su consentimiento.
 

@@ -69,7 +69,7 @@ If you turn off Analytics cookies, WC48 does not collect your behavioral data.
 
 ### MARKETING (**default OFF**)
 
-Used to recommend related Tournaments and partner content based on your preferred categories (football, K-pop, etc.). Turning these off does not remove ads — it only makes them less relevant.
+Used to recommend related Tournaments and partner content based on your preferred categories. Turning these off does not remove ads — it only makes them less relevant.
 
 > ⚠️ **MVP 1 notice**: WC48 has not yet integrated any external ad networks. This category is published in advance so the consent framework is in place. Before any marketing cookies are actually deployed, we will notify users and re-request consent.
 
