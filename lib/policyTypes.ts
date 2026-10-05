@@ -29,10 +29,13 @@ export interface PolicyDocument {
   body: string;
 }
 
-export interface BilingualPolicy {
+/** One policy in every language — rendered together, CSS shows the active one. */
+export interface PolicyTranslations {
   type: PolicyType;
   ko: PolicyDocument;
   en: PolicyDocument;
+  /** POLICY-ES-1 (2026-10-05) — Spanish edition, translated from the Korean original. */
+  es: PolicyDocument;
 }
 
 export interface PolicyNavEntry {
@@ -41,6 +44,7 @@ export interface PolicyNavEntry {
   ord: string;
   ko: string;
   en: string;
+  es: string;
 }
 
 /**
@@ -48,8 +52,8 @@ export interface PolicyNavEntry {
  * cookies. Matches the HTML draft.
  */
 export const POLICY_NAV: readonly PolicyNavEntry[] = [
-  { type: "privacy", ord: "01", ko: "개인정보처리방침", en: "Privacy" },
-  { type: "terms", ord: "02", ko: "이용약관", en: "Terms of Service" },
-  { type: "community", ord: "03", ko: "커뮤니티 정책", en: "Community" },
-  { type: "cookies", ord: "04", ko: "쿠키 정책", en: "Cookie Policy" },
+  { type: "privacy", ord: "01", ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
+  { type: "terms", ord: "02", ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
+  { type: "community", ord: "03", ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
+  { type: "cookies", ord: "04", ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
 ] as const;

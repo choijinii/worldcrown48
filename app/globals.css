@@ -1132,8 +1132,12 @@ input { font: inherit; }
 }
 
 /* Bilingual content swap — same pattern as the modal */
-.policy-doc[data-lang="ko"] .doc-en { display: none; }
-.policy-doc[data-lang="en"] .doc-ko { display: none; }
+.policy-doc[data-lang="ko"] .doc-en,
+.policy-doc[data-lang="ko"] .doc-es,
+.policy-doc[data-lang="en"] .doc-ko,
+.policy-doc[data-lang="en"] .doc-es,
+.policy-doc[data-lang="es"] .doc-ko,
+.policy-doc[data-lang="es"] .doc-en { display: none; }
 
 /* Policy body — typography for long-form reading.
  * react-markdown emits semantic elements as siblings. Each <h2> is wrapped

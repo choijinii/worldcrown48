@@ -33,7 +33,7 @@ export function PolicyDocSwitch({
           role="tab"
           aria-current={entry.type === activeType ? "page" : undefined}
         >
-          {lang === "ko" ? entry.ko : entry.en}
+          {entry[lang]}
         </Link>
       ))}
     </nav>
