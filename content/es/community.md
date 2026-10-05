@@ -2,13 +2,15 @@
 title: Normas de la comunidad
 type: community
 lang: es
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Normas de la comunidad · Community Guidelines
 
-**Última actualización: 11 de junio de 2026**
+**Última actualización: 5 de octubre de 2026**
+
+> Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
 WorldCrown48 (en adelante, "WC48" o el "Servicio") es una plataforma global en la que fans de todo el mundo apoyan con su voto a los Contestants que más les gustan. Estas Normas de la comunidad son el **compromiso mínimo** que permite a todos los fans, organizadores de Tournaments y aportadores de contenido participar en un entorno seguro y respetuoso.
 
@@ -203,4 +205,4 @@ WC48 mejora continuamente estas Normas para ser una plataforma global en la que 
 ---
 
 *Estas Normas pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Community Guidelines v1.0*
+*© 2026 WorldCrown48 · Community Guidelines v1.1*

@@ -2,13 +2,15 @@
 title: Terms of Service
 type: terms
 lang: en
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Terms of Service
 
-**Last updated: June 11, 2026 · Effective date: June 11, 2026**
+**Last updated: October 5, 2026 · Effective date: June 11, 2026**
+
+> This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
 These Terms of Service ("Terms") govern the use of WorldCrown48 ("WC48", "we", "the Service"), a global fan-voting platform. By signing up or using the Service, the user ("Voter", "organizer", "member", or collectively "user") agrees to these Terms.
 
@@ -166,4 +168,4 @@ Users may terminate their account at any time from account settings. Personal da
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Terms of Service v1.0*
+*© 2026 WorldCrown48 · Terms of Service v1.1*

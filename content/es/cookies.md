@@ -2,13 +2,15 @@
 title: Política de cookies
 type: cookies
 lang: es
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Política de cookies · Cookie Policy
 
-**Última actualización: 11 de junio de 2026**
+**Última actualización: 5 de octubre de 2026**
+
+> Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
 WorldCrown48 (en adelante, "WC48" o el "Servicio") utiliza cookies y tecnologías similares para mejorar la experiencia de uso y operar el Servicio. Esta política explica qué cookies utilizamos y por qué, así como la forma en que usted puede modificar su consentimiento.
 
@@ -139,4 +141,4 @@ Los residentes en la UE tienen derecho a presentar una reclamación directamente
 ---
 
 *Esta política puede actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Cookie Policy v1.0*
+*© 2026 WorldCrown48 · Cookie Policy v1.1*

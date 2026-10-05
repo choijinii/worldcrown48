@@ -2,13 +2,15 @@
 title: Términos del servicio
 type: terms
 lang: es
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Términos del servicio · Terms of Service
 
-**Última actualización: 11 de junio de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 5 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+
+> Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
 Estos Términos del servicio (en adelante, los "Términos") establecen las condiciones de uso del servicio global de votación de fans que ofrece WorldCrown48 (en adelante, "WC48" o el "Servicio"). Al registrarse en el Servicio o utilizarlo, usted (en adelante, "fan", "organizador", "miembro" o, en conjunto, "usuario") acepta estos Términos.
 
@@ -166,4 +168,4 @@ Usted puede cancelar su cuenta en cualquier momento desde la configuración de l
 ---
 
 *Estos Términos pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Terms of Service v1.0*
+*© 2026 WorldCrown48 · Terms of Service v1.1*

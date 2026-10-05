@@ -2,13 +2,15 @@
 title: Community Guidelines
 type: community
 lang: en
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Community Guidelines
 
-**Last updated: June 11, 2026**
+**Last updated: October 5, 2026**
+
+> This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
 WorldCrown48 ("WC48", "we", "the Service") is a global fan-voting platform where people around the world support the Contestants they love. These Guidelines are the **minimum commitments** every Voter, Tournament organizer, and content contributor agrees to in order to keep the space safe and respectful.
 
@@ -203,4 +205,4 @@ WC48 continues to refine these Guidelines so that every Voter, Contestant, and T
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Community Guidelines v1.0*
+*© 2026 WorldCrown48 · Community Guidelines v1.1*

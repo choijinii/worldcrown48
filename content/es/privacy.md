@@ -2,13 +2,15 @@
 title: Política de privacidad
 type: privacy
 lang: es
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Política de privacidad · Privacy Policy
 
-**Última actualización: 11 de junio de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 5 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+
+> Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
 WorldCrown48 (en adelante, "WC48" o el "Servicio") trata con cuidado los datos personales de los usuarios y cumple la normativa aplicable, incluidos el Reglamento General de Protección de Datos (RGPD) de la UE, la Ley de Protección de Información Personal de Corea (PIPA) y la Ley de Redes de Información y Comunicaciones de Corea, la Ley de Protección de Datos del Reino Unido (Data Protection Act) y la Ley de Protección de la Privacidad Infantil en Internet de EE. UU. (COPPA).
 
@@ -209,4 +211,4 @@ Esta Política se actualiza en función de cambios normativos, de la ampliación
 ---
 
 *Esta Política podrá actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Privacy Policy v1.0*
+*© 2026 WorldCrown48 · Privacy Policy v1.1*

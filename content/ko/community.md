@@ -2,13 +2,15 @@
 title: 커뮤니티 가이드라인
 type: community
 lang: ko
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # 커뮤니티 가이드라인 · Community Guidelines
 
-**최종 업데이트: 2026년 6월 11일**
+**최종 업데이트: 2026년 10월 5일**
+
+> 이 문서는 한국어로 작성되었으며, 번역본과 내용이 다를 경우 한국어 원문이 우선합니다.
 
 WorldCrown48(이하 "월크48", "서비스")은 전 세계 팬이 자신이 좋아하는 Contestant를 투표로 응원하는 글로벌 플랫폼입니다. 본 가이드라인은 모든 Voter, Tournament 운영자, 콘텐츠 제공자가 안전하고 존중하는 환경에서 활동할 수 있도록 하는 **최소한의 약속**입니다.
 
@@ -203,4 +205,4 @@ EU 거주자는 EU DSA(Digital Services Act)에 따라 **분쟁 외 해결(ODR)*
 ---
 
 *본 가이드라인은 법적·서비스 변경에 따라 사전 공지 후 업데이트될 수 있습니다.*
-*© 2026 WorldCrown48 · Community Guidelines v1.0*
+*© 2026 WorldCrown48 · Community Guidelines v1.1*
