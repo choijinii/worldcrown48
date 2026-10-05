@@ -247,6 +247,27 @@ async function dismissCookieBanner(page: Page): Promise<void> {
   await expect(reject).toBeHidden({ timeout: 15_000 });
 }
 
+/**
+ * COOKIE-1 §9 게이트 1 — 데스크톱 동의 바는 "한 줄"이다. 정확히 56px 를 단언하지 않는다
+ * (CI 리눅스 글꼴은 몇 px 다를 수 있다 — 검수 2). 대신 ① 높이 ≤ 64px ② 제목과 버튼 3개의
+ * 세로 중심이 같은 줄(차이 ≤ 6px).
+ */
+async function expectOneLineBar(page: Page): Promise<void> {
+  const bar = await page.locator(".cookie-banner").boundingBox();
+  if (!bar) throw new Error("no consent bar box");
+  expect(bar.height, "동의 바 높이(한 줄)").toBeLessThanOrEqual(64);
+  const title = await page.locator(".cookie-banner .cb-title").boundingBox();
+  if (!title) throw new Error("no title box");
+  const titleMid = title.y + title.height / 2;
+  const buttons = page.locator(".cookie-banner .cb-actions button");
+  await expect(buttons).toHaveCount(3);
+  for (let i = 0; i < 3; i++) {
+    const b = await buttons.nth(i).boundingBox();
+    if (!b) throw new Error(`no button box ${i}`);
+    expect(Math.abs(b.y + b.height / 2 - titleMid), `제목과 버튼 ${i + 1} 같은 줄`).toBeLessThanOrEqual(6);
+  }
+}
+
 async function box(page: Page, selector: string) {
   const b = await page.locator(selector).first().boundingBox();
   if (!b) throw new Error(`no box for ${selector}`);
@@ -716,7 +737,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
           await expect(bar).toBeVisible({ timeout: 15_000 });
           const slot = page.getByTestId("banner-slot");
           await expect(slot).toBeVisible();
-          if (w === 1440) expect((await bar.boundingBox())?.height).toBe(56);
+          if (w === 1440) await expectOneLineBar(page);
 
           await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
           await page.waitForTimeout(300);
