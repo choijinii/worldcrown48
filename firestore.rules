@@ -313,7 +313,7 @@ service cloud.firestore {
     // ── userPrefs ──────────────────────────────────────────────────
     // Owner-only. Schema validation keeps the doc small + types tight:
     //   uid       — must equal the doc id and the caller's uid
-    //   lang      — 'ko' | 'en'
+    //   lang      — 'ko' | 'en' | 'es'
     //   theme     — optional: 'auto' | 'dark' | 'light'
     //   updatedAt — server time at write
     match /userPrefs/{uid} {
@@ -323,7 +323,8 @@ service cloud.firestore {
         request.auth != null
         && request.auth.uid == uid
         && request.resource.data.uid == uid
-        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en')
+        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en'
+            || request.resource.data.lang == 'es')
         && (
           !('theme' in request.resource.data.keys())
           || request.resource.data.theme == 'auto'
