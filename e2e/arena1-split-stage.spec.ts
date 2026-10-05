@@ -243,7 +243,8 @@ async function dismissCookieBanner(page: Page): Promise<void> {
     .catch(() => false);
   if (!shown) return;
   await reject.click();
-  await expect(reject).toBeHidden();
+  // 저장 경로에 hashIp 콜러블(최대 3초)과 Firestore 쓰기가 있다 — 5초 기본값은 빠듯하다.
+  await expect(reject).toBeHidden({ timeout: 15_000 });
 }
 
 async function box(page: Page, selector: string) {
@@ -683,7 +684,8 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.locator(".cb-more").click();
       // a1_pitch_view 는 열자마자 · a1_lab_locked_hover 는 잠긴 Lab 단추(이동 없음).
       const locked = page.locator(".lab-cta-locked");
-      if (await locked.isVisible().catch(() => false)) await locked.click();
+      // aria-disabled 단추라 일반 click 은 "enabled" 를 기다린다 — 클릭 이벤트만 보낸다.
+      if (await locked.isVisible().catch(() => false)) await locked.dispatchEvent("click");
       await page.waitForTimeout(3_000);
       const before = (await context.cookies()).filter((c) => c.name.startsWith("_ga"));
       expect(before.map((c) => c.name), "동의 전 _ga 쿠키").toEqual([]);
