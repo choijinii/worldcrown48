@@ -662,4 +662,50 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.getByTestId("arena-intro")).toHaveCount(0);
     });
   });
+
+  // COOKIE-1 (대표 확정 2026-10-05): 동의 바가 보이는 동안 끝까지 내리면 배너 자리가 동의 바
+  // 위로 완전히 드러나야 한다 — 동의 바가 실제 높이만큼 페이지 아래 여백을 둔다. 무대·배너 자리는
+  // 그대로(R7). 데스크톱 첫 화면에서 무대 아래 56px 가 덮이는 것은 허용(대표).
+  test.describe("COOKIE-1 동의 바 · 배너 자리", () => {
+    test.beforeEach(async () => {
+      // 테스트 계정에 남은 동의 기록이 있으면 동의 바가 뜨지 않는다 — 이 묶음은 첫 방문으로 본다.
+      await db().doc(`cookieConsents/${UID}`).delete().catch(() => {});
+    });
+
+    for (const [w, h] of [
+      [390, 844],
+      [360, 780],
+      [768, 1024],
+      [1440, 900],
+    ] as const) {
+      test.describe(`${w}×${h}`, () => {
+        test.use({ viewport: { width: w, height: h }, isMobile: w < 1024, hasTouch: w < 1024 });
+
+        test("끝까지 내리면 배너 자리와 동의 바가 겹치지 않는다 · 동의 바가 사라지면 여백도 0", async ({ page }) => {
+          await page.goto(`/arena/${TID}?lang=ko`);
+          await expect(stage(page)).toBeVisible({ timeout: 30_000 });
+          const bar = page.locator(".cookie-banner");
+          await expect(bar).toBeVisible({ timeout: 15_000 });
+          const slot = page.getByTestId("banner-slot");
+          await expect(slot).toBeVisible();
+          if (w === 1440) expect((await bar.boundingBox())?.height).toBe(56);
+
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          await page.waitForTimeout(300);
+          const s = await slot.boundingBox();
+          const b = await bar.boundingBox();
+          if (!s || !b) throw new Error("no box");
+          expect(Math.round(s.y + s.height), `slot bottom ≤ bar top (${w}×${h})`).toBeLessThanOrEqual(
+            Math.round(b.y),
+          );
+          await page.screenshot({ path: `playwright-report/cookie1-scrollend-${w}x${h}.png` });
+
+          // 동의 바가 사라지면 여백도 없어진다.
+          await page.getByRole("button", { name: /Reject non-essential/ }).click();
+          await expect(bar).toBeHidden();
+          await expect(page.locator(".cb-reserve")).toHaveCount(0);
+        });
+      });
+    }
+  });
 });
