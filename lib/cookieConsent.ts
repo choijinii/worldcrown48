@@ -192,12 +192,24 @@ export function readConsentBreadcrumbCookie(now: Date): Date | null {
     .split("; ")
     .find((row) => row.startsWith(`${CONSENT_COOKIE_NAME}=`));
   if (!match) return null;
-  const raw = match.slice(CONSENT_COOKIE_NAME.length + 1);
-  const [version, savedAtMs] = raw.split(".");
+  return parseConsentBreadcrumb(match.slice(CONSENT_COOKIE_NAME.length + 1), now);
+}
+
+/**
+ * Parse a breadcrumb value `${CURRENT_POLICY_VERSION}.${ms}`. Pure.
+ *
+ * COOKIE-1: the version itself contains a dot ("1.0"), so split at the LAST
+ * dot. The old `raw.split(".")` read the version as "1" and never matched —
+ * the breadcrumb was never honoured. The format is unchanged (R4).
+ */
+export function parseConsentBreadcrumb(raw: string, now: Date): Date | null {
+  const cut = raw.lastIndexOf(".");
+  if (cut <= 0) return null;
+  const version = raw.slice(0, cut);
+  const savedAtMs = raw.slice(cut + 1);
   if (version !== CURRENT_POLICY_VERSION) return null; // policy bumped → re-prompt
-  const ms = Number(savedAtMs);
-  if (!Number.isFinite(ms)) return null;
-  const savedAt = new Date(ms);
+  if (!/^\d+$/.test(savedAtMs)) return null;
+  const savedAt = new Date(Number(savedAtMs));
   if (savedAt.getTime() + CONSENT_VALIDITY_MS <= now.getTime()) return null;
   return savedAt;
 }
