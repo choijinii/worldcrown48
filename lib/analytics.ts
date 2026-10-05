@@ -22,16 +22,22 @@
  * a console no-op if Analytics isn't configured (no measurementId, SSR, etc.),
  * so callers don't have to guard.
  *
- * Consent gate (handoff §8 trap — circular consent):
- *   The first four events above predate the consent system and are kept
- *   ungated for the launch waitlist. ALL E-1 / future-domain events MUST
- *   call trackWithConsent() which checks the analytics consent flag and
- *   no-ops when the user has not granted it. The cookie_* events are an
- *   intentional exception — they describe the consent transaction itself,
- *   so they fire even without consent (necessary for legal evidence).
+ * Consent gate — COOKIE-1 (R8 · R9 · 대표 2026-10-05 "통계는 하나의 문으로"):
+ *   EVERY event — launch pad, pitch, crown, admin and cookie_* alike — passes
+ *   the analytics-consent gate inside track(). Before analytics consent we do
+ *   not even call getAnalytics(), so no GA cookie (_ga…) is set (R2).
+ *   There is no bypass: the legal record of consent is the Firestore
+ *   `cookieConsents` doc, not an analytics event. (The old rule "cookie_*
+ *   events fire without consent" is retired.)
+ *   Withdrawing consent turns GA collection off (setAnalyticsCollectionEnabled).
  */
 
-import { isSupported, getAnalytics, logEvent } from "firebase/analytics";
+import {
+  isSupported,
+  getAnalytics,
+  logEvent,
+  setAnalyticsCollectionEnabled,
+} from "firebase/analytics";
 import { getFirebaseApp } from "./firebase";
 
 type EventParams = Record<string, string | number | boolean>;
@@ -56,37 +62,39 @@ function ensureAnalytics() {
   return analyticsReady;
 }
 
-export async function track(event: string, params: EventParams = {}): Promise<void> {
-  const a = await ensureAnalytics();
-  if (!a) return;
-  logEvent(a, event, params);
+/**
+ * Analytics consent — set synchronously by CookieConsentProvider the moment a
+ * consent decision is applied (saved, or restored from the Firestore record).
+ * A plain module value, not React state, so an event fired right after a save
+ * sees the new decision in the same tick (COOKIE-1 Phase E ordering).
+ */
+let analyticsConsent = false;
+
+export function setAnalyticsConsent(granted: boolean): void {
+  analyticsConsent = granted;
+  // Only flip the collection switch if GA was already woken — never wake it
+  // just to say "off" (R9: no getAnalytics() before consent).
+  if (analyticsReady) {
+    void analyticsReady.then((a) => {
+      if (a) setAnalyticsCollectionEnabled(a, granted);
+    });
+  }
 }
 
 /**
- * Same as `track()`, but no-ops unless the user has granted analytics
- * consent. Use this for all events introduced after the E-1 Policy Hub
- * landed (handoff §8 circular-consent trap).
- *
- * Exceptions (events that bypass the gate by passing `bypassConsent: true`):
- *   - cookie_* events that describe the consent transaction itself
- *
- * The consent flag is read via a thunk so this module never imports React.
- * The provider wires it up at app boot via setAnalyticsConsentReader().
+ * Send an analytics event — only with analytics consent (R9). Callers do not
+ * need to guard; without consent this is a no-op and GA is never initialised.
  */
-let analyticsConsentReader: () => boolean = () => false;
-
-export function setAnalyticsConsentReader(reader: () => boolean): void {
-  analyticsConsentReader = reader;
+export async function track(event: string, params: EventParams = {}): Promise<void> {
+  if (!analyticsConsent) return;
+  const a = await ensureAnalytics();
+  // Consent may have been withdrawn while GA was loading.
+  if (!a || !analyticsConsent) return;
+  logEvent(a, event, params);
 }
 
-export async function trackWithConsent(
-  event: string,
-  params: EventParams = {},
-  opts: { bypassConsent?: boolean } = {},
-): Promise<void> {
-  if (!opts.bypassConsent && !analyticsConsentReader()) return;
-  await track(event, params);
-}
+/** Same gate as track() — kept so existing call sites read unchanged. */
+export const trackWithConsent = track;
 
 /** SHA-256 hex digest via Web Crypto. Empty string for non-browser contexts. */
 export async function hashEmail(email: string): Promise<string> {

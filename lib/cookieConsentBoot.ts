@@ -12,6 +12,8 @@
  * 이 함수가 정하지 않는 것: 동의 문구 · 동의 바 배치(COOKIE-1 범위) · 저장할 때의 uid
  * (저장 순간 lib/firebase.ts 의 익명 계정 함수로 정한다 — 로그인 사용자면 그 사람, 아니면 그때 익명 계정 생성).
  */
+import type { CookieConsentDoc } from "@/lib/cookieConsent";
+
 export type ConsentBootAction = "hide-by-cookie" | "check-firestore" | "show-banner";
 
 export function planConsentBoot(input: {
@@ -21,4 +23,57 @@ export function planConsentBoot(input: {
   if (input.cookieSavedAt) return "hide-by-cookie";
   if (input.existingUid) return "check-firestore";
   return "show-banner";
+}
+
+/**
+ * 첫 화면 순서 전체 (COOKIE-1 · lib/__tests__/policy/consentBoot.test.ts).
+ *
+ * F-1 (대표 승인 2026-10-05): 흔적 쿠키에는 카테고리 선택이 없다. 그래서 흔적이 있으면 동의 바는
+ * **바로 숨기고**(위 planConsentBoot 의 "hide-by-cookie"), 그 뒤 **이미 있는 사용자**일 때만
+ * 동의 기록을 읽어 카테고리를 되살린다 — 그래야 돌아온 팬의 분석 동의가 이어진다.
+ * 계정은 만들지 않는다(D-41: getExistingUid 는 조회만). 사용자가 없거나 읽기에 실패하면
+ * 분석은 꺼진 채로 둔다(R2 — 모르면 동의 없음).
+ */
+export async function runConsentBoot(
+  deps: {
+    cookieSavedAt: Date | null;
+    /** 이미 있는 사용자의 uid — 없으면 null. 절대 계정을 만들지 않는다. */
+    getExistingUid: () => Promise<string | null>;
+    loadConsent: (uid: string) => Promise<CookieConsentDoc | null>;
+  },
+  on: {
+    hideBanner: (savedAt: Date | null) => void;
+    showBanner: () => void;
+    applyRecord: (record: CookieConsentDoc) => void;
+  },
+): Promise<void> {
+  const { cookieSavedAt } = deps;
+  const byCookie = planConsentBoot({ cookieSavedAt, existingUid: null }) === "hide-by-cookie";
+  if (byCookie) on.hideBanner(cookieSavedAt);
+
+  let uid: string | null = null;
+  try {
+    uid = await deps.getExistingUid();
+  } catch {
+    uid = null;
+  }
+  if (!uid) {
+    // 첫 방문(사용자 없음) — 계정을 만들지 않고 동의 바. 흔적이 있으면 숨긴 채(분석 꺼짐).
+    if (!byCookie) on.showBanner();
+    return;
+  }
+
+  let record: CookieConsentDoc | null = null;
+  try {
+    record = await deps.loadConsent(uid);
+  } catch {
+    record = null; // 읽기 실패 = 기록 없음으로 본다
+  }
+
+  if (record) {
+    on.applyRecord(record);
+    if (!byCookie) on.hideBanner(null);
+  } else if (!byCookie) {
+    on.showBanner();
+  }
 }
