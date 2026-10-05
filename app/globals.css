@@ -543,6 +543,17 @@ input { font: inherit; }
   cursor: pointer;
 }
 .cb-more:hover { color: var(--color-gold-hover); }
+/* POLICY-ES-1 배치 C — es 버튼: 스페인어 위 · 영어 아래 두 줄(병기 · 같은 크기 · 한 줄 56px). */
+.cookie-banner[data-lang="es"] .cb-actions button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  line-height: 1.2;
+}
 .cb-more:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 .cb-eyebrow {
   display: inline-flex;
