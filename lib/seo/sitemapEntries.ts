@@ -31,7 +31,7 @@
  *
  * 페이지마다 실제로 내용이 있는 언어만 싣는다:
  *   - 홈 · 뉴스룸 목록 · 아레나 · 차트: ko · en · es (화면 문구 3언어)
- *   - 정책 4종: ko · en (본문 파일이 content/ko, content/en 두 벌뿐)
+ *   - 정책 4종: ko · en · es (본문 파일 content/ko · content/en · content/es — POLICY-ES-1)
  *   - 기사: 제목이 채워진 언어만 (빈 언어는 다른 언어로 대신 보여 주므로 따로 싣지 않음)
  */
 import type { MetadataRoute } from "next";
@@ -43,8 +43,8 @@ export const SITE_URL = "https://www.worldcrown48.com";
 export const SITEMAP_LANGS = ["ko", "en", "es"] as const;
 export type SitemapLang = (typeof SITEMAP_LANGS)[number];
 
-/** 정책 본문은 content/ko · content/en 두 벌뿐이다. */
-export const POLICY_LANGS: readonly SitemapLang[] = ["ko", "en"];
+/** 정책 본문은 content/ko · content/en · content/es 세 벌이다(POLICY-ES-1 · D-42 갱신 2026-10-05). */
+export const POLICY_LANGS: readonly SitemapLang[] = ["ko", "en", "es"];
 
 /** 사이트맵 판단에 필요한 대회 필드만 — Firestore 문서에서 그대로 옮겨 담는다. */
 export interface SitemapTournament {
