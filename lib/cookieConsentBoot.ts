@@ -40,6 +40,11 @@ export async function runConsentBoot(
     /** 이미 있는 사용자의 uid — 없으면 null. 절대 계정을 만들지 않는다. */
     getExistingUid: () => Promise<string | null>;
     loadConsent: (uid: string) => Promise<CookieConsentDoc | null>;
+    /**
+     * 이 세션에서 팬이 동의 버튼(다시 열기 · 필수만 · 모두 허용 · 저장)을 눌렀는가.
+     * 누른 뒤에 도착한 부팅 결과는 버린다 — 옛 기록이 새 선택을 덮지 않게(검수 1 · R2).
+     */
+    userActed?: () => boolean;
   },
   on: {
     hideBanner: (savedAt: Date | null) => void;
@@ -48,6 +53,7 @@ export async function runConsentBoot(
   },
 ): Promise<void> {
   const { cookieSavedAt } = deps;
+  const stale = () => deps.userActed?.() === true;
   const byCookie = planConsentBoot({ cookieSavedAt, existingUid: null }) === "hide-by-cookie";
   if (byCookie) on.hideBanner(cookieSavedAt);
 
@@ -57,6 +63,7 @@ export async function runConsentBoot(
   } catch {
     uid = null;
   }
+  if (stale()) return;
   if (!uid) {
     // 첫 방문(사용자 없음) — 계정을 만들지 않고 동의 바. 흔적이 있으면 숨긴 채(분석 꺼짐).
     if (!byCookie) on.showBanner();
@@ -69,6 +76,7 @@ export async function runConsentBoot(
   } catch {
     record = null; // 읽기 실패 = 기록 없음으로 본다
   }
+  if (stale()) return; // 읽는 사이 팬이 직접 골랐다 — 늦은 기록은 버린다
 
   if (record) {
     on.applyRecord(record);

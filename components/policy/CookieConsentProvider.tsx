@@ -162,6 +162,9 @@ export function CookieConsentProvider({
 
   // Track the uid; refresh on auth state change. Refs avoid re-renders.
   const uidRef = useRef<string | null>(null);
+  // 검수 1 (R2): 팬이 이 세션에서 동의 버튼(다시 열기 · 필수만 · 모두 허용 · 저장)을
+  // 누른 뒤에는 늦게 도착한 부팅 결과를 버린다 — 옛 기록이 새 선택을 덮지 않게.
+  const userActedRef = useRef(false);
 
   // ── Boot: breadcrumb cookie → existing user → Firestore record → set state ──
   // The order lives in runConsentBoot (lib/cookieConsentBoot.ts, unit-tested).
@@ -202,6 +205,7 @@ export function CookieConsentProvider({
             return null;
           }
         },
+        userActed: () => userActedRef.current,
       },
       {
         hideBanner: (savedAt) => {
@@ -242,6 +246,7 @@ export function CookieConsentProvider({
       source: "banner" | "modal",
       decision: ConsentDecision,
     ) => {
+      userActedRef.current = true;
       // Order lives in commitConsentDecision (lib/policy/consentEvents.ts,
       // unit-tested): a withdrawal of analytics is applied at once — even if
       // the save fails or no uid is available (review I-2 · R2); a grant is
@@ -326,6 +331,7 @@ export function CookieConsentProvider({
 
   // ── Footer reopen ──
   const reopen = useCallback(() => {
+    userActedRef.current = true;
     clearConsentBreadcrumbCookie();
     setBannerReopened(true);
     setBannerState("visible");
