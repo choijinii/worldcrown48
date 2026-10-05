@@ -230,9 +230,10 @@ async function openStage(page: Page, lang = "ko"): Promise<void> {
 }
 
 /**
- * 첫 방문 쿠키 배너(하단 고정)는 모바일 가로 390 높이에서 무대 아래쪽을 덮어 탭을 가로챈다.
- * 이 스펙은 무대를 본다 — 배너 자신의 [필수만] 버튼으로 닫고 시작한다. (흔적 쿠키를 미리
- * 심는 방법은 쓸 수 없다: 버전 "1.0" 의 점 때문에 앱이 그 쿠키를 읽지 못한다 — 별도 보고.)
+ * 첫 방문 동의 바(하단 고정)를 [필수만] 버튼으로 닫고 시작한다 — 이 스펙은 무대를 본다.
+ * COOKIE-1 이후: 모바일 가로에서는 동의 바가 애초에 뜨지 않고(대기 후 그냥 지나간다),
+ * 데스크톱·세로에서는 56px·두 줄로 줄었지만 칸 아래쪽을 덮을 수 있어 여전히 닫는다.
+ * (흔적 쿠키 "1.0.<ms>" 는 이제 읽힌다 — 예전 점 파싱 결함은 COOKIE-1 Phase A 에서 고쳤다.)
  */
 async function dismissCookieBanner(page: Page): Promise<void> {
   const reject = page.getByRole("button", { name: /Reject non-essential/ });
