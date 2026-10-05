@@ -21,7 +21,7 @@ These Terms apply alongside the [Community Guidelines](/policies/community), the
 WC48 is a global web platform where users vote for and support the people, characters, or works they love ("Contestants") through 1-vs-1 Matches and round-style Tournaments.
 
 - WC48 is a service that **visualizes fan voting**; it is **unrelated to outcome prediction, betting, or gambling**
-- WC48 is not affiliated with FIFA®, the IOC, or any sports body or media company
+- WC48 is not affiliated with any sports body or media company
 - WC48 is not directly tied to the results of real-world matches or seasons
 
 ---

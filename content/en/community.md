@@ -86,7 +86,7 @@ The following content is not allowed in any form. It will be removed on sight, a
 ### 2.8 Intellectual Property Infringement
 
 - Images, logos, or video used without permission from the rightsholder
-- Unauthorized use of protected marks such as FIFA® or the Olympic Rings® (WC48 is not affiliated with any official organization)
+- Unauthorized use of protected marks such as other organizations' trademarks or logos (WC48 is not affiliated with any official organization)
 - Passing off someone else's content as your own
 
 ---

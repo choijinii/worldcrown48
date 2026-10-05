@@ -30,7 +30,7 @@ function EmbedFacadeView({ facade, alt }: { facade: EmbedFacade; alt: string }):
         <iframe
           className={styles.iframe}
           src={facade.iframeSrc}
-          title={alt || "Official video embed"}
+          title={alt || "Video embed"}
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
