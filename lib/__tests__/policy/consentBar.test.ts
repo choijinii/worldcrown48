@@ -55,3 +55,17 @@ describe("shouldShowConsentBar — 모바일 가로는 미룬다", () => {
     expect(shouldShowConsentBar({ mode: stageMode(1023, 600) })).toBe(false);
   });
 });
+
+/**
+ * 리뷰 I-1 — 팬이 직접 "쿠키 설정 다시 열기"를 누르면 가로에서도 보인다.
+ * 미루기는 저절로 뜨는 첫 동의 바에만 적용한다 — 철회하려는 팬을 막으면 안 된다.
+ */
+describe("shouldShowConsentBar — 직접 다시 연 경우", () => {
+  it("가로라도 팬이 다시 열었으면 보인다", () => {
+    expect(shouldShowConsentBar({ mode: "landscape", reopened: true })).toBe(true);
+  });
+
+  it("저절로 뜬 첫 동의 바는 가로에서 미룬다", () => {
+    expect(shouldShowConsentBar({ mode: "landscape", reopened: false })).toBe(false);
+  });
+});

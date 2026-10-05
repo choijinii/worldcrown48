@@ -20,8 +20,14 @@ export function consentBarReserve(input: { shown: boolean; height: number }): nu
  *
  * 모바일 가로(`stageMode` = "landscape" — 폭 < 1024 이고 가로가 세로보다 김)는 매치 무대의
  * 집중 모드다(원장 D-17 ③ · D-21 바뀜 09-19). 그 동안 동의 바는 **미룬다** — 동의를 가정하지
- * 않으므로 필수 쿠키만 쓴다(R2). 세로로 돌리면 다시 보인다.
+ * 않으므로 필수 쿠키만 쓴다(R2). 세로로 돌리면 다시 보인다. 단, 팬이 직접 다시 연 동의 바는
+ * 가로에서도 보인다 — 미루기는 저절로 뜨는 첫 동의 바에만.
  */
-export function shouldShowConsentBar(input: { mode: StageMode }): boolean {
+export function shouldShowConsentBar(input: {
+  mode: StageMode;
+  /** 팬이 직접 "쿠키 설정 다시 열기"를 눌렀다 — 철회는 막지 않는다(리뷰 I-1). */
+  reopened?: boolean;
+}): boolean {
+  if (input.reopened) return true;
   return input.mode !== "landscape";
 }

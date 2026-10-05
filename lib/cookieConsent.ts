@@ -210,6 +210,9 @@ export function parseConsentBreadcrumb(raw: string, now: Date): Date | null {
   if (version !== CURRENT_POLICY_VERSION) return null; // policy bumped → re-prompt
   if (!/^\d+$/.test(savedAtMs)) return null;
   const savedAt = new Date(Number(savedAtMs));
+  // Tampered values: an unrepresentable date (Invalid Date would crash date
+  // formatting in the modal) or a save time in the future → re-prompt.
+  if (!Number.isFinite(savedAt.getTime()) || savedAt.getTime() > now.getTime()) return null;
   if (savedAt.getTime() + CONSENT_VALIDITY_MS <= now.getTime()) return null;
   return savedAt;
 }

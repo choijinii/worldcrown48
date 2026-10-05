@@ -113,3 +113,60 @@ describe("이미 분석에 동의한 팬이 설정 창을 다시 연다", () => 
     expect(sent()).toEqual([["cookie_customize_open", {}]]);
   });
 });
+
+/**
+ * 리뷰 I-2 — 철회는 저장 성공을 기다리지 않는다 (R2 "모르면 동의 없음").
+ * 분석을 끄는 결정은 저장 전에 바로 적용하고, 켜는 결정은 저장이 성공한 뒤에만 적용한다.
+ */
+describe("commitConsentDecision — 저장과 적용의 순서", () => {
+  function run(opts: { analytics: boolean; uid: string | null; saveFails?: boolean }) {
+    const log: string[] = [];
+    const prefs = normalizePreferences({ functional: true, analytics: opts.analytics, marketing: false });
+    const promise = events.commitConsentDecision(opts.analytics ? "save" : "reject", prefs, {
+      resolveUid: async () => {
+        log.push("uid");
+        return opts.uid;
+      },
+      save: async () => {
+        log.push("save");
+        if (opts.saveFails) throw new Error("offline");
+      },
+      applyAnalyticsConsent: (g) => log.push(`apply:${g}`),
+      track: async (e) => {
+        log.push(`track:${e}`);
+      },
+    });
+    return { log, promise };
+  }
+
+  it("철회는 저장보다 먼저 적용한다", async () => {
+    const r = run({ analytics: false, uid: "u1" });
+    await r.promise;
+    expect(r.log.slice(0, 2)).toEqual(["apply:false", "uid"]);
+  });
+
+  it("저장이 실패해도 철회는 유지된다 (오류는 그대로 올린다)", async () => {
+    const r = run({ analytics: false, uid: "u1", saveFails: true });
+    await expect(r.promise).rejects.toThrow("offline");
+    expect(r.log).toContain("apply:false");
+    expect(r.log).not.toContain("apply:true");
+  });
+
+  it("계정을 얻지 못해도 철회는 적용되고 저장은 하지 않는다", async () => {
+    const r = run({ analytics: false, uid: null });
+    await expect(r.promise).resolves.toEqual({ saved: false });
+    expect(r.log).toEqual(["apply:false", "uid"]);
+  });
+
+  it("동의(분석 켬)는 저장이 성공한 뒤에만 적용하고 그다음 이벤트", async () => {
+    const r = run({ analytics: true, uid: "u1" });
+    await expect(r.promise).resolves.toEqual({ saved: true });
+    expect(r.log).toEqual(["uid", "save", "apply:true", "track:cookie_save"]);
+  });
+
+  it("동의 저장이 실패하면 켜지 않는다", async () => {
+    const r = run({ analytics: true, uid: "u1", saveFails: true });
+    await expect(r.promise).rejects.toThrow("offline");
+    expect(r.log).not.toContain("apply:true");
+  });
+});

@@ -59,7 +59,7 @@ import {
 import { runConsentBoot } from "@/lib/cookieConsentBoot";
 import { setAnalyticsConsent, track } from "@/lib/analytics";
 import {
-  recordConsentDecision,
+  commitConsentDecision,
   trackCustomizeOpen,
   type ConsentDecision,
 } from "@/lib/policy/consentEvents";
@@ -71,6 +71,8 @@ export type ModalState = "closed" | "open" | "saving" | "saved";
 
 export interface CookieConsentContextValue {
   bannerState: BannerState;
+  /** The fan reopened the bar from the footer (not the automatic first bar). */
+  bannerReopened: boolean;
   modalState: ModalState;
   preferences: ConsentPreferences;
   /** The record currently persisted in Firestore, or null if none. */
@@ -149,6 +151,7 @@ export function CookieConsentProvider({
   const { lang } = useI18n();
 
   const [bannerState, setBannerState] = useState<BannerState>("resolving");
+  const [bannerReopened, setBannerReopened] = useState(false);
   const [modalState, setModalState] = useState<ModalState>("closed");
   const [preferences, setPreferences] = useState<ConsentPreferences>(
     MODAL_DEFAULT_PREFERENCES,
@@ -239,52 +242,46 @@ export function CookieConsentProvider({
       source: "banner" | "modal",
       decision: ConsentDecision,
     ) => {
-      // ANON-1: this is the moment an anonymous account may be created — the
-      // visitor pressed a consent button. ensureAnonymousUid() returns the current
-      // user if there is one (signed-in or an earlier anonymous account), so a
-      // visitor who signed in after boot is saved under their real uid.
-      let uid: string | null = null;
-      try {
-        const user = await ensureAnonymousUid();
-        uid = user?.uid ?? null;
-        uidRef.current = uid;
-      } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[CookieConsent] anonymous auth on save failed:", err);
-        }
-      }
-      if (!uid) {
-        // Auth never resolved — record nothing, but at least hide UI so the
-        // user isn't stuck. The save will be retried on next visit.
-        setPreferences(next);
-        setBannerState("hidden");
-        if (source === "modal") setModalState("saved");
-        return;
-      }
-
-      if (source === "modal") setModalState("saving");
-
+      // Order lives in commitConsentDecision (lib/policy/consentEvents.ts,
+      // unit-tested): a withdrawal of analytics is applied at once — even if
+      // the save fails or no uid is available (review I-2 · R2); a grant is
+      // applied only after the record is saved, then the cookie_* event is
+      // sent under that consent (F-3 — "필수만" therefore never sends).
+      const applyAnalyticsConsent = (granted: boolean) => {
+        setAnalyticsConsent(granted);
+        setAnalyticsGranted(granted);
+      };
       const savedAt = new Date();
-      const ipHash = await fetchIpHash();
-
       try {
-        await saveConsent({
-          uid,
-          preferences: next,
-          ipHash,
-          lang,
-          savedAt,
-        });
-        // COOKIE-1 F-2 · E: apply the new analytics consent synchronously,
-        // right after the record is saved, THEN send the cookie_* event under
-        // that consent (F-3 — "필수만" therefore never sends).
-        void recordConsentDecision(decision, next, {
-          applyAnalyticsConsent: setAnalyticsConsent,
+        const { saved } = await commitConsentDecision(decision, next, {
+          // ANON-1: this is the moment an anonymous account may be created — the
+          // visitor pressed a consent button. ensureAnonymousUid() returns the current
+          // user if there is one (signed-in or an earlier anonymous account), so a
+          // visitor who signed in after boot is saved under their real uid.
+          resolveUid: async () => {
+            try {
+              const user = await ensureAnonymousUid();
+              uidRef.current = user?.uid ?? null;
+              return uidRef.current;
+            } catch (err) {
+              if (process.env.NODE_ENV !== "production") {
+                console.warn("[CookieConsent] anonymous auth on save failed:", err);
+              }
+              return null;
+            }
+          },
+          save: async (uid) => {
+            if (source === "modal") setModalState("saving");
+            const ipHash = await fetchIpHash();
+            await saveConsent({ uid, preferences: next, ipHash, lang, savedAt });
+          },
+          applyAnalyticsConsent,
           track,
         });
-        setAnalyticsGranted(next.analytics);
         setPreferences(next);
-        setLastSavedAt(savedAt);
+        if (saved) setLastSavedAt(savedAt);
+        // Auth never resolved → nothing recorded, but hide the UI so the user
+        // isn't stuck. The save will be retried on next visit.
         if (source === "modal") setModalState("saved");
         // Banner hides on every save path — the modal stays open with
         // "✓ Saved" until the user closes it.
@@ -330,6 +327,7 @@ export function CookieConsentProvider({
   // ── Footer reopen ──
   const reopen = useCallback(() => {
     clearConsentBreadcrumbCookie();
+    setBannerReopened(true);
     setBannerState("visible");
     setModalState("closed");
   }, []);
@@ -337,6 +335,7 @@ export function CookieConsentProvider({
   const value = useMemo<CookieConsentContextValue>(
     () => ({
       bannerState,
+      bannerReopened,
       modalState,
       preferences,
       savedRecord,
@@ -351,6 +350,7 @@ export function CookieConsentProvider({
     }),
     [
       bannerState,
+      bannerReopened,
       modalState,
       preferences,
       savedRecord,

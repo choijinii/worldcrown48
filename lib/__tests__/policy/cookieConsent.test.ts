@@ -103,6 +103,15 @@ describe("parseConsentBreadcrumb", () => {
     expect(parseConsentBreadcrumb(`1.0.${SAVED.getTime()}`, justBefore)).not.toBeNull();
   });
 
+  it("날짜로 만들 수 없는 큰 수는 null — Invalid Date 가 모달 날짜 표시를 죽이지 않게", () => {
+    expect(parseConsentBreadcrumb("1.0.99999999999999999", LATER)).toBeNull();
+  });
+
+  it("지금보다 미래에 저장된 값은 null (조작된 쿠키 — 다시 묻는다)", () => {
+    expect(parseConsentBreadcrumb(`1.0.${LATER.getTime() + 60_000}`, LATER)).toBeNull();
+    expect(parseConsentBreadcrumb(`1.0.${LATER.getTime()}`, LATER)?.getTime()).toBe(LATER.getTime());
+  });
+
   it("손상된 값은 null", () => {
     for (const raw of ["", "1.0.", "abc", "1.0.NaN", "1.0.12abc", ".123", "1.0.-5"]) {
       expect(parseConsentBreadcrumb(raw, LATER), raw).toBeNull();

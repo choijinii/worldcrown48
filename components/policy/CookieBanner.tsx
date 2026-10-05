@@ -70,14 +70,16 @@ function useViewportMode(): StageMode {
 }
 
 export function CookieBanner(): JSX.Element | null {
-  const { bannerState, acceptAll, rejectAll, openModal } = useCookieConsent();
+  const { bannerState, bannerReopened, acceptAll, rejectAll, openModal } =
+    useCookieConsent();
   const detailsId = useId();
   const [expanded, setExpanded] = useState(false);
   const barRef = useRef<HTMLElement>(null);
   const [barHeight, setBarHeight] = useState(0);
   const mode = useViewportMode();
   // §9 게이트 2 — 모바일 가로에서는 동의 바를 미룬다(동의를 가정하지 않는다 · R2).
-  const deferred = !shouldShowConsentBar({ mode });
+  // 팬이 직접 다시 연 동의 바는 가로에서도 보인다(리뷰 I-1 — 철회를 막지 않는다).
+  const deferred = !shouldShowConsentBar({ mode, reopened: bannerReopened });
   const shown = bannerState === "visible" && !deferred;
 
   // 동의 바의 실제 높이를 잰다 — '자세히'를 펼치거나 화면 폭이 바뀌면 다시.
