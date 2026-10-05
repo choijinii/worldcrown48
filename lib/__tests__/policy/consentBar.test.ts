@@ -6,7 +6,8 @@
  * **실제 높이**만큼 여백을 둔다. 사라지면 여백도 0. (무대·BannerSlot·stageLayout 은 그대로 — R7)
  */
 import { describe, expect, it } from "vitest";
-import { consentBarReserve } from "@/lib/policy/consentBar";
+import { consentBarReserve, shouldShowConsentBar } from "@/lib/policy/consentBar";
+import { stageMode } from "@/lib/arena/stageLayout";
 
 describe("consentBarReserve — 페이지 맨 아래 여백", () => {
   it("보이는 동안은 측정한 높이만큼 (소수는 올림 — 1px 도 겹치지 않게)", () => {
@@ -26,5 +27,31 @@ describe("consentBarReserve — 페이지 맨 아래 여백", () => {
     expect(consentBarReserve({ shown: true, height: 0 })).toBe(0);
     expect(consentBarReserve({ shown: true, height: Number.NaN })).toBe(0);
     expect(consentBarReserve({ shown: true, height: -4 })).toBe(0);
+  });
+});
+
+/**
+ * §9 게이트 2 — 모바일 가로(폭 < 1024 · 가로가 세로보다 김 = stageMode "landscape")에서는
+ * 동의 바를 보이지 않는다. 동의를 **미루는 것**이지 가정하는 것이 아니다(R2) — 그동안은
+ * 필수 쿠키만. 세로로 돌리면 다시 보인다. 가로 판정은 stageLayout 을 가져다 쓰기만 한다(R7).
+ */
+describe("shouldShowConsentBar — 모바일 가로는 미룬다", () => {
+  it("가로(landscape)면 보이지 않는다", () => {
+    expect(shouldShowConsentBar({ mode: "landscape" })).toBe(false);
+  });
+
+  it("세로·데스크톱이면 보인다", () => {
+    expect(shouldShowConsentBar({ mode: "portrait" })).toBe(true);
+    expect(shouldShowConsentBar({ mode: "desktop" })).toBe(true);
+  });
+
+  it("휴대폰 가로 844×390 → 숨김, 세로로 돌린 390×844 → 보임", () => {
+    expect(shouldShowConsentBar({ mode: stageMode(844, 390) })).toBe(false);
+    expect(shouldShowConsentBar({ mode: stageMode(390, 844) })).toBe(true);
+  });
+
+  it("폭 1024 경계 — 1024 가로 창은 데스크톱이라 보이고, 1023 가로는 숨김", () => {
+    expect(shouldShowConsentBar({ mode: stageMode(1024, 600) })).toBe(true);
+    expect(shouldShowConsentBar({ mode: stageMode(1023, 600) })).toBe(false);
   });
 });

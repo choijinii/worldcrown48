@@ -28,8 +28,46 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { consentBarReserve } from "@/lib/policy/consentBar";
+import {
+  pickViewportHeight,
+  stageMode,
+  type StageMode,
+} from "@/lib/arena/stageLayout";
+import {
+  consentBarReserve,
+  shouldShowConsentBar,
+} from "@/lib/policy/consentBar";
 import { useCookieConsent } from "./CookieConsentProvider";
+
+/** 지금 화면의 배치 — 아레나 무대와 같은 판정(stageMode)을 가져다 쓴다(R7). */
+function readMode(): StageMode {
+  return stageMode(
+    window.innerWidth,
+    pickViewportHeight(window.innerHeight, window.visualViewport?.height),
+  );
+}
+
+/**
+ * 화면 배치를 따라간다(회전 · 창 크기 · 주소창). 서버 HTML·첫 렌더는 "desktop" —
+ * 마운트 뒤 실제 배치로 바꾼다.
+ */
+function useViewportMode(): StageMode {
+  const [mode, setMode] = useState<StageMode>("desktop");
+  useEffect(() => {
+    const update = () => setMode(readMode());
+    update();
+    const landscape = window.matchMedia("(orientation: landscape)");
+    landscape.addEventListener("change", update);
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    return () => {
+      landscape.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("resize", update);
+    };
+  }, []);
+  return mode;
+}
 
 export function CookieBanner(): JSX.Element | null {
   const { bannerState, acceptAll, rejectAll, openModal } = useCookieConsent();
@@ -37,7 +75,10 @@ export function CookieBanner(): JSX.Element | null {
   const [expanded, setExpanded] = useState(false);
   const barRef = useRef<HTMLElement>(null);
   const [barHeight, setBarHeight] = useState(0);
-  const shown = bannerState === "visible";
+  const mode = useViewportMode();
+  // §9 게이트 2 — 모바일 가로에서는 동의 바를 미룬다(동의를 가정하지 않는다 · R2).
+  const deferred = !shouldShowConsentBar({ mode });
+  const shown = bannerState === "visible" && !deferred;
 
   // 동의 바의 실제 높이를 잰다 — '자세히'를 펼치거나 화면 폭이 바뀌면 다시.
   useEffect(() => {
@@ -76,6 +117,7 @@ export function CookieBanner(): JSX.Element | null {
         className="cookie-banner"
         data-state={bannerState}
         data-expanded={expanded ? "true" : "false"}
+        data-deferred={deferred ? "landscape" : undefined}
         role="region"
         aria-label="Cookie consent"
         hidden={hidden}
