@@ -230,9 +230,10 @@ async function openStage(page: Page, lang = "ko"): Promise<void> {
 }
 
 /**
- * 첫 방문 쿠키 배너(하단 고정)는 모바일 가로 390 높이에서 무대 아래쪽을 덮어 탭을 가로챈다.
- * 이 스펙은 무대를 본다 — 배너 자신의 [필수만] 버튼으로 닫고 시작한다. (흔적 쿠키를 미리
- * 심는 방법은 쓸 수 없다: 버전 "1.0" 의 점 때문에 앱이 그 쿠키를 읽지 못한다 — 별도 보고.)
+ * 첫 방문 동의 바(하단 고정)를 [필수만] 버튼으로 닫고 시작한다 — 이 스펙은 무대를 본다.
+ * COOKIE-1 이후: 모바일 가로에서는 동의 바가 애초에 뜨지 않고(대기 후 그냥 지나간다),
+ * 데스크톱·세로에서는 56px·두 줄로 줄었지만 칸 아래쪽을 덮을 수 있어 여전히 닫는다.
+ * (흔적 쿠키 "1.0.<ms>" 는 이제 읽힌다 — 예전 점 파싱 결함은 COOKIE-1 Phase A 에서 고쳤다.)
  */
 async function dismissCookieBanner(page: Page): Promise<void> {
   const reject = page.getByRole("button", { name: /Reject non-essential/ });
@@ -242,7 +243,29 @@ async function dismissCookieBanner(page: Page): Promise<void> {
     .catch(() => false);
   if (!shown) return;
   await reject.click();
-  await expect(reject).toBeHidden();
+  // 저장 경로에 hashIp 콜러블(최대 3초)과 Firestore 쓰기가 있다 — 5초 기본값은 빠듯하다.
+  await expect(reject).toBeHidden({ timeout: 15_000 });
+}
+
+/**
+ * COOKIE-1 §9 게이트 1 — 데스크톱 동의 바는 "한 줄"이다. 정확히 56px 를 단언하지 않는다
+ * (CI 리눅스 글꼴은 몇 px 다를 수 있다 — 검수 2). 대신 ① 높이 ≤ 64px ② 제목과 버튼 3개의
+ * 세로 중심이 같은 줄(차이 ≤ 6px).
+ */
+async function expectOneLineBar(page: Page): Promise<void> {
+  const bar = await page.locator(".cookie-banner").boundingBox();
+  if (!bar) throw new Error("no consent bar box");
+  expect(bar.height, "동의 바 높이(한 줄)").toBeLessThanOrEqual(64);
+  const title = await page.locator(".cookie-banner .cb-title").boundingBox();
+  if (!title) throw new Error("no title box");
+  const titleMid = title.y + title.height / 2;
+  const buttons = page.locator(".cookie-banner .cb-actions button");
+  await expect(buttons).toHaveCount(3);
+  for (let i = 0; i < 3; i++) {
+    const b = await buttons.nth(i).boundingBox();
+    if (!b) throw new Error(`no button box ${i}`);
+    expect(Math.abs(b.y + b.height / 2 - titleMid), `제목과 버튼 ${i + 1} 같은 줄`).toBeLessThanOrEqual(6);
+  }
 }
 
 async function box(page: Page, selector: string) {
@@ -661,5 +684,77 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.getByTestId("split-stage")).toBeVisible({ timeout: 30_000 });
       await expect(page.getByTestId("arena-intro")).toHaveCount(0);
     });
+  });
+
+  // COOKIE-1 (대표 확정 2026-10-05): 동의 바가 보이는 동안 끝까지 내리면 배너 자리가 동의 바
+  // 위로 완전히 드러나야 한다 — 동의 바가 실제 높이만큼 페이지 아래 여백을 둔다. 무대·배너 자리는
+  // 그대로(R7). 데스크톱 첫 화면에서 무대 아래 56px 가 덮이는 것은 허용(대표).
+  test.describe("COOKIE-1 동의 바 · 배너 자리", () => {
+    test.beforeEach(async () => {
+      // 테스트 계정에 남은 동의 기록이 있으면 동의 바가 뜨지 않는다 — 이 묶음은 첫 방문으로 본다.
+      await db().doc(`cookieConsents/${UID}`).delete().catch(() => {});
+    });
+
+    // 게이트 5 (R2 · R9): 동의 전에는 GA 를 깨우지 않는다 → _ga 쿠키 0. 프리뷰 실측.
+    test("첫 방문 — 피치를 열고 눌러도 _ga 쿠키 없음 · '모두 허용' 뒤 개수는 기록", async ({ page, context }) => {
+      await context.clearCookies({ name: /^_ga/ });
+      await page.goto("/?lang=ko");
+      const bar = page.locator(".cookie-banner");
+      await expect(bar).toBeVisible({ timeout: 15_000 });
+      // 페이지 이동 없는 통계 호출 — 잠긴 Lab 카드 · '자세히' 펼침.
+      await page.locator(".cb-more").click();
+      // a1_pitch_view 는 열자마자 · a1_lab_locked_hover 는 잠긴 Lab 단추(이동 없음).
+      const locked = page.locator(".lab-cta-locked");
+      // aria-disabled 단추라 일반 click 은 "enabled" 를 기다린다 — 클릭 이벤트만 보낸다.
+      if (await locked.isVisible().catch(() => false)) await locked.dispatchEvent("click");
+      await page.waitForTimeout(3_000);
+      const before = (await context.cookies()).filter((c) => c.name.startsWith("_ga"));
+      expect(before.map((c) => c.name), "동의 전 _ga 쿠키").toEqual([]);
+
+      await page.goto("/?lang=ko");
+      await page.getByRole("button", { name: /Accept all/ }).click();
+      await expect(bar).toBeHidden({ timeout: 15_000 });
+      await page.waitForTimeout(5_000);
+      const after = (await context.cookies()).filter((c) => c.name.startsWith("_ga"));
+      // 프리뷰에 측정 ID 가 없으면 0 일 수 있다 — 단언하지 않고 기록만 남긴다.
+      test.info().annotations.push({ type: "cookie1-ga-after-accept", description: String(after.length) });
+      console.log(`[COOKIE-1] _ga cookies before consent=0, after accept-all=${after.length}`);
+    });
+
+    for (const [w, h] of [
+      [390, 844],
+      [360, 780],
+      [768, 1024],
+      [1440, 900],
+    ] as const) {
+      test.describe(`${w}×${h}`, () => {
+        test.use({ viewport: { width: w, height: h }, isMobile: w < 1024, hasTouch: w < 1024 });
+
+        test("끝까지 내리면 배너 자리와 동의 바가 겹치지 않는다 · 동의 바가 사라지면 여백도 0", async ({ page }) => {
+          await page.goto(`/arena/${TID}?lang=ko`);
+          await expect(stage(page)).toBeVisible({ timeout: 30_000 });
+          const bar = page.locator(".cookie-banner");
+          await expect(bar).toBeVisible({ timeout: 15_000 });
+          const slot = page.getByTestId("banner-slot");
+          await expect(slot).toBeVisible();
+          if (w === 1440) await expectOneLineBar(page);
+
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          await page.waitForTimeout(300);
+          const s = await slot.boundingBox();
+          const b = await bar.boundingBox();
+          if (!s || !b) throw new Error("no box");
+          expect(Math.round(s.y + s.height), `slot bottom ≤ bar top (${w}×${h})`).toBeLessThanOrEqual(
+            Math.round(b.y),
+          );
+          await page.screenshot({ path: `playwright-report/cookie1-scrollend-${w}x${h}.png` });
+
+          // 동의 바가 사라지면 여백도 없어진다.
+          await page.getByRole("button", { name: /Reject non-essential/ }).click();
+          await expect(bar).toBeHidden();
+          await expect(page.locator(".cb-reserve")).toHaveCount(0);
+        });
+      });
+    }
   });
 });

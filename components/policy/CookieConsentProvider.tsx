@@ -56,8 +56,13 @@ import {
   getExistingUser,
   getFunctionsInstance,
 } from "@/lib/firebase";
-import { planConsentBoot } from "@/lib/cookieConsentBoot";
-import { setAnalyticsConsentReader } from "@/lib/analytics";
+import { runConsentBoot } from "@/lib/cookieConsentBoot";
+import { setAnalyticsConsent, track } from "@/lib/analytics";
+import {
+  commitConsentDecision,
+  trackCustomizeOpen,
+  type ConsentDecision,
+} from "@/lib/policy/consentEvents";
 
 // ── Public API ────────────────────────────────────────────────────────
 
@@ -66,12 +71,16 @@ export type ModalState = "closed" | "open" | "saving" | "saved";
 
 export interface CookieConsentContextValue {
   bannerState: BannerState;
+  /** The fan reopened the bar from the footer (not the automatic first bar). */
+  bannerReopened: boolean;
   modalState: ModalState;
   preferences: ConsentPreferences;
   /** The record currently persisted in Firestore, or null if none. */
   savedRecord: CookieConsentDoc | null;
   /** Last-saved time, displayed in the modal "valid 12 months" footer. */
   lastSavedAt: Date | null;
+  /** Analytics consent actually applied (saved this session or restored). */
+  analyticsGranted: boolean;
 
   // Banner actions
   acceptAll: () => Promise<void>;
@@ -142,94 +151,88 @@ export function CookieConsentProvider({
   const { lang } = useI18n();
 
   const [bannerState, setBannerState] = useState<BannerState>("resolving");
+  const [bannerReopened, setBannerReopened] = useState(false);
   const [modalState, setModalState] = useState<ModalState>("closed");
   const [preferences, setPreferences] = useState<ConsentPreferences>(
     MODAL_DEFAULT_PREFERENCES,
   );
   const [savedRecord, setSavedRecord] = useState<CookieConsentDoc | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [analyticsGranted, setAnalyticsGranted] = useState(false);
 
   // Track the uid; refresh on auth state change. Refs avoid re-renders.
   const uidRef = useRef<string | null>(null);
-  const bootRanRef = useRef(false);
+  // 검수 1 (R2): 팬이 이 세션에서 동의 버튼(다시 열기 · 필수만 · 모두 허용 · 저장)을
+  // 누른 뒤에는 늦게 도착한 부팅 결과를 버린다 — 옛 기록이 새 선택을 덮지 않게.
+  const userActedRef = useRef(false);
 
-  // Wire the analytics consent gate. The reader closes over the React
-  // state so trackWithConsent() always sees the current value. We
-  // re-install on every relevant change because installing is cheap.
+  // ── Boot: breadcrumb cookie → existing user → Firestore record → set state ──
+  // The order lives in runConsentBoot (lib/cookieConsentBoot.ts, unit-tested).
+  // COOKIE-1 F-1: the breadcrumb hides the banner at once, then an EXISTING
+  // user's record restores the categories (analytics consent included). Never
+  // sign in anonymously here (ANON-1 · D-41) — getExistingUser only looks.
+  // No "ran once" ref: under StrictMode the first run is cancelled and the
+  // second one must be allowed to finish (a ref guard left the dev banner
+  // stuck in "resolving" forever).
   useEffect(() => {
-    setAnalyticsConsentReader(
-      () => savedRecord != null && preferences.analytics,
-    );
-  }, [savedRecord, preferences.analytics]);
-
-  // ── Boot: resolve uid → check breadcrumb → check Firestore → set state ──
-  useEffect(() => {
-    if (bootRanRef.current) return;
-    bootRanRef.current = true;
-
     let cancelled = false;
+    const now = new Date();
 
-    void (async () => {
-      const now = new Date();
-      const cookieSavedAt = readConsentBreadcrumbCookie(now);
-
-      // 1. Cheap-path: breadcrumb cookie says we already consented. Nothing to
-      //    read — and (ANON-1) nothing to create. The uid is resolved at save time.
-      if (planConsentBoot({ cookieSavedAt, existingUid: null }) === "hide-by-cookie") {
-        if (cancelled) return;
-        setLastSavedAt(cookieSavedAt);
-        setBannerState("hidden");
-        return;
-      }
-
-      // 2. Only an ALREADY-EXISTING user (Google sign-in or an earlier anonymous
-      //    account) can have a consent record. Never sign in anonymously here —
-      //    that is what minted one account per crawler/test browser (SEO-1 조사).
-      let uid: string | null = null;
-      try {
-        const user = await getExistingUser();
-        if (cancelled) return;
-        uid = user?.uid ?? null;
-        uidRef.current = uid;
-      } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[CookieConsent] auth state lookup failed:", err);
-        }
-      }
-
-      if (planConsentBoot({ cookieSavedAt, existingUid: uid }) === "show-banner" || !uid) {
-        // First visit (no user yet) — show the banner without creating an account.
-        if (cancelled) return;
-        setBannerState("visible");
-        return;
-      }
-
-      // 3. Look up the saved consent doc.
-      let record: CookieConsentDoc | null = null;
-      try {
-        record = await loadConsent(uid, now);
-      } catch (err) {
-        // Firestore error is logged; treat as no record (re-prompt).
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[CookieConsent] loadConsent failed:", err);
-        }
-      }
-      if (cancelled) return;
-
-      if (record) {
-        setSavedRecord(record);
-        setLastSavedAt(record.timestamp.toDate());
-        setPreferences({
-          essential: true,
-          functional: record.functional,
-          analytics: record.analytics,
-          marketing: record.marketing,
-        });
-        setBannerState("hidden");
-      } else {
-        setBannerState("visible");
-      }
-    })();
+    void runConsentBoot(
+      {
+        cookieSavedAt: readConsentBreadcrumbCookie(now),
+        getExistingUid: async () => {
+          try {
+            const user = await getExistingUser();
+            const uid = user?.uid ?? null;
+            if (!cancelled) uidRef.current = uid;
+            return uid;
+          } catch (err) {
+            if (process.env.NODE_ENV !== "production") {
+              console.warn("[CookieConsent] auth state lookup failed:", err);
+            }
+            return null;
+          }
+        },
+        loadConsent: async (uid) => {
+          try {
+            return await loadConsent(uid, now);
+          } catch (err) {
+            // Firestore error is logged; treated as no record.
+            if (process.env.NODE_ENV !== "production") {
+              console.warn("[CookieConsent] loadConsent failed:", err);
+            }
+            return null;
+          }
+        },
+        userActed: () => userActedRef.current,
+      },
+      {
+        hideBanner: (savedAt) => {
+          if (cancelled) return;
+          if (savedAt) setLastSavedAt(savedAt);
+          setBannerState("hidden");
+        },
+        showBanner: () => {
+          if (cancelled) return;
+          setBannerState("visible");
+        },
+        applyRecord: (record: CookieConsentDoc) => {
+          if (cancelled) return;
+          // Analytics consent first, synchronously — the gate in lib/analytics.
+          setAnalyticsConsent(record.analytics);
+          setAnalyticsGranted(record.analytics);
+          setSavedRecord(record);
+          setLastSavedAt(record.timestamp.toDate());
+          setPreferences({
+            essential: true,
+            functional: record.functional,
+            analytics: record.analytics,
+            marketing: record.marketing,
+          });
+        },
+      },
+    );
 
     return () => {
       cancelled = true;
@@ -238,45 +241,52 @@ export function CookieConsentProvider({
 
   // ── Persist helper used by all three save paths ──
   const persistAndHide = useCallback(
-    async (next: ConsentPreferences, source: "banner" | "modal") => {
-      // ANON-1: this is the moment an anonymous account may be created — the
-      // visitor pressed a consent button. ensureAnonymousUid() returns the current
-      // user if there is one (signed-in or an earlier anonymous account), so a
-      // visitor who signed in after boot is saved under their real uid.
-      let uid: string | null = null;
-      try {
-        const user = await ensureAnonymousUid();
-        uid = user?.uid ?? null;
-        uidRef.current = uid;
-      } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn("[CookieConsent] anonymous auth on save failed:", err);
-        }
-      }
-      if (!uid) {
-        // Auth never resolved — record nothing, but at least hide UI so the
-        // user isn't stuck. The save will be retried on next visit.
-        setPreferences(next);
-        setBannerState("hidden");
-        if (source === "modal") setModalState("saved");
-        return;
-      }
-
-      if (source === "modal") setModalState("saving");
-
+    async (
+      next: ConsentPreferences,
+      source: "banner" | "modal",
+      decision: ConsentDecision,
+    ) => {
+      userActedRef.current = true;
+      // Order lives in commitConsentDecision (lib/policy/consentEvents.ts,
+      // unit-tested): a withdrawal of analytics is applied at once — even if
+      // the save fails or no uid is available (review I-2 · R2); a grant is
+      // applied only after the record is saved, then the cookie_* event is
+      // sent under that consent (F-3 — "필수만" therefore never sends).
+      const applyAnalyticsConsent = (granted: boolean) => {
+        setAnalyticsConsent(granted);
+        setAnalyticsGranted(granted);
+      };
       const savedAt = new Date();
-      const ipHash = await fetchIpHash();
-
       try {
-        await saveConsent({
-          uid,
-          preferences: next,
-          ipHash,
-          lang,
-          savedAt,
+        const { saved } = await commitConsentDecision(decision, next, {
+          // ANON-1: this is the moment an anonymous account may be created — the
+          // visitor pressed a consent button. ensureAnonymousUid() returns the current
+          // user if there is one (signed-in or an earlier anonymous account), so a
+          // visitor who signed in after boot is saved under their real uid.
+          resolveUid: async () => {
+            try {
+              const user = await ensureAnonymousUid();
+              uidRef.current = user?.uid ?? null;
+              return uidRef.current;
+            } catch (err) {
+              if (process.env.NODE_ENV !== "production") {
+                console.warn("[CookieConsent] anonymous auth on save failed:", err);
+              }
+              return null;
+            }
+          },
+          save: async (uid) => {
+            if (source === "modal") setModalState("saving");
+            const ipHash = await fetchIpHash();
+            await saveConsent({ uid, preferences: next, ipHash, lang, savedAt });
+          },
+          applyAnalyticsConsent,
+          track,
         });
         setPreferences(next);
-        setLastSavedAt(savedAt);
+        if (saved) setLastSavedAt(savedAt);
+        // Auth never resolved → nothing recorded, but hide the UI so the user
+        // isn't stuck. The save will be retried on next visit.
         if (source === "modal") setModalState("saved");
         // Banner hides on every save path — the modal stays open with
         // "✓ Saved" until the user closes it.
@@ -294,17 +304,19 @@ export function CookieConsentProvider({
 
   // ── Banner actions ──
   const acceptAll = useCallback(
-    () => persistAndHide(ACCEPT_ALL_PREFERENCES, "banner"),
+    () => persistAndHide(ACCEPT_ALL_PREFERENCES, "banner", "accept_all"),
     [persistAndHide],
   );
 
   const rejectAll = useCallback(
-    () => persistAndHide(REJECT_ALL_PREFERENCES, "banner"),
+    () => persistAndHide(REJECT_ALL_PREFERENCES, "banner", "reject"),
     [persistAndHide],
   );
 
   const openModal = useCallback(() => {
     setModalState("open");
+    // Recorded only for a fan who already granted analytics (the gate decides).
+    void trackCustomizeOpen(track);
   }, []);
 
   // ── Modal actions ──
@@ -313,13 +325,15 @@ export function CookieConsentProvider({
   }, []);
 
   const savePreferences = useCallback(
-    (next: ConsentPreferences) => persistAndHide(next, "modal"),
+    (next: ConsentPreferences) => persistAndHide(next, "modal", "save"),
     [persistAndHide],
   );
 
   // ── Footer reopen ──
   const reopen = useCallback(() => {
+    userActedRef.current = true;
     clearConsentBreadcrumbCookie();
+    setBannerReopened(true);
     setBannerState("visible");
     setModalState("closed");
   }, []);
@@ -327,10 +341,12 @@ export function CookieConsentProvider({
   const value = useMemo<CookieConsentContextValue>(
     () => ({
       bannerState,
+      bannerReopened,
       modalState,
       preferences,
       savedRecord,
       lastSavedAt,
+      analyticsGranted,
       acceptAll,
       rejectAll,
       openModal,
@@ -340,10 +356,12 @@ export function CookieConsentProvider({
     }),
     [
       bannerState,
+      bannerReopened,
       modalState,
       preferences,
       savedRecord,
       lastSavedAt,
+      analyticsGranted,
       acceptAll,
       rejectAll,
       openModal,
@@ -387,9 +405,8 @@ export function useCookieConsent(): CookieConsentContextValue {
 export function useAnalyticsConsent(): boolean {
   const ctx = useContext(CookieConsentContext);
   if (!ctx) return false;
-  // Only honor analytics when there's a confirmed saved record. The default
+  // Only the consent actually applied (saved or restored) counts. The default
   // ConsentPreferences object has analytics=true, but that's the modal's
-  // *initial* state — not user consent.
-  if (!ctx.savedRecord) return false;
-  return ctx.preferences.analytics;
+  // *initial* state — not consent.
+  return ctx.analyticsGranted;
 }

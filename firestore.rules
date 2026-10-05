@@ -119,7 +119,7 @@ service cloud.firestore {
     //   expiresAt   — Timestamp ~12 months ahead (lower bound check only;
     //                  client clock skew makes exact equality fragile)
     //   ipHash      — string (may be empty when the hashIp callable fails)
-    //   lang        — 'ko' | 'en'
+    //   lang        — 'ko' | 'en' | 'es'
     //   version     — string (policy version at consent time)
     match /cookieConsents/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
@@ -140,7 +140,8 @@ service cloud.firestore {
         && request.resource.data.expiresAt > request.time + duration.value(300, 'd')
         && request.resource.data.ipHash is string
         && request.resource.data.ipHash.size() <= 64
-        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en')
+        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en'
+            || request.resource.data.lang == 'es')
         && request.resource.data.version is string
         && request.resource.data.version.size() <= 16
         && request.resource.data.keys().hasOnly([
@@ -312,7 +313,7 @@ service cloud.firestore {
     // ── userPrefs ──────────────────────────────────────────────────
     // Owner-only. Schema validation keeps the doc small + types tight:
     //   uid       — must equal the doc id and the caller's uid
-    //   lang      — 'ko' | 'en'
+    //   lang      — 'ko' | 'en' | 'es'
     //   theme     — optional: 'auto' | 'dark' | 'light'
     //   updatedAt — server time at write
     match /userPrefs/{uid} {
@@ -322,7 +323,8 @@ service cloud.firestore {
         request.auth != null
         && request.auth.uid == uid
         && request.resource.data.uid == uid
-        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en')
+        && (request.resource.data.lang == 'ko' || request.resource.data.lang == 'en'
+            || request.resource.data.lang == 'es')
         && (
           !('theme' in request.resource.data.keys())
           || request.resource.data.theme == 'auto'

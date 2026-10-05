@@ -28,6 +28,12 @@ on:
       - 'package.json'
       - '.github/workflows/c1-e2e.yml'
 
+# COOKIE-1 검수 3 (2026-10-05): 같은 브랜치의 C-1 E2E 가 동시에 돌면 같은 테스트 계정·시드 대회를
+# 서로 지우고 다시 만든다(PR #117 에서 무대 로딩 실패 등 제각각 실패). 앞선 실행은 취소한다.
+concurrency:
+  group: c1-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
