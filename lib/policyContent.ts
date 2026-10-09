@@ -20,7 +20,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import type { Lang } from "./cookieConsent";
 import type {
-  BilingualPolicy,
+  PolicyTranslations,
   PolicyDocument,
   PolicyFrontmatter,
   PolicyType,
@@ -35,7 +35,7 @@ export {
   type PolicyType,
   type PolicyFrontmatter,
   type PolicyDocument,
-  type BilingualPolicy,
+  type PolicyTranslations,
   type PolicyNavEntry,
 } from "./policyTypes";
 
@@ -86,15 +86,16 @@ function formatYamlDate(value: unknown): string {
 }
 
 /**
- * Load both KO and EN versions of a single policy type. Throws if either
- * file is missing — that's a deploy-time error, not a runtime one.
+ * Load every language edition (ko · en · es) of a single policy type. Throws
+ * if any file is missing — that's a deploy-time error, not a runtime one.
  */
-export async function loadBilingualPolicy(
+export async function loadPolicy(
   type: PolicyType,
-): Promise<BilingualPolicy> {
-  const [ko, en] = await Promise.all([
+): Promise<PolicyTranslations> {
+  const [ko, en, es] = await Promise.all([
     readPolicyDoc(type, "ko"),
     readPolicyDoc(type, "en"),
+    readPolicyDoc(type, "es"),
   ]);
-  return { type, ko, en };
+  return { type, ko, en, es };
 }

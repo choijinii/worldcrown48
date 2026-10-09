@@ -543,6 +543,17 @@ input { font: inherit; }
   cursor: pointer;
 }
 .cb-more:hover { color: var(--color-gold-hover); }
+/* POLICY-ES-1 배치 C — es 버튼: 스페인어 위 · 영어 아래 두 줄(병기 · 같은 크기 · 한 줄 56px). */
+.cookie-banner[data-lang="es"] .cb-actions button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  line-height: 1.2;
+}
 .cb-more:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 .cb-eyebrow {
   display: inline-flex;
@@ -870,9 +881,14 @@ input { font: inherit; }
 .consent-toggle:disabled { cursor: not-allowed; opacity: 0.6; }
 .consent-toggle:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 
-/* Bilingual content swap (KO/EN) — scoped to .modal[data-ml] */
-.modal[data-ml="ko"] .ml-en { display: none; }
-.modal[data-ml="en"] .ml-ko { display: none; }
+/* Language swap (KO/EN/ES) — scoped to .modal[data-ml]. es shows only the
+   Spanish lines (which carry their English halves, like the Korean ones). */
+.modal[data-ml="ko"] .ml-en,
+.modal[data-ml="ko"] .ml-es,
+.modal[data-ml="en"] .ml-ko,
+.modal[data-ml="en"] .ml-es,
+.modal[data-ml="es"] .ml-ko,
+.modal[data-ml="es"] .ml-en { display: none; }
 
 /* Footer "Reopen cookie preferences" / "Report content" link */
 .policy-footer-row {
@@ -1132,8 +1148,12 @@ input { font: inherit; }
 }
 
 /* Bilingual content swap — same pattern as the modal */
-.policy-doc[data-lang="ko"] .doc-en { display: none; }
-.policy-doc[data-lang="en"] .doc-ko { display: none; }
+.policy-doc[data-lang="ko"] .doc-en,
+.policy-doc[data-lang="ko"] .doc-es,
+.policy-doc[data-lang="en"] .doc-ko,
+.policy-doc[data-lang="en"] .doc-es,
+.policy-doc[data-lang="es"] .doc-ko,
+.policy-doc[data-lang="es"] .doc-en { display: none; }
 
 /* Policy body — typography for long-form reading.
  * react-markdown emits semantic elements as siblings. Each <h2> is wrapped

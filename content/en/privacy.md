@@ -2,13 +2,15 @@
 title: Privacy Policy
 type: privacy
 lang: en
-lastUpdated: 2026-06-11
-version: 1.0
+lastUpdated: 2026-10-05
+version: 1.1
 ---
 
 # Privacy Policy
 
-**Last updated: June 11, 2026 · Effective date: June 11, 2026**
+**Last updated: October 5, 2026 · Effective date: June 11, 2026**
+
+> This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
 WorldCrown48 ("WC48", "we", "the Service") treats user personal data with care and complies with the EU General Data Protection Regulation (GDPR), Korea's Personal Information Protection Act (PIPA) and the Network Act, the UK Data Protection Act, the U.S. COPPA, and other applicable laws.
 
@@ -27,7 +29,7 @@ This Policy explains what personal data WC48 collects, the purposes of collectio
 | Email address | Sign-up · Waitlist | Required |
 | Nickname (Voter Name) | Sign-up | Required |
 | Profile image (avatar) | When uploaded by the user | Optional |
-| Preferred categories (football, K-pop, etc.) | When set by the user | Optional |
+| Preferred categories | When set by the user | Optional |
 | Report reason for content | When reporting | Required |
 
 ### 1.2 Information collected automatically
@@ -209,4 +211,4 @@ This Policy may be updated due to changes in law, service expansion, or new proc
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Privacy Policy v1.0*
+*© 2026 WorldCrown48 · Privacy Policy v1.1*

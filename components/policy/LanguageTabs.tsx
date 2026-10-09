@@ -1,5 +1,5 @@
 /**
- * LanguageTabs — KO/EN segmented control for the policy header.
+ * LanguageTabs — KO/EN/ES segmented control for the policy header.
  *
  * Reads/writes through the I18n Context, so toggling here propagates
  * to every other surface (banner, modal, future Locker Room).
@@ -12,6 +12,7 @@
 
 "use client";
 
+import type { Lang } from "@/lib/cookieConsent";
 import { useI18n } from "@/lib/i18n";
 import { trackWithConsent } from "@/lib/analytics";
 
@@ -23,7 +24,7 @@ export interface LanguageTabsProps {
 export function LanguageTabs({ surface }: LanguageTabsProps): JSX.Element {
   const { lang, setLang } = useI18n();
 
-  const onPick = (next: "ko" | "en") => {
+  const onPick = (next: Lang) => {
     if (next === lang) return;
     void trackWithConsent("cookie_lang_switch", {
       from: lang,
@@ -52,6 +53,13 @@ export function LanguageTabs({ surface }: LanguageTabsProps): JSX.Element {
         onClick={() => onPick("en")}
       >
         EN · English
+      </button>
+      <button
+        type="button"
+        aria-pressed={lang === "es"}
+        onClick={() => onPick("es")}
+      >
+        ES · Español
       </button>
     </div>
   );

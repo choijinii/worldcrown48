@@ -9,6 +9,7 @@
 
 "use client";
 
+import { activeDocSelector } from "./PolicyContent";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
@@ -24,9 +25,8 @@ export function PolicyAnchorBar(): JSX.Element {
   useEffect(() => {
     // Wait a tick so react-markdown has flushed to the DOM.
     const id = requestAnimationFrame(() => {
-      const active = document.querySelector<HTMLElement>(
-        `.policy-doc[data-lang="${lang}"]`,
-      );
+      // 활성 언어 문서 안의 제목만 — 숨긴 다른 언어 제목이 섞이지 않게(POLICY-ES-1).
+      const active = document.querySelector<HTMLElement>(activeDocSelector(lang));
       const root = active ?? document;
       const headings = Array.from(
         root.querySelectorAll<HTMLHeadingElement>(".policy-section h2"),
@@ -54,7 +54,7 @@ export function PolicyAnchorBar(): JSX.Element {
         }}
       >
         <option value="">
-          {lang === "ko" ? "섹션으로 이동…" : "Jump to section…"}
+          {{ ko: "섹션으로 이동…", en: "Jump to section…", es: "Ir a una sección…" }[lang]}
         </option>
         {options.map((opt) => (
           <option key={opt.id} value={opt.id}>

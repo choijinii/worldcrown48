@@ -28,7 +28,9 @@ export function PolicyNav({ activeType }: PolicyNavProps): JSX.Element {
   const { lang } = useI18n();
   return (
     <aside className="policy-nav" aria-label="Policy documents">
-      <div className="policy-nav-title">정책 · POLICY DOCUMENTS</div>
+      <div className="policy-nav-title">
+        {lang === "es" ? "Políticas · POLICY DOCUMENTS" : "정책 · POLICY DOCUMENTS"}
+      </div>
       {POLICY_NAV.map((entry) => (
         <Link
           key={entry.type}
@@ -36,20 +38,26 @@ export function PolicyNav({ activeType }: PolicyNavProps): JSX.Element {
           aria-current={entry.type === activeType ? "page" : undefined}
         >
           <span className="pn-num">{entry.ord}</span>
-          <span>{lang === "ko" ? `${entry.ko} · ${entry.en}` : entry.en}</span>
+          <span>
+            {lang === "ko"
+              ? `${entry.ko} · ${entry.en}`
+              : lang === "es"
+                ? `${entry.es} · ${entry.en}`
+                : entry.en}
+          </span>
         </Link>
       ))}
-      <AppealsCard />
+      <AppealsCard es={lang === "es"} />
     </aside>
   );
 }
 
-function AppealsCard(): JSX.Element {
+function AppealsCard({ es }: { es: boolean }): JSX.Element {
   const onClick = () =>
     void trackWithConsent("policy_report_link_click", { source: "nav" });
   return (
     <div className="policy-nav-foot">
-      <div className="pnf-lbl">이의신청 · APPEALS</div>
+      <div className="pnf-lbl">{es ? "Apelaciones · APPEALS" : "이의신청 · APPEALS"}</div>
       <a
         className="pnf-mail"
         href="mailto:policy@worldcrown48.com"

@@ -4,8 +4,11 @@
  * 핵심 두 가지(인계 완료 기준): ① 비공개 대회(draft·ended·시드)가 들어가지 않는다
  * ② /admin 이 들어가지 않는다. robots.txt 의 Sitemap 줄도 함께 확인한다.
  */
+import { readdirSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  POLICY_LANGS,
   SITE_URL,
   buildSitemapEntries,
   isPrivatePath,
@@ -120,16 +123,24 @@ describe("SEO-2 언어별 주소 안내 (hreflang)", () => {
     }
   });
 
-  it("정책은 본문이 있는 ko·en 만 싣는다 (es 없음)", () => {
+  // D-42 갱신(POLICY-ES-1 · 2026-10-05): 정책 본문이 ko·en·es 세 벌이 되어 es 도 언어판 묶음에 넣는다.
+  it("정책은 본문이 있는 ko·en·es 를 싣는다", () => {
     const u = entries.map((e) => e.url);
-    expect(u).toContain(`${SITE_URL}/policies/terms?lang=ko`);
-    expect(u).toContain(`${SITE_URL}/policies/terms?lang=en`);
-    expect(u).not.toContain(`${SITE_URL}/policies/terms?lang=es`);
+    for (const l of ["ko", "en", "es"]) expect(u).toContain(`${SITE_URL}/policies/terms?lang=${l}`);
     expect(byUrl(`${SITE_URL}/policies/terms`)?.alternates?.languages).toEqual({
       ko: `${SITE_URL}/policies/terms?lang=ko`,
       en: `${SITE_URL}/policies/terms?lang=en`,
+      es: `${SITE_URL}/policies/terms?lang=es`,
       "x-default": `${SITE_URL}/policies/terms`,
     });
+  });
+
+  it("POLICY_LANGS 는 content/ 에 실제로 있는 언어 폴더와 같다 (본문 없는 언어를 싣지 않게)", () => {
+    const dirs = readdirSync(path.resolve(__dirname, "../../../content"), { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort();
+    expect([...POLICY_LANGS].sort()).toEqual(dirs);
   });
 
   it("기사는 제목이 채워진 언어만 싣는다 (빈 es 제외)", () => {

@@ -756,5 +756,41 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
         });
       });
     }
+
+    // POLICY-ES-1 (배치 C · 대표 결정 2026-10-05): 화면 언어 es 의 동의 바 — 스페인어 + 영어 병기,
+    // 버튼 안 두 줄로 데스크톱 한 줄 유지 · 끝까지 내리면 배너 자리가 드러난다(COOKIE-1 여백 그대로).
+    for (const [w, h] of [
+      [1440, 900],
+      [390, 844],
+    ] as const) {
+      test.describe(`es ${w}×${h}`, () => {
+        test.use({ viewport: { width: w, height: h }, isMobile: w < 1024, hasTouch: w < 1024 });
+
+        test("es 동의 바 — 스페인어 버튼 · 한 줄(데스크톱) · 배너 자리 비겹침", async ({ page }) => {
+          await page.goto(`/arena/${TID}?lang=es`);
+          await expect(stage(page)).toBeVisible({ timeout: 30_000 });
+          const bar = page.locator(".cookie-banner");
+          await expect(bar).toBeVisible({ timeout: 15_000 });
+          await expect(bar).toHaveAttribute("data-lang", "es");
+          await expect(bar.locator(".cb-actions button").first()).toContainText("Solo esenciales");
+          await expect(bar.locator(".cb-actions button").first()).toContainText("Reject non-essential");
+          expect(await bar.innerText()).not.toMatch(/[가-힣]/);
+          if (w === 1440) await expectOneLineBar(page);
+
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          await page.waitForTimeout(300);
+          const s = await page.getByTestId("banner-slot").boundingBox();
+          const b = await bar.boundingBox();
+          if (!s || !b) throw new Error("no box");
+          expect(Math.round(s.y + s.height), `es slot bottom ≤ bar top (${w}×${h})`).toBeLessThanOrEqual(
+            Math.round(b.y),
+          );
+          await page.screenshot({ path: `playwright-report/policy-es1-bar-${w}x${h}.png` });
+
+          await bar.locator(".cb-actions button").first().click();
+          await expect(bar).toBeHidden({ timeout: 15_000 });
+        });
+      });
+    }
   });
 });

@@ -37,6 +37,7 @@ import {
   consentBarReserve,
   shouldShowConsentBar,
 } from "@/lib/policy/consentBar";
+import { useI18n } from "@/lib/i18n";
 import { useCookieConsent } from "./CookieConsentProvider";
 
 /** 지금 화면의 배치 — 아레나 무대와 같은 판정(stageMode)을 가져다 쓴다(R7). */
@@ -77,6 +78,9 @@ export function CookieBanner(): JSX.Element | null {
   const barRef = useRef<HTMLElement>(null);
   const [barHeight, setBarHeight] = useState(0);
   const mode = useViewportMode();
+  // POLICY-ES-1 (§9 게이트 1): 화면 언어 es 에서는 한국어 자리만 스페인어로 — 영어는 그대로
+  // 병기한다. ko·en 화면은 지금과 한 글자도 다르지 않다(R1 · cookieBannerCopy.test.ts).
+  const es = useI18n().lang === "es";
   // §9 게이트 2 — 모바일 가로에서는 동의 바를 미룬다(동의를 가정하지 않는다 · R2).
   // 팬이 직접 다시 연 동의 바는 가로에서도 보인다(리뷰 I-1 — 철회를 막지 않는다).
   const deferred = !shouldShowConsentBar({ mode, reopened: bannerReopened });
@@ -120,6 +124,7 @@ export function CookieBanner(): JSX.Element | null {
         data-state={bannerState}
         data-expanded={expanded ? "true" : "false"}
         data-deferred={deferred ? "landscape" : undefined}
+        data-lang={es ? "es" : undefined}
         role="region"
         aria-label="Cookie consent"
         hidden={hidden}
@@ -129,13 +134,30 @@ export function CookieBanner(): JSX.Element | null {
           <div id={detailsId} className="cb-details" hidden={!expanded}>
             <div className="cb-eyebrow">
               <span className="cb-dot" aria-hidden="true" />
-              <span>쿠키 동의 · COOKIE CONSENT · GDPR</span>
+              <span>
+                {es
+                  ? "Consentimiento de cookies · COOKIE CONSENT · GDPR"
+                  : "쿠키 동의 · COOKIE CONSENT · GDPR"}
+              </span>
             </div>
             <p className="cb-body">
-              WC48은 서비스 제공에 필요한 필수 쿠키를 사용하며, 기능·분석·광고
-              쿠키는 모두 선택사항입니다. 카테고리별로 동의를 변경할 수
-              있습니다. 자세한 내용은 <a href="/policies/cookies">쿠키 정책</a>{" "}
-              · <a href="/policies/privacy">개인정보처리방침</a>을 참고하세요.
+              {es ? (
+                <>
+                  WC48 utiliza las cookies esenciales necesarias para prestar el
+                  servicio; las cookies funcionales, de análisis y de publicidad
+                  son todas opcionales. Puedes cambiar tu consentimiento por
+                  categoría. Para más información, consulta la{" "}
+                  <a href="/policies/cookies">Política de cookies</a> · la{" "}
+                  <a href="/policies/privacy">Política de privacidad</a>.
+                </>
+              ) : (
+                <>
+                  WC48은 서비스 제공에 필요한 필수 쿠키를 사용하며, 기능·분석·광고
+                  쿠키는 모두 선택사항입니다. 카테고리별로 동의를 변경할 수
+                  있습니다. 자세한 내용은 <a href="/policies/cookies">쿠키 정책</a>{" "}
+                  · <a href="/policies/privacy">개인정보처리방침</a>을 참고하세요.
+                </>
+              )}
               <span className="cb-body-en">
                 We use essential cookies to run the service. Functional,
                 analytics, and marketing cookies are all optional — set each
@@ -147,7 +169,9 @@ export function CookieBanner(): JSX.Element | null {
           </div>
           <div className="cb-row">
             <h2 className="cb-title">
-              데이터를 정중하게 다루기 위한 동의가 필요합니다.
+              {es
+                ? "Necesitamos tu consentimiento para tratar tus datos con respeto."
+                : "데이터를 정중하게 다루기 위한 동의가 필요합니다."}
             </h2>
             <button
               type="button"
@@ -156,7 +180,7 @@ export function CookieBanner(): JSX.Element | null {
               aria-controls={detailsId}
               onClick={() => setExpanded((v) => !v)}
             >
-              자세히 · Details
+              {es ? "Detalles · Details" : "자세히 · Details"}
             </button>
             <div className="cb-actions">
               <button
@@ -166,10 +190,14 @@ export function CookieBanner(): JSX.Element | null {
                   void rejectAll();
                 }}
               >
-                필수만 · Reject non-essential
+                {es ? (
+                  <EsButtonLabel es="Solo esenciales" en="Reject non-essential" />
+                ) : (
+                  "필수만 · Reject non-essential"
+                )}
               </button>
               <button type="button" className="btn-outline" onClick={openModal}>
-                설정하기 · Customize
+                {es ? <EsButtonLabel es="Configurar" en="Customize" /> : "설정하기 · Customize"}
               </button>
               <button
                 type="button"
@@ -178,12 +206,29 @@ export function CookieBanner(): JSX.Element | null {
                   void acceptAll();
                 }}
               >
-                모두 허용 · Accept all
+                {es ? (
+                  <EsButtonLabel es="Aceptar todas" en="Accept all" />
+                ) : (
+                  "모두 허용 · Accept all"
+                )}
               </button>
             </div>
           </div>
         </div>
       </aside>
+    </>
+  );
+}
+
+/**
+ * POLICY-ES-1 배치 C (대표 결정 2026-10-05): es 화면의 버튼은 스페인어 위 · 영어 아래 두 줄.
+ * 병기 · 세 버튼 같은 크기 · 데스크톱 한 줄(56px)을 모두 지키는 유일한 배치.
+ */
+function EsButtonLabel({ es, en }: { es: string; en: string }): JSX.Element {
+  return (
+    <>
+      <span className="cb-btn-es">{es}</span>
+      <span className="cb-btn-en">{en}</span>
     </>
   );
 }

@@ -6,8 +6,8 @@
  *
  * Server component:
  *   - Validates the `type` segment (handoff §4 — invalid type → notFound())
- *   - Loads BOTH KO and EN MD files from content/{lang}/{type}.md
- *   - Hands the bilingual document to PolicyShell, which composes the
+ *   - Loads every language edition (ko · en · es) from content/{lang}/{type}.md
+ *   - Hands the documents to PolicyShell, which composes the
  *     nav + header + content + mobile anchor bar
  *
  * `generateStaticParams` enumerates the four valid types so Next.js
@@ -21,7 +21,7 @@ import { PolicyShell } from "@/components/policy/PolicyShell";
 import {
   POLICY_TYPES,
   isPolicyType,
-  loadBilingualPolicy,
+  loadPolicy,
 } from "@/lib/policyContent";
 
 // Pre-render all four routes at build time.
@@ -37,7 +37,7 @@ export async function generateMetadata(
   { params }: RouteParams,
 ): Promise<Metadata> {
   if (!isPolicyType(params.type)) return { title: "WorldCrown48 — Policy" };
-  const policy = await loadBilingualPolicy(params.type);
+  const policy = await loadPolicy(params.type);
   return {
     title: `${policy.ko.frontmatter.title} · WorldCrown48`,
     description:
@@ -47,6 +47,7 @@ export async function generateMetadata(
       languages: {
         ko: `/policies/${params.type}?lang=ko`,
         en: `/policies/${params.type}?lang=en`,
+        es: `/policies/${params.type}?lang=es`,
       },
     },
   };
@@ -56,6 +57,6 @@ export default async function PolicyPage(
   { params }: RouteParams,
 ): Promise<JSX.Element> {
   if (!isPolicyType(params.type)) notFound();
-  const policy = await loadBilingualPolicy(params.type);
+  const policy = await loadPolicy(params.type);
   return <PolicyShell policy={policy} />;
 }

@@ -1,9 +1,9 @@
 /**
  * PolicyContent — markdown body renderer + scroll-spy.
  *
- * Receives BOTH languages' markdown bodies from the route's RSC. Renders
- * both into the DOM at once; CSS (`.policy-doc[data-lang] .doc-en/.doc-ko
- * { display: none }`) hides the inactive language. Same pattern as the
+ * Receives every language's markdown body (ko · en · es) from the route's
+ * RSC. Renders all of them into the DOM at once; CSS (`.policy-doc[data-lang]
+ * .doc-*` { display: none }) hides the inactive languages. Same pattern as the
  * modal — instant toggle, no re-fetch, no flash.
  *
  * react-markdown emits semantic HTML. We pass a custom `components` map
@@ -26,30 +26,45 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useI18n } from "@/lib/i18n";
 import { trackWithConsent } from "@/lib/analytics";
 import type { PolicyType } from "@/lib/policyTypes";
+import type { Lang } from "@/lib/cookieConsent";
+
+/**
+ * 활성 언어 문서(제목을 모을 범위). 스크롤 스파이와 모바일 섹션 목록이 같이 쓴다.
+ * POLICY-ES-1: 예전 선택자(`.policy-doc[data-lang]`)는 스파이에서는 자기 자신 안을 찾아 늘 비었고,
+ * 섹션 목록에서는 숨긴 다른 언어 제목까지 모았다.
+ */
+export function activeDocSelector(lang: Lang): string {
+  return `.policy-doc .doc-${lang}`;
+}
 
 export interface PolicyContentProps {
   type: PolicyType;
   koBody: string;
   enBody: string;
+  esBody: string;
 }
 
 export function PolicyContent({
   type,
   koBody,
   enBody,
+  esBody,
 }: PolicyContentProps): JSX.Element {
   const { lang } = useI18n();
   const rootRef = useRef<HTMLDivElement>(null);
   const firedSectionsRef = useRef<Set<string>>(new Set());
 
-  // Build the components map once per render — it's cheap.
-  const components = useMemo<Components>(() => buildComponents(), []);
+  // Build a components map PER LANGUAGE and PER RENDER — it's cheap. The h2
+  // "§ NN" counter lives in the map's closure, so a shared/memoised map made
+  // later languages (and later renders) keep counting from where the previous
+  // one stopped. es heading ids get an "es-" prefix: some en/es headings slug
+  // to the same id (privacy "11. Cookies") and ids must stay unique.
 
   // policy_view fires once per (type, lang) entry. We re-fire when either
   // changes so the lang switch counts as a separate view per the handoff.
@@ -62,8 +77,8 @@ export function PolicyContent({
   // Scroll-spy: observe h2 elements in the active language only.
   useEffect(() => {
     if (!rootRef.current) return;
-    const activeDoc = rootRef.current.querySelector<HTMLElement>(
-      `.policy-doc[data-lang="${lang}"]`,
+    const activeDoc = rootRef.current.parentElement?.querySelector<HTMLElement>(
+      activeDocSelector(lang),
     );
     if (!activeDoc) return;
 
@@ -87,18 +102,23 @@ export function PolicyContent({
 
     headings.forEach((h) => observer.observe(h));
     return () => observer.disconnect();
-  }, [lang, type, koBody, enBody]);
+  }, [lang, type, koBody, enBody, esBody]);
 
   return (
     <div className="policy-doc" data-lang={lang} ref={rootRef}>
       <div className="doc-ko">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents()}>
           {koBody}
         </ReactMarkdown>
       </div>
       <div className="doc-en">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents()}>
           {enBody}
+        </ReactMarkdown>
+      </div>
+      <div className="doc-es">
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents("es-")}>
+          {esBody}
         </ReactMarkdown>
       </div>
     </div>
@@ -120,10 +140,10 @@ export function PolicyContent({
  * simpler version works for the AC: scroll-margin + IntersectionObserver
  * still target the h2 correctly, and the ordinal numbering matches.)
  */
-function buildComponents(): Components {
+function buildComponents(idPrefix = ""): Components {
   let h2Counter = 0;
-  // h2Counter resets per ReactMarkdown render — both ko and en restart at 0,
-  // so § 01 / § 02 numbering is correct per language.
+  // One counter per map — the caller builds a fresh map for each language on
+  // every render, so § 01 / § 02 numbering restarts per language.
   return {
     h1: ({ children }) => {
       // The route's PolicyHeader renders the title already. Skip the body
@@ -133,7 +153,7 @@ function buildComponents(): Components {
     h2: ({ children }) => {
       h2Counter += 1;
       const text = extractText(children);
-      const id = slug(text);
+      const id = idPrefix + slug(text);
       const num = `§ ${String(h2Counter).padStart(2, "0")}`;
       return (
         <section className="policy-section" id={id}>

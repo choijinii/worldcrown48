@@ -10,11 +10,11 @@
  *     │     └── PolicyContent
  *     └── PolicyAnchorBar   (mobile only)
  *
- * Server component — receives the bilingual document from the route.
+ * Server component — receives every language edition from the route.
  * Child client components handle the i18n context and scroll-spy.
  */
 
-import type { BilingualPolicy } from "@/lib/policyTypes";
+import type { PolicyTranslations } from "@/lib/policyTypes";
 import { PolicyNav } from "./PolicyNav";
 import { PolicyDocSwitch } from "./PolicyDocSwitch";
 import { PolicyHeader } from "./PolicyHeader";
@@ -22,7 +22,7 @@ import { PolicyContent } from "./PolicyContent";
 import { PolicyAnchorBar } from "./PolicyAnchorBar";
 
 export interface PolicyShellProps {
-  policy: BilingualPolicy;
+  policy: PolicyTranslations;
 }
 
 export function PolicyShell({ policy }: PolicyShellProps): JSX.Element {
@@ -32,11 +32,16 @@ export function PolicyShell({ policy }: PolicyShellProps): JSX.Element {
         <PolicyNav activeType={policy.type} />
         <main className="policy-main">
           <PolicyDocSwitch activeType={policy.type} />
-          <PolicyHeader ko={policy.ko.frontmatter} en={policy.en.frontmatter} />
+          <PolicyHeader
+            ko={policy.ko.frontmatter}
+            en={policy.en.frontmatter}
+            es={policy.es.frontmatter}
+          />
           <PolicyContent
             type={policy.type}
             koBody={policy.ko.body}
             enBody={policy.en.body}
+            esBody={policy.es.body}
           />
         </main>
       </div>
