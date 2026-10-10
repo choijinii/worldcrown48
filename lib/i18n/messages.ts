@@ -434,6 +434,9 @@ export const MESSAGES = {
   "nav.drawer.language": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
   // ko·en = 계정 메뉴(UserDropdown)의 기존 문구 · es 만 새 문구.
   "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: MARKETING_PENDING },
+  // /arena 임시 페이지(ARENA-2 가 교체) — 안내 한 줄 + The Pitch 링크.
+  "arena.temp.intro": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  "arena.temp.toPitch": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

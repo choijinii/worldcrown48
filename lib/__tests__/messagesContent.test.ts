@@ -326,6 +326,12 @@ const NAV1_PENDING_APPROVAL: string[] = [
   "nav.drawer.language.en",
   "nav.drawer.language.es",
   "nav.drawer.signOut.es",
+  "arena.temp.intro.ko",
+  "arena.temp.intro.en",
+  "arena.temp.intro.es",
+  "arena.temp.toPitch.ko",
+  "arena.temp.toPitch.en",
+  "arena.temp.toPitch.es",
 ];
 const NAV1_PENDING_KO = NAV1_PENDING_APPROVAL.filter((id) => id.endsWith(".ko")).map((id) => id.slice(0, -3));
 
