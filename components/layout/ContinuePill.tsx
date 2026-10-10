@@ -46,7 +46,8 @@ export function ContinuePill({ pathname }: { pathname: string }): JSX.Element | 
   if (!href) return null;
 
   return (
-    <div className="wc-pill-layer">
+    // `wc-nav` — 무대(가로 집중 모드 · 라운드 전환)가 메뉴를 숨길 때 알약도 같이 숨는다.
+    <div className="wc-nav wc-pill-layer">
       <div className="wc-pill-inner">
         <Link href={href} className="wc-pill" aria-describedby={noteId} data-testid="continue-pill">
           {t("nav.pill.label")}

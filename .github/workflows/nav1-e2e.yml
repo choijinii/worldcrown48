@@ -1,0 +1,133 @@
+name: NAV-1 menu E2E (Playwright)
+
+# NAV-1 (2026-10-11): 메뉴바 · 펼침 메뉴 · ☰ 서랍 · 선택 이어가기 알약 · /records · /arena 임시 페이지.
+# 1280 데스크톱 + 390 세로 + 844 가로를 이 커밋의 Vercel Preview 에서 확인한다.
+# Preview URL 은 커밋마다 Deployments API 로 찾는다 — 고정 시크릿 없음
+# ([[feedback_c2_preview_url_pinned]], policy-e2e.yml 과 같은 방식).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/layout/**'
+      - 'components/records/**'
+      - 'components/arena/ArenaTempPage.tsx'
+      - 'components/i18n/LanguageToggle.tsx'
+      - 'components/auth/SignInButton.tsx'
+      - 'app/records/**'
+      - 'app/arena/page.tsx'
+      - 'lib/layout/**'
+      - 'lib/records/**'
+      - 'lib/run/continueMemo.ts'
+      - 'lib/i18n/messages.ts'
+      - 'lib/__tests__/layout/**'
+      - 'lib/__tests__/records/**'
+      - 'e2e/nav1-menu.spec.ts'
+      - 'playwright.config.ts'
+      - '.github/workflows/nav1-e2e.yml'
+
+concurrency:
+  group: nav1-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
+      TEST_UID: ${{ secrets.DEV_VISUAL_AID_TEST_UID }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (tsc)
+        run: npx tsc --noEmit
+
+      - name: Unit tests (vitest) — NAV-1
+        run: npm run test:unit -- lib/__tests__/layout lib/__tests__/records lib/__tests__/run/continueMemo.test.ts lib/__tests__/arena/arenaTempPage.test.ts lib/__tests__/seo
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
+          fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
+
+      - name: E2E (Playwright) — NAV-1 spec only
+        run: npm run test:e2e -- e2e/nav1-menu.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nav1-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload NAV-1 captures (390×844 알약 — PR 첨부용)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nav1-captures
+          path: test-results/**/nav1-*.png
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nav1-playwright-traces
+          path: test-results/
+          retention-days: 14

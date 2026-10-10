@@ -41,7 +41,14 @@ import "./navbar.css";
 
 function BurgerIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
       <line x1="4" y1="7" x2="20" y2="7" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="17" x2="20" y2="17" />
@@ -56,9 +63,15 @@ export function Navbar(): JSX.Element {
   const { t } = useT();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<NavKey | null>(null);
-  const [pendingFocus, setPendingFocus] = useState<"first" | "last" | null>(null);
+  const [pendingFocus, setPendingFocus] = useState<"first" | "last" | null>(
+    null,
+  );
 
-  const admin = Boolean(user && !user.isAnonymous && isAdmin(user.uid, process.env.NEXT_PUBLIC_ADMIN_UID));
+  const admin = Boolean(
+    user &&
+    !user.isAnonymous &&
+    isAdmin(user.uid, process.env.NEXT_PUBLIC_ADMIN_UID),
+  );
   const items = menubarItems({ admin, labPublic: LAB_PUBLIC });
   const current = activeNavKey(pathname);
   const currentSub = activeSubKey(pathname);
@@ -70,82 +83,87 @@ export function Navbar(): JSX.Element {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   return (
-    <header className="wc-nav">
-      <div className="wc-nav-bar">
-        <button
-          type="button"
-          className="wc-nav-burger"
-          aria-label={t("nav.drawer.open")}
-          aria-haspopup="dialog"
-          aria-expanded={drawerOpen}
-          onClick={() => setDrawerOpen(true)}
-          data-testid="nav-burger"
-        >
-          <BurgerIcon />
-        </button>
-        <Link href="/" className="wc-nav-logo" aria-label="WorldCrown48 home">
-          <img src="/brand/wc48-branding-horizontal-dark.svg" alt="WorldCrown48" />
-        </Link>
+    <>
+      <header className="wc-nav">
+        <div className="wc-nav-bar">
+          <button
+            type="button"
+            className="wc-nav-burger"
+            aria-label={t("nav.drawer.open")}
+            aria-haspopup="dialog"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen(true)}
+            data-testid="nav-burger"
+          >
+            <BurgerIcon />
+          </button>
+          <Link href="/" className="wc-nav-logo" aria-label="WorldCrown48 home">
+            <img
+              src="/brand/wc48-branding-horizontal-dark.svg"
+              alt="WorldCrown48"
+            />
+          </Link>
 
-        <nav className="wc-nav-menu" aria-label="Primary navigation">
-          {items.map((n) => {
-            const subs = dropdownItems(n.key);
-            const isCurrent = n.key === current;
-            if (subs.length === 0) {
+          <nav className="wc-nav-menu" aria-label="Primary navigation">
+            {items.map((n) => {
+              const subs = dropdownItems(n.key);
+              const isCurrent = n.key === current;
+              if (subs.length === 0) {
+                return (
+                  <Link
+                    key={n.key}
+                    href={n.href as string}
+                    className="wc-nav-item"
+                    aria-current={isCurrent ? "page" : undefined}
+                    data-testid={`nav-item-${n.key}`}
+                  >
+                    {n.label}
+                  </Link>
+                );
+              }
               return (
-                <Link
+                <NavMenuItem
                   key={n.key}
-                  href={n.href as string}
-                  className="wc-nav-item"
-                  aria-current={isCurrent ? "page" : undefined}
-                  data-testid={`nav-item-${n.key}`}
-                >
-                  {n.label}
-                </Link>
+                  item={n}
+                  subs={subs}
+                  current={isCurrent}
+                  currentSub={currentSub}
+                  open={openMenu === n.key}
+                  pendingFocus={openMenu === n.key ? pendingFocus : null}
+                  onOpen={(focus) => {
+                    setOpenMenu(n.key);
+                    setPendingFocus(focus ?? null);
+                  }}
+                  onClose={closeMenu}
+                />
               );
-            }
-            return (
-              <NavMenuItem
-                key={n.key}
-                item={n}
-                subs={subs}
-                current={isCurrent}
-                currentSub={currentSub}
-                open={openMenu === n.key}
-                pendingFocus={openMenu === n.key ? pendingFocus : null}
-                onOpen={(focus) => {
-                  setOpenMenu(n.key);
-                  setPendingFocus(focus ?? null);
-                }}
-                onClose={closeMenu}
-              />
-            );
-          })}
-        </nav>
+            })}
+          </nav>
 
-        <span className="wc-nav-spacer" />
+          <span className="wc-nav-spacer" />
 
-        <div className="wc-nav-actions">
-          <LanguageToggle />
-          {loading ? (
-            <span className="wc-nav-skeleton" aria-hidden="true" />
-          ) : user && !user.isAnonymous ? (
-            <UserAvatar user={user} />
-          ) : (
-            <SignInButton />
-          )}
+          <div className="wc-nav-actions">
+            <LanguageToggle />
+            {loading ? (
+              <span className="wc-nav-skeleton" aria-hidden="true" />
+            ) : user && !user.isAnonymous ? (
+              <UserAvatar user={user} />
+            ) : (
+              <SignInButton />
+            )}
+          </div>
         </div>
-      </div>
 
+        <NavDrawer
+          isOpen={drawerOpen}
+          onClose={closeDrawer}
+          pathname={pathname}
+          admin={admin}
+          labPublic={LAB_PUBLIC}
+        />
+      </header>
+      {/* 알약은 메뉴바 밖 — 메뉴바(sticky)와 함께 붙어 다니지 않고, 휴대폰에서는 본문 흐름에 들어간다. */}
       <ContinuePill pathname={pathname} />
-
-      <NavDrawer
-        isOpen={drawerOpen}
-        onClose={closeDrawer}
-        pathname={pathname}
-        admin={admin}
-        labPublic={LAB_PUBLIC}
-      />
-    </header>
+    </>
   );
 }
