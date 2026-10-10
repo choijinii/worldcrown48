@@ -20,7 +20,9 @@ export type BannerSlotName =
   | "arena-home"
   | "pitch-between"
   | "newsroom-list"
-  | "newsroom-article";
+  | "newsroom-article"
+  /** NAV-1 — `/records` Charts 대회 목록 아래(970×90 / 320×100, 정본 31 · 32). */
+  | "records-below";
 
 /** Firestore Timestamp · epoch ms 둘 다 받는다. */
 type TimeLike = number | { toMillis: () => number };

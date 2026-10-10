@@ -54,6 +54,6 @@ export interface PolicyNavEntry {
 export const POLICY_NAV: readonly PolicyNavEntry[] = [
   { type: "privacy", ord: "01", ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
   { type: "terms", ord: "02", ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
-  { type: "community", ord: "03", ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
+  { type: "community", ord: "03", ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
   { type: "cookies", ord: "04", ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
 ] as const;

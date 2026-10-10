@@ -2,7 +2,7 @@
  * AdminSidebar — workspace nav for the Admin Dashboard (handoff §4.5, §6.1).
  *
  * MVP1: Dashboard (current) · Tournaments (M2, disabled — trap #12) · The Lab
- * (/admin/lab link). MVP2: Live operations · AI-Report queue (disabled).
+ * (/admin/lab link) · News Desk (/admin/newsdesk — NAV-1 §0-B 4). MVP2: Live operations · AI-Report queue (disabled).
  * Operator footer shows the signed-in admin (initial + name + SYSTEM ADMIN).
  */
 "use client";
@@ -20,6 +20,7 @@ function strings(lang: Lang) {
     dashboard: "대시보드",
     tournaments: "대진 목록",
     lab: "The Lab",
+    newsDesk: "News Desk",
     liveOps: "라이브 운영",
     aiQueue: "AI-Report 큐",
     soonM2: "MVP 2 예정",
@@ -32,6 +33,7 @@ function strings(lang: Lang) {
     dashboard: "Dashboard",
     tournaments: "Tournaments",
     lab: "The Lab",
+    newsDesk: "News Desk",
     liveOps: "Live operations",
     aiQueue: "AI-Report queue",
     soonM2: "Planned · MVP 2",
@@ -102,6 +104,19 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps): JSX.El
             <path d="M9 3v6L4 19a2 2 0 0 0 1.7 3h12.6A2 2 0 0 0 20 19L15 9V3" /><line x1="8" y1="3" x2="16" y2="3" />
           </svg>
           <span className="sb-label">{t.lab}</span>
+          <span className="sb-mvp">M1</span>
+        </Link>
+        {/* NAV-1 §0-B 4 — News Desk 를 관리자 서랍과 이 왼쪽 메뉴에 함께 둔다. */}
+        <Link
+          className="sb-item"
+          href="/admin/newsdesk"
+          onClick={() => void track("admin_sidebar_nav", { target: "newsdesk" })}
+          title={t.newsDesk}
+        >
+          <svg className="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 4h13a3 3 0 0 1 3 3v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z" /><line x1="8" y1="9" x2="16" y2="9" /><line x1="8" y1="13" x2="16" y2="13" />
+          </svg>
+          <span className="sb-label">{t.newsDesk}</span>
           <span className="sb-mvp">M1</span>
         </Link>
       </nav>

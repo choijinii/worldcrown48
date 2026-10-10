@@ -35,7 +35,6 @@ import {
   showNextUpdateLine,
 } from "@/lib/ranking/rankState";
 import { RankingView } from "@/components/ranking/RankingView";
-import { ModuleNav } from "@/components/arena/ModuleNav";
 import type { RankingCache } from "@/lib/ranking/rankingTypes";
 import type { LocalizedText } from "@/lib/types/tournament";
 
@@ -159,7 +158,8 @@ export default function RankingPage(): JSX.Element {
 
   return (
     <>
-      <ModuleNav tournamentId={tournamentId} />
+      {/* NAV-1: 아레나 탭 줄(ModuleNav)을 지웠다 — 차트로 오는 문은 메뉴 Record Room ▸ Charts(/records)
+          와 크라운 카드의 "차트 보기"다. 이 화면의 메뉴바 현재 항목 = Record Room. */}
       <RankingView
         state={state}
         title={displayTitle}

@@ -380,9 +380,68 @@ export const MESSAGES = {
     ].join("\n"),
   },
 
-  // ── 메뉴바 CTA (D-23) ───────────────────────────────────────────
-  // 계측 이벤트 이름 `a1_gnb_cta_vote_now` 는 **바꾸지 않는다** — 코드 식별자다.
-  "nav.cta.enter": { ko: "참가하기", en: "Pick Now", es: "Elige ahora" },
+  // 메뉴바 CTA "참가하기"(nav.cta.enter · D-23)는 NAV-1 에서 버튼과 함께 없앴다(§0-B 1).
+
+  // ── NAV-1 메뉴 하위 항목 (lib/layout/navMap) ─────────────────────
+  // 메뉴·브랜드 이름은 3언어 모두 영어 그대로(프롬프트 §3 · 원장 D-19 보충 09-22).
+  // Newsroom 하위 ko 는 원장 D-19 보충(09-22) 승인 · es 는 대표 승인 2026-10-11(Tournaments → Torneos).
+  // Policy Hub 커뮤니티 ko = 원장 D-19 "커뮤니티 가이드"(대표 2026-10-11 통일).
+  // Policy Hub 하위 = 정책 화면 왼쪽 목록(lib/policyTypes POLICY_NAV)과 같은 승인 문구.
+  "nav.sub.arenaHome": { ko: "Arena Home", en: "Arena Home", es: "Arena Home" },
+  "nav.sub.kpop": { ko: "K-POP", en: "K-POP", es: "K-POP" },
+  "nav.sub.creator": { ko: "CREATOR", en: "CREATOR", es: "CREATOR" },
+  "nav.sub.charts": { ko: "Charts", en: "Charts", es: "Charts" },
+  "nav.sub.hallOfFame": { ko: "Hall of Fame", en: "Hall of Fame", es: "Hall of Fame" },
+  "nav.sub.allArticles": { ko: "전체 기사", en: "All Articles", es: "Todos los artículos" },
+  "nav.sub.rankings": { ko: "랭킹", en: "Rankings", es: "Clasificaciones" },
+  "nav.sub.newsRecords": { ko: "기록", en: "Records", es: "Récords" },
+  "nav.sub.stars": { ko: "스타", en: "Stars", es: "Estrellas" },
+  "nav.sub.tournaments": { ko: "토너먼트", en: "Tournaments", es: "Torneos" },
+  "nav.sub.worldPress": { ko: "외신", en: "World Press", es: "Prensa internacional" },
+  "nav.sub.privacy": { ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
+  "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
+  "nav.sub.community": { ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
+  "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+  // ── NAV-1 /records Charts 대회 목록 (§9 게이트 8 · 대표 승인 2026-10-10 · 글자 그대로) ──
+  "records.eyebrow": { ko: "RECORD ROOM", en: "RECORD ROOM", es: "RECORD ROOM" },
+  "records.title": { ko: "Charts", en: "Charts", es: "Charts" },
+  "records.sub": {
+    ko: "대회별 Crown Score 순위를 확인하세요",
+    en: "See the Crown Score chart for each Tournament",
+    es: "Mira el Crown Score de cada Tournament",
+  },
+  "records.active": { ko: "진행 중인 대회", en: "Active Tournaments", es: "Tournaments activos" },
+  "records.ended": { ko: "끝난 대회", en: "Ended Tournaments", es: "Tournaments terminados" },
+  "records.viewChart": { ko: "차트 보기 ›", en: "View chart ›", es: "Ver chart ›" },
+  "records.champion": { ko: "챔피언", en: "Champion", es: "Campeón" },
+  "records.empty": {
+    ko: "아직 끝난 대회가 없어요",
+    en: "No Tournaments have ended yet",
+    es: "Aún no ha terminado ningún Tournament",
+  },
+
+  // ── NAV-1 선택 이어가기 알약 (원장 D-18 승인 2026-09-18 · 설명 = 대표 승인 2026-10-11, 글자 그대로) ──
+  "nav.pill.label": { ko: "선택 이어가기", en: "Continue your picks", es: "Continuar tus elecciones" },
+  "nav.pill.note": {
+    ko: "같은 기기에서만 이어갈 수 있습니다. 다른 기기에서는 이어서 진행할 수 없습니다.",
+    en: "You can continue only on this device. You can't continue on another device.",
+    es: "Solo puedes continuar en este dispositivo. En otro dispositivo no podrás continuar.",
+  },
+
+  // 아래는 §9 게이트 5 — 대표 되번역 승인 2026-10-11. 흐린 줄 안내는 화면 낭독기에만 들린다.
+  "nav.dim.sr": { ko: "곧 열림", en: "Coming soon", es: "Próximamente" },
+  "nav.drawer.open": { ko: "메뉴 열기", en: "Open menu", es: "Abrir menú" },
+  "nav.drawer.close": { ko: "메뉴 닫기", en: "Close menu", es: "Cerrar menú" },
+  "nav.drawer.language": { ko: "언어", en: "Language", es: "Idioma" },
+  // ko·en = 계정 메뉴(UserDropdown)의 기존 문구 · es 만 새 문구.
+  "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: "Cerrar sesión" },
+  // /arena 임시 페이지(ARENA-2 가 교체) — 안내 한 줄 + The Pitch 링크.
+  "arena.temp.intro": {
+    ko: "아레나 홈을 준비하고 있어요. 지금은 The Pitch에서 대회를 골라 주세요.",
+    en: "Arena Home is on its way. For now, pick a Tournament on The Pitch.",
+    es: "Arena Home llegará pronto. Por ahora, elige un torneo en The Pitch.",
+  },
+  "arena.temp.toPitch": { ko: "The Pitch로 가기", en: "Go to The Pitch", es: "Ir a The Pitch" },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

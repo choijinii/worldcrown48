@@ -1,55 +1,72 @@
 /* ════════════════════════════════════════════════════════════════════
-   Unified global Navbar — dark floating tone (Phase F · ADR-0010).
+   전역 메뉴바 · 펼침 메뉴 · ☰ 서랍 · 선택 이어가기 알약 — NAV-1 (정본 v3 32장 · GNB.jsx).
 
-   Option C: the Navbar head is ALWAYS dark (brand global constant); page
-   BODIES keep their per-domain theme. This file lives outside the
-   [data-theme="light"]/.domain-* scope, so its var(--…) read the :root dark
-   palette regardless of the body theme below it.
-
-   Tokens only — no hex literals (decision ③, v2.4). Scoped under .wc-nav so
-   it never collides with A-1's .pitch .gnb or A-0 styles.
+   §0-B 3: 메뉴는 어느 페이지에서나 다크다. 값은 디자인 정본이 내보낸 아레나 층 토큰
+   (app/arena_stage_tokens.css — --arena-nav-* · --arena-drawer-* · --arena-continue-*)을 그대로
+   쓴다(R4 — 새 토큰 없음). 정본 값에 맞는 토큰이 없는 곳 = 흐린 줄 불투명도 0.45 · 펼침 메뉴
+   그림자 — 메뉴 범위 값으로 두고 PR 본문 C절 "없는 토큰" 목록에 적었다.
+   이 파일은 [data-theme="light"]·.domain-* 범위 밖이라 :root 다크 팔레트를 읽는다.
    ════════════════════════════════════════════════════════════════════ */
 
-.wc-nav {
+.wc-nav,
+.wc-drawer-overlay {
+  --nav-bar-bg: var(--arena-nav-bg);
+  --nav-bar-border: var(--arena-nav-border);
+  --nav-panel: var(--arena-drawer-bg);
+  --nav-panel-border: var(--arena-drawer-border);
+  --nav-panel-shadow: var(--arena-drawer-shadow);
+  --nav-text: var(--arena-nav-text);
+  --nav-text-current: var(--arena-nav-text-active);
+  --nav-row-text: var(--arena-drawer-row);
+  --nav-row-current: var(--arena-drawer-row-active);
+  --nav-child-text: var(--arena-drawer-child);
+  --nav-caret-dim: var(--arena-drawer-arrow);
+  --nav-mark: var(--arena-drawer-row-mark);
+  --nav-chip-border: var(--arena-drawer-chip-border);
+  --nav-chip-on-bg: var(--arena-drawer-chip-on-bg);
+  --nav-chip-on: var(--arena-drawer-chip-on);
+  --nav-chip-off: var(--arena-drawer-chip-off);
+  /* 정본 rgba(0,0,0,.5) — 그림자 토큰은 서랍용 하나뿐이라 펼침 메뉴는 같은 색을 섞어 만든다(보고) */
+  --nav-shadow: color-mix(in srgb, var(--color-black) 50%, transparent);
+  /* 흐린 줄 불투명도 0.45 — 토큰 없음(보고) · 메뉴 범위 값 */
+  --nav-dim-opacity: 0.45;
+}
+
+/* ── 메뉴바 (정본 1 · 28: 높이 64 · 항목 간격 26 · 14px) ──
+   `.wc-nav` 는 알약 층에도 붙는다 — 무대가 메뉴를 숨기는 규칙(.wc-nav { display:none })이
+   알약도 함께 숨기게. 그래서 메뉴바 자체의 모양은 header 로 좁힌다. */
+header.wc-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
-  background: var(--color-bg-elevated);
-  border-bottom: 1px solid var(--color-border-gold);
-  box-shadow: var(--shadow-gnb);
+  background: var(--nav-bar-bg);
+  border-bottom: var(--nav-bar-border);
   font-family: var(--font-sans);
+  color: var(--nav-text);
 }
-
-.wc-nav-left {
+.wc-nav-bar {
+  max-width: 1320px;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 10px 0 14px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 26px;
 }
 
 .wc-nav-burger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-border);
+  width: 44px;
+  height: 44px;
+  margin-right: -16px; /* 정본: ☰ 와 로고 사이 10px */
+  border: 0;
+  border-radius: 999px;
   background: transparent;
-  color: var(--color-text);
-  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
-}
-.wc-nav-burger:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
-  background: var(--color-gold-subtle);
-}
-.wc-nav-burger:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+  color: var(--nav-row-text);
+  cursor: pointer;
 }
 .wc-nav-burger svg {
   width: 18px;
@@ -67,198 +84,445 @@
   display: block;
 }
 
-.wc-nav-sep {
-  width: 1px;
-  height: 18px;
-  background: color-mix(in srgb, var(--color-text) 14%, transparent);
-  flex: none;
-}
-
 .wc-nav-menu {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  align-self: stretch;
+  gap: 26px;
 }
 .wc-nav-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-sub);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px var(--space-3);
-  border-radius: var(--radius-border);
+  color: var(--nav-text);
+  font-size: 14px;
+  font-weight: 400;
   white-space: nowrap;
   text-decoration: none;
-  transition: background 140ms ease, color 140ms ease;
-}
-.wc-nav-item svg {
-  width: 16px;
-  height: 16px;
 }
 .wc-nav-item:hover {
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  color: var(--nav-text-current);
 }
-.wc-nav-item[aria-current="true"] {
-  color: var(--color-gold);
-  background: var(--color-gold-subtle);
+.wc-nav-item[aria-current="page"] {
+  color: var(--nav-text-current);
   font-weight: 600;
 }
-.wc-nav-item:focus-visible,
-.wc-nav-cta:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+
+/* ▾ 항목 — 글자(링크) + ▾(펼침 버튼). 묶음은 메뉴바 높이 전체라 펼침 메뉴가 바로 아래 붙는다. */
+.wc-nav-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 5px;
+}
+.wc-nav-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--nav-text);
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+}
+.wc-nav-caret[data-current="true"],
+.wc-nav-group:hover .wc-nav-caret {
+  color: var(--nav-text-current);
 }
 
-.wc-nav-cta {
-  border: 0;
-  background: var(--color-gold);
-  color: var(--color-bg-default);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  padding: 7px var(--space-4);
-  border-radius: var(--radius-border);
-  white-space: nowrap;
-  text-decoration: none;
-  transition: background 120ms ease, box-shadow 180ms ease;
+/* ── 펼침 메뉴 (정본 29 · 30: 폭 240 · 줄 34 · 13px · 항목 왼쪽 끝 정렬) ── */
+.wc-nav-dropdown {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 55;
+  width: 240px;
+  padding: 8px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--nav-panel);
+  border: var(--nav-panel-border);
+  box-shadow: 0 20px 48px var(--nav-shadow);
 }
-.wc-nav-cta:hover {
-  background: var(--color-gold-hover);
-  box-shadow: var(--shadow-gold);
+.wc-nav-dropdown-row {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-left: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nav-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.wc-nav-dropdown-row:hover {
+  color: var(--nav-text-current);
+}
+.wc-nav-dropdown-row[aria-current="page"] {
+  color: var(--nav-text-current);
+  font-weight: 700;
+  border-left: var(--nav-mark);
+}
+
+/* 흐린 줄 — 불투명도 0.45 · 커서 기본 · 호버 변화 없음 (정본 공통) */
+.wc-nav-dropdown-row[data-dim="true"],
+.wc-drawer-sub[data-dim="true"] {
+  opacity: var(--nav-dim-opacity);
+  cursor: default;
+}
+.wc-nav-dropdown-row[data-dim="true"]:hover,
+.wc-drawer-sub[data-dim="true"]:hover {
+  color: var(--nav-text);
 }
 
 .wc-nav-spacer {
   flex: 1 1 auto;
 }
-
 .wc-nav-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
+}
+.wc-nav-skeleton {
+  display: block;
+  width: 100px;
+  height: 40px;
+  border-radius: var(--radius-border);
+  background: var(--color-bg-soft);
 }
 
-/* Narrow widths: collapse the inline menu — the ☰ SiteMapSheet is the fallback
-   nav. Keep the existing globals.css `.gnb-actions` mobile rule working too. */
+.wc-nav :focus-visible,
+.wc-drawer :focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* 화면 낭독기에만 들리는 글 */
+.wc-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── ☰ 서랍 (정본 4 · 5 · 8: 폭 320 · 줄 44 · 하위 줄 34 · 왼쪽 여백 64 · 13px) ── */
+.wc-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 75; /* 동의 바(60)·설정 창 위 — 서랍이 열린 동안은 서랍이 맨 위(포커스 가두기와 같은 뜻) */
+  display: flex;
+  background: transparent; /* 정본 4 — 데스크톱은 뒤 화면을 어둡게 하지 않는다 */
+}
+.wc-drawer {
+  width: 320px;
+  max-width: 86vw;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--nav-panel);
+  border-right: var(--nav-panel-border);
+  box-shadow: var(--nav-panel-shadow);
+  color: var(--nav-row-text);
+  font-family: var(--font-sans);
+  outline: none;
+}
+.wc-drawer-head {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: var(--nav-bar-border);
+}
+.wc-drawer-close {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font-size: 19px;
+  cursor: pointer;
+}
+.wc-drawer-crown {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.wc-drawer-brand {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.wc-drawer-body {
+  flex: 1;
+  padding: 10px 0;
+  overflow-y: auto;
+}
+.wc-drawer-list,
+.wc-drawer-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.wc-drawer-row {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border-left: 2px solid transparent;
+}
+.wc-drawer-row[data-current="true"] {
+  border-left: var(--nav-mark);
+}
+.wc-drawer-row-main {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wc-drawer-row[data-current="true"] .wc-drawer-row-main {
+  color: var(--nav-row-current);
+  font-weight: 700;
+}
+.wc-drawer-toggle {
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--nav-caret-dim);
+  font-size: 10px;
+  cursor: pointer;
+}
+.wc-drawer-toggle svg {
+  display: block;
+  transition: transform 160ms ease;
+}
+.wc-drawer-toggle[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+.wc-drawer-sub {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px 0 64px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nav-child-text);
+  text-decoration: none;
+}
+.wc-drawer-sub:hover {
+  color: var(--nav-text-current);
+}
+.wc-drawer-sub[aria-current="page"] {
+  color: var(--nav-text-current);
+}
+.wc-drawer-divider {
+  margin: 10px 16px;
+  height: 0;
+  border: 0;
+  border-top: var(--nav-panel-border);
+}
+.wc-drawer-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: var(--nav-bar-border);
+}
+.wc-drawer-lang {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nav-text);
+}
+.wc-drawer-lang-chips {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.wc-drawer-lang-chip {
+  padding: 5px 9px;
+  border: var(--nav-chip-border);
+  background: transparent;
+  color: var(--nav-chip-off);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+.wc-drawer-lang-chip[aria-pressed="true"] {
+  background: var(--nav-chip-on-bg);
+  color: var(--nav-chip-on);
+}
+.wc-drawer-signout {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── 모바일 세로 (정본 6 · 7 · 8: 메뉴바 48 · 글자 메뉴 없음 · 서랍 268 · 펼침 메뉴 없음) ── */
 @media (max-width: 860px) {
   .wc-nav-menu {
     display: none;
   }
-}
-
-/* ── SiteMapSheet (☰) ── */
-.wc-sitemap-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  background: color-mix(in srgb, var(--color-bg-void) 70%, transparent);
-  backdrop-filter: blur(2px);
-}
-.wc-sitemap {
-  width: min(360px, 86vw);
-  height: 100%;
-  overflow-y: auto;
-  background: var(--color-bg-deep);
-  border-right: 1px solid var(--color-border-gold);
-  box-shadow: var(--shadow-gnb);
-  padding: var(--space-6) var(--space-5);
-  font-family: var(--font-sans);
-  color: var(--color-text);
-}
-.wc-sitemap-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-5);
-}
-.wc-sitemap-title {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-gold);
-}
-.wc-sitemap-close {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-sub);
-  border-radius: var(--radius-border);
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.wc-sitemap-close:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
-}
-.wc-sitemap-close:focus-visible,
-.wc-sitemap-item:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
-}
-.wc-sitemap-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.wc-sitemap-item {
-  display: block;
-  text-decoration: none;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-border);
-  background: var(--color-bg-soft);
-  transition: border-color 140ms ease, background 140ms ease;
-}
-.wc-sitemap-item:hover {
-  border-color: var(--color-border-gold);
-  background: var(--color-bg-elevated);
-}
-.wc-sitemap-dom {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-.wc-sitemap-name {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--color-text);
-  margin-top: 2px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.wc-sitemap-desc {
-  font-size: 12px;
-  color: var(--color-text-sub);
-  margin-top: 2px;
-}
-.wc-sitemap-item[aria-disabled="true"] {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.wc-sitemap-soon {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-chip);
-  padding: 1px 6px;
+  header.wc-nav {
+    background: var(--arena-nav-bg-mobile);
+  }
+  .wc-nav-bar {
+    height: 48px;
+    gap: 12px;
+    padding: 0 8px 0 4px;
+  }
+  .wc-nav-burger {
+    margin-right: -8px;
+  }
+  .wc-nav-logo img {
+    height: 18px;
+  }
+  .wc-nav-actions {
+    gap: 8px;
+  }
+  .wc-drawer {
+    width: 268px;
+  }
+  .wc-drawer-overlay {
+    background: color-mix(in srgb, var(--color-bg-void) 60%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wc-nav *,
-  .wc-sitemap * {
+  .wc-drawer * {
     transition: none !important;
+  }
+}
+
+/* ── 선택 이어가기 알약 (D-18 · 정본 1: 메뉴 아래 14px · 오른쪽 끝 · 높이 30 · 13px/700 · 모서리 999) ── */
+/* 데스크톱 — 메뉴바(64) 바로 아래에 겹쳐 놓는다(정본 1: 무대 위 오른쪽). 본문 자리를 차지하지 않는다. */
+.wc-pill-layer {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.wc-pill-inner {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 10px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.wc-pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  height: var(--arena-continue-h);
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--arena-continue-bg);
+  color: var(--arena-continue-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.wc-pill:hover {
+  background: var(--color-gold-hover);
+}
+/* 데스크톱 — 마우스 올림 · 키보드 초점 때만 설명이 뜬다(대표 결정 10/11). */
+.wc-pill-note {
+  display: none;
+  max-width: 280px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  background: var(--nav-panel);
+  border: var(--nav-panel-border);
+  box-shadow: 0 12px 32px var(--nav-shadow);
+  color: var(--nav-text);
+  font-family: var(--font-sans);
+  font-size: 12px; /* 크기 토큰 없음(보고) — 앱에서 가장 작은 본문 크기 */
+  line-height: 1.45;
+  text-align: right;
+}
+/* 알약 묶음 전체(알약 + 설명)에 마우스가 있는 동안 유지 — 설명 위로 옮겨 가도 사라지지 않게(WCAG 1.4.13). */
+.wc-pill-inner:hover .wc-pill-note,
+.wc-pill:focus-visible + .wc-pill-note {
+  display: block;
+}
+.wc-pill-note {
+  pointer-events: auto;
+}
+
+/* 휴대폰 세로 — 알약 바로 아래 작은 글씨로 늘 보인다(정본 외 추가 · 대표 눈검사 전). */
+@media (max-width: 860px) {
+  /* 휴대폰 — 설명 두 줄이 본문을 가리지 않게 본문 흐름에 넣는다. 매치 무대는 화면 높이에 맞춰
+     그려지므로(정본 6) 거기서만 메뉴바(48) 아래에 겹쳐 둔다. */
+  .wc-pill-layer {
+    position: static;
+  }
+  body:has([data-arena-root]) .wc-pill-layer {
+    position: absolute;
+    top: 48px;
+  }
+  .wc-pill-inner {
+    padding: 8px 8px 0;
+    gap: 4px;
+  }
+  .wc-pill {
+    height: 28px; /* --arena-continue-h 주석: 모바일 28px */
+  }
+  .wc-pill-note,
+  .wc-pill-inner:hover .wc-pill-note,
+  .wc-pill:focus-visible + .wc-pill-note {
+    display: block;
+    max-width: 240px;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--color-text-sub); /* 보조 글자색 */
   }
 }

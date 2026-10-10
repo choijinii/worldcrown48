@@ -98,25 +98,31 @@ test.describe("A-1 The Pitch", () => {
     }
   });
 
-  test("Phase F: ☰ opens SiteMapSheet (7 domains + Newsroom, 1 disabled), ESC closes", async ({ page }) => {
+  test("NAV-1: ☰ 서랍 — 팬 항목 · Policy Hub · Newsroom 링크 · 관리자 묶음 없음 · Esc 로 닫힘", async ({ page }) => {
     await page.goto("/?lang=en");
     // One unified dark Navbar — no separate floating Pitch GNB component.
     await expect(page.locator(".pitch .gnb")).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Open site map" }).click();
-    const sheet = page.getByRole("dialog", { name: "Site map" });
-    await expect(sheet).toBeVisible();
-
-    // 7 domains + the Newsroom (non-domain, ND-1). Only Locker Room (4) is
-    // disabled — G-1 activated Domain 6, but this count was never updated.
-    await expect(sheet.locator(".wc-sitemap-item")).toHaveCount(8);
-    await expect(sheet.locator('.wc-sitemap-item[aria-disabled="true"]')).toHaveCount(1);
-    await expect(sheet.getByText("The Pitch")).toBeVisible();
-    await expect(sheet.getByText("Admin Dashboard")).toBeVisible();
-    // 인터넷신문 등록 심사 — the Newsroom must be reachable from the site map.
-    await expect(sheet.getByRole("link", { name: /Newsroom/i })).toHaveAttribute("href", "/news");
+    await page.getByTestId("nav-burger").click();
+    const drawer = page.getByTestId("nav-drawer");
+    await expect(drawer).toBeVisible();
+    const order = await drawer.locator("[data-testid^='drawer-item-']").evaluateAll((els) =>
+      els.map((e) => e.getAttribute("data-testid")),
+    );
+    expect(order).toEqual([
+      "drawer-item-pitch",
+      "drawer-item-arena",
+      "drawer-item-records",
+      "drawer-item-newsroom",
+      "drawer-item-locker",
+      "drawer-item-policy",
+    ]);
+    // 인터넷신문 등록 심사 — the Newsroom must be reachable from the drawer.
+    await expect(page.getByTestId("drawer-item-newsroom")).toHaveAttribute("href", "/news");
+    // 팬(비로그인)에게 관리자 묶음은 없다.
+    await expect(page.getByTestId("drawer-admin")).toHaveCount(0);
 
     await page.keyboard.press("Escape");
-    await expect(sheet).toHaveCount(0);
+    await expect(drawer).toHaveCount(0);
   });
 });

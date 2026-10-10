@@ -5,7 +5,7 @@
  * 빼는가"만 정한다 — 그래야 단위 테스트로 그 규칙을 못 박을 수 있다.
  *
  * ## 넣는 것 (누구나 로그인 없이 볼 수 있는 페이지)
- * - `/` (The Pitch 피드) · `/news` (뉴스룸) · `/policies/{4종}`
+ * - `/` (The Pitch 피드) · `/news` (뉴스룸) · `/records` (Charts 대회 목록 · NAV-1) · `/policies/{4종}`
  * - 공개 대회: `status === "active"` 인 대회의 `/arena/{id}` 와 `/arena/{id}/ranking`(차트)
  *   — 차트는 D-30(2026-09-23)으로 마감 전·비로그인에도 열린다.
  * - 발행된 기사: `status === "published"` 인 `/news/{slug}`
@@ -18,6 +18,7 @@
  * - 초안·내린(archived) 기사
  * - `/arena/{id}/champion` — 방문자 **개인의** 크라운 카드 자리라(roundProgress/{uid}_{tid}
  *   를 읽음) 검색 로봇에게는 빈 화면이다. 검색 결과에 넣을 공개 내용이 아니다.
+ * - `/arena` — NAV-1 임시 페이지(noindex). ARENA-2 가 아레나 홈으로 교체하며 넣는다.
  * - `/launch` — A-0 Launch Pad 보관 경로(홈은 `/`). 같은 사이트의 옛 첫 화면을 검색에
  *   따로 올리지 않는다.
  *
@@ -141,6 +142,8 @@ export function buildSitemapEntries(input: {
 
   pages.push({ path: "/", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 1 });
   pages.push({ path: "/news", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.8 });
+  // NAV-1 — Record Room ▸ Charts 대회 목록. `/arena` 임시 페이지는 noindex 라 싣지 않는다(ARENA-2 가 교체).
+  pages.push({ path: "/records", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.7 });
   for (const t of POLICY_TYPES) {
     pages.push({
       path: `/policies/${t}`,

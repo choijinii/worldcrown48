@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>GNB · NAV-1</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .card { width: 1400px; }
+  .bar { width: 1320px; height: 64px; box-sizing: border-box; display: flex; align-items: center; gap: 26px; padding: 0 10px 0 14px; border: 1px solid rgba(255,255,255,.08); border-radius: 2px; background: linear-gradient(90deg,#0F0F1D,#171740); color: #F2F2F5; position: relative; }
+  .nav { display: flex; align-items: center; gap: 26px; font-size: 14px; color: #B1B5C4; }
+  .nav > span { display: flex; align-items: center; gap: 5px; position: relative; }
+  .nav .cur { color: #fff; font-weight: 600; }
+  .caret { font-size: 9px; line-height: 1; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; }
+  .dd { position: absolute; left: 0; top: calc(100% + 24px); width: 240px; padding: 8px 0; box-sizing: border-box; background: #0E0944; border: 1px solid rgba(255,255,255,.10); box-shadow: 0 20px 48px rgba(0,0,0,.5); z-index: 20; }
+  .dd div { display: flex; align-items: center; height: 34px; padding: 0 16px; box-sizing: border-box; border-left: 2px solid transparent; font-size: 13px; color: #B1B5C4; }
+  .dd .on { border-left-color: rgba(255,255,255,.55); color: #fff; font-weight: 700; }
+  .dim { opacity: .45; cursor: default; }
+  .drawer { width: 320px; box-sizing: border-box; background: #0E0944; border-right: 1px solid rgba(255,255,255,.10); color: #F2F2F5; padding: 10px 0; }
+  .row { display: flex; align-items: center; height: 44px; padding: 0 16px; font-size: 15px; color: #D8D9E4; border-left: 2px solid transparent; box-sizing: border-box; }
+  .row.cur { color: #fff; font-weight: 700; border-left-color: rgba(255,255,255,.55); }
+  .sub { height: 34px; padding-left: 64px; font-size: 13px; color: #B1B5C4; }
+  .row .tg { margin-left: auto; font-size: 10px; color: #8E90A6; }
+  .hr { margin: 10px 16px; height: 1px; background: rgba(255,255,255,.10); }
+  .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em; color: var(--color-text-muted); margin: 8px 0 0; }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .two { display: flex; gap: 32px; align-items: flex-start; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="kicker">GNB · NAV-1 (2026-10-10) · 메뉴바 5개(팬) / 6개(관리자) · ▾ · 펼침 메뉴 · 서랍</p>
+    <div class="stack">
+      <div class="panel">
+        <span class="panel__label">menubar · fan · 5 items</span>
+        <div class="bar">
+          <span style="width:44px"></span>
+          <span class="brand">WorldCrown48</span>
+          <div class="nav"><span>The Pitch</span><span class="cur">The Arena<span class="caret">▾</span></span><span>Record Room<span class="caret">▾</span></span><span>Newsroom<span class="caret">▾</span></span><span>Locker Room</span></div>
+        </div>
+        <p class="meta">▾ = 펼침 메뉴가 있는 세 항목에만 · 글자와 같은 색</p>
+      </div>
+      <div class="panel">
+        <span class="panel__label">menubar · admin · 6 items (The Lab after The Arena · same look · no operator mark)</span>
+        <div class="bar">
+          <span style="width:44px"></span>
+          <span class="brand">WorldCrown48</span>
+          <div class="nav"><span>The Pitch</span><span class="cur">The Arena<span class="caret">▾</span></span><span>The Lab</span><span>Record Room<span class="caret">▾</span></span><span>Newsroom<span class="caret">▾</span></span><span>Locker Room</span></div>
+        </div>
+      </div>
+      <div class="panel" style="padding-bottom:120px">
+        <span class="panel__label">menubar · dropdown open — Record Room (sub-menus only · categories live in the drawer)</span>
+        <div class="bar">
+          <span style="width:44px"></span>
+          <span class="brand">WorldCrown48</span>
+          <div class="nav"><span>The Pitch</span><span>The Arena<span class="caret">▾</span></span><span class="cur">Record Room<span class="caret">▾</span>
+            <div class="dd"><div class="on">Charts</div><div class="dim">Hall of Fame</div></div></span><span>Newsroom<span class="caret">▾</span></span><span>Locker Room</span></div>
+        </div>
+        <p class="meta">hover · click · Enter/↓ 열림 — Esc · 바깥 클릭 닫힘 — 항목 글자 클릭 = 도메인 첫 화면 · 폭 240 · 줄 34 · 글자 13</p>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <span class="panel__label">drawer · fan · Record Room ▸ open · dim rows (opacity .45 · no tag text)</span>
+          <div class="drawer">
+            <div class="row">The Pitch</div>
+            <div class="row cur">The Arena<span class="tg">▸</span></div>
+            <div class="row">Record Room<span class="tg" style="transform:rotate(90deg)">▸</span></div>
+            <div class="row sub">Charts</div>
+            <div class="row sub dim">Hall of Fame</div>
+            <div class="row">Newsroom<span class="tg">▸</span></div>
+            <div class="row">Locker Room</div>
+            <div class="row">Policy Hub<span class="tg">▸</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <span class="panel__label">drawer · admin group · 3 rows</span>
+          <div class="drawer">
+            <div class="row">Locker Room</div>
+            <div class="row">Policy Hub<span class="tg">▸</span></div>
+            <div class="hr"></div>
+            <div class="row">The Lab</div>
+            <div class="row">Admin Dashboard</div>
+            <div class="row">News Desk</div>
+          </div>
+          <p class="meta">The Lab moves to the fan list (after The Arena) on public release — one setting flips both menubar and drawer</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

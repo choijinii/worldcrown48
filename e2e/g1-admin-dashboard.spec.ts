@@ -154,16 +154,31 @@ test.describe("G-1 Admin Dashboard", () => {
     await stubCallables(page);
     await page.goto("/admin");
     await expect(page.locator('.sb-item[href="/admin/lab"]')).toBeVisible();
+    // NAV-1 §0-B 4 — News Desk 도 왼쪽 메뉴에.
+    await expect(page.locator('.sb-item[href="/admin/newsdesk"]')).toBeVisible();
   });
 
-  test("SiteMapSheet ☰ → Domain 6 is a live link (Coming soon cleared)", async ({ page }) => {
-    await page.goto("/");
-    // The burger's accessible name is "Open site map" (Navbar.tsx) — a /sitemap/i
-    // pattern misses it (space), while /menu/i matches "Open user menu for …"
-    // and .first() then opened the USER dropdown, so the sheet never opened.
-    await page.getByRole("button", { name: /site map/i }).click();
-    const adminLink = page.getByRole("link", { name: /Admin Dashboard/i });
-    await expect(adminLink).toHaveAttribute("href", "/admin");
+  test("NAV-1 ☰ 서랍 → 관리자 묶음(The Lab · Admin Dashboard · News Desk) — 운영자에게 보인다", async ({ page }) => {
+    await page.goto("/?lang=en");
+    // 서랍 버튼의 접근성 이름은 게이트 5 승인 문구라 testid 로 찾는다.
+    await page.getByTestId("nav-burger").click();
+    const group = page.getByTestId("drawer-admin");
+    await expect(group).toBeVisible();
+    await expect(page.getByTestId("drawer-admin-lab")).toHaveAttribute("href", "/admin/lab");
+    await expect(page.getByTestId("drawer-admin-adminDashboard")).toHaveAttribute("href", "/admin");
+    await expect(page.getByTestId("drawer-admin-newsDesk")).toHaveAttribute("href", "/admin/newsdesk");
+    // 관리자 메뉴바 = 6개, The Lab 은 The Arena 다음(정본 28).
+    const order = await page.locator(".wc-nav-menu [data-testid^='nav-item-']").evaluateAll((els) =>
+      els.map((e) => e.getAttribute("data-testid")),
+    );
+    expect(order).toEqual([
+      "nav-item-pitch",
+      "nav-item-arena",
+      "nav-item-lab",
+      "nav-item-records",
+      "nav-item-newsroom",
+      "nav-item-locker",
+    ]);
   });
 
   test("Dev Nav Cmd+Shift+D → Admin Dashboard link resolves to /admin", async ({ page }) => {

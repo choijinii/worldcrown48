@@ -26,7 +26,7 @@ type Lang3 = "ko" | "en" | "es";
 
 const DOC_NAMES: Record<string, Record<Lang3, string>> = {
   cookies: { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
-  community: { ko: "커뮤니티 정책", en: "Community Guidelines", es: "Normas de la comunidad" },
+  community: { ko: "커뮤니티 가이드", en: "Community Guidelines", es: "Normas de la comunidad" },
   terms: { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   privacy: { ko: "개인정보처리방침", en: "Privacy Policy", es: "Política de privacidad" },
 };

@@ -30,6 +30,7 @@ import {
   type User,
 } from "firebase/auth";
 import { ensureAuthReady, getAuthInstance } from "./firebase";
+import { clearContinueAny } from "./run/continueMemo";
 
 /**
  * sessionStorage key for the pre-signin anonymous uid.
@@ -129,6 +130,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     const auth = getAuthInstance();
     await firebaseSignOut(auth);
+    // NAV-1 — "선택 이어가기" 메모는 이 브라우저의 것이라 계정을 모른다. 공용 기기에서 다음 사람에게
+    // 앞사람의 대결이 알약으로 남지 않게 로그아웃 때 지운다.
+    clearContinueAny();
     set({ user: null });
   },
 }));
