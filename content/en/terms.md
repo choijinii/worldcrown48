@@ -2,17 +2,17 @@
 title: Terms of Service
 type: terms
 lang: en
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Terms of Service
 
-**Last updated: October 5, 2026 · Effective date: June 11, 2026**
+**Last updated: October 10, 2026 · Effective date: June 11, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
-These Terms of Service ("Terms") govern the use of WorldCrown48 ("WC48", "we", "the Service"), a global fan-voting platform. By signing up or using the Service, the user ("Voter", "organizer", "member", or collectively "user") agrees to these Terms.
+These Terms of Service ("Terms") govern the use of WorldCrown48 ("WC48", "we", "the Service"), a global fan platform. By signing up or using the Service, the user ("Fan", "organizer", "member", or collectively "user") agrees to these Terms.
 
 These Terms apply alongside the [Community Guidelines](/policies/community), the [Privacy Policy](/policies/privacy), and the [Cookie Policy](/policies/cookies). Where they conflict, the interpretation most favorable to the user applies.
 
@@ -20,9 +20,9 @@ These Terms apply alongside the [Community Guidelines](/policies/community), the
 
 ## 1. Definition of the Service
 
-WC48 is a global web platform where users vote for and support the people, characters, or works they love ("Contestants") through 1-vs-1 Matches and round-style Tournaments.
+WC48 is a global web platform where users pick and support the people, characters, or works they love ("Contestants") through 1-vs-1 Matches and round-style Tournaments.
 
-- WC48 is a service that **visualizes fan voting**; it is **unrelated to outcome prediction, betting, or gambling**
+- WC48 is a service that **shows what fans pick**; it is **unrelated to outcome prediction, betting, or gambling**
 - WC48 is not affiliated with any sports body or media company
 - WC48 is not directly tied to the results of real-world matches or seasons
 
@@ -33,7 +33,7 @@ WC48 is a global web platform where users vote for and support the people, chara
 - **Minimum age**: Users must be **14 years or older** (Korean Network Act + COPPA standard)
 - **Identity**: Users must provide accurate information during sign-up and may not impersonate others
 - **Account security**: Users are responsible for managing their passwords. Unauthorized use must be reported immediately to [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
-- **Multi-accounts**: Multi-accounts intended to manipulate voting outcomes are prohibited ([Community Guidelines §2.7](/policies/community#7))
+- **Multi-accounts**: Multi-accounts intended to manipulate pick results are prohibited ([Community Guidelines §2.7](/policies/community#2.7))
 
 If we learn that a user under 14 has signed up, the account and related data will be deleted immediately.
 
@@ -43,8 +43,8 @@ If we learn that a user under 14 has signed up, the account and related data wil
 
 As long as the user complies with these Terms and related policies, they have the right to:
 
-- Freely participate in Tournaments and Matches and cast votes
-- Access their voting history, account information, and Crown Cards (vote-result cards)
+- Freely participate in Tournaments and Matches and make picks
+- Access their pick history, account information, and Crown Cards (pick-result cards)
 - Terminate the account and request data deletion at any time (see the Privacy Policy)
 - File appeals against actions taken by us ([Community Guidelines §8](/policies/community#8))
 
@@ -55,7 +55,7 @@ As long as the user complies with these Terms and related policies, they have th
 The user agrees to:
 
 1. Comply with the [Community Guidelines](/policies/community)
-2. Use the Service for its intended purpose (fan voting and support)
+2. Use the Service for its intended purpose (fan picks and support)
 3. Not violate the rights or dignity of other users
 4. Not manipulate outcomes using automation tools, bots, or multi-accounts
 5. Own or hold proper rights to all content they submit (copyright, likeness rights, trademarks)
@@ -81,7 +81,7 @@ The license ends when the user deletes the content or terminates the account (ex
 
 ### 5.3 AI-generated content
 
-- **Crown Card**: Automatically generated card images from user voting results — users may freely share them on social media or external channels
+- **Crown Card**: Automatically generated card images from the user's picks — users may freely share them on social media or external channels
 - **AI-Report**: AI-generated analysis and news content — the copyright belongs to WC48 (subject to the v2.4 "Footer-Only Lock" of the design system)
 
 ---
@@ -93,7 +93,7 @@ All prohibited content and conduct defined in [Community Guidelines §2](/polici
 - Sexual content involving minors (CSAM) — **immediate permanent ban and legal reporting**
 - Linking Tournament outcomes to betting, gambling, or monetary trading
 - Registering, synthesizing, or deepfaking another person's image without consent
-- Vote manipulation through automation or multi-accounts
+- Manipulating pick results through automation or multi-accounts
 - Deliberately overloading the Service or exploiting security vulnerabilities
 
 ---
@@ -126,7 +126,7 @@ Users may terminate their account at any time from account settings. Personal da
 
 ## 9. Payment and Refunds
 
-- **MVP 1 phase**: All core features (voting, Tournament participation, Crown Card generation) are provided free of charge
+- **MVP 1 phase**: All core features (picks, Tournament participation, Crown Card generation) are provided free of charge
 - **Paid features**: If paid features are introduced, separate payment terms and refund policies will apply, with prior notice and consent
 - **Refunds**: Refund rights under Korea's E-Commerce Act and the consumer-protection laws of the user's country of residence are respected
 
@@ -168,4 +168,4 @@ Users may terminate their account at any time from account settings. Personal da
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Terms of Service v1.1*
+*© 2026 WorldCrown48 · Terms of Service v1.2*

@@ -2,13 +2,13 @@
 title: Política de cookies
 type: cookies
 lang: es
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Política de cookies · Cookie Policy
 
-**Última actualización: 5 de octubre de 2026**
+**Última actualización: 10 de octubre de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -63,7 +63,7 @@ Recopilan de forma anónima qué Tournaments son populares y en qué punto los f
 | Proveedor | Finalidad | Período de conservación |
 |---|---|---|
 | Google Analytics 4 | Estadísticas de visitas y abandono de páginas | Hasta 14 meses |
-| Firebase Analytics | Análisis del flujo de votación y de conversión | Hasta 14 meses |
+| Firebase Analytics | Análisis del flujo de elecciones y de conversión | Hasta 14 meses |
 
 Si desactiva las cookies de análisis, WC48 no recopila datos sobre su comportamiento.
 
@@ -141,4 +141,4 @@ Los residentes en la UE tienen derecho a presentar una reclamación directamente
 ---
 
 *Esta política puede actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Cookie Policy v1.1*
+*© 2026 WorldCrown48 · Cookie Policy v1.2*

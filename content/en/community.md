@@ -2,17 +2,17 @@
 title: Community Guidelines
 type: community
 lang: en
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Community Guidelines
 
-**Last updated: October 5, 2026**
+**Last updated: October 10, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
-WorldCrown48 ("WC48", "we", "the Service") is a global fan-voting platform where people around the world support the Contestants they love. These Guidelines are the **minimum commitments** every Voter, Tournament organizer, and content contributor agrees to in order to keep the space safe and respectful.
+WorldCrown48 ("WC48", "we", "the Service") is a global fan platform where people around the world support the Contestants they love. These Guidelines are the **minimum commitments** every fan, Tournament organizer, and content contributor agrees to in order to keep the space safe and respectful.
 
 Content and conduct that violates these Guidelines may be removed or blocked without prior notice. Repeated or serious violations result in permanent account termination and, where required by law, reports to law enforcement.
 
@@ -24,10 +24,10 @@ Content and conduct that violates these Guidelines may be removed or blocked wit
 
 Everything on WC48 is built on five principles.
 
-1. **Respect** — Every Contestant and Voter is a person. We do not treat people as products.
+1. **Respect** — Every Contestant and fan is a person. We do not treat people as products.
 2. **Consent** — Someone's image, name, and identity may only be used with their consent.
 3. **Safety** — Minors, vulnerable people, and victims come first.
-4. **Integrity** — No manipulation, automation, or multi-account abuse to distort voting results.
+4. **Integrity** — No manipulation, automation, or multi-account abuse to distort pick results.
 5. **Global respect** — No degradation or exclusion based on country, race, gender, or religion.
 
 ---
@@ -40,7 +40,7 @@ The following content is not allowed in any form. It will be removed on sight, a
 
 - Sexual acts, exposed genitalia, or material whose primary purpose is sexual arousal — images, video, or text
 - Solicitation of sexual services, trafficking referrals, links to pornography
-- Cannot be registered in any of the four cookie-consent categories shown in the modal
+- Cannot be registered in a Tournament of any category
 
 > ⚠️ See §3 for the limited **art-category exception**.
 
@@ -75,12 +75,12 @@ The following content is not allowed in any form. It will be removed on sight, a
 ### 2.6 Harassment
 
 - Insults, threats, or doxxing targeting an individual or group
-- Coordinated defamation or vote brigading against Contestants or Voters
+- Coordinated defamation or opinion manipulation against Contestants or fans
 - Any form of contact aimed at minors or vulnerable people
 
 ### 2.7 Fraud · Spam · Abuse
 
-- Manipulating voting results through multi-accounts, bots, or automation
+- Manipulating pick results through multi-accounts, bots, or automation
 - Connecting Tournament outcomes to betting or gambling
 - Phishing, malware, scam links, unrelated promotional content
 - Exploiting service vulnerabilities or deliberately causing load
@@ -102,7 +102,7 @@ A limited exception applies only when **all** of the following are satisfied.
 | Condition | Description |
 |---|---|
 | ① Category | Restricted to Tournament categories dedicated to **fine art, classical works, or art photography** |
-| ② Label | The organizer must apply the **NSFW tag** when creating the Tournament (so minor Voters are filtered out) |
+| ② Label | The organizer must apply the **NSFW tag** when creating the Tournament (so minor fans are filtered out) |
 | ③ Source | Public-domain works, museum-held collections, or verifiable licensed material |
 | ④ Context | Artistic and cultural appreciation — not sexual stimulation — must be the primary purpose |
 | ⑤ Person | **This exception does NOT apply to images of registered Contestants** — human Contestant profiles must stay at a tasteful, formal level |
@@ -143,7 +143,7 @@ Depending on the severity, the following steps apply.
 |---|---|---|
 | ① Warning | Email or in-app notification | Minor spam, duplicate posts |
 | ② Content removal | Immediate deletion of the post or image | First-time §2.4, §2.5, §2.7 |
-| ③ 7-day suspension | Login allowed; posting and voting blocked | Repeat violations, §2.6 harassment |
+| ③ 7-day suspension | Login allowed; posting and picks blocked | Repeat violations, §2.6 harassment |
 | ④ Permanent ban | Account permanently terminated; re-registration blocked | §2.1 sexually explicit content, §2.3 non-consensual imagery |
 | ⑤ Immediate ban + legal report | Permanent ban + report to authorities | **§2.2 CSAM**, serious fraud |
 
@@ -200,9 +200,9 @@ Continued use of the Service after an update constitutes acceptance of the updat
 - **Appeals · policy inquiries**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **General inquiries**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
 
-WC48 continues to refine these Guidelines so that every Voter, Contestant, and Tournament organizer has a safe, global place to play.
+WC48 continues to refine these Guidelines so that every fan, Contestant, and Tournament organizer has a safe, global place to play.
 
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Community Guidelines v1.1*
+*© 2026 WorldCrown48 · Community Guidelines v1.2*

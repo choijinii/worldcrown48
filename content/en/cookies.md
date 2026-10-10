@@ -2,13 +2,13 @@
 title: Cookie Policy
 type: cookies
 lang: en
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Cookie Policy
 
-**Last updated: October 5, 2026**
+**Last updated: October 10, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -63,7 +63,7 @@ Anonymous aggregation of which Tournaments are popular and where fans drop off. 
 | Provider | Purpose | Retention |
 |---|---|---|
 | Google Analytics 4 | Page visits and bounce analytics | Up to 14 months |
-| Firebase Analytics | Voting flow and conversion analytics | Up to 14 months |
+| Firebase Analytics | Pick flow and conversion analytics | Up to 14 months |
 
 If you turn off Analytics cookies, WC48 does not collect your behavioral data.
 
@@ -141,4 +141,4 @@ EU residents have the right to file a complaint with their national data protect
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Cookie Policy v1.1*
+*© 2026 WorldCrown48 · Cookie Policy v1.2*
