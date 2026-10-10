@@ -1,0 +1,152 @@
+/* /records Charts 대회 목록 — 정본 31 · 32 값 · 토큰만 (NAV-1 G). 차트와 같은 다크 면(D-40). */
+
+.page {
+  min-height: 100vh;
+  background: var(--color-bg-void);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  padding: 80px 16px 64px;
+}
+.inner {
+  max-width: 970px;
+  margin: 0 auto;
+}
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--color-gold);
+}
+.h1 {
+  margin: 9px 0 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 38px;
+  color: var(--color-text);
+}
+.sub {
+  margin: 11px 0 0;
+  font-size: 15px;
+  color: var(--color-text-sub);
+}
+.group {
+  margin-top: 40px;
+}
+.group + .group {
+  margin-top: 37px;
+}
+.groupLabel {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--color-text-sub);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 8%, transparent);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-white) 8%, transparent);
+}
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 0;
+}
+.chip {
+  flex: none;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-white) 22%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-sub);
+}
+.champ {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-left: 8px;
+}
+.champLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-dim); /* 정본 8E90A6 ≈ text-dim */
+}
+.champName {
+  font-size: 14px;
+  color: var(--color-text);
+}
+.view {
+  margin-left: auto;
+  flex: none;
+  font-size: 14px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.view:hover {
+  color: var(--color-gold);
+}
+.view:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+.empty {
+  margin: 0;
+  padding: 22px 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 8%, transparent);
+  font-size: 14px;
+  color: var(--color-text-sub);
+}
+.banner {
+  margin-top: 56px;
+  display: flex;
+  justify-content: center;
+}
+/* 배너 크기 = 매치 무대 배너와 같은 토큰(D-21 바뀜 09-21) — 데스크톱 970×90 · 모바일 320×100 */
+.bannerSlot[data-banner-variant="desktop"] {
+  width: var(--arena-banner-w);
+  max-width: 100%;
+  min-height: var(--arena-banner-h);
+}
+.bannerSlot[data-banner-variant="mobile"] {
+  width: var(--arena-banner-w-mobile);
+  min-height: var(--arena-banner-h-mobile);
+}
+
+/* 모바일 세로 (정본 32) — 줄이 접혀 칩·챔피언이 제목 아래로 */
+@media (max-width: 860px) {
+  .page {
+    padding-top: 40px;
+  }
+  .h1 {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .row {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 14px 0;
+  }
+  .title {
+    flex: 1 1 100%;
+    font-size: 16px;
+  }
+  .champ {
+    margin-left: 0;
+  }
+}

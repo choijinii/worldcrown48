@@ -101,6 +101,19 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
   });
 });
 
+describe("NAV-1 — /records 는 싣고 /arena 임시 페이지는 싣지 않는다", () => {
+  it("/records(Charts 대회 목록)는 데이터가 없어도 ko·en·es 언어판과 함께 싣는다", () => {
+    const u = buildSitemapEntries({ tournaments: [], articles: [] }).map((e) => e.url);
+    for (const q of ["", "?lang=ko", "?lang=en", "?lang=es"]) expect(u).toContain(`${SITE_URL}/records${q}`);
+  });
+
+  it("/arena 임시 페이지(noindex — ARENA-2 가 교체)는 싣지 않는다 · /arena/{id} 는 그대로", () => {
+    const u = urls();
+    expect(u.some((x) => new URL(x).pathname === "/arena")).toBe(false);
+    expect(u).toContain(`${SITE_URL}/arena/public-active`);
+  });
+});
+
 describe("SEO-2 언어별 주소 안내 (hreflang)", () => {
   const entries = buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES });
   const byUrl = (url: string) => entries.find((e) => e.url === url);

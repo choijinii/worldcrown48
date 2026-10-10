@@ -401,6 +401,24 @@ export const MESSAGES = {
   "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   "nav.sub.community": { ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
   "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+  // ── NAV-1 /records Charts 대회 목록 (§9 게이트 8 · 대표 승인 2026-10-10 · 글자 그대로) ──
+  "records.eyebrow": { ko: "RECORD ROOM", en: "RECORD ROOM", es: "RECORD ROOM" },
+  "records.title": { ko: "Charts", en: "Charts", es: "Charts" },
+  "records.sub": {
+    ko: "대회별 Crown Score 순위를 확인하세요",
+    en: "See the Crown Score chart for each Tournament",
+    es: "Mira el Crown Score de cada Tournament",
+  },
+  "records.active": { ko: "진행 중인 대회", en: "Active Tournaments", es: "Tournaments activos" },
+  "records.ended": { ko: "끝난 대회", en: "Ended Tournaments", es: "Tournaments terminados" },
+  "records.viewChart": { ko: "차트 보기 ›", en: "View chart ›", es: "Ver chart ›" },
+  "records.champion": { ko: "챔피언", en: "Champion", es: "Campeón" },
+  "records.empty": {
+    ko: "아직 끝난 대회가 없어요",
+    en: "No Tournaments have ended yet",
+    es: "Aún no ha terminado ningún Tournament",
+  },
+
   // 아래는 §9 게이트 5 — 대표 되번역 승인 전 표식. 흐린 줄 안내는 화면 낭독기에만 들린다.
   "nav.dim.sr": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
   "nav.drawer.open": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
