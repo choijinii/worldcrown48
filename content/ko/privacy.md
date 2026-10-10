@@ -105,6 +105,15 @@ WorldCrown48(이하 "월크48", "서비스")은 사용자의 개인정보를 소
 
 사용자는 위 국외 이전을 거부할 권리가 있으나, 거부 시 서비스 핵심 기능(로그인·선택 등) 이용이 제한될 수 있습니다.
 
+### YouTube API 서비스
+
+월크48은 Match 화면에서 영상을 보여 주고 Tournament에 쓸 영상을 찾기 위해 **YouTube API 서비스**를 사용합니다.
+
+- 월크48이 YouTube에서 받는 정보는 영상 ID·제목·채널 이름·재생 가능 여부 같은 **공개 영상 정보**뿐입니다. 사용자의 YouTube 계정이나 개인 정보에는 접근하지 않습니다.
+- 영상은 YouTube의 개인정보 보호 강화 모드(youtube-nocookie.com)로 재생됩니다. 재생할 때 Google이 처리하는 정보는 [Google 개인정보처리방침](https://policies.google.com/privacy)을 따릅니다.
+- YouTube에서 받은 영상 정보는 30일을 넘겨 보관하지 않으며, 그 전에 YouTube에서 새로 받거나 지웁니다.
+- YouTube 관련 문의·삭제 요청은 [policy@worldcrown48.com](mailto:policy@worldcrown48.com)으로 보내 주세요.
+
 ---
 
 ## 6. 사용자의 권리

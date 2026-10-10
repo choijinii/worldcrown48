@@ -25,6 +25,7 @@ WC48 is a global web platform where users pick and support the people, character
 - WC48 is a service that **shows what fans pick**; it is **unrelated to outcome prediction, betting, or gambling**
 - WC48 is not affiliated with any sports body or media company
 - WC48 is not directly tied to the results of real-world matches or seasons
+- WC48 uses YouTube API Services. By using WC48, you also agree to be bound by the [YouTube Terms of Service](https://www.youtube.com/t/terms).
 
 ---
 

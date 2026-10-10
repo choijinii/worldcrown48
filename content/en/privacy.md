@@ -105,6 +105,15 @@ To run the Service reliably, WC48 uses the following processors. Some data may b
 
 You may object to international transfers, but doing so may limit access to core features (login, picks, etc.).
 
+### YouTube API Services
+
+WC48 uses **YouTube API Services** to show videos on the Match screen and to find videos for Tournaments.
+
+- The only information WC48 receives from YouTube is **public video information** such as video ID, title, channel name, and playability. We do not access your YouTube account or personal information.
+- Videos play in YouTube's privacy-enhanced mode (youtube-nocookie.com). Information Google processes during playback is governed by the [Google Privacy Policy](https://policies.google.com/privacy).
+- We do not keep video information received from YouTube for more than 30 days; before then we refresh it from YouTube or delete it.
+- Send YouTube-related questions or deletion requests to [policy@worldcrown48.com](mailto:policy@worldcrown48.com).
+
 ---
 
 ## 6. Your Rights

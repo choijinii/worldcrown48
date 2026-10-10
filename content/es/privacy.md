@@ -105,6 +105,15 @@ Para garantizar el funcionamiento estable del Servicio, WC48 encomienda el trata
 
 Usted tiene derecho a oponerse a las transferencias internacionales indicadas, pero en ese caso podría verse limitado el uso de las funciones esenciales del Servicio (inicio de sesión, elecciones, etc.).
 
+### Servicios de la API de YouTube
+
+WC48 utiliza los **Servicios de la API de YouTube** para mostrar videos en la pantalla de Match y para encontrar videos para los Tournaments.
+
+- La única información que WC48 recibe de YouTube es **información pública de los videos**, como el ID, el título, el nombre del canal y si se puede reproducir. No accedemos a su cuenta de YouTube ni a su información personal.
+- Los videos se reproducen en el modo de privacidad mejorada de YouTube (youtube-nocookie.com). La información que Google trata durante la reproducción se rige por la [Política de Privacidad de Google](https://policies.google.com/privacy).
+- No conservamos la información de los videos recibida de YouTube durante más de 30 días; antes de ese plazo la actualizamos desde YouTube o la eliminamos.
+- Envíe sus consultas o solicitudes de eliminación relacionadas con YouTube a [policy@worldcrown48.com](mailto:policy@worldcrown48.com).
+
 ---
 
 ## 6. Derechos del usuario

@@ -25,6 +25,7 @@ WC48 es una plataforma web global en la que los usuarios eligen y apoyan a las p
 - WC48 es un servicio que **muestra lo que eligen los fans** y **no tiene relación alguna con la predicción de resultados, las apuestas ni los juegos de azar**
 - WC48 no está afiliado a ninguna organización deportiva ni empresa de medios
 - WC48 no está vinculado directamente con los resultados de partidos o temporadas reales
+- WC48 utiliza los Servicios de la API de YouTube. Al usar WC48, usted también acepta quedar sujeto a los [Términos del Servicio de YouTube](https://www.youtube.com/t/terms).
 
 ---
 
