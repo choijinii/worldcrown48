@@ -36,6 +36,7 @@ import {
 } from "@/lib/layout/navMap";
 import { NavMenuItem } from "./NavMenuItem";
 import { NavDrawer } from "./NavDrawer";
+import { ContinuePill } from "./ContinuePill";
 import "./navbar.css";
 
 function BurgerIcon() {
@@ -135,6 +136,8 @@ export function Navbar(): JSX.Element {
           )}
         </div>
       </div>
+
+      <ContinuePill pathname={pathname} />
 
       <NavDrawer
         isOpen={drawerOpen}

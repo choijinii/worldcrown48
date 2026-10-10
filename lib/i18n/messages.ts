@@ -419,6 +419,14 @@ export const MESSAGES = {
     es: "Aún no ha terminado ningún Tournament",
   },
 
+  // ── NAV-1 선택 이어가기 알약 (원장 D-18 승인 2026-09-18 · 설명 = 대표 승인 2026-10-11, 글자 그대로) ──
+  "nav.pill.label": { ko: "선택 이어가기", en: "Continue your picks", es: "Continuar tus elecciones" },
+  "nav.pill.note": {
+    ko: "같은 기기에서만 이어갈 수 있습니다. 다른 기기에서는 이어서 진행할 수 없습니다.",
+    en: "You can continue only on this device. You can't continue on another device.",
+    es: "Solo puedes continuar en este dispositivo. En otro dispositivo no podrás continuar.",
+  },
+
   // 아래는 §9 게이트 5 — 대표 되번역 승인 전 표식. 흐린 줄 안내는 화면 낭독기에만 들린다.
   "nav.dim.sr": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
   "nav.drawer.open": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },

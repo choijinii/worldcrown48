@@ -426,3 +426,83 @@
     transition: none !important;
   }
 }
+
+/* ── 선택 이어가기 알약 (D-18 · 정본 1: 메뉴 아래 14px · 오른쪽 끝 · 높이 30 · 13px/700 · 모서리 999) ── */
+.wc-nav {
+  /* 알약 층의 기준 */
+  isolation: isolate;
+}
+.wc-pill-layer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.wc-pill-inner {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 10px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.wc-pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: var(--color-bg-soft); /* 정본 241754 = bg-soft (정확) */
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.wc-pill:hover {
+  background: var(--color-gold-hover);
+}
+/* 데스크톱 — 마우스 올림 · 키보드 초점 때만 설명이 뜬다(대표 결정 10/11). */
+.wc-pill-note {
+  display: none;
+  max-width: 280px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  background: var(--nav-panel);
+  border: 1px solid var(--nav-edge);
+  box-shadow: 0 12px 32px var(--nav-shadow);
+  color: var(--nav-text);
+  font-family: var(--font-sans);
+  font-size: 12px; /* 크기 토큰 없음(보고) — 앱에서 가장 작은 본문 크기 */
+  line-height: 1.45;
+  text-align: right;
+}
+.wc-pill:hover + .wc-pill-note,
+.wc-pill:focus-visible + .wc-pill-note {
+  display: block;
+}
+
+/* 휴대폰 세로 — 알약 바로 아래 작은 글씨로 늘 보인다(정본 외 추가 · 대표 눈검사 전). */
+@media (max-width: 860px) {
+  .wc-pill-inner {
+    padding: 8px 8px 0;
+    gap: 4px;
+  }
+  .wc-pill-note,
+  .wc-pill:hover + .wc-pill-note,
+  .wc-pill:focus-visible + .wc-pill-note {
+    display: block;
+    max-width: 240px;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--color-text-sub); /* 보조 글자색 */
+  }
+}

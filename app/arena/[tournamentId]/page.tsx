@@ -58,6 +58,8 @@ import { toCrownData } from "@/lib/crown/championLoader";
 import { crownActionState } from "@/lib/crown/crownActions";
 import { loadOrCreateBracketSeed } from "@/lib/arena/bracketSeed";
 import { getDb } from "@/lib/firebase";
+import { clearContinue, noteContinue } from "@/lib/run/continueMemo";
+import { FINAL_ROUND } from "@/lib/arena/roundConfig";
 import styles from "@/components/arena/arena.module.css";
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
@@ -245,6 +247,12 @@ export default function ArenaPage(): JSX.Element {
     progress?.championId,
   ]);
 
+  // NAV-1 E — "선택 이어가기" 알약의 브라우저 메모(원장 D-18 · 대표 2026-10-11): 이 대회를 마쳤으면
+  // 지운다. 다른 기기에서 이미 끝낸 판으로 돌아왔을 때(run.screen === "complete")도 같다.
+  useEffect(() => {
+    if (progress?.complete || run?.screen === "complete") clearContinue(tournamentId);
+  }, [tournamentId, progress?.complete, run?.screen]);
+
   const byId = useCallback(
     (id: string): Contestant | undefined => contestants.find((c) => c.id === id),
     [contestants],
@@ -271,6 +279,11 @@ export default function ArenaPage(): JSX.Element {
           contestantId,
         });
         addVote({ round: match.round, matchId: match.matchId, contestantId });
+        // NAV-1 E — 서버가 받아들인 선택마다 이 브라우저에 "가장 최근 끝내지 않은 대결"을 적는다.
+        // THE FINAL 의 선택은 판을 끝내므로 적지 않고 지운다 — 완료 구독이 먼저 도착해 이미 지운
+        // 메모를 이 줄이 되살리는 경쟁을 막는다.
+        if (match.round === FINAL_ROUND) clearContinue(tournamentId);
+        else noteContinue(tournamentId, Date.now());
 
         // first_vote (EVENT_SPEC v1.2 ⑩) — **한 판의 첫 선택에 정확히 1회.**
         // 판정은 두 겹이다: ① `state.votes.length === 0` — 이 호출 직전에 그 판의 선택이
