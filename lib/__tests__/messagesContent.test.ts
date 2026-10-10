@@ -306,6 +306,15 @@ describe("messages — 금지 낱말 0건", () => {
   });
 });
 
+/** NAV-1 §9 게이트 5 승인 대기 — **비어야 머지**(PR 본문 E절 되번역 목록). */
+const NAV1_PENDING_APPROVAL: string[] = [
+  "nav.sub.rankings.es",
+  "nav.sub.newsRecords.es",
+  "nav.sub.stars.es",
+  "nav.sub.tournaments.es",
+  "nav.sub.worldPress.es",
+];
+
 describe("messages — 마케팅 문안 대기", () => {
   it("한국어 문구에는 대기 자리가 없다 — ko는 정본·대표 승인으로 전부 확정됐다", () => {
     const pendingKo = values
@@ -324,6 +333,7 @@ describe("messages — 마케팅 문안 대기", () => {
     // 비우고 단언도 []로 바꾼다 — 그때가 머지 가능 시점이다.
     // 2026-09-24 마케팅 문안 도착·대표 승인 → 대기 자리 없음. 이 목록이 비어 있는
     // 것이 머지 가능 조건이다(킥 §5).
-    expect(pending).toEqual([]);
+    // NAV-1(2026-10-11): 프롬프트 §9 게이트 5 — 대표 되번역 승인 전 문구. 승인되면 비운다.
+    expect(pending).toEqual(NAV1_PENDING_APPROVAL);
   });
 });

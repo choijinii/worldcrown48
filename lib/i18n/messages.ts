@@ -384,6 +384,26 @@ export const MESSAGES = {
   // 계측 이벤트 이름 `a1_gnb_cta_vote_now` 는 **바꾸지 않는다** — 코드 식별자다.
   "nav.cta.enter": { ko: "참가하기", en: "Pick Now", es: "Elige ahora" },
 
+  // ── NAV-1 메뉴 하위 항목 (lib/layout/navMap) ─────────────────────
+  // 메뉴·브랜드 이름은 3언어 모두 영어 그대로(프롬프트 §3 · 원장 D-19 보충 09-22).
+  // Newsroom 하위 ko 는 원장 D-19 보충(09-22) 승인 · es 는 승인 대기(§9 게이트 5).
+  // Policy Hub 하위 = 정책 화면 왼쪽 목록(lib/policyTypes POLICY_NAV)과 같은 승인 문구.
+  "nav.sub.arenaHome": { ko: "Arena Home", en: "Arena Home", es: "Arena Home" },
+  "nav.sub.kpop": { ko: "K-POP", en: "K-POP", es: "K-POP" },
+  "nav.sub.creator": { ko: "CREATOR", en: "CREATOR", es: "CREATOR" },
+  "nav.sub.charts": { ko: "Charts", en: "Charts", es: "Charts" },
+  "nav.sub.hallOfFame": { ko: "Hall of Fame", en: "Hall of Fame", es: "Hall of Fame" },
+  "nav.sub.allArticles": { ko: "전체 기사", en: "All Articles", es: "Todos los artículos" },
+  "nav.sub.rankings": { ko: "랭킹", en: "Rankings", es: MARKETING_PENDING },
+  "nav.sub.newsRecords": { ko: "기록", en: "Records", es: MARKETING_PENDING },
+  "nav.sub.stars": { ko: "스타", en: "Stars", es: MARKETING_PENDING },
+  "nav.sub.tournaments": { ko: "토너먼트", en: "Tournaments", es: MARKETING_PENDING },
+  "nav.sub.worldPress": { ko: "외신", en: "World Press", es: MARKETING_PENDING },
+  "nav.sub.privacy": { ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
+  "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
+  "nav.sub.community": { ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
+  "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.
   "lab.header.title": { ko: "Tournament 만들기", en: "Create Tournament", es: "Crear Tournament" },
