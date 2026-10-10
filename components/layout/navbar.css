@@ -1,55 +1,69 @@
 /* ════════════════════════════════════════════════════════════════════
-   Unified global Navbar — dark floating tone (Phase F · ADR-0010).
+   전역 메뉴바 · 펼침 메뉴 · ☰ 서랍 — NAV-1 (정본 v3 32장 · GNB.jsx).
 
-   Option C: the Navbar head is ALWAYS dark (brand global constant); page
-   BODIES keep their per-domain theme. This file lives outside the
-   [data-theme="light"]/.domain-* scope, so its var(--…) read the :root dark
-   palette regardless of the body theme below it.
-
-   Tokens only — no hex literals (decision ③, v2.4). Scoped under .wc-nav so
-   it never collides with A-1's .pitch .gnb or A-0 styles.
+   §0-B 3: 메뉴는 어느 페이지에서나 다크다. 아래 메뉴 범위 변수(--nav-*)는 전부 기존 토큰을
+   가리키기만 한다(R4 — 새 색 토큰 없음). 정본 값에 꼭 맞는 토큰이 없는 곳은 가장 가까운
+   토큰을 쓰고 "≈" 로 표시했다 — PR 본문 C절 "없는 토큰" 목록과 같다.
+   이 파일은 [data-theme="light"]·.domain-* 범위 밖이라 :root 다크 팔레트를 읽는다.
    ════════════════════════════════════════════════════════════════════ */
 
+.wc-nav,
+.wc-drawer-overlay {
+  /* 메뉴바 바탕 0F0F1D → 171740 ≈ twilight-deep → twilight */
+  --nav-bar-from: var(--color-twilight-deep);
+  --nav-bar-to: var(--color-twilight);
+  /* 펼침 메뉴 · 서랍 바탕 0E0944 = bg-default (정확) */
+  --nav-panel: var(--color-bg-default);
+  /* 메뉴 글자 B1B5C4 = text-sub (정확) · 현재 fff = white (정확) */
+  --nav-text: var(--color-text-sub);
+  --nav-text-current: var(--color-white);
+  /* 서랍 줄 글자 D8D9E4 ≈ text(F2F2F5) · ▸·꺼진 언어 칩 8E90A6 ≈ text-dim(9A9AA5) */
+  --nav-row-text: var(--color-text);
+  --nav-caret-dim: var(--color-text-dim);
+  /* 선·표식 — 흰색의 투명도(정본 rgba(255,255,255,a)) */
+  --nav-line: color-mix(in srgb, var(--color-white) 8%, transparent);
+  --nav-edge: color-mix(in srgb, var(--color-white) 10%, transparent);
+  --nav-chip-edge: color-mix(in srgb, var(--color-white) 14%, transparent);
+  --nav-chip-on: color-mix(in srgb, var(--color-white) 16%, transparent);
+  --nav-mark: color-mix(in srgb, var(--color-white) 55%, transparent);
+  --nav-shadow: color-mix(in srgb, var(--color-black) 50%, transparent);
+  /* 흐린 줄 불투명도 0.45 — 전역 토큰 없음(보고) · 메뉴 범위 값 */
+  --nav-dim-opacity: 0.45;
+}
+
+/* ── 메뉴바 (정본 1 · 28: 높이 64 · 항목 간격 26 · 14px) ── */
 .wc-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
-  background: var(--color-bg-elevated);
-  border-bottom: 1px solid var(--color-border-gold);
-  box-shadow: var(--shadow-gnb);
+  background: linear-gradient(90deg, var(--nav-bar-from), var(--nav-bar-to));
+  border-bottom: 1px solid var(--nav-line);
   font-family: var(--font-sans);
+  color: var(--nav-text);
 }
-
-.wc-nav-left {
+.wc-nav-bar {
+  max-width: 1320px;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 10px 0 14px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 26px;
 }
 
 .wc-nav-burger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-border);
+  width: 44px;
+  height: 44px;
+  margin-right: -16px; /* 정본: ☰ 와 로고 사이 10px */
+  border: 0;
+  border-radius: 999px;
   background: transparent;
-  color: var(--color-text);
-  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
-}
-.wc-nav-burger:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
-  background: var(--color-gold-subtle);
-}
-.wc-nav-burger:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+  color: var(--nav-row-text);
+  cursor: pointer;
 }
 .wc-nav-burger svg {
   width: 18px;
@@ -67,198 +81,348 @@
   display: block;
 }
 
-.wc-nav-sep {
-  width: 1px;
-  height: 18px;
-  background: color-mix(in srgb, var(--color-text) 14%, transparent);
-  flex: none;
-}
-
 .wc-nav-menu {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  align-self: stretch;
+  gap: 26px;
 }
 .wc-nav-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-sub);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px var(--space-3);
-  border-radius: var(--radius-border);
+  color: var(--nav-text);
+  font-size: 14px;
+  font-weight: 400;
   white-space: nowrap;
   text-decoration: none;
-  transition: background 140ms ease, color 140ms ease;
-}
-.wc-nav-item svg {
-  width: 16px;
-  height: 16px;
 }
 .wc-nav-item:hover {
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  color: var(--nav-text-current);
 }
-.wc-nav-item[aria-current="true"] {
-  color: var(--color-gold);
-  background: var(--color-gold-subtle);
+.wc-nav-item[aria-current="page"] {
+  color: var(--nav-text-current);
   font-weight: 600;
 }
-.wc-nav-item:focus-visible,
-.wc-nav-cta:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+
+/* ▾ 항목 — 글자(링크) + ▾(펼침 버튼). 묶음은 메뉴바 높이 전체라 펼침 메뉴가 바로 아래 붙는다. */
+.wc-nav-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 5px;
+}
+.wc-nav-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--nav-text);
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+}
+.wc-nav-caret[data-current="true"],
+.wc-nav-group:hover .wc-nav-caret {
+  color: var(--nav-text-current);
 }
 
-.wc-nav-cta {
-  border: 0;
-  background: var(--color-gold);
-  color: var(--color-bg-default);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  padding: 7px var(--space-4);
-  border-radius: var(--radius-border);
-  white-space: nowrap;
-  text-decoration: none;
-  transition: background 120ms ease, box-shadow 180ms ease;
+/* ── 펼침 메뉴 (정본 29 · 30: 폭 240 · 줄 34 · 13px · 항목 왼쪽 끝 정렬) ── */
+.wc-nav-dropdown {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 55;
+  width: 240px;
+  padding: 8px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--nav-panel);
+  border: 1px solid var(--nav-edge);
+  box-shadow: 0 20px 48px var(--nav-shadow);
 }
-.wc-nav-cta:hover {
-  background: var(--color-gold-hover);
-  box-shadow: var(--shadow-gold);
+.wc-nav-dropdown-row {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-left: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nav-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.wc-nav-dropdown-row:hover {
+  color: var(--nav-text-current);
+}
+.wc-nav-dropdown-row[aria-current="page"] {
+  color: var(--nav-text-current);
+  font-weight: 700;
+  border-left-color: var(--nav-mark);
+}
+
+/* 흐린 줄 — 불투명도 0.45 · 커서 기본 · 호버 변화 없음 (정본 공통) */
+.wc-nav-dropdown-row[data-dim="true"],
+.wc-drawer-sub[data-dim="true"] {
+  opacity: var(--nav-dim-opacity);
+  cursor: default;
+}
+.wc-nav-dropdown-row[data-dim="true"]:hover,
+.wc-drawer-sub[data-dim="true"]:hover {
+  color: var(--nav-text);
 }
 
 .wc-nav-spacer {
   flex: 1 1 auto;
 }
-
 .wc-nav-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
+}
+.wc-nav-skeleton {
+  display: block;
+  width: 100px;
+  height: 40px;
+  border-radius: var(--radius-border);
+  background: var(--color-bg-soft);
 }
 
-/* Narrow widths: collapse the inline menu — the ☰ SiteMapSheet is the fallback
-   nav. Keep the existing globals.css `.gnb-actions` mobile rule working too. */
-@media (max-width: 860px) {
-  .wc-nav-menu {
-    display: none;
-  }
+.wc-nav :focus-visible,
+.wc-drawer :focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
 }
 
-/* ── SiteMapSheet (☰) ── */
-.wc-sitemap-overlay {
+/* 화면 낭독기에만 들리는 글 */
+.wc-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── ☰ 서랍 (정본 4 · 5 · 8: 폭 320 · 줄 44 · 하위 줄 34 · 왼쪽 여백 64 · 13px) ── */
+.wc-drawer-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: flex;
-  background: color-mix(in srgb, var(--color-bg-void) 70%, transparent);
-  backdrop-filter: blur(2px);
+  background: transparent; /* 정본 4 — 데스크톱은 뒤 화면을 어둡게 하지 않는다 */
 }
-.wc-sitemap {
-  width: min(360px, 86vw);
+.wc-drawer {
+  width: 320px;
+  max-width: 86vw;
   height: 100%;
-  overflow-y: auto;
-  background: var(--color-bg-deep);
-  border-right: 1px solid var(--color-border-gold);
-  box-shadow: var(--shadow-gnb);
-  padding: var(--space-6) var(--space-5);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--nav-panel);
+  border-right: 1px solid var(--nav-edge);
+  box-shadow: 24px 0 64px var(--nav-shadow);
+  color: var(--nav-row-text);
   font-family: var(--font-sans);
-  color: var(--color-text);
+  outline: none;
 }
-.wc-sitemap-head {
+.wc-drawer-head {
+  height: 64px;
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-5);
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--nav-line);
 }
-.wc-sitemap-title {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-gold);
-}
-.wc-sitemap-close {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-sub);
-  border-radius: var(--radius-border);
-  width: 30px;
-  height: 30px;
+.wc-drawer-close {
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font-size: 19px;
+  cursor: pointer;
 }
-.wc-sitemap-close:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
-}
-.wc-sitemap-close:focus-visible,
-.wc-sitemap-item:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
-}
-.wc-sitemap-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.wc-sitemap-item {
+.wc-drawer-crown {
+  width: 22px;
+  height: 22px;
   display: block;
-  text-decoration: none;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-border);
-  background: var(--color-bg-soft);
-  transition: border-color 140ms ease, background 140ms ease;
 }
-.wc-sitemap-item:hover {
-  border-color: var(--color-border-gold);
-  background: var(--color-bg-elevated);
-}
-.wc-sitemap-dom {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-.wc-sitemap-name {
-  font-weight: 700;
-  font-size: 15px;
+.wc-drawer-brand {
+  font-size: 14px;
+  font-weight: 800;
   color: var(--color-text);
-  margin-top: 2px;
+}
+.wc-drawer-body {
+  flex: 1;
+  padding: 10px 0;
+  overflow-y: auto;
+}
+.wc-drawer-list,
+.wc-drawer-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.wc-drawer-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  height: 44px;
+  border-left: 2px solid transparent;
 }
-.wc-sitemap-desc {
-  font-size: 12px;
-  color: var(--color-text-sub);
-  margin-top: 2px;
+.wc-drawer-row[data-current="true"] {
+  border-left-color: var(--nav-mark);
 }
-.wc-sitemap-item[aria-disabled="true"] {
-  opacity: 0.55;
-  cursor: not-allowed;
+.wc-drawer-row-main {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
 }
-.wc-sitemap-soon {
+.wc-drawer-row[data-current="true"] .wc-drawer-row-main {
+  color: var(--nav-text-current);
+  font-weight: 700;
+}
+.wc-drawer-toggle {
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--nav-caret-dim);
+  font-size: 10px;
+  cursor: pointer;
+}
+.wc-drawer-toggle span {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+.wc-drawer-toggle[aria-expanded="true"] span {
+  transform: rotate(90deg);
+}
+.wc-drawer-sub {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px 0 64px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nav-text);
+  text-decoration: none;
+}
+.wc-drawer-sub:hover {
+  color: var(--nav-text-current);
+}
+.wc-drawer-sub[aria-current="page"] {
+  color: var(--nav-text-current);
+}
+.wc-drawer-divider {
+  margin: 10px 16px;
+  height: 1px;
+  border: 0;
+  background: var(--nav-edge);
+}
+.wc-drawer-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--nav-line);
+}
+.wc-drawer-lang {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nav-text);
+}
+.wc-drawer-lang-chips {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.wc-drawer-lang-chip {
+  padding: 5px 9px;
+  border: 1px solid var(--nav-chip-edge);
+  background: transparent;
+  color: var(--nav-caret-dim);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-chip);
-  padding: 1px 6px;
+  cursor: pointer;
+}
+.wc-drawer-lang-chip[aria-pressed="true"] {
+  background: var(--nav-chip-on);
+  color: var(--nav-text-current);
+}
+.wc-drawer-signout {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--nav-row-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── 모바일 세로 (정본 6 · 7 · 8: 메뉴바 48 · 글자 메뉴 없음 · 서랍 268 · 펼침 메뉴 없음) ── */
+@media (max-width: 860px) {
+  .wc-nav-menu {
+    display: none;
+  }
+  .wc-nav-bar {
+    height: 48px;
+    gap: 12px;
+    padding: 0 8px 0 4px;
+  }
+  .wc-nav-burger {
+    margin-right: -8px;
+  }
+  .wc-nav-logo img {
+    height: 18px;
+  }
+  .wc-nav-actions {
+    gap: 8px;
+  }
+  .wc-drawer {
+    width: 268px;
+  }
+  .wc-drawer-overlay {
+    background: color-mix(in srgb, var(--color-bg-void) 60%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wc-nav *,
-  .wc-sitemap * {
+  .wc-drawer * {
     transition: none !important;
   }
 }

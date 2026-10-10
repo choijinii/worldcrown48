@@ -313,7 +313,21 @@ const NAV1_PENDING_APPROVAL: string[] = [
   "nav.sub.stars.es",
   "nav.sub.tournaments.es",
   "nav.sub.worldPress.es",
+  "nav.dim.sr.ko",
+  "nav.dim.sr.en",
+  "nav.dim.sr.es",
+  "nav.drawer.open.ko",
+  "nav.drawer.open.en",
+  "nav.drawer.open.es",
+  "nav.drawer.close.ko",
+  "nav.drawer.close.en",
+  "nav.drawer.close.es",
+  "nav.drawer.language.ko",
+  "nav.drawer.language.en",
+  "nav.drawer.language.es",
+  "nav.drawer.signOut.es",
 ];
+const NAV1_PENDING_KO = NAV1_PENDING_APPROVAL.filter((id) => id.endsWith(".ko")).map((id) => id.slice(0, -3));
 
 describe("messages — 마케팅 문안 대기", () => {
   it("한국어 문구에는 대기 자리가 없다 — ko는 정본·대표 승인으로 전부 확정됐다", () => {
@@ -321,7 +335,8 @@ describe("messages — 마케팅 문안 대기", () => {
       .filter((v) => v.lang === "ko" && v.text === MARKETING_PENDING)
       .map((v) => v.key);
 
-    expect(pendingKo).toEqual([]);
+    // NAV-1 게이트 5 의 ko 초안만 예외 — 승인되면 비운다.
+    expect(pendingKo.sort()).toEqual([...NAV1_PENDING_KO].sort());
   });
 
   it("남은 대기 자리를 목록으로 드러낸다 — 이게 비어야 머지할 수 있다 (킥 §5)", () => {
@@ -334,6 +349,6 @@ describe("messages — 마케팅 문안 대기", () => {
     // 2026-09-24 마케팅 문안 도착·대표 승인 → 대기 자리 없음. 이 목록이 비어 있는
     // 것이 머지 가능 조건이다(킥 §5).
     // NAV-1(2026-10-11): 프롬프트 §9 게이트 5 — 대표 되번역 승인 전 문구. 승인되면 비운다.
-    expect(pending).toEqual(NAV1_PENDING_APPROVAL);
+    expect(pending.sort()).toEqual([...NAV1_PENDING_APPROVAL].sort());
   });
 });

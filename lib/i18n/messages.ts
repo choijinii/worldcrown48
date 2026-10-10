@@ -380,9 +380,7 @@ export const MESSAGES = {
     ].join("\n"),
   },
 
-  // ── 메뉴바 CTA (D-23) ───────────────────────────────────────────
-  // 계측 이벤트 이름 `a1_gnb_cta_vote_now` 는 **바꾸지 않는다** — 코드 식별자다.
-  "nav.cta.enter": { ko: "참가하기", en: "Pick Now", es: "Elige ahora" },
+  // 메뉴바 CTA "참가하기"(nav.cta.enter · D-23)는 NAV-1 에서 버튼과 함께 없앴다(§0-B 1).
 
   // ── NAV-1 메뉴 하위 항목 (lib/layout/navMap) ─────────────────────
   // 메뉴·브랜드 이름은 3언어 모두 영어 그대로(프롬프트 §3 · 원장 D-19 보충 09-22).
@@ -403,6 +401,13 @@ export const MESSAGES = {
   "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   "nav.sub.community": { ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
   "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+  // 아래는 §9 게이트 5 — 대표 되번역 승인 전 표식. 흐린 줄 안내는 화면 낭독기에만 들린다.
+  "nav.dim.sr": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  "nav.drawer.open": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  "nav.drawer.close": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  "nav.drawer.language": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  // ko·en = 계정 메뉴(UserDropdown)의 기존 문구 · es 만 새 문구.
+  "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: MARKETING_PENDING },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

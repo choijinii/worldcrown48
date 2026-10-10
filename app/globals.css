@@ -1469,11 +1469,8 @@ input { font: inherit; }
    ≤ 480px (modal bottom-sheet).
    ════════════════════════════════════════════════════════════════════ */
 
-/* Mobile (≤ 768px): hide Navbar action slot — profile entry lives in
-   the bottom tab bar instead (handoff §6). */
-@media (max-width: 768px) {
-  .gnb-actions { display: none !important; }
-}
+/* (NAV-1) 예전엔 ≤768px 에서 메뉴바 오른쪽(언어·아바타)을 숨기고 바닥 탭바에 맡겼다. 탭바는
+   만들어지지 않았고(MobileProfileTab 미장착) 정본 6·7 은 모바일 메뉴바에 언어·아바타를 둔다. */
 
 /* Compact avatar on tablet/mobile (handoff §4-1 desktop 56 / mobile 40). */
 @media (max-width: 768px) {
