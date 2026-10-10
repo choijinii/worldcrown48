@@ -213,6 +213,21 @@ test.describe("휴대폰 세로 390", () => {
     expect((await page.getByTestId("nav-drawer").boundingBox())?.width).toBe(268);
   });
 
+  test("동의 전(동의 바가 떠 있음)에도 서랍 바닥(언어 칩)이 가려지지 않는다", async ({ page }) => {
+    // 동의 흔적 쿠키 없이 — 첫 방문자. 동의 바(z 60)가 서랍 위를 덮으면 언어 칩·로그인을 못 누른다.
+    await page.goto("/records?lang=ko");
+    await expect(page.locator(".cookie-banner")).toHaveAttribute("data-state", "visible");
+    await page.getByTestId("nav-burger").click();
+    const chip = page.locator(".wc-drawer-lang-chip").last();
+    await expect(chip).toBeVisible();
+    const topIsDrawer = await chip.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return Boolean(hit && el.closest("[data-testid='nav-drawer']")?.contains(hit));
+    });
+    expect(topIsDrawer).toBe(true);
+  });
+
   test("알약 아래 설명이 늘 보인다(정본 외 추가) · 390×844 캡처", async ({ page, baseURL }, info) => {
     await prime(page, baseURL, "nav1-e2e-tid");
     await page.goto("/records?lang=ko");

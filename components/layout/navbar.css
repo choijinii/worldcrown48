@@ -219,7 +219,7 @@ header.wc-nav {
 .wc-drawer-overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 75; /* 동의 바(60)·설정 창 위 — 서랍이 열린 동안은 서랍이 맨 위(포커스 가두기와 같은 뜻) */
   display: flex;
   background: transparent; /* 정본 4 — 데스크톱은 뒤 화면을 어둡게 하지 않는다 */
 }
@@ -487,9 +487,13 @@ header.wc-nav {
   line-height: 1.45;
   text-align: right;
 }
-.wc-pill:hover + .wc-pill-note,
+/* 알약 묶음 전체(알약 + 설명)에 마우스가 있는 동안 유지 — 설명 위로 옮겨 가도 사라지지 않게(WCAG 1.4.13). */
+.wc-pill-inner:hover .wc-pill-note,
 .wc-pill:focus-visible + .wc-pill-note {
   display: block;
+}
+.wc-pill-note {
+  pointer-events: auto;
 }
 
 /* 휴대폰 세로 — 알약 바로 아래 작은 글씨로 늘 보인다(정본 외 추가 · 대표 눈검사 전). */
@@ -511,7 +515,7 @@ header.wc-nav {
     height: 28px; /* --arena-continue-h 주석: 모바일 28px */
   }
   .wc-pill-note,
-  .wc-pill:hover + .wc-pill-note,
+  .wc-pill-inner:hover .wc-pill-note,
   .wc-pill:focus-visible + .wc-pill-note {
     display: block;
     max-width: 240px;

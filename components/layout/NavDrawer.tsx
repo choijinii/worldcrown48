@@ -3,6 +3,7 @@
 /**
  * NavDrawer — ☰ 서랍 (NAV-1 C · 원장 D-19 + 09-21 · 09-22 · 정본 4 · 5 · 8 · GNB.jsx Drawer).
  *
+ * body 로 띄운다(portal) — 메뉴바 층 밖이라 동의 바 위에 온다.
  * 옛 SiteMapSheet(카드 8줄)을 대체한다 — 단어만 세로로 놓고 오른쪽 ▸ 로 하위를 펼친다.
  * 항목은 전부 lib/layout/navMap 에서 오고, 여기는 그리기와 키보드만 한다.
  *
@@ -16,6 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import FocusTrap from "focus-trap-react";
 import { useEscapeClose } from "@/lib/ui/dismiss";
@@ -58,7 +60,7 @@ export function NavDrawer({ isOpen, onClose, pathname, admin, labPublic }: NavDr
     if (isOpen) setExpanded(current ? { [current]: true } : {});
   }, [isOpen, current]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   const items = drawerItems({ labPublic });
   const adminItems = drawerAdminItems({ admin, labPublic });
@@ -100,7 +102,9 @@ export function NavDrawer({ isOpen, onClose, pathname, admin, labPublic }: NavDr
     );
   };
 
-  return (
+  // body 로 띄운다 — 메뉴바(sticky · z 50) 안에 있으면 그 층에 갇혀 동의 바(z 60)가 서랍 바닥
+  // (언어 칩 · 로그인)을 덮는다(검수 2026-10-11). 층은 navbar.css 의 .wc-drawer-overlay.
+  return createPortal(
     <FocusTrap
       focusTrapOptions={{
         escapeDeactivates: false,
@@ -236,6 +240,7 @@ export function NavDrawer({ isOpen, onClose, pathname, admin, labPublic }: NavDr
           </div>
         </nav>
       </div>
-    </FocusTrap>
+    </FocusTrap>,
+    document.body,
   );
 }

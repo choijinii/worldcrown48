@@ -6,7 +6,7 @@
  * (D-30 상시 공개) · `categories`(공개). 규칙 변경 없음.
  *
  * 읽기 = 공개 대회 1쿼리 + 카테고리 1쿼리 + **끝난 대회의** 차트 캐시 문서 수만큼(챔피언 칸).
- * 실패·시간 초과면 빈 목록 — 화면은 빈 상태로 200.
+ * 실패·시간 초과면 `failed` — 화면은 묶음 없이 머리·배너만(없는 사실을 말하지 않는다).
  */
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
@@ -17,10 +17,13 @@ import type { LocalizedText } from "@/lib/types/tournament";
 const READ_TIMEOUT_MS = 5000;
 
 function withTimeout<T>(p: Promise<T>, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   return Promise.race([
     p.catch(() => fallback),
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), READ_TIMEOUT_MS)),
-  ]);
+    new Promise<T>((resolve) => {
+      timer = setTimeout(() => resolve(fallback), READ_TIMEOUT_MS);
+    }),
+  ]).finally(() => clearTimeout(timer));
 }
 
 /** 화면 한 줄 — 언어 고르기는 화면이 한다. */
@@ -35,11 +38,13 @@ export interface ChartRowData {
 export interface RecordsData {
   active: ChartRowData[];
   ended: ChartRowData[];
+  /** 읽기 실패·시간 초과. 화면은 "끝난 대회 없음"이라고 말하지 않고 묶음을 그리지 않는다. */
+  failed: boolean;
 }
 
 export async function loadRecords(nowMs: number): Promise<RecordsData> {
-  return withTimeout(
-    (async () => {
+  return withTimeout<RecordsData>(
+    (async (): Promise<RecordsData> => {
       const db = getDb();
       const [tSnap, cSnap] = await Promise.all([
         getDocs(query(collection(db, "tournaments"), where("status", "==", "active"))),
@@ -83,8 +88,9 @@ export async function loadRecords(nowMs: number): Promise<RecordsData> {
       return {
         active: active.map((t) => row(t, null)),
         ended: ended.map((t, i) => row(t, champions[i])),
+        failed: false,
       };
     })(),
-    { active: [], ended: [] },
+    { active: [], ended: [], failed: true },
   );
 }

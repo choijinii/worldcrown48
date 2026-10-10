@@ -38,7 +38,9 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
 
   const row = (r: ChartRowData, ended: boolean) => (
     <li key={r.id} className={styles.row} data-testid="records-row">
-      <span className={styles.title}>{localizedTitle({ title: r.title, titleI18n: r.titleI18n }, lang)}</span>
+      <span className={styles.title}>
+        {localizedTitle({ title: r.title, titleI18n: r.titleI18n }, lang)}
+      </span>
       {r.chip && <span className={styles.chip}>{r.chip}</span>}
       {ended && r.champion && (
         <span className={styles.champ}>
@@ -46,7 +48,11 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
           <span className={styles.champName}>{r.champion}</span>
         </span>
       )}
-      <Link href={chartHref(r.id)} className={styles.view} data-testid="records-view-chart">
+      <Link
+        href={chartHref(r.id)}
+        className={styles.view}
+        data-testid="records-view-chart"
+      >
         {t("records.viewChart")}
       </Link>
     </li>
@@ -59,24 +65,37 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
         <h1 className={styles.h1}>{t("records.title")}</h1>
         <p className={styles.sub}>{t("records.sub")}</p>
 
-        {data.active.length > 0 && (
+        {/* 읽기 실패면 묶음을 그리지 않는다 — "아직 끝난 대회가 없어요"는 사실일 때만. */}
+        {!data.failed && data.active.length > 0 && (
           <section className={styles.group} data-testid="records-active">
             <h2 className={styles.groupLabel}>{t("records.active")}</h2>
-            <ul className={styles.list}>{data.active.map((r) => row(r, false))}</ul>
+            <ul className={styles.list}>
+              {data.active.map((r) => row(r, false))}
+            </ul>
           </section>
         )}
 
-        <section className={styles.group} data-testid="records-ended">
-          <h2 className={styles.groupLabel}>{t("records.ended")}</h2>
-          {data.ended.length > 0 ? (
-            <ul className={styles.list}>{data.ended.map((r) => row(r, true))}</ul>
-          ) : (
-            <p className={styles.empty} data-testid="records-empty">{t("records.empty")}</p>
-          )}
-        </section>
+        {!data.failed && (
+          <section className={styles.group} data-testid="records-ended">
+            <h2 className={styles.groupLabel}>{t("records.ended")}</h2>
+            {data.ended.length > 0 ? (
+              <ul className={styles.list}>
+                {data.ended.map((r) => row(r, true))}
+              </ul>
+            ) : (
+              <p className={styles.empty} data-testid="records-empty">
+                {t("records.empty")}
+              </p>
+            )}
+          </section>
+        )}
 
         <div className={styles.banner}>
-          <BannerSlot slot="records-below" variant={variant} className={styles.bannerSlot} />
+          <BannerSlot
+            slot="records-below"
+            variant={variant}
+            className={styles.bannerSlot}
+          />
         </div>
       </div>
     </main>

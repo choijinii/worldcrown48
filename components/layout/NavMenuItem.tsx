@@ -77,7 +77,8 @@ export function NavMenuItem({
     const action = menuKeyAction(e.key);
     if (!action) return;
     if (action === "close") {
-      onClose();
+      // Tab — 브라우저가 다음 요소로 초점을 옮긴 뒤에 닫는다(먼저 닫으면 초점 줄이 사라져 body 로 떨어진다).
+      requestAnimationFrame(onClose);
       return;
     }
     e.preventDefault();
@@ -96,7 +97,10 @@ export function NavMenuItem({
       ref={rootRef}
       className="wc-nav-group"
       onMouseEnter={() => onOpen()}
-      onMouseLeave={onClose}
+      // 키보드로 연 메뉴 안에 초점이 있으면 마우스가 지나가도 닫지 않는다(초점이 body 로 떨어지지 않게).
+      onMouseLeave={() => {
+        if (!rootRef.current?.contains(document.activeElement)) onClose();
+      }}
     >
       <Link
         href={item.href as string}

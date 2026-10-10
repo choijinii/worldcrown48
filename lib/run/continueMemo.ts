@@ -20,6 +20,12 @@ export const CONTINUE_MEMO_KEY = "wc48:continue:v1";
 /** 기능 스위치 — 알약을 끄려면 false (R7). */
 export const CONTINUE_PILL_ENABLED = true;
 
+/**
+ * 마지막 선택에서 이만큼 지나면 알약을 숨긴다. 마감이 지나 더는 끝낼 수 없게 된 판이 다른 기기·
+ * 다른 길로 정리되지 않아도 알약이 영원히 남지 않게 하는 안전망이다(선택마다 시각이 새로 적힌다).
+ */
+export const CONTINUE_MEMO_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** 같은 탭 안에서 메모가 바뀌었음을 알약에 알리는 이벤트(storage 이벤트는 다른 탭에만 온다). */
 export const CONTINUE_MEMO_EVENT = "wc48:continue-memo";
 
@@ -78,13 +84,25 @@ export function clearContinue(tournamentId: string, storage: Storage | null = de
   announce();
 }
 
+/** 대회를 가리지 않고 지운다 — 로그아웃(공용 기기에서 다음 사람에게 남지 않게). */
+export function clearContinueAny(storage: Storage | null = defaultStorage()): void {
+  try {
+    storage?.removeItem(CONTINUE_MEMO_KEY);
+  } catch {
+    return;
+  }
+  announce();
+}
+
 /** 알약이 갈 곳. 그 대회의 매치 화면 안에서는 숨긴다(D-18). `null` = 알약도 자리도 없음. */
 export function continuePillHref(
   memo: ContinueMemo | null,
   pathname: string,
+  nowMs: number,
   enabled: boolean = CONTINUE_PILL_ENABLED,
 ): string | null {
   if (!enabled || !memo) return null;
+  if (nowMs - memo.at > CONTINUE_MEMO_MAX_AGE_MS) return null;
   const href = `/arena/${encodeURIComponent(memo.tournamentId)}`;
   return pathname === href ? null : href;
 }

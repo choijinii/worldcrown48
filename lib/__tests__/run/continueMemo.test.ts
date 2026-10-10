@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  CONTINUE_MEMO_MAX_AGE_MS,
   CONTINUE_MEMO_KEY,
   CONTINUE_PILL_ENABLED,
   clearContinue,
@@ -80,27 +81,46 @@ describe("메모 쓰기·읽기·지우기", () => {
 describe("알약 주소 — 그 대회의 매치 화면에서는 숨긴다", () => {
   const memo = { tournamentId: "t1", at: 1 };
 
+  const NOW = 2;
+
   it("메모가 있으면 그 대결로", () => {
-    expect(continuePillHref(memo, "/", true)).toBe("/arena/t1");
-    expect(continuePillHref(memo, "/records", true)).toBe("/arena/t1");
-    expect(continuePillHref(memo, "/arena/t2", true)).toBe("/arena/t1");
-    expect(continuePillHref(memo, "/arena/t1/ranking", true)).toBe("/arena/t1");
+    expect(continuePillHref(memo, "/", NOW, true)).toBe("/arena/t1");
+    expect(continuePillHref(memo, "/records", NOW, true)).toBe("/arena/t1");
+    expect(continuePillHref(memo, "/arena/t2", NOW, true)).toBe("/arena/t1");
+    expect(continuePillHref(memo, "/arena/t1/ranking", NOW, true)).toBe("/arena/t1");
   });
 
   it("그 대회의 매치 화면 = 숨김", () => {
-    expect(continuePillHref(memo, "/arena/t1", true)).toBeNull();
+    expect(continuePillHref(memo, "/arena/t1", NOW, true)).toBeNull();
   });
 
   it("메모 없음 · 스위치 꺼짐 = 숨김", () => {
-    expect(continuePillHref(null, "/", true)).toBeNull();
-    expect(continuePillHref(memo, "/", false)).toBeNull();
+    expect(continuePillHref(null, "/", NOW, true)).toBeNull();
+    expect(continuePillHref(memo, "/", NOW, false)).toBeNull();
   });
 
   it("id 는 주소에 안전하게", () => {
-    expect(continuePillHref({ tournamentId: "a b", at: 1 }, "/", true)).toBe("/arena/a%20b");
+    expect(continuePillHref({ tournamentId: "a b", at: 1 }, "/", NOW, true)).toBe("/arena/a%20b");
+  });
+
+  it("마지막 선택이 7일을 넘긴 메모는 숨김 — 끝낼 수 없게 된 판(마감 등)이 알약으로 남지 않게", () => {
+    expect(CONTINUE_MEMO_MAX_AGE_MS).toBe(7 * 24 * 60 * 60 * 1000);
+    expect(continuePillHref(memo, "/", 1 + CONTINUE_MEMO_MAX_AGE_MS, true)).toBe("/arena/t1");
+    expect(continuePillHref(memo, "/", 2 + CONTINUE_MEMO_MAX_AGE_MS, true)).toBeNull();
   });
 
   it("기능 스위치 기본값은 켜짐", () => {
     expect(CONTINUE_PILL_ENABLED).toBe(true);
+  });
+});
+
+describe("메모 지우기 — 끝낼 수 없게 된 판 · 로그아웃", () => {
+  it("clearContinueAny — 어느 대회든 지운다(로그아웃 · 공용 기기)", async () => {
+    const { clearContinueAny } = await import("@/lib/run/continueMemo");
+    const s = memStorage();
+    noteContinue("t9", 1, s);
+    clearContinueAny(s);
+    expect(readContinueMemo(s)).toBeNull();
+    expect(() => clearContinueAny(throwingStorage())).not.toThrow();
   });
 });

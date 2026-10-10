@@ -42,7 +42,7 @@ export function ContinuePill({ pathname }: { pathname: string }): JSX.Element | 
     };
   }, [pathname]);
 
-  const href = continuePillHref(memo, pathname);
+  const href = continuePillHref(memo, pathname, Date.now());
   if (!href) return null;
 
   return (

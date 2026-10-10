@@ -249,8 +249,11 @@ export default function ArenaPage(): JSX.Element {
 
   // NAV-1 E — "선택 이어가기" 알약의 브라우저 메모(원장 D-18 · 대표 2026-10-11): 이 대회를 마쳤으면
   // 지운다. 다른 기기에서 이미 끝낸 판으로 돌아왔을 때(run.screen === "complete")도 같다.
+  // 마감이 지나 더는 끝낼 수 없는 판(run.screen === "deadline_passed")도 지운다 — 알약이 선택마다
+  // 실패하는 무대를 가리키지 않게.
   useEffect(() => {
-    if (progress?.complete || run?.screen === "complete") clearContinue(tournamentId);
+    if (progress?.complete || run?.screen === "complete" || run?.screen === "deadline_passed")
+      clearContinue(tournamentId);
   }, [tournamentId, progress?.complete, run?.screen]);
 
   const byId = useCallback(
@@ -306,6 +309,8 @@ export default function ArenaPage(): JSX.Element {
         }
       } catch (e) {
         const detail = voteErrorDetailCode(e);
+        // NAV-1 — 마감 거절이면 이 판은 끝낼 수 없다: 알약 메모를 지운다.
+        if (detail === VOTE_ERROR_CODES.DEADLINE_PASSED) clearContinue(tournamentId);
         // 막는 것과 왜 막혔는지 알려주는 것은 한 쌍이다(§14). 서버가 실은 코드로 갈라
         // 각각 제 화면을 띄운다 — 전부 일반 실패 배너로 흘리면 2026-09-06 P0가 재발한다.
         if (detail === VOTE_ERROR_CODES.GUEST_LIMIT) {
