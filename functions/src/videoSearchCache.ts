@@ -10,8 +10,8 @@
  * 문서 id = 검색어 해시(searchCacheKey). 원본 검색어를 함께 저장하는 이유는
  * 해시 충돌 진단 — 64비트 해시라 사실상 안 나지만, 났을 때 알아볼 수 있어야 한다.
  *
- * TTL은 **읽을 때 판정**한다(isCacheFresh). 만료 문서를 지우는 크론을 두지 않는 건
- * 문서 수가 검색어 종류만큼이고(수백), 덮어쓰기로 자연히 갱신되기 때문이다.
+ * TTL은 **읽을 때 판정**한다(isCacheFresh). 만료 문서는 매일 scheduleYouTubeDataRetention 이
+ * 지운다 — YouTube API 자료 30일(POLICY-YT-1). 같은 isCacheFresh 로 판정하므로 읽히는 문서는 남는다.
  */
 import { adminDb } from "./admin";
 import { isCacheFresh } from "./_embed/sourcing/searchQuery";

@@ -1,95 +1,55 @@
 /**
- * POLICY-YT-1 Phase E — YouTube API 자료 30일 (개발자 정책 III.E.4 · 지시서 R4 · 대표 결정 2026-10-10).
+ * POLICY-YT-1 Phase E — YouTube API 자료 30일 (개발자 정책 III.E.4 · 지시서 R4 · 대표 결정 2026-10-10 두 건).
  *
  * 정책 문서(부록 A)가 약속한 것: "YouTube에서 받은 영상 정보는 30일을 넘겨 보관하지 않으며,
  * 그 전에 YouTube에서 새로 받거나 지웁니다." 이 층이 그 약속을 지키는 판정이다.
  *
- *   ① video_search_cache — 25일 넘으면 videos.list 로 새로 받는다(검색 횟수를 아끼는 캐시는 지키고),
- *      30일 넘었거나 새로 받기에 실패하면 지운다. 기준 = apiRefreshedAt, 없으면 처음 저장 시각 cachedAt.
- *      7일 신선도 판정(cachedAt)은 건드리지 않는다.
+ *   ① video_search_cache — 7일 신선도(isCacheFresh · cachedAt)를 넘긴 문서는 **지운다**(할당량 0).
+ *      검색 쪽(readSearchCache)이 7일 지난 문서를 쓰지 않으므로 새로 받아도 다시 읽히지 않는다 —
+ *      지시서 R4 의 "25일에 새로 받기"는 이 결정으로 바뀌었다. 7일 신선도 규칙은 그대로.
  *   ② 끝난 대회(status "ended")의 재생 판정 — contestants.media.embed.status · tournaments.videoAlert
  *      를 지운다(할당량 0). 다시 진행 중이 되면 월요일 재검사(scheduleEmbedRecheck)가 다시 채운다.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  API_DATA_MAX_AGE_MS,
-  API_DATA_REFRESH_AFTER_MS,
-  planCacheRetention,
-  planEndedEmbedCleanup,
-  refreshCandidates,
-} from "../core/apiDataRetention";
+import { API_DATA_MAX_AGE_MS, planCacheRetention, planEndedEmbedCleanup } from "../core/apiDataRetention";
+import { CACHE_TTL_MS, isCacheFresh } from "../_embed/sourcing/searchQuery";
 import { planRecheckUpdates, summarizeAlerts } from "../core/embedRecheckCore";
-import type { LinkStatus, LinkVerdict, YouTubeApiItem } from "../_embed/verdict";
+import type { LinkStatus, LinkVerdict } from "../_embed/verdict";
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = 1_760_000_000_000;
 
 describe("기준 수치", () => {
-  it("25일에 새로 받고, 30일을 넘기지 않는다", () => {
-    expect(API_DATA_REFRESH_AFTER_MS).toBe(25 * DAY);
+  it("검색 캐시는 7일 신선도에서 끝난다 — 정책의 30일보다 짧다", () => {
+    expect(CACHE_TTL_MS).toBe(7 * DAY);
     expect(API_DATA_MAX_AGE_MS).toBe(30 * DAY);
+    expect(CACHE_TTL_MS).toBeLessThan(API_DATA_MAX_AGE_MS);
   });
 });
 
-describe("planCacheRetention — 검색 캐시 문서 하나", () => {
-  it("25일 이하 = 그대로", () => {
-    expect(planCacheRetention({ cachedAt: NOW - 3 * DAY }, NOW)).toBe("keep");
-    expect(planCacheRetention({ cachedAt: NOW - 25 * DAY }, NOW)).toBe("keep");
+describe("planCacheRetention — 검색 캐시 문서 하나 (대표 결정: 7일 지나면 지우기)", () => {
+  it("7일 안 = 그대로", () => {
+    expect(planCacheRetention({ cachedAt: NOW - 1 * DAY }, NOW)).toBe("keep");
+    expect(planCacheRetention({ cachedAt: NOW - 7 * DAY + 1 }, NOW)).toBe("keep");
   });
 
-  it("25일 넘음 ~ 30일 = 새로 받기", () => {
-    expect(planCacheRetention({ cachedAt: NOW - 25 * DAY - 1 }, NOW)).toBe("refresh");
-    expect(planCacheRetention({ cachedAt: NOW - 30 * DAY }, NOW)).toBe("refresh");
+  it("7일 = 지우기 — 새로 받지 않는다", () => {
+    expect(planCacheRetention({ cachedAt: NOW - 7 * DAY }, NOW)).toBe("delete");
+    expect(planCacheRetention({ cachedAt: NOW - 25 * DAY }, NOW)).toBe("delete");
   });
 
-  it("30일 넘음 = 지우기", () => {
-    expect(planCacheRetention({ cachedAt: NOW - 30 * DAY - 1 }, NOW)).toBe("delete");
+  it("검색 쪽 신선도 판정(isCacheFresh)과 경계가 똑같다 — 쓰는 문서는 남기고, 안 쓰는 문서만 지운다", () => {
+    for (const age of [0, DAY, 7 * DAY - 1, 7 * DAY, 7 * DAY + 1, 40 * DAY]) {
+      const fresh = isCacheFresh(NOW - age, NOW);
+      expect(planCacheRetention({ cachedAt: NOW - age }, NOW)).toBe(fresh ? "keep" : "delete");
+    }
   });
 
-  it("기준은 apiRefreshedAt — 처음 저장이 오래됐어도 최근에 새로 받았으면 그대로", () => {
-    expect(planCacheRetention({ cachedAt: NOW - 60 * DAY, apiRefreshedAt: NOW - 2 * DAY }, NOW)).toBe("keep");
-    expect(planCacheRetention({ cachedAt: NOW - 1 * DAY, apiRefreshedAt: NOW - 31 * DAY }, NOW)).toBe("delete");
-  });
-
-  it("시각이 하나도 없으면(나이를 모름) 지운다 — 모르면 30일 넘은 것으로", () => {
+  it("시각이 없으면(나이를 모름) 지운다", () => {
     expect(planCacheRetention({}, NOW)).toBe("delete");
     expect(planCacheRetention({ cachedAt: "어제" as unknown as number }, NOW)).toBe("delete");
-  });
-});
-
-function item(id: string, title: string, channelTitle: string): YouTubeApiItem {
-  return { id, snippet: { title, channelTitle } };
-}
-
-describe("refreshCandidates — videos.list 응답으로 후보 목록 새로 쓰기", () => {
-  const cached = [
-    { videoId: "aaaaaaaaaaa", title: "옛 제목 A", channelTitle: "옛 채널 A" },
-    { videoId: "bbbbbbbbbbb", title: "옛 제목 B", channelTitle: "옛 채널 B" },
-    { videoId: "ccccccccccc", title: "옛 제목 C", channelTitle: "옛 채널 C" },
-  ];
-
-  it("제목·채널 이름을 새 값으로, 순서(= 재시도 순서)는 그대로", () => {
-    const out = refreshCandidates(cached, [
-      item("ccccccccccc", "새 C", "채널 C"),
-      item("aaaaaaaaaaa", "새 A", "채널 A"),
-      item("bbbbbbbbbbb", "새 B", "채널 B"),
-    ]);
-    expect(out).toEqual([
-      { videoId: "aaaaaaaaaaa", title: "새 A", channelTitle: "채널 A" },
-      { videoId: "bbbbbbbbbbb", title: "새 B", channelTitle: "채널 B" },
-      { videoId: "ccccccccccc", title: "새 C", channelTitle: "채널 C" },
-    ]);
-  });
-
-  it("영상이 없어졌으면(응답에 없음) 그 후보만 뺀다", () => {
-    const out = refreshCandidates(cached, [item("aaaaaaaaaaa", "새 A", "채널 A"), item("ccccccccccc", "새 C", "채널 C")]);
-    expect(out.map((c) => c.videoId)).toEqual(["aaaaaaaaaaa", "ccccccccccc"]);
-  });
-
-  it("전부 없어졌으면 빈 목록 — 호출자가 문서를 지운다", () => {
-    expect(refreshCandidates(cached, [])).toEqual([]);
   });
 });
 
@@ -179,27 +139,26 @@ describe("다시 진행 중이 되면 월요일 재검사가 다시 채운다 (�
   });
 });
 
-describe("예약 함수 scheduleYouTubeDataRefresh (소스 가드)", () => {
-  const src = readFileSync(join(__dirname, "..", "scheduleYouTubeDataRefresh.ts"), "utf8");
+describe("예약 함수 scheduleYouTubeDataRetention (소스 가드)", () => {
+  const src = readFileSync(join(__dirname, "..", "scheduleYouTubeDataRetention.ts"), "utf8");
 
-  it("매일 한 번 · KST · 서울 리전 · 기존 YOUTUBE_API_KEY 시크릿만", () => {
+  it("매일 한 번 · KST · 서울 리전", () => {
     expect(src).toMatch(/schedule: "\d+ \d+ \* \* \*"/);
     expect(src).toContain('timeZone: "Asia/Seoul"');
     expect(src).toContain('region: "asia-northeast3"');
-    expect(src).toContain('secrets: ["YOUTUBE_API_KEY"]');
   });
 
-  it("7일 신선도 필드 cachedAt 은 쓰지 않는다 — 새로 받은 시각은 apiRefreshedAt", () => {
-    expect(src).toContain("apiRefreshedAt");
-    expect(src).not.toMatch(/cachedAt\s*:/);
+  it("할당량 0 — YouTube API 를 부르지 않고, 키도 시크릿도 쓰지 않는다", () => {
+    expect(src).not.toMatch(/youtubeGateway|listVideos|reserveYouTubeQuota|secrets:|YOUTUBE_API_KEY/);
   });
 
-  it("할당량은 기존 youtubeQuota 경로로 기록한다", () => {
-    expect(src).toContain("reserveYouTubeQuota");
+  it("검색 캐시를 새로 쓰지 않는다 — 지우기만(cachedAt · candidates 를 쓰지 않음)", () => {
+    expect(src).not.toMatch(/cachedAt\s*:|candidates\s*:|apiRefreshedAt/);
   });
 
-  it("index.ts 가 내보낸다(배포 대상)", () => {
+  it("index.ts 가 내보낸다(배포 대상) · 옛 이름은 없다", () => {
     const index = readFileSync(join(__dirname, "..", "index.ts"), "utf8");
-    expect(index).toContain('export { scheduleYouTubeDataRefresh } from "./scheduleYouTubeDataRefresh"');
+    expect(index).toContain('export { scheduleYouTubeDataRetention } from "./scheduleYouTubeDataRetention"');
+    expect(index).not.toContain("scheduleYouTubeDataRefresh");
   });
 });
