@@ -29,7 +29,8 @@ export function PolicyAnchorBar(): JSX.Element {
       const active = document.querySelector<HTMLElement>(activeDocSelector(lang));
       const root = active ?? document;
       const headings = Array.from(
-        root.querySelectorAll<HTMLHeadingElement>(".policy-section h2"),
+        // id 는 h2 를 감싼 <section> 에 있다(PolicyContent) — h2 를 읽으면 목록이 비었다(POLICY-YT-1).
+        root.querySelectorAll<HTMLElement>("section.policy-section[id]"),
       );
       setOptions(
         headings

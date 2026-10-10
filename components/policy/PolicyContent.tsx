@@ -93,7 +93,7 @@ export function PolicyContent({
     return () => window.removeEventListener("hashchange", go);
   }, [lang]);
 
-  // Scroll-spy: observe h2 elements in the active language only.
+  // Scroll-spy: observe the h2 sections in the active language only.
   useEffect(() => {
     if (!rootRef.current) return;
     const activeDoc = rootRef.current.parentElement?.querySelector<HTMLElement>(
@@ -101,9 +101,8 @@ export function PolicyContent({
     );
     if (!activeDoc) return;
 
-    const headings = activeDoc.querySelectorAll<HTMLHeadingElement>(
-      ".policy-section h2",
-    );
+    // id 는 h2 를 감싼 <section> 에 있다 — h2 를 보면 entry.target.id 가 비어 계측이 0건이었다.
+    const headings = activeDoc.querySelectorAll<HTMLElement>("section.policy-section[id]");
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
