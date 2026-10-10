@@ -1,33 +1,34 @@
 /* ════════════════════════════════════════════════════════════════════
-   전역 메뉴바 · 펼침 메뉴 · ☰ 서랍 — NAV-1 (정본 v3 32장 · GNB.jsx).
+   전역 메뉴바 · 펼침 메뉴 · ☰ 서랍 · 선택 이어가기 알약 — NAV-1 (정본 v3 32장 · GNB.jsx).
 
-   §0-B 3: 메뉴는 어느 페이지에서나 다크다. 아래 메뉴 범위 변수(--nav-*)는 전부 기존 토큰을
-   가리키기만 한다(R4 — 새 색 토큰 없음). 정본 값에 꼭 맞는 토큰이 없는 곳은 가장 가까운
-   토큰을 쓰고 "≈" 로 표시했다 — PR 본문 C절 "없는 토큰" 목록과 같다.
+   §0-B 3: 메뉴는 어느 페이지에서나 다크다. 값은 디자인 정본이 내보낸 아레나 층 토큰
+   (app/arena_stage_tokens.css — --arena-nav-* · --arena-drawer-* · --arena-continue-*)을 그대로
+   쓴다(R4 — 새 토큰 없음). 정본 값에 맞는 토큰이 없는 곳 = 흐린 줄 불투명도 0.45 · 펼침 메뉴
+   그림자 — 메뉴 범위 값으로 두고 PR 본문 C절 "없는 토큰" 목록에 적었다.
    이 파일은 [data-theme="light"]·.domain-* 범위 밖이라 :root 다크 팔레트를 읽는다.
    ════════════════════════════════════════════════════════════════════ */
 
 .wc-nav,
 .wc-drawer-overlay {
-  /* 메뉴바 바탕 0F0F1D → 171740 ≈ twilight-deep → twilight */
-  --nav-bar-from: var(--color-twilight-deep);
-  --nav-bar-to: var(--color-twilight);
-  /* 펼침 메뉴 · 서랍 바탕 0E0944 = bg-default (정확) */
-  --nav-panel: var(--color-bg-default);
-  /* 메뉴 글자 B1B5C4 = text-sub (정확) · 현재 fff = white (정확) */
-  --nav-text: var(--color-text-sub);
-  --nav-text-current: var(--color-white);
-  /* 서랍 줄 글자 D8D9E4 ≈ text(F2F2F5) · ▸·꺼진 언어 칩 8E90A6 ≈ text-dim(9A9AA5) */
-  --nav-row-text: var(--color-text);
-  --nav-caret-dim: var(--color-text-dim);
-  /* 선·표식 — 흰색의 투명도(정본 rgba(255,255,255,a)) */
-  --nav-line: color-mix(in srgb, var(--color-white) 8%, transparent);
-  --nav-edge: color-mix(in srgb, var(--color-white) 10%, transparent);
-  --nav-chip-edge: color-mix(in srgb, var(--color-white) 14%, transparent);
-  --nav-chip-on: color-mix(in srgb, var(--color-white) 16%, transparent);
-  --nav-mark: color-mix(in srgb, var(--color-white) 55%, transparent);
+  --nav-bar-bg: var(--arena-nav-bg);
+  --nav-bar-border: var(--arena-nav-border);
+  --nav-panel: var(--arena-drawer-bg);
+  --nav-panel-border: var(--arena-drawer-border);
+  --nav-panel-shadow: var(--arena-drawer-shadow);
+  --nav-text: var(--arena-nav-text);
+  --nav-text-current: var(--arena-nav-text-active);
+  --nav-row-text: var(--arena-drawer-row);
+  --nav-row-current: var(--arena-drawer-row-active);
+  --nav-child-text: var(--arena-drawer-child);
+  --nav-caret-dim: var(--arena-drawer-arrow);
+  --nav-mark: var(--arena-drawer-row-mark);
+  --nav-chip-border: var(--arena-drawer-chip-border);
+  --nav-chip-on-bg: var(--arena-drawer-chip-on-bg);
+  --nav-chip-on: var(--arena-drawer-chip-on);
+  --nav-chip-off: var(--arena-drawer-chip-off);
+  /* 정본 rgba(0,0,0,.5) — 그림자 토큰은 서랍용 하나뿐이라 펼침 메뉴는 같은 색을 섞어 만든다(보고) */
   --nav-shadow: color-mix(in srgb, var(--color-black) 50%, transparent);
-  /* 흐린 줄 불투명도 0.45 — 전역 토큰 없음(보고) · 메뉴 범위 값 */
+  /* 흐린 줄 불투명도 0.45 — 토큰 없음(보고) · 메뉴 범위 값 */
   --nav-dim-opacity: 0.45;
 }
 
@@ -38,8 +39,8 @@ header.wc-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: linear-gradient(90deg, var(--nav-bar-from), var(--nav-bar-to));
-  border-bottom: 1px solid var(--nav-line);
+  background: var(--nav-bar-bg);
+  border-bottom: var(--nav-bar-border);
   font-family: var(--font-sans);
   color: var(--nav-text);
 }
@@ -143,7 +144,7 @@ header.wc-nav {
   display: flex;
   flex-direction: column;
   background: var(--nav-panel);
-  border: 1px solid var(--nav-edge);
+  border: var(--nav-panel-border);
   box-shadow: 0 20px 48px var(--nav-shadow);
 }
 .wc-nav-dropdown-row {
@@ -165,7 +166,7 @@ header.wc-nav {
 .wc-nav-dropdown-row[aria-current="page"] {
   color: var(--nav-text-current);
   font-weight: 700;
-  border-left-color: var(--nav-mark);
+  border-left: var(--nav-mark);
 }
 
 /* 흐린 줄 — 불투명도 0.45 · 커서 기본 · 호버 변화 없음 (정본 공통) */
@@ -230,8 +231,8 @@ header.wc-nav {
   display: flex;
   flex-direction: column;
   background: var(--nav-panel);
-  border-right: 1px solid var(--nav-edge);
-  box-shadow: 24px 0 64px var(--nav-shadow);
+  border-right: var(--nav-panel-border);
+  box-shadow: var(--nav-panel-shadow);
   color: var(--nav-row-text);
   font-family: var(--font-sans);
   outline: none;
@@ -243,7 +244,7 @@ header.wc-nav {
   align-items: center;
   gap: 10px;
   padding: 0 14px;
-  border-bottom: 1px solid var(--nav-line);
+  border-bottom: var(--nav-bar-border);
 }
 .wc-drawer-close {
   width: 44px;
@@ -285,7 +286,7 @@ header.wc-nav {
   border-left: 2px solid transparent;
 }
 .wc-drawer-row[data-current="true"] {
-  border-left-color: var(--nav-mark);
+  border-left: var(--nav-mark);
 }
 .wc-drawer-row-main {
   flex: 1;
@@ -304,7 +305,7 @@ header.wc-nav {
   cursor: pointer;
 }
 .wc-drawer-row[data-current="true"] .wc-drawer-row-main {
-  color: var(--nav-text-current);
+  color: var(--nav-row-current);
   font-weight: 700;
 }
 .wc-drawer-toggle {
@@ -334,7 +335,7 @@ header.wc-nav {
   padding: 0 16px 0 64px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--nav-text);
+  color: var(--nav-child-text);
   text-decoration: none;
 }
 .wc-drawer-sub:hover {
@@ -345,9 +346,9 @@ header.wc-nav {
 }
 .wc-drawer-divider {
   margin: 10px 16px;
-  height: 1px;
+  height: 0;
   border: 0;
-  background: var(--nav-edge);
+  border-top: var(--nav-panel-border);
 }
 .wc-drawer-foot {
   flex: none;
@@ -356,7 +357,7 @@ header.wc-nav {
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  border-top: 1px solid var(--nav-line);
+  border-top: var(--nav-bar-border);
 }
 .wc-drawer-lang {
   align-self: stretch;
@@ -373,17 +374,17 @@ header.wc-nav {
 }
 .wc-drawer-lang-chip {
   padding: 5px 9px;
-  border: 1px solid var(--nav-chip-edge);
+  border: var(--nav-chip-border);
   background: transparent;
-  color: var(--nav-caret-dim);
+  color: var(--nav-chip-off);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   cursor: pointer;
 }
 .wc-drawer-lang-chip[aria-pressed="true"] {
-  background: var(--nav-chip-on);
-  color: var(--nav-text-current);
+  background: var(--nav-chip-on-bg);
+  color: var(--nav-chip-on);
 }
 .wc-drawer-signout {
   padding: 0;
@@ -399,6 +400,9 @@ header.wc-nav {
 @media (max-width: 860px) {
   .wc-nav-menu {
     display: none;
+  }
+  header.wc-nav {
+    background: var(--arena-nav-bg-mobile);
   }
   .wc-nav-bar {
     height: 48px;
@@ -454,11 +458,11 @@ header.wc-nav {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
-  height: 30px;
+  height: var(--arena-continue-h);
   padding: 0 14px;
   border-radius: 999px;
-  background: var(--color-gold);
-  color: var(--color-bg-soft); /* 정본 241754 = bg-soft (정확) */
+  background: var(--arena-continue-bg);
+  color: var(--arena-continue-text);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 700;
@@ -475,7 +479,7 @@ header.wc-nav {
   padding: 8px 12px;
   box-sizing: border-box;
   background: var(--nav-panel);
-  border: 1px solid var(--nav-edge);
+  border: var(--nav-panel-border);
   box-shadow: 0 12px 32px var(--nav-shadow);
   color: var(--nav-text);
   font-family: var(--font-sans);
@@ -502,6 +506,9 @@ header.wc-nav {
   .wc-pill-inner {
     padding: 8px 8px 0;
     gap: 4px;
+  }
+  .wc-pill {
+    height: 28px; /* --arena-continue-h 주석: 모바일 28px */
   }
   .wc-pill-note,
   .wc-pill:hover + .wc-pill-note,
