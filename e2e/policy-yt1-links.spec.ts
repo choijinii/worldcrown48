@@ -59,7 +59,8 @@ for (const lang of LANGS) {
           .toBe(true);
 
         // 이미 동의한 팬에게 동의 바가 다시 뜨지 않는다 (문서 1.2 ≠ 동의 1.0).
-        await expect(page.locator(".cookie-banner")).toBeHidden();
+        // "resolving" 동안은 동의 바가 아예 없어 숨김 판정이 너무 일찍 통과한다 → 판정이 끝난 상태를 기다린다.
+        await expect(page.locator(".cookie-banner")).toHaveAttribute("data-state", "hidden");
       });
     }
   });
