@@ -2,13 +2,13 @@
 title: Privacy Policy
 type: privacy
 lang: en
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Privacy Policy
 
-**Last updated: October 5, 2026 · Effective date: June 11, 2026**
+**Last updated: October 10, 2026 · Effective date: June 11, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -27,7 +27,7 @@ This Policy explains what personal data WC48 collects, the purposes of collectio
 | Item | When collected | Required |
 |---|---|---|
 | Email address | Sign-up · Waitlist | Required |
-| Nickname (Voter Name) | Sign-up | Required |
+| Nickname | Sign-up | Required |
 | Profile image (avatar) | When uploaded by the user | Optional |
 | Preferred categories | When set by the user | Optional |
 | Report reason for content | When reporting | Required |
@@ -39,7 +39,7 @@ This Policy explains what personal data WC48 collects, the purposes of collectio
 | IP address | When connecting to the server | **Hashed (SHA-256)** |
 | Browser · OS info | User-Agent header | Plain text |
 | Access timestamps · page history | While using the Service | 14 months |
-| Voting history (Tournament · Match · Contestant) | When the user votes | Permanent (anonymized) |
+| Pick history (Tournament · Match · Contestant) | When the user makes a pick | Permanent (anonymized) |
 | Cookie consent record | When saved through the consent modal | 12 months |
 
 ### 1.3 Information from third-party authentication
@@ -61,7 +61,7 @@ WC48 collects and uses personal data for the following purposes.
 | Purpose | Data | Legal basis (GDPR) | Retention |
 |---|---|---|---|
 | Account identification · login | Email · uid · nickname | Contract performance (Art. 6(1)(b)) | Until account deletion |
-| Voting · Tournament participation | Voting history · Contestant ID | Contract performance | Permanent (anonymized) |
+| Picks · Tournament participation | Pick history · Contestant ID | Contract performance | Permanent (anonymized) |
 | Service operation · security | Hashed IP · access logs | Legitimate interest (Art. 6(1)(f)) | 14 months |
 | Abuse prevention | Hashed IP · multi-account patterns | Legitimate interest | 12 months |
 | Analytics · improvement (optional) | Page navigation · time on page | **Consent** (Art. 6(1)(a)) | 14 months |
@@ -75,7 +75,7 @@ Analytics and marketing apply only when you have consented in the [Cookie Policy
 ## 3. Retention Periods
 
 - **Account information**: Deleted within 30 days of account closure (data subject to legal retention is stored separately for the required period)
-- **Voting history**: **Anonymized and stored permanently** for analytics and service operation (no individual identification possible)
+- **Pick history**: **Anonymized and stored permanently** for analytics and service operation (no individual identification possible)
 - **Access · security logs**: 14 months (Korea Protection of Communications Secrets Act)
 - **Reports · complaints**: 5 years (E-Commerce Act + dispute response)
 - **Cookie consent records**: 12 months (GDPR best practice)
@@ -103,7 +103,16 @@ To run the Service reliably, WC48 uses the following processors. Some data may b
 | Cloudflare Inc. | CDN · DDoS protection · email routing | Global edge | GDPR SCCs |
 | Google LLC (Analytics 4) | Usage statistics (with consent) | U.S. + EU | GDPR SCCs + IP anonymization |
 
-You may object to international transfers, but doing so may limit access to core features (login, voting, etc.).
+You may object to international transfers, but doing so may limit access to core features (login, picks, etc.).
+
+### YouTube API Services
+
+WC48 uses **YouTube API Services** to show videos on the Match screen and to find videos for Tournaments.
+
+- The only information WC48 receives from YouTube is **public video information** such as video ID, title, channel name, and playability. We do not access your YouTube account or personal information.
+- Videos play in YouTube's privacy-enhanced mode (youtube-nocookie.com). Information Google processes during playback is governed by the [Google Privacy Policy](https://policies.google.com/privacy).
+- We do not keep video information received from YouTube for more than 30 days; before then we refresh it from YouTube or delete it.
+- Send YouTube-related questions or deletion requests to [policy@worldcrown48.com](mailto:policy@worldcrown48.com).
 
 ---
 
@@ -211,4 +220,4 @@ This Policy may be updated due to changes in law, service expansion, or new proc
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Privacy Policy v1.1*
+*© 2026 WorldCrown48 · Privacy Policy v1.2*

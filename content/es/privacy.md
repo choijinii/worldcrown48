@@ -2,13 +2,13 @@
 title: Política de privacidad
 type: privacy
 lang: es
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Política de privacidad · Privacy Policy
 
-**Última actualización: 5 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 10 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -27,7 +27,7 @@ Esta Política explica qué tipos de datos personales recopila WC48, los fines d
 | Dato | Momento de la recopilación | Obligatorio |
 |---|---|---|
 | Dirección de correo electrónico | Registro de cuenta · inscripción en la Waitlist | Obligatorio |
-| Apodo (Voter Name) | Registro de cuenta | Obligatorio |
+| Apodo | Registro de cuenta | Obligatorio |
 | Imagen de perfil (avatar) | Si el usuario la sube | Opcional |
 | Categorías preferidas | Si el usuario las configura | Opcional |
 | Motivo de la denuncia de contenido | Al presentar una denuncia | Obligatorio |
@@ -39,7 +39,7 @@ Esta Política explica qué tipos de datos personales recopila WC48, los fines d
 | Dirección IP | Al conectarse al servidor | **Almacenada con hash (SHA-256)** |
 | Información del navegador y del sistema operativo | Encabezado User-Agent | Texto sin cifrar |
 | Fecha y hora de acceso · historial de páginas | Durante el uso del Servicio | 14 meses |
-| Historial de votaciones (Tournament · Match · Contestant) | Cuando el usuario vota | Permanente (anonimizado) |
+| Historial de elecciones (Tournament · Match · Contestant) | Cuando el usuario elige | Permanente (anonimizado) |
 | Registro del consentimiento de cookies | Al guardarlo en la ventana de consentimiento | 12 meses |
 
 ### 1.3 Información recibida mediante autenticación de terceros
@@ -61,7 +61,7 @@ WC48 recopila y utiliza datos personales para los siguientes fines.
 | Fin | Datos | Base jurídica (RGPD) | Plazo de conservación |
 |---|---|---|---|
 | Identificación del usuario · inicio de sesión | Correo electrónico · uid · apodo | Ejecución de un contrato (art. 6(1)(b)) | Hasta la baja de la cuenta |
-| Votación · participación en Tournaments | Historial de votaciones · ID de Contestant | Ejecución de un contrato | Permanente (anonimizado) |
+| Elecciones · participación en Tournaments | Historial de elecciones · ID de Contestant | Ejecución de un contrato | Permanente (anonimizado) |
 | Funcionamiento y seguridad del Servicio | Hash de IP · registros de acceso | Interés legítimo (art. 6(1)(f)) | 14 meses |
 | Prevención del uso indebido | Hash de IP · patrones de cuentas múltiples | Interés legítimo | 12 meses |
 | Análisis y mejora (opcional) | Navegación entre páginas · tiempo de permanencia | **Consentimiento** (art. 6(1)(a)) | 14 meses |
@@ -75,7 +75,7 @@ El análisis y el marketing solo se aplican si usted ha dado su consentimiento e
 ## 3. Plazos de conservación
 
 - **Datos de la cuenta**: se eliminan en un plazo de 30 días tras la baja de la cuenta (no obstante, los datos que la ley obliga a conservar se guardan por separado durante el plazo correspondiente)
-- **Historial de votaciones**: se **anonimiza y se conserva de forma permanente** con fines estadísticos y de funcionamiento del Servicio (sin posibilidad de identificar a la persona)
+- **Historial de elecciones**: se **anonimiza y se conserva de forma permanente** con fines estadísticos y de funcionamiento del Servicio (sin posibilidad de identificar a la persona)
 - **Registros de acceso y de seguridad**: 14 meses (conforme a la Ley de Protección del Secreto de las Comunicaciones de Corea)
 - **Denuncias y reclamaciones**: 5 años (Ley de Comercio Electrónico de Corea + atención de controversias)
 - **Registros del consentimiento de cookies**: 12 meses (buenas prácticas del RGPD)
@@ -103,7 +103,16 @@ Para garantizar el funcionamiento estable del Servicio, WC48 encomienda el trata
 | Cloudflare Inc. | CDN · protección contra DDoS · enrutamiento de correo | Red perimetral global | CCT del RGPD |
 | Google LLC (Analytics 4) | Estadísticas de uso (con consentimiento opcional) | EE. UU. + UE | CCT del RGPD + anonimización de IP |
 
-Usted tiene derecho a oponerse a las transferencias internacionales indicadas, pero en ese caso podría verse limitado el uso de las funciones esenciales del Servicio (inicio de sesión, votación, etc.).
+Usted tiene derecho a oponerse a las transferencias internacionales indicadas, pero en ese caso podría verse limitado el uso de las funciones esenciales del Servicio (inicio de sesión, elecciones, etc.).
+
+### Servicios de la API de YouTube
+
+WC48 utiliza los **Servicios de la API de YouTube** para mostrar videos en la pantalla de Match y para encontrar videos para los Tournaments.
+
+- La única información que WC48 recibe de YouTube es **información pública de los videos**, como el ID, el título, el nombre del canal y si se puede reproducir. No accedemos a su cuenta de YouTube ni a su información personal.
+- Los videos se reproducen en el modo de privacidad mejorada de YouTube (youtube-nocookie.com). La información que Google trata durante la reproducción se rige por la [Política de Privacidad de Google](https://policies.google.com/privacy).
+- No conservamos la información de los videos recibida de YouTube durante más de 30 días; antes de ese plazo la actualizamos desde YouTube o la eliminamos.
+- Envíe sus consultas o solicitudes de eliminación relacionadas con YouTube a [policy@worldcrown48.com](mailto:policy@worldcrown48.com).
 
 ---
 
@@ -211,4 +220,4 @@ Esta Política se actualiza en función de cambios normativos, de la ampliación
 ---
 
 *Esta Política podrá actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Privacy Policy v1.1*
+*© 2026 WorldCrown48 · Privacy Policy v1.2*

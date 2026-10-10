@@ -85,9 +85,10 @@ export const CONSENT_COLLECTION = "cookieConsents";
  * Bumping it RE-PROMPTS every fan who already consented.
  *
  * It is NOT the policy documents' `version` (content/*.md frontmatter, shown
- * as "v1.1" in the policy header). Editing a document does not change it —
- * POLICY-ES-1 (R4, 2026-10-05) moved the documents to 1.1 and kept this at
- * "1.0". Bump it only when a change needs fresh consent from everyone.
+ * as "v1.2" in the policy header). Editing a document does not change it —
+ * POLICY-ES-1 (R4, 2026-10-05) moved the documents to 1.1 and POLICY-YT-1
+ * (2026-10-10) to 1.2, both keeping this at "1.0". Bump it only when a
+ * change needs fresh consent from everyone.
  */
 export const CURRENT_POLICY_VERSION = "1.0";
 

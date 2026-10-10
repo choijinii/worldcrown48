@@ -10,8 +10,11 @@
  * that:
  *   • Wraps each <h2> in a `<section class="policy-section">` so the
  *     scroll-spy and anchor bar have a stable element to target.
- *   • Auto-generates section IDs from the heading text (slug) so URL
- *     hashes work (#1-cookies-tan-mueoss-injigga).
+ *   • Gives numbered headings their number as id (`## 8.` → "8",
+ *     `### 2.7` → "2.7"; en/es add "en-"/"es-" because all three languages
+ *     share one DOM) and moves to the active language's id when the URL
+ *     carries a clause hash (/policies/community#2.7) — POLICY-YT-1.
+ *     Unnumbered h2 keep the old slug id.
  *   • Inserts the "§ NN" ordinal in front of each h2 (handoff §6 ps-num).
  *   • Wraps tables in a scroll-x container for narrow viewports.
  *
@@ -33,6 +36,7 @@ import { useI18n } from "@/lib/i18n";
 import { trackWithConsent } from "@/lib/analytics";
 import type { PolicyType } from "@/lib/policyTypes";
 import type { Lang } from "@/lib/cookieConsent";
+import { policyLinkHref, sectionHashTarget, sectionId } from "@/lib/policySectionId";
 
 /**
  * 활성 언어 문서(제목을 모을 범위). 스크롤 스파이와 모바일 섹션 목록이 같이 쓴다.
@@ -63,8 +67,8 @@ export function PolicyContent({
   // Build a components map PER LANGUAGE and PER RENDER — it's cheap. The h2
   // "§ NN" counter lives in the map's closure, so a shared/memoised map made
   // later languages (and later renders) keep counting from where the previous
-  // one stopped. es heading ids get an "es-" prefix: some en/es headings slug
-  // to the same id (privacy "11. Cookies") and ids must stay unique.
+  // one stopped. Heading ids carry the language (lib/policySectionId) so the
+  // three documents never share an id.
 
   // policy_view fires once per (type, lang) entry. We re-fire when either
   // changes so the lang switch counts as a separate view per the handoff.
@@ -74,7 +78,22 @@ export function PolicyContent({
     firedSectionsRef.current = new Set();
   }, [type, lang]);
 
-  // Scroll-spy: observe h2 elements in the active language only.
+  // Clause links (/policies/community#2.7): the browser's own jump only finds
+  // the ko id ("2.7"), which is hidden on an en/es screen. Move to the active
+  // language's id on load, on hash change, and when the language switches.
+  useEffect(() => {
+    const go = () => {
+      const id = sectionHashTarget(window.location.hash, lang);
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el && rootRef.current?.contains(el)) el.scrollIntoView({ block: "start" });
+    };
+    go();
+    window.addEventListener("hashchange", go);
+    return () => window.removeEventListener("hashchange", go);
+  }, [lang]);
+
+  // Scroll-spy: observe the h2 sections in the active language only.
   useEffect(() => {
     if (!rootRef.current) return;
     const activeDoc = rootRef.current.parentElement?.querySelector<HTMLElement>(
@@ -82,9 +101,8 @@ export function PolicyContent({
     );
     if (!activeDoc) return;
 
-    const headings = activeDoc.querySelectorAll<HTMLHeadingElement>(
-      ".policy-section h2",
-    );
+    // id 는 h2 를 감싼 <section> 에 있다 — h2 를 보면 entry.target.id 가 비어 계측이 0건이었다.
+    const headings = activeDoc.querySelectorAll<HTMLElement>("section.policy-section[id]");
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
@@ -107,17 +125,17 @@ export function PolicyContent({
   return (
     <div className="policy-doc" data-lang={lang} ref={rootRef}>
       <div className="doc-ko">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents()}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents("ko")}>
           {koBody}
         </ReactMarkdown>
       </div>
       <div className="doc-en">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents()}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents("en")}>
           {enBody}
         </ReactMarkdown>
       </div>
       <div className="doc-es">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents("es-")}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={buildComponents("es")}>
           {esBody}
         </ReactMarkdown>
       </div>
@@ -140,7 +158,7 @@ export function PolicyContent({
  * simpler version works for the AC: scroll-margin + IntersectionObserver
  * still target the h2 correctly, and the ordinal numbering matches.)
  */
-function buildComponents(idPrefix = ""): Components {
+function buildComponents(docLang: Lang): Components {
   let h2Counter = 0;
   // One counter per map — the caller builds a fresh map for each language on
   // every render, so § 01 / § 02 numbering restarts per language.
@@ -153,7 +171,7 @@ function buildComponents(idPrefix = ""): Components {
     h2: ({ children }) => {
       h2Counter += 1;
       const text = extractText(children);
-      const id = idPrefix + slug(text);
+      const id = sectionId(text, docLang, 2);
       const num = `§ ${String(h2Counter).padStart(2, "0")}`;
       return (
         <section className="policy-section" id={id}>
@@ -164,7 +182,7 @@ function buildComponents(idPrefix = ""): Components {
         </section>
       );
     },
-    h3: ({ children }) => <h3>{children}</h3>,
+    h3: ({ children }) => <h3 id={sectionId(extractText(children), docLang, 3)}>{children}</h3>,
     table: ({ children }) => (
       <div style={{ overflowX: "auto" }}>
         <table>{children}</table>
@@ -184,7 +202,8 @@ function buildComponents(idPrefix = ""): Components {
           </a>
         );
       }
-      return <a href={href}>{children}</a>;
+      // Other policy pages keep this document's language (POLICY-YT-1).
+      return <a href={policyLinkHref(href, docLang)}>{children}</a>;
     },
   };
 }
@@ -200,17 +219,3 @@ function extractText(children: React.ReactNode): string {
   return "";
 }
 
-/**
- * Slug a heading into a stable section ID. Lowercases, strips quotes,
- * replaces spaces and slashes with `-`. Keeps Korean characters as-is —
- * they survive URL encoding fine.
- */
-function slug(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/[·:'"`()[\]{}]/g, "")
-    .replace(/[\s/]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}

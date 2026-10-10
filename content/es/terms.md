@@ -2,17 +2,17 @@
 title: Términos del servicio
 type: terms
 lang: es
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Términos del servicio · Terms of Service
 
-**Última actualización: 5 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 10 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
-Estos Términos del servicio (en adelante, los "Términos") establecen las condiciones de uso del servicio global de votación de fans que ofrece WorldCrown48 (en adelante, "WC48" o el "Servicio"). Al registrarse en el Servicio o utilizarlo, usted (en adelante, "fan", "organizador", "miembro" o, en conjunto, "usuario") acepta estos Términos.
+Estos Términos del servicio (en adelante, los "Términos") establecen las condiciones de uso del servicio global para fans que ofrece WorldCrown48 (en adelante, "WC48" o el "Servicio"). Al registrarse en el Servicio o utilizarlo, usted (en adelante, "fan", "organizador", "miembro" o, en conjunto, "usuario") acepta estos Términos.
 
 Estos Términos se aplican junto con las [Normas de la comunidad](/policies/community), la [Política de privacidad](/policies/privacy) y la [Política de cookies](/policies/cookies). En caso de conflicto, se aplicará la interpretación más favorable para el usuario.
 
@@ -20,11 +20,12 @@ Estos Términos se aplican junto con las [Normas de la comunidad](/policies/comm
 
 ## 1. Definición del Servicio
 
-WC48 es una plataforma web global en la que los usuarios votan y apoyan a las personas, personajes u obras que les gustan (en adelante, "Contestants") mediante Matches 1:1 y torneos por rondas (en adelante, "Tournaments").
+WC48 es una plataforma web global en la que los usuarios eligen y apoyan a las personas, personajes u obras que les gustan (en adelante, "Contestants") mediante Matches 1:1 y torneos por rondas (en adelante, "Tournaments").
 
-- WC48 es un servicio que **visualiza los resultados de la votación de los fans** y **no tiene relación alguna con la predicción de resultados, las apuestas ni los juegos de azar**
+- WC48 es un servicio que **muestra lo que eligen los fans** y **no tiene relación alguna con la predicción de resultados, las apuestas ni los juegos de azar**
 - WC48 no está afiliado a ninguna organización deportiva ni empresa de medios
 - WC48 no está vinculado directamente con los resultados de partidos o temporadas reales
+- WC48 utiliza los Servicios de la API de YouTube. Al usar WC48, usted también acepta quedar sujeto a los [Términos del Servicio de YouTube](https://www.youtube.com/t/terms).
 
 ---
 
@@ -33,7 +34,7 @@ WC48 es una plataforma web global en la que los usuarios votan y apoyan a las pe
 - **Edad mínima**: Solo pueden registrarse personas de **14 años cumplidos o más** (conforme a la Ley de Redes de Información y Comunicaciones de Corea y a la COPPA)
 - **Verificación de identidad**: Al registrarse, usted debe proporcionar información veraz y no puede utilizar los datos de otra persona
 - **Seguridad de la cuenta**: Usted es responsable de la gestión de su contraseña. Si detecta un uso no autorizado, notifíquelo de inmediato a [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
-- **Cuentas múltiples**: Están prohibidas las cuentas múltiples destinadas a manipular los resultados de las votaciones ([Normas de la comunidad §2.7](/policies/community#7))
+- **Cuentas múltiples**: Están prohibidas las cuentas múltiples destinadas a manipular los resultados de las elecciones ([Normas de la comunidad §2.7](/policies/community#2.7))
 
 Si se confirma que se ha registrado una persona menor de 14 años, eliminaremos de inmediato la cuenta y los datos relacionados.
 
@@ -43,8 +44,8 @@ Si se confirma que se ha registrado una persona menor de 14 años, eliminaremos 
 
 Siempre que cumpla estos Términos y las políticas relacionadas, usted tiene los siguientes derechos:
 
-- Participar y votar libremente en Tournaments y Matches
-- Acceder a su historial de votaciones, a la información de su cuenta y a sus Crown Cards (tarjetas con el resultado de su votación)
+- Participar y elegir libremente en Tournaments y Matches
+- Acceder a su historial de elecciones, a la información de su cuenta y a sus Crown Cards (tarjetas con el resultado de sus elecciones)
 - Cancelar su cuenta y solicitar la eliminación de sus datos en cualquier momento (consulte la Política de privacidad)
 - Presentar una apelación contra medidas que considere injustas ([Normas de la comunidad §8](/policies/community#8))
 
@@ -55,7 +56,7 @@ Siempre que cumpla estos Términos y las políticas relacionadas, usted tiene lo
 Usted se compromete a lo siguiente:
 
 1. Cumplir las [Normas de la comunidad](/policies/community)
-2. Utilizar el Servicio conforme a su finalidad (votar y apoyar como fan)
+2. Utilizar el Servicio conforme a su finalidad (elegir y apoyar como fan)
 3. No vulnerar los derechos ni la dignidad de otros usuarios
 4. No manipular los resultados mediante herramientas automatizadas, bots o cuentas múltiples
 5. Ser titular de los derechos de autor, derechos de imagen y derechos de marca del contenido que publique, o contar con la debida autorización para usarlo
@@ -81,7 +82,7 @@ La licencia finaliza cuando usted elimina el contenido o cancela su cuenta (salv
 
 ### 5.3 Contenido generado por IA
 
-- **Crown Card**: imagen de tarjeta generada automáticamente a partir del resultado de su votación; usted puede compartirla libremente en redes sociales y fuera del Servicio
+- **Crown Card**: imagen de tarjeta generada automáticamente a partir del resultado de sus elecciones; usted puede compartirla libremente en redes sociales y fuera del Servicio
 - **AI-Report**: contenido de análisis y noticias generado por IA, cuyos derechos de autor pertenecen a WC48 (conforme a la regla Footer-Only Lock del sistema de diseño v2.4)
 
 ---
@@ -93,7 +94,7 @@ Todo el contenido y las conductas prohibidos definidos en las [Normas de la comu
 - Contenido sexual en el que aparezcan menores (CSAM): **bloqueo permanente inmediato y denuncia ante las autoridades**
 - Vincular los resultados de un Tournament con apuestas, juegos de azar o transacciones económicas
 - Publicar, combinar o crear deepfakes de imágenes de otras personas sin su consentimiento
-- Manipular las votaciones mediante herramientas automatizadas o cuentas múltiples
+- Manipular los resultados de las elecciones mediante herramientas automatizadas o cuentas múltiples
 - Sobrecargar intencionadamente el Servicio o aprovechar sus vulnerabilidades de seguridad
 
 ---
@@ -126,7 +127,7 @@ Usted puede cancelar su cuenta en cualquier momento desde la configuración de l
 
 ## 9. Pagos y reembolsos
 
-- **Fase MVP 1**: todas las funciones principales de WC48 (votación, participación en Tournaments y generación de Crown Cards) se ofrecen de forma gratuita
+- **Fase MVP 1**: todas las funciones principales de WC48 (elecciones, participación en Tournaments y generación de Crown Cards) se ofrecen de forma gratuita
 - **Funciones de pago**: si en el futuro se introducen funciones de pago, se aplicarán condiciones de pago y una política de reembolsos específicas, previo aviso y consentimiento
 - **Reembolsos**: se respetan los derechos de reembolso previstos en la Ley de Comercio Electrónico de Corea y en las leyes de protección del consumidor del país de residencia del usuario
 
@@ -168,4 +169,4 @@ Usted puede cancelar su cuenta en cualquier momento desde la configuración de l
 ---
 
 *Estos Términos pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Terms of Service v1.1*
+*© 2026 WorldCrown48 · Terms of Service v1.2*

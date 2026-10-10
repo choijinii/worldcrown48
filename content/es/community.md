@@ -2,17 +2,17 @@
 title: Normas de la comunidad
 type: community
 lang: es
-lastUpdated: 2026-10-05
-version: 1.1
+lastUpdated: 2026-10-10
+version: 1.2
 ---
 
 # Normas de la comunidad · Community Guidelines
 
-**Última actualización: 5 de octubre de 2026**
+**Última actualización: 10 de octubre de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
-WorldCrown48 (en adelante, "WC48" o el "Servicio") es una plataforma global en la que fans de todo el mundo apoyan con su voto a los Contestants que más les gustan. Estas Normas de la comunidad son el **compromiso mínimo** que permite a todos los fans, organizadores de Tournaments y aportadores de contenido participar en un entorno seguro y respetuoso.
+WorldCrown48 (en adelante, "WC48" o el "Servicio") es una plataforma global en la que fans de todo el mundo apoyan con sus elecciones a los Contestants que más les gustan. Estas Normas de la comunidad son el **compromiso mínimo** que permite a todos los fans, organizadores de Tournaments y aportadores de contenido participar en un entorno seguro y respetuoso.
 
 El contenido y las conductas que incumplan estas Normas pueden eliminarse o bloquearse sin previo aviso. En casos reiterados o graves, la cuenta se suspenderá de forma permanente y, cuando sea necesario, el caso se denunciará ante las autoridades competentes.
 
@@ -27,7 +27,7 @@ Toda la actividad en WC48 se basa en los siguientes cinco principios.
 1. **Respeto** — Todos los Contestants y fans son personas. No tratamos a las personas como mercancía.
 2. **Consentimiento** — La imagen, el nombre y la identidad de una persona solo se utilizan con su consentimiento.
 3. **Seguridad** — Protegemos en primer lugar a las personas menores de edad, a los colectivos vulnerables y a las víctimas.
-4. **Integridad** — No se distorsionan los resultados de la votación mediante manipulación, automatización o cuentas múltiples.
+4. **Integridad** — No se distorsionan los resultados de las elecciones mediante manipulación, automatización o cuentas múltiples.
 5. **Vocación global** — No se menosprecia ni se excluye a nadie por su país, raza, género o religión.
 
 ---
@@ -40,7 +40,7 @@ El siguiente contenido no está permitido en ninguna de sus formas. Se eliminar�
 
 - Imágenes, videos o textos que muestren actos sexuales o genitales, o cuyo propósito principal sea la estimulación sexual
 - Ofrecimiento de servicios sexuales, intermediación en la prostitución o la explotación sexual, y enlaces a material pornográfico
-- Este contenido no puede registrarse en ninguna de las 4 categorías indicadas en la ventana modal del borrador
+- Este contenido no puede registrarse en ningún Tournament, sea cual sea su categoría
 
 > ⚠️ La **excepción para categorías artísticas** se explica por separado en el §3.
 
@@ -80,7 +80,7 @@ El siguiente contenido no está permitido en ninguna de sus formas. Se eliminar�
 
 ### 2.7 Fraude, spam y uso indebido · Fraud · Spam · Abuse
 
-- Manipulación de los resultados de la votación mediante cuentas múltiples, bots o herramientas de automatización
+- Manipulación de los resultados de las elecciones mediante cuentas múltiples, bots o herramientas de automatización
 - Vincular los resultados de un Tournament con apuestas o juegos de azar
 - Phishing, malware, enlaces fraudulentos y contenido publicitario no relacionado
 - Aprovechar vulnerabilidades del Servicio o generar sobrecarga de forma intencionada
@@ -143,7 +143,7 @@ Según la gravedad del incumplimiento, se aplican las siguientes medidas.
 |---|---|---|
 | ① Advertencia | Advertencia por correo electrónico o notificación en la aplicación | Spam leve, publicaciones duplicadas |
 | ② Eliminación de contenido | Eliminación inmediata de la publicación o imagen | Primer incumplimiento de §2.4, §2.5 o §2.7 |
-| ③ Suspensión de 7 días | Se puede iniciar sesión, pero no publicar ni votar | Incumplimientos reiterados, acoso según §2.6 |
+| ③ Suspensión de 7 días | Se puede iniciar sesión, pero no publicar ni elegir | Incumplimientos reiterados, acoso según §2.6 |
 | ④ Suspensión permanente | Bloqueo permanente de la cuenta e intento de impedir que la misma persona vuelva a registrarse | §2.1 contenido sexual explícito, §2.3 imágenes sin consentimiento |
 | ⑤ Suspensión permanente inmediata + denuncia legal | Bloqueo permanente + denuncia ante las autoridades | **§2.2 CSAM**, fraude grave |
 
@@ -205,4 +205,4 @@ WC48 mejora continuamente estas Normas para ser una plataforma global en la que 
 ---
 
 *Estas Normas pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Community Guidelines v1.1*
+*© 2026 WorldCrown48 · Community Guidelines v1.2*
