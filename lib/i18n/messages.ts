@@ -384,7 +384,8 @@ export const MESSAGES = {
 
   // ── NAV-1 메뉴 하위 항목 (lib/layout/navMap) ─────────────────────
   // 메뉴·브랜드 이름은 3언어 모두 영어 그대로(프롬프트 §3 · 원장 D-19 보충 09-22).
-  // Newsroom 하위 ko 는 원장 D-19 보충(09-22) 승인 · es 는 승인 대기(§9 게이트 5).
+  // Newsroom 하위 ko 는 원장 D-19 보충(09-22) 승인 · es 는 대표 승인 2026-10-11(Tournaments → Torneos).
+  // Policy Hub 커뮤니티 ko = 원장 D-19 "커뮤니티 가이드"(대표 2026-10-11 통일).
   // Policy Hub 하위 = 정책 화면 왼쪽 목록(lib/policyTypes POLICY_NAV)과 같은 승인 문구.
   "nav.sub.arenaHome": { ko: "Arena Home", en: "Arena Home", es: "Arena Home" },
   "nav.sub.kpop": { ko: "K-POP", en: "K-POP", es: "K-POP" },
@@ -392,14 +393,14 @@ export const MESSAGES = {
   "nav.sub.charts": { ko: "Charts", en: "Charts", es: "Charts" },
   "nav.sub.hallOfFame": { ko: "Hall of Fame", en: "Hall of Fame", es: "Hall of Fame" },
   "nav.sub.allArticles": { ko: "전체 기사", en: "All Articles", es: "Todos los artículos" },
-  "nav.sub.rankings": { ko: "랭킹", en: "Rankings", es: MARKETING_PENDING },
-  "nav.sub.newsRecords": { ko: "기록", en: "Records", es: MARKETING_PENDING },
-  "nav.sub.stars": { ko: "스타", en: "Stars", es: MARKETING_PENDING },
-  "nav.sub.tournaments": { ko: "토너먼트", en: "Tournaments", es: MARKETING_PENDING },
-  "nav.sub.worldPress": { ko: "외신", en: "World Press", es: MARKETING_PENDING },
+  "nav.sub.rankings": { ko: "랭킹", en: "Rankings", es: "Clasificaciones" },
+  "nav.sub.newsRecords": { ko: "기록", en: "Records", es: "Récords" },
+  "nav.sub.stars": { ko: "스타", en: "Stars", es: "Estrellas" },
+  "nav.sub.tournaments": { ko: "토너먼트", en: "Tournaments", es: "Torneos" },
+  "nav.sub.worldPress": { ko: "외신", en: "World Press", es: "Prensa internacional" },
   "nav.sub.privacy": { ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
   "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
-  "nav.sub.community": { ko: "커뮤니티 정책", en: "Community", es: "Comunidad" },
+  "nav.sub.community": { ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
   "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
   // ── NAV-1 /records Charts 대회 목록 (§9 게이트 8 · 대표 승인 2026-10-10 · 글자 그대로) ──
   "records.eyebrow": { ko: "RECORD ROOM", en: "RECORD ROOM", es: "RECORD ROOM" },
@@ -427,16 +428,20 @@ export const MESSAGES = {
     es: "Solo puedes continuar en este dispositivo. En otro dispositivo no podrás continuar.",
   },
 
-  // 아래는 §9 게이트 5 — 대표 되번역 승인 전 표식. 흐린 줄 안내는 화면 낭독기에만 들린다.
-  "nav.dim.sr": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
-  "nav.drawer.open": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
-  "nav.drawer.close": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
-  "nav.drawer.language": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  // 아래는 §9 게이트 5 — 대표 되번역 승인 2026-10-11. 흐린 줄 안내는 화면 낭독기에만 들린다.
+  "nav.dim.sr": { ko: "곧 열림", en: "Coming soon", es: "Próximamente" },
+  "nav.drawer.open": { ko: "메뉴 열기", en: "Open menu", es: "Abrir menú" },
+  "nav.drawer.close": { ko: "메뉴 닫기", en: "Close menu", es: "Cerrar menú" },
+  "nav.drawer.language": { ko: "언어", en: "Language", es: "Idioma" },
   // ko·en = 계정 메뉴(UserDropdown)의 기존 문구 · es 만 새 문구.
-  "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: MARKETING_PENDING },
+  "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: "Cerrar sesión" },
   // /arena 임시 페이지(ARENA-2 가 교체) — 안내 한 줄 + The Pitch 링크.
-  "arena.temp.intro": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
-  "arena.temp.toPitch": { ko: MARKETING_PENDING, en: MARKETING_PENDING, es: MARKETING_PENDING },
+  "arena.temp.intro": {
+    ko: "아레나 홈을 준비하고 있어요. 지금은 The Pitch에서 대회를 골라 주세요.",
+    en: "Arena Home is on its way. For now, pick a Tournament on The Pitch.",
+    es: "Arena Home llegará pronto. Por ahora, elige un torneo en The Pitch.",
+  },
+  "arena.temp.toPitch": { ko: "The Pitch로 가기", en: "Go to The Pitch", es: "Ir a The Pitch" },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

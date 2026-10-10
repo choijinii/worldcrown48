@@ -307,32 +307,8 @@ describe("messages — 금지 낱말 0건", () => {
 });
 
 /** NAV-1 §9 게이트 5 승인 대기 — **비어야 머지**(PR 본문 E절 되번역 목록). */
-const NAV1_PENDING_APPROVAL: string[] = [
-  "nav.sub.rankings.es",
-  "nav.sub.newsRecords.es",
-  "nav.sub.stars.es",
-  "nav.sub.tournaments.es",
-  "nav.sub.worldPress.es",
-  "nav.dim.sr.ko",
-  "nav.dim.sr.en",
-  "nav.dim.sr.es",
-  "nav.drawer.open.ko",
-  "nav.drawer.open.en",
-  "nav.drawer.open.es",
-  "nav.drawer.close.ko",
-  "nav.drawer.close.en",
-  "nav.drawer.close.es",
-  "nav.drawer.language.ko",
-  "nav.drawer.language.en",
-  "nav.drawer.language.es",
-  "nav.drawer.signOut.es",
-  "arena.temp.intro.ko",
-  "arena.temp.intro.en",
-  "arena.temp.intro.es",
-  "arena.temp.toPitch.ko",
-  "arena.temp.toPitch.en",
-  "arena.temp.toPitch.es",
-];
+// 2026-10-11 대표 승인 — 전부 채움(Tournaments → Torneos · /arena es "torneo" · 커뮤니티 가이드).
+const NAV1_PENDING_APPROVAL: string[] = [];
 const NAV1_PENDING_KO = NAV1_PENDING_APPROVAL.filter((id) => id.endsWith(".ko")).map((id) => id.slice(0, -3));
 
 describe("messages — 마케팅 문안 대기", () => {
