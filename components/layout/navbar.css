@@ -321,11 +321,11 @@ header.wc-nav {
   font-size: 10px;
   cursor: pointer;
 }
-.wc-drawer-toggle span {
-  display: inline-block;
+.wc-drawer-toggle svg {
+  display: block;
   transition: transform 160ms ease;
 }
-.wc-drawer-toggle[aria-expanded="true"] span {
+.wc-drawer-toggle[aria-expanded="true"] svg {
   transform: rotate(90deg);
 }
 .wc-drawer-sub {

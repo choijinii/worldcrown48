@@ -166,7 +166,10 @@ export function NavDrawer({ isOpen, onClose, pathname, admin, labPublic }: NavDr
                           onClick={() => toggle(n.key)}
                           data-testid={`drawer-toggle-${n.key}`}
                         >
-                          <span aria-hidden="true">▸</span>
+                          {/* ▸ 글자는 글꼴에 없어 점으로 보였다 — 10px 삼각형(열리면 90° 회전). */}
+                          <svg aria-hidden="true" viewBox="0 0 10 10" width="10" height="10" fill="currentColor">
+                            <path d="M3 1v8l5-4z" />
+                          </svg>
                         </button>
                       )}
                     </div>

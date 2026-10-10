@@ -120,7 +120,10 @@ export function NavMenuItem({
         onKeyDown={onTriggerKey}
         data-testid={`nav-caret-${item.key}`}
       >
-        <span aria-hidden="true">▾</span>
+        {/* ▾ 글자는 Inter·Pretendard 에 없어 점으로 보였다 — 같은 크기(9px)의 삼각형을 그린다. */}
+        <svg aria-hidden="true" viewBox="0 0 10 10" width="9" height="9" fill="currentColor">
+          <path d="M1 3h8L5 8z" />
+        </svg>
       </button>
       {open && (
         <div id={menuId} role="menu" aria-label={item.label} className="wc-nav-dropdown" onKeyDown={onMenuKey} data-testid={`nav-dropdown-${item.key}`}>
