@@ -135,7 +135,7 @@ test("섹션 조회 계측 — 스크롤 스파이가 활성 언어의 섹션(id
       () =>
         page.evaluate(
           // 개발 모드 StrictMode 는 effect 를 두 번 돈다 — 같은 섹션의 이벤트는 firedSectionsRef 가 한 번만 보낸다.
-          (want) => [...new Set((window as unknown as { __spyTargets: string[] }).__spyTargets)].filter((id) => want.includes(id)),
+          (want) => Array.from(new Set((window as unknown as { __spyTargets: string[] }).__spyTargets)).filter((id) => want.includes(id)),
           ids,
         ),
       { timeout: 5000 },
