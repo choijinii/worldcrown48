@@ -271,7 +271,7 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
       await expect(page.locator(".rank-kicker")).toHaveText(kicker);
       // 목록 위 제목은 3언어 모두 "Crown Score" 하나다 (정본 v1.1 §6-1 · RANKING 제목 없음).
       await expect(page.getByTestId("chart-score-title")).toContainText("Crown Score");
-      // 차트 본문 안에만 한정한다 — 메뉴 줄(ModuleNav)의 "Ranking" 탭은 NAV-1 몫이라 이번엔 그대로다.
+      // 차트 본문 안에 "Ranking" 제목이 없다(아레나 탭 줄은 NAV-1 에서 지웠다).
       await expect(
         page.getByTestId("ranking-view").locator("text=/^Ranking$/i"),
       ).toHaveCount(0);
@@ -384,29 +384,18 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     }
   });
 
-  test("W-6 — ModuleNav: 4 tabs, Ranking active, Newsroom disabled", async ({ page }) => {
+  test("NAV-1 — 아레나 탭 줄(ModuleNav)은 없다 · 메뉴바 현재 = Record Room · 콘솔 오류 0", async ({ page }) => {
+    // D-34 넘긴 일: 탭 줄의 따옴표 선택자 3줄이 하이드레이션 경고를 냈다 — 줄을 지웠으니 오류 0.
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+    page.on("console", (m) => {
+      if (m.type() === "error") errors.push(`console: ${m.text()}`);
+    });
     await page.goto(`/arena/${TID_LOADED}/ranking?lang=en`);
-    const nav = page.getByTestId("module-nav");
-    await expect(nav).toBeVisible({ timeout: 30_000 });
-
-    // Ranking is the active tab on this route (exact-match, trap #6).
-    await expect(page.getByTestId("module-tab-ranking")).toHaveAttribute(
-      "data-active",
-      "true",
-    );
-    await expect(page.getByTestId("module-tab-vs")).toHaveAttribute(
-      "data-active",
-      "false",
-    );
-
-    // Newsroom is disabled (C-4/C-5 unbuilt) — a <button>, not a link.
-    const newsroom = page.getByTestId("module-tab-newsroom");
-    await expect(newsroom).toBeDisabled();
-    await expect(newsroom).toContainText("Coming soon");
-
-    // VS Battle tab routes back to the base arena surface.
-    await page.getByTestId("module-tab-vs").click();
-    await expect(page).toHaveURL(new RegExp(`/arena/${TID_LOADED}(\\?|$)`));
+    await expect(page.getByTestId("ranking-view")).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
+    await expect(page.getByTestId("module-nav")).toHaveCount(0);
+    await expect(page.getByTestId("nav-item-records")).toHaveAttribute("aria-current", "page");
+    expect(errors).toEqual([]);
   });
 
   test("캐시가 없는 대회도 같은 기다림 안내 (en) — 뒤집힘: 예전 empty", async ({ page }) => {

@@ -103,6 +103,10 @@ test.describe("C-2 Crown Card — mobile 320px", () => {
     const modal = page.getByTestId("crown-modal");
     await expect(modal).toBeVisible({ timeout: 30_000 });
     await expect(modal).toContainText("Mobile Champion");
+    // NAV-1 §0-B 8 — 지운 아레나 탭 줄 대신 크라운 카드 화면의 차트 문.
+    const toChart = page.getByTestId("crown-view-chart");
+    await expect(toChart).toBeVisible();
+    await expect(toChart).toHaveAttribute("href", `/arena/${TID}/ranking`);
 
     // The modal must not overflow the 320px viewport.
     const box = await modal.boundingBox();
