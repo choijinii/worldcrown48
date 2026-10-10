@@ -154,6 +154,8 @@ test.describe("G-1 Admin Dashboard", () => {
     await stubCallables(page);
     await page.goto("/admin");
     await expect(page.locator('.sb-item[href="/admin/lab"]')).toBeVisible();
+    // NAV-1 §0-B 4 — News Desk 도 왼쪽 메뉴에.
+    await expect(page.locator('.sb-item[href="/admin/newsdesk"]')).toBeVisible();
   });
 
   test("NAV-1 ☰ 서랍 → 관리자 묶음(The Lab · Admin Dashboard · News Desk) — 운영자에게 보인다", async ({ page }) => {
