@@ -540,3 +540,41 @@ test.describe("정책 목차 sticky · 1440", () => {
     expect(box?.y ?? 0).toBeGreaterThanOrEqual(barBottom);
   });
 });
+
+/* ── 끝까지 스크롤해도 메뉴바가 흔들리지 않는다 (대표 눈검사 2026-10-13 — 끝 튕김) ──
+   데스크톱(마우스·트랙패드) = 끝 튕김 끔 · 메뉴바 fixed. 휴대폰(터치) = 당겨서 새로고침을 살려 두려고
+   튕김은 그대로 두고 메뉴바만 fixed. 본문 여백은 header 자리(높이 --nav-h)가 맡는다. */
+test.describe("끝 튕김 · 데스크톱 1440", () => {
+  test.use({ viewport: WIDE });
+
+  test("html·body 튕김 끔 · 메뉴바 fixed · 끝까지 내려도 y 0 · 본문은 메뉴바 아래에서 시작", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    await page.goto("/records?lang=en");
+    const ob = await page.evaluate(() => [
+      getComputedStyle(document.documentElement).overscrollBehaviorY,
+      getComputedStyle(document.body).overscrollBehaviorY,
+    ]);
+    expect(ob).toEqual(["none", "none"]);
+    const bar = page.locator(".wc-nav-bar");
+    await expect(bar).toHaveCSS("position", "fixed");
+    expect((await page.locator("header.wc-nav").boundingBox())?.height).toBe(58);
+    const main = await page.getByTestId("records-page").boundingBox();
+    expect(main?.y ?? 0).toBeGreaterThanOrEqual(58);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    expect((await bar.boundingBox())?.y).toBe(0);
+  });
+});
+
+test.describe("끝 튕김 · 휴대폰 터치 390", () => {
+  test.use({ viewport: PORTRAIT, hasTouch: true, isMobile: true });
+
+  test("당겨서 새로고침을 막지 않는다(튕김 auto) · 메뉴바 fixed · 자리 42", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    await page.goto("/records?lang=ko");
+    const ob = await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY);
+    expect(ob).toBe("auto");
+    await expect(page.locator(".wc-nav-bar")).toHaveCSS("position", "fixed");
+    expect((await page.locator("header.wc-nav").boundingBox())?.height).toBe(42);
+  });
+});

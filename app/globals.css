@@ -1527,3 +1527,12 @@ input { font: inherit; }
     --nav-h: 42px;
   }
 }
+
+/* 끝 튕김(고무줄) 끄기 — 대표 눈검사 2026-10-13: 데스크톱에서 끝까지 스크롤하면 화면이 튕기며 메뉴바가
+   흔들렸다. 마우스·트랙패드 화면에만 건다 — 터치 화면(휴대폰)에 걸면 당겨서 새로고침이 꺼진다. */
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+}
