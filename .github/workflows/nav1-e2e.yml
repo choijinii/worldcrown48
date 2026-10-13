@@ -11,6 +11,13 @@ on:
     paths:
       - 'components/layout/**'
       - 'components/records/**'
+      - 'components/account/**'
+      - 'app/account/**'
+      - 'app/globals.css'
+      - 'lib/account/**'
+      - 'lib/banner/**'
+      - 'lib/__tests__/account/**'
+      - 'lib/__tests__/banner/**'
       - 'components/arena/ArenaTempPage.tsx'
       - 'components/i18n/LanguageToggle.tsx'
       - 'components/auth/SignInButton.tsx'
@@ -60,7 +67,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Unit tests (vitest) — NAV-1
-        run: npm run test:unit -- lib/__tests__/layout lib/__tests__/records lib/__tests__/run/continueMemo.test.ts lib/__tests__/arena/arenaTempPage.test.ts lib/__tests__/seo
+        run: npm run test:unit -- lib/__tests__/layout lib/__tests__/records lib/__tests__/account lib/__tests__/banner lib/__tests__/run/continueMemo.test.ts lib/__tests__/arena/arenaTempPage.test.ts lib/__tests__/seo
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -116,7 +123,7 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-      - name: Upload NAV-1 captures (390×844 알약 — PR 첨부용)
+      - name: Upload NAV-1 captures (정본 v4 1440·1920·390 닫힘/열림 · /account 비로그인 · 390 알약 — PR 첨부용)
         if: always()
         uses: actions/upload-artifact@v4
         with:

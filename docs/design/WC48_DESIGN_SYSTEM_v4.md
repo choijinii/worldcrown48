@@ -27,7 +27,7 @@
 | ② | 무대 위 글씨 | (미정) | 이름·국적·소속·영상 제목을 **반투명 색 띠** 위에 오버랩 (D-11 바뀜 09-17) |
 | ③ | 무대 조작 | (미정) | 호버 칸 1.2배 + 포스터 줌 1.06 + 옆칸 채도 50% + 클릭 = 선택 (D-11) |
 | ④ | 모바일 | 상하 2분할 | 세로 = 상하 / **가로 = 좌우 50:50 자동 전환, 메뉴 없음** (D-17) |
-| ⑤ | 메뉴바 | The Pitch · The Lab · Locker Room · Vote Now | **☰ · 로고 · The Pitch · The Arena ▾ · Record Room ▾ · Newsroom ▾ · Locker Room · 언어 · 로그인/아바타** (D-19 · NAV-1 §4) |
+| ⑤ | 메뉴바 | The Pitch · The Lab · Locker Room · Vote Now | **☰ · 로고 · The Pitch · The Arena · Record Room ▾ · Newsroom · Locker Room · 언어 · 로그인/아바타** (D-19 · NAV-1 §4 · 정본 v4) |
 | ⑥ | ☰ 서랍 | 카드 8줄 | **단어 나열 + ▸ 토글**, 팬용 5항목 (D-19) |
 | ⑦ | "선택 이어가기" | 없음 | 메뉴바 아래 안내 문구 층 오른쪽 끝, 조건부 (D-18) |
 | ⑧ | 라운드·득표율·타이머 | 매치 화면 금지 | 유지 + **개발자 고지문(vs-foot)도 금지** — 무대 금지 4종 (D-11) |
@@ -144,23 +144,27 @@
 | VS | **58px**, 그림자 `0 6px 28px rgba(11,16,32,.9)` | 58px |
 | 한 줄 안내 | top 812 · JetBrains Mono 10px .1em `#B1B5C4` "가로로 돌리면 무대가 더 크게 열립니다" | 없음 (대신 상단 가운데 안내 알약 1개) |
 
-## 4. 메뉴바 · 펼침 메뉴 · ☰ 서랍 · "선택 이어가기" (D-18·D-19 · **NAV-1 구현 2026-10-11 · 정본 v3 32장**)
-> 정본 = `docs/design/claude-design/Arena_Match_Stage_v3_32boards_2026-10-10.dc.html` (보드 1~9 · 28~32) + 부품 `export_v3_2026-10-10/components/GNB/GNB.jsx`. 메뉴 지도 = `lib/layout/navMap.ts` 한 곳. 값 = 아레나 층 토큰 `--arena-nav-*` · `--arena-drawer-*` · `--arena-continue-*`. 메뉴·서랍·펼침 메뉴는 **어느 페이지에서나 다크**(§0-B 3).
+## 4. 메뉴바 · 펼침 메뉴 · ☰ 서랍 · "선택 이어가기" (D-18·D-19 · **NAV-1 구현 2026-10-11 · 정본 v4 41장 반영 2026-10-13**)
+> 정본 = `docs/design/claude-design/Arena_Match_Stage_v4_41boards_2026-10-13.dc.html` (보드 1~9 · 28~41) + 부품 `export_v4_2026-10-13/components/GNB/GNB.jsx`(값의 단일 진실 · v3 사본은 옛 기록). 메뉴 지도 = `lib/layout/navMap.ts` 한 곳. 값 = 아레나 층 토큰 `--arena-nav-*` · `--arena-drawer-*` · `--arena-continue-*`. 메뉴·서랍·펼침 메뉴는 **어느 페이지에서나 다크**(§0-B 3).
 
 ### 4-A. 메뉴바 (정본 1·2·3·28)
-- ☰ · 로고 · **The Pitch · The Arena ▾ · Record Room ▾ · Newsroom ▾ · Locker Room** · (오른쪽) 언어 칩 · 아바타/SIGN IN. 높이 64, 항목 간격 26, 14px `--arena-nav-text`, 현재 페이지 흰색 600. **CTA 없음**("참가하기"·`a1_gnb_cta_vote_now` 삭제).
+- ☰ · 로고 · **The Pitch · The Arena · Record Room ▾ · Newsroom · Locker Room** · (오른쪽) 언어 칩 · 아바타/SIGN IN. **창 가득**(좌우 여백 0 · 위 20 · 휴대폰 좌우 12 · 위 10) · ☰ 44(휴대폰 40) · 로고 = 왕관 26 + "WorldCrown48" 15px/800(휴대폰 20 · 13px) — 서랍 머리와 **같은 부품**(NavBrand). 높이 64, 항목 간격 26, 14px `--arena-nav-text`, 현재 페이지 흰색 600. **CTA 없음**("참가하기"·`a1_gnb_cta_vote_now` 삭제).
 - **The Lab** = The Arena 바로 다음. 관리자에게만(스위치 `LAB_PUBLIC` 꺼짐 동안 · 원장 D-19). 스위치를 켜면 팬 메뉴에 같은 자리로. 운영자 표시 없음(정본 28).
-- 휴대폰 세로(≤860): 높이 48, 글자 메뉴 없음 — ☰ 서랍이 길. 펼침 메뉴 없음.
+- 휴대폰 세로(≤860): 높이 48, 글자 메뉴 없음 — ☰ 서랍이 길. 펼침 메뉴 없음. 로그인 알약 높이 30 · 12px · 언어 칩 10px(정본 v4).
 
-### 4-B. 펼침 메뉴 (정본 29·30 · §0-B 9) — 하위 메뉴만, 카테고리 없음
-- The Arena ▾ Arena Home · Record Room ▾ Charts · Hall of Fame(흐림) · Newsroom ▾ All Articles.
+### 4-B. 펼침 메뉴 (정본 29·30 · v4 33–41 · §0-B 9) — 하위 메뉴만, 카테고리 없음
+- **고를 것이 둘 이상일 때만** 펼친다(`navMap.hasDropdown`) → **Record Room ▾ Charts · Hall of Fame(흐림)** 하나. The Arena(→ `/arena`) · Newsroom(→ `/news`)은 바로 가기(대표 눈검사 10/11).
 - 폭 240 · 메뉴바 바로 아래 · 항목 왼쪽 끝 정렬 · 줄 34 · 13px · 현재 줄 흰색 700 + 왼쪽 2px 표식 · 바탕 `--arena-drawer-bg`.
 - 열기: 마우스 올림 · ▾ 누름 · Enter/Space/↓. 닫기: Esc(▾로 초점 복귀) · 바깥 누름 · Tab. ↑↓ · Home · End 이동. 메뉴 글자 자체 = 첫 화면(`/arena` · `/records` · `/news`).
 
-### 4-C. ☰ 서랍 (정본 4·5·8)
-- 폭 320(휴대폰 268) · 바탕 `--arena-drawer-bg` · 줄 44 / 하위 줄 34(왼쪽 여백 64) · 줄 글자 = 첫 화면 링크, ▸ = 펼치기(`aria-expanded`).
+### 4-C. ☰ 서랍 (정본 4·5·8 · v4 33–39)
+- 폭 300(휴대폰 230) · 바탕 `--color-drawer-bg` · 어두운 막(잉크 72%) · 줄 44 / 하위 줄 34 · 왼쪽 표식 2 + 패딩 36(아이콘) · 아이콘–글자 10 · 하위 줄 84 · 언어·로그아웃 36.
+- 대분류 앞 Lucide 선 아이콘 20px · 1.75 · 글자색(인라인 SVG `NavIcon` — 패키지 없음). 하위 줄엔 아이콘 없음.
+- 머리: ✕ 는 ☰ 와 같은 자리 · 로고는 메뉴바와 같은 부품.
+- **하위 있는 대분류**(The Arena · Record Room · Newsroom · Policy Hub) = 줄 전체가 펼치기(`aria-expanded`) — 이동 없음. **하위 줄 · 하위 없는 대분류 · 관리자 줄** = 이동하되 **서랍은 열린 채**.
+- 움직임: 열림 220ms · 닫힘 180ms · `cubic-bezier(.2,.8,.2,1)` · 왼쪽에서 밀려 나옴 · 막은 같은 시간 opacity · 움직임 줄이기면 즉시.
 - 항목: The Pitch / The Arena ▸ Arena Home · K-POP · CREATOR / Record Room ▸ Charts · Hall of Fame / Newsroom ▸ All Articles · Rankings · Records · Stars · Tournaments · World Press / Locker Room / Policy Hub ▸ 4종 / 언어 / 로그인·로그아웃 / ─(관리자만) The Lab · Admin Dashboard · News Desk. Launch Pad 없음.
-- 열리면 첫 줄 초점, 닫으면 ☰로 복귀. Esc · 바깥 누름 · × 로 닫힘.
+- 열리면 첫 줄 초점, 닫으면 ☰로 복귀. 닫힘은 **바깥(막) 누름 · ✕ · Esc 세 가지뿐**.
 
 ### 4-D. 흐린 줄 (§0-B 2)
 - 페이지가 없는 하위 항목 = **불투명도 0.45**, 링크 아님, `aria-disabled="true"`, 초점은 받되 이동 없음, 화면에 라벨 글자 없음(화면 낭독기에만 안내). 판정은 메뉴 키(`href` 없음).
@@ -172,6 +176,11 @@
 
 ### 4-F. `/records` Charts 대회 목록 (정본 31·32)
 - 다크 · 목록형 · 폭 970 · "RECORD ROOM" / "Charts" / 안내 한 줄 / 진행 중인 대회 · 끝난 대회(= 마감 시각 지남) / 줄 = 제목 · 카테고리 칩 · (끝난 대회) 챔피언 · "차트 보기 ›" / 배너 `records-below` 970×90 · 320×100.
+
+### 4-G. Locker Room 비로그인 안내 (정본 v4 40·41)
+- `/account` 비로그인(익명 포함) = `/` 로 보내지 않고 그 자리에서 안내. 화이트(D-40) · 메뉴바 다크 · 현재 항목 Locker Room.
+- 눈썹 "LOCKER ROOM" · 제목 "Locker Room" · 안내문(대표 승인 2026-10-13) · Google 로그인(글자 = `lockCopy.cta`) · 크라운 카드 빈 자리(점선 168×236 · 휴대폰 140×196 · 장식) · 배너 `locker-below` 970×90 · 320×100.
+- 이 화면을 여는 것만으로 익명 계정을 만들지 않는다(D-41).
 
 ## 5. 계승 금지 규칙 (v2.4 그대로 · 재확인)
 - Round Scope Lock — 라운드명은 RoundTransition 화면에서만. 무대 금지 4종: 라운드 라벨 · 득표율 · 마감 타이머 · 개발자 고지문.
@@ -186,6 +195,7 @@
 3. 내보낸 css를 `docs/design/`에 덮어쓴다 → `arena_stage_tokens.css` 삭제 → 티오가 이 문서 §2-B를 css 기준으로 대조·정정(v4.2).
 
 ## 변경 이력
+- **v4.4 (2026-10-13)** — §4 를 정본 v4(41장) 반영으로 갱신: ▾ 는 Record Room 만 · 메뉴바 창 가득 · ✕ = ☰ · 로고 부품 공유 · 서랍 300/230 · 아이콘 · 펼침만/열린 채 · 움직임 · Locker Room 안내(4-G).
 - **v4.3 (2026-10-11)** — §4 를 NAV-1 결과로 교체(D-22): 메뉴 5개(+관리자 The Lab) · 펼침 메뉴 · 서랍 · 흐린 줄 · 알약(브라우저 메모) · `/records`. 정본 v3(32장).
 - **v4.2 (2026-09-19)** — 클로드 디자인 내보내기로 css 사본 동기화, 옛 colors_and_type.css 보관, arena_stage_tokens.css = 내보낸 사본.
 - **v4.1 (2026-09-19)** — 대표 수정본(`Arena Match Stage.dc (1).html`)에서 실측 값 전부 채움. 바탕색 3중 불일치를 수정본 기준으로 해소(§2-C). `arena_stage_tokens.css` 동봉.

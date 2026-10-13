@@ -79,7 +79,7 @@ params: (공통 4개 — ✅ RUN-1 PR 2에서 구현) + fmt
 ```
 event: guest_signin_convert
 발생: 게스트 세션이 로그인 계정으로 연결된 시점 (linkSessionVote 성공)
-params: trigger_point (card_modal / quota_limit / guest_limit / other)   ← ✅ v1.2: guest_limit 구현 완료 (RUN-1 PR 2)
+params: trigger_point (card_modal / quota_limit / guest_limit / header / account / other)   ← ✅ v1.2: guest_limit 구현 완료 (RUN-1 PR 2) · `account` = NAV-1(2026-10-13) Locker Room 비로그인 안내의 로그인 버튼
 ```
 **측정 대상** — **전환율**(기준 30%). `trigger_point`로 어느 지점이 전환을 만드는지 확인.
 **v2.1 의미** — `card_modal` = Crown Card의 **저장(다운로드) 잠금** 배너에서 로그인 · `guest_limit` = **하루 3판 소진** 모달에서 로그인(v2.1의 주 전환 지점) · `quota_limit` = 로그인 사용자의 일일 한도(Google 버튼이 숨겨져 실제론 거의 0).
