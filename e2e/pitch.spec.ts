@@ -98,7 +98,7 @@ test.describe("A-1 The Pitch", () => {
     }
   });
 
-  test("NAV-1: ☰ 서랍 — 팬 항목 · Policy Hub · Newsroom 링크 · 관리자 묶음 없음 · Esc 로 닫힘", async ({ page }) => {
+  test("NAV-1: ☰ 서랍 — 팬 항목 · Policy Hub · Newsroom ▸ All Articles 링크 · 관리자 묶음 없음 · Esc 로 닫힘", async ({ page }) => {
     await page.goto("/?lang=en");
     // One unified dark Navbar — no separate floating Pitch GNB component.
     await expect(page.locator(".pitch .gnb")).toHaveCount(0);
@@ -118,7 +118,10 @@ test.describe("A-1 The Pitch", () => {
       "drawer-item-policy",
     ]);
     // 인터넷신문 등록 심사 — the Newsroom must be reachable from the drawer.
-    await expect(page.getByTestId("drawer-item-newsroom")).toHaveAttribute("href", "/news");
+    // 정본 v4: 하위가 있는 대분류는 펼침만 → Newsroom ▸ All Articles 가 /news. 메뉴바 글자도 /news 로 바로 간다.
+    await page.getByTestId("drawer-item-newsroom").click();
+    await expect(page.getByTestId("drawer-item-newsroom")).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByTestId("drawer-sub-allArticles")).toHaveAttribute("href", "/news");
     // 팬(비로그인)에게 관리자 묶음은 없다.
     await expect(page.getByTestId("drawer-admin")).toHaveCount(0);
 

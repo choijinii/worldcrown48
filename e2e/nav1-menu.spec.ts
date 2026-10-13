@@ -490,3 +490,22 @@ for (const [name, vp, banner] of [
     });
   });
 }
+
+/* ── 정본(390)보다 좁은 휴대폰 — 가로 넘침 없음 (C-3 CHART-HEAD 가 320 에서 잡았다) ── */
+for (const width of [320, 360]) {
+  test.describe(`좁은 휴대폰 ${width}`, () => {
+    test.use({ viewport: { width, height: 800 } });
+
+    test(`메뉴바가 창을 넘지 않는다 · 언어·로그인 입구는 남는다 (${width})`, async ({ page, baseURL }) => {
+      await prime(page, baseURL);
+      await page.goto("/records?lang=en");
+      // 인증 확인 중 자리(폭 100)든 로그인 단추든 아바타든 — 어느 쪽이어도 넘치지 않아야 한다
+      await expect(page.getByTestId("lang-toggle")).toBeVisible();
+      const bar = await page.locator(".wc-nav-bar").boundingBox();
+      const actions = await page.locator(".wc-nav-actions").boundingBox();
+      expect((actions?.x ?? 0) + (actions?.width ?? 0)).toBeLessThanOrEqual((bar?.x ?? 0) + (bar?.width ?? 0));
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  });
+}

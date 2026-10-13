@@ -519,6 +519,16 @@ html body:has([data-locker-guest]) {
   }
 }
 
+/* 정본(390)보다 좁은 휴대폰(≤374 · 320 · 360) — 메뉴바 안쪽 폭이 언어 칩 + 로그인 단추를 담지 못해
+   창이 가로로 넘친다(C-3 CHART-HEAD 320 에서 24px). 정본 밖 처리: 워드마크 글자를 숨기고 왕관만 둔다
+   — 언어·로그인 입구는 남긴다. 로고는 같은 부품이라 서랍 머리도 같이 바뀐다(✕ · 로고 자리 일치 유지).
+   로고 링크의 이름은 aria-label 이 맡는다. */
+@media (max-width: 374px) {
+  .wc-brand-word {
+    display: none;
+  }
+}
+
 /* 움직임 줄이기 — 서랍·막은 즉시(움직임 없음) */
 @media (prefers-reduced-motion: reduce) {
   .wc-nav *,
