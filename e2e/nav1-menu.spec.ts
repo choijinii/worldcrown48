@@ -291,11 +291,11 @@ test.describe("데스크톱 1280", () => {
 test.describe("휴대폰 세로 390", () => {
   test.use({ viewport: PORTRAIT });
 
-  test("메뉴바 축소(48) · 글자 메뉴 없음 · 언어·로그인 보임 · 서랍 230", async ({ page, baseURL }) => {
+  test("메뉴바 축소(42) · 글자 메뉴 없음 · 언어·로그인 보임 · 서랍 230", async ({ page, baseURL }) => {
     await prime(page, baseURL);
     await page.goto("/records?lang=ko");
     await expect(page.locator(".wc-nav-menu")).toBeHidden();
-    expect((await page.locator(".wc-nav-bar").boundingBox())?.height).toBe(48);
+    expect((await page.locator(".wc-nav-bar").boundingBox())?.height).toBe(42);
     await expect(page.getByTestId("lang-toggle")).toBeVisible();
     await page.getByTestId("nav-burger").click();
     expect((await page.getByTestId("nav-drawer").boundingBox())?.width).toBe(230);
@@ -381,9 +381,10 @@ async function measureDrawerHead(page: Page) {
 }
 
 const GEOMETRY = {
-  // 대표 지시 v1.3 §2-2 실측값(±1px). GNB.jsx 계산값은 각 축 1px 작다(허용 안).
-  desktop: { burger: [11, 31, 44], crown: [56, 40, 26], word: 92, font: "15px" },
-  mobile: { burger: [18, 15, 40], crown: [66, 25, 20], word: 94, font: "13px" },
+  // 대표 눈검사 2026-10-13: 메뉴바를 창 위에 붙이고(위 0) 높이 58 / 42. 가로 위치는 그대로(GNB.jsx).
+  // 세로 = 테두리 1 + (안쪽 높이 − 부품) ÷ 2 → 데스크톱 ☰ y7 · 왕관 y16 / 휴대폰 ☰ y1 · 왕관 y11.
+  desktop: { burger: [10, 7, 44], crown: [55, 16, 26], word: 91, font: "15px", barH: 58 },
+  mobile: { burger: [17, 1, 40], crown: [65, 11, 20], word: 93, font: "13px", barH: 42 },
 } as const;
 
 for (const [name, vp, kind] of [
@@ -401,6 +402,11 @@ for (const [name, vp, kind] of [
       await expect(page.getByTestId("records-page")).toBeVisible();
 
       const bar = await measureBar(page);
+      // 메뉴바는 창 위에 딱 붙는다(위 띄움 0) · 높이 58 / 42
+      const barBox0 = await page.locator(".wc-nav-bar").boundingBox();
+      near(`${name} 메뉴바 y`, barBox0?.y, 0, info);
+      near(`${name} 메뉴바 높이`, barBox0?.height, g.barH, info);
+      // 서랍 머리 높이 = 메뉴바 높이(아래 측정은 서랍을 연 뒤)
       near(`${name} ☰ x`, bar.burger?.x, g.burger[0], info);
       near(`${name} ☰ y`, bar.burger?.y, g.burger[1], info);
       near(`${name} ☰ w`, bar.burger?.width, g.burger[2], info);
@@ -429,6 +435,8 @@ for (const [name, vp, kind] of [
       expect((await drawer.boundingBox())?.width).toBe(kind === "desktop" ? 300 : 230);
 
       const head = await measureDrawerHead(page);
+      const headBox = await drawer.locator(".wc-drawer-head").boundingBox();
+      near(`${name} 서랍 머리 높이`, headBox?.height, g.barH, info);
       near(`${name} ✕ x (☰ ${bar.burger?.x})`, head.x?.x, bar.burger?.x ?? NaN, info);
       near(`${name} ✕ y (☰ ${bar.burger?.y})`, head.x?.y, bar.burger?.y ?? NaN, info);
       near(`${name} ✕ w`, head.x?.width, bar.burger?.width ?? NaN, info);
@@ -478,8 +486,8 @@ for (const [name, vp, banner] of [
       if (name === "1440") {
         await expect(page.getByTestId("nav-item-locker")).toHaveAttribute("aria-current", "page");
       }
-      // 화이트 면(D-40) — 메뉴바 위 띠도 같은 흰색(정본 40)
-      expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
+      // 메뉴바가 창 위에 붙어 위 띠가 없다(대표 눈검사 2026-10-13)
+      expect((await page.locator(".wc-nav-bar").boundingBox())?.y).toBe(0);
       const box = await page.locator('[data-banner-slot="locker-below"]').boundingBox();
       expect([box?.width, box?.height]).toEqual([...banner]);
       // 잠깐 기다려도 그대로(늦은 리다이렉트 없음)
