@@ -62,6 +62,8 @@ export type SignInTriggerPoint =
   | "guest_limit"
   | "quota_limit"
   | "header"
+  /** NAV-1 — Locker Room(/account) 비로그인 안내 화면의 로그인 버튼. */
+  | "account"
   | "other";
 export const PENDING_TRIGGER_POINT_KEY = "wc48_pending_trigger_point";
 

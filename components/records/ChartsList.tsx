@@ -9,28 +9,14 @@
  *
  * 데이터는 서버(app/records/page.tsx)가 읽어 넘긴다. 여기는 언어 고르기와 그리기만 한다.
  */
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { chartHref } from "@/lib/records/chartList";
 import type { ChartRowData, RecordsData } from "@/lib/records/recordsData";
-import type { BannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
+import { useBannerVariant } from "@/components/layout/useBannerVariant";
 import styles from "./chartsList.module.css";
-
-/** 배너 크기 — 서버와 첫 렌더는 데스크톱으로 같고(하이드레이션), 마운트 뒤 폭으로 정한다. */
-function useBannerVariant(): BannerVariant {
-  const [v, setV] = useState<BannerVariant>("desktop");
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 860px)");
-    const apply = () => setV(mq.matches ? "mobile" : "desktop");
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-  return v;
-}
 
 export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
   const { t, lang } = useT();

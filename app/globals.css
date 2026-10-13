@@ -25,6 +25,9 @@
   --color-bg-default: #0E0944;
   --color-bg-soft: #241754;
   --color-bg-elevated: #362261;
+  /* ☰ 서랍 바탕 — 정본 v4 GNB.jsx Drawer(2026-10-13). 내보낸 아레나 층 토큰(--arena-drawer-bg)은
+     v3 값(#0E0944)이라 펼침 메뉴만 그것을 쓴다(NAV-1 v1.3 보고). */
+  --color-drawer-bg: #080823;
 
   /* Crown gold + accents */
   --color-gold: #FCD006;

@@ -3,8 +3,8 @@
  *
  * 메뉴바 · 펼침 메뉴 · ☰ 서랍이 그리는 모든 항목이 여기서 나온다. 부품은 그리기만 한다.
  *
- *   메뉴바   The Pitch · The Arena ▾ · [The Lab] · Record Room ▾ · Newsroom ▾ · Locker Room
- *   펼침     하위 메뉴만(카테고리는 서랍에만) — §0-B 9
+ *   메뉴바   The Pitch · The Arena · [The Lab] · Record Room ▾ · Newsroom · Locker Room
+ *   펼침     하위 메뉴만(카테고리는 서랍에만) — §0-B 9 · 고를 것이 둘 이상일 때만(정본 v4)
  *   서랍     전체 나무 + Policy Hub, 관리자 묶음은 구분선 아래 — 정본 4 · 5 · 8
  *
  * **흐린 항목** = 아직 페이지가 없는 하위 항목. 주소(`href`)가 `null` 인 것이 곧 흐림이다 —
@@ -46,7 +46,7 @@ export interface NavSub {
   labelKey: MessageKey;
   /** `null` = 아직 페이지가 없다 → 흐린 줄(링크 아님). */
   href: string | null;
-  /** 메뉴바 펼침 메뉴에도 나오는가(§0-B 9). 서랍에는 언제나 나온다. */
+  /** 메뉴바 펼침 메뉴의 후보인가(§0-B 9). 후보가 둘 이상일 때만 펼친다(`hasDropdown`). 서랍에는 언제나 나온다. */
   inDropdown?: boolean;
 }
 
@@ -146,10 +146,23 @@ export function drawerAdminItems(opts: { admin: boolean; labPublic: boolean }): 
   return opts.labPublic ? all.filter((a) => a.key !== "lab") : all;
 }
 
+/**
+ * 메뉴바가 ▾ 로 펼치는 데 필요한 후보 수. 고를 것이 하나뿐이면 펼치지 않고 글자가 바로 간다
+ * (정본 v4 33–41 · 대표 눈검사 10/11 — The Arena ▸ Arena Home · Newsroom ▸ All Articles 는
+ * 바로 가기). 서랍의 하위 줄(사이트맵)은 이 규칙과 상관없이 `children` 전체를 그린다.
+ */
+const DROPDOWN_MIN = 2;
+
 /** 메뉴바 ▾ 펼침 메뉴의 항목. 펼침이 없는 항목은 빈 목록. */
 export function dropdownItems(key: NavKey): NavSub[] {
   const item = NAV_ITEMS.find((n) => n.key === key);
-  return (item?.children ?? []).filter((s) => s.inDropdown);
+  const subs = (item?.children ?? []).filter((s) => s.inDropdown);
+  return subs.length >= DROPDOWN_MIN ? subs : [];
+}
+
+/** 메뉴바에서 ▾ 로 펼치는 항목인가. */
+export function hasDropdown(key: NavKey): boolean {
+  return dropdownItems(key).length > 0;
 }
 
 /** 아직 페이지가 없는 하위 항목. */

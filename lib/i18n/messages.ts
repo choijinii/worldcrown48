@@ -442,6 +442,15 @@ export const MESSAGES = {
     es: "Arena Home llegará pronto. Por ahora, elige un torneo en The Pitch.",
   },
   "arena.temp.toPitch": { ko: "The Pitch로 가기", en: "Go to The Pitch", es: "Ir a The Pitch" },
+  // Locker Room(/account) 비로그인 안내 — 정본 v4 40 · 41 · 안내문 대표 승인 2026-10-13(글자 그대로).
+  // 로그인 버튼 글자는 저장 잠금 승인본(lib/crown/lockCopy cta)을 쓴다 — 여기 두지 않는다.
+  "locker.guest.eyebrow": { ko: "LOCKER ROOM", en: "LOCKER ROOM", es: "LOCKER ROOM" },
+  "locker.guest.title": { ko: "Locker Room", en: "Locker Room", es: "Locker Room" },
+  "locker.guest.body": {
+    ko: "로그인과 함께 크라운 카드와 기록을 모아 볼 수 있어요.",
+    en: "Sign in to see all your Crown Cards and history in one place.",
+    es: "Inicia sesión para ver todas tus Crown Cards y tu historial en un solo lugar.",
+  },
 
   // ── The Lab create flow (Domain 2, /admin/lab) — B-2 i18n (스코프 #8) ──
   // ko values are kept verbatim so the ?lang=ko Lab E2E selectors still match.

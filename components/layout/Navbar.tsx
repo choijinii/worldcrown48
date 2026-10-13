@@ -1,7 +1,11 @@
 /**
  * Navbar — 전역 메뉴바 (NAV-1 · 원장 D-19 · 프롬프트 §0-B · 정본 1 · 2 · 3 · 28 · 29 · 30).
  *
- *   ☰ · 로고 · The Pitch · The Arena ▾ · [The Lab] · Record Room ▾ · Newsroom ▾ · Locker Room
+ *   ☰ · 로고 · The Pitch · The Arena · [The Lab] · Record Room ▾ · Newsroom · Locker Room
+ *   (▾ 는 고를 것이 둘 이상인 Record Room 에만 — 정본 v4 · navMap.hasDropdown)
+ *
+ * 메뉴바는 창 가득(좌우 여백 0 · 위 20 / 휴대폰 좌우 12 · 위 10). 로고는 서랍 머리와 같은
+ * 부품(NavBrand)이라 서랍이 열려도 같은 자리에 겹친다.
  *   ………………………………………………………………………… 언어 · 아바타(또는 SIGN IN)
  *
  * 항목은 lib/layout/navMap 한 곳에서 온다. The Lab 은 관리자(이미 공개된 NEXT_PUBLIC_ADMIN_UID 와
@@ -36,23 +40,18 @@ import {
 } from "@/lib/layout/navMap";
 import { NavMenuItem } from "./NavMenuItem";
 import { NavDrawer } from "./NavDrawer";
+import { NavBrand } from "./NavBrand";
 import { ContinuePill } from "./ContinuePill";
 import "./navbar.css";
 
+/** ☰ — 정본 GNB.jsx: 선 셋(폭 18 · 두께 1.75 · 간격 5 / 휴대폰 16 · 4). 크기는 navbar.css. */
 function BurgerIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <line x1="4" y1="7" x2="20" y2="7" />
-      <line x1="4" y1="12" x2="20" y2="12" />
-      <line x1="4" y1="17" x2="20" y2="17" />
-    </svg>
+    <span className="wc-nav-burger-lines" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </span>
   );
 }
 
@@ -98,10 +97,7 @@ export function Navbar(): JSX.Element {
             <BurgerIcon />
           </button>
           <Link href="/" className="wc-nav-logo" aria-label="WorldCrown48 home">
-            <img
-              src="/brand/wc48-branding-horizontal-dark.svg"
-              alt="WorldCrown48"
-            />
+            <NavBrand />
           </Link>
 
           <nav className="wc-nav-menu" aria-label="Primary navigation">

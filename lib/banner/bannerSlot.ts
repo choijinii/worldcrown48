@@ -14,15 +14,20 @@
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { LocalizedText } from "@/lib/types/tournament";
 
-/** 런칭 시점 자리 목록(D-21 정의). 이 PR은 ① 만 배치한다. */
-export type BannerSlotName =
-  | "arena-match-below"
-  | "arena-home"
-  | "pitch-between"
-  | "newsroom-list"
-  | "newsroom-article"
+/** 런칭 시점 자리 목록(D-21 정의). */
+export const BANNER_SLOT_NAMES = [
+  "arena-match-below",
+  "arena-home",
+  "pitch-between",
+  "newsroom-list",
+  "newsroom-article",
   /** NAV-1 — `/records` Charts 대회 목록 아래(970×90 / 320×100, 정본 31 · 32). */
-  | "records-below";
+  "records-below",
+  /** NAV-1 — `/account` 비로그인 안내 화면 아래(970×90 / 320×100, 정본 v4 40 · 41). */
+  "locker-below",
+] as const;
+
+export type BannerSlotName = (typeof BANNER_SLOT_NAMES)[number];
 
 /** Firestore Timestamp · epoch ms 둘 다 받는다. */
 type TimeLike = number | { toMillis: () => number };
