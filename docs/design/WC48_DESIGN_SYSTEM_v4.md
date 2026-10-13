@@ -148,7 +148,7 @@
 > 정본 = `docs/design/claude-design/Arena_Match_Stage_v4_41boards_2026-10-13.dc.html` (보드 1~9 · 28~41) + 부품 `export_v4_2026-10-13/components/GNB/GNB.jsx`(값의 단일 진실 · v3 사본은 옛 기록). 메뉴 지도 = `lib/layout/navMap.ts` 한 곳. 값 = 아레나 층 토큰 `--arena-nav-*` · `--arena-drawer-*` · `--arena-continue-*`. 메뉴·서랍·펼침 메뉴는 **어느 페이지에서나 다크**(§0-B 3).
 
 ### 4-A. 메뉴바 (정본 1·2·3·28)
-- ☰ · 로고 · **The Pitch · The Arena · Record Room ▾ · Newsroom · Locker Room** · (오른쪽) 언어 칩 · 아바타/SIGN IN. **창 가득 · 창 위에 붙음**(좌우 여백 0 · 위 0 · 높이 58 / 휴대폰 좌우 12 · 위 0 · 높이 42 — 정본 v4 의 위 20 · 64 / 위 10 · 48 을 대표 눈검사 2026-10-13 로 바꿈) · ☰ 44(휴대폰 40) · 로고 = 왕관 26 + "WorldCrown48" 15px/800(휴대폰 20 · 13px) — 서랍 머리와 **같은 부품**(NavBrand). 높이 64, 항목 간격 26, 14px `--arena-nav-text`, 현재 페이지 흰색 600. **CTA 없음**("참가하기"·`a1_gnb_cta_vote_now` 삭제).
+- ☰ · 로고 · **The Pitch · The Arena · Record Room ▾ · Newsroom · Locker Room** · (오른쪽) 언어 칩 · 아바타/SIGN IN. **창 가득 · 창 위에 붙음**(좌우 여백 0 · 위 0 · 높이 58 / 휴대폰 좌우 0(대표 결정 10/13) · 위 0 · 높이 42 — 정본 v4 의 위 20 · 64 / 위 10 · 48 을 대표 눈검사 2026-10-13 로 바꿈) · ☰ 44(휴대폰 40) · 로고 = 왕관 26 + "WorldCrown48" 15px/800(휴대폰 20 · 13px) — 서랍 머리와 **같은 부품**(NavBrand). 높이 64, 항목 간격 26, 14px `--arena-nav-text`, 현재 페이지 흰색 600. **CTA 없음**("참가하기"·`a1_gnb_cta_vote_now` 삭제).
 - **The Lab** = The Arena 바로 다음. 관리자에게만(스위치 `LAB_PUBLIC` 꺼짐 동안 · 원장 D-19). 스위치를 켜면 팬 메뉴에 같은 자리로. 운영자 표시 없음(정본 28).
 - 휴대폰 세로(≤860): 높이 42, 글자 메뉴 없음 — ☰ 서랍이 길. 펼침 메뉴 없음. 로그인 알약 높이 30 · 12px · 언어 칩 10px(정본 v4).
 

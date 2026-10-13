@@ -28,6 +28,9 @@
   /* ☰ 서랍 바탕 — 정본 v4 GNB.jsx Drawer(2026-10-13). 내보낸 아레나 층 토큰(--arena-drawer-bg)은
      v3 값(#0E0944)이라 펼침 메뉴만 그것을 쓴다(NAV-1 v1.3 보고). */
   --color-drawer-bg: #080823;
+  /* 전역 메뉴바 높이 — 메뉴바(navbar.css)와 그 아래 붙는 sticky 요소(정책 목차)가 함께 읽는다.
+     정본 v4 64/48 → 대표 눈검사 2026-10-13 58/42. 휴대폰 값은 아래 @media(≤860). */
+  --nav-h: 58px;
 
   /* Crown gold + accents */
   --color-gold: #FCD006;
@@ -989,7 +992,8 @@ input { font: inherit; }
 
 .policy-nav {
   position: sticky;
-  top: var(--space-12);
+  /* 메뉴바(sticky) 아랫변 + 24 — 48 이던 시절엔 메뉴바 밑으로 들어갔다(NAV-1 2026-10-13) */
+  top: calc(var(--nav-h) + var(--space-6));
   align-self: start;
   display: flex;
   flex-direction: column;
@@ -1517,3 +1521,9 @@ input { font: inherit; }
   }
 }
 
+/* 전역 메뉴바 높이 — 휴대폰(≤860, 메뉴바가 접히는 폭과 같다) */
+@media (max-width: 860px) {
+  :root {
+    --nav-h: 42px;
+  }
+}

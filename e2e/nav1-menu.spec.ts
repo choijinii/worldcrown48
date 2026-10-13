@@ -384,7 +384,8 @@ const GEOMETRY = {
   // 대표 눈검사 2026-10-13: 메뉴바를 창 위에 붙이고(위 0) 높이 58 / 42. 가로 위치는 그대로(GNB.jsx).
   // 세로 = 테두리 1 + (안쪽 높이 − 부품) ÷ 2 → 데스크톱 ☰ y7 · 왕관 y16 / 휴대폰 ☰ y1 · 왕관 y11.
   desktop: { burger: [10, 7, 44], crown: [55, 16, 26], word: 91, font: "15px", barH: 58 },
-  mobile: { burger: [17, 1, 40], crown: [65, 11, 20], word: 93, font: "13px", barH: 42 },
+  // 휴대폰 좌우 여백 12 → 0(대표 결정 2026-10-13) — 데스크톱처럼 창 가득: ☰ x = 테두리 1 + 안쪽 4.
+  mobile: { burger: [5, 1, 40], crown: [53, 11, 20], word: 81, font: "13px", barH: 42 },
 } as const;
 
 for (const [name, vp, kind] of [
@@ -406,6 +407,9 @@ for (const [name, vp, kind] of [
       const barBox0 = await page.locator(".wc-nav-bar").boundingBox();
       near(`${name} 메뉴바 y`, barBox0?.y, 0, info);
       near(`${name} 메뉴바 높이`, barBox0?.height, g.barH, info);
+      // 창 가득 — 좌우 여백 0(데스크톱 · 휴대폰 같음)
+      near(`${name} 메뉴바 x`, barBox0?.x, 0, info);
+      near(`${name} 메뉴바 폭`, barBox0?.width, page.viewportSize()?.width ?? NaN, info);
       // 서랍 머리 높이 = 메뉴바 높이(아래 측정은 서랍을 연 뒤)
       near(`${name} ☰ x`, bar.burger?.x, g.burger[0], info);
       near(`${name} ☰ y`, bar.burger?.y, g.burger[1], info);
@@ -517,3 +521,22 @@ for (const width of [320, 360]) {
     });
   });
 }
+
+/* ── 정책 화면 왼쪽 목차 — sticky 위치가 메뉴바(58) 밑으로 들어가지 않는다 ── */
+test.describe("정책 목차 sticky · 1440", () => {
+  test.use({ viewport: WIDE });
+
+  test("스크롤해도 목차 윗변 = 메뉴바 아랫변 + 24 (메뉴바에 가리지 않음)", async ({ page, baseURL }, info) => {
+    await prime(page, baseURL);
+    await page.goto("/policies/privacy?lang=ko");
+    const nav = page.locator(".policy-nav");
+    await expect(nav).toBeVisible();
+    await page.mouse.wheel(0, 1500);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+    const bar = await page.locator(".wc-nav-bar").boundingBox();
+    const box = await nav.boundingBox();
+    const barBottom = (bar?.y ?? 0) + (bar?.height ?? 0);
+    near("정책 목차 y", box?.y, barBottom + 24, info);
+    expect(box?.y ?? 0).toBeGreaterThanOrEqual(barBottom);
+  });
+});

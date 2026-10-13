@@ -41,7 +41,7 @@
      데스크톱: 위 0 · 높이 58 · 좌우 0 · 안쪽 9/10 · ☰ 44 · 로고 당김 -25(☰와 1px)
      (정본 v4 의 위 20 · 높이 64 → 대표 눈검사 2026-10-13: 창 위에 붙이고 위아래 3px 씩 줄임) */
   --nav-top: 0px;
-  --nav-bar-h: 58px;
+  --nav-bar-h: var(--nav-h); /* 58 · 휴대폰 42 — 값은 globals.css :root 한 곳(정책 목차 sticky 도 읽는다) */
   --nav-side: 0px;
   --nav-pad-l: 9px;
   --nav-pad-r: 10px;
@@ -468,7 +468,7 @@ header.wc-nav {
   cursor: pointer;
 }
 
-/* ── 휴대폰 (정본 v4 34 · 37 · 39 · 41: 메뉴바 42 · 좌우 12 · 위 0 · 글자 메뉴 없음 · 서랍 230 · 펼침 없음) ── */
+/* ── 휴대폰 (정본 v4 34 · 37 · 39 · 41: 메뉴바 42 · 좌우 0(대표 결정 10/13 · 정본 12) · 위 0 · 글자 메뉴 없음 · 서랍 230 · 펼침 없음) ── */
 @media (max-width: 860px) {
   .wc-nav-menu {
     display: none;
@@ -476,8 +476,6 @@ header.wc-nav {
   .wc-nav,
   .wc-drawer-overlay {
     --nav-top: 0px;
-    --nav-bar-h: 42px; /* 정본 48 → 대표 눈검사 2026-10-13 */
-    --nav-side: 12px;
     --nav-pad-l: 4px;
     --nav-pad-r: 6px;
     --nav-burger: 40px;
