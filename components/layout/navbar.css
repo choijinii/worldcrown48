@@ -256,9 +256,14 @@ html body:has([data-locker-guest]) {
   align-items: center;
   gap: 12px;
 }
-/* 휴대폰 메뉴바는 좌우 12 여백만큼 좁다 — 로그인 글자가 두 줄로 꺾이지 않게 */
+/* 휴대폰 메뉴바는 좌우 12 여백만큼 좁다 — 로그인 글자가 두 줄로 꺾이지 않게(nowrap).
+   줄어들기는 막지 않는다: 로그인한 사람의 아바타 이름(최대 180)은 말줄임으로 줄어야 한다 —
+   못 줄면 휴대폰에서 레이아웃 뷰포트가 넓어져 매치 무대 프레임이 커진다(C-1 390: 366 → 372). */
+.wc-nav-actions {
+  min-width: 0;
+}
 .wc-nav-actions > * {
-  flex: none;
+  min-width: 0;
   white-space: nowrap;
 }
 .wc-nav-skeleton {
@@ -510,6 +515,10 @@ html body:has([data-locker-guest]) {
     height: 30px !important;
     padding: 0 8px !important;
     font-size: 10px !important;
+  }
+  /* 정본 GNB.jsx 휴대폰 — 아바타는 원만(이름 없음) */
+  header.wc-nav [data-testid="user-avatar"] > span:nth-child(2) {
+    display: none;
   }
   header.wc-nav .wc-nav-actions button[aria-label="Sign in with Google"] {
     height: 30px !important;
