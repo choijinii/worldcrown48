@@ -5,11 +5,38 @@
  * 결정성: 모든 이동에 `?lang=` 고정. 동의 바는 흔적 쿠키로 미리 닫는다(정책 e2e 와 같은 방식).
  * 문구 승인 전(게이트 5) 접근성 이름은 testid 로 찾는다.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { expect, test, type BrowserContextOptions, type Page, type TestInfo } from "@playwright/test";
 
 const DESKTOP = { width: 1280, height: 860 };
 const PORTRAIT = { width: 390, height: 844 };
 const LANDSCAPE = { width: 844, height: 390 };
+const WIDE = { width: 1440, height: 900 };
+const FULL = { width: 1920, height: 1080 };
+
+type StorageState = NonNullable<Exclude<BrowserContextOptions["storageState"], string>>;
+
+/** 로그인하지 않은 상태 — Vercel 우회 쿠키만 남기고 Firebase 인증(origins)은 비운다(g1 스펙과 같은 방식). */
+function signedOutState(): StorageState {
+  try {
+    const saved = JSON.parse(readFileSync("tests/.auth/user.json", "utf8")) as Partial<StorageState>;
+    return { cookies: saved.cookies ?? [], origins: [] };
+  } catch {
+    return { cookies: [], origins: [] };
+  }
+}
+
+/** 실측 값 기록 + ±1px 비교(대표 지시 v1.3 §2-2 — 창 왼쪽 위 기준, 테두리 포함). */
+function near(label: string, actual: number | undefined, expected: number, info: TestInfo) {
+  info.annotations.push({ type: "measure", description: `${label} = ${actual}` });
+  expect(Math.abs((actual ?? NaN) - expected), `${label}: ${actual} ≈ ${expected}`).toBeLessThanOrEqual(1);
+}
+
+async function capture(page: Page, info: TestInfo, name: string) {
+  const path = info.outputPath(`${name}.png`);
+  await page.screenshot({ path });
+  await info.attach(name, { path, contentType: "image/png" });
+}
 
 async function prime(page: Page, baseURL: string | undefined, memo?: string) {
   const savedAt = Date.now() - 24 * 60 * 60 * 1000;
@@ -46,7 +73,7 @@ const menuOrder = (page: Page) =>
 test.describe("데스크톱 1280", () => {
   test.use({ viewport: DESKTOP });
 
-  test("메뉴바 = 팬 5개 · CTA 없음 · ▾ 세 개 · 현재 항목", async ({ page, baseURL }) => {
+  test("메뉴바 = 팬 5개 · CTA 없음 · ▾ 는 Record Room 하나 · 현재 항목", async ({ page, baseURL }) => {
     const errors = collectErrors(page);
     await prime(page, baseURL);
     await page.goto("/news?lang=en");
@@ -58,7 +85,11 @@ test.describe("데스크톱 1280", () => {
       "nav-item-locker",
     ]);
     await expect(page.locator(".wc-nav-cta")).toHaveCount(0);
-    await expect(page.locator(".wc-nav-caret")).toHaveCount(3);
+    // ① 펼침은 Record Room 에만(정본 v4 — 고를 것이 둘 이상일 때만)
+    await expect(page.locator(".wc-nav-caret")).toHaveCount(1);
+    await expect(page.getByTestId("nav-caret-records")).toHaveCount(1);
+    await expect(page.getByTestId("nav-caret-arena")).toHaveCount(0);
+    await expect(page.getByTestId("nav-caret-newsroom")).toHaveCount(0);
     await expect(page.getByTestId("nav-item-newsroom")).toHaveAttribute("aria-current", "page");
     expect(errors).toEqual([]);
   });
@@ -92,14 +123,20 @@ test.describe("데스크톱 1280", () => {
     await expect(caret).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("메뉴 글자 자체 = 첫 화면 · 펼침 줄 = 그 화면", async ({ page, baseURL }) => {
+  test("The Arena · Newsroom = 바로 가기(펼침 없음) · Record Room 펼침 줄 = 그 화면", async ({ page, baseURL }) => {
     await prime(page, baseURL);
     await page.goto("/?lang=en");
+    await page.getByTestId("nav-item-arena").hover();
+    await expect(page.getByTestId("nav-dropdown-arena")).toHaveCount(0);
     await page.getByTestId("nav-item-arena").click();
     await expect(page).toHaveURL(/\/arena(\?|$)/);
     await page.getByTestId("nav-item-newsroom").hover();
-    await page.getByTestId("nav-sub-allArticles").click();
+    await expect(page.getByTestId("nav-dropdown-newsroom")).toHaveCount(0);
+    await page.getByTestId("nav-item-newsroom").click();
     await expect(page).toHaveURL(/\/news(\?|$)/);
+    await page.getByTestId("nav-item-records").hover();
+    await page.getByTestId("nav-sub-charts").click();
+    await expect(page).toHaveURL(/\/records(\?|$)/);
   });
 
   test("서랍 — 첫 줄 초점 · ▸ 펼침(aria-expanded) · 흐린 줄 · 바깥 누름 닫힘 + ☰로 복귀 · 관리자 묶음 없음", async ({ page, baseURL }) => {
@@ -111,7 +148,8 @@ test.describe("데스크톱 1280", () => {
     await expect(page.getByTestId("drawer-item-pitch")).toBeFocused();
     await expect(page.getByTestId("drawer-admin")).toHaveCount(0);
 
-    const toggle = page.getByTestId("drawer-toggle-records");
+    // 하위가 있는 대분류는 줄 전체가 펼치기 버튼(정본 v4)
+    const toggle = page.getByTestId("drawer-item-records");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
@@ -120,12 +158,62 @@ test.describe("데스크톱 1280", () => {
     await expect(hall).toHaveAttribute("aria-disabled", "true");
     expect(await hall.getAttribute("href")).toBeNull();
 
-    // 정본 4: 서랍 폭 320
-    expect((await drawer.boundingBox())?.width).toBe(320);
+    // 정본 v4: 서랍 폭 300
+    expect((await drawer.boundingBox())?.width).toBe(300);
 
     await page.mouse.click(1000, 400);
     await expect(drawer).toHaveCount(0);
     await expect(page.getByTestId("nav-burger")).toBeFocused();
+  });
+
+  test("서랍 ② 하위 있는 대분류를 누르면 펼침만 — 주소 그대로 · 서랍 열린 채", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    await page.goto("/?lang=en");
+    const before = page.url();
+    await page.getByTestId("nav-burger").click();
+    const drawer = page.getByTestId("nav-drawer");
+    await page.getByTestId("drawer-item-arena").click();
+    await expect(page.getByTestId("drawer-sub-arenaHome")).toBeVisible();
+    await expect(page.getByTestId("drawer-item-arena")).toHaveAttribute("aria-expanded", "true");
+    expect(page.url()).toBe(before);
+    await expect(drawer).toBeVisible();
+    // 다시 누르면 접힌다
+    await page.getByTestId("drawer-item-arena").click();
+    await expect(page.getByTestId("drawer-sub-arenaHome")).toHaveCount(0);
+    await expect(drawer).toBeVisible();
+  });
+
+  test("서랍 ③ 하위 줄(Charts)을 누르면 이동하고 서랍은 열린 채", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    await page.goto("/?lang=en");
+    await page.getByTestId("nav-burger").click();
+    await page.getByTestId("drawer-item-records").click();
+    await page.getByTestId("drawer-sub-charts").click();
+    await expect(page).toHaveURL(/\/records(\?|$)/);
+    await expect(page.getByTestId("records-page")).toBeVisible();
+    await expect(page.getByTestId("nav-drawer")).toBeVisible();
+  });
+
+  test("서랍 ④ 닫힘은 바깥 누르기 · ✕ · Esc 세 가지", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    await page.goto("/?lang=en");
+    const drawer = page.getByTestId("nav-drawer");
+    const burger = page.getByTestId("nav-burger");
+
+    await burger.click();
+    await expect(drawer).toBeVisible();
+    await page.mouse.click(1000, 400);
+    await expect(drawer).toBeHidden();
+
+    await burger.click();
+    await expect(drawer).toBeVisible();
+    await page.getByTestId("nav-drawer-close").click();
+    await expect(drawer).toBeHidden();
+
+    await burger.click();
+    await expect(drawer).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
   });
 
   test("/records — 머리 · 묶음 · 배너 970×90 · 줄이 있으면 차트로 · 오류 0", async ({ page, baseURL }) => {
@@ -203,14 +291,16 @@ test.describe("데스크톱 1280", () => {
 test.describe("휴대폰 세로 390", () => {
   test.use({ viewport: PORTRAIT });
 
-  test("메뉴바 축소(48) · 글자 메뉴 없음 · 언어·로그인 보임 · 서랍 268", async ({ page, baseURL }) => {
+  test("메뉴바 축소(48) · 글자 메뉴 없음 · 언어·로그인 보임 · 서랍 230", async ({ page, baseURL }) => {
     await prime(page, baseURL);
     await page.goto("/records?lang=ko");
     await expect(page.locator(".wc-nav-menu")).toBeHidden();
     expect((await page.locator(".wc-nav-bar").boundingBox())?.height).toBe(48);
     await expect(page.getByTestId("lang-toggle")).toBeVisible();
     await page.getByTestId("nav-burger").click();
-    expect((await page.getByTestId("nav-drawer").boundingBox())?.width).toBe(268);
+    expect((await page.getByTestId("nav-drawer").boundingBox())?.width).toBe(230);
+    // 휴대폰에서 "Record Room" 이 한 줄(줄 높이 44 그대로)
+    expect((await page.getByTestId("drawer-item-records").boundingBox())?.height).toBe(44);
   });
 
   test("동의 전(동의 바가 떠 있음)에도 서랍 바닥(언어 칩)이 가려지지 않는다", async ({ page }) => {
@@ -220,12 +310,16 @@ test.describe("휴대폰 세로 390", () => {
     await page.getByTestId("nav-burger").click();
     const chip = page.locator(".wc-drawer-lang-chip").last();
     await expect(chip).toBeVisible();
-    const topIsDrawer = await chip.evaluate((el) => {
-      const r = el.getBoundingClientRect();
-      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      return Boolean(hit && el.closest("[data-testid='nav-drawer']")?.contains(hit));
-    });
-    expect(topIsDrawer).toBe(true);
+    // 서랍은 220ms 동안 왼쪽에서 밀려 나온다 — 다 나온 뒤 맨 위인지 본다.
+    await expect
+      .poll(() =>
+        chip.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          return Boolean(hit && el.closest("[data-testid='nav-drawer']")?.contains(hit));
+        }),
+      )
+      .toBe(true);
   });
 
   test("알약 아래 설명이 늘 보인다(정본 외 추가) · 390×844 캡처", async ({ page, baseURL }, info) => {
@@ -258,3 +352,141 @@ test.describe("휴대폰 가로 844", () => {
     await expect(page.getByTestId("nav-drawer")).toBeVisible();
   });
 });
+
+/* ── 정본 v4 실측 — ☰ = ✕ 자리 · 로고 부품 공유 · 캡처 (§2-2 · §3 ⑤) ── */
+
+async function measureBar(page: Page) {
+  const burger = await page.getByTestId("nav-burger").boundingBox();
+  const crown = await page.locator("header.wc-nav [data-testid='brand-crown']").boundingBox();
+  const word = page.locator("header.wc-nav [data-testid='brand-word']");
+  const wordBox = await word.boundingBox();
+  const font = await word.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { size: cs.fontSize, weight: cs.fontWeight };
+  });
+  return { burger, crown, wordBox, font };
+}
+
+async function measureDrawerHead(page: Page) {
+  const x = await page.getByTestId("nav-drawer-close").boundingBox();
+  const drawer = page.getByTestId("nav-drawer");
+  const crown = await drawer.locator("[data-testid='brand-crown']").boundingBox();
+  const word = drawer.locator("[data-testid='brand-word']");
+  const wordBox = await word.boundingBox();
+  const font = await word.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { size: cs.fontSize, weight: cs.fontWeight };
+  });
+  return { x, crown, wordBox, font };
+}
+
+const GEOMETRY = {
+  // 대표 지시 v1.3 §2-2 실측값(±1px). GNB.jsx 계산값은 각 축 1px 작다(허용 안).
+  desktop: { burger: [11, 31, 44], crown: [56, 40, 26], word: 92, font: "15px" },
+  mobile: { burger: [18, 15, 40], crown: [66, 25, 20], word: 94, font: "13px" },
+} as const;
+
+for (const [name, vp, kind] of [
+  ["1440", WIDE, "desktop"],
+  ["1920", FULL, "desktop"],
+  ["390", PORTRAIT, "mobile"],
+] as const) {
+  test.describe(`정본 v4 실측 · ${name}`, () => {
+    test.use({ viewport: vp });
+
+    test(`☰·로고 자리 · 서랍 열면 ✕ = ☰ · 서랍 로고 = 메뉴바 로고 · 캡처 ${name}`, async ({ page, baseURL }, info) => {
+      const g = GEOMETRY[kind];
+      await prime(page, baseURL);
+      await page.goto("/records?lang=ko");
+      await expect(page.getByTestId("records-page")).toBeVisible();
+
+      const bar = await measureBar(page);
+      near(`${name} ☰ x`, bar.burger?.x, g.burger[0], info);
+      near(`${name} ☰ y`, bar.burger?.y, g.burger[1], info);
+      near(`${name} ☰ w`, bar.burger?.width, g.burger[2], info);
+      near(`${name} ☰ h`, bar.burger?.height, g.burger[2], info);
+      near(`${name} 왕관 x`, bar.crown?.x, g.crown[0], info);
+      near(`${name} 왕관 y`, bar.crown?.y, g.crown[1], info);
+      near(`${name} 왕관 크기`, bar.crown?.width, g.crown[2], info);
+      near(`${name} 워드마크 x`, bar.wordBox?.x, g.word, info);
+      expect(bar.font).toEqual({ size: g.font, weight: "800" });
+      // 오른쪽 묶음(언어 · 로그인)은 한 줄 — 메뉴바 높이 안에 든다
+      const actions = await page.locator(".wc-nav-actions").boundingBox();
+      expect(actions?.height ?? 99).toBeLessThanOrEqual(kind === "desktop" ? 62 : 46);
+      const barBox = await page.locator(".wc-nav-bar").boundingBox();
+      expect((actions?.x ?? 0) + (actions?.width ?? 0)).toBeLessThanOrEqual((barBox?.x ?? 0) + (barBox?.width ?? 0));
+      // 다크 화면(/records)에서는 메뉴바 위 띠도 다크 — 동의 바의 화이트 상자에 끌려가지 않는다
+      const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(bodyBg).not.toBe("rgb(242, 242, 245)");
+      expect(bodyBg).not.toBe("rgb(255, 255, 255)");
+      await capture(page, info, `nav1-v4-${name}-closed`);
+
+      await page.getByTestId("nav-burger").click();
+      const drawer = page.getByTestId("nav-drawer");
+      await expect(drawer).toBeVisible();
+      // 열림 움직임(220ms)이 끝난 뒤 잰다
+      await page.waitForTimeout(400);
+      expect((await drawer.boundingBox())?.width).toBe(kind === "desktop" ? 300 : 230);
+
+      const head = await measureDrawerHead(page);
+      near(`${name} ✕ x (☰ ${bar.burger?.x})`, head.x?.x, bar.burger?.x ?? NaN, info);
+      near(`${name} ✕ y (☰ ${bar.burger?.y})`, head.x?.y, bar.burger?.y ?? NaN, info);
+      near(`${name} ✕ w`, head.x?.width, bar.burger?.width ?? NaN, info);
+      near(`${name} 서랍 왕관 x`, head.crown?.x, bar.crown?.x ?? NaN, info);
+      near(`${name} 서랍 왕관 y`, head.crown?.y, bar.crown?.y ?? NaN, info);
+      near(`${name} 서랍 왕관 크기`, head.crown?.width, bar.crown?.width ?? NaN, info);
+      near(`${name} 서랍 워드마크 x`, head.wordBox?.x, bar.wordBox?.x ?? NaN, info);
+      expect(head.font).toEqual(bar.font);
+
+      // 들여쓰기 — GNB.jsx: 왼쪽 표식 2 + 패딩 36(아이콘) · 간격 10 · 하위 패딩 84 → 화면 x 38 · 68 · 86
+      // (데스크톱·휴대폰 같음). 지시서의 36 · 66 · 84 는 패딩 값 — 표식 2px 만큼 오른쪽.
+      const icon = await drawer.locator("[data-testid='drawer-item-records'] svg").first().boundingBox();
+      near(`${name} 아이콘 x`, icon?.x, 38, info);
+      near(`${name} 아이콘 크기`, icon?.width, 20, info);
+      const label = await drawer.locator("[data-testid='drawer-item-records'] .wc-drawer-label").boundingBox();
+      near(`${name} 대분류 글자 x`, label?.x, 68, info);
+      // /records 에서 열면 Record Room 은 이미 펼쳐져 있다(지금 페이지의 묶음)
+      await expect(page.getByTestId("drawer-item-records")).toHaveAttribute("aria-expanded", "true");
+      const sub = await drawer.locator("[data-testid='drawer-sub-charts'] .wc-drawer-label").boundingBox();
+      near(`${name} 하위 줄 글자 x`, sub?.x, 86, info);
+      await capture(page, info, `nav1-v4-${name}-open`);
+    });
+  });
+}
+
+/* ── ⑥ Locker Room — 로그인하지 않은 사람에게 안내 화면(정본 40 · 41) ── */
+
+for (const [name, vp, banner] of [
+  ["1440", WIDE, [970, 90]],
+  ["390", PORTRAIT, [320, 100]],
+] as const) {
+  test.describe(`Locker Room 비로그인 · ${name}`, () => {
+    test.use({ viewport: vp, storageState: signedOutState() });
+
+    test(`/account 가 리다이렉트 없이 안내문(ko) · 배너 locker-below ${banner.join("×")} · 캡처`, async ({ page, baseURL }, info) => {
+      const errors = collectErrors(page);
+      await prime(page, baseURL);
+      await page.goto("/account?lang=ko");
+      const guest = page.getByTestId("locker-guest");
+      await expect(guest).toBeVisible();
+      await expect(page).toHaveURL(/\/account\?lang=ko$/);
+      await expect(page.getByRole("heading", { level: 1, name: "Locker Room" })).toBeVisible();
+      await expect(guest).toContainText("로그인과 함께 크라운 카드와 기록을 모아 볼 수 있어요.");
+      // 버튼 이름 = 저장 잠금 승인본 cta("로그인") — 앞의 G 표식은 장식(aria-hidden)
+      await expect(page.getByTestId("locker-guest-signin")).toHaveAccessibleName("로그인");
+      // 메뉴바는 다크 그대로, 현재 항목 Locker Room
+      if (name === "1440") {
+        await expect(page.getByTestId("nav-item-locker")).toHaveAttribute("aria-current", "page");
+      }
+      // 화이트 면(D-40) — 메뉴바 위 띠도 같은 흰색(정본 40)
+      expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
+      const box = await page.locator('[data-banner-slot="locker-below"]').boundingBox();
+      expect([box?.width, box?.height]).toEqual([...banner]);
+      // 잠깐 기다려도 그대로(늦은 리다이렉트 없음)
+      await page.waitForTimeout(800);
+      await expect(page).toHaveURL(/\/account\?lang=ko$/);
+      await capture(page, info, `nav1-v4-account-guest-${name}-ko`);
+      expect(errors).toEqual([]);
+    });
+  });
+}

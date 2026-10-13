@@ -12,6 +12,7 @@ import {
   drawerAdminItems,
   drawerItems,
   dropdownItems,
+  hasDropdown,
   isDimmed,
   menubarItems,
   NAV_ITEMS,
@@ -61,11 +62,11 @@ describe("메뉴바 항목 (§0-B 1 · 10 · 정본 1 · 28)", () => {
     expect(k).not.toContain("cta");
   });
 
-  it("▾ 는 펼침 메뉴가 있는 세 항목에만", () => {
+  it("▾ 는 Record Room 에만 — 고를 것이 둘 이상일 때만 펼친다(정본 v4 · 대표 눈검사 10/11)", () => {
     const withMenu = menubarItems({ admin: true, labPublic: false })
-      .filter((n) => dropdownItems(n.key).length > 0)
+      .filter((n) => hasDropdown(n.key))
       .map((n) => n.key);
-    expect(withMenu).toEqual(["arena", "records", "newsroom"]);
+    expect(withMenu).toEqual(["records"]);
   });
 
   it("글자 자체의 주소 = 첫 화면 (§0-B 9 DoD)", () => {
@@ -83,13 +84,26 @@ describe("메뉴바 항목 (§0-B 1 · 10 · 정본 1 · 28)", () => {
   });
 });
 
-describe("펼침 메뉴 = 하위 메뉴만, 카테고리 없음 (§0-B 9 · 정본 29 · 30)", () => {
-  it("The Arena ▾ Arena Home · Record Room ▾ Charts · Hall of Fame · Newsroom ▾ All Articles", () => {
-    expect(keys(dropdownItems("arena"))).toEqual(["arenaHome"]);
+describe("펼침 메뉴 = 하위 메뉴만, 카테고리 없음 (§0-B 9 · 정본 v4 33–41)", () => {
+  it("Record Room ▾ Charts · Hall of Fame 만 — The Arena · Newsroom 은 바로 가기", () => {
     expect(keys(dropdownItems("records"))).toEqual(["charts", "hallOfFame"]);
-    expect(keys(dropdownItems("newsroom"))).toEqual(["allArticles"]);
+    expect(dropdownItems("arena")).toEqual([]);
+    expect(dropdownItems("newsroom")).toEqual([]);
     expect(dropdownItems("pitch")).toEqual([]);
     expect(dropdownItems("locker")).toEqual([]);
+  });
+
+  it("펼침이 없어도 서랍의 하위 줄(사이트맵)은 그대로 남는다", () => {
+    const byKey = Object.fromEntries(drawerItems({ labPublic: false }).map((n) => [n.key, keys(n.children ?? [])]));
+    expect(byKey.arena).toEqual(["arenaHome", "kpop", "creator"]);
+    expect(byKey.newsroom?.[0]).toBe("allArticles");
+  });
+
+  it("hasDropdown = 펼침 후보가 둘 이상", () => {
+    expect(hasDropdown("records")).toBe(true);
+    expect(hasDropdown("arena")).toBe(false);
+    expect(hasDropdown("newsroom")).toBe(false);
+    expect(hasDropdown("policy")).toBe(false);
   });
 });
 
