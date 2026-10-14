@@ -13,7 +13,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { API_DATA_MAX_AGE_MS, planCacheRetention, planEndedEmbedCleanup } from "../core/apiDataRetention";
+import {
+  API_DATA_MAX_AGE_MS,
+  planCacheRetention,
+  planEndedEmbedCleanup,
+} from "../core/apiDataRetention";
+import { isDeadlinePassed } from "../_run/deadline";
 import { CACHE_TTL_MS, isCacheFresh } from "../_embed/sourcing/searchQuery";
 import { planRecheckUpdates, summarizeAlerts } from "../core/embedRecheckCore";
 import type { LinkStatus, LinkVerdict } from "../_embed/verdict";
@@ -53,34 +58,58 @@ describe("planCacheRetention — 검색 캐시 문서 하나 (대표 결정: 7�
   });
 });
 
-describe("planEndedEmbedCleanup — 끝난 대회의 재생 판정 지우기", () => {
+describe("planEndedEmbedCleanup — 끝난 대회(마감 시간 지남)의 재생 판정 지우기 (원장 D-45·D-50)", () => {
+  // 끝난 대회 = tournamentDeadline 이 지난 대회. status 는 보지 않는다 — 코드 어디에도 "ended" 를
+  // 쓰는 곳이 없어, 마감이 지나도 status 는 "active" 로 남는다(원장 D-45 정의).
   const tournaments = [
-    { id: "t-ended", status: "ended", hasVideoAlert: true },
-    { id: "t-ended-clean", status: "ended", hasVideoAlert: false },
-    { id: "t-active", status: "active", hasVideoAlert: true },
-    { id: "t-draft", status: "draft", hasVideoAlert: true },
+    { id: "t-past", deadlineMs: NOW - DAY, hasVideoAlert: true },
+    { id: "t-past-clean", deadlineMs: NOW - DAY, hasVideoAlert: false },
+    { id: "t-future", deadlineMs: NOW + DAY, hasVideoAlert: true },
+    { id: "t-no-deadline", deadlineMs: null, hasVideoAlert: true },
+    { id: "t-future-2", deadlineMs: NOW + DAY, hasVideoAlert: true },
   ];
   const contestants = [
-    { id: "c1", tournamentId: "t-ended", hasEmbedStatus: true },
-    { id: "c2", tournamentId: "t-ended", hasEmbedStatus: false },
-    { id: "c3", tournamentId: "t-ended-clean", hasEmbedStatus: true },
-    { id: "c4", tournamentId: "t-active", hasEmbedStatus: true },
-    { id: "c5", tournamentId: "t-draft", hasEmbedStatus: true },
+    { id: "c1", tournamentId: "t-past", hasEmbedStatus: true },
+    { id: "c2", tournamentId: "t-past", hasEmbedStatus: false },
+    { id: "c3", tournamentId: "t-past-clean", hasEmbedStatus: true },
+    { id: "c4", tournamentId: "t-future", hasEmbedStatus: true },
+    { id: "c5", tournamentId: "t-no-deadline", hasEmbedStatus: true },
+    { id: "c6", tournamentId: "t-future-2", hasEmbedStatus: true },
   ];
 
-  it("ended 대회의, 판정이 남은 것만", () => {
-    expect(planEndedEmbedCleanup(tournaments, contestants)).toEqual({
-      tournamentIds: ["t-ended"],
+  it("마감이 지난 대회의, 판정이 남은 것만 — status 가 active 여도", () => {
+    expect(planEndedEmbedCleanup(tournaments, contestants, NOW)).toEqual({
+      tournamentIds: ["t-past"],
       contestantIds: ["c1", "c3"],
     });
   });
 
-  it("진행 중·준비 중 대회는 건드리지 않는다", () => {
-    const plan = planEndedEmbedCleanup(tournaments, contestants);
-    expect(plan.tournamentIds).not.toContain("t-active");
-    expect(plan.tournamentIds).not.toContain("t-draft");
-    expect(plan.contestantIds).not.toContain("c4");
-    expect(plan.contestantIds).not.toContain("c5");
+  it("마감 전 · 마감 없음 대회는 건드리지 않는다 — 마감 전이면 그대로", () => {
+    const plan = planEndedEmbedCleanup(tournaments, contestants, NOW);
+    for (const id of ["t-future", "t-no-deadline", "t-future-2"]) expect(plan.tournamentIds).not.toContain(id);
+    for (const id of ["c4", "c5", "c6"]) expect(plan.contestantIds).not.toContain(id);
+  });
+
+  it("경계는 onVote 와 같다 — 마감 시각 정각은 아직 끝나지 않았다", () => {
+    const at = [{ id: "t", deadlineMs: NOW, hasVideoAlert: true }];
+    const just = [{ id: "t", deadlineMs: NOW - 1, hasVideoAlert: true }];
+    for (const deadlineMs of [NOW, NOW - 1, NOW + 1]) {
+      expect(planEndedEmbedCleanup([{ ...at[0], deadlineMs }], [], NOW).tournamentIds.length === 1).toBe(
+        isDeadlinePassed(deadlineMs, NOW),
+      );
+    }
+    expect(planEndedEmbedCleanup(at, [], NOW).tournamentIds).toEqual([]);
+    expect(planEndedEmbedCleanup(just, [], NOW).tournamentIds).toEqual(["t"]);
+  });
+});
+
+describe("예약 함수가 status 가 아니라 마감 시간으로 고른다", () => {
+  const src = readFileSync(join(__dirname, "..", "scheduleYouTubeDataRetention.ts"), "utf8");
+  it('where("status", "==", "ended") 를 쓰지 않는다 — 아무도 ended 를 쓰지 않아 늘 0건이었다', () => {
+    expect(src).not.toMatch(/where\(\s*"status"\s*,\s*"=="\s*,\s*"ended"\s*\)/);
+  });
+  it("tournamentDeadline 으로 고른다", () => {
+    expect(src).toMatch(/tournamentDeadline/);
   });
 });
 
@@ -133,7 +162,7 @@ describe("다시 진행 중이 되면 월요일 재검사가 다시 채운다 (�
     ]);
   });
 
-  it("재검사 크론은 status==active 대회를 본다 — ended → active 로 돌아오면 대상이 된다", () => {
+  it("재검사 크론은 status==active 대회를 본다 — 마감을 늘려 다시 진행되면 대상이 된다", () => {
     const src = readFileSync(join(__dirname, "..", "scheduleEmbedRecheck.ts"), "utf8");
     expect(src).toContain('.where("status", "==", "active")');
   });
