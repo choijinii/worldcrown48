@@ -1,5 +1,5 @@
 ---
-title: 커뮤니티 가이드라인
+title: 커뮤니티 가이드
 type: community
 lang: ko
 lastUpdated: 2026-10-10

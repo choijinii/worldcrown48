@@ -470,7 +470,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.evaluate(() => ((window as unknown as { __stageMarker: number }).__stageMarker = 1));
       await page.setViewportSize({ width: 844, height: 390 });
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "landscape");
-      await expect(page.locator(".wc-nav")).toBeHidden(); // D-17 ③
+      await expect(page.locator("header.wc-nav")).toBeHidden(); // D-17 ③
       await expect(page.getByTestId("stage-rotate-hint")).toHaveCount(0); // D-17 ②
       await expect(page.getByTestId("banner-slot")).toHaveCount(0); // D-21 바뀜 — 가로는 배너 없음
       await expect(page.getByTestId("module-nav")).toHaveCount(0);
@@ -489,7 +489,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
 
       // 세로로 되돌리면 메뉴가 돌아온다 — 나가는 길.
       await page.setViewportSize({ width: 390, height: 844 });
-      await expect(page.locator(".wc-nav")).toBeVisible();
+      await expect(page.locator("header.wc-nav")).toBeVisible();
     });
 
     // ── PR 2a — 모바일 가로 첫 탭 전체화면 (원장 "D-17 · 바뀜 2026-09-20") ──
@@ -633,7 +633,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.getByTestId("round-prev")).toHaveText("ROUND OF 48");
       await expect(page.getByTestId("round-next")).toHaveText("ROUND OF 24");
       await expect(transition).toContainText("24"); // 코너: 다음 라운드에 오르는 인원 수
-      await expect(page.locator(".wc-nav")).toBeHidden(); // 전체화면 · 메뉴 없음
+      await expect(page.locator("header.wc-nav")).toBeHidden(); // 전체화면 · 메뉴 없음
       await expect(page.getByTestId("banner-slot")).toHaveCount(0); // 배너 없음(D-26)
       await page.screenshot({ path: "playwright-report/arena1-round-transition.png" });
       // 탭하면 바로 넘어간다 — 2초를 기다리지 않는다

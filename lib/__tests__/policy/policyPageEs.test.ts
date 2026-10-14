@@ -105,7 +105,7 @@ describe("정책 목록 — es", () => {
       "Privacidad Términos del servicio Comunidad Política de cookies",
     );
     expect(text(render("ko", PolicyDocSwitch, { activeType: "cookies" }))).toBe(
-      "개인정보처리방침 이용약관 커뮤니티 정책 쿠키 정책",
+      "개인정보처리방침 이용약관 커뮤니티 가이드 쿠키 정책",
     );
   });
 });

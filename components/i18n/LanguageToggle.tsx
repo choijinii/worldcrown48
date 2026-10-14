@@ -110,24 +110,22 @@ export function LanguageToggle(): JSX.Element {
         aria-label={`Language: ${current.label}`}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onTriggerKeyDown}
+        // NAV-1: 메뉴바는 늘 다크다(§0-B 3) — 정본 1 의 언어 칩(모노 · 둥근 테두리 · 글자 회색).
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 6,
-          height: 36,
-          padding: "0 12px",
-          borderRadius: 10,
-          border: "1px solid var(--color-border-soft)",
+          height: 34,
+          padding: "0 16px",
+          borderRadius: 999,
+          border: "1px solid color-mix(in srgb, var(--color-white) 22%, transparent)",
           background: "transparent",
-          color: "var(--color-text-light)",
-          fontFamily: "Inter, system-ui, sans-serif",
+          color: "var(--color-text-sub)",
+          fontFamily: "var(--font-mono)",
           fontSize: 13,
-          fontWeight: 600,
-          letterSpacing: "0.02em",
+          letterSpacing: "0.14em",
           cursor: "pointer",
         }}
       >
-        <span aria-hidden="true">🌐</span>
         <span>{current.abbrev}</span>
       </button>
 

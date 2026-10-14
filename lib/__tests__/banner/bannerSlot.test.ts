@@ -7,11 +7,13 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  BANNER_SLOT_NAMES,
   bannerAudience,
   defaultNotice,
   pickBanner,
   resolveBanner,
   type BannerDoc,
+  type BannerSlotName,
 } from "@/lib/banner/bannerSlot";
 import { MESSAGES } from "@/lib/i18n/messages";
 
@@ -135,5 +137,17 @@ describe("기본 공지 문구 (대표 승인 2026-09-19)", () => {
       en: "Finish a tournament to earn your Crown Card — share it with friends",
       es: "Termina un torneo y consigue tu Crown Card — compártela con tus amigos",
     });
+  });
+});
+
+describe("자리 이름 목록 (D-21)", () => {
+  it("NAV-1 — Locker Room 안내 화면 아래 자리 locker-below 가 있다(정본 40 · 41)", () => {
+    expect(BANNER_SLOT_NAMES).toContain("locker-below");
+    expect(BANNER_SLOT_NAMES).toContain("records-below");
+  });
+
+  it("locker-below 도 배너가 없으면 기본 공지 — 빈칸 금지", () => {
+    const r = resolveBanner([], "locker-below" satisfies BannerSlotName, NOW, "guest");
+    expect(r.source).toBe("default");
   });
 });

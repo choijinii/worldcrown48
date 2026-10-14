@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>GNB · NAV-2</title>
+<link rel="stylesheet" href="_card.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="../_ds_bundle.js"></script>
+<style>
+  .card { width: 1500px; }
+  .frame { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.07); background: linear-gradient(360deg,#0C0F18,#1B1931); }
+  .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em; color: var(--color-text-muted); margin: 8px 0 0; }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .two { display: flex; gap: 32px; align-items: flex-start; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="kicker">GNB · NAV-2 (v1.9 · 2026-10-13) · 메뉴바 좌우 여백 0 · ▾ Record Room만 · 서랍 300/230 · 아이콘 · 220/180ms</p>
+    <div class="stack">
+      <div class="panel"><span class="panel__label">menubar · fan · 5 items · full-bleed</span><div id="m1" class="frame" style="width:1440px;height:104px"></div></div>
+      <div class="panel"><span class="panel__label">menubar · admin · 6 items (The Lab after The Arena)</span><div id="m2" class="frame" style="width:1440px;height:104px"></div></div>
+      <div class="panel"><span class="panel__label">menubar · Record Room ▾ open (Charts current · Hall of Fame dim)</span><div id="m3" class="frame" style="width:1440px;height:220px"></div></div>
+      <div class="two">
+        <div class="panel"><span class="panel__label">drawer · desktop 300 · Record Room ▸ open · ✕ on ☰ · brand on brand</span><div id="d1" class="frame" style="width:720px;height:620px"></div><p class="meta">icons Lucide 20/1.75 · row start 36 · sub 84 · lang 36 · dim .45</p></div>
+        <div class="panel"><span class="panel__label">drawer · mobile 230 · admin 3 rows</span><div id="d2" class="frame" style="width:390px;height:620px;background:#0F0F1E"></div><p class="meta">open 220ms · close 180ms · cubic-bezier(.2,.8,.2,1) · close via scrim · ✕ · Esc only</p></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const G = window.WorldCrown48DesignSystem_ea92b8.GNB, h = React.createElement, crown = "../assets/wc48-crown-filled.svg";
+    ReactDOM.createRoot(document.getElementById("m1")).render(h(G.Menubar, { crownSrc: crown }));
+    ReactDOM.createRoot(document.getElementById("m2")).render(h(G.Menubar, { admin: true, crownSrc: crown }));
+    ReactDOM.createRoot(document.getElementById("m3")).render(h(G.Menubar, { current: "Record Room", dropdown: "Record Room", currentSub: "Charts", crownSrc: crown }));
+    ReactDOM.createRoot(document.getElementById("d1")).render(h(React.Fragment, null, h(G.Menubar, { open: true, crownSrc: crown }), h(G.Drawer, { open: true, expanded: { "Record Room": true }, crownSrc: crown })));
+    ReactDOM.createRoot(document.getElementById("d2")).render(h(React.Fragment, null, h(G.Menubar, { variant: "mobile", open: true, crownSrc: crown }), h(G.Drawer, { variant: "mobile", open: true, admin: true, expanded: { "The Arena": true }, crownSrc: crown })));
+  </script>
+</body>
+</html>

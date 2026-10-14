@@ -7,17 +7,19 @@
  * UserDropdown has a destination and the GDPR delete flow has a permanent
  * URL the user can return to.
  *
- * Anonymous + signed-out guard (handoff §9 trap 6): App Router SSR can't
- * see the Firebase user; we replace('/') on the client once auth has
- * settled. Show a quiet loading state in the meantime so we don't flash
- * the account fields to an unauthenticated visitor.
+ * Signed-out + anonymous (NAV-1 · 정본 v4 40 · 41): no longer bounced to `/`.
+ * They see the Locker Room sign-in guide in place (components/account/LockerGuest).
+ * App Router SSR can't see the Firebase user, so a quiet loading state shows
+ * until auth settles — the account fields never flash to a visitor. Opening
+ * this page never creates an anonymous account (원장 D-41).
  */
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuthStore } from "@/lib/authStore";
+import { accountView } from "@/lib/account/accountView";
+import { LockerGuest } from "@/components/account/LockerGuest";
 import { useI18n } from "@/lib/i18n";
 import type { Lang } from "@/lib/cookieConsent";
 import { DeleteAccountModal } from "@/components/auth/DeleteAccountModal";
@@ -37,21 +39,16 @@ function formatSignUpDate(iso: string | undefined): string {
 }
 
 export default function AccountPage(): JSX.Element {
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
   const { lang } = useI18n();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const signedIn = !!(user && !user.isAnonymous);
+  const view = accountView({ loading, user });
 
-  useEffect(() => {
-    if (!loading && !signedIn) {
-      router.replace("/");
-    }
-  }, [loading, signedIn, router]);
+  if (view === "guest") return <LockerGuest />;
 
-  if (loading || !signedIn || !user) {
+  if (view === "loading" || !user) {
     return (
       <main
         style={{

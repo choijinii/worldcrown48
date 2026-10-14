@@ -13,6 +13,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useT } from "@/lib/i18n/useT";
+import { chartHref } from "@/lib/records/chartList";
 import { useAuthStore } from "@/lib/authStore";
 import { useGuestUidOnEntry } from "@/lib/auth/useGuestUidOnEntry";
 import { useVoteStore } from "@/lib/arena/voteStore";
@@ -20,10 +23,17 @@ import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { ReturningCardBanner } from "@/components/crown/ReturningCardBanner";
-import { ModuleNav } from "@/components/arena/ModuleNav";
 import { resolveChampionId, toCrownData } from "@/lib/crown/championLoader";
 import { crownActionState } from "@/lib/crown/crownActions";
 import { matchSessionId } from "@/lib/analytics/matchSessionId";
+
+// 따옴표 없는 선택자만 — <style> 안 따옴표는 SSR 에서 이스케이프돼 하이드레이션이 어긋난다(D-34).
+const CHART_LINK_STYLE = `
+.crown-chart-link-row { position: relative; z-index: 1; display: flex; justify-content: center; padding: var(--space-3) var(--space-4); }
+.crown-chart-link { font-family: var(--font-sans); font-size: 14px; color: var(--color-text); text-decoration: none; }
+.crown-chart-link:hover { color: var(--color-gold); }
+.crown-chart-link:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+`;
 
 function Center({ children }: { children: React.ReactNode }): JSX.Element {
   return (
@@ -47,6 +57,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ChampionPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
+  const { t } = useT();
   // ANON-1: 카드 링크로 처음 온 방문자의 익명 계정은 여기서 만든다(예전엔 쿠키 동의 부품).
   useGuestUidOnEntry();
   const user = useAuthStore((s) => s.user);
@@ -119,7 +130,14 @@ export default function ChampionPage(): JSX.Element {
   return (
     <>
       <ReturningCardBanner tournamentId={tournamentId} />
-      <ModuleNav tournamentId={tournamentId} />
+      {/* NAV-1 §0-B 8: 지운 아레나 탭 줄(ModuleNav) 대신 차트로 가는 글자 링크 하나. 모양은 크라운 카드
+          새 디자인 때 다시 그린다 — 지금은 기존 토큰으로 단순하게. 문구 = /records 의 승인 낱말 재사용. */}
+      <div className="crown-chart-link-row">
+        <style>{CHART_LINK_STYLE}</style>
+        <Link href={chartHref(tournamentId)} className="crown-chart-link" data-testid="crown-view-chart">
+          {t("records.viewChart")}
+        </Link>
+      </div>
       <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setLoginOpen(true)} tournamentId={tournamentId} category={tournament.category} matchSessionId={msid ?? undefined} />
       <LoginModal
         isOpen={loginOpen}
