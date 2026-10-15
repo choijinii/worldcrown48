@@ -9,11 +9,15 @@
  *      다시 읽히지 않는다 — 그래서 새로 받지 않는다(대표 결정 2026-10-10, 지시서 R4 "25일 새로 받기"를 바꿈).
  *      경계를 isCacheFresh 하나에 묶어 "쓰는 문서는 남고 안 쓰는 문서만 지운다"가 늘 맞게 한다.
  *   ② 끝난 대회의 재생 판정(contestants.media.embed.status · tournaments.videoAlert) — 진행 중인
- *      대회에서만 쓸모가 있으므로 끝나면 지운다(할당량 0). 다시 진행 중이 되면 월요일 재검사가 채운다.
+ *      대회에서만 쓸모가 있으므로 끝나면 지운다(할당량 0). 마감을 늘려 다시 진행되면 월요일 재검사가 채운다.
+ *      *끝난 대회* = `tournamentDeadline`(마감 시간)이 지난 대회(원장 D-45·D-50). `status` 는 보지 않는다 —
+ *      코드 어디에도 "ended" 를 쓰는 곳이 없어 마감이 지나도 "active" 로 남는다. 경계는 onVote 와 같은
+ *      `isDeadlinePassed`(정각은 아직 마감 아님 · 마감 없음 = 끝나지 않음).
  *
  * 여기는 판정만 한다. 읽기·쓰기는 scheduleYouTubeDataRetention.ts.
  */
 import { isCacheFresh } from "../_embed/sourcing/searchQuery";
+import { isDeadlinePassed } from "../_run/deadline";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -39,7 +43,8 @@ export function planCacheRetention(doc: CacheAgeFields, nowMs: number): CacheRet
 
 export interface TournamentRetentionLike {
   id: string;
-  status: string;
+  /** 마감 시각(ms, toDeadlineMs 로 읽은 값). 없거나 읽을 수 없으면 null — 끝나지 않은 대회로 본다. */
+  deadlineMs: number | null;
   hasVideoAlert: boolean;
 }
 
@@ -49,12 +54,15 @@ export interface ContestantRetentionLike {
   hasEmbedStatus: boolean;
 }
 
-/** 끝난 대회(status "ended")에서 지울 재생 판정. 진행 중·준비 중 대회는 건드리지 않는다. */
+/** 끝난 대회(마감 시간 지남)에서 지울 재생 판정. 마감 전·마감 없는 대회는 건드리지 않는다. */
 export function planEndedEmbedCleanup(
   tournaments: TournamentRetentionLike[],
   contestants: ContestantRetentionLike[],
+  nowMs: number,
 ): { tournamentIds: string[]; contestantIds: string[] } {
-  const ended = new Set(tournaments.filter((t) => t.status === "ended").map((t) => t.id));
+  const ended = new Set(
+    tournaments.filter((t) => isDeadlinePassed(t.deadlineMs, nowMs)).map((t) => t.id),
+  );
   return {
     tournamentIds: tournaments.filter((t) => ended.has(t.id) && t.hasVideoAlert).map((t) => t.id),
     contestantIds: contestants

@@ -6,15 +6,16 @@
  *
  *   ① video_search_cache — 7일 신선도를 넘긴 문서를 지운다. 검색 쪽이 이미 안 쓰는 문서라
  *      지워도 검색 횟수는 그대로다(대표 결정 2026-10-10 — 새로 받지 않고 지우기).
- *   ② 끝난 대회(status "ended")의 재생 판정 `contestants.media.embed.status` ·
- *      `tournaments.videoAlert` 를 지운다. 다시 진행 중이 되면 월요일
- *      scheduleEmbedRecheck 가 다시 채운다(대표 결정 2026-10-10).
+ *   ② 끝난 대회(마감 시간 `tournamentDeadline` 이 지난 대회 — 원장 D-45·D-50)의 재생 판정
+ *      `contestants.media.embed.status` · `tournaments.videoAlert` 를 지운다. 마감을 늘려 다시
+ *      진행되면 월요일 scheduleEmbedRecheck 가 다시 채운다(대표 결정 2026-10-10).
  */
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { planCacheRetention, planEndedEmbedCleanup } from "./core/apiDataRetention";
+import { isDeadlinePassed, toDeadlineMs } from "./_run/deadline";
 import { VIDEO_SEARCH_CACHE_COLLECTION } from "./videoSearchCache";
 
 /** Firestore writeBatch 상한(500)보다 넉넉히 낮게. */
@@ -49,10 +50,21 @@ async function purgeSearchCache(nowMs: number): Promise<string> {
   return `cache ${snap.size} docs · deleted ${stale.length} (older than 7 days)`;
 }
 
-/** ② 끝난 대회의 재생 판정 지우기 — 할당량 0. */
-async function clearEndedEmbedStatus(): Promise<string> {
-  const ended = await adminDb.collection("tournaments").where("status", "==", "ended").get();
-  if (ended.empty) return "ended Tournaments 0";
+/**
+ * ② 끝난 대회의 재생 판정 지우기 — 할당량 0.
+ *
+ * 마감 판정은 쿼리가 아니라 core 에서 한다 — `tournamentDeadline` 이 Timestamp 가 아닌 문서(숫자 등)도
+ * onVote 와 같은 toDeadlineMs 로 읽기 위해서다. 대회 문서 수는 수백 이하라 두 필드만 전부 읽는다.
+ */
+async function clearEndedEmbedStatus(nowMs: number): Promise<string> {
+  const all = await adminDb.collection("tournaments").select("tournamentDeadline", "videoAlert").get();
+  const tournaments = all.docs.map((d) => ({
+    id: d.id,
+    deadlineMs: toDeadlineMs(d.get("tournamentDeadline")),
+    hasVideoAlert: d.get("videoAlert") != null,
+  }));
+  const passed = tournaments.filter((t) => isDeadlinePassed(t.deadlineMs, nowMs)).length;
+  if (passed === 0) return "deadline-passed Tournaments 0";
 
   // 판정이 남은 Contestant 만 — 재검사는 문제 있는 칸에만 쓰므로 수가 작다.
   // 단일 필드 조건이라 복합 인덱스가 필요 없다.
@@ -62,12 +74,13 @@ async function clearEndedEmbedStatus(): Promise<string> {
     .get();
 
   const plan = planEndedEmbedCleanup(
-    ended.docs.map((d) => ({ id: d.id, status: "ended", hasVideoAlert: d.get("videoAlert") != null })),
+    tournaments,
     marked.docs.map((d) => ({
       id: d.id,
       tournamentId: String(d.get("tournamentId") ?? ""),
       hasEmbedStatus: true,
     })),
+    nowMs,
   );
 
   await commitWrites([
@@ -86,7 +99,7 @@ async function clearEndedEmbedStatus(): Promise<string> {
       }),
     ),
   ]);
-  return `ended Tournaments ${ended.size} · cleared embed status ${plan.contestantIds.length} · videoAlert ${plan.tournamentIds.length}`;
+  return `deadline-passed Tournaments ${passed} · cleared embed status ${plan.contestantIds.length} · videoAlert ${plan.tournamentIds.length}`;
 }
 
 export const scheduleYouTubeDataRetention = onSchedule(
@@ -100,7 +113,7 @@ export const scheduleYouTubeDataRetention = onSchedule(
     const nowMs = Date.now();
     // 둘은 서로 독립 — 하나가 실패해도 다른 하나는 돈다. 크론은 throw 로 죽지 않는다(내일 다시 돈다).
     try {
-      logger.info(`scheduleYouTubeDataRetention: ${await clearEndedEmbedStatus()}`);
+      logger.info(`scheduleYouTubeDataRetention: ${await clearEndedEmbedStatus(nowMs)}`);
     } catch (err) {
       logger.error("scheduleYouTubeDataRetention: ended cleanup failed", err);
     }
