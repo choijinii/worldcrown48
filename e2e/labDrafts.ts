@@ -55,3 +55,16 @@ export async function deleteE2EDrafts(titles: string[]): Promise<void> {
   });
   if (n > 0) await batch.commit();
 }
+
+/** 운영자(TEST_UID)의 초안 중 제목이 `title` 인 것의 수. 관리자 키가 없으면 null(→ 단언 실패). */
+export async function countE2EDrafts(title: string): Promise<number | null> {
+  const db = adminDb();
+  const uid = process.env.TEST_UID;
+  if (!db || !uid) return null;
+  const snap = await db
+    .collection("tournamentDrafts")
+    .where("hostUid", "==", uid)
+    .where("title", "==", title)
+    .get();
+  return snap.size;
+}

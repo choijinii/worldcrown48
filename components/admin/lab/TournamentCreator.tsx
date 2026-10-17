@@ -952,36 +952,42 @@ export function TournamentCreator(): JSX.Element {
           {t("lab.header.title")}
         </h1>
         {phase === "edit" && (
-          <div
-            style={{
-              margin: "6px 0 0",
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <span style={{ fontSize: 13, color: lab.textMuted }}>STEP {step} / 2</span>
-            <DraftStatus status={saveStatus} onRetry={() => void autosaver.retry()} />
-            <button
-              type="button"
-              onClick={() => void showDraftList()}
-              data-testid="draft-back-to-list"
+          <>
+            <div
               style={{
-                marginLeft: "auto",
-                padding: "4px 10px",
-                borderRadius: 6,
-                border: `1px solid ${lab.border}`,
-                background: "transparent",
-                color: lab.textSub,
-                fontSize: 12,
-                fontFamily: lab.font,
-                cursor: "pointer",
+                margin: "6px 0 0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
               }}
             >
-              {t("lab.draft.backToList")}
-            </button>
-          </div>
+              <span style={{ fontSize: 13, color: lab.textMuted }}>STEP {step} / 2</span>
+              <button
+                type="button"
+                onClick={() => void showDraftList()}
+                data-testid="draft-back-to-list"
+                style={{
+                  flexShrink: 0,
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  border: `1px solid ${lab.border}`,
+                  background: "transparent",
+                  color: lab.textSub,
+                  fontSize: 12,
+                  fontFamily: lab.font,
+                  cursor: "pointer",
+                }}
+              >
+                {t("lab.draft.backToList")}
+              </button>
+            </div>
+            {/* 저장 상태는 자기 줄을 갖는다 — 긴 실패 문구(es 2줄)가 나타나도 위 줄이 밀리지 않고,
+                상태가 처음 생길 때 화면이 튀지 않게 한 줄 높이를 비워 둔다. */}
+            <div style={{ marginTop: 6, minHeight: 26, display: "flex", alignItems: "center" }}>
+              <DraftStatus status={saveStatus} onRetry={() => void autosaver.retry()} />
+            </div>
+          </>
         )}
       </header>
 

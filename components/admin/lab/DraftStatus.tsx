@@ -55,6 +55,7 @@ export function DraftStatus({
             onClick={onRetry}
             data-testid="draft-save-retry"
             style={{
+              flexShrink: 0,
               padding: "3px 10px",
               borderRadius: 6,
               border: `1px solid ${lab.crimson}`,
