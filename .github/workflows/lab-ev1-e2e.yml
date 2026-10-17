@@ -20,6 +20,7 @@ on:
       - 'functions/src/**'
       - 'lib/i18n/messages.ts'
       - 'e2e/lab-ev1-embed-inspector.spec.ts'
+      - 'e2e/labDrafts.ts'
       - 'playwright.config.ts'
       - 'package.json'
       - '.github/workflows/lab-ev1-e2e.yml'

@@ -15,6 +15,7 @@
  * NEXT_PUBLIC_ADMIN_UID가 그 uid여야 AdminAuthGuard를 통과한다.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 
 const PASS_ID = "9bZkp7q19f0";
 const WARN_ID = "dQw4w9WgXcQ";
@@ -124,9 +125,14 @@ test.afterEach(async () => {
   expect(consoleErrors, "Console errors must be 0").toHaveLength(0);
 });
 
+// EDITOR-FIX-1 — 이 spec 이 친 내용은 자동 저장으로 초안이 된다(발행은 안 한다).
+test.afterAll(async () => {
+  await deleteE2EDrafts(["LAB-EV-1 E2E"]);
+});
+
 /** STEP 1을 최소 입력으로 통과해 STEP 2(48칸 그리드)로 간다. */
 async function goToStep2(page: Page) {
-  await page.goto("/admin/lab?lang=ko"); // §7 — 한국어 셀렉터 정합
+  await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
   await page.getByLabel("Tournament 제목").fill("LAB-EV-1 E2E");
   await page.getByLabel("카테고리").selectOption("FOOTBALL");
   await page.getByLabel("키워드 추가").fill("embed-e2e");

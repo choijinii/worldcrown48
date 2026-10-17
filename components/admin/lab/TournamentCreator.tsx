@@ -18,18 +18,17 @@
  * title·description are translated once at publish (translateTournamentMeta) and
  * stored additively (title stays the flat original — back-compat). §8 analytics
  * fire at each milestone.
+ *
+ * EDITOR-FIX-1(2026-10-17): 편집 내용은 서버 초안(`tournamentDrafts`)으로 자동 저장된다
+ * — 입력이 멈춘 뒤 DRAFT_SAVE_DELAY_MS · 단계 이동 · AI 호출 직전 · 탭을 떠날 때.
+ * 열 때 내 초안이 있으면 [이어서 만들기] 목록이 먼저 뜬다. 발행이 성공하면 같은
+ * writeBatch 에서 초안이 지워진다(publishBatch.ts).
  */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { httpsCallable } from "firebase/functions";
-import {
-  collection,
-  doc,
-  serverTimestamp,
-  Timestamp,
-  writeBatch,
-} from "firebase/firestore";
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 import { getDb, getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
 import { showToast } from "@/lib/toast";
@@ -84,7 +83,19 @@ import type { SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkVerdict } from "@/lib/embed/verdict";
 import type { SourcingBatchSummary, SourcingTarget } from "@/lib/embed/sourcing/types";
 import { useT } from "@/lib/i18n/useT";
+import { buildPublishBatch } from "@/lib/lab/publishBatch";
+import { createDraftAutosaver, type AutosaveStatus } from "@/lib/lab/draftAutosaver";
+import { deleteDraft, listMyDrafts, loadDraft, newDraftId, saveDraft } from "@/lib/lab/draftStore";
+import {
+  isDraftBlank,
+  phaseAfterDraftList,
+  type DraftEditorState,
+  type DraftPhase,
+  type DraftSummary,
+} from "@/lib/lab/tournamentDraft";
 import { lab } from "./theme";
+import { DraftStatus } from "./DraftStatus";
+import { DraftPicker } from "./DraftPicker";
 import { SourcingQuotaDialog } from "./SourcingQuotaDialog";
 import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
 import { SlotVideoTuner } from "./SlotVideoTuner";
@@ -115,6 +126,14 @@ type AiSuggestion = {
   position?: string;
   imageSearchKeyword: string;
 };
+
+/**
+ * 입력이 멈춘 뒤 저장까지 기다리는 시간. 1.5초 — 한 낱말을 치는 사이 쉼(보통 1초 안)
+ * 에는 저장하지 않고, 손을 뗀 뒤엔 곧 저장된다. 새로고침으로 잃을 수 있는 입력은
+ * 최대 이만큼이다(탭을 떠날 때는 즉시 저장을 한 번 더 시도한다). 한 문서에 1초에
+ * 1회 남짓이라는 Firestore 쓰기 권장 속도 안에도 든다.
+ */
+const DRAFT_SAVE_DELAY_MS = 1500;
 
 function emptyDraft(): ContestantDraft {
   return {
@@ -176,6 +195,40 @@ export function TournamentCreator(): JSX.Element {
     null,
   );
 
+  // EDITOR-FIX-1 — 초안. "choose" = 이어서 만들기 목록, "edit" = 편집기.
+  const [phase, setPhase] = useState<DraftPhase>("loading");
+  const [drafts, setDrafts] = useState<DraftSummary[]>([]);
+  const [saveStatus, setSaveStatus] = useState<AutosaveStatus | null>(null);
+  // 처음 저장할 때 정한다 — 아무것도 안 친 편집기는 문서를 만들지 않는다.
+  const draftIdRef = useRef<string | null>(null);
+  const uidRef = useRef(uid);
+  uidRef.current = uid;
+  // 마지막으로 저장을 맡긴 내용. 같은 내용을 다시 쓰지 않는다(초안을 열기만 해도
+  // "마지막 저장"이 바뀌면 목록 순서가 거짓말을 한다).
+  const lastQueuedRef = useRef<string>("");
+  const prevStepRef = useRef(step);
+  const [autosaver] = useState(() =>
+    createDraftAutosaver<DraftEditorState>({
+      delayMs: DRAFT_SAVE_DELAY_MS,
+      onStatus: setSaveStatus,
+      save: async (state) => {
+        const db = getDb();
+        if (!draftIdRef.current) draftIdRef.current = newDraftId(db);
+        await saveDraft(db, draftIdRef.current, uidRef.current, state);
+      },
+    }),
+  );
+  const editorState: DraftEditorState = {
+    step,
+    title,
+    category,
+    description,
+    keywords,
+    campaignSlug,
+    deadlineMs,
+    contestants,
+  };
+
   /**
    * 검수 배지 두 종(중복 의심·이름↔힌트 불일치)은 그리드 상태에서 **파생**된다.
    * 채우기 응답에 실어오지 않는 이유는 reviewFlags.ts 머리주석에 있다 — 운영자가
@@ -215,6 +268,129 @@ export function TournamentCreator(): JSX.Element {
     };
   }, []);
 
+  // 열 때: 내 초안이 있으면 목록부터.
+  useEffect(() => {
+    if (!uid) return;
+    let alive = true;
+    listMyDrafts(getDb(), uid)
+      .then((list) => {
+        if (!alive) return;
+        setDrafts(list);
+        setPhase((p) => phaseAfterDraftList(p, list.length));
+      })
+      .catch(() => {
+        if (!alive) return;
+        showToast(t("lab.draft.listFail"), "error");
+        setPhase((p) => phaseAfterDraftList(p, 0));
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 열 때 한 번
+  }, [uid]);
+
+  // 자동 저장 — 내용이 바뀌면 디바운스, 단계가 바뀌면 즉시.
+  const editorJson = JSON.stringify(editorState);
+  useEffect(() => {
+    if (phase !== "edit" || !uid) return;
+    const stepChanged = prevStepRef.current !== step;
+    prevStepRef.current = step;
+    if (editorJson === lastQueuedRef.current) return;
+    if (!draftIdRef.current && isDraftBlank(editorState)) return;
+    lastQueuedRef.current = editorJson;
+    autosaver.schedule(editorState);
+    if (stepChanged) void autosaver.flush();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- editorJson 이 editorState 를 대신한다
+  }, [editorJson, phase, uid]);
+
+  // 탭을 떠날 때(새로고침·창 닫기·다른 탭) 남은 입력을 바로 보낸다.
+  useEffect(() => {
+    const flushNow = () => void autosaver.flush();
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flushNow();
+    };
+    window.addEventListener("pagehide", flushNow);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flushNow);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [autosaver]);
+
+  function applyEditorState(s: DraftEditorState) {
+    setStep(s.step);
+    prevStepRef.current = s.step;
+    setTitle(s.title);
+    setCategory(s.category);
+    setDescription(s.description);
+    setKeywords(s.keywords);
+    setCampaignSlug(s.campaignSlug);
+    setDeadlineMs(s.deadlineMs);
+    setContestants(s.contestants);
+    setSourcingStates({});
+    lastQueuedRef.current = JSON.stringify(s);
+  }
+
+  function blankEditorState(): DraftEditorState {
+    return {
+      step: 1,
+      title: "",
+      category: "",
+      description: "",
+      keywords: [],
+      campaignSlug: "",
+      deadlineMs: presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS),
+      contestants: [],
+    };
+  }
+
+  async function openDraft(id: string) {
+    try {
+      const loaded = await loadDraft(getDb(), id);
+      if (!loaded) throw new Error("missing");
+      await autosaver.stop();
+      draftIdRef.current = id;
+      applyEditorState(loaded);
+      setSaveStatus(null);
+      autosaver.resume();
+      setPhase("edit");
+    } catch {
+      showToast(t("lab.draft.openFail"), "error");
+    }
+  }
+
+  async function startNewDraft() {
+    await autosaver.stop();
+    draftIdRef.current = null;
+    applyEditorState(blankEditorState());
+    setSaveStatus(null);
+    autosaver.resume();
+    setPhase("edit");
+  }
+
+  async function removeDraft(id: string) {
+    try {
+      if (draftIdRef.current === id) {
+        await autosaver.stop();
+        draftIdRef.current = null;
+      }
+      await deleteDraft(getDb(), id);
+      setDrafts((list) => list.filter((d) => d.id !== id));
+    } catch {
+      showToast(t("lab.draft.deleteFail"), "error");
+    }
+  }
+
+  async function showDraftList() {
+    await autosaver.flush();
+    try {
+      setDrafts(await listMyDrafts(getDb(), uid));
+    } catch {
+      showToast(t("lab.draft.listFail"), "error");
+    }
+    setPhase("choose");
+  }
+
   const step1Ready = isStep1Ready({
     title,
     category,
@@ -227,6 +403,8 @@ export function TournamentCreator(): JSX.Element {
   async function generateKeywords() {
     if (keywordBusy || !category) return;
     setKeywordBusy(true);
+    // AI 호출 직전 저장 — 응답을 기다리다 새로고침해도 입력은 남는다.
+    await autosaver.flush();
     try {
       const callable = httpsCallable<
         { title: string; category: string; description: string },
@@ -300,6 +478,7 @@ export function TournamentCreator(): JSX.Element {
       return null;
     }
     setFilling(true);
+    await autosaver.flush();
     const started = Date.now();
     try {
       const callable = httpsCallable<
@@ -679,6 +858,9 @@ export function TournamentCreator(): JSX.Element {
   async function publish() {
     if (!uid || !step1Ready) return;
     setPublishing(true);
+    // 발행이 지울 초안을 늦게 도착한 저장이 되살리지 않게 저장을 멈춘다.
+    await autosaver.stop();
+    const draftId = draftIdRef.current;
     try {
       // Translate title + description once (미보유 언어만 Haiku; 실패 시 원문
       // fallback — 발행은 성공, ADR-B2 §4). Source lang = current UI lang.
@@ -689,10 +871,7 @@ export function TournamentCreator(): JSX.Element {
       });
 
       const db = getDb();
-      const batch = writeBatch(db);
-
-      const tRef = doc(collection(db, "tournaments"));
-      batch.set(tRef, {
+      const tournament = {
         ...buildTournamentDoc(
           {
             title: title.trim(),
@@ -709,14 +888,17 @@ export function TournamentCreator(): JSX.Element {
         ),
         createdAt: serverTimestamp(),
         tournamentDeadline: Timestamp.fromMillis(deadlineMs),
+      };
+      // 초안 삭제는 같은 배치 — 발행이 성공해야만 지워진다(EDITOR-FIX-1).
+      const { batch, tournamentId } = buildPublishBatch(db, {
+        tournament,
+        contestants: (id) => buildContestantDocs(id, uid, contestants),
+        draftId,
       });
 
-      for (const c of buildContestantDocs(tRef.id, uid, contestants)) {
-        batch.set(doc(collection(db, "contestants")), c);
-      }
-
       await batch.commit();
-      void track("admin_lab_publish", { tournament_id: tRef.id, category });
+      draftIdRef.current = null;
+      void track("admin_lab_publish", { tournament_id: tournamentId, category });
       showToast(t("lab.toast.publishSuccess"), "success");
 
       // Reset for the next Tournament; refresh the list.
@@ -729,11 +911,18 @@ export function TournamentCreator(): JSX.Element {
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
       setContestants([]);
       setSourcingStates({});
+      setSaveStatus(null);
+      lastQueuedRef.current = "";
       setListRefresh((n) => n + 1);
+      autosaver.resume();
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
       void track("admin_lab_publish_error", { error_code: code });
       showToast(t("lab.toast.publishFail"), "error");
+      // 발행 실패 — 초안은 그대로다. 멈춰 둔 저장을 다시 켜고 지금 내용을 맡긴다.
+      autosaver.resume();
+      lastQueuedRef.current = JSON.stringify(editorState);
+      autosaver.schedule(editorState);
     } finally {
       setPublishing(false);
     }
@@ -764,12 +953,57 @@ export function TournamentCreator(): JSX.Element {
         <h1 style={{ margin: "6px 0 0", fontSize: 26, fontWeight: 800 }}>
           {t("lab.header.title")}
         </h1>
-        <p style={{ margin: "6px 0 0", fontSize: 13, color: lab.textMuted }}>
-          STEP {step} / 2
-        </p>
+        {phase === "edit" && (
+          <>
+            <div
+              style={{
+                margin: "6px 0 0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              <span style={{ fontSize: 13, color: lab.textMuted }}>STEP {step} / 2</span>
+              <button
+                type="button"
+                onClick={() => void showDraftList()}
+                data-testid="draft-back-to-list"
+                style={{
+                  flexShrink: 0,
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  border: `1px solid ${lab.border}`,
+                  background: "transparent",
+                  color: lab.textSub,
+                  fontSize: 12,
+                  fontFamily: lab.font,
+                  cursor: "pointer",
+                }}
+              >
+                {t("lab.draft.backToList")}
+              </button>
+            </div>
+            {/* 저장 상태는 자기 줄을 갖는다 — 긴 실패 문구(es 2줄)가 나타나도 위 줄이 밀리지 않고,
+                상태가 처음 생길 때 화면이 튀지 않게 한 줄 높이를 비워 둔다. */}
+            <div style={{ marginTop: 6, minHeight: 26, display: "flex", alignItems: "center" }}>
+              <DraftStatus status={saveStatus} onRetry={() => void autosaver.retry()} />
+            </div>
+          </>
+        )}
       </header>
 
-      {step === 1 && (
+      {phase !== "edit" && (
+        <DraftPicker
+          drafts={drafts}
+          loading={phase === "loading"}
+          onOpen={(id) => void openDraft(id)}
+          onDelete={(id) => void removeDraft(id)}
+          onNew={() => void startNewDraft()}
+        />
+      )}
+
+      {phase === "edit" && step === 1 && (
         <div style={{ display: "grid", gap: 20 }}>
           <TitleInput value={title} onChange={setTitle} />
           <CampaignSlugInput value={campaignSlug} onChange={setCampaignSlug} />
@@ -809,7 +1043,7 @@ export function TournamentCreator(): JSX.Element {
         </div>
       )}
 
-      {step === 2 && (
+      {phase === "edit" && step === 2 && (
         <div style={{ display: "grid", gap: 24 }}>
           <Step2Summary
             title={title}
