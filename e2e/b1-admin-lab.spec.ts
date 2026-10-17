@@ -20,6 +20,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 
 let consoleErrors: string[] = [];
 const createdTournamentIds: string[] = [];
@@ -99,6 +100,8 @@ test.afterEach(async () => {
 });
 
 test.afterAll(async () => {
+  // EDITOR-FIX-1 — 발행이 중간에 실패하면 자동 저장된 초안이 남는다.
+  await deleteE2EDrafts(["E2E Tournament"]);
   const a = ensureAdmin();
   if (!a) return;
   const db = a.firestore();
@@ -135,7 +138,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     page,
   }) => {
     await stubAiFill(page);
-    await page.goto("/admin/lab?lang=ko"); // §7: E2E ?lang=ko 강제 (한국어 셀렉터 정합)
+    await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
 
     // STEP 1 — the 다음 button is the gate. It stays disabled until ①②④⑤ are met,
     // WITHOUT any AI call (핵심 AC#1: a hand-typed keyword is enough).
