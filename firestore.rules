@@ -13,6 +13,7 @@ rules_version = '2';
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
 //   /banners/{id}          — public read (배너 자리 · D-21); admin-claim write
+//   /tournamentDrafts/{id} — owner-only (hostUid), signed-in non-anonymous, schema-checked
 //
 // All other paths are denied by default.
 // ════════════════════════════════════════════════════════════════════
@@ -69,6 +70,44 @@ service cloud.firestore {
                     && request.resource.data.hostUid == request.auth.uid;
       allow update, delete: if request.auth != null
                     && resource.data.hostUid == request.auth.uid;
+    }
+
+    // ── tournamentDrafts (EDITOR-FIX-1) ────────────────────────────
+    // 발행 전 편집 내용(초안). 주인(hostUid)만 읽기·쓰기·삭제. `tournaments` 의
+    // status:"draft" 를 쓰지 않는 이유: 발행된 대회 목록·차트·사이트맵 쿼리와 섞인다.
+    // 관리자 가정이 없다 — MVP2 유저 초안이 같은 규칙을 쓴다. 익명(게스트) 계정은 막는다.
+    // 저장은 문서 통째 덮어쓰기(setDoc) → 칸은 늘 전부 온다(hasAll). 목록 칸 하나하나의
+    // 모양은 규칙으로 못 훑는다(반복 없음) — 칸 수(≤48)만 막고 크기는 1MiB 문서 한도가 막는다.
+    function isDraftWriter() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function isValidDraft(d) {
+      return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
+                                'description', 'keywords', 'campaignSlug', 'deadlineMs',
+                                'contestants', 'updatedAt'])
+        && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
+                            'description', 'keywords', 'campaignSlug', 'deadlineMs',
+                            'contestants', 'updatedAt'])
+        && d.hostUid == request.auth.uid
+        && d.schemaVersion == 1
+        && (d.step == 1 || d.step == 2)
+        && d.title is string && d.title.size() <= 200
+        && d.category is string && d.category.size() <= 100
+        && d.description is string && d.description.size() <= 2000
+        && d.keywords is list && d.keywords.size() <= 30
+        && d.campaignSlug is string && d.campaignSlug.size() <= 100
+        && d.deadlineMs is number
+        && d.contestants is list && d.contestants.size() <= 48
+        && d.updatedAt == request.time;
+    }
+    match /tournamentDrafts/{draftId} {
+      allow read, delete: if isDraftWriter()
+                          && resource.data.hostUid == request.auth.uid;
+      allow create: if isDraftWriter() && isValidDraft(request.resource.data);
+      allow update: if isDraftWriter()
+                    && resource.data.hostUid == request.auth.uid
+                    && isValidDraft(request.resource.data);
     }
 
     // ── waitlist ───────────────────────────────────────────────────
