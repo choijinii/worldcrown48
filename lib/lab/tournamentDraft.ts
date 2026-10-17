@@ -135,6 +135,17 @@ export function isDraftBlank(s: DraftEditorState): boolean {
   );
 }
 
+export type DraftPhase = "loading" | "choose" | "edit";
+
+/**
+ * 열 때 불러온 초안 목록이 도착했을 때의 화면. **아직 불러오는 중일 때만** 정한다 —
+ * 그사이 [새로 시작]을 눌렀으면 늦게 온 목록이 쓰던 편집기를 빼앗으면 안 된다.
+ */
+export function phaseAfterDraftList(current: DraftPhase, draftCount: number): DraftPhase {
+  if (current !== "loading") return current;
+  return draftCount > 0 ? "choose" : "edit";
+}
+
 /** 가장 최근에 저장한 초안이 위로. 쿼리에 orderBy 를 걸지 않는다(복합 색인 불필요). */
 export function sortDraftsByUpdated<T extends { updatedAtMs: number }>(list: T[]): T[] {
   return [...list].sort((a, b) => b.updatedAtMs - a.updatedAtMs);

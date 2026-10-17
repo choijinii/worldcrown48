@@ -88,7 +88,9 @@ import { createDraftAutosaver, type AutosaveStatus } from "@/lib/lab/draftAutosa
 import { deleteDraft, listMyDrafts, loadDraft, newDraftId, saveDraft } from "@/lib/lab/draftStore";
 import {
   isDraftBlank,
+  phaseAfterDraftList,
   type DraftEditorState,
+  type DraftPhase,
   type DraftSummary,
 } from "@/lib/lab/tournamentDraft";
 import { lab } from "./theme";
@@ -194,7 +196,7 @@ export function TournamentCreator(): JSX.Element {
   );
 
   // EDITOR-FIX-1 — 초안. "choose" = 이어서 만들기 목록, "edit" = 편집기.
-  const [phase, setPhase] = useState<"loading" | "choose" | "edit">("loading");
+  const [phase, setPhase] = useState<DraftPhase>("loading");
   const [drafts, setDrafts] = useState<DraftSummary[]>([]);
   const [saveStatus, setSaveStatus] = useState<AutosaveStatus | null>(null);
   // 처음 저장할 때 정한다 — 아무것도 안 친 편집기는 문서를 만들지 않는다.
@@ -274,12 +276,12 @@ export function TournamentCreator(): JSX.Element {
       .then((list) => {
         if (!alive) return;
         setDrafts(list);
-        setPhase(list.length > 0 ? "choose" : "edit");
+        setPhase((p) => phaseAfterDraftList(p, list.length));
       })
       .catch(() => {
         if (!alive) return;
         showToast(t("lab.draft.listFail"), "error");
-        setPhase("edit");
+        setPhase((p) => phaseAfterDraftList(p, 0));
       });
     return () => {
       alive = false;

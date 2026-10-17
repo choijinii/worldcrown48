@@ -10,6 +10,7 @@ import {
   DRAFT_SCHEMA_VERSION,
   fromDraftDoc,
   isDraftBlank,
+  phaseAfterDraftList,
   sortDraftsByUpdated,
   toDraftFields,
   type DraftEditorState,
@@ -120,6 +121,19 @@ describe("isDraftBlank", () => {
         contestants: [{ name: "", nationality: "", affiliation: "", imageSearchKeyword: "", videoId: "x" }],
       }),
     ).toBe(false);
+  });
+});
+
+describe("phaseAfterDraftList — 목록이 늦게 와도 편집 중인 화면을 빼앗지 않는다", () => {
+  it("decides only while still loading", () => {
+    expect(phaseAfterDraftList("loading", 2)).toBe("choose");
+    expect(phaseAfterDraftList("loading", 0)).toBe("edit");
+  });
+
+  it("keeps the editor when the host already pressed 새로 시작 during loading", () => {
+    // CI 실측(2026-10-17): 목록이 ~2초 늦게 와서 쓰던 편집기가 목록으로 되돌아갔다.
+    expect(phaseAfterDraftList("edit", 3)).toBe("edit");
+    expect(phaseAfterDraftList("choose", 0)).toBe("choose");
   });
 });
 
