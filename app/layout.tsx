@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-// FONT-1 — Pretendard woff2 구간별 분할(만든 곳: scripts/build-pretendard-css.mjs).
+// FONT-1 — Pretendard 가변 글꼴 woff2 구간별 분할(만든 곳: scripts/build-pretendard-css.mjs).
 import "./pretendard.css";
 import "./globals.css";
 // ARENA-1 (원장 D-20) — 아레나 무대 층 토큰. 클로드 디자인 내보내기 사본, 손편집 금지.
@@ -65,15 +65,9 @@ export default function RootLayout({
             Playfair Display italics + Pretendard are self-hosted via @font-face
             in globals.css · pretendard.css (brand-mandatory, no CDN).
             요청 굵기는 실제로 쓰는 것만 — Inter 400~900 · JetBrains Mono 400~700 (FONT-1 실측). */}
-        {/* FONT-1 — 미리 받기는 하나만: 피치·사전등록 첫 화면 금색 이탤릭 제목(Playfair 900,
-            700 요청도 이 파일로 그려진다). Pretendard 는 화면 글자에 따라 조각이 달라 미리 받지 않는다. */}
-        <link
-          rel="preload"
-          href="/fonts/playfair-1.203/PlayfairDisplay-BlackItalic.latin.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {/* FONT-1 — 글꼴 미리 받기(preload)는 두지 않는다. Playfair 900 하나를 미리 받아 보니 첫 화면을
+            막는 CSS 와 대역폭을 다퉈 피치 첫 그림이 1.4초 → 1.6초로 늦어졌고 사전등록은 그대로였다.
+            Pretendard 는 화면 글자에 따라 받는 조각이 달라 미리 받을 대상을 고를 수 없다. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

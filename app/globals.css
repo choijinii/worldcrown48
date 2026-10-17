@@ -4,8 +4,8 @@
    ════════════════════════════════════════════════════════════════════ */
 
 /* ════ PRETENDARD — self-hosted (brand-mandatory · never via CDN) ════
-   FONT-1(2026-10-17): woff2 유니코드 구간별 분할 → app/pretendard.css (layout.tsx 가 부른다).
-   굵기 400~900 만 둔다(100·200·300 은 쓰는 곳이 없거나 한 곳뿐 — 300 자리는 400 으로 그려진다). */
+   FONT-1(2026-10-17): 가변 글꼴 한 벌(굵기 45~920)의 woff2 유니코드 구간별 분할 → app/pretendard.css
+   (layout.tsx 가 부른다). 굵기별 고정 6벌은 선언 CSS 가 커서 첫 화면을 늦췄다 — 만든 곳 스크립트 머리말. */
 
 /* Playfair Display italic (hero only) — self-hosted to match design bundle.
    FONT-1: 디자인 묶음의 TTF 를 라틴 구간 + 화살표만 남긴 woff2 로 줄였다(글자 모양 동일). */

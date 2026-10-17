@@ -6,9 +6,11 @@
  *
  * 지키는 것:
  * ① 어떤 CSS 도 .otf/.ttf 를 부르지 않고, 모든 @font-face 는 woff2 만 쓴다.
- * ② Pretendard 는 유니코드 구간별 분할(dynamic subset)이다 — 한 굵기의 조각들이 한글
- *    음절 전체(U+AC00–D7A3)를 덮어야 한다. 글자 목록을 고정해 잘라 낸 파일(static subset)은
- *    사람이 넣는 대회 제목·엔트리 이름의 낯선 글자를 깨뜨리므로 금지.
+ * ② Pretendard 는 가변 글꼴(굵기 축 하나) 한 벌의 유니코드 구간별 분할(dynamic subset)이다 —
+ *    조각들이 한글 음절 전체(U+AC00–D7A3)를 덮어야 한다. 글자 목록을 고정해 잘라 낸 파일
+ *    (static subset)은 사람이 넣는 대회 제목·엔트리 이름의 낯선 글자를 깨뜨리므로 금지.
+ * ②-1 글꼴 선언 CSS 는 첫 화면을 막는(render-blocking) 스타일시트에 실린다. 굵기별 고정 글꼴
+ *    6벌(552 선언 · 300KB)을 실었더니 첫 그림이 1.0초 늦어졌다(FONT-1 실측) → 크기 상한.
  * ③ 부르는 파일은 전부 public/ 안에 실제로 있다(외부 CDN 금지).
  * ④ public/fonts 에 옛 OTF·TTF 가 남아 있지 않다.
  * 서버 크라운 카드(함수 canvas)의 글꼴은 이 시험 대상이 아니다.
@@ -19,7 +21,10 @@ import path from "node:path";
 
 const ROOT = path.resolve(__dirname, "../../..");
 const SCAN_DIRS = ["app", "components"];
-const PRETENDARD_WEIGHTS = [400, 500, 600, 700, 800, 900];
+/** 가변 글꼴 한 벌이 덮는 굵기 범위 — 공식 배포본 pretendardvariable-dynamic-subset.css 값. */
+const PRETENDARD_WEIGHT_RANGE = "45 920";
+/** 첫 화면을 막는 글꼴 선언 CSS 상한(압축 전). 가변 한 벌 ≈ 50KB · 고정 6벌 ≈ 300KB. */
+const FONT_CSS_MAX_BYTES = 80 * 1024;
 
 function walk(dir: string, out: string[]): void {
   for (const name of readdirSync(dir)) {
@@ -99,41 +104,37 @@ describe("FONT-1 — 화면 글꼴", () => {
     expect(missing).toEqual([]);
   });
 
-  it("Pretendard 는 쓰는 굵기만 둔다", () => {
-    const weights = new Set(
-      faces
-        .filter((f) => /Pretendard/.test(prop(f.body, "font-family") ?? ""))
-        .map((f) => Number(prop(f.body, "font-weight"))),
-    );
-    expect(Array.from(weights).sort()).toEqual(PRETENDARD_WEIGHTS);
+  it("Pretendard 는 가변 글꼴 한 벌이고 구간별 분할 조각들이 한글 음절 전체를 덮는다", () => {
+    const mine = faces.filter((f) => /Pretendard/.test(prop(f.body, "font-family") ?? ""));
+    expect(mine.length).toBeGreaterThan(1);
+    expect(Array.from(new Set(mine.map((f) => prop(f.body, "font-weight"))))).toEqual([
+      PRETENDARD_WEIGHT_RANGE,
+    ]);
+    expect(mine.every((f) => ranges(f.body).length > 0)).toBe(true);
+    const covered = new Set<number>();
+    for (const f of mine) {
+      for (const [lo, hi] of ranges(f.body)) {
+        for (let c = Math.max(lo, 0xac00); c <= Math.min(hi, 0xd7a3); c++) covered.add(c);
+      }
+    }
+    expect(covered.size).toBe(0xd7a3 - 0xac00 + 1);
   });
 
-  it.each(PRETENDARD_WEIGHTS)(
-    "Pretendard %i 는 구간별 분할이고 조각들이 한글 음절 전체를 덮는다",
-    (weight) => {
-      const mine = faces.filter(
-        (f) =>
-          /Pretendard/.test(prop(f.body, "font-family") ?? "") &&
-          Number(prop(f.body, "font-weight")) === weight,
-      );
-      expect(mine.length).toBeGreaterThan(1);
-      expect(mine.every((f) => ranges(f.body).length > 0)).toBe(true);
-      const covered = new Set<number>();
-      for (const f of mine) {
-        for (const [lo, hi] of ranges(f.body)) {
-          for (let c = Math.max(lo, 0xac00); c <= Math.min(hi, 0xd7a3); c++) covered.add(c);
-        }
-      }
-      expect(covered.size).toBe(0xd7a3 - 0xac00 + 1);
-    },
-  );
+  it("글꼴 선언 CSS 는 첫 화면을 막지 않을 만큼 작다", () => {
+    const heavy = cssFiles()
+      .filter((f) => /@font-face/.test(readFileSync(f, "utf8")))
+      .map((f) => ({ f: path.relative(ROOT, f), bytes: statSync(f).size }))
+      .filter((x) => x.bytes > FONT_CSS_MAX_BYTES);
+    expect(heavy).toEqual([]);
+  });
 
-  it("layout 이 미리 받는 글꼴은 woff2 이고 실제로 있다", () => {
+  // 미리 받기는 지금 0개 — Playfair 1개를 미리 받았더니 첫 화면 CSS 와 대역폭을 다퉈 피치 첫 그림이
+  // 1.4초 → 1.6초로 늦어졌다(FONT-1 실측). 다시 넣는다면 2개까지, woff2 이고 실제로 있어야 한다.
+  it("layout 이 미리 받는 글꼴은 2개 이하 · woff2 · 실제로 있다", () => {
     const layout = readFileSync(path.join(ROOT, "app/layout.tsx"), "utf8");
     const preloads = Array.from(layout.matchAll(/rel="preload"\s+href="([^"]+)"\s+as="font"/g)).map(
       (m) => m[1],
     );
-    expect(preloads.length).toBeGreaterThan(0);
     expect(preloads.length).toBeLessThanOrEqual(2);
     for (const href of preloads) {
       expect(href.endsWith(".woff2")).toBe(true);
