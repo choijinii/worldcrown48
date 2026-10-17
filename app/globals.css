@@ -3,20 +3,14 @@
    Tokens: Twilight Stadium v2.3 / v2.4 (per Domain 0 design file)
    ════════════════════════════════════════════════════════════════════ */
 
-/* ════ PRETENDARD — self-hosted (brand-mandatory · never via CDN) ════ */
-@font-face { font-family: "Pretendard"; font-weight: 100; src: url("/fonts/Pretendard-Thin.otf")       format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 200; src: url("/fonts/Pretendard-ExtraLight.otf") format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 300; src: url("/fonts/Pretendard-Light.otf")      format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 400; src: url("/fonts/Pretendard-Regular.otf")    format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 500; src: url("/fonts/Pretendard-Medium.otf")     format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 600; src: url("/fonts/Pretendard-SemiBold.otf")   format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 700; src: url("/fonts/Pretendard-Bold.otf")       format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 800; src: url("/fonts/Pretendard-ExtraBold.otf")  format("opentype"); font-display: swap; }
-@font-face { font-family: "Pretendard"; font-weight: 900; src: url("/fonts/Pretendard-Black.otf")      format("opentype"); font-display: swap; }
+/* ════ PRETENDARD — self-hosted (brand-mandatory · never via CDN) ════
+   FONT-1(2026-10-17): woff2 유니코드 구간별 분할 → app/pretendard.css (layout.tsx 가 부른다).
+   굵기 400~900 만 둔다(100·200·300 은 쓰는 곳이 없거나 한 곳뿐 — 300 자리는 400 으로 그려진다). */
 
-/* Playfair Display italic (hero only) — self-hosted to match design bundle */
-@font-face { font-family: "Playfair Display"; font-weight: 400; font-style: italic; src: url("/fonts/PlayfairDisplay-Italic.ttf")      format("truetype"); font-display: swap; }
-@font-face { font-family: "Playfair Display"; font-weight: 900; font-style: italic; src: url("/fonts/PlayfairDisplay-BlackItalic.ttf") format("truetype"); font-display: swap; }
+/* Playfair Display italic (hero only) — self-hosted to match design bundle.
+   FONT-1: 디자인 묶음의 TTF 를 라틴 구간 + 화살표만 남긴 woff2 로 줄였다(글자 모양 동일). */
+@font-face { font-family: "Playfair Display"; font-weight: 400; font-style: italic; src: url("/fonts/playfair-1.203/PlayfairDisplay-Italic.latin.woff2")      format("woff2"); font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2199, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Playfair Display"; font-weight: 900; font-style: italic; src: url("/fonts/playfair-1.203/PlayfairDisplay-BlackItalic.latin.woff2") format("woff2"); font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2190-2199, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
   /* Dark stage backgrounds */

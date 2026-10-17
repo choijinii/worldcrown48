@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+// FONT-1 — Pretendard woff2 구간별 분할(만든 곳: scripts/build-pretendard-css.mjs).
+import "./pretendard.css";
 import "./globals.css";
 // ARENA-1 (원장 D-20) — 아레나 무대 층 토큰. 클로드 디자인 내보내기 사본, 손편집 금지.
 import "./arena_stage_tokens.css";
@@ -61,7 +63,17 @@ export default function RootLayout({
       <head>
         {/* Inter · JetBrains Mono via Google Fonts (allowed by brief).
             Playfair Display italics + Pretendard are self-hosted via @font-face
-            in globals.css (brand-mandatory, no CDN). */}
+            in globals.css · pretendard.css (brand-mandatory, no CDN).
+            요청 굵기는 실제로 쓰는 것만 — Inter 400~900 · JetBrains Mono 400~700 (FONT-1 실측). */}
+        {/* FONT-1 — 미리 받기는 하나만: 피치·사전등록 첫 화면 금색 이탤릭 제목(Playfair 900,
+            700 요청도 이 파일로 그려진다). Pretendard 는 화면 글자에 따라 조각이 달라 미리 받지 않는다. */}
+        <link
+          rel="preload"
+          href="/fonts/playfair-1.203/PlayfairDisplay-BlackItalic.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
