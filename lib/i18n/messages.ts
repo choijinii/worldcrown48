@@ -1023,6 +1023,70 @@ export const MESSAGES = {
     en: "Checking quota…",
     es: "Comprobando cuota…",
   },
+  // ── EDITOR-FIX-1 — 초안 자동 저장 · 이어서 만들기 ────────────────
+  "lab.draft.status.saving": { ko: "저장 중…", en: "Saving…", es: "Guardando…" },
+  "lab.draft.status.saved": {
+    ko: "저장됨 · {time}",
+    en: "Saved · {time}",
+    es: "Guardado · {time}",
+  },
+  "lab.draft.status.error": {
+    ko: "저장 실패 — 새로고침하면 마지막 저장 이후 입력이 사라집니다",
+    en: "Not saved — refreshing will lose changes since the last save",
+    es: "No se guardó — si recargas, perderás los cambios desde el último guardado",
+  },
+  "lab.draft.retry": { ko: "다시 시도", en: "Retry", es: "Reintentar" },
+  "lab.draft.list.title": {
+    ko: "이어서 만들기",
+    en: "Continue a draft",
+    es: "Continuar un borrador",
+  },
+  "lab.draft.list.subtitle": {
+    ko: "저장된 초안을 열거나 새로 시작하세요.",
+    en: "Open a saved draft or start a new one.",
+    es: "Abre un borrador guardado o empieza uno nuevo.",
+  },
+  "lab.draft.list.untitled": { ko: "(제목 없음)", en: "(Untitled)", es: "(Sin título)" },
+  "lab.draft.list.savedAt": {
+    ko: "마지막 저장 {time}",
+    en: "Last saved {time}",
+    es: "Último guardado {time}",
+  },
+  "lab.draft.list.empty": {
+    ko: "저장된 초안이 없습니다.",
+    en: "No saved drafts.",
+    es: "No hay borradores guardados.",
+  },
+  "lab.draft.list.loading": {
+    ko: "초안을 확인하는 중…",
+    en: "Checking your drafts…",
+    es: "Buscando tus borradores…",
+  },
+  "lab.draft.open": { ko: "열기", en: "Open", es: "Abrir" },
+  "lab.draft.delete": { ko: "지우기", en: "Delete", es: "Eliminar" },
+  "lab.draft.new": { ko: "새로 시작", en: "Start new", es: "Empezar de nuevo" },
+  "lab.draft.cancel": { ko: "취소", en: "Cancel", es: "Cancelar" },
+  "lab.draft.deleteConfirm": {
+    ko: "이 초안을 지울까요? 되돌릴 수 없습니다.",
+    en: "Delete this draft? This can't be undone.",
+    es: "¿Eliminar este borrador? No se puede deshacer.",
+  },
+  "lab.draft.backToList": { ko: "초안 목록", en: "Drafts", es: "Borradores" },
+  "lab.draft.listFail": {
+    ko: "초안 목록을 불러오지 못했습니다.",
+    en: "Couldn't load your drafts.",
+    es: "No se pudieron cargar tus borradores.",
+  },
+  "lab.draft.openFail": {
+    ko: "초안을 열지 못했습니다.",
+    en: "Couldn't open the draft.",
+    es: "No se pudo abrir el borrador.",
+  },
+  "lab.draft.deleteFail": {
+    ko: "초안을 지우지 못했습니다.",
+    en: "Couldn't delete the draft.",
+    es: "No se pudo eliminar el borrador.",
+  },
   "lab.source.done": {
     ko: "✓ 제안 {suggested} · 수동 필요 {manual} · 실존 의심 {unknown} (검색 {searches}회)",
     en: "✓ {suggested} proposed · {manual} need manual · {unknown} unverified ({searches} searches)",

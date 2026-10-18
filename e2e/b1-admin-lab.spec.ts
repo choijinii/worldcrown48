@@ -20,6 +20,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 
 let consoleErrors: string[] = [];
 const createdTournamentIds: string[] = [];
@@ -99,6 +100,8 @@ test.afterEach(async () => {
 });
 
 test.afterAll(async () => {
+  // EDITOR-FIX-1 — 발행이 중간에 실패하면 자동 저장된 초안이 남는다.
+  await deleteE2EDrafts(["E2E Tournament"]);
   const a = ensureAdmin();
   if (!a) return;
   const db = a.firestore();
@@ -135,7 +138,9 @@ test.describe("B-1 The Lab — operator critical path", () => {
     page,
   }) => {
     await stubAiFill(page);
-    await page.goto("/admin/lab?lang=ko"); // §7: E2E ?lang=ko 강제 (한국어 셀렉터 정합)
+    // 앞선 실패 실행이 남긴 같은 제목 초안이 "발행 후 0건" 단언을 흐리지 않게 먼저 지운다.
+    await deleteE2EDrafts(["E2E Tournament"]);
+    await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
 
     // STEP 1 — the 다음 button is the gate. It stays disabled until ①②④⑤ are met,
     // WITHOUT any AI call (핵심 AC#1: a hand-typed keyword is enough).
@@ -161,6 +166,11 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");
     const publish = page.getByRole("button", { name: /토너먼트 생성 \(48\/48\)/ });
     await expect(publish).toBeEnabled();
+    // EDITOR-FIX-1 — 발행 전에 초안이 실제로 서버에 있어야 "발행 후 0건"이 뜻을 갖는다.
+    await expect(page.getByTestId("draft-save-status")).toHaveAttribute("data-status", "saved", {
+      timeout: 15_000,
+    });
+    expect(await countE2EDrafts("E2E Tournament")).toBeGreaterThan(0);
     await publish.click();
 
     // The new Tournament shows in the list.
@@ -168,6 +178,9 @@ test.describe("B-1 The Lab — operator critical path", () => {
       .locator('[data-testid^="tournament-row-"]')
       .filter({ hasText: "E2E Tournament" });
     await expect(row).toBeVisible();
+
+    // EDITOR-FIX-1 — 발행이 성공하면 같은 배치에서 초안이 지워진다.
+    await expect.poll(() => countE2EDrafts("E2E Tournament")).toBe(0);
 
     // Record the id for cleanup.
     const testId = await row.getAttribute("data-testid");
