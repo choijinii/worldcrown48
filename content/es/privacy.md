@@ -2,13 +2,13 @@
 title: Política de privacidad
 type: privacy
 lang: es
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-10-18
+version: 1.3
 ---
 
 # Política de privacidad · Privacy Policy
 
-**Última actualización: 10 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 18 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -31,6 +31,12 @@ Esta Política explica qué tipos de datos personales recopila WC48, los fines d
 | Imagen de perfil (avatar) | Si el usuario la sube | Opcional |
 | Categorías preferidas | Si el usuario las configura | Opcional |
 | Motivo de la denuncia de contenido | Al presentar una denuncia | Obligatorio |
+
+Cuando deja su correo electrónico en la Waitlist, también registramos:
+
+- **Número de orden de inscripción** — un número asignado según el orden en que se inscriben las personas
+- **Ruta de primera entrada** — los valores utm del enlace con el que entró por primera vez al sitio (por ejemplo, qué enlace de red social o de campaña le trajo). Solo se guarda en su navegador durante 7 días si ha aceptado las cookies de análisis; si no, solo se recuerda durante esa visita.
+- **Idioma de la pantalla al inscribirse** — para enviarle los avisos en ese idioma
 
 ### 1.2 Información que se recopila automáticamente
 
@@ -66,6 +72,7 @@ WC48 recopila y utiliza datos personales para los siguientes fines.
 | Prevención del uso indebido | Hash de IP · patrones de cuentas múltiples | Interés legítimo | 12 meses |
 | Análisis y mejora (opcional) | Navegación entre páginas · tiempo de permanencia | **Consentimiento** (art. 6(1)(a)) | 14 meses |
 | Marketing (opcional) | Categorías preferidas · correo electrónico | **Consentimiento** | Hasta la retirada del consentimiento |
+| Avisos de la Waitlist (aviso de apertura · aviso para vincular la cuenta) | Correo electrónico · número de orden de inscripción · ruta de primera entrada · idioma de la pantalla al inscribirse | Avisos a petición del usuario (art. 6(1)(b)) · conocer los canales de entrada es un interés legítimo (art. 6(1)(f)) | 12 meses después de la apertura oficial (se eliminan de inmediato si lo solicita antes) |
 | Cumplimiento de obligaciones legales | Registros de consentimiento · documentación de denuncias | Obligación legal (art. 6(1)(c)) | 5 años |
 
 El análisis y el marketing solo se aplican si usted ha dado su consentimiento en la [Política de cookies](/policies/cookies).
@@ -220,4 +227,4 @@ Esta Política se actualiza en función de cambios normativos, de la ampliación
 ---
 
 *Esta Política podrá actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Privacy Policy v1.2*
+*© 2026 WorldCrown48 · Privacy Policy v1.3*

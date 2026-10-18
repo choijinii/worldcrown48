@@ -2,8 +2,8 @@
  * Analytics events — A-0 Launch Pad + E-1 Policy Hub.
  *
  * Events (per Handoff Brief §8):
- *   waitlist_submit             { email_hash: sha256 }
- *   waitlist_duplicate          { email_hash: sha256 }
+ *   waitlist_submit             { email_hash: sha256, first_utm_*? }  (PRE-REG-1: 처음 들어온 경로)
+ *   waitlist_duplicate          { email_hash: sha256, first_utm_*? }
  *   featured_tournament_click   { tournament_id: string }
  *   sns_link_click              { platform: string }
  *

@@ -1,32 +1,33 @@
 "use client";
 
 /**
- * M3 · WaitlistForm — Firestore `waitlist` create.
+ * M3 · WaitlistForm — 사전등록 (PRE-REG-1: 등록 함수 registerWaitlist 경유).
  *
  * 6 states per Handoff Brief §4:
  *   default → focused → loading → success / duplicate / invalid
+ * + rateLimited (PRE-REG-1 — 같은 연결에서 너무 잦을 때 함수가 막는다).
  *
- * Duplicate detection: SHA-256(email) is used as the document ID. Under
- * the create-only Security Rules in `firestore.rules`, attempting to
- * create a document at an ID that already exists fails with
- * `permission-denied` — Firestore evaluates the `create` rule on the
- * existing doc and finds it's actually an update (denied). We catch
- * that code and surface the `duplicate` state.
+ * 브라우저는 `waitlist` 에 쓰지도 읽지도 않는다(규칙으로 닫힘). 메일 · 처음 들어온 경로
+ * (lib/launch/firstTouch) · 화면 언어를 함수에 넘기고, 함수가 중복 판정 · 선착순 번호 ·
+ * 저장을 서버에서 한다. 함수는 번호를 돌려주지 않는다 — 화면·이벤트에 번호가 나가지 않는다.
+ * 로그인 없이 부른다 — 익명 계정을 만들지 않는다(원장 D-41).
  *
- * Consequences of this design:
- *   - The client never reads `waitlist` (emails are never exposed).
- *   - Rules can deny `list` / `get` / `update` / `delete` outright.
- *   - One email = one document. No need for a Cloud Function for dup check.
+ * 기존 작은 글씨(스팸 없음) 아래에 보관 기간 한 줄(원장 D-57) — 처리방침 1.1 로 잇는다.
+ *
+ * GA 이벤트 이름은 그대로(waitlist_submit · waitlist_duplicate — 8/31). 처음 경로를
+ * first_utm_* 로 붙인다. track() 이 분석 동의 문을 지난다(COOKIE-1).
  *
  * Magnetic submit: subtle mouse-tracking translate on the button. Gated on
  * prefers-reduced-motion (no movement when reduced).
  */
 
 import { useEffect, useRef, useState } from "react";
-import { doc, serverTimestamp, setDoc, type FirestoreError } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
 import { hashEmail, track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
+import { useAnalyticsConsent } from "@/components/policy/CookieConsentProvider";
+import { firstTouch, firstTouchEventParams } from "@/lib/launch/firstTouch";
+import { callRegisterWaitlist, waitlistPayload } from "@/lib/launch/waitlistSubmit";
+import { retentionNoteParts, retentionPolicyHref } from "@/lib/launch/retentionNote";
 
 type WaitlistState =
   | "default"
@@ -34,29 +35,17 @@ type WaitlistState =
   | "loading"
   | "success"
   | "duplicate"
-  | "invalid";
+  | "invalid"
+  | "rateLimited";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function isFirestoreError(e: unknown): e is FirestoreError {
-  return typeof e === "object" && e !== null && "code" in e;
-}
-
-async function createEntry(email: string, emailHash: string): Promise<void> {
-  const db = getDb();
-  // setDoc at a known ID. If the doc exists, the `create` rule fails →
-  // FirestoreError.code === "permission-denied" → caller treats as duplicate.
-  await setDoc(doc(db, "waitlist", emailHash), {
-    email,
-    createdAt: serverTimestamp(),
-  });
-}
 
 export function WaitlistForm() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<WaitlistState>("default");
   const submitRef = useRef<HTMLButtonElement>(null);
-  const { t } = useT();
+  const { t, lang } = useT();
+  const analyticsConsent = useAnalyticsConsent();
 
   // ── Magnetic submit (matches Cinematic pattern from design system) ──
   useEffect(() => {
@@ -94,37 +83,29 @@ export function WaitlistForm() {
     }
 
     setState("loading");
-    try {
+    const utm = firstTouch.current(Date.now(), analyticsConsent);
+    const outcome = await callRegisterWaitlist(waitlistPayload(v, utm, lang));
+    setState(outcome);
+    if (outcome === "success" || outcome === "duplicate") {
       const email_hash = await hashEmail(v);
-      if (!email_hash) {
-        // SubtleCrypto unavailable (older browser / non-secure context).
-        throw new Error("Email hashing unavailable in this browser.");
-      }
-      await createEntry(v, email_hash);
-      setState("success");
-      void track("waitlist_submit", { email_hash });
-    } catch (err) {
-      // create-only rule + existing doc → permission-denied → treat as duplicate.
-      if (isFirestoreError(err) && err.code === "permission-denied") {
-        setState("duplicate");
-        const email_hash = await hashEmail(v);
-        void track("waitlist_duplicate", { email_hash });
-        return;
-      }
-      // Firestore unreachable / other failure — surface as invalid so the
-      // user can correct or retry; don't silently swallow.
-      console.warn("WaitlistForm: submit failed", err);
-      setState("invalid");
+      void track(outcome === "success" ? "waitlist_submit" : "waitlist_duplicate", {
+        email_hash,
+        ...firstTouchEventParams(utm),
+      });
     }
   }
 
-  const isError = state === "invalid" || state === "duplicate";
+  const retention = retentionNoteParts(t("launch.waitlist.retention"));
+
+  const isError = state === "invalid" || state === "duplicate" || state === "rateLimited";
   const errMsg =
     state === "duplicate"
       ? t("launch.waitlist.errDuplicate")
       : state === "invalid"
         ? t("launch.waitlist.errInvalid")
-        : "";
+        : state === "rateLimited"
+          ? t("launch.waitlist.errRateLimited")
+          : "";
 
   const formClass = [
     "wl-form",
@@ -154,7 +135,7 @@ export function WaitlistForm() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (state === "invalid" || state === "duplicate") {
+                  if (isError) {
                     setState("default");
                   }
                 }}
@@ -192,6 +173,11 @@ export function WaitlistForm() {
       )}
 
       <p className="wl-privacy">{t("launch.waitlist.privacy")}</p>
+      {/* 보관 기간 — 등록하는 자리에서 알린다(원장 D-57). 끝 낱말 = 처리방침 1.1 링크. */}
+      <p className="wl-retention">
+        {retention.before}
+        {retention.link && <a href={retentionPolicyHref(lang)}>{retention.link}</a>}
+      </p>
     </section>
   );
 }

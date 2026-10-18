@@ -2,13 +2,13 @@
 title: Privacy Policy
 type: privacy
 lang: en
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-10-18
+version: 1.3
 ---
 
 # Privacy Policy
 
-**Last updated: October 10, 2026 · Effective date: June 11, 2026**
+**Last updated: October 18, 2026 · Effective date: June 11, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -31,6 +31,12 @@ This Policy explains what personal data WC48 collects, the purposes of collectio
 | Profile image (avatar) | When uploaded by the user | Optional |
 | Preferred categories | When set by the user | Optional |
 | Report reason for content | When reporting | Required |
+
+When you leave your email on the Waitlist, we also record:
+
+- **Sign-up order number** — a number given in the order people sign up
+- **First entry path** — the utm values of the link you first used to enter the site (for example, which social or campaign link brought you). It is kept in your browser for 7 days only if you have consented to Analytics cookies; otherwise it is kept only for that visit.
+- **Screen language at sign-up** — so we can send notices in that language
 
 ### 1.2 Information collected automatically
 
@@ -66,6 +72,7 @@ WC48 collects and uses personal data for the following purposes.
 | Abuse prevention | Hashed IP · multi-account patterns | Legitimate interest | 12 months |
 | Analytics · improvement (optional) | Page navigation · time on page | **Consent** (Art. 6(1)(a)) | 14 months |
 | Marketing (optional) | Preferred categories · email | **Consent** | Until consent withdrawn |
+| Waitlist notices (opening notice · account-linking notice) | Email · sign-up order number · first entry path · screen language at sign-up | Notices at your request (Art. 6(1)(b)) · understanding entry channels is a legitimate interest (Art. 6(1)(f)) | 12 months after the official opening (deleted at once if you ask earlier) |
 | Legal compliance | Consent records · report files | Legal obligation (Art. 6(1)(c)) | 5 years |
 
 Analytics and marketing apply only when you have consented in the [Cookie Policy](/policies/cookies).
@@ -220,4 +227,4 @@ This Policy may be updated due to changes in law, service expansion, or new proc
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Privacy Policy v1.2*
+*© 2026 WorldCrown48 · Privacy Policy v1.3*

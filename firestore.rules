@@ -5,7 +5,9 @@ rules_version = '2';
 //
 // Collections covered:
 //   /tournaments/{id}      — public read of `featured == true` docs only
-//   /waitlist/{id}         — create-only; doc ID MUST be SHA-256(email)
+//   /waitlist/{id}         — browser read/write blocked (registerWaitlist callable only · PRE-REG-1)
+//   /waitlist_test/{id}    — (default deny) 시험 메일 등록 · Admin SDK only
+//   /waitlist_meta/{id}    — (default deny) 선착순 번호 기록 · Admin SDK only
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //   /votes/{voteId}        — owner-only read; write blocked (callable only)
 //   /ranking_cache/{id}    — 차트. 공개 읽기(비로그인 포함 · D-30); write blocked
@@ -128,32 +130,14 @@ service cloud.firestore {
     }
 
     // ── waitlist ───────────────────────────────────────────────────
-    // Create-only. No read, no update, no delete from clients.
-    //
-    // Duplicate detection works because:
-    //   - The client computes SHA-256(email) and uses it as the doc ID.
-    //   - `setDoc(doc("waitlist", hash), …)` on an existing doc is
-    //     evaluated as an update — denied here → permission-denied.
-    //   - On a new ID, it's a create → allowed (subject to schema check
-    //     below). One email = exactly one document. Emails never leave
-    //     the database via reads.
-    //
-    // Schema:
-    //   email      — string, basic shape & length check
-    //   createdAt  — must equal request.time (serverTimestamp)
-    //   (only those two keys; reject extra fields)
+    // PRE-REG-1 ②-b: 브라우저는 읽기·쓰기 전부 거부. 사전등록은 등록 함수
+    // registerWaitlist(Admin SDK)만 쓴다 — 메일 정규화 · 중복 판정 · 선착순 번호
+    // (founding_rank) · 처음 들어온 경로(utm) · 화면 언어(lang)를 서버에서 붙인다.
+    // 옛 create 규칙(email·createdAt 두 칸 · 문서 ID = SHA-256)을 닫아 번호 없는 문서가
+    // 더 생기지 않게 한다 — 옛 문서 번호 매기기(functions/scripts/assign-founding-rank.mjs)의
+    // 전제. 시험 메일(waitlist_test)·번호 기록(waitlist_meta)은 아래 규칙 없음 = 기본 거부.
     match /waitlist/{docId} {
-      allow read, update, delete: if false;
-
-      allow create: if
-        request.resource.data.keys().hasOnly(['email', 'createdAt'])
-        && request.resource.data.email is string
-        && request.resource.data.email.size() >= 5
-        && request.resource.data.email.size() <= 320
-        && request.resource.data.email.matches('.+@.+[.].+')
-        && request.resource.data.createdAt == request.time
-        // docId must be exactly 64 lowercase hex chars (SHA-256).
-        && docId.matches('^[0-9a-f]{64}$');
+      allow read, write: if false;
     }
 
     // ── cookieConsents ─────────────────────────────────────────────

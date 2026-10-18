@@ -150,4 +150,15 @@ describe("자리 이름 목록 (D-21)", () => {
     const r = resolveBanner([], "locker-below" satisfies BannerSlotName, NOW, "guest");
     expect(r.source).toBe("default");
   });
+
+  it("PRE-REG-1 — 사전등록 페이지 맨 아래 자리 launch-below 가 있다(원장 D-21 적용)", () => {
+    expect(BANNER_SLOT_NAMES).toContain("launch-below");
+  });
+
+  it("launch-below 도 배너가 없으면 기존 기본 공지 — 빈칸 금지 · 새 문구 없음", () => {
+    const guest = resolveBanner([], "launch-below" satisfies BannerSlotName, NOW, "guest");
+    expect(guest).toEqual({ source: "default", notice: { titleKey: "banner.default.guest.title", action: "signIn" } });
+    const member = resolveBanner([], "launch-below" satisfies BannerSlotName, NOW, "member");
+    expect(member.source === "default" && member.notice.titleKey).toBe("banner.default.member.title");
+  });
 });

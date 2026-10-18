@@ -8,6 +8,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { CookieBanner } from "@/components/policy/CookieBanner";
 import { ConsentModal } from "@/components/policy/ConsentModal";
 import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
+import { FirstTouchCapture } from "@/components/launch/FirstTouchCapture";
 import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -82,6 +83,8 @@ export default function RootLayout({
       <body>
         <I18nProvider>
           <CookieConsentProvider>
+            {/* PRE-REG-1 — 처음 들어온 경로(UTM). 그리지 않는다 · 7일 기억은 분석 동의 뒤(원장 D-53). */}
+            <FirstTouchCapture />
             <AuthProvider>
               <Navbar />
               {children}

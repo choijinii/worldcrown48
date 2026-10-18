@@ -25,6 +25,8 @@ export const BANNER_SLOT_NAMES = [
   "records-below",
   /** NAV-1 — `/account` 비로그인 안내 화면 아래(970×90 / 320×100, 정본 v4 40 · 41). */
   "locker-below",
+  /** PRE-REG-1 — `/launch` 맨 아래(SNS 링크 아래 · 970×90 / 320×100). 등록 칸 근처에 두지 않는다. */
+  "launch-below",
 ] as const;
 
 export type BannerSlotName = (typeof BANNER_SLOT_NAMES)[number];
