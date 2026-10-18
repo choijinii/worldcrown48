@@ -81,7 +81,11 @@ export async function attachVideosToFirstSlots(page: Page, count: number): Promi
     .getByTestId("embed-inspector-input")
     .fill(E2E_VIDEOS.slice(0, count).map((v) => `https://youtu.be/${v.id}`).join("\n"));
   await page.getByTestId("embed-inspector-validate").click();
-  await expect(page.getByTestId(`embed-row-${count}`)).toHaveAttribute("data-status", "pass");
+  // 줄의 data-status 는 보지 않는다 — 주입이 끝나면 그 칸이 더는 빈 칸이 아니라서
+  // 검수기 줄이 "pending"으로 되돌아간다. 확인할 것은 칸에 영상이 들어갔는지다.
+  for (let i = 0; i < count; i++) {
+    await expect(page.getByTestId(`contestant-tune-${i}`)).toBeAttached();
+  }
   await page.getByRole("button", { name: "닫기" }).click();
   for (let i = 0; i < count; i++) {
     await expect(page.getByTestId(`contestant-tune-${i}`)).toBeVisible();
