@@ -131,6 +131,8 @@ describe("같은 메일 다시 → 이미 등록", () => {
 });
 
 describe("동시 20건 → 1~20 빈틈·중복 없음", () => {
+  // 에뮬레이터는 같은 번호 기록을 두고 겨루는 트랜잭션을 잠금 대기·재시도로 한 줄 세운다 — 로컬 12초,
+  // CI 는 15초 기본 한도를 넘겼다(1f267b2). 맞고 틀림이 아니라 기다림이라 이 시험만 한도를 늘린다.
   it("한꺼번에 들어와도 번호가 1~20 을 한 번씩 쓴다", async () => {
     await seal();
     const emails = Array.from({ length: 20 }, (_, i) => `burst-${i}@example.com`);
@@ -140,7 +142,7 @@ describe("동시 20건 → 1~20 빈틈·중복 없음", () => {
     expect([...ranks].sort((a, b) => a! - b!)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
     const meta = await db.collection(WAITLIST_META_COLLECTION).doc(FOUNDING_META_ID).get();
     expect(meta.get("lastRank")).toBe(20);
-  });
+  }, 90_000);
 
   it("같은 메일이 동시에 두 번 와도 한 건만 등록된다", async () => {
     await seal();
@@ -148,7 +150,7 @@ describe("동시 20건 → 1~20 빈틈·중복 없음", () => {
     expect(results.map((r) => r.status).sort()).toEqual(["duplicate", "registered"]);
     const meta = await db.collection(WAITLIST_META_COLLECTION).doc(FOUNDING_META_ID).get();
     expect(meta.get("lastRank")).toBe(1);
-  });
+  }, 60_000);
 });
 
 describe("옛 문서 번호 매기기(봉인) 전", () => {
