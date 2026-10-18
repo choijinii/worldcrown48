@@ -20,20 +20,24 @@ interface PublishButtonProps {
   contestants: ContestantDraft[];
   busy: boolean;
   onClick: () => void;
+  /** THUMB-1: 대표 매치 A·B 를 둘 다 골랐는지 — 아니면 잠근다(원장 D-35). */
+  pairReady?: boolean;
 }
 
 export function PublishButton({
   contestants,
   busy,
   onClick,
+  pairReady = true,
 }: PublishButtonProps): JSX.Element {
   const { t } = useT();
-  const ready = isPublishReady(contestants) && !busy;
+  const ready = isPublishReady(contestants) && pairReady && !busy;
   const filled = countFilledContestants(contestants);
 
   return (
     <button
       type="button"
+      data-testid="publish-button"
       onClick={onClick}
       disabled={!ready}
       style={{

@@ -16,6 +16,8 @@ on:
       - 'functions/src/**'
       - 'firestore.rules'
       - 'lib/lab/**'
+      - 'lib/thumbnail/**'
+      - 'components/thumbnail/**'
       - 'lib/types/tournament.ts'
       - 'middleware.ts'
       - 'tests/rules/**'

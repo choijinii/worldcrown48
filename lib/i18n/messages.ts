@@ -577,6 +577,47 @@ export const MESSAGES = {
     es: "Crear Tournament ({filled}/{total})",
   },
   "lab.publish.busy": { ko: "저장 중…", en: "Saving…", es: "Guardando…" },
+  // THUMB-1 대표 매치 패널 (원장 D-35 · D-56) — 문구 승인표 THUMB-1_PR1 대상.
+  "lab.pair.kicker": { ko: "STEP 2 · 대표 매치", en: "STEP 2 · COVER MATCH", es: "PASO 2 · MATCH DE PORTADA" },
+  "lab.pair.title": { ko: "대표 매치 고르기", en: "Choose the cover Match", es: "Elige el Match de portada" },
+  "lab.pair.help": {
+    ko: "아래 엔트리 칸에서 영상이 있는 엔트리를 누르면 A → B 순서로 들어갑니다. 세 번째부터는 A부터 다시 바뀝니다.",
+    en: "Tap an entry with a video in the grid below to fill A, then B. A third tap starts over at A.",
+    es: "Toca una entrada con vídeo en la cuadrícula de abajo para llenar A y luego B. El tercer toque vuelve a A.",
+  },
+  "lab.pair.slotEmpty": {
+    ko: "엔트리 칸에서 누르세요",
+    en: "Tap an entry in the grid",
+    es: "Toca una entrada",
+  },
+  "lab.pair.entryFallback": { ko: "{n}번", en: "Entry {n}", es: "Entrada {n}" },
+  "lab.pair.posLandscape": {
+    ko: "{side} 위치 · 좌우 · 가로 영상",
+    en: "{side} POSITION · LEFT–RIGHT · LANDSCAPE VIDEO",
+    es: "POSICIÓN {side} · IZQ–DER · VÍDEO HORIZONTAL",
+  },
+  "lab.pair.posPortrait": {
+    ko: "{side} 위치 · 위아래 · 세로 영상",
+    en: "{side} POSITION · UP–DOWN · PORTRAIT VIDEO",
+    es: "POSICIÓN {side} · ARRIBA–ABAJO · VÍDEO VERTICAL",
+  },
+  "lab.pair.lockNone": {
+    ko: "A와 B를 모두 골라야 생성할 수 있습니다",
+    en: "Choose both A and B to create",
+    es: "Elige A y B para crear",
+  },
+  "lab.pair.lockOne": {
+    ko: "{side}를 아직 고르지 않았습니다",
+    en: "{side} is not chosen yet",
+    es: "Falta elegir {side}",
+  },
+  "lab.pair.done": { ko: "대표 매치를 골랐습니다", en: "Cover Match chosen", es: "Match de portada elegido" },
+  "lab.pair.pickAria": {
+    ko: "{n}번을 대표 매치로 고르기",
+    en: "Use entry {n} in the cover Match",
+    es: "Usar la entrada {n} en el Match de portada",
+  },
+  "lab.pair.previewStatus": { ko: "초안", en: "Draft", es: "Borrador" },
 
   "lab.contestant.namePlaceholder": { ko: "#{n} 이름", en: "#{n} name", es: "#{n} nombre" },
   "lab.contestant.nameAria": { ko: "Contestant {n} 이름", en: "Contestant {n} name", es: "Contestant {n} nombre" },

@@ -47,6 +47,7 @@ function editorState(overrides: Partial<DraftEditorState> = {}): DraftEditorStat
     campaignSlug: "fall_2026",
     deadlineMs: 1_900_000_000_000,
     contestants: Array.from({ length: 48 }, (_, i) => contestant(i)),
+    thumbnailPair: { a: 4, b: 30, aPos: 15, bPos: null, next: "a" },
     ...overrides,
   };
 }
@@ -145,6 +146,27 @@ describe("발행 배치 — 성공하면 초안 삭제, 실패하면 유지", ()
     });
     await assertFails(batch.commit());
     expect(await loadDraft(db, "d1")).toEqual(editorState());
+  });
+
+  // THUMB-1: 대표 매치는 편집기에선 그리드 칸 번호, 발행된 대회에선 contestant 문서 id.
+  it("stores thumbnailPair as the picked contestants' ids in the same batch", async () => {
+    const db = ownerDb();
+    const { batch, tournamentId } = buildPublishBatch(db, {
+      tournament: tournamentData("host-1"),
+      contestants: contestantData("host-1"),
+      draftId: null,
+      thumbnailPair: { a: 4, b: 30, aPos: 15, bPos: 40 },
+    });
+    await assertSucceeds(batch.commit());
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      const t = (await getDoc(doc(fs, "tournaments", tournamentId))).data()!;
+      const a = (await getDoc(doc(fs, "contestants", t.thumbnailPair.a))).data()!;
+      const b = (await getDoc(doc(fs, "contestants", t.thumbnailPair.b))).data()!;
+      expect([a.order, b.order]).toEqual([5, 31]);
+      expect([a.tournamentId, b.tournamentId]).toEqual([tournamentId, tournamentId]);
+      expect([t.thumbnailPair.aPos, t.thumbnailPair.bPos]).toEqual([15, 40]);
+    });
   });
 
   it("publishes without a draft (never saved) too", async () => {

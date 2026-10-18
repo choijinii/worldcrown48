@@ -28,6 +28,12 @@ interface ContestantGridProps {
   onRefreshVideo?: (index: number) => void;
   /** 지금 재검색 중인 슬롯 index (없으면 null). */
   refreshingIndex?: number | null;
+  /** THUMB-1: 대표 매치 A·B 칸 번호. */
+  pairA?: number | null;
+  pairB?: number | null;
+  /** THUMB-1: 칸을 대표 매치로 고르기. `canPick(i)` 가 참인 칸에만 연결된다. */
+  onPick?: (index: number) => void;
+  canPick?: (index: number) => boolean;
 }
 
 /**
@@ -52,6 +58,10 @@ export function ContestantGrid({
   reviewFlags,
   onRefreshVideo,
   refreshingIndex = null,
+  pairA = null,
+  pairB = null,
+  onPick,
+  canPick,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -60,7 +70,8 @@ export function ContestantGrid({
         display: "grid",
         gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)`,
         gap: 12,
-        minWidth: 1440,
+        // 너비 하한은 두지 않는다 — ≥1440 은 창 크기를 DesktopOnly 가 막는다. 여기 1440 을
+        // 걸면 main 좌우 여백(32×2)만큼 1440 창에서 가로로 넘친다(THUMB-1 눈검사).
       }}
     >
       {Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => (
@@ -89,6 +100,8 @@ export function ContestantGrid({
             (contestants[i]?.name ?? "").trim() ? onRefreshVideo : undefined
           }
           refreshing={refreshingIndex === i}
+          pairMark={pairA === i ? "a" : pairB === i ? "b" : null}
+          onPick={onPick && canPick?.(i) ? onPick : undefined}
         />
       ))}
     </div>
