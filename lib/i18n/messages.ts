@@ -90,10 +90,29 @@ export const MESSAGES = {
     en: "Enter a valid email address.",
     es: "Introduce un correo válido.",
   },
+  // PRE-REG-1 — 등록 함수가 같은 연결의 잦은 요청을 막을 때(resource-exhausted). 문구승인표 B1.
+  "launch.waitlist.errRateLimited": {
+    ko: "같은 연결에서 등록 요청이 너무 많았어요. 1분 뒤 다시 시도해 주세요.",
+    en: "Too many sign-ups from this connection. Please try again in a minute.",
+    es: "Demasiados registros desde esta conexión. Inténtalo de nuevo en un minuto.",
+  },
+  // PRE-REG-1 — 사전등록 그림(대표 일러스트 Gemini-illust-001 · 원장 D-54)의 대체 글. 문구승인표 B2.
+  "launch.illustration.alt": {
+    ko: "빛이 쏟아지는 홀에서 왕관을 쓴 세 인물이 왕좌에 나란히 앉아 있는 일러스트",
+    en: "Illustration of three crowned figures seated side by side on thrones in a light-filled hall",
+    es: "Ilustración de tres figuras coronadas sentadas una junto a otra en tronos, en un salón lleno de luz",
+  },
   "launch.waitlist.privacy": {
     ko: "스팸 없음 · 언제든 수신 거부",
     en: "No spam · unsubscribe anytime",
     es: "Sin spam · cancela cuando quieras",
+  },
+  // PRE-REG-1 — 보관 기간을 등록하는 자리에서 알린다(원장 D-57 · 대표 승인 2026-10-18). 끝 낱말 =
+  // 처리방침 1.1 링크(lib/launch/retentionNote). 대외 문안이라 날짜는 쓰지 않는다.
+  "launch.waitlist.retention": {
+    ko: "등록 정보는 정식 개막 후 12개월 보관 · 요청하면 바로 삭제 · 개인정보처리방침",
+    en: "Kept for 12 months after the official opening · deleted right away on request · Privacy Policy",
+    es: "Se conserva 12 meses tras la apertura oficial · se borra de inmediato si lo pides · Política de privacidad",
   },
 
   // ── The Pitch (Domain 1, /) ─────────────────────────────────────

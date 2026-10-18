@@ -1,0 +1,143 @@
+name: PRE-REG-1 사전등록 E2E (Playwright)
+
+# /launch 사전등록이 등록 함수 registerWaitlist 를 거쳐 저장되고(시험 메일 @wc48.test → waitlist_test),
+# 처음 들어온 경로(utm)가 실리는지 본다. 미리보기는 운영 Firebase 를 쓰므로 시험 메일만 쓰고, 끝나면
+# 이 실행이 만든 문서를 지운다. **registerWaitlist 함수가 배포돼 있어야** 초록이다.
+#
+# PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
+# GitHub Deployments API (by head SHA) — 고정 프리뷰 시크릿은 만들지 않는다
+# ([[feedback_c2_preview_url_pinned]]). E2E 실행은 자기 spec 하나로만 좁힌다
+# ([[feedback_workflow_spec_scope]]).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/launch/**'
+      - 'app/layout.tsx'
+      - 'app/globals.css'
+      - 'components/launch/**'
+      - 'components/layout/BannerSlot.tsx'
+      - 'components/policy/CookieConsentProvider.tsx'
+      - 'lib/launch/**'
+      - 'lib/banner/**'
+      - 'lib/i18n/messages.ts'
+      - 'lib/firebase.ts'
+      - 'functions/src/**'
+      - 'firestore.rules'
+      - 'public/images/launch/**'
+      - 'e2e/prereg1-waitlist.spec.ts'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - '.github/workflows/prereg1-e2e.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
+      # global-setup 이 로그인 상태를 만든다(사전등록은 로그인과 무관 — 함수는 로그인 없이도 받는다).
+      TEST_UID: ${{ secrets.B1_TEST_ADMIN_UID }}
+      TEST_EMAIL: ${{ secrets.B1_TEST_ADMIN_EMAIL }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Firestore emulator needs a JRE.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install firebase-tools (emulator runner)
+        run: npm i -g firebase-tools
+
+      - name: Unit tests (vitest)
+        run: npm run test:unit
+
+      - name: Functions unit tests (vitest)
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
+      - name: Firestore Rules tests (emulator)
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
+          fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
+
+      - name: E2E (Playwright)
+        # 자기 spec 하나만 — 다른 모듈의 spec 이 이 프리뷰·시크릿에서 거짓 빨강을 내지 않게.
+        run: npm run test:e2e -- e2e/prereg1-waitlist.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prereg1-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prereg1-playwright-traces
+          path: test-results/
+          retention-days: 14

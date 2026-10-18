@@ -7,6 +7,10 @@
  * POLICY-YT-1 (2026-10-10): 문서 버전 1.1 → 1.2 · 최종 업데이트 2026-10-10 (부록 A·B 반영).
  * R4: 문서 버전(1.0 → 1.1 → 1.2)은 동의 버전과 **별개**다. CURRENT_POLICY_VERSION 은 "1.0" 그대로이고,
  * 이미 동의한 팬의 흔적 쿠키 "1.0.<ms>" 는 계속 유효하다 — 동의 바가 다시 뜨지 않는다.
+ *
+ * PRE-REG-1 (2026-10-18): 개인정보처리방침·쿠키 정책만 1.2 → 1.3 · 최종 업데이트 2026-10-18
+ * (사전등록 순번·처음 들어온 경로·wc48_utm). 이용약관·커뮤니티 정책은 1.2 · 2026-10-10 그대로 —
+ * 그래서 판 번호·날짜를 문서마다 따로 본다.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -23,11 +27,24 @@ const CLAUSE = {
   es: "Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.",
 } as const;
 
-const UPDATED = {
+const UPDATED_1010 = {
   ko: "최종 업데이트: 2026년 10월 10일",
   en: "Last updated: October 10, 2026",
   es: "Última actualización: 10 de octubre de 2026",
 } as const;
+const UPDATED_1018 = {
+  ko: "최종 업데이트: 2026년 10월 18일",
+  en: "Last updated: October 18, 2026",
+  es: "Última actualización: 18 de octubre de 2026",
+} as const;
+
+/** 문서마다 판 번호 · 최종 업데이트. */
+const DOC: Record<string, { version: string; date: string; updated: typeof UPDATED_1010 | typeof UPDATED_1018 }> = {
+  privacy: { version: "1.3", date: "2026-10-18", updated: UPDATED_1018 },
+  cookies: { version: "1.3", date: "2026-10-18", updated: UPDATED_1018 },
+  terms: { version: "1.2", date: "2026-10-10", updated: UPDATED_1010 },
+  community: { version: "1.2", date: "2026-10-10", updated: UPDATED_1010 },
+};
 
 const LANGS = ["ko", "en", "es"] as const;
 
@@ -38,9 +55,11 @@ for (const lang of LANGS) {
       const { data, content } = matter(raw);
       const lines = content.split("\n").filter((l) => l.trim() !== "");
 
-      it(`${type}: H1 → 날짜 줄(2026-10-10) → 원문 우선 인용 블록`, () => {
+      const want = DOC[type];
+
+      it(`${type}: H1 → 날짜 줄(${want.date}) → 원문 우선 인용 블록`, () => {
         expect(lines[0]).toMatch(/^# /);
-        expect(lines[1]).toMatch(new RegExp(`^\\*\\*${UPDATED[lang]}( · .*)?\\*\\*$`));
+        expect(lines[1]).toMatch(new RegExp(`^\\*\\*${want.updated[lang]}( · .*)?\\*\\*$`));
         expect(lines[2]).toBe(`> ${CLAUSE[lang]}`);
       });
 
@@ -48,12 +67,12 @@ for (const lang of LANGS) {
         expect(raw.split(CLAUSE[lang]).length - 1).toBe(1);
       });
 
-      it(`${type}: 프론트매터 version 1.2 · lastUpdated 2026-10-10 · 꼬리말 v1.2`, () => {
-        expect(String(data.version)).toBe("1.2");
+      it(`${type}: 프론트매터 version ${want.version} · lastUpdated ${want.date} · 꼬리말 v${want.version}`, () => {
+        expect(String(data.version)).toBe(want.version);
         const d = data.lastUpdated instanceof Date ? data.lastUpdated.toISOString().slice(0, 10) : String(data.lastUpdated);
-        expect(d).toBe("2026-10-10");
-        expect(raw).not.toMatch(/ v1\.[01]\*/);
-        expect(raw).toMatch(/ v1\.2\*\s*$/);
+        expect(d).toBe(want.date);
+        expect(raw.match(/ v1\.\d\*/g)).toEqual([` v${want.version}*`]);
+        expect(raw).toMatch(new RegExp(` v${want.version.replace(".", "\\.")}\\*\\s*$`));
       });
     }
   });
@@ -64,7 +83,7 @@ describe("R4 — 문서 버전과 동의 버전은 별개", () => {
     expect(CURRENT_POLICY_VERSION).toBe("1.0");
   });
 
-  it("이미 동의한 팬의 흔적 쿠키 1.0.<ms> 는 문서가 1.2 가 된 뒤에도 유효하다", () => {
+  it("이미 동의한 팬의 흔적 쿠키 1.0.<ms> 는 문서가 1.3 이 된 뒤에도 유효하다", () => {
     const saved = new Date("2026-09-01T00:00:00Z");
     const now = new Date("2026-10-06T00:00:00Z");
     expect(parseConsentBreadcrumb(`1.0.${saved.getTime()}`, now)?.getTime()).toBe(saved.getTime());

@@ -185,6 +185,28 @@ input { font: inherit; }
   text-shadow: 0 0 48px var(--color-gold-glow);
 }
 
+/* ── PRE-REG-1 · 그림 자리 (원장 D-54) — LaunchHero 바로 아래 ──
+   데스크톱·태블릿 = 원래 비율(2068×499) 그대로 콘텐츠 폭 가득. 휴대폰(≤480) = 가운데 인물을
+   중심으로 더 높게 자른다(--lp-illust-ratio-mobile · object-fit cover · 가운데 기준).
+   그림 위에 글자를 얹지 않는다. 비율 값은 부품(LaunchIllustration)이 lib/launch/illustration 에서 넣는다. */
+.lp-illust {
+  position: relative;
+  margin: var(--space-12) 0 0;
+  width: 100%;
+  aspect-ratio: var(--lp-illust-ratio);
+  overflow: hidden;
+  border-radius: var(--radius-border);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-deep);
+}
+.lp-illust img {
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+@media (max-width: 480px) {
+  .lp-illust { aspect-ratio: var(--lp-illust-ratio-mobile); }
+}
+
 /* ── M2 · FeaturedTournament card ── */
 .featured-tournament {
   margin: var(--space-12) auto 0;
@@ -386,13 +408,23 @@ input { font: inherit; }
   background: color-mix(in srgb, var(--color-turquoise) 8%, transparent);
 }
 
-.wl-privacy {
+.wl-privacy,
+.wl-retention {
   margin-top: var(--space-4);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--color-text-muted);
   text-transform: uppercase;
+}
+/* 보관 기간 한 줄(PRE-REG-1 · D-57) — 기존 작은 글씨 바로 아래, 같은 크기·색. */
+.wl-retention {
+  margin-top: var(--space-2);
+}
+.wl-retention a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ── M4 · SNSLinks ── */
@@ -424,6 +456,26 @@ input { font: inherit; }
   background: var(--color-gold-subtle);
 }
 .sns-link:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* ── PRE-REG-1 · 배너 자리 launch-below (원장 D-21 적용) — SNS 링크 아래, .lp-inner(800) 밖 ──
+   970×90 / 모바일 320×100 (BannerSlot · useBannerVariant). 색은 배너 자리 기본(아레나 배너 토큰). */
+.lp-banner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-5) var(--space-12);
+}
+.lp-banner-slot[data-banner-variant="desktop"] {
+  width: var(--arena-banner-w);
+  max-width: 100%;
+  min-height: var(--arena-banner-h);
+}
+.lp-banner-slot[data-banner-variant="mobile"] {
+  width: var(--arena-banner-w-mobile);
+  max-width: 100%;
+  min-height: var(--arena-banner-h-mobile);
+}
 
 .lp-foot {
   text-align: center;

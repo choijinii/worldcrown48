@@ -4,7 +4,7 @@
  * Reads `NEXT_PUBLIC_FIREBASE_*` env vars and initialises once (singleton).
  * Used by:
  *   - components/launch/FeaturedTournament   — Firestore read (`tournaments` where featured==true)
- *   - components/launch/WaitlistForm         — Firestore write (`waitlist` create)
+ *   - components/launch/WaitlistForm         — callable registerWaitlist (PRE-REG-1 · 로그인 없이)
  *   - components/policy/CookieConsentProvider — Anonymous Auth uid + Firestore I/O
  *   - lib/cookieConsent                       — Firestore reads/writes on cookieConsents
  *   - lib/analytics                           — getAnalytics on the client
