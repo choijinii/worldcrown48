@@ -144,6 +144,34 @@ describe("tournaments rules", () => {
   });
 });
 
+// THUMB-1 (원장 D-35): 대표 매치 `thumbnailPair` 는 기존 tournaments 규칙 그대로 주인만 쓴다.
+describe("tournaments.thumbnailPair — 주인만", () => {
+  const pair = { a: "c1", b: "c2", aPos: 50, bPos: 40 };
+
+  it("lets the owner publish with a thumbnailPair and change it later", async () => {
+    const db = testEnv.authenticatedContext(OPERATOR).firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "tournaments/t1"), { ...tournament(OPERATOR), thumbnailPair: pair }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(db, "tournaments/t1"), { thumbnailPair: { ...pair, aPos: 10 } }),
+    );
+  });
+
+  it("forbids anyone else changing it", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "tournaments/t1"), {
+        ...tournament(OPERATOR),
+        thumbnailPair: pair,
+      });
+    });
+    const voter = testEnv.authenticatedContext(VOTER).firestore();
+    await assertFails(updateDoc(doc(voter, "tournaments/t1"), { thumbnailPair: { ...pair, a: "c9" } }));
+    const signedOut = testEnv.unauthenticatedContext().firestore();
+    await assertFails(updateDoc(doc(signedOut, "tournaments/t1"), { thumbnailPair: pair }));
+  });
+});
+
 describe("contestants rules", () => {
   it("lets an operator create a Contestant they host (batch-safe hostUid)", async () => {
     const db = testEnv.authenticatedContext(OPERATOR).firestore();
