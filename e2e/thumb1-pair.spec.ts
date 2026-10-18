@@ -116,6 +116,8 @@ test.describe("THUMB-1 — 대표 매치 고르기", () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow, "1440 에서 가로 넘침(px)").toBe(0);
-    await expect(publish).toBeInViewport({ ratio: 1 });
+    // 세로 위치는 스크롤에 따라 다르니 가로 끝만 본다(막대까지 내려와 있어 버튼은 화면 위에 있다).
+    const box = await publish.boundingBox();
+    expect(box && box.x + box.width, "게시 버튼 오른쪽 끝 ≤ 1440").toBeLessThanOrEqual(1440);
   });
 });
