@@ -191,3 +191,6 @@ export { scheduleYouTubeDataRetention } from "./scheduleYouTubeDataRetention";
 // 토너먼트 생성은 사람이 누른다(R6 — 자동 발행 0건).
 export { autoSourceVideos, refreshSlotVideo } from "./autoSourceVideos";
 export { extractContestantsFromVideos } from "./extractContestants"; // 링크 제목 → 인물 추출
+
+// PRE-REG-1 사전등록 — 로그인 없이 부른다(원장 D-41). 선착순 번호는 서버만 매기고 돌려주지 않는다.
+export { registerWaitlist } from "./registerWaitlist";

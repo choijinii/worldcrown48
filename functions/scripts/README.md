@@ -72,3 +72,13 @@ node functions/scripts/seed-preview.mjs --module=b1,c1
 
 The shared Arena id `dev-preview` matches `SAMPLE_TOURNAMENT_ID` in
 `lib/dev/devNav.ts`, so the Dev Nav **Arena** link points at seeded data.
+
+---
+
+## assign-founding-rank.mjs · clear-waitlist-test.mjs (PRE-REG-1)
+
+- `assign-founding-rank.mjs` — 옛 사전등록 문서(번호 없음)에 **등록 시각 순서대로** 선착순 번호를
+  매기고 번호 기록(`waitlist_meta/founding`)을 봉인한다. 봉인 전에는 등록 함수가 번호 없이 저장한다.
+  기본 dry-run(건수·순서만 · 메일은 가림), `--apply` 로 실행. 계획 = `assign-founding-rank.lib.mjs`(단위 시험).
+- `clear-waitlist-test.mjs` — 시험 메일(`@wc48.test`) 등록(`waitlist_test` + `waitlist_meta/test`)을 모음째
+  지운다. 기본 dry-run, `--apply` 로 삭제. 진짜 `waitlist` 는 건드리지 않는다.
