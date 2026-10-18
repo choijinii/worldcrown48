@@ -82,10 +82,26 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
+    // THUMB-1: 대표 매치 고르기(그리드 칸 0~47 · 위치 0~100, 비면 null). 칸 자체는 선택 —
+    // 이 칸을 모르는 옛 화면의 저장도 통과한다(hasAll 에 넣지 않음).
+    function isDraftSlot(v) {
+      return v == null || (v is int && v >= 0 && v < 48);
+    }
+    function isDraftPos(v) {
+      return v == null || (v is number && v >= 0 && v <= 100);
+    }
+    function isValidDraftPair(p) {
+      return p is map
+        && p.keys().hasOnly(['a', 'b', 'aPos', 'bPos', 'next'])
+        && p.keys().hasAll(['a', 'b', 'aPos', 'bPos', 'next'])
+        && isDraftSlot(p.a) && isDraftSlot(p.b)
+        && isDraftPos(p.aPos) && isDraftPos(p.bPos)
+        && (p.next == 'a' || p.next == 'b');
+    }
     function isValidDraft(d) {
       return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                                 'description', 'keywords', 'campaignSlug', 'deadlineMs',
-                                'contestants', 'updatedAt'])
+                                'contestants', 'thumbnailPair', 'updatedAt'])
         && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                             'description', 'keywords', 'campaignSlug', 'deadlineMs',
                             'contestants', 'updatedAt'])
@@ -99,6 +115,7 @@ service cloud.firestore {
         && d.campaignSlug is string && d.campaignSlug.size() <= 100
         && d.deadlineMs is number
         && d.contestants is list && d.contestants.size() <= 48
+        && (!('thumbnailPair' in d) || isValidDraftPair(d.thumbnailPair))
         && d.updatedAt == request.time;
     }
     match /tournamentDrafts/{draftId} {

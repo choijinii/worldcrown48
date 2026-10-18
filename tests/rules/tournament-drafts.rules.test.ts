@@ -175,3 +175,42 @@ describe("tournamentDrafts — 칸 검사", () => {
     await assertFails(updateDoc(ref(), { hostUid: "host-2", updatedAt: serverTimestamp() }));
   });
 });
+
+// THUMB-1: 초안의 대표 매치(그리드 칸 0~47 · 위치 0~100 또는 null). 없는 초안(옛 화면)도 통과.
+describe("tournamentDrafts — 대표 매치(thumbnailPair)", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts/d1");
+  const pick = { a: 3, b: 17, aPos: 22, bPos: null, next: "a" };
+
+  it("ALLOWS a draft with a pair, and one without (older screens)", async () => {
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { thumbnailPair: pick })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1")));
+  });
+
+  it("ALLOWS switching between older and newer screens on the same draft", async () => {
+    // 새 화면이 대표 매치를 넣어 저장 → 옛 화면(칸을 모름)이 통째로 덮어씀 → 새 화면이 다시 넣음.
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { thumbnailPair: pick })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1")));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { thumbnailPair: pick })));
+  });
+
+  it("ALLOWS an empty pick", async () => {
+    await assertSucceeds(
+      setDoc(ref(), rawDraft("host-1", {
+        thumbnailPair: { a: null, b: null, aPos: null, bPos: null, next: "a" },
+      })),
+    );
+  });
+
+  it("DENIES a malformed pair", async () => {
+    const bad = (o: Record<string, unknown>) =>
+      setDoc(ref(), rawDraft("host-1", { thumbnailPair: { ...pick, ...o } }));
+    await assertFails(bad({ a: 48 }));
+    await assertFails(bad({ b: -1 }));
+    await assertFails(bad({ a: "c1" }));
+    await assertFails(bad({ aPos: 101 }));
+    await assertFails(bad({ bPos: "x" }));
+    await assertFails(bad({ next: "c" }));
+    await assertFails(bad({ extra: 1 }));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { thumbnailPair: "c1,c2" })));
+  });
+});
