@@ -11,6 +11,8 @@ import {
   TEST_EMAIL_DOMAIN,
   WAITLIST_RATE_LIMIT,
   WAITLIST_RATE_WINDOW_MS,
+  WAITLIST_TX_MAX_ATTEMPTS,
+  registerWaitlistCore,
   isTestEmail,
   isValidWaitlistEmail,
   normalizeEmail,
@@ -101,5 +103,23 @@ describe("등록 속도 제한 — 같은 연결(IP 해시)당 1분 10번 (원�
     for (let i = 0; i < 10; i++) expect(limiter.check("ip", i)).toBe(true);
     expect(limiter.check("ip", 10)).toBe(false);
     expect(limiter.check("ip", WAITLIST_RATE_WINDOW_MS)).toBe(true);
+  });
+});
+
+describe("트랜잭션 재시도 — 한꺼번에 몰려도 버티게 10번 (기본 5)", () => {
+  it("registerWaitlistCore 는 runTransaction 에 maxAttempts 10 을 넘긴다", async () => {
+    expect(WAITLIST_TX_MAX_ATTEMPTS).toBe(10);
+    let seen: unknown;
+    const stop = new Error("stop");
+    const doc = () => ({});
+    const db = {
+      collection: () => ({ doc }),
+      runTransaction: (_fn: unknown, opts: unknown) => {
+        seen = opts;
+        return Promise.reject(stop);
+      },
+    } as unknown as Parameters<typeof registerWaitlistCore>[0];
+    await expect(registerWaitlistCore(db, { email: "a@example.com" }, { serverTime: () => 0 })).rejects.toBe(stop);
+    expect(seen).toEqual({ maxAttempts: 10 });
   });
 });

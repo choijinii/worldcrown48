@@ -40,6 +40,13 @@ export const TEST_EMAIL_DOMAIN = "wc48.test";
 export const WAITLIST_RATE_LIMIT = 10;
 export const WAITLIST_RATE_WINDOW_MS = 60_000;
 
+/**
+ * 트랜잭션 재시도 한도 — 기본 5 → 10. 등록은 모두 번호 기록 한 문서를 두고 겨룬다. 행사장 QR처럼
+ * 한꺼번에 몰리면 재시도를 다 쓴 등록이 ABORTED 로 실패할 수 있다(CI 에뮬레이터 동시 20건에서
+ * 18번 중 3번 "Transaction lock timeout" — 2026-10-18).
+ */
+export const WAITLIST_TX_MAX_ATTEMPTS = 10;
+
 /** 화면(WaitlistForm)과 같은 모양 검사 · 규칙(firestore.rules)과 같은 길이 상한. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_MIN = 5;
@@ -136,5 +143,5 @@ export async function registerWaitlistCore(
     }
     tx.create(ref, entry);
     return { status: "registered" };
-  });
+  }, { maxAttempts: WAITLIST_TX_MAX_ATTEMPTS });
 }
