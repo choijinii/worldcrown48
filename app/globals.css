@@ -309,12 +309,17 @@ input { font: inherit; }
 
 /* ── M3 · WaitlistForm ── */
 .waitlist {
-  margin: var(--space-16) auto 0;
+  /* 그림과 붙여 읽히게 64 → 40px (대표 눈검사 2026-10-18 · 원장 D-60). */
+  margin: var(--space-10) auto 0;
   max-width: 520px;
   text-align: center;
 }
 .wl-head {
-  font-size: 15px;
+  /* 15px 의 150% (대표 눈검사 2026-10-18 · 원장 D-60). 한국어는 낱말 중간에서 꺾지 않는다. */
+  font-size: 22.5px;
+  line-height: 1.45;
+  word-break: keep-all;
+  text-wrap: balance;
   color: var(--color-text-sub);
   margin-bottom: var(--space-5);
 }
@@ -409,19 +414,27 @@ input { font: inherit; }
 }
 
 .wl-privacy,
-.wl-retention {
+.wl-retention,
+.wl-deletion {
   margin-top: var(--space-4);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--color-text-muted);
   text-transform: uppercase;
+  word-break: keep-all; /* 390 에서 "개인/정보처리방침" 처럼 낱말 가운데서 끊지 않는다(D-60) */
 }
-/* 보관 기간 한 줄(PRE-REG-1 · D-57) — 기존 작은 글씨 바로 아래, 같은 크기·색. */
-.wl-retention {
+/* 보관 기간 한 줄(PRE-REG-1 · D-57) — 기존 작은 글씨 바로 아래, 같은 크기·색.
+   삭제 요청 줄(D-60)도 같은 모양 — 메일 주소만 대문자로 바꾸지 않는다(그대로 적어 보내게). */
+.wl-retention,
+.wl-deletion {
   margin-top: var(--space-2);
 }
-.wl-retention a {
+.wl-deletion a {
+  text-transform: none;
+}
+.wl-retention a,
+.wl-deletion a {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;

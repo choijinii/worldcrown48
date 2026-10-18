@@ -30,11 +30,6 @@ export const MARKETING_PENDING = "\u27EA마케팅 문안 대기\u27EB";
 
 export const MESSAGES = {
   // ── Launch Pad (Domain 0, /launch) ──────────────────────────────
-  "launch.hero.kicker": {
-    ko: "지금 진행 중 · A WORLDCROWN48 TOURNAMENT IS OPEN",
-    en: "NOW LIVE · A WORLDCROWN48 TOURNAMENT IS OPEN",
-    es: "EN VIVO · UN TOURNAMENT DE WORLDCROWN48 ESTÁ ABIERTO",
-  },
   "launch.hero.line1": {
     ko: "WHO RULES THE WORLD?",
     en: "WHO RULES THE WORLD?",
@@ -109,6 +104,12 @@ export const MESSAGES = {
   },
   // PRE-REG-1 — 보관 기간을 등록하는 자리에서 알린다(원장 D-57 · 대표 승인 2026-10-18). 끝 낱말 =
   // 처리방침 1.1 링크(lib/launch/retentionNote). 대외 문안이라 날짜는 쓰지 않는다.
+  // PRE-REG-1 눈검사 고침 — 보관 기간 줄 바로 아래 삭제 요청 주소(원장 D-57·D-60). 주소는 mailto 링크.
+  "launch.waitlist.deletion": {
+    ko: "삭제 요청: policy@worldcrown48.com",
+    en: "Deletion requests: policy@worldcrown48.com",
+    es: "Solicitudes de eliminación: policy@worldcrown48.com",
+  },
   "launch.waitlist.retention": {
     ko: "등록 정보는 정식 개막 후 12개월 보관 · 요청하면 바로 삭제 · 개인정보처리방침",
     en: "Kept for 12 months after the official opening · deleted right away on request · Privacy Policy",
@@ -974,6 +975,13 @@ export const MESSAGES = {
   },
   // ARENA-1 (원장 D-21) — 배너 자리 기본 공지. 관리자가 아무것도 넣지 않았을 때 보인다
   // (빈칸 런칭 금지). 문구 = ARENA-1 PR 1 §5 게이트 1(게스트)·4(로그인) 대표 승인 2026-09-19.
+  // PRE-REG-1 눈검사 고침 — /launch 맨 아래 배너(launch-below) 기본 글자. 누르지 않는다(원장 D-60).
+  // 대외 글이라 혜택 숫자·배지·The Lab·날짜를 쓰지 않는다.
+  "banner.launch.title": {
+    ko: "사전등록에 참가하세요! 먼저 온 사람에게 혜택이 기다립니다.",
+    en: "Join the Waitlist! Something special awaits those who come first.",
+    es: "¡Únete a la lista! Algo especial espera a quienes lleguen primero.",
+  },
   "banner.default.guest.title": {
     ko: "로그인하면 크라운 카드를 간직하고, 대회마다 하루 5번 참여할 수 있어요",
     en: "Sign in to keep your Crown Card and play up to 5 times a day per tournament",
