@@ -102,7 +102,9 @@ export function BannerSlot({ slot, onSignIn, variant, className }: BannerSlotPro
       data-banner-audience={audience}
       {...sizeAttrs}
     >
-      {notice.action === "link" ? (
+      {notice.action === "text" ? (
+        <div className={`${styles.action} ${styles.static}`}>{label}</div>
+      ) : notice.action === "link" ? (
         <Link href={notice.href} className={styles.action}>
           {label}
           <span className={styles.arrow} aria-hidden="true">

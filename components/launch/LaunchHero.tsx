@@ -3,7 +3,8 @@
 import { useT } from "@/lib/i18n/useT";
 
 /**
- * M1 · LaunchHero — Crown SVG (colour anchor) + kicker + slogan.
+ * M1 · LaunchHero — Crown SVG (colour anchor) + slogan.
+ * 슬로건 위 눈썹 줄(kicker)은 뺐다 — 대표 눈검사 2026-10-18(원장 D-60).
  * Copy via useT (A1-i18n); slogan keys keep the same en text.
  */
 export function LaunchHero() {
@@ -25,10 +26,6 @@ export function LaunchHero() {
         <circle fill="#FCD006" cx="77.036" cy="11.563" r="11.562" />
       </svg>
 
-      <div className="hero-kicker">
-        <span className="dot" aria-hidden="true" />
-        {t("launch.hero.kicker")}
-      </div>
       <h1 className="hero-line1">{t("launch.hero.line1")}</h1>
       <p className="hero-line2">{t("launch.hero.line2")}</p>
     </section>

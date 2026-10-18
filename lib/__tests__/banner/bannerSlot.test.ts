@@ -155,10 +155,19 @@ describe("자리 이름 목록 (D-21)", () => {
     expect(BANNER_SLOT_NAMES).toContain("launch-below");
   });
 
-  it("launch-below 도 배너가 없으면 기존 기본 공지 — 빈칸 금지 · 새 문구 없음", () => {
-    const guest = resolveBanner([], "launch-below" satisfies BannerSlotName, NOW, "guest");
-    expect(guest).toEqual({ source: "default", notice: { titleKey: "banner.default.guest.title", action: "signIn" } });
-    const member = resolveBanner([], "launch-below" satisfies BannerSlotName, NOW, "member");
-    expect(member.source === "default" && member.notice.titleKey).toBe("banner.default.member.title");
+  it("launch-below 의 기본 공지는 누르지 않는 글자 배너 하나 — 비로그인·로그인 같음(원장 D-60)", () => {
+    for (const audience of ["guest", "member"] as const) {
+      expect(resolveBanner([], "launch-below" satisfies BannerSlotName, NOW, audience)).toEqual({
+        source: "default",
+        notice: { titleKey: "banner.launch.title", action: "text" },
+      });
+    }
+  });
+
+  it("다른 자리의 기본 공지는 그대로(launch-below 만 바뀐다)", () => {
+    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below")) {
+      expect(resolveBanner([], slot, NOW, "guest")).toEqual({ source: "default", notice: defaultNotice("guest") });
+      expect(resolveBanner([], slot, NOW, "member")).toEqual({ source: "default", notice: defaultNotice("member") });
+    }
   });
 });

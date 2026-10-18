@@ -9,6 +9,9 @@ import { policyLinkHref } from "@/lib/policySectionId";
 
 const SEP = " · ";
 
+/** 삭제 요청 받는 주소 — 개인정보처리방침 연락처 표의 "정책·법적 문의" 와 같아야 한다(시험이 본다). */
+export const DELETION_REQUEST_EMAIL = "policy@worldcrown48.com";
+
 export function retentionNoteParts(text: string): { before: string; link: string | null } {
   const at = text.lastIndexOf(SEP);
   if (at < 0) return { before: text, link: null };
