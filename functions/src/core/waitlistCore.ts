@@ -33,6 +33,13 @@ export const TEST_META_ID = "test";
 /** 시험 전용 도메인 — `.test` 최상위 도메인은 실제로 배달될 수 없다(RFC 2606). */
 export const TEST_EMAIL_DOMAIN = "wc48.test";
 
+/**
+ * 등록 속도 제한 — 같은 연결(IP_HASH_SALT 로 해시한 IP)당 1분 10번(원장 D-58, 대표 2026-10-18).
+ * hashIp 와 같은 값. 행사장 QR처럼 한 와이파이에 여러 명이 몰려도 1분 10명이면 넉넉하다.
+ */
+export const WAITLIST_RATE_LIMIT = 10;
+export const WAITLIST_RATE_WINDOW_MS = 60_000;
+
 /** 화면(WaitlistForm)과 같은 모양 검사 · 규칙(firestore.rules)과 같은 길이 상한. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_MIN = 5;

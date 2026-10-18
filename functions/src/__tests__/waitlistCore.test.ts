@@ -6,8 +6,11 @@
  */
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
+import { createUidRateLimiter } from "../core/uidRateLimit";
 import {
   TEST_EMAIL_DOMAIN,
+  WAITLIST_RATE_LIMIT,
+  WAITLIST_RATE_WINDOW_MS,
   isTestEmail,
   isValidWaitlistEmail,
   normalizeEmail,
@@ -84,5 +87,19 @@ describe("sanitizeLang — 화면 언어 셋만", () => {
   });
   it.each(["fr", "", undefined, 1, "KO"])("그 밖(%s)은 null", (l) => {
     expect(sanitizeLang(l)).toBeNull();
+  });
+});
+
+describe("등록 속도 제한 — 같은 연결(IP 해시)당 1분 10번 (원장 D-58)", () => {
+  it("한도는 1분 10번", () => {
+    expect(WAITLIST_RATE_LIMIT).toBe(10);
+    expect(WAITLIST_RATE_WINDOW_MS).toBe(60_000);
+  });
+
+  it("10번째까지 통과 · 11번째 막힘 · 1분 뒤 다시 통과", () => {
+    const limiter = createUidRateLimiter(WAITLIST_RATE_LIMIT, WAITLIST_RATE_WINDOW_MS);
+    for (let i = 0; i < 10; i++) expect(limiter.check("ip", i)).toBe(true);
+    expect(limiter.check("ip", 10)).toBe(false);
+    expect(limiter.check("ip", WAITLIST_RATE_WINDOW_MS)).toBe(true);
   });
 });

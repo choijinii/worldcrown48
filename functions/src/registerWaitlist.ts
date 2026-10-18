@@ -23,16 +23,17 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
 import { createUidRateLimiter } from "./core/uidRateLimit";
-import { WaitlistInputError, registerWaitlistCore, type RegisterResult } from "./core/waitlistCore";
+import {
+  WAITLIST_RATE_LIMIT,
+  WAITLIST_RATE_WINDOW_MS,
+  WaitlistInputError,
+  registerWaitlistCore,
+  type RegisterResult,
+} from "./core/waitlistCore";
 
 const IP_HASH_SALT = defineSecret("IP_HASH_SALT");
 
-/**
- * 한도 — 대표 승인 전 임시값(정상 사용을 막지 않을 만큼 넉넉히). 팬 한 명은 1~2번 부른다.
- * 학교·행사장처럼 한 IP 뒤에 여러 사람이 있을 수 있어 1분 30번으로 둔다. 제안값은 PR 보고서.
- */
-export const WAITLIST_RATE_LIMIT = 30;
-export const WAITLIST_RATE_WINDOW_MS = 60_000;
+// 한도 = 같은 연결당 1분 10번(원장 D-58) — 값은 waitlistCore 에 둔다(시험이 본다).
 const limiter = createUidRateLimiter(WAITLIST_RATE_LIMIT, WAITLIST_RATE_WINDOW_MS);
 
 export const registerWaitlist = onCall(
