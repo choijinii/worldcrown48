@@ -93,6 +93,17 @@ import {
   type DraftPhase,
   type DraftSummary,
 } from "@/lib/lab/tournamentDraft";
+import {
+  EMPTY_PICK,
+  isPickComplete,
+  pickSlot,
+  prunePick,
+  publishPair,
+  setPickPos,
+  type PairPick,
+  type PairSide,
+} from "@/lib/thumbnail/pick";
+import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { lab } from "./theme";
 import { DraftStatus } from "./DraftStatus";
 import { DraftPicker } from "./DraftPicker";
@@ -109,6 +120,7 @@ import { Step2Summary } from "./Step2Summary";
 import { ContestantGrid } from "./ContestantGrid";
 import { GeneratePanel, type ChainStage } from "./GeneratePanel";
 import { PublishButton } from "./PublishButton";
+import { PairPanel } from "./PairPanel";
 import { TournamentList } from "./TournamentList";
 
 type AiSuggestion = {
@@ -180,6 +192,8 @@ export function TournamentCreator(): JSX.Element {
   const [tuningIndex, setTuningIndex] = useState<number | null>(null);
   // LAB-EV-2: 슬롯별 소싱 배지(제안·수동 필요·실존 의심). 화면 전용 — 발행되지 않는다.
   const [sourcingStates, setSourcingStates] = useState<SourcingStates>({});
+  // THUMB-1 대표 매치 — 그리드 칸 번호(0~47) 두 개 + 위치 값. 둘 다 골라야 게시된다.
+  const [pairPick, setPairPick] = useState<PairPick>(EMPTY_PICK);
   const [refreshingIndex, setRefreshingIndex] = useState<number | null>(null);
   // LAB-UX-1: 결과물 체인([🎬 동영상 생성] = 채우기→소싱→검수). 단계와 진행률은
   // 버튼 하나가 다 보여준다 — 부품 버튼이 사라졌으므로 여기가 유일한 창구다.
@@ -227,6 +241,7 @@ export function TournamentCreator(): JSX.Element {
     campaignSlug,
     deadlineMs,
     contestants,
+    thumbnailPair: pairPick,
   };
 
   /**
@@ -248,6 +263,16 @@ export function TournamentCreator(): JSX.Element {
       ),
     [contestants],
   );
+  // THUMB-1: 대표 매치로 고를 수 있는 칸 = 영상이 있는 칸(썸네일은 영상 포스터다).
+  // 고른 칸의 영상이 빠지면 그 쪽을 비운다 — 게시 전에는 자동 대체가 없다(킥 §4-1).
+  const slotUsable = (slot: number) => isValidVideoId(contestants[slot]?.videoId ?? "");
+  const slotOrientation = (slot: number): EmbedOrientation =>
+    contestants[slot]?.videoOrientation === "portrait" ? "portrait" : "landscape";
+  useEffect(() => {
+    setPairPick((p) => prunePick(p, slotUsable));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- slotUsable 은 contestants 만 본다
+  }, [contestants]);
+
   const counters = step2Counters(
     contestants,
     sourcingStates,
@@ -327,6 +352,7 @@ export function TournamentCreator(): JSX.Element {
     setCampaignSlug(s.campaignSlug);
     setDeadlineMs(s.deadlineMs);
     setContestants(s.contestants);
+    setPairPick(s.thumbnailPair);
     setSourcingStates({});
     lastQueuedRef.current = JSON.stringify(s);
   }
@@ -341,6 +367,7 @@ export function TournamentCreator(): JSX.Element {
       campaignSlug: "",
       deadlineMs: presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS),
       contestants: [],
+      thumbnailPair: EMPTY_PICK,
     };
   }
 
@@ -856,7 +883,7 @@ export function TournamentCreator(): JSX.Element {
   }
 
   async function publish() {
-    if (!uid || !step1Ready) return;
+    if (!uid || !step1Ready || !isPickComplete(pairPick)) return;
     setPublishing(true);
     // 발행이 지울 초안을 늦게 도착한 저장이 되살리지 않게 저장을 멈춘다.
     await autosaver.stop();
@@ -894,6 +921,7 @@ export function TournamentCreator(): JSX.Element {
         tournament,
         contestants: (id) => buildContestantDocs(id, uid, contestants),
         draftId,
+        thumbnailPair: publishPair(pairPick, slotOrientation) ?? undefined,
       });
 
       await batch.commit();
@@ -910,6 +938,7 @@ export function TournamentCreator(): JSX.Element {
       setCampaignSlug("");
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
       setContestants([]);
+      setPairPick(EMPTY_PICK);
       setSourcingStates({});
       setSaveStatus(null);
       lastQueuedRef.current = "";
@@ -1075,12 +1104,40 @@ export function TournamentCreator(): JSX.Element {
             >
               {t("lab.backToStep1")}
             </button>
-            <PublishButton
-              contestants={contestants}
-              busy={publishing}
-              onClick={publish}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <span
+                data-testid="pair-lock-reason"
+                data-complete={isPickComplete(pairPick)}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.06em",
+                  lineHeight: 1.5,
+                  color: isPickComplete(pairPick) ? lab.turquoise : lab.textSub,
+                }}
+              >
+                {pairPick.a === null && pairPick.b === null
+                  ? t("lab.pair.lockNone")
+                  : !isPickComplete(pairPick)
+                    ? t("lab.pair.lockOne", { side: pairPick.a === null ? "A" : "B" })
+                    : t("lab.pair.done")}
+              </span>
+              <PublishButton
+                contestants={contestants}
+                busy={publishing}
+                onClick={publish}
+                pairReady={isPickComplete(pairPick)}
+              />
+            </div>
           </div>
+          {/* THUMB-1 — 게시 버튼 바로 아래: 잠김 이유와 고르기가 한눈에 보이게. */}
+          <PairPanel
+            contestants={contestants}
+            pick={pairPick}
+            onPosChange={(side: PairSide, pos: number) => setPairPick((p) => setPickPos(p, side, pos))}
+            title={title}
+            deadlineMs={deadlineMs}
+          />
           <GeneratePanel
             counters={counters}
             stage={chainStage}
@@ -1095,6 +1152,10 @@ export function TournamentCreator(): JSX.Element {
             disabled={publishing}
           />
           <ContestantGrid
+            pairA={pairPick.a}
+            pairB={pairPick.b}
+            onPick={(i) => setPairPick((p) => pickSlot(p, i))}
+            canPick={slotUsable}
             contestants={contestants}
             onChange={updateContestant}
             onTune={setTuningIndex}

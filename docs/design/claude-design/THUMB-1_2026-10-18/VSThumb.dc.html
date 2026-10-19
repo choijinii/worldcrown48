@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/arena_stage_tokens.css">
+  <script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+</helmet>
+<div style="{{ wrap }}">
+  <div style="{{ leftCell }}">
+    <div style="{{ aBox }}"><img alt="" style="{{ aImg }}"><sc-if value="{{ showCrop }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;border:1px dashed rgba(255,255,255,.18)"></div></sc-if></div>
+    <div style="position:absolute;inset:0;background:var(--arena-cell-shade);pointer-events:none"></div>
+    <sc-if value="{{ aEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img src="assets/wc48-crown-circle-outline.svg" style="width:22%;max-width:40px;opacity:.35" alt=""><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-muted)">A</span></div>
+    </sc-if>
+    <sc-if value="{{ showCrop }}" hint-placeholder-val="{{ false }}">
+      <span style="position:absolute;left:8px;bottom:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--arena-icon);background:rgba(11,16,32,.55);padding:2px 6px;border-radius:2px">A · {{ aCrop }}</span>
+    </sc-if>
+    <sc-if value="{{ edge }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(0,163,183,.65)"></div></sc-if>
+  </div>
+  <div style="{{ rightCell }}">
+    <div style="{{ bBox }}"><img alt="" style="{{ bImg }}"><sc-if value="{{ showCrop }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;border:1px dashed rgba(255,255,255,.18)"></div></sc-if></div>
+    <div style="position:absolute;inset:0;background:var(--arena-cell-shade);pointer-events:none"></div>
+    <sc-if value="{{ bEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><img src="assets/wc48-crown-circle-outline.svg" style="width:22%;max-width:40px;opacity:.35" alt=""><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-muted)">B</span></div>
+    </sc-if>
+    <sc-if value="{{ showCrop }}" hint-placeholder-val="{{ false }}">
+      <span style="position:absolute;right:8px;bottom:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--arena-icon);background:rgba(11,16,32,.55);padding:2px 6px;border-radius:2px">B · {{ bCrop }}</span>
+    </sc-if>
+    <sc-if value="{{ edge }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(215,6,58,.65)"></div></sc-if>
+  </div>
+  <sc-if value="{{ dim }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:rgba(11,16,32,.55);pointer-events:none;z-index:8"></div></sc-if>
+  <sc-if value="{{ hasTitle }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;right:0;bottom:0;z-index:9;padding:32px 14px 12px;background:linear-gradient(180deg, rgba(11,16,32,0) 0%, rgba(11,16,32,.72) 45%);pointer-events:none"><div style="{{ titleStyle }}">{{ title }}</div></div></sc-if>
+  <div style="{{ vs }}">VS</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:270},&quot;aPos&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:50,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;A&quot;},&quot;aOrient&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;landscape&quot;,&quot;options&quot;:[&quot;landscape&quot;,&quot;portrait&quot;],&quot;tsType&quot;:&quot;'landscape'|'portrait'&quot;,&quot;section&quot;:&quot;A&quot;},&quot;aEmpty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;A&quot;},&quot;bPos&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:40,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;B&quot;},&quot;bOrient&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;portrait&quot;,&quot;options&quot;:[&quot;landscape&quot;,&quot;portrait&quot;],&quot;tsType&quot;:&quot;'landscape'|'portrait'&quot;,&quot;section&quot;:&quot;B&quot;},&quot;bEmpty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;B&quot;},&quot;divider&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;line&quot;,&quot;options&quot;:[&quot;line&quot;,&quot;gap&quot;,&quot;diagonal&quot;],&quot;tsType&quot;:&quot;'line'|'gap'|'diagonal'&quot;},&quot;vsScale&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:6,&quot;max&quot;:16,&quot;step&quot;:1,&quot;unit&quot;:&quot;cqw&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;edge&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dim&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showCrop&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const num = (v, d) => { const n = parseFloat(v); return isNaN(n) ? d : n; };
+    const bool = (v, d) => v === undefined || v === null ? d : (v === true || v === 'true');
+    const aPos = num(p.aPos, 50), bPos = num(p.bPos, 40);
+    const aO = p.aOrient || 'landscape', bO = p.bOrient || 'portrait';
+    const divider = p.divider || 'line';
+    const vsScale = num(p.vsScale, 10);
+    const cellBase = { flex: 1, minWidth: 0, position: 'relative', background: 'var(--arena-cell-bg)', overflow: 'hidden' };
+    let leftCell = { ...cellBase }, rightCell = { ...cellBase };
+    const wrap = { position: 'relative', width: '100%', aspectRatio: '16/9', display: 'flex', background: 'var(--arena-frame-bg)', overflow: 'hidden', containerType: 'inline-size' };
+    if (divider === 'line') rightCell.borderLeft = '1px solid rgba(255,255,255,.10)';
+    else if (divider === 'gap') wrap.gap = '4px';
+    else if (divider === 'diagonal') {
+      leftCell.clipPath = 'polygon(0 0, 100% 0, 92% 100%, 0 100%)';
+      rightCell.clipPath = 'polygon(8% 0, 100% 0, 100% 100%, 0 100%)';
+      rightCell.marginLeft = '-8%'; rightCell.borderLeft = '0';
+    }
+    const box = (o, pos) => o === 'landscape'
+      ? { position: 'absolute', top: 0, height: '100%', width: '200%', left: `${-pos}%` }
+      : { position: 'absolute', left: 0, width: '100%', height: '118.5%', top: `${-(pos * 0.185)}%` };
+    const crop = (o, pos) => o === 'landscape' ? `${pos}% 50%` : `50% ${pos}%`;
+    const img = { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
+    return {
+      wrap, leftCell, rightCell,
+      aBox: box(aO, aPos), bBox: box(bO, bPos),
+      aImg: { ...img, objectPosition: crop(aO, aPos) }, bImg: { ...img, objectPosition: crop(bO, bPos) },
+      aCrop: crop(aO, aPos), bCrop: crop(bO, bPos),
+      aEmpty: bool(p.aEmpty, false), bEmpty: bool(p.bEmpty, false),
+      showCrop: bool(p.showCrop, false), edge: bool(p.edge, true), dim: bool(p.dim, false),
+      hasTitle: !!p.title, title: p.title || '',
+      titleStyle: { fontSize: `${num(p.titleSize, 17)}px`, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-.01em', color: 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textWrap: 'pretty' },
+      vs: { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: `${vsScale}cqw`, lineHeight: 1, color: 'var(--arena-vs-color)', textShadow: 'var(--arena-vs-shadow)', zIndex: 10, pointerEvents: 'none' },
+    };
+  }
+}
+</script>
+</body>
+</html>

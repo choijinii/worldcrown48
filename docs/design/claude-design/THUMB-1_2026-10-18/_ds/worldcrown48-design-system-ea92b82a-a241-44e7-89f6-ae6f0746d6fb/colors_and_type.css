@@ -1,0 +1,208 @@
+/* ════════════════════════════════════════════════════════════
+   WorldCrown48 — Design System v2.4 (Twilight Stadium · AI-Report Footer-Only Lock)
+   Single source of truth for color · type · spacing · shadow.
+   Reference: WC48_DESIGN_SYSTEM_v2.4.md (extends v2.3 100%)
+
+   Twilight Stadium Edition · Round Scope Lock + Arena Rule + AI-Report Footer-Only
+   "모든 화면은 디지털 악기처럼 느껴져야 한다."
+   "Every screen should feel like a digital instrument."
+   ════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────────────
+   Web fonts (Google) — Inter · Playfair Display · JetBrains Mono
+   ──────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700;1,900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ────────────────────────────────────────────────────────────
+   Local fonts — Pretendard (Korean fallback) + Playfair Display
+   (statics, kept local so Korean text resolves offline as well)
+   ──────────────────────────────────────────────────────────── */
+@font-face { font-family: "Pretendard"; font-weight: 100; font-style: normal; src: url("fonts/Pretendard-Thin.otf")        format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 200; font-style: normal; src: url("fonts/Pretendard-ExtraLight.otf")  format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 300; font-style: normal; src: url("fonts/Pretendard-Light.otf")       format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 400; font-style: normal; src: url("fonts/Pretendard-Regular.otf")     format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 500; font-style: normal; src: url("fonts/Pretendard-Medium.otf")      format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 600; font-style: normal; src: url("fonts/Pretendard-SemiBold.otf")    format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 700; font-style: normal; src: url("fonts/Pretendard-Bold.otf")        format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 800; font-style: normal; src: url("fonts/Pretendard-ExtraBold.otf")   format("opentype"); font-display: swap; }
+@font-face { font-family: "Pretendard"; font-weight: 900; font-style: normal; src: url("fonts/Pretendard-Black.otf")       format("opentype"); font-display: swap; }
+
+@font-face { font-family: "Playfair Display Local"; font-weight: 400; font-style: normal; src: url("fonts/PlayfairDisplay-Regular.ttf")     format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 700; font-style: normal; src: url("fonts/PlayfairDisplay-Bold.ttf")        format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 800; font-style: normal; src: url("fonts/PlayfairDisplay-ExtraBold.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 900; font-style: normal; src: url("fonts/PlayfairDisplay-Black.ttf")       format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 400; font-style: italic; src: url("fonts/PlayfairDisplay-Italic.ttf")      format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 700; font-style: italic; src: url("fonts/PlayfairDisplay-BoldItalic.ttf")  format("truetype"); font-display: swap; }
+@font-face { font-family: "Playfair Display Local"; font-weight: 900; font-style: italic; src: url("fonts/PlayfairDisplay-BlackItalic.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  /* ── DARK theme (Domain 0~3) — Twilight Stadium ── */
+  --color-bg-void:     #00001F;   /* Stadium Void · deepest layer · between black & Deep Osidian */
+  --color-bg-deep:     #00003A;   /* Deep Osidian · Arena hero */
+  --color-bg-default:  #0E0944;   /* Deep Twilight · default dark background */
+  --color-bg-soft:     #241754;   /* Twilight Soft · cards · panels */
+  --color-bg-elevated: #362261;   /* Twilight Indigo · modals · dropdowns */
+  --color-bg-charcoal: #1E1E24;   /* GNB Charcoal · Floating Island GNB */
+
+  /* ── Gold (theme-shared) — the only point color ── */
+  --color-gold:        #FCD006;   /* Crown Gold · primary point color */
+  --color-gold-bright: #FBB03B;   /* Sunburst accent */
+  --color-gold-hover:  #E3BB05;   /* CTA hover state */
+  --color-gold-subtle: rgba(252, 208, 6, 0.12);
+  --color-gold-glow:   rgba(252, 208, 6, 0.25);
+  --color-aura:        #EEDA7D;   /* Aura Yellow · soft emphasis */
+
+  /* ── Accent (reserved for state · never decorative) ── */
+  --color-crimson:     #D7063A;   /* Royal Crimson · VS right · live · error */
+  --color-turquoise:   #00A3B7;   /* Turquoise · VS left · success */
+  --color-powder:      #B1B5C4;   /* Powder Blue · secondary text */
+
+  /* ── Text (dark theme) ── */
+  --color-text:        #F2F2F5;
+  --color-text-sub:    #B1B5C4;
+  --color-text-muted:  #484B67;
+
+  /* ── Border (dark theme) ── */
+  --color-border:      #2D1C5A;
+  --color-border-gold: rgba(252, 208, 6, 0.30);
+
+  /* ── LIGHT theme (Domain 4~6 · Locker Room · Policy Hub · Admin) ── */
+  --color-bg-light:         #F2F2F5;
+  --color-surface-light:    #FFFFFF;
+  --color-text-light:       #0E0944;   /* darker body text on light surfaces */
+  --color-text-sub-light:   #3A4570;   /* re-balanced to keep hierarchy below TEXT */
+  --color-text-muted-light: #8C99B3;   /* lighter muted · labels/placeholder only (AA Large) */
+  --color-border-light:     #D4DCE3;
+
+  /* ── Shadow ── colored shadows · gold for CTA, crimson error, turquoise success */
+  --shadow-card:      0 4px 24px rgba(0, 0, 58, 0.50);
+  --shadow-gold:      0 0 32px rgba(252, 208, 6, 0.25);
+  --shadow-crimson:   0 0 24px rgba(215, 6, 58, 0.25);
+  --shadow-turquoise: 0 0 24px rgba(0, 163, 183, 0.20);
+  --shadow-gnb:       0 8px 32px rgba(0, 0, 58, 0.40);
+  --shadow-light:     0 1px 2px rgba(36, 23, 84, 0.06), 0 8px 24px rgba(36, 23, 84, 0.06);
+
+  /* ── Radius ── ANGULAR SYSTEM · three values only
+     0      → Rectangle (no radius)
+     5px    → Border (default for surfaces, cards, buttons, inputs)
+     999px  → Pill · chip (full-round) */
+  --radius-rect:   0;
+  --radius-border: 5px;
+  --radius-chip:   999px;
+
+  /* Legacy aliases — all collapsed onto the 5px border value */
+  --radius-card:      5px;
+  --radius-card-hero: 5px;
+  --radius-modal:     5px;
+  --radius-panel:     5px;
+  --radius-btn:       5px;
+  --radius-badge:     5px;
+
+  /* ── Spacing (8-grid) ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ── Typography ──
+     Inter      → UI · body · headings
+     Playfair   → display · italic accent · Champion names · manifesto
+     JetBrains  → numerals · vote rate · metadata tags · ✦ AI-Report footer
+     Pretendard → Korean fallback (auto-resolves via stack)
+  */
+  --font-sans:    'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont,
+                  system-ui, 'Apple SD Gothic Neo', sans-serif;
+  --font-display: 'Playfair Display', 'Playfair Display Local', 'Pretendard',
+                  Georgia, serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* Aliases used by spec components */
+  --font-heading: var(--font-sans);
+  --font-body:    var(--font-sans);
+
+  /* ── Surface aliases (themed) ── */
+  --bg:       var(--color-bg-deep);
+  --bg-2:     var(--color-bg-default);
+  --bg-3:     var(--color-bg-soft);
+  --bg-4:     var(--color-bg-elevated);
+  --text:     var(--color-text);
+  --text-sub: var(--color-text-sub);
+  --text-mut: var(--color-text-muted);
+  --border:   var(--color-border);
+  --shadow:   var(--shadow-card);
+}
+
+[data-theme="light"] {
+  --bg:       var(--color-bg-light);
+  --bg-2:     var(--color-surface-light);
+  --bg-3:     #ECECF0;
+  --bg-4:     var(--color-surface-light);
+  --text:     var(--color-text-light);
+  --text-sub: var(--color-text-sub-light);
+  --text-mut: var(--color-text-muted-light);
+  --border:   var(--color-border-light);
+  --shadow:   var(--shadow-light);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Base reset + page chrome
+   ──────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+}
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* Noise texture — global subtle film grain, prevents AI-flat look */
+.wc-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* AI-Report — § v2.4 standard: ✦ AI-Report appears ONLY as a news-article footer.
+   The old ● AI-Report card byline (.ai-report-badge / .ai-byline) is permanently
+   retired — never place an AI-Report badge on a card, banner, box, or list item. */
+.ai-report-footer,
+.ai-report-inline {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-gold);
+  border-top: 1px solid rgba(252, 208, 6, 0.2);
+  padding-top: 8px;
+  margin-top: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* Keyframes shared across components */
+@keyframes wc-blink      { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes wc-spin       { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes wc-ping       { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes wc-pulse-gold {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(252,208,6,0.4)); transform: scale(1); }
+  50%      { filter: drop-shadow(0 0 32px rgba(252,208,6,0.85)); transform: scale(1.04); }
+}
+@keyframes wc-rise       { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

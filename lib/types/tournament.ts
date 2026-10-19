@@ -13,6 +13,7 @@
  * let the write-side builders stamp the concrete value (serverTimestamp()).
  */
 import type { ContestantMedia } from "@/lib/media/mediaSlot";
+import type { ThumbnailPair } from "@/lib/thumbnail/pair";
 
 /**
  * A Tournament category id (UPPER_SNAKE, e.g. "KPOP"). TX-0 (2026-07-11):
@@ -81,6 +82,12 @@ export interface Tournament {
    * 정규화해 쓴다(lib/lab/campaignSlugValidation.ts campaignForTournament).
    */
   campaignSlug?: string;
+  /**
+   * THUMB-1 대표 매치(원장 D-35) — 썸네일에 보일 엔트리 2개(contestants 문서 id)와 위치 값.
+   * 선택·additive: 2026-10-18 이전 문서엔 없다(백필 안 함) — 화면은 1번·2번으로 본다
+   * (`resolveThumbnailPair`).
+   */
+  thumbnailPair?: ThumbnailPair;
 }
 
 export interface Contestant {

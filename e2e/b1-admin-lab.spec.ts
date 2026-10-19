@@ -21,6 +21,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
+import { attachVideosToFirstSlots, stubVideoInspector } from "./labVideos";
 
 let consoleErrors: string[] = [];
 const createdTournamentIds: string[] = [];
@@ -138,6 +139,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     page,
   }) => {
     await stubAiFill(page);
+    await stubVideoInspector(page, 2);
     // 앞선 실패 실행이 남긴 같은 제목 초안이 "발행 후 0건" 단언을 흐리지 않게 먼저 지운다.
     await deleteE2EDrafts(["E2E Tournament"]);
     await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
@@ -165,6 +167,11 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(page.getByTestId("contestant-grid")).toBeVisible();
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");
     const publish = page.getByRole("button", { name: /토너먼트 생성 \(48\/48\)/ });
+    // THUMB-1 — 대표 매치 A·B 를 고르기 전에는 48칸이 다 차도 잠긴다(원장 D-35).
+    await expect(publish).toBeDisabled();
+    await attachVideosToFirstSlots(page, 2);
+    await page.getByTestId("contestant-pick-0").click();
+    await page.getByTestId("contestant-pick-1").click();
     await expect(publish).toBeEnabled();
     // EDITOR-FIX-1 — 발행 전에 초안이 실제로 서버에 있어야 "발행 후 0건"이 뜻을 갖는다.
     await expect(page.getByTestId("draft-save-status")).toHaveAttribute("data-status", "saved", {
@@ -186,6 +193,17 @@ test.describe("B-1 The Lab — operator critical path", () => {
     const testId = await row.getAttribute("data-testid");
     const newId = testId?.replace("tournament-row-", "");
     if (newId) createdTournamentIds.push(newId);
+
+    // THUMB-1 — 게시된 대회에 대표 매치가 contestant id 로 실린다(1번·2번 · 기본 위치 50).
+    const adminApp = ensureAdmin();
+    if (adminApp && newId) {
+      const fs = adminApp.firestore();
+      const t = (await fs.collection("tournaments").doc(newId).get()).data();
+      expect(t?.thumbnailPair).toMatchObject({ aPos: 50, bPos: 50 });
+      const a = (await fs.collection("contestants").doc(t!.thumbnailPair.a).get()).data();
+      const b = (await fs.collection("contestants").doc(t!.thumbnailPair.b).get()).data();
+      expect([a?.order, b?.order]).toEqual([1, 2]);
+    }
 
     // AC#5 — "Arena에서 보기" links straight to /arena/{id}.
     if (newId) {

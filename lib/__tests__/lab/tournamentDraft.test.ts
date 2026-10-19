@@ -16,6 +16,7 @@ import {
   type DraftEditorState,
 } from "@/lib/lab/tournamentDraft";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
+import { EMPTY_PICK } from "@/lib/thumbnail/pick";
 
 function fullContestant(i: number): ContestantDraft {
   return {
@@ -42,6 +43,7 @@ function state(overrides: Partial<DraftEditorState> = {}): DraftEditorState {
     campaignSlug: "fall_2026",
     deadlineMs: 1_800_000_000_000,
     contestants: Array.from({ length: 48 }, (_, i) => fullContestant(i)),
+    thumbnailPair: { a: 3, b: 17, aPos: 22, bPos: null, next: "a" },
     ...overrides,
   };
 }
@@ -83,10 +85,23 @@ describe("toDraftFields → fromDraftDoc", () => {
     const back = fromDraftDoc({ hostUid: "u1", title: "t" });
     expect(back).toMatchObject({ step: 1, title: "t", keywords: [], contestants: [] });
   });
+
+  it("THUMB-1: 대표 매치가 없는 옛 초안 = 아무것도 안 고른 상태", () => {
+    expect(fromDraftDoc({ hostUid: "u1" })?.thumbnailPair).toEqual(EMPTY_PICK);
+  });
+
+  it("THUMB-1: 대표 매치의 잘못된 값은 버린다(칸 0~47 · 위치 0~100)", () => {
+    const back = fromDraftDoc({
+      hostUid: "u1",
+      thumbnailPair: { a: 99, b: 2, aPos: 500, bPos: "x", next: "z" },
+    });
+    expect(back?.thumbnailPair).toEqual({ a: null, b: 2, aPos: null, bPos: null, next: "a" });
+  });
 });
 
 describe("isDraftBlank", () => {
   const blank: DraftEditorState = {
+    thumbnailPair: EMPTY_PICK,
     step: 1,
     title: "",
     category: "",

@@ -31,6 +31,8 @@ import {
   sourcingReasonMessage,
   sourcingStatusMessage,
 } from "@/lib/lab/sourcingMessages";
+import type { PairSide } from "@/lib/thumbnail/pick";
+import { PairBadge } from "./PairPanel";
 import { lab } from "./theme";
 
 interface ContestantEditorProps {
@@ -49,6 +51,10 @@ interface ContestantEditorProps {
   onRefreshVideo?: (index: number) => void;
   /** 이 슬롯이 재검색 중. */
   refreshing?: boolean;
+  /** THUMB-1: 이 칸이 대표 매치의 A·B 이면 그 쪽. */
+  pairMark?: PairSide | null;
+  /** THUMB-1: 미리보기 칸을 누르면 대표 매치로 고른다. 영상이 있는 칸에만 넘어온다. */
+  onPick?: (index: number) => void;
 }
 
 /** 슬롯 카드의 DOM id — [N번 보기] 스크롤이 이걸로 찾는다. */
@@ -96,6 +102,8 @@ export function ContestantEditor({
   onGoToSlot,
   onRefreshVideo,
   refreshing = false,
+  pairMark = null,
+  onPick,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const n = index + 1;
@@ -130,13 +138,16 @@ export function ContestantEditor({
       id={slotDomId(index)}
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
+      data-pair={pairMark ?? ""}
       style={{
         position: "relative",
         background: lab.surface,
         borderRadius: 5,
-        border: isEmpty
-          ? `2px dashed ${lab.borderDashed}`
-          : `1px solid ${lab.border}`,
+        border: pairMark
+          ? `2px solid ${pairMark === "a" ? lab.turquoise : lab.crimson}`
+          : isEmpty
+            ? `2px dashed ${lab.borderDashed}`
+            : `1px solid ${lab.border}`,
         padding: 8,
         display: "flex",
         flexDirection: "column",
@@ -172,7 +183,24 @@ export function ContestantEditor({
         </button>
       )}
       <div
+        // THUMB-1: 미리보기 칸을 누르면 대표 매치로 고른다(안의 버튼은 제 일을 한다).
+        role={onPick ? "button" : undefined}
+        tabIndex={onPick ? 0 : undefined}
+        aria-label={onPick ? t("lab.pair.pickAria", { n }) : undefined}
+        data-testid={`contestant-pick-${index}`}
+        onClick={(e) => {
+          if (!onPick || (e.target as HTMLElement).closest("button")) return;
+          onPick(index);
+        }}
+        onKeyDown={(e) => {
+          if (!onPick || e.target !== e.currentTarget) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onPick(index);
+          }
+        }}
         style={{
+          cursor: onPick ? "pointer" : undefined,
           aspectRatio: "1 / 1",
           borderRadius: 4,
           background: lab.surfaceElev,
@@ -189,6 +217,11 @@ export function ContestantEditor({
         }}
       >
         {!previewUrl && (isEmpty ? "+" : "🏆")}
+        {pairMark && (
+          <span style={{ position: "absolute", left: 4, top: 4, zIndex: 1 }}>
+            <PairBadge side={pairMark} size={20} />
+          </span>
+        )}
         {/* 검색 힌트는 카드에서 뺐다 — 여기 🔎에 툴팁으로만 남는다(카드 높이 절약). */}
         {hint && (
           <span
@@ -196,7 +229,7 @@ export function ContestantEditor({
             title={t("lab.review.hintTip", { hint })}
             style={{
               position: "absolute",
-              left: 4,
+              left: pairMark ? 28 : 4,
               top: 4,
               padding: "1px 4px",
               borderRadius: 999,

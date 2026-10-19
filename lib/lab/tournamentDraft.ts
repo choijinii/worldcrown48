@@ -12,6 +12,7 @@
  */
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import type { EmbedOrientation } from "@/lib/media/mediaSlot";
+import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
 
 export const DRAFTS_COLLECTION = "tournamentDrafts";
 export const DRAFT_SCHEMA_VERSION = 1;
@@ -28,6 +29,7 @@ export const DRAFT_FIELDS = [
   "campaignSlug",
   "deadlineMs",
   "contestants",
+  "thumbnailPair",
   "updatedAt",
 ] as const;
 
@@ -40,6 +42,8 @@ export interface DraftEditorState {
   campaignSlug: string;
   deadlineMs: number;
   contestants: ContestantDraft[];
+  /** THUMB-1 대표 매치 — 그리드 칸 번호(0~47)와 위치 값. 게시 때 contestant id 로 바뀐다. */
+  thumbnailPair: PairPick;
 }
 
 /** 목록에 보여 줄 한 줄. */
@@ -67,6 +71,7 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     campaignSlug: s.campaignSlug,
     deadlineMs: s.deadlineMs,
     contestants: s.contestants.map((c) => stripUndefined({ ...c })),
+    thumbnailPair: { ...s.thumbnailPair },
   };
 }
 
@@ -94,6 +99,23 @@ function toContestant(raw: unknown): ContestantDraft {
   });
 }
 
+const SLOT_COUNT = 48;
+
+function toPick(raw: unknown): PairPick {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const slot = (v: unknown) =>
+    Number.isInteger(v) && (v as number) >= 0 && (v as number) < SLOT_COUNT ? (v as number) : null;
+  const pos = (v: unknown) =>
+    typeof v === "number" && v >= 0 && v <= 100 ? v : null;
+  return {
+    a: slot(r.a),
+    b: slot(r.b),
+    aPos: pos(r.aPos),
+    bPos: pos(r.bPos),
+    next: r.next === "b" ? "b" : EMPTY_PICK.next,
+  };
+}
+
 /** 문서 → 편집기 상태. 초안이 아니면 null. 빠진 칸은 기본값(옛 문서 대비). */
 export function fromDraftDoc(data: unknown): DraftEditorState | null {
   if (!data || typeof data !== "object") return null;
@@ -110,6 +132,7 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
     campaignSlug: str(d.campaignSlug),
     deadlineMs: num(d.deadlineMs) ?? 0,
     contestants: Array.isArray(d.contestants) ? d.contestants.map(toContestant) : [],
+    thumbnailPair: toPick(d.thumbnailPair),
   };
 }
 
