@@ -1,18 +1,16 @@
 "use client";
 
 /**
- * M4 · SNSLinks — Instagram · X · TikTok.
+ * M4 · SNSLinks — X 하나. Instagram·TikTok 은 계정이 없어 뺐다(대표 눈검사 2026-10-18 · 원장 D-60).
  * Footer: "WorldCrown48 · 48 Contestants · One Crown" (mono caps).
  */
 
 import { track } from "@/lib/analytics";
 
-type Platform = "instagram" | "x" | "tiktok";
+type Platform = "x";
 
 const links: { platform: Platform; href: string; label: string }[] = [
-  { platform: "instagram", href: "https://instagram.com/worldcrown48", label: "Instagram" },
-  { platform: "x", href: "https://twitter.com/worldcrown48", label: "X" },
-  { platform: "tiktok", href: "https://tiktok.com/@worldcrown48", label: "TikTok" },
+  { platform: "x", href: "https://x.com/worldcrown48", label: "X" },
 ];
 
 function Icon({ platform }: { platform: Platform }) {
@@ -24,25 +22,9 @@ function Icon({ platform }: { platform: Platform }) {
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
   };
-  if (platform === "instagram") {
-    return (
-      <svg {...common}>
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-  if (platform === "x") {
-    return (
-      <svg {...common}>
-        <path d="M4 4 L20 20 M20 4 L4 20" />
-      </svg>
-    );
-  }
   return (
-    <svg {...common}>
-      <path d="M9 11.5 a4 4 0 1 0 4 4 V4 c0.8 2.4 2.6 3.8 5 4" />
+    <svg {...common} data-platform={platform}>
+      <path d="M4 4 L20 20 M20 4 L4 20" />
     </svg>
   );
 }

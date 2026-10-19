@@ -33,6 +33,11 @@
   cursor: pointer;
 }
 
+/* 누르지 않는 글자 배너(원장 D-60) — 손가락 커서를 보이지 않는다. */
+.static {
+  cursor: default;
+}
+
 .action:hover .arrow,
 .action:focus-visible .arrow {
   transform: translateX(3px);

@@ -27,7 +27,7 @@ import { useT } from "@/lib/i18n/useT";
 import { useAnalyticsConsent } from "@/components/policy/CookieConsentProvider";
 import { firstTouch, firstTouchEventParams } from "@/lib/launch/firstTouch";
 import { callRegisterWaitlist, waitlistPayload } from "@/lib/launch/waitlistSubmit";
-import { retentionNoteParts, retentionPolicyHref } from "@/lib/launch/retentionNote";
+import { DELETION_REQUEST_EMAIL, retentionNoteParts, retentionPolicyHref } from "@/lib/launch/retentionNote";
 
 type WaitlistState =
   | "default"
@@ -96,6 +96,12 @@ export function WaitlistForm() {
   }
 
   const retention = retentionNoteParts(t("launch.waitlist.retention"));
+  const deletionText = t("launch.waitlist.deletion");
+  const deletionAt = deletionText.indexOf(DELETION_REQUEST_EMAIL);
+  const deletion = {
+    before: deletionText.slice(0, deletionAt),
+    after: deletionText.slice(deletionAt + DELETION_REQUEST_EMAIL.length),
+  };
 
   const isError = state === "invalid" || state === "duplicate" || state === "rateLimited";
   const errMsg =
@@ -177,6 +183,12 @@ export function WaitlistForm() {
       <p className="wl-retention">
         {retention.before}
         {retention.link && <a href={retentionPolicyHref(lang)}>{retention.link}</a>}
+      </p>
+      {/* 삭제 요청 주소 — 보관 기간 줄 바로 아래(원장 D-60). 주소만 mailto 링크. */}
+      <p className="wl-deletion">
+        {deletion.before}
+        <a href={`mailto:${DELETION_REQUEST_EMAIL}`}>{DELETION_REQUEST_EMAIL}</a>
+        {deletion.after}
       </p>
     </section>
   );

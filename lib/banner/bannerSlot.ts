@@ -52,7 +52,9 @@ export type BannerAudience = "guest" | "member";
 
 export type DefaultNotice =
   | { titleKey: MessageKey; action: "signIn" }
-  | { titleKey: MessageKey; action: "link"; href: string };
+  | { titleKey: MessageKey; action: "link"; href: string }
+  /** 누르지 않는 글자 배너 — 링크·화살표 없음(사전등록 페이지 · 원장 D-60). */
+  | { titleKey: MessageKey; action: "text" };
 
 export type ResolvedBanner =
   | { source: "doc"; banner: BannerDoc }
@@ -97,7 +99,9 @@ export function bannerAudience(user: { signedIn: boolean; isAnonymous: boolean }
  *   게이트 1 (guest)  : 로그인 유도 — 링크는 로그인 화면
  *   게이트 4 (member) : 크라운 카드 **공유** 유도 — 링크는 /account 카드 목록
  */
-export function defaultNotice(audience: BannerAudience): DefaultNotice {
+export function defaultNotice(audience: BannerAudience, slot?: string): DefaultNotice {
+  // 사전등록 페이지 맨 아래는 사전등록 참가 안내 글자 하나 — 로그인 유도를 하지 않는다(원장 D-60).
+  if (slot === "launch-below") return { titleKey: "banner.launch.title", action: "text" };
   return audience === "member"
     ? { titleKey: "banner.default.member.title", action: "link", href: "/account" }
     : { titleKey: "banner.default.guest.title", action: "signIn" };
@@ -110,5 +114,5 @@ export function resolveBanner(
   audience: BannerAudience,
 ): ResolvedBanner {
   const banner = pickBanner(docs, slot, nowMs);
-  return banner ? { source: "doc", banner } : { source: "default", notice: defaultNotice(audience) };
+  return banner ? { source: "doc", banner } : { source: "default", notice: defaultNotice(audience, slot) };
 }
