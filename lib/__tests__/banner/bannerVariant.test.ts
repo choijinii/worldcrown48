@@ -9,7 +9,7 @@
  * 자리와 광고가 같은 크기라 빈 테두리가 없다(D-21 정의). 옛 1320×140 · 폭 366 은 폐기.
  */
 import { describe, expect, it } from "vitest";
-import { bannerVariant, BANNER_SIZES } from "@/lib/banner/bannerVariant";
+import { bannerVariant, BANNER_SIZES, pageBannerVariant } from "@/lib/banner/bannerVariant";
 
 describe("bannerVariant — 어느 화면에 어떤 크기", () => {
   it("데스크톱 = 970×90", () => {
@@ -32,5 +32,26 @@ describe("bannerVariant — 어느 화면에 어떤 크기", () => {
       expect([970, 320]).toContain(s.width);
       expect([90, 100]).toContain(s.height);
     }
+  });
+});
+
+// THUMB-1 PR 2 · 원장 D-21 · D-55 — 무대가 아닌 화면(피치)의 배너 크기.
+// 무대처럼 칸 계산이 없으니 폭·높이만 본다: 휴대폰 가로(높이 ≤ 500)는 없음 · 폭 ≤ 860 은
+// 320×100 · 그 밖은 970×90. 860 은 기존 useBannerVariant 와 같은 경계(메뉴바가 접히는 폭).
+describe("pageBannerVariant — 피치 배너 크기 (D-21)", () => {
+  it("데스크톱 1440 · 태블릿 가로 1180×820 = 970×90", () => {
+    expect(pageBannerVariant(1440, 900)).toBe("desktop");
+    expect(pageBannerVariant(1180, 820)).toBe("desktop");
+  });
+  it("모바일 세로 390 · 태블릿 세로 834 = 320×100", () => {
+    expect(pageBannerVariant(390, 844)).toBe("mobile");
+    expect(pageBannerVariant(834, 1194)).toBe("mobile");
+  });
+  it("모바일 가로(844×390 · 932×430) = 없음", () => {
+    expect(pageBannerVariant(844, 390)).toBeNull();
+    expect(pageBannerVariant(932, 430)).toBeNull();
+  });
+  it("작은 데스크톱 창(1000×800 가로)은 휴대폰 가로가 아니다 = 970×90", () => {
+    expect(pageBannerVariant(1000, 800)).toBe("desktop");
   });
 });

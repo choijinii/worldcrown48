@@ -131,7 +131,7 @@ SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/si
 | 도메인 | 이름 | 테마 | MVP |
 |--------|------|------|-----|
 | Domain 0 | Launch Pad (사전등록) | 🌑 다크 | MVP 1 |
-| Domain 1 | The Pitch | ☀️ 화이트 (전환은 THUMB-1과 한 묶음 — D-39) | MVP 1 |
+| Domain 1 | The Pitch | ☀️ 화이트 (THUMB-1 PR 2에서 전환 — D-39) | MVP 1 |
 | Domain 2 | The Lab | 🌑 다크 | MVP 1 |
 | Domain 3 | The Arena — 매치 무대(`/arena/{id}`, 라운드 전환·결승 포함) | 🌑 다크 | MVP 1 |
 | Domain 3 | The Arena — 차트(`/arena/{id}/ranking`) | 🌑 다크 (D-40) | MVP 1 |
@@ -142,7 +142,7 @@ SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/si
 | Domain 5 | Policy Hub | ☀️ 화이트 | MVP 1 |
 | Domain 6 | Admin Dashboard | ☀️ 화이트 | MVP 1 |
 
-> 정본 = 원장 **D-40**(D-38을 바꿈, 2026-10-03). ⚠ 지금 코드의 피치·크라운 카드는 아직 다크다 — 위 표는 **목표**이며, 전환 시점은 런칭 전 순서(아래 🚀)를 따른다. 새로 만드는 화면은 처음부터 이 표대로 만든다.
+> 정본 = 원장 **D-40**(D-38을 바꿈, 2026-10-03). ⚠ 지금 코드의 크라운 카드는 아직 다크다(피치는 THUMB-1 PR 2에서 화이트로 전환) — 위 표는 **목표**이며, 전환 시점은 런칭 전 순서(아래 🚀)를 따른다. 새로 만드는 화면은 처음부터 이 표대로 만든다.
 
 ---
 

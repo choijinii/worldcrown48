@@ -18,7 +18,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { posterSources, type EmbedOrientation } from "@/lib/media/stageCrop";
 import { coverObjectPosition } from "@/lib/thumbnail/pair";
-import { posterStep } from "@/lib/thumbnail/poster";
+import { posterStep, posterZoom } from "@/lib/thumbnail/poster";
 
 export interface VSThumbSide {
   videoId: string;
@@ -32,8 +32,8 @@ export interface VSThumbProps {
   b: VSThumbSide | null;
   /** 커버 하단 딤 위에 겹치는 대회 제목. 없으면 딤도 없다. */
   title?: string;
-  /** 제목 글자 크기(px) — 시안: 데스크톱 17 · 모바일 15. */
-  titleSize?: number;
+  /** 제목 글자 크기 — 시안: 데스크톱 17 · 모바일 15. 숫자 = px, 문자열 = CSS 값(피치는 변수로 폭마다 바꾼다). */
+  titleSize?: number | string;
   /** 편집기 미리보기 전용 — 칸마다 자르기 값을 보인다. */
   showCrop?: boolean;
   /** 마지막 포스터 주소까지 실패(그림 깨짐, 킥 §4 ㉣). */
@@ -81,6 +81,8 @@ function Half({
   };
 
   const crop = data ? coverObjectPosition(data.orientation, data.pos) : "";
+  // hqdefault 폴백이면 그림에 박힌 검은 띠를 가운데 기준 확대로 칸 밖에 민다(`posterZoom`).
+  const zoom = data ? posterZoom(index, sources.length, data.orientation) : 1;
   const cell: CSSProperties = {
     flex: 1,
     minWidth: 0,
@@ -105,6 +107,7 @@ function Half({
             height: "100%",
             objectFit: "cover",
             objectPosition: crop,
+            transform: zoom === 1 ? undefined : `scale(${zoom})`,
             display: "block",
           }}
           onError={() => settle("error")}

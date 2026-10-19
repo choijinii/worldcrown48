@@ -14,6 +14,12 @@
    CONTAINER QUERIES: `.pitch` is the container-type host, so the responsive
    grid keys off the page width via @container — never viewport media
    queries (handoff §6.3).
+
+   THEME (THUMB-1 PR 2 · 원장 D-39 · D-40): The Pitch = 화이트. `.pitch` 는
+   `data-theme="light"` 를 달고, 바탕·글자·테두리는 라이트 토큰(`--color-*-light` ·
+   `--color-surface-*` · `--shadow-light`)만 쓴다. 새 색 없음. 금색 글자는 밝은 면 위
+   대비용 `--color-gold-ink`, 금색 면(버튼) 위 글자는 `--color-royal`. 대회 카드 커버
+   (VSThumb)만 매치 무대 색(다크) 그대로 — 커버 위 칩도 다크 면 기준 그대로 둔다.
    ════════════════════════════════════════════════════════════════════ */
 
 .pitch {
@@ -21,12 +27,8 @@
   container-type: inline-size;
   min-height: 100vh;
   overflow-x: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--color-bg-default) 0%,
-    var(--color-bg-deep) 100%
-  );
-  color: var(--color-text);
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
 }
 .pitch-grain {
   position: absolute;
@@ -38,6 +40,9 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 .pitch .pitch-inner {
+  /* 카드 커버 제목 크기(합격 시안: 데스크톱·태블릿 17 · 모바일 15) — 아래 @container 에서 바꾼다.
+     컨테이너 쿼리는 컨테이너(.pitch) 자신을 못 바꾸므로 안쪽에 둔다. */
+  --tcard-title-size: 15px;
   position: relative;
   z-index: 2;
   padding: var(--space-16) var(--space-5) var(--space-20);
@@ -65,7 +70,8 @@
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--color-aura);
+  color: var(--color-turquoise);
+  font-weight: 700;
   margin-bottom: var(--space-4);
 }
 .pitch .hero-title {
@@ -78,7 +84,7 @@
   font-size: 38px;
   line-height: 1.04;
   letter-spacing: -0.02em;
-  color: var(--color-text);
+  color: var(--color-text-light);
   display: block;
 }
 .pitch .hero-l2 {
@@ -88,12 +94,12 @@
   font-size: 40px;
   line-height: 1.04;
   letter-spacing: -0.025em;
-  color: var(--color-gold);
+  color: var(--color-gold-ink);
   display: block;
 }
 .pitch .hero-sub {
   position: relative;
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
   font-size: 15px;
   max-width: 52ch;
   margin: var(--space-5) 0 0;
@@ -122,20 +128,20 @@
 }
 .pitch .btn-primary {
   background: var(--color-gold);
-  color: var(--color-bg-deep);
+  color: var(--color-royal);
 }
 .pitch .btn-primary:hover {
   background: var(--color-gold-hover);
   box-shadow: var(--shadow-gold);
 }
 .pitch .btn-ghost {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-light);
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border-light);
 }
 .pitch .btn-ghost:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-royal);
 }
 .pitch .btn:focus-visible {
   outline: 2px solid var(--color-gold);
@@ -155,7 +161,8 @@
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-gold);
+  font-weight: 700;
+  color: var(--color-turquoise);
 }
 .pitch .sec-title {
   font-family: var(--font-sans);
@@ -169,7 +176,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: var(--color-text-muted);
+  color: var(--color-text-sub-light);
 }
 
 /* ── Feed grid (single-stream, full width) ── */
@@ -182,11 +189,15 @@
 /* ── TournamentCard ── */
 .pitch .tcard {
   position: relative;
+  display: flex;
+  flex-direction: column;
   text-align: left;
-  background: var(--color-bg-soft);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-border);
+  box-shadow: var(--shadow-light);
   overflow: hidden;
   padding: 0;
   width: 100%;
@@ -197,38 +208,18 @@
   transform: translateY(-4px);
   box-shadow: var(--shadow-gold);
   border-color: var(--color-border-gold);
-  border-left-color: var(--color-gold);
 }
 .pitch .tcard:active {
   transform: translateY(-1px);
   box-shadow: 0 0 14px var(--color-gold-subtle);
-  border-left-color: var(--color-gold);
 }
 .pitch .tcard:focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
+/* 커버 = 대표 매치 VS 장면(VSThumb · 16:9). 높이는 부품의 비율이 정한다. */
 .pitch .tcard-cover {
   position: relative;
-  height: 132px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(
-      circle at 78% 22%,
-      color-mix(in srgb, var(--color-gold) 14%, transparent),
-      transparent 55%
-    ),
-    linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg-soft) 70%);
-  border-bottom: 1px solid var(--color-border);
-}
-.pitch .tcard-vs {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 900;
-  font-size: 48px;
-  color: color-mix(in srgb, var(--color-text) 80%, transparent);
-  letter-spacing: -0.03em;
 }
 .pitch .tcard-chips {
   position: absolute;
@@ -239,6 +230,7 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
+  z-index: 12; /* VSThumb 의 제목 딤(9)·VS(10) 위 */
 }
 .pitch .featured-pill {
   font-family: var(--font-mono);
@@ -296,49 +288,42 @@
 .pitch .status-muted .led {
   background: var(--color-powder);
 }
+/* 몸통 = 메타 + 참가하기 버튼만(합격 시안 A-1~A-3). */
 .pitch .tcard-body {
-  padding: var(--space-4) var(--space-5) var(--space-5);
-}
-.pitch .tcard-title {
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  color: var(--color-text);
+  padding: 9px 22px 16px;
 }
 .pitch .tcard-meta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-3);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--color-text-sub);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-sub-light);
 }
 .pitch .tcard-meta .sep {
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
 }
 .pitch .tcard-foot {
-  margin-top: var(--space-4);
+  padding-top: 6px;
   display: flex;
-  justify-content: flex-end;
 }
 .pitch .tcard-enter {
+  flex: 1;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: 0;
-  color: var(--color-gold);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  justify-content: center;
+  height: 35px;
+  border-radius: var(--radius-border);
+  background: var(--color-gold);
+  color: var(--color-royal);
+  font-size: 16px;
+  font-weight: 800;
+  transition: background 180ms ease, box-shadow 180ms ease;
 }
-.pitch .tcard-enter svg {
-  width: 16px;
-  height: 16px;
+.pitch .tcard:hover .tcard-enter {
+  background: var(--color-gold-hover);
+  box-shadow: var(--shadow-gold);
 }
 
 /* ── Skeleton + empty ── */
@@ -361,13 +346,13 @@
   display: flex;
 }
 .pitch .skel {
-  background: var(--color-bg-soft);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-border);
   overflow: hidden;
 }
 .pitch .skel-cover {
-  height: 132px;
+  aspect-ratio: 16 / 9;
 }
 .pitch .skel-line {
   height: 12px;
@@ -378,9 +363,9 @@
 .pitch .skel-line {
   background: linear-gradient(
     90deg,
-    var(--color-bg-soft) 0%,
-    var(--color-bg-elevated) 50%,
-    var(--color-bg-soft) 100%
+    var(--color-surface-soft) 0%,
+    var(--color-border-soft) 50%,
+    var(--color-surface-soft) 100%
   );
   background-size: 200% 100%;
   animation: pitch-shimmer 1400ms ease infinite;
@@ -407,17 +392,17 @@
   text-align: center;
   gap: var(--space-4);
   padding: var(--space-20) var(--space-6);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-light);
   border-radius: var(--radius-border);
 }
 .pitch .empty-state .et {
   font-weight: 600;
   font-size: 16px;
-  color: var(--color-text);
+  color: var(--color-text-light);
 }
 .pitch .empty-state .es {
   font-size: 13px;
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
 }
 
 /* ── Footer ── */
@@ -428,7 +413,32 @@
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
+}
+
+/* ── Banner slot pitch-between (D-21 ③ · D-55) — 크기는 매치 무대 배너와 같은 토큰 ── */
+.pitch .pitch-banner {
+  margin-top: var(--space-12);
+  display: flex;
+  justify-content: center;
+}
+.pitch .pitch-banner-slot {
+  background: var(--color-surface-light);
+  outline: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-light);
+}
+.pitch .pitch-banner-slot button,
+.pitch .pitch-banner-slot a {
+  color: var(--color-text-light);
+}
+.pitch .pitch-banner-slot[data-banner-variant="desktop"] {
+  width: var(--arena-banner-w);
+  max-width: 100%;
+  min-height: var(--arena-banner-h);
+}
+.pitch .pitch-banner-slot[data-banner-variant="mobile"] {
+  width: var(--arena-banner-w-mobile);
+  min-height: var(--arena-banner-h-mobile);
 }
 
 /* ── LabEntryCard ── */
@@ -439,20 +449,21 @@
   align-items: center;
   gap: var(--space-5);
   padding: var(--space-6);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-border);
-  background: linear-gradient(135deg, var(--color-bg-soft), var(--color-bg-default));
+  background: var(--color-surface-light);
+  box-shadow: var(--shadow-light);
   transition: border-color 160ms ease, box-shadow 200ms ease;
 }
 .pitch .lab-entry-ico {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-border);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
   flex: none;
 }
 .pitch .lab-entry-ico svg {
@@ -472,7 +483,7 @@
 }
 .pitch .lab-entry-sub {
   font-size: 13px;
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
   margin-top: 4px;
 }
 .pitch .lab-role-tag {
@@ -481,8 +492,8 @@
   letter-spacing: 0.12em;
   padding: 2px var(--space-2);
   border-radius: var(--radius-chip);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-muted-light);
 }
 .pitch .lab-cta {
   border: 0;
@@ -502,16 +513,16 @@
 }
 .pitch .lab-cta-active {
   background: var(--color-gold);
-  color: var(--color-bg-deep);
+  color: var(--color-royal);
 }
 .pitch .lab-cta-active:hover {
   background: var(--color-gold-hover);
   box-shadow: var(--shadow-gold);
 }
 .pitch .lab-cta-locked {
-  background: var(--color-bg-elevated);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted-light);
+  border: 1px solid var(--color-border-light);
   cursor: not-allowed;
 }
 .pitch .lab-cta:focus-visible {
@@ -522,7 +533,7 @@
   position: absolute;
   bottom: calc(100% + 8px);
   right: var(--space-6);
-  background: var(--color-bg-charcoal);
+  background: var(--color-royal);
   border: 1px solid var(--color-border-gold);
   border-radius: var(--radius-border);
   padding: var(--space-2) var(--space-3);
@@ -555,12 +566,12 @@
   border-color: var(--color-gold);
 }
 .pitch .lab-entry[data-lab="active"] .lab-entry-ico {
-  color: var(--color-gold);
+  color: var(--color-gold-ink);
   border-color: var(--color-border-gold);
   background: var(--color-gold-subtle);
 }
 .pitch .lab-entry[data-lab="locked"] .lab-entry-title {
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
 }
 .pitch .lab-entry[data-lab="locked"]:hover .lab-tip {
   opacity: 1;
@@ -573,9 +584,9 @@
 }
 .pitch .see-more {
   margin-top: var(--space-6);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface-light);
+  color: var(--color-text-light);
   font-weight: 600;
   font-size: 13px;
   padding: var(--space-3) var(--space-5);
@@ -590,8 +601,8 @@
   height: 15px;
 }
 .pitch .see-more:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-royal);
 }
 .pitch .see-more:focus-visible {
   outline: 2px solid var(--color-gold);
@@ -607,8 +618,8 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: var(--color-bg-soft);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-border);
   cursor: pointer;
   text-align: left;
@@ -629,8 +640,8 @@
   flex: none;
   display: block;
   object-fit: cover;
-  background: linear-gradient(135deg, var(--color-bg-elevated), var(--color-bg-soft));
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border-light);
 }
 .pitch .nfi-body {
   flex: 1;
@@ -646,14 +657,14 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
   text-transform: uppercase;
 }
 .pitch .nfi-title {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.35;
-  color: var(--color-text);
+  color: var(--color-text-light);
   margin-top: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -663,7 +674,7 @@
 .pitch .nfi-date {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
   margin-top: 4px;
   letter-spacing: 0.03em;
 }
@@ -674,14 +685,14 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--color-gold);
+  color: var(--color-gold-ink);
   margin-top: 6px;
 }
 .pitch .nfi-ext {
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
 }
 .pitch .nfi-ext svg {
   width: 14px;
@@ -692,14 +703,14 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted-light);
   font-size: 12px;
   border-style: dashed;
 }
 .pitch .nfi.notice:hover {
   transform: none;
   box-shadow: none;
-  border-color: var(--color-border);
+  border-color: var(--color-border-light);
 }
 .pitch .news-skel {
   display: none;
@@ -726,9 +737,9 @@
   border-radius: var(--radius-border);
   background: linear-gradient(
     90deg,
-    var(--color-bg-soft) 0%,
-    var(--color-bg-elevated) 50%,
-    var(--color-bg-soft) 100%
+    var(--color-surface-soft) 0%,
+    var(--color-border-soft) 50%,
+    var(--color-surface-soft) 100%
   );
   background-size: 200% 100%;
   animation: pitch-shimmer 1400ms ease infinite;
@@ -740,22 +751,23 @@
   text-align: center;
   gap: var(--space-3);
   padding: var(--space-16) var(--space-6);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-light);
   border-radius: var(--radius-border);
 }
 .pitch .news-empty .et {
   font-weight: 600;
   font-size: 15px;
-  color: var(--color-text);
+  color: var(--color-text-light);
 }
 .pitch .news-empty .es {
   font-size: 13px;
-  color: var(--color-text-sub);
+  color: var(--color-text-sub-light);
 }
 
 /* ════ CONTAINER QUERIES — key off .pitch width, never the viewport ════ */
 @container (min-width: 760px) {
   .pitch .pitch-inner {
+    --tcard-title-size: 17px;
     padding: var(--space-20) var(--space-10) var(--space-24);
   }
   .pitch .hero-l1 {

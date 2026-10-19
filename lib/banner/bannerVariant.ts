@@ -23,3 +23,17 @@ export function bannerVariant(mode: StageMode): BannerVariant | null {
   if (mode === "portrait") return "mobile";
   return null;
 }
+
+/** 휴대폰 가로로 보는 높이의 상한 — 이보다 낮은 가로 화면은 휴대폰 가로다(844×390 · 932×430). */
+const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
+/** 이 폭 이하 = 휴대폰 크기(320×100). useBannerVariant 와 같은 경계 — 메뉴바가 접히는 폭. */
+const MOBILE_MAX_WIDTH = 860;
+
+/**
+ * 무대가 아닌 화면(피치 · THUMB-1 PR 2)의 배너 크기. 무대처럼 칸 계산이 없으니 창 크기만 본다.
+ * 휴대폰 가로 = 없음(D-21) · 좁은 화면 = 320×100 · 그 밖 = 970×90.
+ */
+export function pageBannerVariant(width: number, height: number): BannerVariant | null {
+  if (width > height && height <= PHONE_LANDSCAPE_MAX_HEIGHT) return null;
+  return width <= MOBILE_MAX_WIDTH ? "mobile" : "desktop";
+}
