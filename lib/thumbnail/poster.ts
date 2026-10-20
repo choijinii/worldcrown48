@@ -18,3 +18,17 @@ export function posterStep(index: number, total: number, outcome: PosterOutcome)
   if (!failed) return "ok";
   return index < total - 1 ? "next" : "broken";
 }
+
+/**
+ * hqdefault(4:3 · 480×360) 폴백의 검은 띠를 칸 밖으로 미는 확대 배율 (코티오 승인 ⑥ · 2026-10-19).
+ *
+ * hqdefault 는 영상을 4:3 틀에 넣어 띠까지 그림에 박아 둔다. 반쪽 칸(8:9)에 cover 로 채운 뒤
+ * **가운데 기준**으로 이만큼 키운다 — 새 그림을 만들거나 저장하지 않는다(CSS 확대뿐).
+ *   가로 영상: 내용 = 가운데 3/4 높이 → 4/3 배
+ *   세로 영상: 내용 = 가운데 27/64 폭(= 칸 높이의 9/16) → 칸 폭 8/9 ÷ 9/16 = 128/81 배
+ * 첫 주소(hq720 · oar2)는 띠가 없어 1. 마지막 주소가 hqdefault 다(`posterSources`).
+ */
+export function posterZoom(index: number, total: number, orientation: "landscape" | "portrait"): number {
+  if (index < total - 1) return 1;
+  return orientation === "portrait" ? 128 / 81 : 4 / 3;
+}

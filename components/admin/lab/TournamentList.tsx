@@ -27,6 +27,8 @@ import { planFeaturedToggle } from "@/lib/lab/featuredToggle";
 import { sortByCreatedAtDesc } from "@/lib/lab/sortTournaments";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
+import type { ThumbnailPair } from "@/lib/thumbnail/pair";
+import { useCoverBroken } from "@/components/thumbnail/useCoverPair";
 import type { LocalizedText } from "@/lib/types/tournament";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
@@ -45,6 +47,26 @@ interface Row {
    * 다시 읽지 않고도 ⚠️를 띄우기 위해 Tournament 문서에 얹혀 있다.
    */
   videoAlert?: { failed?: number; warned?: number; checkedAt?: number };
+  /** THUMB-1 — 대표 매치(A·B). 없으면 옛 대회. */
+  thumbnailPair?: ThumbnailPair;
+}
+
+/**
+ * THUMB-1 (킥 §4 ㉣) — 고른 대표 매치의 그림이 안 뜨면(원본 삭제·비공개 · 엔트리 없음) 표시.
+ * 피치 카드는 그동안 앞 번호 엔트리로 대체해 보인다. 저장하지 않고 볼 때마다 확인한다.
+ */
+function CoverBrokenFlag({ id, pair }: { id: string; pair?: ThumbnailPair }): JSX.Element | null {
+  const { t } = useT();
+  const broken = useCoverBroken(id, pair);
+  if (!broken) return null;
+  return (
+    <span
+      data-testid={`cover-broken-${id}`}
+      style={{ marginLeft: 8, color: lab.crimson, fontSize: 12, fontWeight: 700 }}
+    >
+      ⚠️ {t("lab.list.coverBroken")}
+    </span>
+  );
 }
 
 const kst = new Intl.DateTimeFormat("en-CA", {
@@ -180,6 +202,7 @@ export function TournamentList({
                       ⚠️ {t("lab.list.videoAlert", { n: r.videoAlert?.failed ?? 0 })}
                     </span>
                   )}
+                  <CoverBrokenFlag id={r.id} pair={r.thumbnailPair} />
                 </div>
                 <div style={{ fontSize: 12, color: lab.textMuted }}>
                   {r.category} · {r.status} ·{" "}

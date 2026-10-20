@@ -16,6 +16,7 @@ import {
   type BannerSlotName,
 } from "@/lib/banner/bannerSlot";
 import { MESSAGES } from "@/lib/i18n/messages";
+import { LAUNCH_AT_MS } from "@/lib/launch/launchAt";
 
 const NOW = Date.UTC(2026, 8, 19, 12, 0, 0);
 
@@ -165,9 +166,65 @@ describe("자리 이름 목록 (D-21)", () => {
   });
 
   it("다른 자리의 기본 공지는 그대로(launch-below 만 바뀐다)", () => {
-    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below")) {
+    // pitch-between 의 런칭 전 기본 공지는 D-59 시험이 따로 본다.
+    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below" && n !== "pitch-between")) {
       expect(resolveBanner([], slot, NOW, "guest")).toEqual({ source: "default", notice: defaultNotice("guest") });
       expect(resolveBanner([], slot, NOW, "member")).toEqual({ source: "default", notice: defaultNotice("member") });
+    }
+  });
+});
+
+// THUMB-1 PR 2 · 원장 D-59 — 런칭 전 피치 배너 자리의 기본 공지 = 사전등록 안내.
+describe("D-59 — 런칭 전 pitch-between 기본 공지 = 사전등록 안내", () => {
+  const BEFORE = LAUNCH_AT_MS - 60_000;
+  const AFTER = LAUNCH_AT_MS + 60_000;
+  const PRELAUNCH = {
+    source: "default",
+    notice: { titleKey: "banner.prelaunch.title", action: "link", href: "/launch" },
+  };
+
+  it("런칭 전 · 배너가 없으면 사전등록 안내 + /launch 링크 (게스트·로그인 같다)", () => {
+    expect(resolveBanner([], "pitch-between", BEFORE, "guest")).toEqual(PRELAUNCH);
+    expect(resolveBanner([], "pitch-between", BEFORE, "member")).toEqual(PRELAUNCH);
+  });
+
+  it("런칭 시각이 지나면 자동으로 기존 기본 공지(2026-09-19 승인본)", () => {
+    expect(resolveBanner([], "pitch-between", AFTER, "guest")).toEqual({
+      source: "default",
+      notice: defaultNotice("guest"),
+    });
+    expect(resolveBanner([], "pitch-between", LAUNCH_AT_MS, "member")).toEqual({
+      source: "default",
+      notice: defaultNotice("member"),
+    });
+  });
+
+  it("관리자가 넣은 배너가 있으면 런칭 전에도 그 배너 — 바뀌는 건 기본 공지뿐", () => {
+    const r = resolveBanner([doc({ slot: "pitch-between" })], "pitch-between", BEFORE, "guest");
+    expect(r.source).toBe("doc");
+  });
+
+  it("다른 자리는 런칭 전에도 기존 기본 공지 그대로", () => {
+    for (const slot of BANNER_SLOT_NAMES.filter((s) => s !== "pitch-between")) {
+      expect(resolveBanner([], slot, BEFORE, "guest")).toEqual({
+        source: "default",
+        notice: defaultNotice("guest", slot), // launch-below 는 D-60 글자 배너
+      });
+    }
+  });
+
+  it("런칭 시각을 주입할 수 있다(설정값 하나 기준)", () => {
+    expect(resolveBanner([], "pitch-between", 100, "guest", 200)).toEqual(PRELAUNCH);
+    expect(resolveBanner([], "pitch-between", 200, "guest", 200).source === "default").toBe(true);
+    expect(resolveBanner([], "pitch-between", 200, "guest", 200)).not.toEqual(PRELAUNCH);
+  });
+
+  it("사전등록 안내 문구는 3언어가 다 있고 날짜·숫자·금지 낱말이 없다", () => {
+    const m = MESSAGES["banner.prelaunch.title" as keyof typeof MESSAGES] as Record<string, string>;
+    for (const lang of ["ko", "en", "es"]) {
+      expect(m[lang], lang).toBeTruthy();
+      expect(m[lang]).not.toMatch(/\d/);
+      expect(m[lang]).not.toMatch(/표|투표|Vote|Voter|월드컵|FIFA|The Lab|배지|badge/i);
     }
   });
 });

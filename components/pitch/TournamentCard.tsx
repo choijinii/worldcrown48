@@ -1,8 +1,13 @@
 "use client";
 
 /**
- * M3 · TournamentCard — cover (48 VS) + featured/status pills + title + meta
- * + ENTER. Links to the Arena (/arena/{id}).
+ * M3 · TournamentCard — cover (대표 매치 VS 장면) + featured/status pills + meta
+ * + 참가하기. Links to the Arena (/arena/{id}).
+ *
+ * THUMB-1 PR 2 (원장 D-35 · 합격 시안 `docs/design/claude-design/THUMB-1_2026-10-18/`
+ * A-1~A-3): 커버 = 공용 `VSThumb`(16:9 · 제목은 커버 하단 딤 위 · 2줄 말줄임) · 몸통 = 메타 +
+ * 참가하기 버튼만. 커버 두 칸은 `useCoverPair` 가 대표 매치를 읽어 정하고, 그림이 깨지면(㉣)
+ * 앞 번호 엔트리로 바꾼다. 커버는 테마와 무관하게 매치 무대 색(다크)이다.
  *
  * Hard constraints (handoff §5 / AC-4 / AC-6): NO Vote Count, NO Vote Rate(%),
  * NO LIVE badge, NO Round info anywhere on the card. The meta line is built
@@ -18,15 +23,8 @@ import { formatCloses, statusPillVariant } from "@/lib/pitch/trending";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="4" y1="12" x2="18" y2="12" />
-      <polyline points="12 6 18 12 12 18" />
-    </svg>
-  );
-}
+import { VSThumb } from "@/components/thumbnail/VSThumb";
+import { useCoverPair } from "@/components/thumbnail/useCoverPair";
 
 export interface TournamentCardProps {
   tournament: Tournament;
@@ -38,6 +36,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
   const closes = formatCloses(tournament.tournamentDeadline);
   const pill = statusPillVariant(tournament.status);
   const displayTitle = localizedTitle(tournament, lang);
+  const cover = useCoverPair(tournament.id, tournament.thumbnailPair);
 
   return (
     <Link
@@ -48,7 +47,15 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
         track("a1_card_click", { tournamentId: tournament.id, position })
       }
     >
-      <div className="tcard-cover">
+      <div className="tcard-cover" data-cover-a={cover.aId ?? ""} data-cover-b={cover.bId ?? ""}>
+        <VSThumb
+          a={cover.a}
+          b={cover.b}
+          title={displayTitle}
+          titleSize="var(--tcard-title-size)"
+          onBroken={cover.onBroken}
+          testId={`tcard-cover-${tournament.id}`}
+        />
         <div className="tcard-chips">
           {tournament.featured ? (
             <span className="featured-pill" aria-label="Featured tournament">
@@ -62,10 +69,8 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
             {tournament.status.toUpperCase()}
           </span>
         </div>
-        <span className="tcard-vs">48</span>
       </div>
       <div className="tcard-body">
-        <div className="tcard-title">{displayTitle}</div>
         <div className="tcard-meta">
           <span>{t("pitch.card.contestants")}</span>
           {closes && (
@@ -77,7 +82,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
         </div>
         <div className="tcard-foot">
           <span className="tcard-enter">
-            {t("pitch.card.enter")} <ArrowIcon />
+            {t("pitch.card.cta")}
           </span>
         </div>
       </div>

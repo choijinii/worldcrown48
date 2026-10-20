@@ -13,6 +13,7 @@
  */
 import type { MessageKey } from "@/lib/i18n/messages";
 import type { LocalizedText } from "@/lib/types/tournament";
+import { LAUNCH_AT_MS, isBeforeLaunch } from "@/lib/launch/launchAt";
 
 /** 런칭 시점 자리 목록(D-21 정의). */
 export const BANNER_SLOT_NAMES = [
@@ -107,12 +108,29 @@ export function defaultNotice(audience: BannerAudience, slot?: string): DefaultN
     : { titleKey: "banner.default.guest.title", action: "signIn" };
 }
 
+/**
+ * 런칭 전 기본 공지 = 사전등록 안내 (원장 D-59 · 2026-10-18 대표). 누르면 `/launch`.
+ * 런칭 시각(`LAUNCH_AT_MS`)이 지나면 자동으로 위 `defaultNotice` 로 돌아간다 — 런칭 날
+ * 끄는 작업이 없다. 관문(피치 → /launch 돌려보내기)은 만들지 않는다(D-59 아니라고 한 것).
+ */
+const PRELAUNCH_SLOTS: readonly string[] = ["pitch-between"];
+const PRELAUNCH_NOTICE: DefaultNotice = {
+  titleKey: "banner.prelaunch.title",
+  action: "link",
+  href: "/launch",
+};
+
 export function resolveBanner(
   docs: BannerDoc[],
   slot: string,
   nowMs: number,
   audience: BannerAudience,
+  launchAtMs: number = LAUNCH_AT_MS,
 ): ResolvedBanner {
   const banner = pickBanner(docs, slot, nowMs);
-  return banner ? { source: "doc", banner } : { source: "default", notice: defaultNotice(audience, slot) };
+  if (banner) return { source: "doc", banner };
+  if (PRELAUNCH_SLOTS.includes(slot) && isBeforeLaunch(nowMs, launchAtMs)) {
+    return { source: "default", notice: PRELAUNCH_NOTICE };
+  }
+  return { source: "default", notice: defaultNotice(audience, slot) };
 }

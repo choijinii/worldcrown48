@@ -171,7 +171,8 @@ export const MESSAGES = {
     es: "Vuelve pronto — abrimos nuevos Tournaments a menudo.",
   },
   "pitch.card.featured": { ko: "FEATURED", en: "FEATURED" },
-  "pitch.card.enter": { ko: "ENTER", en: "ENTER" },
+  // THUMB-1 PR 2 — 카드 몸통의 참가 버튼(합격 시안). 글자 = 참가하기 / Pick Now / Elige ahora(D-23).
+  "pitch.card.cta": { ko: "참가하기", en: "Pick Now", es: "Elige ahora" },
   "pitch.card.contestants": {
     ko: "48 Contestants",
     en: "48 Contestants",
@@ -695,6 +696,12 @@ export const MESSAGES = {
     en: "{n} videos cannot play",
     es: "{n} videos no se reproducen",
   },
+  // THUMB-1 PR 2 (킥 §4 ㉣) — 고른 대표 매치(A·B)의 그림이 안 뜬다. 피치 카드는 앞 번호로 대체 중.
+  "lab.list.coverBroken": {
+    ko: "대표 매치 그림 깨짐",
+    en: "Cover Match image broken",
+    es: "Imagen del Match de portada rota",
+  },
 
   // ── LAB-EV-1 유튜브 임베드 검수기 (어드민 전용 · ADR-EV-7) ──────────────
   // 개명 (LAB-UX-1 목업 v2 ⑤): 버튼명은 "무엇인가"가 아니라 "하는 일"이다.
@@ -1032,6 +1039,14 @@ export const MESSAGES = {
     ko: "대회를 마치면 크라운 카드가 생겨요 — 친구에게 공유해 보세요",
     en: "Finish a tournament to earn your Crown Card — share it with friends",
     es: "Termina un torneo y consigue tu Crown Card — compártela con tus amigos",
+  },
+  // THUMB-1 PR 2 (원장 D-59) — 런칭 전 피치 배너 자리(pitch-between)의 기본 공지. 누르면 /launch.
+  // 런칭 시각(lib/launch/launchAt)이 지나면 위 기본 공지로 자동으로 돌아간다. 날짜·숫자 금지.
+  // 글자 = 이미 승인된 사전등록 배너 문구(마티오 M1 · X 안내 글과 같음 — 코티오 승인 2026-10-19).
+  "banner.prelaunch.title": {
+    ko: "사전등록에 참가하세요! 먼저 온 사람에게 혜택이 기다립니다.",
+    en: "Join the Waitlist! Something special awaits those who come first.",
+    es: "¡Únete a la lista! Algo especial espera a quienes lleguen primero.",
   },
   // ARENA-1 (원장 D-11 · D-14) — 무대 재생기가 세로 숏츠를 받는 칸. 운영자 전용 화면.
   "lab.embed.tuner.orientation": { ko: "영상 비율", en: "Video shape", es: "Formato del video" },

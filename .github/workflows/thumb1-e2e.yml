@@ -5,6 +5,10 @@ name: THUMB-1 대표 매치 E2E (Playwright)
 # 전부 스텁이다. 자동 저장된 초안이 생기므로 **tournamentDrafts 규칙(#126)이 배포돼
 # 있어야** 초록이다. 게시 → thumbnailPair 저장은 b1-e2e 가 본다.
 #
+# PR 2 — The Pitch(thumb1-pitch.spec.ts): 화이트 · 카드 커버 = VS 장면 · 배너 자리 pitch-between
+# (970×90 / 320×100 / 휴대폰 가로 없음 · 런칭 전 사전등록 안내 D-59) · 그림 깨짐(㉣) 대체 ·
+# 관리자 "대표 매치 그림 깨짐" 표시. 대회를 admin SDK 로 잠깐 심고 끝나면 지운다.
+#
 # PREVIEW_URL is resolved to THIS commit's OWN Vercel Preview deployment via the
 # GitHub Deployments API (by head SHA) — 고정 프리뷰 시크릿은 만들지 않는다
 # ([[feedback_c2_preview_url_pinned]]). E2E 실행은 자기 spec 하나로만 좁힌다
@@ -23,6 +27,12 @@ on:
       - 'components/thumbnail/**'
       - 'lib/thumbnail/**'
       - 'e2e/thumb1-pair.spec.ts'
+      - 'e2e/thumb1-pitch.spec.ts'
+      - 'components/pitch/**'
+      - 'components/layout/BannerSlot.tsx'
+      - 'components/layout/useBannerVariant.ts'
+      - 'lib/banner/**'
+      - 'lib/launch/launchAt.ts'
       - 'e2e/labDrafts.ts'
       - 'e2e/labVideos.ts'
       - 'firestore.rules'
@@ -125,8 +135,8 @@ jobs:
           echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright)
-        # 자기 spec 하나만 — 다른 워크플로의 spec 을 같이 돌리지 않는다.
-        run: npm run test:e2e -- e2e/thumb1-pair.spec.ts
+        # THUMB-1 자기 spec 둘만 — 다른 워크플로의 spec 을 같이 돌리지 않는다.
+        run: npm run test:e2e -- e2e/thumb1-pair.spec.ts e2e/thumb1-pitch.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()
