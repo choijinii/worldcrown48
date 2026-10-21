@@ -15,6 +15,16 @@
 
 export type AnomalyTag = "T-1" | "T-2" | "T-3" | "T-4";
 
+/**
+ * 이름 3언어 — `lib/types/tournament.ts` 의 `LocalizedText` 와 같은 모양. 이 모듈은
+ * import 를 갖지 않아야 functions 로 복사되므로(copy-ranking) 여기에 다시 적는다.
+ */
+export interface NameI18n {
+  ko: string;
+  en: string;
+  es: string;
+}
+
 /** A single contestant's ranking row (denormalized — no contestants join at UI). */
 export interface RankingEntry {
   /** 1-based rank. Ties share a rank, the next rank is skipped (1·1·3). */
@@ -22,6 +32,11 @@ export interface RankingEntry {
   contestantId: string;
   /** Tournament-time denormalization so the UI needs no contestants read. */
   name: string;
+  /**
+   * NAME-I18N-1 (원장 D-61) — 이름 3언어 복사본. 빠지면 영어 화면 차트에 한글이 남는다.
+   * 선택: 옛 캐시·옛 대회엔 없다(화면은 `localizedName` 이 name 으로 폴백).
+   */
+  nameI18n?: NameI18n;
   /**
    * 아바타의 재료 — 유튜브 videoId. 완성된 URL이 아니라 id를 싣는다: 썸네일 주소
    * 템플릿이 한 곳(buildThumbnailUrl)에만 있어야 캐시와 화면이 갈라지지 않는다.
@@ -107,6 +122,8 @@ export interface RankingCache extends RankingSnapshot {
 export interface ContestantTally {
   contestantId: string;
   name: string;
+  /** NAME-I18N-1 — 있으면 차트 행에 그대로 실린다. */
+  nameI18n?: NameI18n;
   videoId: string | null;
   voteCount: number;
 }

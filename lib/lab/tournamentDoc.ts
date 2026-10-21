@@ -158,15 +158,24 @@ function mediaOf(d: ContestantDraft): ContestantMedia | undefined {
   };
 }
 
+/**
+ * `nameI18n` (NAME-I18N-1 · 원장 D-61) — 발행 때 AI가 받은 이름 3언어, drafts 와 같은 순서.
+ * 넘기지 않으면 필드 자체를 싣지 않는다(옛 호출과 같은 모양). `name`(한글 정본)은 그대로다.
+ */
 export function buildContestantDocs(
   tournamentId: string,
   hostUid: string,
   drafts: ContestantDraft[],
+  nameI18n?: LocalizedText[],
 ): ContestantDocData[] {
   if (drafts.length !== TOTAL_CONTESTANTS) {
     throw new Error(
       `정확히 ${TOTAL_CONTESTANTS}명이 필요합니다 (받음: ${drafts.length}).`,
     );
+  }
+  // 길이가 다르면 이름이 다른 사람에게 붙는다 — 발행을 막는 편이 낫다.
+  if (nameI18n && nameI18n.length !== drafts.length) {
+    throw new Error(`이름 3언어 ${nameI18n.length}개 ≠ 엔트리 ${drafts.length}명.`);
   }
   return drafts.map((d, i) => {
     const media = mediaOf(d);
@@ -182,6 +191,7 @@ export function buildContestantDocs(
       imageSearchKeyword: d.imageSearchKeyword ?? "",
       // undefined 필드를 그대로 넘기면 Firestore가 거부한다 — 있을 때만 싣는다.
       ...(media ? { media } : {}),
+      ...(nameI18n ? { nameI18n: nameI18n[i] } : {}),
     };
   });
 }

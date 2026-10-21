@@ -19,6 +19,8 @@ export interface RankingRowLike {
   rank: number;
   contestantId: string;
   name: string;
+  /** NAME-I18N-1 (원장 D-61) — 차트 캐시의 nameI18n.en. 옛 캐시엔 없다(빈칸). */
+  nameEn?: string;
   rate: number;
   /** INTERNAL — present in the cache, NEVER surfaced by a digest. */
   voteCount?: number;
@@ -44,6 +46,8 @@ export interface DigestLeader {
   rank: number;
   contestantId: string;
   name: string;
+  /** 공식 영어 이름 — 초안·번역 프롬프트가 한글 이름과 함께 쓴다(NAME-I18N-1). */
+  nameEn?: string;
   rate: number;
   isChampion?: boolean;
   /** weekly digest cross-tournament label. */
@@ -55,6 +59,28 @@ export interface NewsDigest {
   stats: EvidenceStat[];
   leaders: DigestLeader[];
   tournamentId?: string;
+}
+
+/**
+ * ranking_cache 의 한 행 → 기사 근거 행(순수). voteCount 는 여기서 버린다(원칙 #8).
+ * 결과 기사 트리거 · 관리자 콜러블 · 주간 크론이 같은 읽기를 쓴다.
+ */
+export function rankingRowFromCache(r: Record<string, unknown>): RankingRowLike {
+  const en = (r.nameI18n as { en?: unknown } | undefined)?.en;
+  return {
+    rank: Number(r.rank ?? 0),
+    contestantId: String(r.contestantId ?? ""),
+    name: String(r.name ?? ""),
+    nameEn: typeof en === "string" ? en.trim() : "",
+    rate: Number(r.rate ?? 0),
+  };
+}
+
+/** 한글 이름과 영어 이름이 따로 있는 선두만 — 번역 프롬프트의 이름 표(NAME-I18N-1). */
+export function nameGlossaryOf(digest: NewsDigest): { ko: string; en: string }[] {
+  return digest.leaders
+    .filter((l) => l.nameEn && l.nameEn !== l.name)
+    .map((l) => ({ ko: l.name, en: l.nameEn as string }));
 }
 
 const kstMonthDay = new Intl.DateTimeFormat("en-CA", {
@@ -112,6 +138,7 @@ function toLeaders(
       rank: r.rank,
       contestantId: r.contestantId,
       name: r.name,
+      ...(r.nameEn ? { nameEn: r.nameEn } : {}),
       rate: r.rate,
       isChampion: championId ? r.contestantId === championId : false,
     }));
@@ -160,6 +187,7 @@ export function buildWeeklyDigest(args: {
             rank: top.rank,
             contestantId: top.contestantId,
             name: top.name,
+            ...(top.nameEn ? { nameEn: top.nameEn } : {}),
             rate: top.rate,
             tournamentTitle: c.title,
           }

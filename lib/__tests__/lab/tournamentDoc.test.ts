@@ -152,6 +152,26 @@ describe("buildContestantDocs", () => {
     expect(() => buildContestantDocs("t1", "host-1", drafts(49))).toThrow();
   });
 
+  // ── NAME-I18N-1 (원장 D-61) — 이름 3언어는 추가형, name(한글 정본)은 그대로 ──
+  describe("nameI18n (NAME-I18N-1)", () => {
+    const names = drafts(48).map((d, i) => ({ ko: d.name, en: `En${i + 1}`, es: `En${i + 1}` }));
+
+    it("같은 순서로 nameI18n 을 싣고 name 은 바꾸지 않는다", () => {
+      const docs = buildContestantDocs("t1", "host-1", drafts(48), names);
+      expect(docs[0].name).toBe("P1");
+      expect(docs[0].nameI18n).toEqual({ ko: "P1", en: "En1", es: "En1" });
+      expect(docs[47].nameI18n?.en).toBe("En48");
+    });
+
+    it("넘기지 않으면 필드 자체가 없다(옛 호출 그대로)", () => {
+      expect("nameI18n" in buildContestantDocs("t1", "host-1", drafts(48))[0]).toBe(false);
+    });
+
+    it("길이가 48이 아니면 던진다 — 이름이 다른 사람에게 붙지 않게", () => {
+      expect(() => buildContestantDocs("t1", "host-1", drafts(48), names.slice(1))).toThrow();
+    });
+  });
+
   // ── LAB-EV-1 W6 — 영상은 기존 media 그레일에 실린다 (병렬 스키마 금지) ──
   describe("영상 필드 (LAB-EV-1)", () => {
     const withVideo = () => {

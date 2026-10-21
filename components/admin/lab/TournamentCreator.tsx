@@ -42,6 +42,7 @@ import { isStep1Ready } from "@/lib/lab/step1Ready";
 import { KEYWORDS_MAX, mergeKeywords } from "@/lib/lab/keywordsValidation";
 import { presetDeadlineMs, DEFAULT_DEADLINE_DAYS } from "@/lib/lab/deadlineValidation";
 import { translateMeta } from "@/lib/lab/translateMeta";
+import { translateNames } from "@/lib/lab/translateNames";
 import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
@@ -891,11 +892,19 @@ export function TournamentCreator(): JSX.Element {
     try {
       // Translate title + description once (미보유 언어만 Haiku; 실패 시 원문
       // fallback — 발행은 성공, ADR-B2 §4). Source lang = current UI lang.
-      const meta = await translateMeta({
-        title: title.trim(),
-        description: description.trim(),
-        sourceLang: lang,
-      });
+      // 엔트리 이름 3언어(원장 D-61)도 같은 때 한 번 — Haiku 1번에 48명. 실패하면 en·es 는
+      // 빈칸(화면은 한글 폴백)이고 발행은 그대로 진행한다.
+      const [meta, nameI18n] = await Promise.all([
+        translateMeta({
+          title: title.trim(),
+          description: description.trim(),
+          sourceLang: lang,
+        }),
+        translateNames(
+          contestants.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "" })),
+          category,
+        ),
+      ]);
 
       const db = getDb();
       const tournament = {
@@ -919,7 +928,7 @@ export function TournamentCreator(): JSX.Element {
       // 초안 삭제는 같은 배치 — 발행이 성공해야만 지워진다(EDITOR-FIX-1).
       const { batch, tournamentId } = buildPublishBatch(db, {
         tournament,
-        contestants: (id) => buildContestantDocs(id, uid, contestants),
+        contestants: (id) => buildContestantDocs(id, uid, contestants, nameI18n),
         draftId,
         thumbnailPair: publishPair(pairPick, slotOrientation) ?? undefined,
       });

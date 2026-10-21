@@ -41,6 +41,8 @@ export function computeCrownRankings(
       rank: 0, // 아래에서 채운다
       contestantId: t.contestantId,
       name: t.name,
+      // Firestore 는 undefined 를 거부한다 — 있을 때만 싣는다(NAME-I18N-1).
+      ...(t.nameI18n ? { nameI18n: t.nameI18n } : {}),
       videoId: t.videoId,
       voteCount: t.voteCount,
       rate: totalVotes === 0 ? 0 : roundRate((t.voteCount / totalVotes) * 100),

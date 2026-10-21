@@ -92,6 +92,23 @@ describe("assembleLocalizedDraft — draft-only + origin 기록 (AC 1)", () => {
     expect(doc.evidence.asOf).toBe("2026-07-22 08:00 KST");
   });
 
+  // NAME-I18N-1 (원장 D-61) — 이름 표가 번역 호출까지 닿아야 en·es 기사가 공식 철자를 쓴다.
+  it("names 를 en·es 번역 호출에 넘긴다", async () => {
+    const seen: string[] = [];
+    await assembleLocalizedDraft(
+      { ...args, names: [{ ko: "뉴진스", en: "NewJeans" }] },
+      {
+        createMessage: vi.fn(async (p: string) => {
+          seen.push(p);
+          return fakeMessage(p);
+        }),
+      },
+    );
+    const translates = seen.filter((p) => /번역/.test(p) && /\((en|es)\)/.test(p));
+    expect(translates).toHaveLength(2);
+    for (const p of translates) expect(p).toContain("뉴진스 → NewJeans");
+  });
+
   it("throws when the draft reply has no usable blocks", async () => {
     const createMessage = vi.fn(async (p: string) =>
       /번역/.test(p) ? fakeMessage(p) : JSON.stringify({ title: "x", subhead: "y", blocks: [] }),

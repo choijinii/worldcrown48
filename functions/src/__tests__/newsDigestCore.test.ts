@@ -11,6 +11,8 @@ import {
   buildOpenDigest,
   buildResultDigest,
   buildWeeklyDigest,
+  nameGlossaryOf,
+  rankingRowFromCache,
   formatKstMonthDay,
   type RankingRowLike,
 } from "../core/newsDigestCore";
@@ -126,5 +128,49 @@ describe("buildWeeklyDigest — 주간 랭킹 동향 (현행 ranking_cache 누�
     const d = buildWeeklyDigest({ caches, asOf: "now" });
     const blob = JSON.stringify(d.stats);
     expect(blob).not.toMatch(/"5"|999|640|375/);
+  });
+});
+
+// NAME-I18N-1 (원장 D-61) — 차트 캐시에 실린 공식 영어 이름을 기사 근거까지 실어 나른다.
+describe("이름 3언어 — 기사 근거", () => {
+  it("rankingRowFromCache 는 nameI18n.en 을 nameEn 으로 읽는다(없으면 빈칸)", () => {
+    expect(
+      rankingRowFromCache({
+        rank: 1,
+        contestantId: "c1",
+        name: "뉴진스",
+        nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" },
+        rate: 40,
+        voteCount: 9,
+      }),
+    ).toEqual({ rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 });
+    expect(rankingRowFromCache({ rank: 2, contestantId: "c2", name: "옛", rate: 1 }).nameEn).toBe("");
+  });
+
+  it("결과·주간 근거의 선두가 nameEn 을 갖는다", () => {
+    const named: RankingRowLike[] = [
+      { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 },
+    ];
+    expect(buildResultDigest({ meta, rankings: named, championId: "c1", asOf: "x" }).leaders[0].nameEn).toBe(
+      "NewJeans",
+    );
+    expect(
+      buildWeeklyDigest({ caches: [{ tournamentId: "t", title: "T", rankings: named }], asOf: "x" }).leaders[0]
+        .nameEn,
+    ).toBe("NewJeans");
+  });
+
+  it("nameGlossaryOf 는 영어 이름이 따로 있는 선두만 모은다", () => {
+    expect(
+      nameGlossaryOf({
+        asOf: "x",
+        stats: [],
+        leaders: [
+          { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 },
+          { rank: 2, contestantId: "c2", name: "IVE", nameEn: "IVE", rate: 30 },
+          { rank: 3, contestantId: "c3", name: "옛 엔트리", rate: 20 },
+        ],
+      }),
+    ).toEqual([{ ko: "뉴진스", en: "NewJeans" }]);
   });
 });

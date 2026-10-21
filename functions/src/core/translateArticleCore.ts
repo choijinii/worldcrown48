@@ -84,6 +84,11 @@ export interface TranslateArticleInput {
   subhead: string;
   body: ArticleBlock[];
   sourceLang: Lang;
+  /**
+   * NAME-I18N-1 (원장 D-61) — 엔트리 이름 표(한글 → 공식 영어). en·es 번역문이 이름을
+   * 발음 옮겨 적기 대신 공식 철자로 쓰게 한다. 없거나 비면 프롬프트는 지금과 같다.
+   */
+  names?: { ko: string; en: string }[];
 }
 
 export interface TranslateArticleDeps {
@@ -103,6 +108,16 @@ const LANG_NAME: Record<Lang, string> = {
   es: "Spanish(español)",
 };
 
+/** 이름 표 줄 — ko 로 옮길 때는 싣지 않는다(한글이 정본). 끝에 빈 줄 하나. */
+function nameGlossaryLines(names: TranslateArticleInput["names"], target: Lang): string[] {
+  if (target === "ko" || !names || names.length === 0) return [];
+  return [
+    "엔트리(Contestant) 이름 표기 — 번역문에서는 오른쪽 공식 철자를 그대로 쓴다:",
+    ...names.map((n) => `  - ${n.ko} → ${n.en}`),
+    "",
+  ];
+}
+
 export function buildArticleTranslatePrompt(
   input: TranslateArticleInput,
   target: Lang,
@@ -116,6 +131,7 @@ export function buildArticleTranslatePrompt(
     // 이 블록이 없으면 ko "팬"이 es 에서 "aficionados"로 흐른다 (2026-08-08 실측).
     TRANSLATION_GLOSSARY,
     "",
+    ...nameGlossaryLines(input.names, target),
     `제목: ${JSON.stringify(input.title)}`,
     `부제: ${JSON.stringify(input.subhead)}`,
     `본문 블록: ${JSON.stringify(input.body)}`,

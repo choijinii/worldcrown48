@@ -77,6 +77,15 @@ export const NEWS_STYLE_GUIDE = [
   "   데이터가 말해주는 의외의 강조 중 하나를 넣는다. 평탄하게 클로저로 직행하지 않는다.",
 ].join("\n");
 
+/**
+ * NAME-I18N-1 (원장 D-61) — 한글 이름 옆에 공식 영어 이름을 덧붙인다. en·es 기사가
+ * 발음 옮겨 적기 대신 공식 철자를 쓰게 하는 근거 데이터다(지침·구조는 그대로).
+ * 영어 이름이 없거나 한글 이름과 같으면 아무것도 붙이지 않는다 — 지금 줄 그대로.
+ */
+function englishNameNote(name: string, nameEn?: string): string {
+  return nameEn && nameEn !== name ? ` (공식 영어 이름: ${nameEn})` : "";
+}
+
 function evidenceLines(digest: NewsDigest): string {
   const stats = digest.stats
     .map((s) => `  - ${s.label}: ${s.value}`)
@@ -87,7 +96,7 @@ function evidenceLines(digest: NewsDigest): string {
         digest.leaders
           .map(
             (l) =>
-              `  - ${l.rank}위 ${l.name} ${l.rate.toFixed(1)}%` +
+              `  - ${l.rank}위 ${l.name}${englishNameNote(l.name, l.nameEn)} ${l.rate.toFixed(1)}%` +
               (l.isChampion ? " (Champion)" : "") +
               (l.tournamentTitle ? ` [${l.tournamentTitle}]` : ""),
           )
@@ -123,10 +132,16 @@ export function buildOpenPrompt(args: {
 export function buildResultPrompt(args: {
   title: string;
   championName: string;
+  /** 공식 영어 이름(NAME-I18N-1) — 없으면 지금 문장 그대로. */
+  championNameEn?: string;
   digest: NewsDigest;
 }): string {
+  const en =
+    args.championNameEn && args.championNameEn !== args.championName
+      ? `(공식 영어 이름 "${args.championNameEn}")`
+      : "";
   return assemble(
-    `[결과 기사] Tournament "${args.title}"가 끝났고 Champion은 "${args.championName}"이다. ` +
+    `[결과 기사] Tournament "${args.title}"가 끝났고 Champion은 "${args.championName}"${en}이다. ` +
       `팬들이 함께 고른 결과를 전한다. 상위 순위를 비율(%)로 stats 블록에 담되 절대 득표수는 쓰지 않는다.`,
     args.digest,
   );
