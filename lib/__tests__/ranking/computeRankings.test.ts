@@ -95,3 +95,17 @@ describe("totalVotesOf", () => {
     expect(totalVotesOf([tally("a", 3), tally("b", 2)])).toBe(5);
   });
 });
+
+// NAME-I18N-1 (원장 D-61) — 차트 캐시는 이름 복사본이다. 3언어 이름도 함께 실어야
+// 영어 화면에 한글이 남지 않는다. 옛 대회(필드 없음)는 행 모양이 그대로다.
+describe("computeRankings — nameI18n 실어 나르기", () => {
+  it("있으면 그대로 싣는다", () => {
+    const nameI18n = { ko: "뉴진스", en: "NewJeans", es: "NewJeans" };
+    const r = computeRankings([{ ...tally("a", 3, "뉴진스"), nameI18n }]);
+    expect(r[0].nameI18n).toEqual(nameI18n);
+  });
+
+  it("없으면 필드가 없다(Firestore 는 undefined 를 거부)", () => {
+    expect("nameI18n" in computeRankings([tally("a", 3)])[0]).toBe(false);
+  });
+});

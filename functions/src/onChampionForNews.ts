@@ -17,7 +17,12 @@ import {
   shouldGenerateCrownCard,
   type RoundProgressData,
 } from "./core/onChampionConfirmedCore";
-import { buildResultDigest, type RankingRowLike } from "./core/newsDigestCore";
+import {
+  buildResultDigest,
+  nameGlossaryOf,
+  rankingRowFromCache,
+  type RankingRowLike,
+} from "./core/newsDigestCore";
 import { buildResultPrompt } from "./core/newsPrompts";
 import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
 import { newsDraftExists } from "./core/newsDraftAssembly";
@@ -32,12 +37,8 @@ import { kstDate } from "./core/voteRecord";
 
 function rankingsOf(data: FirebaseFirestore.DocumentData | undefined): RankingRowLike[] {
   const rows = (data?.rankings ?? []) as Array<Record<string, unknown>>;
-  return rows.map((r) => ({
-    rank: Number(r.rank ?? 0),
-    contestantId: String(r.contestantId ?? ""),
-    name: String(r.name ?? ""),
-    rate: Number(r.rate ?? 0),
-  }));
+  // 행 읽기는 한 곳(rankingRowFromCache) — 공식 영어 이름(nameI18n.en)까지 읽는다.
+  return rows.map(rankingRowFromCache);
 }
 
 export const onChampionForNews = onDocumentUpdated(
@@ -82,6 +83,7 @@ export const onChampionForNews = onDocumentUpdated(
       const prompt = buildResultPrompt({
         title: meta.title,
         championName: digest.leaders[0]?.name ?? "",
+        championNameEn: digest.leaders[0]?.nameEn,
         digest,
       });
 
@@ -94,6 +96,7 @@ export const onChampionForNews = onDocumentUpdated(
           prompt,
           evidence: { asOf: digest.asOf, stats: digest.stats, tournamentId },
           tournamentId,
+          names: nameGlossaryOf(digest),
         },
         { createMessage: makeNewsCreateMessage(apiKey), logError: (m, e) => logger.error(m, e) },
       );

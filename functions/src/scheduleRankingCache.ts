@@ -24,7 +24,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
-import { buildTallies, tallyVotes, type VoteLike } from "./core/rankingAggregator";
+import { buildTallies, contestantMetaOf, tallyVotes, type VoteLike } from "./core/rankingAggregator";
 import { buildRankingUpdate } from "./core/scheduleRankingCacheCore";
 import { rankingWindowStartMs } from "./core/rankingWindow";
 import { tallyRuns, type RunVote } from "./_ranking/tallyRuns";
@@ -102,14 +102,8 @@ export const scheduleRankingCache = onSchedule(
       const runs = tallyRuns(votesSnap.docs.map((d) => d.data() as RunVote));
       const tallies = buildTallies(
         counts,
-        contestantsSnap.docs.map((d) => ({
-          id: d.id,
-          name: (d.data().name as string) ?? "",
-          // media.embed.videoId — Contestant의 그림은 전부 여기서 나온다(PR-2).
-          videoId:
-            ((d.data().media as { embed?: { videoId?: string } } | undefined)
-              ?.embed?.videoId as string) ?? "",
-        })),
+        // name · media.embed.videoId(PR-2) · nameI18n(NAME-I18N-1) — 문서 읽기는 한 곳.
+        contestantsSnap.docs.map((d) => contestantMetaOf(d.id, d.data())),
       );
 
       const prevData = prevSnap.exists ? prevSnap.data()! : null;

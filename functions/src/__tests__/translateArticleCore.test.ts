@@ -200,3 +200,39 @@ describe("translateArticleCore (Option A — per-language, block-aware)", () => 
     ).rejects.toThrow();
   });
 });
+
+// NAME-I18N-1 (원장 D-61) — en·es 번역문이 엔트리 이름을 공식 철자로 쓰게 이름 표를 넘긴다.
+describe("buildArticleTranslatePrompt — 엔트리 이름 표기", () => {
+  const body: ArticleBlock[] = [{ type: "lead", text: "뉴진스가 정상에" }];
+  const names = [{ ko: "뉴진스", en: "NewJeans" }];
+
+  it.each(["en", "es"] as const)("%s 번역에 이름 표가 실린다", (target) => {
+    const p = buildArticleTranslatePrompt({ title: "t", subhead: "s", body, sourceLang: "ko", names }, target);
+    expect(p).toContain("뉴진스 → NewJeans");
+  });
+
+  it("이름 표가 없으면 프롬프트가 지금과 같다", () => {
+    const input = { title: "t", subhead: "s", body, sourceLang: "ko" as const };
+    expect(buildArticleTranslatePrompt({ ...input, names: [] }, "en")).toBe(buildArticleTranslatePrompt(input, "en"));
+  });
+
+  it("ko 로 옮길 때는 싣지 않는다(한글이 정본)", () => {
+    const p = buildArticleTranslatePrompt({ title: "t", subhead: "s", body, sourceLang: "en", names }, "ko");
+    expect(p).not.toContain("→ NewJeans");
+  });
+
+  it("translateArticleCore 는 이름 표를 각 언어 호출에 넘긴다", async () => {
+    const seen: string[] = [];
+    await translateArticleCore(
+      { title: "t", subhead: "s", body: sourceBody, sourceLang: "ko", names },
+      {
+        createMessage: async (p: string) => {
+          seen.push(p);
+          return fakeFor(p);
+        },
+      },
+    );
+    expect(seen).toHaveLength(2);
+    for (const p of seen) expect(p).toContain("뉴진스 → NewJeans");
+  });
+});

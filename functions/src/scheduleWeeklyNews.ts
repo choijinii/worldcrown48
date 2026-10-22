@@ -11,7 +11,12 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { adminDb } from "./admin";
-import { buildWeeklyDigest, type RankingRowLike } from "./core/newsDigestCore";
+import {
+  buildWeeklyDigest,
+  nameGlossaryOf,
+  rankingRowFromCache,
+  type RankingRowLike,
+} from "./core/newsDigestCore";
 import { buildWeeklyPrompt } from "./core/newsPrompts";
 import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
 import { makeNewsCreateMessage, newNewsSlug, kstStamp, writeNewsDraft } from "./newsShared";
@@ -19,12 +24,8 @@ import { kstDate } from "./core/voteRecord";
 
 function rankingsOf(data: FirebaseFirestore.DocumentData | undefined): RankingRowLike[] {
   const rows = (data?.rankings ?? []) as Array<Record<string, unknown>>;
-  return rows.map((r) => ({
-    rank: Number(r.rank ?? 0),
-    contestantId: String(r.contestantId ?? ""),
-    name: String(r.name ?? ""),
-    rate: Number(r.rate ?? 0),
-  }));
+  // 행 읽기는 한 곳(rankingRowFromCache) — 공식 영어 이름(nameI18n.en)까지 읽는다.
+  return rows.map(rankingRowFromCache);
 }
 
 export const scheduleWeeklyNews = onSchedule(
@@ -75,6 +76,7 @@ export const scheduleWeeklyNews = onSchedule(
           sourceLang: "ko",
           prompt,
           evidence: { asOf: digest.asOf, stats: digest.stats },
+          names: nameGlossaryOf(digest),
         },
         { createMessage: makeNewsCreateMessage(apiKey), logError: (m, e) => logger.error(m, e) },
       );

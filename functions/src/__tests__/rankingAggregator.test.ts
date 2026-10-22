@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildTallies,
+  contestantMetaOf,
   tallyVotes,
   type ContestantMeta,
 } from "../core/rankingAggregator";
@@ -97,5 +98,34 @@ describe("tallyVotes — 게스트 제외 (AC 10 · v2.1)", () => {
     ]);
     expect(counts.has("a")).toBe(false);
     expect(counts.get("b")).toBe(1);
+  });
+});
+
+// NAME-I18N-1 (원장 D-61) — 크론이 Contestant 문서에서 이름 3언어까지 읽어 캐시에 싣는다.
+describe("contestantMetaOf + buildTallies — nameI18n", () => {
+  it("문서의 nameI18n 을 읽어 싣는다", () => {
+    const m = contestantMetaOf("a", {
+      name: "뉴진스",
+      nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" },
+      media: { embed: { videoId: "vid" } },
+    });
+    expect(m).toEqual({
+      id: "a",
+      name: "뉴진스",
+      videoId: "vid",
+      nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" },
+    });
+    expect(buildTallies(new Map([["a", 2]]), [m])[0].nameI18n).toEqual(m.nameI18n);
+  });
+
+  it("옛 문서(필드 없음)는 nameI18n 없이 — 행 모양이 그대로", () => {
+    const m = contestantMetaOf("b", { name: "옛 엔트리" });
+    expect(m).toEqual({ id: "b", name: "옛 엔트리", videoId: "" });
+    expect("nameI18n" in buildTallies(new Map(), [m])[0]).toBe(false);
+  });
+
+  it("모양이 이상한 nameI18n 은 문자열만 골라 담는다", () => {
+    const m = contestantMetaOf("c", { name: "에스파", nameI18n: { en: "aespa", es: 3 } });
+    expect(m.nameI18n).toEqual({ ko: "에스파", en: "aespa", es: "" });
   });
 });

@@ -150,3 +150,31 @@ describe("템플릿별 근거 주입", () => {
     expect(prompts.column).toContain("여름 플레이리스트의 심리학");
   });
 });
+
+// NAME-I18N-1 (원장 D-61) — 초안 프롬프트에 한글 이름과 공식 영어 이름을 둘 다 넘긴다.
+// 기사 구조·지침은 그대로 — 근거 데이터 줄에 영어 이름이 덧붙을 뿐이다.
+describe("이름 3언어 — 근거 줄", () => {
+  const leader = { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40, isChampion: true };
+
+  it("선두 줄에 한글 이름과 공식 영어 이름이 함께 실린다", () => {
+    const p = buildResultPrompt({
+      title: "여름 48",
+      championName: "뉴진스",
+      championNameEn: "NewJeans",
+      digest: { ...digestStub, leaders: [leader] },
+    });
+    expect(p).toContain("1위 뉴진스 (공식 영어 이름: NewJeans) 40.0%");
+    expect(p).toContain('Champion은 "뉴진스"(공식 영어 이름 "NewJeans")이다');
+  });
+
+  it("영어 이름이 없거나 같으면 지금 줄 그대로", () => {
+    const p = buildResultPrompt({
+      title: "여름 48",
+      championName: "Blue Flame",
+      digest: { ...digestStub, leaders: [{ rank: 1, name: "Blue Flame", rate: 33.3, isChampion: true }] },
+    });
+    expect(p).toContain("1위 Blue Flame 33.3%");
+    expect(p).toContain('Champion은 "Blue Flame"이다');
+    expect(p).toBe(prompts.result);
+  });
+});

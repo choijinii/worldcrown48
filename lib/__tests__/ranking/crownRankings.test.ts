@@ -96,3 +96,16 @@ describe("computeCrownRankings", () => {
     expect(rows.find((r) => r.contestantId === "c0")?.rate).toBe(75);
   });
 });
+
+// NAME-I18N-1 (원장 D-61) — 차트 캐시(= 화면이 읽는 목록)에 3언어 이름을 싣는다.
+describe("computeCrownRankings — nameI18n 실어 나르기", () => {
+  it("있으면 싣고, 없으면 필드가 없다", () => {
+    const nameI18n = { ko: "뉴진스", en: "NewJeans", es: "NewJeans" };
+    const rows = computeCrownRankings(
+      [{ ...tally("c0", 3), nameI18n }, tally("c1", 1)],
+      tallyRuns(straightRun("u1")),
+    );
+    expect(rows.find((r) => r.contestantId === "c0")?.nameI18n).toEqual(nameI18n);
+    expect("nameI18n" in rows.find((r) => r.contestantId === "c1")!).toBe(false);
+  });
+});

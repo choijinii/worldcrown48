@@ -36,6 +36,8 @@ export interface AssembleArgs {
   prompt: string;
   evidence: Evidence;
   tournamentId?: string;
+  /** 엔트리 이름 표(한글 → 공식 영어) — en·es 번역에 넘긴다(NAME-I18N-1 · 원장 D-61). */
+  names?: { ko: string; en: string }[];
 }
 
 export async function assembleLocalizedDraft(
@@ -53,6 +55,7 @@ export async function assembleLocalizedDraft(
       subhead: parsed.subhead,
       body: parsed.body,
       sourceLang: args.sourceLang,
+      names: args.names,
     },
     { createMessage: deps.createMessage, logError: deps.logError },
   );

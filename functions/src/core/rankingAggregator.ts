@@ -5,7 +5,7 @@
  * metadata (name/imageUrl) so the cache is denormalized for the UI. Pure & total
  * — node-env vitest, no Firestore.
  */
-import type { ContestantTally } from "../_ranking/rankingTypes";
+import type { ContestantTally, NameI18n } from "../_ranking/rankingTypes";
 
 /** One vote's only fields we need to tally. */
 export interface VoteLike {
@@ -24,6 +24,21 @@ export interface ContestantMeta {
   name: string;
   /** 유튜브 videoId (media.embed.videoId). 없으면 빈 문자열 → 아바타는 글자. */
   videoId: string;
+  /** NAME-I18N-1 (원장 D-61) — 이름 3언어. 옛 문서엔 없다. */
+  nameI18n?: NameI18n;
+}
+
+/**
+ * Contestant 문서 → 크론이 쓰는 메타(순수). 문서 모양을 읽는 곳을 여기 한 곳에 둔다.
+ * `nameI18n` 은 문자열 칸만 골라 담는다(모양이 이상한 칸은 빈칸 — 화면이 한글로 폴백).
+ */
+export function contestantMetaOf(id: string, data: Record<string, unknown>): ContestantMeta {
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const name = str(data.name);
+  const videoId = str((data.media as { embed?: { videoId?: unknown } } | undefined)?.embed?.videoId);
+  const raw = data.nameI18n as Record<string, unknown> | undefined;
+  if (!raw || typeof raw !== "object") return { id, name, videoId };
+  return { id, name, videoId, nameI18n: { ko: str(raw.ko) || name, en: str(raw.en), es: str(raw.es) } };
 }
 
 /**
@@ -63,6 +78,7 @@ export function buildTallies(
   return contestants.map((c) => ({
     contestantId: c.id,
     name: c.name,
+    ...(c.nameI18n ? { nameI18n: c.nameI18n } : {}),
     videoId: c.videoId ? c.videoId : null,
     voteCount: counts.get(c.id) ?? 0,
   }));

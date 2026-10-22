@@ -158,6 +158,8 @@ export { aiSuggestKeywords } from "./aiSuggestKeywords";
 
 // B-2 The Lab — publish-time title/description translation (Haiku, 1회).
 export { translateTournamentMeta } from "./translateTournamentMeta";
+// NAME-I18N-1 (원장 D-61) — 발행 때 엔트리 이름 3언어(Haiku 1번에 48명).
+export { translateContestantNames } from "./translateContestantNames";
 
 // C-1 The Arena — vote engine.
 export { onVote } from "./onVote";

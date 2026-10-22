@@ -95,7 +95,14 @@ export interface Contestant {
   tournamentId: string;
   hostUid: string; // denormalized from the Tournament — enables batch-safe Firestore rules
   order: number; // 1..48
+  /** 한글 이름 — **정본**. 중복 판정·검색은 이 칸으로 한다(#82). 지우지도 바꾸지도 않는다. */
   name: string;
+  /**
+   * NAME-I18N-1 (원장 D-61) — 이름 3언어. en = 공식 로마자 활동명(발음 옮겨 적기 아님),
+   * es = en 복사, ko = name. 발행 때 AI 1번으로 채운다. 선택·additive: 2026-10-22 이전
+   * 문서엔 없다(백필 대상). 번역이 실패한 칸은 빈 문자열 — 화면은 `localizedName` 이 폴백한다.
+   */
+  nameI18n?: LocalizedText;
   /**
    * ISO 3166-1 alpha-2 (KR·JP·US…). LAB-UX-1 PR-2 이전에 발행된 문서는 자유 텍스트
    * ("대한민국")를 갖고 있다 — 화면은 `displayRegion`이 둘 다 처리한다.
