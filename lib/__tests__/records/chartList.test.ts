@@ -22,32 +22,39 @@ function t(id: string, deadlineMs: number | null, extra: Partial<ChartTournament
 
 describe("splitChartTournaments — 진행 중 / 끝난 대회", () => {
   it("마감 > 지금 = 진행 중 · 마감 ≤ 지금 = 끝남 (정확히 지금도 끝남)", () => {
-    const r = splitChartTournaments([t("future", NOW + 1), t("now", NOW), t("past", NOW - 1)], NOW);
+    const r = splitChartTournaments([t("future", NOW + 1), t("now", NOW), t("past", NOW - 1)], NOW, "production");
     expect(r.active.map((x) => x.id)).toEqual(["future"]);
     expect(r.ended.map((x) => x.id)).toEqual(["now", "past"]);
   });
 
   it("마감 시각이 없는 대회는 진행 중 — 계속 열려 있다", () => {
-    const r = splitChartTournaments([t("open", null)], NOW);
+    const r = splitChartTournaments([t("open", null)], NOW, "production");
     expect(r.active.map((x) => x.id)).toEqual(["open"]);
     expect(r.ended).toEqual([]);
   });
 
   it("status 로 판단하지 않는다 — 'ended' 문자열이어도 공개 집합 밖이라 빠지고, active 는 마감으로만 나뉜다", () => {
-    const r = splitChartTournaments([t("st-ended", NOW - H, { status: "ended" }), t("draft", NOW + H, { status: "draft" })], NOW);
+    const r = splitChartTournaments([t("st-ended", NOW - H, { status: "ended" }), t("draft", NOW + H, { status: "draft" })], NOW, "production");
     expect(r.active).toEqual([]);
     expect(r.ended).toEqual([]);
   });
 
   it("사이트맵과 같은 공개 집합 — 시드(hostUid seed-) 제외", () => {
-    const r = splitChartTournaments([t("seed", NOW + H, { hostUid: "seed-operator" }), t("real", NOW + H)], NOW);
+    const r = splitChartTournaments([t("seed", NOW + H, { hostUid: "seed-operator" }), t("real", NOW + H)], NOW, "production");
     expect(r.active.map((x) => x.id)).toEqual(["real"]);
+  });
+
+  it("시험 표시(e2e: true) 대회는 실서비스에서만 빠진다 (OPS-FIX-1 · D-66)", () => {
+    const list = [t("marked", NOW + H, { e2e: true }), t("real", NOW + H)];
+    expect(splitChartTournaments(list, NOW, "production").active.map((x) => x.id)).toEqual(["real"]);
+    expect(splitChartTournaments(list, NOW, "preview").active.map((x) => x.id)).toEqual(["marked", "real"]);
   });
 
   it("정렬: 진행 중 = 마감 가까운 순(마감 없음은 뒤) · 끝난 대회 = 마감 최근 순", () => {
     const r = splitChartTournaments(
       [t("a3", NOW + 3 * H), t("none", null), t("a1", NOW + H), t("e1", NOW - H), t("e3", NOW - 3 * H), t("a2", NOW + 2 * H)],
       NOW,
+      "production",
     );
     expect(r.active.map((x) => x.id)).toEqual(["a1", "a2", "a3", "none"]);
     expect(r.ended.map((x) => x.id)).toEqual(["e1", "e3"]);

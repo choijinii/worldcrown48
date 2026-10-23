@@ -13,6 +13,7 @@
  */
 import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { e2eMark } from "./e2eMark";
 
 /** lib/launch/launchAt 의 LAUNCH_AT_MS 와 같은 값(2026-11-26 00:00 KST) — e2e 는 앱 모듈을 직접 읽지 않는다. */
 const LAUNCH_AT_MS = Date.parse("2026-11-26T00:00:00+09:00");
@@ -62,6 +63,7 @@ async function seed(): Promise<{ id: string; c: string[] }> {
     titleI18n: { ko: TITLE, en: TITLE, es: TITLE },
     category: "FOOTBALL",
     status: "active",
+    ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     featured: false,
     hostUid,
     totalContestants: 48,

@@ -34,6 +34,7 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { round1OrderedIds } from "@/lib/arena/matches";
+import { e2eMark } from "./e2eMark";
 
 const TID_A = "hf3-guest-e2e-a";
 const TID_B = "hf3-guest-e2e-b";
@@ -88,6 +89,7 @@ async function seedTournament(tid: string): Promise<void> {
     title: `Guest Run ${tid}`,
     category: "FOOTBALL",
     status: "active",
+    ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     hostUid: "seed-operator",
     currentRound: 1,
     totalContestants: 48,

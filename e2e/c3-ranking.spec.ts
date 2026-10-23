@@ -17,6 +17,7 @@
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { e2eMark } from "./e2eMark";
 
 const PREFIX = "c3-e2e";
 const TID_LOADED = `${PREFIX}-loaded`;
@@ -97,6 +98,7 @@ async function seed(): Promise<void> {
       title: "Strikers of the Century",
       category: "FOOTBALL",
       status: "active",
+      ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
       hostUid: "seed-operator",
       currentRound: 1,
       totalContestants: 48,

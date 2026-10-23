@@ -38,7 +38,7 @@ const ARTICLES: SitemapArticle[] = [
 ];
 
 function urls(): string[] {
-  return buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES }).map((e) => e.url);
+  return buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES, deployEnv: "production" }).map((e) => e.url);
 }
 
 describe("SEO-1 sitemap — 공개 페이지만", () => {
@@ -58,7 +58,34 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
     const joined = urls().join("\n");
     expect(joined).not.toContain("e2e-seed");
     expect(joined).not.toContain("chart-preview-eyecheck");
-    expect(isPublicTournament({ id: "x", status: "active", hostUid: "seed-operator" })).toBe(false);
+    expect(isPublicTournament({ id: "x", status: "active", hostUid: "seed-operator" }, "preview")).toBe(false);
+  });
+
+  // OPS-FIX-1 · 원장 D-66 — 시험 표시(e2e: true) 대회는 실서비스에서만 뺀다.
+  // 미리보기·로컬에서는 시험이 자기 대회를 봐야 하므로 그대로 둔다.
+  it("e2e: true 대회는 production 에서만 빠지고 preview·development 에서는 남는다", () => {
+    const marked = { id: "t-e2e", status: "active", hostUid: "uid-1", e2e: true };
+    expect(isPublicTournament(marked, "production")).toBe(false);
+    expect(isPublicTournament(marked, "preview")).toBe(true);
+    expect(isPublicTournament(marked, "development")).toBe(true);
+  });
+
+  it("표시가 없거나 true 가 아닌 대회는 production 에서도 남는다", () => {
+    expect(isPublicTournament({ id: "real", status: "active", hostUid: "uid-1" }, "production")).toBe(true);
+    expect(isPublicTournament({ id: "real", status: "active", hostUid: "uid-1", e2e: false }, "production")).toBe(true);
+    expect(isPublicTournament({ id: "real", status: "active", hostUid: "uid-1", e2e: "true" }, "production")).toBe(true);
+  });
+
+  it("production 사이트맵에 e2e 대회 주소가 없다 · preview 에는 있다", () => {
+    const tournaments = [
+      { id: "real-one", status: "active", hostUid: "uid-1" },
+      { id: "marked-one", status: "active", hostUid: "uid-1", e2e: true },
+    ];
+    const prod = buildSitemapEntries({ tournaments, articles: [], deployEnv: "production" }).map((e) => e.url).join("\n");
+    const prev = buildSitemapEntries({ tournaments, articles: [], deployEnv: "preview" }).map((e) => e.url).join("\n");
+    expect(prod).toContain("real-one");
+    expect(prod).not.toContain("marked-one");
+    expect(prev).toContain("marked-one");
   });
 
   it("/admin 과 /account 는 어떤 경우에도 싣지 않는다", () => {
@@ -87,7 +114,7 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
   });
 
   it("고정 공개 페이지(홈·뉴스·정책 4종)는 데이터가 없어도 싣는다", () => {
-    const u = buildSitemapEntries({ tournaments: [], articles: [] }).map((e) => e.url);
+    const u = buildSitemapEntries({ tournaments: [], articles: [], deployEnv: "production" }).map((e) => e.url);
     for (const path of ["/", "/news", "/policies/cookies", "/policies/community", "/policies/terms", "/policies/privacy"]) {
       expect(u).toContain(`${SITE_URL}${path}`);
     }
@@ -103,7 +130,7 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
 
 describe("NAV-1 — /records 는 싣고 /arena 임시 페이지는 싣지 않는다", () => {
   it("/records(Charts 대회 목록)는 데이터가 없어도 ko·en·es 언어판과 함께 싣는다", () => {
-    const u = buildSitemapEntries({ tournaments: [], articles: [] }).map((e) => e.url);
+    const u = buildSitemapEntries({ tournaments: [], articles: [], deployEnv: "production" }).map((e) => e.url);
     for (const q of ["", "?lang=ko", "?lang=en", "?lang=es"]) expect(u).toContain(`${SITE_URL}/records${q}`);
   });
 
@@ -115,7 +142,7 @@ describe("NAV-1 — /records 는 싣고 /arena 임시 페이지는 싣지 않는
 });
 
 describe("SEO-2 언어별 주소 안내 (hreflang)", () => {
-  const entries = buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES });
+  const entries = buildSitemapEntries({ tournaments: TOURNAMENTS, articles: ARTICLES, deployEnv: "production" });
   const byUrl = (url: string) => entries.find((e) => e.url === url);
 
   it("홈은 기본 주소 + ko·en·es 언어판 주소를 모두 따로 싣는다", () => {
@@ -165,6 +192,7 @@ describe("SEO-2 언어별 주소 안내 (hreflang)", () => {
 
   it("제목이 한 언어뿐인 기사는 기본 주소만 싣고 언어판 묶음을 달지 않는다", () => {
     const one = buildSitemapEntries({
+      deployEnv: "production",
       tournaments: [],
       articles: [{ slug: "ko-only", status: "published", title: { ko: "한국어만", en: "", es: "" } }],
     }).filter((e) => e.url.includes("/news/ko-only"));

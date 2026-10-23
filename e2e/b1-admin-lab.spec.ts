@@ -22,6 +22,7 @@ import { expect, test, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 import { attachVideosToFirstSlots, stubVideoInspector } from "./labVideos";
+import { e2eMark } from "./e2eMark";
 
 let consoleErrors: string[] = [];
 const createdTournamentIds: string[] = [];
@@ -193,6 +194,13 @@ test.describe("B-1 The Lab — operator critical path", () => {
     const testId = await row.getAttribute("data-testid");
     const newId = testId?.replace("tournament-row-", "");
     if (newId) createdTournamentIds.push(newId);
+
+    // OPS-FIX-1 · 원장 D-66 — 화면으로 발행한 대회는 처음부터 시험 표시를 달 수 없다. 발행 직후
+    // 붙여 실서비스 목록(isPublicTournament)에서 빼고, 전역 마무리가 나이를 알 수 있게 한다.
+    const markApp = ensureAdmin();
+    if (markApp && newId) {
+      await markApp.firestore().collection("tournaments").doc(newId).update(e2eMark());
+    }
 
     // THUMB-1 — 게시된 대회에 대표 매치가 contestant id 로 실린다(1번·2번 · 기본 위치 50).
     const adminApp = ensureAdmin();
