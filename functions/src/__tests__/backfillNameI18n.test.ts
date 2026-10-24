@@ -149,6 +149,30 @@ describe("runDryRun / runWrite", () => {
     expect(out.summary).toMatchObject({ tournaments: 1, names: 2, unsure: 1, failed: 0, alreadyFilled: 1 });
   });
 
+  // 대표 2026-10-24 A안: 발음이 안 맞아 비운 이름은 "받지 못함"과 따로 세고, 표에 AI 가 낸 이름을
+  // 참고로 한 줄 남긴다(영어 칸은 비어 있다 — 그대로 두면 쓰지 않는다).
+  it("발음이 안 맞아 비운 이름은 따로 세고 먼저 볼 이름에 AI 가 낸 이름과 함께 싣는다", async () => {
+    const out = await runDryRun(
+      {
+        loadTournaments: async () => tournaments,
+        loadContestants: async () => contestants,
+        translate: async (entries: { name: string }[]) => ({
+          nameI18n: entries.map((e) => ({ ko: e.name, en: e.name === "뉴진스" ? "NewJeans" : "", es: "" })),
+          unsure: [],
+          failed: [],
+          mismatch: [{ index: 1, en: "Yeji" }],
+        }),
+        write: vi.fn(),
+      },
+      { date: "2026-10-24" },
+    );
+    expect(out.summary).toMatchObject({ names: 2, unsure: 0, failed: 0, mismatch: 1 });
+    const [top] = out.md.split("## 2.");
+    expect(top).toContain("| 2 | 에스파 |  |");
+    expect(top).toMatch(/발음이 안 맞아 비운 이름: 에스파 \(AI: Yeji\)/);
+    expect(parseReviewTable(out.md).find((r) => r.name === "에스파")?.en).toBe("");
+  });
+
   it("--write 는 검수표의 값만 쓴다(AI 호출 없음) — 다시 돌려도 이미 채워진 것은 건너뜀", async () => {
     const md = renderReviewTable({ date: "2026-10-22", results });
     const write = vi.fn(async () => {});

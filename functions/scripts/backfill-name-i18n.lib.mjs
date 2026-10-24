@@ -81,12 +81,16 @@ export function renderReviewTable({ date, results }) {
     "- 한글·id 칸은 고치지 않는다 — `--write` 가 문서의 지금 한글 이름과 대조한다.",
     `- 대회 ${results.length}개 · 이름 ${count(results)}개 · 먼저 볼 이름 ${count(flagged)}개`,
     "",
-    "## 1. 먼저 볼 이름 — AI 가 공식 철자를 확신하지 못했거나 받지 못한 것",
+    "## 1. 먼저 볼 이름 — AI 가 공식 철자를 확신하지 못했거나, 받지 못했거나, 한글 발음과 맞지 않아 비운 것",
     "",
   ];
   if (flagged.length === 0) out.push("(없음)", "");
   for (const r of flagged) {
     out.push(`### ${cell(r.tournament.title)} (${r.tournament.id})`, "", ...tableOf(r.rows), "");
+    for (const x of r.rows.filter((row) => row.suggested)) {
+      out.push(`- 발음이 안 맞아 비운 이름: ${cell(x.name)} (AI: ${cell(x.suggested)})`);
+    }
+    if (r.rows.some((row) => row.suggested)) out.push("");
   }
   out.push("## 2. 나머지 — 대회별", "");
   if (rest.length === 0) out.push("(없음)", "");
@@ -157,7 +161,8 @@ export function buildNameWrites(rows, docsById) {
 
 /**
  * dry-run — 대회마다 translate 1번 → 검수표. `deps.write` 는 부르지 않는다.
- * deps: { loadTournaments, loadContestants, translate(entries, category) → { nameI18n, unsure, failed } }
+ * deps: { loadTournaments, loadContestants, translate(entries, category) → { nameI18n, unsure, failed, mismatch } }
+ * mismatch(발음이 안 맞아 코어가 비운 칸)는 "받지 못함"과 따로 센다 — 표에 AI 가 낸 이름을 참고로 싣는다.
  */
 export async function runDryRun(deps, { date }) {
   const [tournaments, contestants] = await Promise.all([deps.loadTournaments(), deps.loadContestants()]);
@@ -165,24 +170,29 @@ export async function runDryRun(deps, { date }) {
   const results = [];
   let unsure = 0;
   let failed = 0;
+  let mismatch = 0;
   for (const { tournament, contestants: list } of plan.targets) {
     const got = await deps.translate(
       list.map((c) => ({ name: str(c.name), affiliation: str(c.affiliation) })),
       str(tournament.category),
     );
     const unsureSet = new Set(got.unsure ?? []);
+    const suggestedAt = new Map((got.mismatch ?? []).map((m) => [m.index, str(m.en)]));
     const rows = list.map((c, i) => {
       const en = str(got.nameI18n?.[i]?.en);
-      if (!en) failed += 1;
+      const suggested = en ? "" : (suggestedAt.get(i) ?? "");
+      if (suggested) mismatch += 1;
+      else if (!en) failed += 1;
       else if (unsureSet.has(i)) unsure += 1;
-      return { id: c.id, order: c.order, name: str(c.name), en, sure: Boolean(en) && !unsureSet.has(i) };
+      const row = { id: c.id, order: c.order, name: str(c.name), en, sure: Boolean(en) && !unsureSet.has(i) };
+      return suggested ? { ...row, suggested } : row;
     });
     results.push({ tournament: { id: tournament.id, title: str(tournament.title) }, rows });
   }
   const names = results.reduce((n, r) => n + r.rows.length, 0);
   return {
     md: renderReviewTable({ date, results }),
-    summary: { tournaments: results.length, names, unsure, failed, alreadyFilled: plan.alreadyFilled },
+    summary: { tournaments: results.length, names, unsure, failed, mismatch, alreadyFilled: plan.alreadyFilled },
   };
 }
 

@@ -30,6 +30,10 @@ copyFileSync(
   join(root, "lib", "lab", "campaignSlugValidation.ts"),
   join(dest, "campaignSlugValidation.ts"),
 );
+// 카드 안 이름 고르기(NAME-I18N-1 · 원장 D-62: 언어와 상관없이 영어, 없으면 한글)도 화면 카드와
+// 같은 함수를 쓴다 — import가 없어 그대로 복사된다.
+copyFileSync(join(libCrown, "cardName.ts"), join(dest, "cardName.ts"));
+
 for (const file of readdirSync(join(libCrown, "canvas"))) {
   if (file.endsWith(".ts")) {
     copyFileSync(join(libCrown, "canvas", file), join(destCanvas, file));
@@ -37,5 +41,5 @@ for (const file of readdirSync(join(libCrown, "canvas"))) {
 }
 
 console.log(
-  "[copy-crown] mirrored lib/crown/{formats,canvas/*} + lib/lab/campaignSlugValidation → functions/src/_crown",
+  "[copy-crown] mirrored lib/crown/{formats,cardName,canvas/*} + lib/lab/campaignSlugValidation → functions/src/_crown",
 );

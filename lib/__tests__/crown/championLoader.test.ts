@@ -61,31 +61,57 @@ describe("resolveChampionId", () => {
 
 describe("toCrownData", () => {
   it("maps champion + tournament to the render contract, url deep-linked to that tournament's Crown Card page (2026-08-29, marketing-instrumentation-kick.md ③)", () => {
-    expect(toCrownData(CHAMPION, TOURNAMENT)).toEqual({
+    expect(toCrownData(CHAMPION, TOURNAMENT, "en")).toEqual({
       initial: "M",
       name: "Moussa Adeyemi",
       title: "Strikers of the Century",
       url: "worldcrown48.com/arena/t1/champion",
       path: "48 → 24 → 12 → 6 → THE FINAL",
       campaign: "t1",
+      displayName: "Moussa Adeyemi",
     });
   });
 
   it("campaign = the Tournament's campaignSlug when set, else its normalized id (UTM_RULES v1.0 A안, 2026-08-31)", () => {
-    expect(toCrownData(CHAMPION, { ...TOURNAMENT, campaignSlug: "best_stage_48" }).campaign).toBe("best_stage_48");
-    expect(toCrownData(CHAMPION, { ...TOURNAMENT, id: "FbzCreuLSW4l7u0VUsKs" }).campaign).toBe("fbzcreulsw4l7u0vusks");
+    expect(toCrownData(CHAMPION, { ...TOURNAMENT, campaignSlug: "best_stage_48" }, "en").campaign).toBe("best_stage_48");
+    expect(toCrownData(CHAMPION, { ...TOURNAMENT, id: "FbzCreuLSW4l7u0VUsKs" }, "en").campaign).toBe("fbzcreulsw4l7u0vusks");
   });
 
   it("uppercases the first letter for the initial fallback", () => {
-    expect(toCrownData({ ...CHAMPION, name: "édgar" }, TOURNAMENT).initial).toBe("É");
+    expect(toCrownData({ ...CHAMPION, name: "édgar" }, TOURNAMENT, "en").initial).toBe("É");
   });
 
   it("falls back to a Champion initial when the name is empty", () => {
-    expect(toCrownData({ ...CHAMPION, name: "" }, TOURNAMENT).initial).toBe("?");
+    expect(toCrownData({ ...CHAMPION, name: "" }, TOURNAMENT, "en").initial).toBe("?");
   });
 
   it("uses the fixed victory-route path string, never a Round HUD (handoff §5 DON'T)", () => {
     // Must be the flow string only — no "N강 · X/Y" progress HUD.
-    expect(toCrownData(CHAMPION, TOURNAMENT).path).toBe("48 → 24 → 12 → 6 → THE FINAL");
+    expect(toCrownData(CHAMPION, TOURNAMENT, "en").path).toBe("48 → 24 → 12 → 6 → THE FINAL");
+  });
+
+  // NAME-I18N-1 · 원장 D-62 — 카드 안 이름은 언어와 상관없이 영어(없으면 한글).
+  // 카드 바깥 문구("Your Crown is …" · 공유 문구)는 화면 언어의 이름(displayName).
+  describe("이름 — 카드 안은 영어, 카드 바깥은 화면 언어", () => {
+    const NJ = { ...CHAMPION, name: "뉴진스", nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" } };
+
+    it("ko 화면에서도 카드 안 이름과 첫 글자는 영어", () => {
+      const d = toCrownData(NJ, TOURNAMENT, "ko");
+      expect(d.name).toBe("NewJeans");
+      expect(d.initial).toBe("N");
+      expect(d.displayName).toBe("뉴진스");
+    });
+
+    it("en·es 화면은 바깥 이름도 영어", () => {
+      expect(toCrownData(NJ, TOURNAMENT, "en").displayName).toBe("NewJeans");
+      expect(toCrownData(NJ, TOURNAMENT, "es").displayName).toBe("NewJeans");
+    });
+
+    it("영어 이름이 비면(발음이 안 맞아 비운 칸 포함) 카드도 한글", () => {
+      const empty = { ...CHAMPION, name: "화란", nameI18n: { ko: "화란", en: "", es: "" } };
+      const d = toCrownData(empty, TOURNAMENT, "en");
+      expect(d.name).toBe("화란");
+      expect(d.displayName).toBe("화란");
+    });
   });
 });

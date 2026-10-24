@@ -37,7 +37,10 @@ export const FORMAT_KEYS: readonly FormatKey[] = ["story", "feed", "link"];
 export interface CrownData {
   /** Single-letter fallback shown when no photo is available. */
   initial: string;
-  /** Champion display name (fit() shrinks to fit the card). */
+  /**
+   * Champion name drawn ON the card (fit() shrinks to fit) — 언어와 상관없이 공식 영어 이름,
+   * 없으면 한글 (NAME-I18N-1 · 원장 D-62 · crownCardName).
+   */
   name: string;
   /** Tournament title shown under the name. */
   title: string;
@@ -52,4 +55,9 @@ export interface CrownData {
    * the URL string (championLoader.toCrownData is the single source).
    */
   campaign: string;
+  /**
+   * 카드 **바깥** 문구("Your Crown is …" · 공유 문구)의 이름 — 화면 언어(localizedName).
+   * 카드 그림에는 그리지 않는다. 없으면 `name` (서버 그림·옛 호출).
+   */
+  displayName?: string;
 }

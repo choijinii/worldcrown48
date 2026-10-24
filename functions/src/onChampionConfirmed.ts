@@ -21,18 +21,15 @@
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb, adminStorage } from "./admin";
-import { shouldGenerateCrownCard, type RoundProgressData } from "./core/onChampionConfirmedCore";
+import { crownPngInput, shouldGenerateCrownCard, type RoundProgressData } from "./core/onChampionConfirmedCore";
 import { buildCrownCardRecord, crownCardId } from "./core/crownCardRecord";
 import { crownCardStoragePath } from "./_run/runDocId";
-import { campaignForTournament } from "./_crown/campaignSlugValidation";
 import { renderCrownPng } from "./core/canvasServer";
 import {
   CROWN_RENDER_ALERT_TYPE,
   recordRenderFailure,
   type AlertStore,
 } from "./core/crownRenderAlert";
-
-const VICTORY_PATH = "48 → 24 → 12 → 6 → THE FINAL";
 
 /** admin_alerts 저장소 — 시각은 서버 시각으로 찍는다(차트 dedup 과 같은 필드 이름). */
 const adminAlertStore: AlertStore = {
@@ -88,7 +85,6 @@ export const onChampionConfirmed = onDocumentUpdated(
     const contestant = contestantSnap.data();
     if (!tournament || !contestant) return;
 
-    const championName = String(contestant.name ?? "");
     const tournamentTitle = String(tournament.title ?? "");
     const tournamentCategory = String(tournament.category ?? "");
 
@@ -99,17 +95,8 @@ export const onChampionConfirmed = onDocumentUpdated(
     // ⚠️ 로그 문구의 "render failed" 는 대표 메일 알림(로그 기반 알림)의 조건이다 — 바꾸지 마라.
     let png: Buffer;
     try {
-      png = renderCrownPng({
-        initial: championName.trim() ? Array.from(championName.trim())[0].toUpperCase() : "?",
-        name: championName,
-        title: tournamentTitle,
-        url: "worldcrown48.com",
-        path: VICTORY_PATH,
-        // CrownData가 요구하는 필드다. 이 PNG 자체는 campaign을 그리지 않지만
-        // (drawLink이 참조하지 않는다), 값 규칙은 클라이언트와 같은 함수로 구한다 —
-        // 재구현하면 두 곳이 갈라진다 (UTM_RULES v1.0 §1).
-        campaign: campaignForTournament({ id: tournamentId, campaignSlug: tournament.campaignSlug as string | undefined }),
-      });
+      // 카드 안 이름 = 언어와 상관없이 영어, 없으면 한글 (NAME-I18N-1 · 원장 D-62).
+      png = renderCrownPng(crownPngInput({ tournamentId, tournament, contestant }));
     } catch (err) {
       console.error(
         `[onChampionConfirmed] render failed for ${cardId} (canvas unavailable?) — skipping without retry:`,

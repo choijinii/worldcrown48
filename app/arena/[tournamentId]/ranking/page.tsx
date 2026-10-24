@@ -168,6 +168,7 @@ export default function RankingPage(): JSX.Element {
         labels={labels}
         nextUpdateText={nextUpdateText}
         updatedText={updatedText}
+        lang={lang}
       />
     </>
   );

@@ -19,6 +19,7 @@ import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import { deriveRankState } from "@/lib/ranking/rankState";
 import type { DeployEnv } from "@/lib/deployEnv";
 import type { LocalizedText } from "@/lib/types/tournament";
+import type { NamedLike } from "@/lib/contestantName";
 
 export interface ChartTournament {
   id: string;
@@ -49,13 +50,19 @@ export function splitChartTournaments<T extends ChartTournament>(
 /** 차트 캐시에서 필요한 것만. */
 export interface ChampionCache {
   runsTotal?: number;
-  rankings?: { name?: string }[];
+  rankings?: { name?: string; nameI18n?: Partial<LocalizedText> | null }[];
 }
 
-export function championName(cache: ChampionCache | null | undefined): string | null {
+/**
+ * 1위의 이름 — 화면이 언어에 맞게 고르도록 `nameI18n` 을 함께 넘긴다(localizedName ·
+ * NAME-I18N-1 · D-61). 옛 캐시 행엔 nameI18n 이 없다 → 화면은 한글.
+ */
+export function chartChampion(cache: ChampionCache | null | undefined): NamedLike | null {
   if (deriveRankState(cache) !== "loaded") return null;
-  const name = cache?.rankings?.[0]?.name;
-  return typeof name === "string" && name.trim() ? name.trim() : null;
+  const top = cache?.rankings?.[0];
+  const name = top?.name;
+  if (typeof name !== "string" || !name.trim()) return null;
+  return top?.nameI18n ? { name: name.trim(), nameI18n: top.nameI18n } : { name: name.trim() };
 }
 
 export function chartHref(tournamentId: string): string {

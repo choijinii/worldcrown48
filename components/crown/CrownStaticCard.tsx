@@ -25,7 +25,7 @@ export function CrownStaticCard({ data, loadingLabel }: CrownStaticCardProps): J
       <div className={styles.crownCardPhoto}>{data.initial}</div>
       <div className={styles.crownCardInfo}>
         <div className={styles.cl}>CHAMPION</div>
-        <div className={styles.cn}>{data.name}</div>
+        <div className={styles.cn} data-testid="crown-card-name">{data.name}</div>
         <div className={styles.ct}>{data.title}</div>
         <div className={styles.cw}>{data.url}</div>
       </div>

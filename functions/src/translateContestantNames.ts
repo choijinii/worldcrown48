@@ -5,7 +5,8 @@
  * Haiku 1번으로 받는다. 관례는 translateTournamentMeta 와 같다(시크릿 · CORS · uid 속도 제한).
  *
  *   request.data:  { entries: [{ name, affiliation }], category }
- *   returns:       { nameI18n: [{ko,en,es}] (입력 순서), unsure: number[], failed: number[] }
+ *   returns:       { nameI18n: [{ko,en,es}] (입력 순서), unsure: number[], failed: number[],
+ *                    mismatch: [{ index, en }] (발음이 안 맞아 비운 칸 · 대표 2026-10-24 A안) }
  *
  * 코어는 AI 실패에 던지지 않는다(빈칸 + 로그). 여기서 던지는 것은 입력 오류뿐이고,
  * 그때도 클라이언트(lib/lab/translateNames.ts)가 한글 폴백으로 발행을 진행한다.

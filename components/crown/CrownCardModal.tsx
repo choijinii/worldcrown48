@@ -119,7 +119,7 @@ export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, to
           <div className={styles.crownModalHead}>
             <div className={styles.crownEyebrow}>챔피언 확정 · Champion confirmed</div>
             <div className={styles.crownConfirm}>
-              Your Crown is <em>{data.name}</em>
+              Your Crown is <em>{data.displayName ?? data.name}</em>
             </div>
             {deadline ? (
               <span

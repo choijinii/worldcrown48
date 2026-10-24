@@ -57,7 +57,7 @@ function Center({ children }: { children: React.ReactNode }): JSX.Element {
 
 export default function ChampionPage(): JSX.Element {
   const tournamentId = String(useParams().tournamentId);
-  const { t } = useT();
+  const { t, lang } = useT();
   // ANON-1: 카드 링크로 처음 온 방문자의 익명 계정은 여기서 만든다(예전엔 쿠키 동의 부품).
   useGuestUidOnEntry();
   const user = useAuthStore((s) => s.user);
@@ -125,7 +125,7 @@ export default function ChampionPage(): JSX.Element {
   const champion = contestants.find((c) => c.id === championId);
   if (!champion) return <Center>Crown Card 불러오는 중…</Center>;
 
-  const data = toCrownData(champion, tournament);
+  const data = toCrownData(champion, tournament, lang);
 
   return (
     <>

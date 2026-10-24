@@ -86,6 +86,23 @@ async function stubAiFill(page: Page) {
       }),
     });
   });
+  // NAME-I18N-1 PR 2 — 발행 때 엔트리 이름 3언어도 한 번 받는다. 받은 이름을 그대로 돌려준다
+  // (en = "EN " + 이름) — 발행이 결과를 엔트리 문서에 싣는지 아래에서 확인한다.
+  await page.route("**/translateContestantNames*", async (route) => {
+    const entries = (route.request().postDataJSON()?.data?.entries ?? []) as { name: string }[];
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        result: {
+          nameI18n: entries.map((e) => ({ ko: e.name, en: `EN ${e.name}`, es: `EN ${e.name}` })),
+          unsure: [],
+          failed: [],
+          mismatch: [],
+        },
+      }),
+    });
+  });
 }
 
 test.use({ viewport: { width: 1600, height: 1000 } }); // ≥1440 (DesktopOnly)
@@ -211,6 +228,31 @@ test.describe("B-1 The Lab — operator critical path", () => {
       const a = (await fs.collection("contestants").doc(t!.thumbnailPair.a).get()).data();
       const b = (await fs.collection("contestants").doc(t!.thumbnailPair.b).get()).data();
       expect([a?.order, b?.order]).toEqual([1, 2]);
+      // NAME-I18N-1 — 발행이 이름 3언어를 엔트리 문서에 싣는다(name 은 그대로 · 1번 칸 = 붙인 영상 A).
+      expect(a?.name).toBe("E2E Video A");
+      expect(a?.nameI18n).toEqual({ ko: "E2E Video A", en: "EN E2E Video A", es: "EN E2E Video A" });
+    }
+
+    // NAME-I18N-1 PR 2 — "이름 언어" 칸: 48명이 보이고, 영어를 고치면 es 가 따라가고, 저장된다.
+    if (newId) {
+      await row.getByTestId(`names-toggle-${newId}`).click();
+      const panel = page.getByTestId(`name-panel-${newId}`);
+      await expect(panel.locator('[data-testid^="name-row-"]')).toHaveCount(48);
+      const en1 = panel.getByLabel("E2E Video A 영어 이름");
+      await expect(en1).toHaveValue("EN E2E Video A");
+      await en1.fill("Player One");
+      await expect(panel.getByLabel("E2E Video A 스페인어 이름")).toHaveValue("Player One");
+      await panel.getByRole("button", { name: "이름 저장" }).click();
+      await expect(page.getByText(/이름을 저장했어요/)).toBeVisible();
+      if (adminApp) {
+        const fs = adminApp.firestore();
+        await expect
+          .poll(async () => {
+            const q = await fs.collection("contestants").where("tournamentId", "==", newId).where("order", "==", 1).get();
+            return q.docs[0]?.data().nameI18n;
+          })
+          .toEqual({ ko: "E2E Video A", en: "Player One", es: "Player One" });
+      }
     }
 
     // AC#5 — "Arena에서 보기" links straight to /arena/{id}.
