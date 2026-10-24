@@ -11,15 +11,20 @@ import {
   barWidth,
   formatCrownScore,
 } from "@/lib/ranking/rateFormatter";
+import type { Lang } from "@/lib/cookieConsent";
+import { localizedName } from "@/lib/contestantName";
 import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
 import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 
 export function RankList({
   entries,
   flagFirst,
+  lang,
 }: {
   entries: CrownRankingEntry[];
   flagFirst: boolean;
+  /** 엔트리 이름의 화면 언어 — 캐시 행의 nameI18n, 비면 en → 한글 (NAME-I18N-1 · D-61). */
+  lang: Lang;
 }): JSX.Element {
   // 1위의 점수가 막대의 기준이다. 목록이 Crown Score 순이라 첫 줄이 최고점이다.
   const topScore = entries[0]?.crownScore ?? 0;
@@ -30,6 +35,7 @@ export function RankList({
           "rank-row" +
           (i === 0 ? " top" : "") +
           (i === 0 && flagFirst ? " flag" : "");
+        const name = localizedName(entry, lang);
         return (
           <div key={entry.contestantId} className={cls} data-testid="rank-row">
             <div className="rank-no">{entry.rank}</div>
@@ -38,11 +44,11 @@ export function RankList({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={buildThumbnailUrl(entry.videoId)} alt="" />
               ) : (
-                <span>{avatarGlyph(entry.name)}</span>
+                <span>{avatarGlyph(name)}</span>
               )}
             </div>
             <div className="rank-info">
-              <div className="rn">{entry.name}</div>
+              <div className="rn">{name}</div>
             </div>
             <div className="rank-rate">
               <div className="rv" data-testid="rank-score">

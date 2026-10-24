@@ -12,7 +12,10 @@
  */
 import type { Contestant, Tournament } from "@/lib/types/tournament";
 import { campaignForTournament } from "@/lib/lab/campaignSlugValidation";
+import type { Lang } from "@/lib/cookieConsent";
+import { localizedName } from "@/lib/contestantName";
 import type { CrownData } from "./formats";
+import { crownCardName } from "./cardName";
 
 /** The slice of roundProgress this loader reads (mirrors C-1's RoundProgressEvent). */
 export interface RoundProgressLike {
@@ -60,14 +63,20 @@ function initialOf(name: string): string {
  * 2026-08-31 A안): 공유 링크의 utm_campaign은 이 대회의 캠페인 이름표
  * (campaignSlug)이고, 이름표가 없는 대회(2026-08-31 이전 생성분)는 대회 ID를
  * 정규화한 값이다. 카드 그림에는 안 그려지고 공유 링크에만 쓰인다.
+ *
+ * 이름(NAME-I18N-1 · 원장 D-62): `name`·`initial` = 카드 안 이름 — 언어와 상관없이 영어
+ * (crownCardName, 없으면 한글). `displayName` = 카드 바깥 문구("Your Crown is …"·공유 문구)에
+ * 쓰는 화면 언어의 이름(localizedName).
  */
-export function toCrownData(champion: Contestant, tournament: Tournament): CrownData {
+export function toCrownData(champion: Contestant, tournament: Tournament, lang: Lang): CrownData {
+  const cardName = crownCardName(champion);
   return {
-    initial: initialOf(champion.name),
-    name: champion.name,
+    initial: initialOf(cardName),
+    name: cardName,
     title: tournament.title,
     url: `worldcrown48.com/arena/${tournament.id}/champion`,
     path: VICTORY_PATH,
     campaign: campaignForTournament(tournament),
+    displayName: localizedName(champion, lang),
   };
 }

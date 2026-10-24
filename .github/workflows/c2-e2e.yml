@@ -16,6 +16,11 @@ on:
       - 'firestore.indexes.json'
       - 'tests/rules/**'
       - 'e2e/c2-**'
+      # NAME-I18N-1 PR 2 — 엔트리 이름 3언어 · 크라운 카드 영어 이름 (무대·차트·카드 화면)
+      - 'e2e/name-i18n-**'
+      - 'components/arena/**'
+      - 'components/ranking/**'
+      - 'lib/contestantName.ts'
       - 'playwright.config.ts'
       - '.github/workflows/c2-e2e.yml'
       # FONT-1 (2026-10-17): 전역 글꼴·전역 CSS 는 모든 화면을 바꾼다 — 화면 E2E 도 돈다.
@@ -120,7 +125,7 @@ jobs:
 
       - name: E2E (Playwright)
         # Scope to C-2's own specs ([[feedback-workflow-spec-scope]]).
-        run: npm run test:e2e -- e2e/c2-crown-card-flow.spec.ts e2e/c2-crown-mobile-320.spec.ts
+        run: npm run test:e2e -- e2e/c2-crown-card-flow.spec.ts e2e/c2-crown-mobile-320.spec.ts e2e/name-i18n-screens.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()

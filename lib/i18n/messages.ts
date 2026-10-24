@@ -703,6 +703,48 @@ export const MESSAGES = {
     es: "Imagen del Match de portada rota",
   },
 
+  // ── NAME-I18N-1 PR 2 — 발행 뒤 엔트리 이름 en·es 고치기 (원장 D-61 · 대표 2026-10-24 A안) ──
+  "lab.names.open": { ko: "이름 언어", en: "Name languages", es: "Idiomas del nombre" },
+  "lab.names.close": { ko: "닫기", en: "Close", es: "Cerrar" },
+  "lab.names.title": {
+    ko: "엔트리 이름 — 영어 · 스페인어",
+    en: "Contestant names — English · Spanish",
+    es: "Nombres de los contestantes — inglés · español",
+  },
+  "lab.names.hint": {
+    ko: "영어 칸이 빈 이름은 화면에 한글로 보여요. 맨 위에 모아 두었어요. 스페인어 칸을 비우면 영어 이름을 그대로 써요.",
+    en: "Names with an empty English field show in Korean. They are listed first. Leave Spanish empty to reuse the English name.",
+    es: "Los nombres sin inglés se muestran en coreano. Aparecen primero. Deja el español vacío para usar el nombre en inglés.",
+  },
+  "lab.names.flag": { ko: "먼저 볼 이름", en: "Check first", es: "Revisar primero" },
+  "lab.names.colKo": { ko: "한글", en: "Korean", es: "Coreano" },
+  "lab.names.colEn": { ko: "영어", en: "English", es: "Inglés" },
+  "lab.names.colEs": { ko: "스페인어", en: "Spanish", es: "Español" },
+  "lab.names.enAria": { ko: "{name} 영어 이름", en: "English name for {name}", es: "Nombre en inglés de {name}" },
+  "lab.names.esAria": { ko: "{name} 스페인어 이름", en: "Spanish name for {name}", es: "Nombre en español de {name}" },
+  "lab.names.save": { ko: "이름 저장", en: "Save names", es: "Guardar nombres" },
+  "lab.names.toast.saved": {
+    ko: "이름을 저장했어요. 차트에는 다음 발표 때 반영돼요.",
+    en: "Names saved. The chart shows them from its next update.",
+    es: "Nombres guardados. El chart los mostrará en su próxima actualización.",
+  },
+  "lab.names.toast.saveFail": {
+    ko: "이름을 저장하지 못했어요.",
+    en: "Couldn't save the names.",
+    es: "No se pudieron guardar los nombres.",
+  },
+  "lab.names.toast.loadFail": {
+    ko: "이름을 불러오지 못했어요.",
+    en: "Couldn't load the names.",
+    es: "No se pudieron cargar los nombres.",
+  },
+  "lab.names.toast.hangul": {
+    ko: "영어·스페인어 칸에는 한글을 쓸 수 없어요.",
+    en: "English and Spanish fields can't contain Korean.",
+    es: "Los campos de inglés y español no pueden llevar coreano.",
+  },
+  "lab.names.toast.nothing": { ko: "바뀐 이름이 없어요.", en: "No names changed.", es: "No hay nombres cambiados." },
+
   // ── LAB-EV-1 유튜브 임베드 검수기 (어드민 전용 · ADR-EV-7) ──────────────
   // 개명 (LAB-UX-1 목업 v2 ⑤): 버튼명은 "무엇인가"가 아니라 "하는 일"이다.
   // "유튜브 검수기"는 도구 이름이라 운영자가 언제 쓰는지 알 수 없었다.

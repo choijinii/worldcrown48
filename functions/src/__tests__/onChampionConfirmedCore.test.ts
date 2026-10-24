@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shouldGenerateCrownCard } from "../core/onChampionConfirmedCore";
+import { crownPngInput, shouldGenerateCrownCard } from "../core/onChampionConfirmedCore";
 import { crownCardStoragePath } from "../_run/runDocId";
 
 /**
@@ -87,5 +87,32 @@ describe("Crown Card 이미지 경로 — 회차 (RUN-1, §9 함정 10)", () => 
       crownCardStoragePath("gen4_idol_48", "u1", n),
     );
     expect(new Set(paths).size).toBe(5);
+  });
+});
+
+// NAME-I18N-1 · 원장 D-62 — 서버가 그리는 카드 그림의 이름도 언어와 상관없이 영어(없으면 한글).
+// 화면 카드와 같은 함수(lib/crown/cardName.ts → copy-crown → _crown/cardName.ts)를 쓴다.
+describe("crownPngInput — 서버 카드 그림에 넣을 값", () => {
+  const tournament = { title: "최고의 무대", campaignSlug: "best_stage" };
+
+  it("카드 이름과 첫 글자는 영어 이름", () => {
+    const d = crownPngInput({
+      tournamentId: "t1",
+      tournament,
+      contestant: { name: "뉴진스", nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" } },
+    });
+    expect(d.name).toBe("NewJeans");
+    expect(d.initial).toBe("N");
+    expect(d.title).toBe("최고의 무대");
+    expect(d.campaign).toBe("best_stage");
+    expect(d.path).toBe("48 → 24 → 12 → 6 → THE FINAL");
+  });
+
+  it("영어 이름이 비었거나 옛 문서면 한글", () => {
+    expect(
+      crownPngInput({ tournamentId: "t1", tournament, contestant: { name: "화란", nameI18n: { ko: "화란", en: "", es: "" } } }).name,
+    ).toBe("화란");
+    expect(crownPngInput({ tournamentId: "t1", tournament, contestant: { name: "옛 엔트리" } }).initial).toBe("옛");
+    expect(crownPngInput({ tournamentId: "t1", tournament, contestant: {} }).initial).toBe("?");
   });
 });

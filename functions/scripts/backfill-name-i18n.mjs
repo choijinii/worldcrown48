@@ -140,7 +140,7 @@ async function main() {
   writeFileSync(outPath, md);
   console.log(
     `DRY-RUN — 대회 ${summary.tournaments}개 · 이름 ${summary.names}개 · 확신 낮음 ${summary.unsure} · ` +
-      `받지 못함 ${summary.failed} · 이미 채워짐 ${summary.alreadyFilled}`,
+      `받지 못함 ${summary.failed} · 발음 안 맞아 비움 ${summary.mismatch} · 이미 채워짐 ${summary.alreadyFilled}`,
   );
   console.log(`검수표: ${outPath}`);
   console.log("Firestore 에는 쓰지 않았다. 검수 뒤 --write <검수표> 로 쓴다.");

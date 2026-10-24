@@ -32,6 +32,7 @@ import { useCoverBroken } from "@/components/thumbnail/useCoverPair";
 import type { LocalizedText } from "@/lib/types/tournament";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
+import { NameLanguagePanel } from "./NameLanguagePanel";
 
 interface Row {
   id: string;
@@ -95,6 +96,8 @@ export function TournamentList({
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  // NAME-I18N-1 PR 2 — 이름 en·es 를 고치는 칸이 열린 대회(한 번에 하나).
+  const [namesId, setNamesId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -182,6 +185,7 @@ export function TournamentList({
               data-testid={`tournament-row-${r.id}`}
               style={{
                 display: "flex",
+                flexWrap: "wrap",
                 alignItems: "center",
                 gap: 16,
                 padding: "12px 16px",
@@ -228,6 +232,26 @@ export function TournamentList({
               >
                 {t("lab.list.arenaLink")}
               </Link>
+
+              <button
+                type="button"
+                onClick={() => setNamesId(namesId === r.id ? null : r.id)}
+                aria-expanded={namesId === r.id}
+                data-testid={`names-toggle-${r.id}`}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  border: `1px solid ${lab.border}`,
+                  background: "transparent",
+                  color: lab.textSub,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {namesId === r.id ? t("lab.names.close") : t("lab.names.open")}
+              </button>
 
               <button
                 type="button"
@@ -299,6 +323,7 @@ export function TournamentList({
                   {t("lab.list.delete")}
                 </button>
               )}
+              {namesId === r.id ? <NameLanguagePanel tournamentId={r.id} /> : null}
             </li>
           ))}
         </ul>

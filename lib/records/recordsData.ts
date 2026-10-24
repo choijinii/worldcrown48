@@ -12,7 +12,8 @@ import { collection, doc, getDoc, getDocs, query, where } from "firebase/firesto
 import { getDb } from "@/lib/firebase";
 import { currentDeployEnv } from "@/lib/deployEnv";
 import { toMs } from "@/lib/news/articleRecord";
-import { categoryChip, championName, splitChartTournaments, type ChartTournament } from "./chartList";
+import { categoryChip, chartChampion, splitChartTournaments, type ChartTournament } from "./chartList";
+import type { NamedLike } from "@/lib/contestantName";
 import type { LocalizedText } from "@/lib/types/tournament";
 
 const READ_TIMEOUT_MS = 5000;
@@ -33,7 +34,8 @@ export interface ChartRowData {
   title: string;
   titleI18n: Partial<LocalizedText> | null;
   chip: string | null;
-  champion: string | null;
+  /** 1위 — 화면이 언어로 이름을 고른다(localizedName). */
+  champion: NamedLike | null;
 }
 
 export interface RecordsData {
@@ -76,11 +78,11 @@ export async function loadRecords(nowMs: number): Promise<RecordsData> {
       const champions = await Promise.all(
         ended.map((t) =>
           getDoc(doc(db, "ranking_cache", t.id))
-            .then((s) => championName(s.exists() ? (s.data() as Parameters<typeof championName>[0]) : null))
+            .then((s) => chartChampion(s.exists() ? (s.data() as Parameters<typeof chartChampion>[0]) : null))
             .catch(() => null),
         ),
       );
-      const row = (t: ChartTournament, champion: string | null): ChartRowData => ({
+      const row = (t: ChartTournament, champion: NamedLike | null): ChartRowData => ({
         id: t.id,
         title: t.title,
         titleI18n: t.titleI18n ?? null,

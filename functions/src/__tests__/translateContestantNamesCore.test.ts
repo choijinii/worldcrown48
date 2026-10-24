@@ -150,4 +150,47 @@ describe("translateContestantNamesCore", () => {
       { ko: "", en: "", es: "" },
     ]);
   });
+  // 대표 2026-10-24 A안: 발음이 안 맞는 영어 이름(다른 엔트리의 이름)은 쓰지 않는다 —
+  // en·es 를 비워 화면은 한글로 보이고, 대표가 확인할 때까지 "먼저 볼 이름"에 남는다.
+  it("발음이 안 맞는 영어 이름은 비우고 mismatch 에 AI 가 낸 이름과 함께 올린다", async () => {
+    const logError = vi.fn();
+    const r = await translateContestantNamesCore(
+      { entries: [{ name: "화란", affiliation: "" }, { name: "설윤", affiliation: "" }, { name: "허윤진", affiliation: "" }] },
+      {
+        createMessage: async () =>
+          reply([
+            { i: 1, en: "Huh Yunjin", sure: true },
+            { i: 2, en: "Yeji", sure: true },
+            { i: 3, en: "Huh Yunjin", sure: true },
+          ]),
+        logError,
+      },
+    );
+    expect(r.nameI18n).toEqual([
+      { ko: "화란", en: "", es: "" },
+      { ko: "설윤", en: "", es: "" },
+      { ko: "허윤진", en: "Huh Yunjin", es: "Huh Yunjin" },
+    ]);
+    expect(r.mismatch).toEqual([
+      { index: 0, en: "Huh Yunjin" },
+      { index: 1, en: "Yeji" },
+    ]);
+    expect(r.failed).toEqual([]);
+    expect(logError).toHaveBeenCalledWith(expect.stringMatching(/mismatch/), expect.anything());
+  });
+
+  it("발음이 맞으면 mismatch 는 비어 있다", async () => {
+    const r = await translateContestantNamesCore(
+      { entries },
+      {
+        createMessage: async () =>
+          reply([
+            { i: 1, en: "NewJeans", sure: true },
+            { i: 2, en: "aespa", sure: true },
+            { i: 3, en: "IU", sure: true },
+          ]),
+      },
+    );
+    expect(r.mismatch).toEqual([]);
+  });
 });

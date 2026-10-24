@@ -55,6 +55,7 @@ import { RoundTransition } from "@/components/arena/RoundTransition";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { RunCompleteActions } from "@/components/arena/RunCompleteActions";
 import { toCrownData } from "@/lib/crown/championLoader";
+import { localizedName } from "@/lib/contestantName";
 import { crownActionState } from "@/lib/crown/crownActions";
 import { loadOrCreateBracketSeed } from "@/lib/arena/bracketSeed";
 import { getDb } from "@/lib/firebase";
@@ -485,7 +486,7 @@ export default function ArenaPage(): JSX.Element {
     // doc (championId) — never a global tournaments.status (§9 trap #1).
     const champ = progress?.championId ? byId(progress.championId) : null;
     if (champ && tournament) {
-      const data = toCrownData(champ, tournament);
+      const data = toCrownData(champ, tournament, lang);
       return (
         <div className={styles.arena} data-arena-surface="champion">
           <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} matchSessionId={msid ?? undefined} />
@@ -495,7 +496,10 @@ export default function ArenaPage(): JSX.Element {
               uid={uid}
               tournamentId={tournamentId}
               isGuest={isGuest}
-              nameOf={(id) => byId(id)?.name}
+              nameOf={(id) => {
+                const c = byId(id);
+                return c ? localizedName(c, lang) : undefined;
+              }}
               onPlayAgain={() => useVoteStore.getState().startNextRun()}
               onSignIn={() => setModal("guest_limit")}
             />

@@ -18,6 +18,7 @@
  * Round Scope Lock (§9 trap #11): import ONLY from app/arena/[id]/ranking/.
  * Never render this on the Match VS surface (Vote Rate is ranking-only).
  */
+import type { Lang } from "@/lib/cookieConsent";
 import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
 import type { RankState } from "@/lib/ranking/rankState";
 import { RankingHeader } from "./RankingHeader";
@@ -50,6 +51,8 @@ export interface RankingViewProps {
   nextUpdateText?: string | null;
   /** CHART-HEAD — 발표 시각 알약 앞부분 "지난 발표: …". `null` 이면 감춘다. */
   updatedText?: string | null;
+  /** 엔트리 이름을 고를 화면 언어 (NAME-I18N-1 · D-61 — 비면 en → 한글). */
+  lang: Lang;
 }
 
 // ⚠️ STYLE 문자열 안에는 따옴표·꺾쇠·앰퍼샌드를 쓰지 않는다(주석 포함). React 18은 서버 렌더에서
@@ -113,6 +116,7 @@ export function RankingView({
   labels,
   nextUpdateText,
   updatedText,
+  lang,
 }: RankingViewProps): JSX.Element {
   return (
     <section className="sf-ranking" data-rank={state} data-testid="ranking-view">
@@ -136,7 +140,7 @@ export function RankingView({
         ) : null}
 
         {state === "loaded" ? (
-          <RankList entries={entries} flagFirst={false} />
+          <RankList entries={entries} flagFirst={false} lang={lang} />
         ) : null}
       </div>
     </section>

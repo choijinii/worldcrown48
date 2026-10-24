@@ -11,6 +11,7 @@
  */
 import Link from "next/link";
 import { useT } from "@/lib/i18n/useT";
+import { localizedName } from "@/lib/contestantName";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { chartHref } from "@/lib/records/chartList";
 import type { ChartRowData, RecordsData } from "@/lib/records/recordsData";
@@ -31,7 +32,7 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
       {ended && r.champion && (
         <span className={styles.champ}>
           <span className={styles.champLabel}>{t("records.champion")}</span>
-          <span className={styles.champName}>{r.champion}</span>
+          <span className={styles.champName}>{localizedName(r.champion, lang)}</span>
         </span>
       )}
       <Link

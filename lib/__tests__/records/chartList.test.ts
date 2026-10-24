@@ -5,9 +5,10 @@
  * (`ended` 로 바꾸는 코드가 없다, 대표 정의 10/10). 집합은 사이트맵과 같은 공개 대회.
  */
 import { describe, expect, it } from "vitest";
+import { localizedName } from "@/lib/contestantName";
 import {
   categoryChip,
-  championName,
+  chartChampion,
   chartHref,
   splitChartTournaments,
   type ChartTournament,
@@ -61,22 +62,33 @@ describe("splitChartTournaments — 진행 중 / 끝난 대회", () => {
   });
 });
 
-describe("championName — 차트의 Crown Score 1위", () => {
+describe("chartChampion — 차트의 Crown Score 1위", () => {
   const ok = { runsTotal: 12, rankings: [{ name: "서하린" }, { name: "유도윤" }] };
 
-  it("차트가 점수를 보이는 상태면 1위 이름", () => {
-    expect(championName(ok)).toBe("서하린");
+  it("차트가 점수를 보이는 상태면 1위", () => {
+    expect(chartChampion(ok)).toEqual({ name: "서하린" });
   });
 
   it("캐시 없음 · 아직 10판 미만 · 순위 없음 = 비움(줄은 그대로 보인다)", () => {
-    expect(championName(null)).toBeNull();
-    expect(championName(undefined)).toBeNull();
-    expect(championName({ runsTotal: 9, rankings: [{ name: "x" }] })).toBeNull();
-    expect(championName({ runsTotal: 50, rankings: [] })).toBeNull();
+    expect(chartChampion(null)).toBeNull();
+    expect(chartChampion(undefined)).toBeNull();
+    expect(chartChampion({ runsTotal: 9, rankings: [{ name: "x" }] })).toBeNull();
+    expect(chartChampion({ runsTotal: 50, rankings: [] })).toBeNull();
   });
 
   it("이름이 비었으면 비움", () => {
-    expect(championName({ runsTotal: 12, rankings: [{ name: "  " }] })).toBeNull();
+    expect(chartChampion({ runsTotal: 12, rankings: [{ name: "  " }] })).toBeNull();
+  });
+
+  // NAME-I18N-1 · D-61 — 이름 3언어를 함께 넘겨 화면이 언어에 맞게 고른다(localizedName).
+  it("캐시 행의 nameI18n 을 함께 넘긴다 — 화면이 언어로 고른다", () => {
+    const c = chartChampion({
+      runsTotal: 12,
+      rankings: [{ name: "뉴진스", nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" } }],
+    });
+    expect(c).toEqual({ name: "뉴진스", nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" } });
+    expect(localizedName(c!, "en")).toBe("NewJeans");
+    expect(localizedName(c!, "ko")).toBe("뉴진스");
   });
 });
 

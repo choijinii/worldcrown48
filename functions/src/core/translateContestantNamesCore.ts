@@ -11,9 +11,15 @@
  * 한글로 폴백하고, 빈칸이라 백필이 나중에 다시 채울 수 있다. 응답은 번호(i)로 맞춘다 —
  * 순서가 섞이거나 사람이 빠져도 이름이 다른 엔트리에 붙지 않는다.
  *
+ * **발음 대조(대표 2026-10-24 A안)**: 받은 영어 이름이 한글 발음과 맞지 않으면(설윤 → Yeji 처럼
+ * 다른 엔트리의 이름) 쓰지 않는다 — en·es 빈칸 + `mismatch` 에 AI 가 낸 이름을 남긴다. 화면은
+ * 한글로 보이고, 대표가 확인해 고칠 때까지 먼저 볼 이름에 남는다. 판정 = nameSoundsAlike.
+ *
  * 이미 로마자인 이름(IVE)은 AI 에 보내지 않고 그대로 쓴다. 백필 스크립트도 이 파일을
  * 컴파일본으로 불러 쓴다(functions/scripts/backfill-name-i18n.mjs) — 프롬프트가 한 곳이다.
  */
+import { nameSoundsAlike } from "./nameSoundsAlike";
+
 export interface LocalizedName {
   ko: string;
   en: string;
@@ -42,6 +48,8 @@ export interface TranslateNamesResult {
   unsure: number[];
   /** 영어 이름을 받지 못한 자리(0-based) — en·es 빈칸. */
   failed: number[];
+  /** 발음이 안 맞아 쓰지 않은 자리(0-based)와 AI 가 낸 이름 — en·es 빈칸, 대표 확인 대상. */
+  mismatch: { index: number; en: string }[];
 }
 
 export interface ParsedName {
@@ -114,6 +122,7 @@ export async function translateContestantNamesCore(
   const nameI18n: LocalizedName[] = names.map((n) => ({ ko: n, en: "", es: "" }));
   const unsure: number[] = [];
   const failed: number[] = [];
+  const mismatch: { index: number; en: string }[] = [];
 
   // AI 에 보낼 자리 — 빈 이름은 빼고, 이미 로마자인 이름은 그대로 쓴다.
   const ask: { i: number; name: string; affiliation?: string }[] = [];
@@ -125,7 +134,7 @@ export async function translateContestantNamesCore(
     }
     ask.push({ i: idx + 1, name: n, affiliation: input.entries[idx]?.affiliation });
   });
-  if (ask.length === 0) return { nameI18n, unsure, failed };
+  if (ask.length === 0) return { nameI18n, unsure, failed, mismatch };
 
   let text = "";
   try {
@@ -144,6 +153,10 @@ export async function translateContestantNamesCore(
       failed.push(i - 1);
       continue;
     }
+    if (!nameSoundsAlike(names[i - 1], got.en)) {
+      mismatch.push({ index: i - 1, en: got.en });
+      continue;
+    }
     nameI18n[i - 1] = { ko: names[i - 1], en: got.en, es: got.en };
     if (!got.sure) unsure.push(i - 1);
   }
@@ -152,5 +165,10 @@ export async function translateContestantNamesCore(
       failed: failed.map((idx) => names[idx]),
     });
   }
-  return { nameI18n, unsure, failed };
+  if (mismatch.length > 0) {
+    deps.logError?.(`translateContestantNames: ${mismatch.length} name(s) mismatch Korean sound — left empty`, {
+      mismatch: mismatch.map((m) => `${names[m.index]} → ${m.en}`),
+    });
+  }
+  return { nameI18n, unsure, failed, mismatch };
 }

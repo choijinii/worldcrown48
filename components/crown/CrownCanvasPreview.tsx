@@ -97,7 +97,7 @@ export async function nativeShareCrown(
       await nav.share({
         files: [file],
         title: "My WorldCrown48 Champion",
-        text: `${data.name} · Champion 👑 worldcrown48.com`,
+        text: `${data.displayName ?? data.name} · Champion 👑 worldcrown48.com`,
         url: withShareUtm(data.url, "share_sheet", data.campaign),
       });
       return "shared";
@@ -112,7 +112,8 @@ export async function nativeShareCrown(
 /** Open the X intent in a new tab and save the Link PNG to attach (AC-7, wireframe shareX). */
 export async function shareCrownToX(data: CrownData, img: HTMLImageElement | null): Promise<void> {
   if (typeof window !== "undefined") {
-    window.open(buildTweetIntent(data.name, data.url, data.campaign), "_blank", "noopener");
+    // 공유 문구 = 화면 언어의 이름 · 카드 그림 = 영어 이름 (NAME-I18N-1 · D-62).
+    window.open(buildTweetIntent(data.displayName ?? data.name, data.url, data.campaign), "_blank", "noopener");
   }
   await downloadCrown("link", data, img);
 }

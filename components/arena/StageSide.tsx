@@ -21,6 +21,7 @@ import type { Contestant } from "@/lib/types/tournament";
 import { contestantAffiliation } from "@/lib/types/tournament";
 import { displayRegion } from "@/lib/i18n/regionName";
 import { useT } from "@/lib/i18n/useT";
+import { localizedName } from "@/lib/contestantName";
 import { posterCrop, posterSources, resolveStageMedia } from "@/lib/media/stageCrop";
 import { buildWatchUrl } from "@/lib/embed/loopRange";
 import type { StagePointer, StageSideKey } from "@/lib/arena/stageState";
@@ -29,7 +30,7 @@ import styles from "./stage.module.css";
 
 type SideContestant = Pick<
   Contestant,
-  "id" | "name" | "nationality" | "affiliation" | "position" | "media"
+  "id" | "name" | "nameI18n" | "nationality" | "affiliation" | "position" | "media"
 >;
 
 interface StageSideProps {
@@ -121,7 +122,9 @@ export function StageSide({
     .filter(Boolean)
     .join(" · ");
   const posterSrc = sources[sourceIndex];
-  const initial = contestant.name?.charAt(0).toUpperCase() || "?";
+  // 화면 언어의 이름 — 비면 en → 한글 (NAME-I18N-1 · D-61).
+  const name = localizedName(contestant, lang);
+  const initial = name.charAt(0).toUpperCase() || "?";
 
   return (
     <div
@@ -185,7 +188,7 @@ export function StageSide({
                 endSec={media.endSec}
                 orientation={media.orientation}
                 focusY={media.focusY}
-                title={contestant.name}
+                title={name}
                 onPlaying={() => setVideoReady(true)}
                 onError={() => setVideoFailed(true)}
               />
@@ -220,7 +223,7 @@ export function StageSide({
         ) : null}
 
         <span className={styles.band} data-side={side}>
-          <span className={styles.bandName}>{contestant.name}</span>
+          <span className={styles.bandName} data-testid="stage-name">{name}</span>
           {meta ? <span className={styles.bandMeta}>{meta}</span> : null}
         </span>
       </button>
