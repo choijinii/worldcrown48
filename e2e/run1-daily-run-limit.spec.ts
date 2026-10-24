@@ -20,6 +20,7 @@
  */
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { e2eMark } from "./e2eMark";
 
 const TID = "run1-daily-limit-e2e-tournament";
 /** 일일 판 한도 (lib/run/decideRun.ts DAILY_RUN_LIMIT 과 같은 값). */
@@ -61,6 +62,7 @@ async function seed(uid: string): Promise<void> {
     title: "Daily Run Limit Strikers",
     category: "FOOTBALL",
     status: "active",
+    ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     hostUid: "seed-operator",
     currentRound: 1,
     totalContestants: 48,

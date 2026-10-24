@@ -15,6 +15,9 @@
  * - `draft`·`ended` 대회 (미발행·마감 정리된 대회 — 2026-09-08 정리 때 draft 로 숨김)
  * - 시험·시드 대회: `hostUid` 가 `seed-` 로 시작 (E2E 의 `seed-operator`,
  *   `seed-chart-preview` 등 — E2E 는 프로덕션과 같은 Firebase 프로젝트에 씨앗을 심는다)
+ * - 시험 표시 대회(`e2e: true`) — **실서비스(production) 배포에서만** 뺀다. 미리보기·로컬에서는
+ *   시험이 자기 대회를 봐야 하므로 남긴다(OPS-FIX-1 · 원장 D-66). 주인이 사람 계정인 시험
+ *   (thumb1-pitch)·화면으로 발행한 시험(b1-admin-lab)은 `seed-` 로 못 거른다.
  * - 초안·내린(archived) 기사
  * - `/arena/{id}/champion` — 방문자 **개인의** 크라운 카드 자리라(roundProgress/{uid}_{tid}
  *   를 읽음) 검색 로봇에게는 빈 화면이다. 검색 결과에 넣을 공개 내용이 아니다.
@@ -36,6 +39,7 @@
  *   - 기사: 제목이 채워진 언어만 (빈 언어는 다른 언어로 대신 보여 주므로 따로 싣지 않음)
  */
 import type { MetadataRoute } from "next";
+import type { DeployEnv } from "@/lib/deployEnv";
 import { POLICY_TYPES } from "@/lib/policyTypes";
 
 export const SITE_URL = "https://www.worldcrown48.com";
@@ -52,6 +56,8 @@ export interface SitemapTournament {
   id: string;
   status?: unknown;
   hostUid?: unknown;
+  /** 시험 표시 — E2E 가 심은 대회만 `true` (OPS-FIX-1 · D-66). */
+  e2e?: unknown;
   /** 마지막 변경 시각(ms). 없으면 lastModified 를 비운다. */
   updatedAtMs?: number | null;
 }
@@ -71,9 +77,15 @@ const SEED_HOST_PREFIX = "seed-";
 /** 어떤 경우에도 사이트맵에 나가면 안 되는 경로 — 마지막 안전망. */
 const PRIVATE_PATH_PREFIXES = ["/admin", "/account"] as const;
 
-export function isPublicTournament(t: SitemapTournament): boolean {
+/**
+ * 팬에게 보이는 공개 대회인가 — 공개 목록 전부(피치 · Record Room · 사이트맵 · 사전등록 추천 대회
+ * · 이후 아레나 홈)가 이 함수 하나를 지난다. 쿼리 조건이 아니라 받아 온 뒤 거른다(새 색인 없음).
+ * `deployEnv` 는 `currentDeployEnv()` — 일부러 기본값을 두지 않는다(부르는 곳마다 정하게).
+ */
+export function isPublicTournament(t: SitemapTournament, deployEnv: DeployEnv): boolean {
   if (!t.id || typeof t.id !== "string") return false;
   if (t.status !== "active") return false;
+  if (deployEnv === "production" && t.e2e === true) return false;
   if (typeof t.hostUid === "string" && t.hostUid.startsWith(SEED_HOST_PREFIX)) {
     return false;
   }
@@ -135,6 +147,7 @@ function expandPage({ path, langs, ...rest }: PageSpec): MetadataRoute.Sitemap {
 }
 
 export function buildSitemapEntries(input: {
+  deployEnv: DeployEnv;
   tournaments: SitemapTournament[];
   articles: SitemapArticle[];
 }): MetadataRoute.Sitemap {
@@ -154,7 +167,7 @@ export function buildSitemapEntries(input: {
   }
 
   for (const t of input.tournaments) {
-    if (!isPublicTournament(t)) continue;
+    if (!isPublicTournament(t, input.deployEnv)) continue;
     const id = encodeURIComponent(t.id);
     const lastModified = toDate(t.updatedAtMs);
     const lm = lastModified ? { lastModified } : {};

@@ -10,6 +10,8 @@
  * Query (handoff §5, 대표 decision 2026-06-29 — published → active):
  *   where status == 'active'  orderBy createdAt desc  limit 12
  * Only `active` Tournaments surface on The Pitch; drafts live in the Host's Lab.
+ * OPS-FIX-1 (원장 D-66): 받아 온 뒤 `isPublicTournament` 로 한 번 더 거른다 — 실서비스에서
+ * E2E 시험 대회(`e2e: true`)·시드 대회가 피치에 뜨지 않게. 쿼리 조건이 아니라 새 색인이 없다.
  * This where+orderBy needs the composite index added in Phase C
  * (firestore.indexes.json) — see [[feedback-firestore-composite-index]].
  */
@@ -23,6 +25,8 @@ import {
   where,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import { currentDeployEnv } from "@/lib/deployEnv";
+import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import type { Tournament } from "@/lib/types/tournament";
 import { TRENDING_LIMIT } from "./trending";
 
@@ -56,9 +60,10 @@ export const usePitchStore = create<PitchState>((set) => ({
       return onSnapshot(
         q,
         (snap) => {
-          const tournaments = snap.docs.map(
-            (d) => ({ id: d.id, ...d.data() }) as Tournament,
-          );
+          const env = currentDeployEnv();
+          const tournaments = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }) as Tournament)
+            .filter((t) => isPublicTournament(t, env));
           set({ tournaments, loading: false, error: null });
         },
         () => set({ loading: false, error: "load-failed" }),

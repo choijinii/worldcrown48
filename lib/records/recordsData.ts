@@ -10,6 +10,7 @@
  */
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import { currentDeployEnv } from "@/lib/deployEnv";
 import { toMs } from "@/lib/news/articleRecord";
 import { categoryChip, championName, splitChartTournaments, type ChartTournament } from "./chartList";
 import type { LocalizedText } from "@/lib/types/tournament";
@@ -60,6 +61,7 @@ export async function loadRecords(nowMs: number): Promise<RecordsData> {
           id: d.id,
           status: data.status,
           hostUid: data.hostUid,
+          e2e: data.e2e,
           deadlineMs: toMs(data.tournamentDeadline),
           title: typeof data.title === "string" ? data.title : "",
           titleI18n:
@@ -69,7 +71,7 @@ export async function loadRecords(nowMs: number): Promise<RecordsData> {
           category: typeof data.category === "string" ? data.category : undefined,
         };
       });
-      const { active, ended } = splitChartTournaments(tournaments, nowMs);
+      const { active, ended } = splitChartTournaments(tournaments, nowMs, currentDeployEnv());
 
       const champions = await Promise.all(
         ended.map((t) =>

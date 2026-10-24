@@ -36,6 +36,7 @@ export async function loadSitemapTournaments(): Promise<SitemapTournament[]> {
           id: d.id,
           status: data.status,
           hostUid: data.hostUid,
+          e2e: data.e2e,
           updatedAtMs: toMs(data.updatedAt) ?? toMs(data.createdAt),
         };
       });

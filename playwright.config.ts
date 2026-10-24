@@ -19,12 +19,14 @@ const PREVIEW_URL = process.env.PREVIEW_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "e2e",
-  testIgnore: ["**/global-setup.ts"],
+  testIgnore: ["**/global-setup.ts", "**/global-teardown.ts"],
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [["html", { open: "never" }], ["list"]],
   globalSetup: "./e2e/global-setup.ts",
+  // OPS-FIX-1 (원장 D-66) — 끊긴 실행이 남긴 시험 대회(e2e 표시 · 2시간 넘음)를 쓸어 낸다.
+  globalTeardown: "./e2e/global-teardown.ts",
   use: {
     baseURL: PREVIEW_URL,
     storageState: "tests/.auth/user.json",

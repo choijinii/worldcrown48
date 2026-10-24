@@ -9,6 +9,7 @@
  * 대회 몇 개 + 발행 기사 몇 개뿐이고, 검색 로봇은 사이트맵을 드물게 가져간다.
  */
 import type { MetadataRoute } from "next";
+import { currentDeployEnv } from "@/lib/deployEnv";
 import { buildSitemapEntries } from "@/lib/seo/sitemapEntries";
 import { loadSitemapArticles, loadSitemapTournaments } from "@/lib/seo/sitemapData";
 
@@ -19,5 +20,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     loadSitemapTournaments(),
     loadSitemapArticles(),
   ]);
-  return buildSitemapEntries({ tournaments, articles });
+  return buildSitemapEntries({ tournaments, articles, deployEnv: currentDeployEnv() });
 }

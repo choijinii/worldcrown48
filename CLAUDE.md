@@ -116,6 +116,9 @@ AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core
 도메인:     worldcrown48.com
 SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/sitemapEntries.ts
             · 언어별 주소(?lang=ko|en|es)와 기본 주소를 서로 가리키게 함 (D-42)
+공개 목록:   팬에게 대회를 보이는 목록(피치 · Record Room · 사이트맵 · 사전등록 추천 · 아레나 홈 ARENA-2)은
+            전부 `isPublicTournament(doc, currentDeployEnv())`(lib/seo/sitemapEntries.ts)를 지난다 —
+            실서비스에서 시험 대회(`e2e: true`)를 뺀다 (D-66 · OPS-FIX-1)
 ```
 
 > ⚠ **없는 것 — 있다고 착각하기 쉬운 순서대로**

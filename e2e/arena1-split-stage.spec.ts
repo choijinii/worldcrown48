@@ -16,6 +16,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { round1OrderedIds } from "@/lib/arena/matches";
+import { e2eMark } from "./e2eMark";
 
 const TID = "arena1-e2e-tournament";
 const UID = process.env.C1_TEST_UID ?? "";
@@ -58,6 +59,7 @@ async function seedTournament(): Promise<void> {
     description: { ko: "무대 E2E", en: "Stage E2E", es: "Escenario E2E" },
     category: "KPOP",
     status: "active",
+    ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     hostUid: "seed-operator",
     currentRound: 1,
     totalContestants: 48,

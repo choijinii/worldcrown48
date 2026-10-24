@@ -2,6 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   /**
+   * OPS-FIX-1 (원장 D-66) — 배포 종류를 빌드 때 심는다. 실서비스(production)에서만 시험 대회
+   * (`e2e: true`)를 목록에서 뺀다 → lib/deployEnv.ts. Vercel 은 빌드 때 VERCEL_ENV 를 준다.
+   */
+  env: {
+    NEXT_PUBLIC_DEPLOY_ENV: process.env.VERCEL_ENV ?? "development",
+  },
+  /**
    * Google account avatars come from lh3.googleusercontent.com when a user
    * signs in (D-1 handoff §9 trap 8). Allow that host so <Image /> and
    * raw <img> requests aren't 403'd by Next's image optimisation pipeline.

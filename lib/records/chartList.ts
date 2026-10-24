@@ -3,7 +3,7 @@
  *
  * 의도: 팬이 어느 대회의 차트든 찾아가는 문. MVP 1.5에 같은 주소에서 전체 차트 화면으로 바뀐다.
  *
- *   · 집합 = 사이트맵과 같은 공개 대회(`isPublicTournament` — active · 시드 제외).
+ *   · 집합 = 사이트맵과 같은 공개 대회(`isPublicTournament` — active · 시드 제외 · 실서비스에선 시험 표시 제외).
  *   · **끝난 대회 = 마감 시각(`tournamentDeadline`)이 지금 이전이거나 같은 대회**(대표 정의 10/10).
  *     `status` 로 판단하지 않는다 — `ended` 로 바꾸는 코드가 없다. 마감 시각이 없는 대회는 진행 중.
  *     같은 기준을 마감 뒤 선택 차단(onVote)·차트 집계 창이 이미 쓴다. ARENA-2 의 마감 대회
@@ -17,12 +17,14 @@
  */
 import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import { deriveRankState } from "@/lib/ranking/rankState";
+import type { DeployEnv } from "@/lib/deployEnv";
 import type { LocalizedText } from "@/lib/types/tournament";
 
 export interface ChartTournament {
   id: string;
   status?: unknown;
   hostUid?: unknown;
+  e2e?: unknown;
   /** `tournamentDeadline` (ms). `null` = 마감 시각 없음. */
   deadlineMs: number | null;
   title: string;
@@ -33,8 +35,9 @@ export interface ChartTournament {
 export function splitChartTournaments<T extends ChartTournament>(
   tournaments: T[],
   nowMs: number,
+  deployEnv: DeployEnv,
 ): { active: T[]; ended: T[] } {
-  const pub = tournaments.filter((t) => isPublicTournament(t));
+  const pub = tournaments.filter((t) => isPublicTournament(t, deployEnv));
   const isEnded = (t: T) => t.deadlineMs !== null && t.deadlineMs <= nowMs;
   const active = pub
     .filter((t) => !isEnded(t))

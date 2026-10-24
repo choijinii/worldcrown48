@@ -5,6 +5,8 @@
  *
  * Data binding: tournaments.where("featured", "==", true).limit(1).
  * Graceful empty: if no featured tournament exists, render nothing (no error).
+ * OPS-FIX-1 (원장 D-66): 받아 온 문서도 `isPublicTournament` 를 지나야 보인다 — 실서비스에서
+ * 시험 대회(`e2e: true`)를 추천 대회로 띄우지 않는다.
  *
  * The "ENTER ARENA →" CTA routes to /arena/[tournamentId].
  */
@@ -13,6 +15,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import { currentDeployEnv } from "@/lib/deployEnv";
+import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
@@ -44,6 +48,10 @@ export function FeaturedTournament() {
           return;
         }
         const doc = snap.docs[0];
+        if (!isPublicTournament({ id: doc.id, ...doc.data() }, currentDeployEnv())) {
+          setResolved(true);
+          return;
+        }
         // Resolve the CANONICAL Tournament schema (tournamentDeadline /
         // totalContestants) — a featured doc never carries the legacy
         // closesAt/contestantsCount, so reading those crashed /launch (Hotfix-1).
