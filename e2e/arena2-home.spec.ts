@@ -265,8 +265,9 @@ test.describe("ARENA-2 — 아레나 홈", () => {
     const row = await revealRow(page, A3);
     await expect(row.getByTestId("arena-active-enter")).toHaveAttribute("href", `/arena/${A3}`);
     const box = await row.boundingBox();
-    // 줄 오른쪽 위 빈 자리(제목·버튼이 아닌 곳)
-    await page.mouse.click(box!.x + box!.width - 12, box!.y + 8);
+    // 줄 오른쪽 위 빈 자리(제목·버튼이 아닌 곳). 줄이 첫 화면 아래에 있으니 locator 클릭으로
+    // 스크롤해 누른다(page.mouse 는 화면 밖 좌표를 누르지 못한다).
+    await row.click({ position: { x: box!.width - 12, y: 8 } });
     await expect(page).toHaveURL(new RegExp(`/arena\\?t=${A3}$`));
     await expect(page.getByTestId("arena-board")).toHaveAttribute("data-board-id", A3);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(50);
