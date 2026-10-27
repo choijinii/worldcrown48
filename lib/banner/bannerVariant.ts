@@ -17,6 +17,18 @@ export const BANNER_SIZES: Record<BannerVariant, { width: number; height: number
   mobile: { width: 320, height: 100 },
 };
 
+/**
+ * 아레나 홈 광고 칸 (원장 D-69) — 배너 자리와 따로 센다(배너는 970×90 / 320×100 둘뿐).
+ *   rect  300×250  오른쪽 뉴스 칸 안 (애드센스 "중간 사각형")
+ *   strip 300×90   가로 띠 오른쪽 · 데스크톱만 (구글 표준 목록 밖 — 붙일 때 반응형 광고)
+ */
+export type AdBoxVariant = "rect" | "strip";
+
+export const AD_BOX_SIZES: Record<AdBoxVariant, { width: number; height: number }> = {
+  rect: { width: 300, height: 250 },
+  strip: { width: 300, height: 90 },
+};
+
 /** 이 배치에서 배너를 어떤 크기로 그리는가. null = 그리지 않는다. */
 export function bannerVariant(mode: StageMode): BannerVariant | null {
   if (mode === "desktop") return "desktop";
