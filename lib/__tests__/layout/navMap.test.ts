@@ -163,9 +163,8 @@ describe("서랍 (정본 4 · 5 · 8 · §3)", () => {
 describe("흐린 항목 (§0-B 2 · R3)", () => {
   it("정본 GNB.jsx 의 DIM 목록과 같다 — 판정은 키로", () => {
     const dimmed = allSubs().filter(isDimmed).map((s) => s.key);
+    // ARENA-2 — K-POP · CREATOR 는 아레나 홈 카테고리 주소로 살아났다(NAV-1 인계 ④ · D-63).
     expect(dimmed).toEqual([
-      "kpop",
-      "creator",
       "hallOfFame",
       "rankings",
       "newsRecords",
@@ -186,6 +185,8 @@ describe("흐린 항목 (§0-B 2 · R3)", () => {
     const href = Object.fromEntries(allSubs().filter((s) => !isDimmed(s)).map((s) => [s.key, s.href]));
     expect(href).toEqual({
       arenaHome: "/arena",
+      kpop: "/arena?cat=kpop",
+      creator: "/arena?cat=creator",
       charts: "/records",
       allArticles: "/news",
       privacy: "/policies/privacy",

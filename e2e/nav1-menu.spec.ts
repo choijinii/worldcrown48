@@ -242,15 +242,21 @@ test.describe("데스크톱 1280", () => {
     expect(errors).toEqual([]);
   });
 
-  test("/arena 임시 페이지 — 제목 · The Pitch 링크 · noindex", async ({ page, baseURL }) => {
+  // ARENA-2 — /arena 임시 페이지는 아레나 홈으로 바뀌었다(화면 시험 = e2e/arena2-home.spec.ts).
+  // 여기서는 서랍의 K-POP · CREATOR 가 아레나 홈 카테고리 주소로 살아났는지만 본다(NAV-1 인계 ④).
+  test("서랍 K-POP · CREATOR → /arena?cat= (ARENA-2)", async ({ page, baseURL }) => {
     const errors = collectErrors(page);
     await prime(page, baseURL);
     await page.goto("/arena?lang=en");
-    await expect(page.getByTestId("arena-temp")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "The Arena" })).toBeVisible();
-    await expect(page.getByTestId("arena-temp-pitch")).toHaveAttribute("href", "/");
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     await expect(page.getByTestId("nav-item-arena")).toHaveAttribute("aria-current", "page");
+    await page.getByTestId("nav-burger").click();
+    const toggle = page.getByTestId("drawer-item-arena");
+    if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
+    await expect(page.getByTestId("drawer-sub-kpop")).toHaveAttribute("href", "/arena?cat=kpop");
+    await expect(page.getByTestId("drawer-sub-creator")).toHaveAttribute("href", "/arena?cat=creator");
+    await page.getByTestId("drawer-sub-kpop").click();
+    await expect(page).toHaveURL(/\/arena\?cat=kpop$/);
+    await expect(page.getByTestId("arena-tab-kpop")).toHaveAttribute("aria-current", "true");
     expect(errors).toEqual([]);
   });
 

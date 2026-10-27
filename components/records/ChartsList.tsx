@@ -5,6 +5,7 @@
  *
  * 다크(차트와 같은 토큰 · D-40) · 목록형(카드·썸네일 없음) · 폭 970 가운데.
  * 줄 = 대회 제목(지금 언어) · 카테고리 칩 · (끝난 대회만) 챔피언 · "차트 보기 ›" → 그 대회 차트.
+ * 끝난 대회 묶음엔 챔피언이 있는 대회만 온다(recordsData → `crownedOnly` · 원장 D-72).
  * 배너 자리 `records-below` 는 목록 아래 한 곳(D-21).
  *
  * 데이터는 서버(app/records/page.tsx)가 읽어 넘긴다. 여기는 언어 고르기와 그리기만 한다.
@@ -24,7 +25,7 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
   const variant = useBannerVariant();
 
   const row = (r: ChartRowData, ended: boolean) => (
-    <li key={r.id} className={styles.row} data-testid="records-row">
+    <li key={r.id} className={styles.row} data-testid="records-row" data-tid={r.id}>
       <span className={styles.title}>
         {localizedTitle({ title: r.title, titleI18n: r.titleI18n }, lang)}
       </span>

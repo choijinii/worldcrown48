@@ -456,13 +456,79 @@ export const MESSAGES = {
   "nav.drawer.language": { ko: "언어", en: "Language", es: "Idioma" },
   // ko·en = 계정 메뉴(UserDropdown)의 기존 문구 · es 만 새 문구.
   "nav.drawer.signOut": { ko: "로그아웃", en: "Sign out", es: "Cerrar sesión" },
-  // /arena 임시 페이지(ARENA-2 가 교체) — 안내 한 줄 + The Pitch 링크.
-  "arena.temp.intro": {
-    ko: "아레나 홈을 준비하고 있어요. 지금은 The Pitch에서 대회를 골라 주세요.",
-    en: "Arena Home is on its way. For now, pick a Tournament on The Pitch.",
-    es: "Arena Home llegará pronto. Por ahora, elige un torneo en The Pitch.",
+  // ── ARENA-2 PR 1 — 아레나 홈 /arena (원장 D-37 · D-63 · D-67 · D-68 · D-71) ──
+  // 문구 승인표 outputs/ARENA-2_PR1_문구승인표_2026-10-27.md. 금지어: "표" · 투표 · 참가자 · 예측 · 전투 말투.
+  // Tournament · Contestant · Champion 은 en·es 에서 영문 그대로(LANGUAGE.md §10) — es "Campeón" 만 Record Room 승인본을 따른다.
+  "arenaHome.h1": { ko: "The Arena", en: "The Arena", es: "The Arena" },
+  "arenaHome.enter": { ko: "입장하기", en: "Enter", es: "Entrar" },
+  "arenaHome.deadline": { ko: "마감 {date}", en: "Closes {date}", es: "Cierra {date}" },
+  "arenaHome.entries": { ko: "엔트리", en: "Contestants", es: "Contestants" },
+  "arenaHome.entries.more": { ko: "엔트리 더 보기", en: "See all Contestants", es: "Ver todos los Contestants" },
+  "arenaHome.entries.less": { ko: "접기", en: "Show less", es: "Ver menos" },
+  "arenaHome.board.empty": {
+    ko: "지금 진행 중인 대회가 없어요. 새 대회가 곧 열려요.",
+    en: "No Tournaments are open right now. A new one is coming soon.",
+    es: "No hay Tournaments abiertos ahora. Pronto llegará uno nuevo.",
   },
-  "arena.temp.toPitch": { ko: "The Pitch로 가기", en: "Go to The Pitch", es: "Ir a The Pitch" },
+  "arenaHome.tabs.label": { ko: "카테고리", en: "Categories", es: "Categorías" },
+  "arenaHome.tabs.all": { ko: "전체", en: "All", es: "Todos" },
+  "arenaHome.search.placeholder": {
+    ko: "마감 대회 검색 — 제목 또는 챔피언",
+    en: "Search closed Tournaments — title or Champion",
+    es: "Buscar Tournaments cerrados — título o Campeón",
+  },
+  "arenaHome.search.clear": { ko: "지우기", en: "Clear", es: "Borrar" },
+  "arenaHome.active.title": { ko: "진행 중인 대회", en: "Active Tournaments", es: "Tournaments activos" },
+  "arenaHome.active.more": { ko: "진행 중인 대회 더 보기", en: "Show more Tournaments", es: "Ver más Tournaments" },
+  "arenaHome.active.empty": {
+    ko: "이 카테고리에는 지금 진행 중인 대회가 없어요",
+    en: "No active Tournaments in this category right now",
+    es: "No hay Tournaments activos en esta categoría ahora",
+  },
+  "arenaHome.closed.title": { ko: "마감 대회", en: "Closed Tournaments", es: "Tournaments cerrados" },
+  "arenaHome.closed.sort": { ko: "최신순", en: "Latest first", es: "Más recientes" },
+  "arenaHome.closed.col.tournament": { ko: "대회", en: "Tournament", es: "Tournament" },
+  "arenaHome.closed.col.champion": { ko: "챔피언", en: "Champion", es: "Campeón" },
+  "arenaHome.closed.col.closed": { ko: "마감", en: "Closed", es: "Cierre" },
+  // D-68 — 이 버튼 하나만 "랭킹 보기"(차트 화면의 이름은 여전히 "차트" · D-44).
+  "arenaHome.closed.viewRanking": { ko: "랭킹 보기", en: "View ranking", es: "Ver ranking" },
+  // 챔피언 칸이 비는 경우 = 차트가 점수를 숨기는 10판 미만(chart.waiting.title 과 같은 이유).
+  "arenaHome.closed.empty.title": {
+    ko: "아직 마감된 대회가 없어요",
+    en: "No Tournaments have closed yet",
+    es: "Aún no ha cerrado ningún Tournament",
+  },
+  "arenaHome.closed.empty.body": {
+    ko: "첫 Crown이 곧 정해져요. 진행 중인 대회에 먼저 입장해 보세요.",
+    en: "The first Crown is on its way. Step into an active Tournament first.",
+    es: "La primera Crown está en camino. Entra primero en un Tournament activo.",
+  },
+  "arenaHome.closed.empty.cta": { ko: "진행 중인 대회 보기", en: "See active Tournaments", es: "Ver Tournaments activos" },
+  "arenaHome.closed.noResult": {
+    ko: "‘{q}’와 맞는 마감 대회가 없어요",
+    en: "No closed Tournaments match ‘{q}’",
+    es: "Ningún Tournament cerrado coincide con ‘{q}’",
+  },
+  "arenaHome.closed.resultNote": {
+    ko: "‘{q}’ 검색 결과 {n}개",
+    en: "{n} results for ‘{q}’",
+    es: "{n} resultados para ‘{q}’",
+  },
+  "arenaHome.page.prev": { ko: "이전 쪽", en: "Previous page", es: "Página anterior" },
+  "arenaHome.page.next": { ko: "다음 쪽", en: "Next page", es: "Página siguiente" },
+  "arenaHome.page.n": { ko: "{n}쪽", en: "Page {n}", es: "Página {n}" },
+  "arenaHome.news.category": { ko: "카테고리 뉴스", en: "Category news", es: "Noticias de la categoría" },
+  "arenaHome.news.closed": { ko: "마감 대회 뉴스", en: "Closed Tournament news", es: "Noticias de Tournaments cerrados" },
+  "arenaHome.news.empty.title": {
+    ko: "아직 관련 뉴스가 없어요",
+    en: "No related news yet",
+    es: "Aún no hay noticias relacionadas",
+  },
+  "arenaHome.news.empty.body": {
+    ko: "새 소식이 오면 이곳에 가장 먼저 올릴게요.",
+    en: "New stories will show up here first.",
+    es: "Las novedades aparecerán aquí primero.",
+  },
   // Locker Room(/account) 비로그인 안내 — 정본 v4 40 · 41 · 안내문 대표 승인 2026-10-13(글자 그대로).
   // 로그인 버튼 글자는 저장 잠금 승인본(lib/crown/lockCopy cta)을 쓴다 — 여기 두지 않는다.
   "locker.guest.eyebrow": { ko: "LOCKER ROOM", en: "LOCKER ROOM", es: "LOCKER ROOM" },
@@ -1071,6 +1137,22 @@ export const MESSAGES = {
     ko: "사전등록에 참가하세요! 먼저 온 사람에게 혜택이 기다립니다.",
     en: "Join the Waitlist! Something special awaits those who come first.",
     es: "¡Únete a la lista! Algo especial espera a quienes lleguen primero.",
+  },
+  // ARENA-2 — 아레나 홈 광고 칸(300×250 · 300×90 · D-69)의 기본 공지. 링크는 lib/banner/bannerSlot ARENA_AD_BOX_NOTICES.
+  "banner.arena.beside.title": {
+    ko: "모든 대회의 차트는 Record Room에서",
+    en: "Every Tournament chart lives in the Record Room",
+    es: "Todos los charts de Tournaments, en Record Room",
+  },
+  "banner.arena.sideActive.title": {
+    ko: "뉴스룸에서 최신 소식을 만나 보세요",
+    en: "Catch the latest stories in the Newsroom",
+    es: "Descubre las últimas noticias en el Newsroom",
+  },
+  "banner.arena.sideClosed.title": {
+    ko: "마감 대회의 차트는 언제든 다시 볼 수 있어요",
+    en: "Charts of closed Tournaments stay open anytime",
+    es: "Los charts de los Tournaments cerrados siguen abiertos siempre",
   },
   "banner.default.guest.title": {
     ko: "로그인하면 크라운 카드를 간직하고, 대회마다 하루 5번 참여할 수 있어요",

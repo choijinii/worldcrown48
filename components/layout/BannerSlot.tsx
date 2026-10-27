@@ -25,15 +25,18 @@ import {
   type BannerDoc,
   type BannerSlotName,
 } from "@/lib/banner/bannerSlot";
-import type { BannerVariant } from "@/lib/banner/bannerVariant";
+import type { AdBoxVariant, BannerVariant } from "@/lib/banner/bannerVariant";
 import styles from "./bannerSlot.module.css";
 
 interface BannerSlotProps {
   slot: BannerSlotName;
   /** 기본 공지(비로그인)의 "로그인 화면" — 화면이 가진 로그인 모달을 연다. */
   onSignIn?: () => void;
-  /** 크기 변형 — desktop 970×90 · mobile 320×100 (원장 D-21 바뀜 09-21). 화면 밖 판정. */
-  variant?: BannerVariant;
+  /**
+   * 크기 변형 — desktop 970×90 · mobile 320×100 (원장 D-21 바뀜 09-21) · 아레나 홈 광고 칸
+   * rect 300×250 · strip 300×90 (D-69). 화면 밖 판정 · 실제 크기는 놓는 쪽 CSS 가 정한다.
+   */
+  variant?: BannerVariant | AdBoxVariant;
   className?: string;
 }
 
