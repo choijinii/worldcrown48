@@ -5,6 +5,7 @@
  * firestore.rules 가 공개로 허락한 것만 읽힌다 — 대회 `status == 'active'` · `ranking_cache`
  * (D-30 상시 공개) · `categories`(공개). 규칙 변경 없음.
  *
+ * 끝난 대회 = 챔피언이 있는 대회만(`crownedOnly` · 원장 D-72).
  * 읽기 = 공개 대회 1쿼리 + 카테고리 1쿼리 + **끝난 대회의** 차트 캐시 문서 수만큼(챔피언 칸).
  * 실패·시간 초과면 `failed` — 화면은 묶음 없이 머리·배너만(없는 사실을 말하지 않는다).
  */
@@ -12,7 +13,7 @@ import { collection, doc, getDoc, getDocs, query, where } from "firebase/firesto
 import { getDb } from "@/lib/firebase";
 import { currentDeployEnv } from "@/lib/deployEnv";
 import { toMs } from "@/lib/news/articleRecord";
-import { categoryChip, chartChampion, splitChartTournaments, type ChartTournament } from "./chartList";
+import { categoryChip, chartChampion, crownedOnly, splitChartTournaments, type ChartTournament } from "./chartList";
 import type { NamedLike } from "@/lib/contestantName";
 import type { LocalizedText } from "@/lib/types/tournament";
 
@@ -91,7 +92,8 @@ export async function loadRecords(nowMs: number): Promise<RecordsData> {
       });
       return {
         active: active.map((t) => row(t, null)),
-        ended: ended.map((t, i) => row(t, champions[i])),
+        // 챔피언이 없는(10판 미만) 대회는 목록에서만 뺀다 — 원장 D-72.
+        ended: crownedOnly(ended.map((t, i) => row(t, champions[i]))),
         failed: false,
       };
     })(),

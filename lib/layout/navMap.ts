@@ -78,8 +78,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
     href: "/arena",
     children: [
       { key: "arenaHome", labelKey: "nav.sub.arenaHome", href: "/arena", inDropdown: true },
-      { key: "kpop", labelKey: "nav.sub.kpop", href: null },
-      { key: "creator", labelKey: "nav.sub.creator", href: null },
+      // ARENA-2 — 아레나 홈 카테고리 주소(소문자 · 원장 D-63). 탭 하나가 진행 중·마감을 함께 거른다.
+      { key: "kpop", labelKey: "nav.sub.kpop", href: "/arena?cat=kpop" },
+      { key: "creator", labelKey: "nav.sub.creator", href: "/arena?cat=creator" },
     ],
   },
   {

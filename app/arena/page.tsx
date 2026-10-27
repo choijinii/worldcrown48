@@ -1,22 +1,25 @@
-// TEMP(NAV-1): ARENA-2가 이 파일을 아레나 홈으로 교체한다. 주소 /arena 는 유지.
 /**
- * /arena — 아레나 홈 자리의 임시 페이지 (NAV-1 E2 · 프롬프트 §3-B · §0-B 5).
+ * /arena — 아레나 홈 (ARENA-2 PR 1 · 원장 D-37 · D-63 · D-67~D-71 · 킥 v1.0).
  *
- * 메뉴의 The Arena · 서랍의 Arena Home 이 이미 이 주소를 가리킨다. ARENA-2 가 같은 주소에서
- * 아레나 홈(대기실 · D-37 마감 대회 게시판)으로 바꾸면서 ① 이 파일 교체 ② noindex 해제 +
- * 사이트맵에 /arena 추가 ③ 배너 자리(D-21) 결정 ④ 서랍 K-POP·CREATOR 를 실제 주소로.
+ * 전광판(= 대기실) · 카테고리 줄 + 검색 · 진행 중 대회 · 가로 띠 · 마감 대회 게시판, 각 구역 오른쪽에
+ * 관련 뉴스 칸과 광고 자리. 화이트(D-40) · 메뉴바는 사이트 공통(NAV-1).
+ * `/arena/[tournamentId]` 이하(매치 무대 · 크라운 카드 · 차트)는 이 파일과 무관하다.
  *
- * 화이트(D-40 아레나 홈) · 메뉴바는 다크 · 데이터 읽기 없음 · 배너 없음.
- * `/arena/[tournamentId]` 이하는 이 파일과 무관하다(한 글자도 안 바뀜).
+ * 요청 때마다 읽는다(force-dynamic) — `/records` 와 같은 이유: 빌드가 데이터베이스에 묶이지 않게,
+ * 마감이 지난 대회가 곧바로 게시판으로 옮겨 가게(시각은 서버의 지금). 검색 색인 허용 · 사이트맵에 있음.
  */
 import type { Metadata } from "next";
-import { ArenaTempPage } from "@/components/arena/ArenaTempPage";
+import { loadArenaHome } from "@/lib/arenaHome/arenaHomeData";
+import { ArenaHome } from "@/components/arenaHome/ArenaHome";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "The Arena · WorldCrown48",
-  robots: { index: false, follow: true },
+  description: "Pick an active Tournament to enter, or look back at the rankings of closed ones",
 };
 
-export default function ArenaIndexPage(): JSX.Element {
-  return <ArenaTempPage />;
+export default async function ArenaHomePage(): Promise<JSX.Element> {
+  const data = await loadArenaHome(Date.now());
+  return <ArenaHome data={data} />;
 }

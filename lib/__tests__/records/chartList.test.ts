@@ -4,16 +4,20 @@
  * 끝난 대회 = 마감 시각(`tournamentDeadline`)이 지난 대회 — `status` 로 판단하지 않는다
  * (`ended` 로 바꾸는 코드가 없다, 대표 정의 10/10). 집합은 사이트맵과 같은 공개 대회.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { localizedName } from "@/lib/contestantName";
 import {
   categoryChip,
   chartChampion,
   chartHref,
+  crownedOnly,
   splitChartTournaments,
   type ChartTournament,
 } from "@/lib/records/chartList";
 
+const src0 = (f: string) => readFileSync(join(process.cwd(), f), "utf8");
 const NOW = 1_760_000_000_000;
 const H = 60 * 60 * 1000;
 
@@ -89,6 +93,45 @@ describe("chartChampion — 차트의 Crown Score 1위", () => {
     expect(c).toEqual({ name: "뉴진스", nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" } });
     expect(localizedName(c!, "en")).toBe("NewJeans");
     expect(localizedName(c!, "ko")).toBe("뉴진스");
+  });
+});
+
+describe("crownedOnly — 끝난 대회 목록엔 챔피언이 있는 대회만 (원장 D-72)", () => {
+  // 실제 흐름 그대로: 차트 캐시 → chartChampion → crownedOnly.
+  const caches: Record<string, Parameters<typeof chartChampion>[0]> = {
+    ok: { runsTotal: 12, rankings: [{ name: "서하린" }] },
+    ten: { runsTotal: 10, rankings: [{ name: "유도윤" }] },
+    nine: { runsTotal: 9, rankings: [{ name: "x" }] },
+    zero: { runsTotal: 0, rankings: [] },
+    none: null,
+  };
+  const rows = ["ok", "nine", "ten", "zero", "none"].map((id) => ({ id, champion: chartChampion(caches[id]) }));
+
+  it("10판 미만 · 판 0 · 캐시 없음 = 목록에서 빠진다 · 10판은 남는다", () => {
+    expect(crownedOnly(rows).map((r) => r.id)).toEqual(["ok", "ten"]);
+  });
+
+  it("순서는 받은 그대로(마감 최신순은 split 이 정한다) · 다른 칸은 건드리지 않는다", () => {
+    const r = [
+      { id: "b", chip: "K-POP", champion: { name: "B" } },
+      { id: "x", chip: null, champion: null },
+      { id: "a", chip: "CREATOR", champion: { name: "A" } },
+    ];
+    expect(crownedOnly(r)).toEqual([r[0], r[2]]);
+    expect(r).toHaveLength(3); // 원본 배열은 그대로
+  });
+
+  it("빈 목록 = 빈 목록", () => {
+    expect(crownedOnly([])).toEqual([]);
+  });
+
+  it("Record Room 과 아레나 홈 마감 게시판이 같은 함수를 쓴다", () => {
+    expect(src0("lib/records/recordsData.ts")).toMatch(/ended: crownedOnly\(/);
+    expect(src0("lib/arenaHome/arenaHomeData.ts")).toMatch(/closed: crownedOnly\(/);
+  });
+
+  it("'미정' 같은 대신 글자는 두지 않는다(D-72)", () => {
+    expect(src0("lib/i18n/messages.ts")).not.toContain("arenaHome.closed.noChampion");
   });
 });
 

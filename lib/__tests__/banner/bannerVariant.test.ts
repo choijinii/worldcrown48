@@ -9,7 +9,7 @@
  * 자리와 광고가 같은 크기라 빈 테두리가 없다(D-21 정의). 옛 1320×140 · 폭 366 은 폐기.
  */
 import { describe, expect, it } from "vitest";
-import { bannerVariant, BANNER_SIZES, pageBannerVariant } from "@/lib/banner/bannerVariant";
+import { AD_BOX_SIZES, bannerVariant, BANNER_SIZES, pageBannerVariant } from "@/lib/banner/bannerVariant";
 
 describe("bannerVariant — 어느 화면에 어떤 크기", () => {
   it("데스크톱 = 970×90", () => {
@@ -53,5 +53,13 @@ describe("pageBannerVariant — 피치 배너 크기 (D-21)", () => {
   });
   it("작은 데스크톱 창(1000×800 가로)은 휴대폰 가로가 아니다 = 970×90", () => {
     expect(pageBannerVariant(1000, 800)).toBe("desktop");
+  });
+});
+
+// ARENA-2 · 원장 D-69 — 아레나 홈 광고 칸. 배너(970×90 / 320×100)와 따로 둔다.
+describe("AD_BOX_SIZES — 아레나 홈 광고 칸 (D-69)", () => {
+  it("오른쪽 칸 = 300×250 (애드센스 중간 사각형) · 띠 옆 = 300×90", () => {
+    expect(AD_BOX_SIZES.rect).toEqual({ width: 300, height: 250 });
+    expect(AD_BOX_SIZES.strip).toEqual({ width: 300, height: 90 });
   });
 });

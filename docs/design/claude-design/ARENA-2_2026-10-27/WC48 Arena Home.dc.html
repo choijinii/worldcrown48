@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/arena_stage_tokens.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/ui_kits/web/kit.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/styles.css">
+  <script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+  <style>
+    body { background: #00001F; margin: 0; }
+    :root { --color-bg-default: #080823; }
+    a { color: var(--color-gold); text-decoration: none; }
+    a:hover { color: var(--color-gold-hover); }
+  </style>
+</helmet>
+
+<div style="padding:48px;min-height:100vh;background:#00001F;display:flex;flex-direction:column;gap:56px;font-family:var(--font-sans);color:var(--color-text);position:relative;z-index:1">
+
+  <div style="max-width:960px;display:flex;flex-direction:column;gap:14px">
+    <div class="kicker">WorldCrown48 · The Arena 홈 · /arena · 첫 시안 · 화이트 테마</div>
+    <div style="font-size:14px;line-height:1.65;color:var(--color-text-sub)">
+      손 스케치의 칸 배치·순서 그대로. 전광판은 <strong style="color:var(--color-text)">REF ③ 대기실 전광판</strong>(924×520 + 엔트리) 그대로, 대회 그림은 <code>VSThumb</code>, 메뉴바는 kit의 Floating Island GNB. 오른쪽 칸 = 1320 − 924 − 24 = <strong style="color:var(--color-text)">372px</strong>. 광고 자리는 모두 "공지" 상태 · 오른쪽 광고 300×250 · 가로 띠 970×90(휴대폰 320×100). 바둑판의 광고 칸은 300×250을 지켜야 해서 작은 그림 3칸 + 광고 1칸(가로 전체)으로 폈습니다. 문구 전부 임시.
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--color-text-muted)">
+      <a href="#d1">D-1 기본</a><a href="#d2">D-2 K-POP 탭</a><a href="#d3">D-3 마감 2페이지</a><a href="#d4">D-4 검색 결과</a><a href="#d5">D-5 마감 비었음</a><a href="#d6">D-6 뉴스 없음</a><a href="#t1">T-1 태블릿</a><a href="#m1">M-1 휴대폰</a>
+    </div>
+  </div>
+
+  <sc-for list="{{ boards }}" as="b" hint-placeholder-count="2">
+    <section id="{{ b.anchor }}" data-screen-label="{{ b.id }}" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:var(--color-gold);color:#241754;border-radius:5px;font-weight:700">{{ b.id }}</span><span style="font-size:13px;font-weight:600">{{ b.label }}</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);letter-spacing:.08em">{{ b.note }}</span></div><div data-theme="light" style="{{ b.page }}">
+
+        <!-- GNB · Floating Island -->
+        <div class="gnb-wrap" style="position:static;padding:0 0 28px">
+          <nav class="gnb" style="background:var(--color-bg-charcoal);box-shadow:none">
+            <button class="gnb__brand"><img src="assets/wc48-crown-filled.svg" alt=""><span class="gnb__wm">WORLDCROWN48</span></button>
+            <span class="gnb__sep"></span>
+            <sc-if value="{{ b.showLinks }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:2px"><button class="gnb__link">The Pitch</button><button class="gnb__link is-active">The Arena</button><button class="gnb__link">Newsroom</button></div>
+              <span class="gnb__sep"></span>
+            </sc-if>
+            <button class="gnb__link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.14em">KO</button>
+            <button class="gnb__cta">로그인</button>
+          </nav>
+        </div>
+
+        <!-- 1 · 전광판 (REF ③) -->
+        <div style="{{ b.boardSec }}">
+          <div style="position:relative;width:100%;border-radius:5px;overflow:hidden">
+            <dc-import name="VSThumb" a-pos="{{ feat.aPos }}" b-pos="{{ feat.bPos }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,520px"></dc-import>
+            <div style="{{ b.enterWrap }}"><button class="btn" style="height: 34px; font-size: 18px; width: 195px">입장하기</button></div>
+            <sc-if value="{{ b.overlayOnImage }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ b.overlay }}">
+              
+              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;color:var(--color-gold)">{{ feat.cat }} · 48 CONTESTANTS</span>
+              <sc-if value="{{ b.showDesc }}" hint-placeholder-val="{{ true }}"><span style="font-size:15px;color:#DDDDEA">{{ feat.desc }}</span></sc-if>
+              <span style="font-size: 28px; font-weight: 700; line-height: 31.65px">{{ feat.title }}</span><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--arena-icon)">TOURNAMENT DEADLINE · {{ feat.deadline }}</span>
+            </div>
+            </sc-if>
+          </div>
+          <sc-if value="{{ b.mobile }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:4px;padding:4px 8px 0">
+              <span style="font-size:18px;font-weight:700;line-height:1.25;letter-spacing:-.015em;color:var(--color-text-light);text-wrap:pretty">{{ feat.title }}</span>
+              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ feat.cat }} · 48 CONTESTANTS</span>
+              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">TOURNAMENT DEADLINE · {{ feat.deadline }}</span>
+            </div>
+          </sc-if>
+          <div style="{{ b.entriesPanel }}">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--color-text-light)"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">엔트리</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">48</span></div>
+            <div style="{{ b.entriesGrid }}">
+              <sc-for list="{{ entries }}" as="e" hint-placeholder-count="24">
+                <div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--color-border-light);min-width:0"><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--color-text-sub-light);flex:none">{{ e.nn }}</span><span style="font-size:13px;font-weight:600;color:var(--color-text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ e.name }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ b.mobile }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self:center;width:320px;max-width:100%;height:100px;border:1px solid var(--color-border-light);border-radius:2px;background:#ECECF0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 20px;text-align:center">
+              <img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px" alt="">
+              <span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">공지</span>
+              <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">AD · 320 × 100</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- 2 · 카테고리 + 검색 -->
+        <div style="{{ b.tabsSec }}">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ b.catTabs }}" as="ct" hint-placeholder-count="3">
+              <a href="#" style="{{ ct.style }}" style-hover="background:var(--color-aura);border-color:var(--color-aura);color:#241754">{{ ct.name }}</a>
+            </sc-for>
+          </div>
+          <div style="{{ b.search }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--color-text-sub-light)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <span style="{{ b.searchText }}">{{ b.searchLabel }}</span>
+            <sc-if value="{{ b.isSearch }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;color:var(--color-text-sub-light);flex:none">지우기</span></sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ b.isSearch }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-top:-8px"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">‘{{ b.query }}’ 검색 결과</span><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">{{ b.resultNote }}</span></div>
+        </sc-if>
+
+        <!-- 3 · 진행 중 대회 + 카테고리 뉴스 -->
+        <div style="{{ b.secTight }}">
+          <div style="{{ b.leftBox }}">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--color-text-light)"><h2 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--color-text-light)">진행 중인 대회</h2><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">{{ b.activeSub }}</span></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ b.active }}" as="r" hint-placeholder-count="4">
+                <sc-if value="{{ b.mobile }}" hint-placeholder-val="{{ false }}">
+                <a href="#" style="display:flex;flex-direction:column;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);overflow:hidden;color:inherit">
+                  <div style="position:relative">
+                    <dc-import name="VSThumb" a-pos="{{ r.aPos }}" b-pos="{{ r.bPos }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,200px"></dc-import>
+                    <div style="position:absolute;left:0;right:0;bottom:0;padding:48px 12px 10px;background:linear-gradient(180deg,transparent,rgba(11,16,32,.72) 60%);display:flex;flex-direction:column;gap:1px;z-index:9;pointer-events:none">
+                      <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;color:var(--color-gold)">{{ r.cat }}</span>
+                      <span style="font-size:14px;font-weight:700;line-height:1.25;letter-spacing:-.01em;color:#FFFFFF;text-wrap:pretty">{{ r.title }}</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--arena-icon)">DEADLINE · {{ r.deadline }}</span>
+                    </div>
+                  </div>
+                  <button class="btn" style="width:100%;margin:8px 0 0;height:37px;border-radius:0 0 5px 5px;font-size:14px">입장하기</button>
+                </a>
+                </sc-if>
+                <sc-if value="{{ b.tablet }}" hint-placeholder-val="{{ false }}">
+                <a href="#" style="{{ b.row }}" style-hover="border-color:var(--color-border-gold)">
+                  <dc-import name="VSThumb" a-pos="{{ r.aPos }}" b-pos="{{ r.bPos }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,135px"></dc-import>
+                  <div style="display:flex;flex-direction:column;gap:4px;min-width:0;padding:12px 14px 12px 0">
+                    <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ r.cat }}</span>
+                    <span style="font-size:16px;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:pretty">{{ r.title }}</span>
+                    <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">DEADLINE · {{ r.deadline }}</span>
+                    <div style="margin-top:auto;display:flex"><button class="btn" style="height:36px;padding:0 32px;font-size:14px">입장하기</button></div>
+                  </div>
+                </a>
+                </sc-if>
+                <sc-if value="{{ b.desktop }}" hint-placeholder-val="{{ true }}">
+                <a href="#" style="{{ b.row }}" style-hover="border-color:var(--color-border-gold)">
+                  <dc-import name="VSThumb" a-pos="{{ r.aPos }}" b-pos="{{ r.bPos }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,180px"></dc-import>
+                  <div style="height: 178px; width: 532px">
+                    <span style="font-family: var(--font-mono); font-size: 10px; letter-spacing: .2em; color: var(--color-text-sub-light); position: relative; top: -3px">{{ r.cat }}</span>
+                    <span style="position: relative; z-index: 112; top: 25px; height: 23px; width: 518px; left: -46px; padding-left: 0px; padding-right: 0px; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; font-weight: 600; font-size: 18px">{{ r.title }}</span>
+                    <sc-if value="{{ b.showDesc }}" hint-placeholder-val="{{ true }}"><span style="font-size: 14px; line-height: 1.5; color: var(--color-text-sub-light); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; z-index: 0; position: relative; top: 31px; height: 46px">{{ r.desc }}</span><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; flex-wrap: nowrap; width: 100%; position: relative; top: 68px"><button class="btn" style="{{ b.rowBtn }}">입장하기</button><span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; color: var(--color-text-sub-light); flex: none; white-space: nowrap; position: relative; z-index: 9; top: 9px">DEADLINE · {{ r.deadline }}</span></div></sc-if>
+                    
+                  </div>
+                </a>
+                </sc-if>
+              </sc-for>
+            </div>
+            <sc-if value="{{ b.activeMore }}" hint-placeholder-val="{{ true }}"><button style="align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;min-width:88px;padding:0 24px;border:0;background:transparent;cursor:pointer" style-hover="background:var(--color-aura);border-radius:5px" aria-label="다음 페이지"><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span></button></sc-if>
+            <sc-if value="{{ b.activeEmpty }}" hint-placeholder-val="{{ false }}"><div style="border:1px dashed var(--color-border-light);border-radius:5px;padding:32px;text-align:center;font-size:14px;color:var(--color-text-sub-light)">이 조건에 맞는 진행 중인 대회가 없습니다.</div></sc-if>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:14px;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);padding:18px 20px;min-width:0;align-self:stretch">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--color-text-light)"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">카테고리 뉴스</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">NEWSROOM</span></div>
+            <sc-if value="{{ b.hasNews }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ b.catNews }}" as="n" hint-placeholder-count="3">
+                  <a href="#" style="display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--color-border-light);color:inherit;align-items:center">
+                    <div style="height:56px;border-radius:5px;background:#ECECF0;border:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:18px;opacity:.3" alt=""></div>
+                    <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:14px;font-weight:600;line-height:1.4;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--color-text-sub-light)">{{ n.when }}</span></div>
+                  </a>
+                </sc-for>
+              </div>
+              <div style="{{ b.thumbGrid }}">
+                <sc-for list="{{ catBoxNews }}" as="n" hint-placeholder-count="6">
+                  <a href="#" style="display:flex;flex-direction:column;gap:6px;color:inherit;min-width:0"><div style="aspect-ratio:1;border-radius:5px;background:#ECECF0;border:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:20px;opacity:.3" alt=""></div><span style="font-size:12px;font-weight:600;line-height:1.35;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span></a>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.newsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 12px;text-align:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:32px;opacity:.3" alt=""><span style="font-size:14px;font-weight:600;color:var(--color-text-light)">아직 관련 뉴스가 없습니다</span><span style="font-size:12px;color:var(--color-text-sub-light)">새 소식이 오면 이곳에 가장 먼저 올립니다.</span></div>
+            </sc-if>
+            <div style="{{ b.sideAdA }}">
+              <img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px" alt="">
+              <span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">공지</span>
+              <span style="{{ b.sideAdDesc }}">48개 엔트리, 하나의 Crown. 당신의 선택이 다음 무대를 엽니다. (임시)</span>
+              <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ b.sideAdTagA }}</span>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 4 · 가로 띠 -->
+        <sc-if value="{{ b.showBand }}" hint-placeholder-val="{{ true }}">
+        <div style="{{ b.band }}">
+          <div style="{{ b.banner }}">
+            <div style="display:flex;align-items:center;gap:16px;min-width:0"><img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px;flex:none" alt=""><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">공지</span><span style="font-size:13px;color:var(--color-text-sub-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">매치마다 당신의 선택이 다음 무대를 정합니다. 배너 자리 안내 문구 (임시)</span></div></div>
+            <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light);flex:none">{{ b.bannerTag }}</span>
+          </div>
+          <div style="{{ b.bandAd }}">
+            <span style="font-size:14px;font-weight:800;color:var(--color-text-light)">공지</span>
+            <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ b.bandAdTag }}</span>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- 5 · AI 추천 대회 + 추천 뉴스 -->
+        <div style="{{ b.sec }}">
+          <div style="{{ b.leftBox }}">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--color-text-light)"><h2 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--color-text-light)">AI 추천 대회</h2><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">{{ b.recSub }}</span></div>
+            <div style="{{ b.aiGrid }}">
+              <sc-for list="{{ b.recs }}" as="c" hint-placeholder-count="6">
+                <a href="#" style="display:flex;flex-direction:column;border:1px solid var(--color-border-light);border-radius:5px;overflow:hidden;background:var(--color-surface-light);color:inherit" style-hover="border-color:var(--color-border-gold)">
+                  <dc-import name="VSThumb" a-pos="{{ c.aPos }}" b-pos="{{ c.bPos }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,160px"></dc-import>
+                  <div style="{{ b.recBody }}"><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ c.cat }}</span><span style="{{ b.recTitle }}">{{ c.title }}</span><button class="btn" style="{{ b.recBtn }}">입장하기</button></div>
+                </a>
+              </sc-for>
+            </div>
+            <sc-if value="{{ b.recMore }}" hint-placeholder-val="{{ true }}"><button style="align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;min-width:88px;padding:0 24px;border:0;background:transparent;cursor:pointer" style-hover="background:var(--color-aura);border-radius:5px" aria-label="다음 페이지"><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span><span style="width:8px;height:8px;border-radius:999px;background:var(--color-text-light)"></span></button></sc-if>
+            <sc-if value="{{ b.recEmpty }}" hint-placeholder-val="{{ false }}"><div style="border:1px dashed var(--color-border-light);border-radius:5px;padding:32px;text-align:center;font-size:14px;color:var(--color-text-sub-light)">이 조건에 맞는 추천 대회가 없습니다.</div></sc-if>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:14px;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);padding:18px 20px;min-width:0;align-self:stretch">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--color-text-light)"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">추천대회뉴스</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">NEWSROOM</span></div>
+            <sc-if value="{{ b.hasNews }}" hint-placeholder-val="{{ true }}">
+              <div style="{{ b.thumbGrid }}">
+                <sc-for list="{{ recNews }}" as="n" hint-placeholder-count="6">
+                  <a href="#" style="display:flex;flex-direction:column;gap:6px;color:inherit;min-width:0"><div style="aspect-ratio:1;border-radius:5px;background:#ECECF0;border:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:20px;opacity:.3" alt=""></div><span style="font-size:12px;font-weight:600;line-height:1.35;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span></a>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.newsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 12px;text-align:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:32px;opacity:.3" alt=""><span style="font-size:14px;font-weight:600;color:var(--color-text-light)">아직 관련 뉴스가 없습니다</span><span style="font-size:12px;color:var(--color-text-sub-light)">새 소식이 오면 이곳에 가장 먼저 올립니다.</span></div>
+            </sc-if>
+            <div style="{{ b.sideAdB }}">
+              <img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px" alt="">
+              <span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">공지</span>
+              <span style="{{ b.sideAdDesc }}">새 대회는 매주 열립니다. 당신의 다음 무대를 기다리세요. (임시)</span>
+              <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ b.sideAdTagB }}</span>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 6 · 마감 대회 게시판 + 마감 뉴스 -->
+        <div style="{{ b.sec }}">
+          <div style="{{ b.leftBox }}">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--color-text-light)"><h2 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--color-text-light)">마감 대회</h2><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">{{ b.closedSub }}</span></div>
+            <sc-if value="{{ b.hasClosed }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);overflow:hidden">
+                <div style="{{ b.closedHead }}"><span>대회</span><span style="{{ b.headChamp }}">CHAMPION</span><span></span><span style="{{ b.headClosed }}">CLOSED</span></div>
+                <sc-for list="{{ b.closed }}" as="k" hint-placeholder-count="10">
+                  <a href="#" style="{{ b.closedRow }}" style-hover="background:#F7F7FA">
+                    <div style="{{ b.closedTitleCell }}"><div style="{{ b.closedThumb }}"><img src="assets/wc48-crown-filled.svg" style="width:16px;height:16px" alt=""><span style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--color-gold)">CHAMPION</span></div><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="{{ b.closedTitle }}">{{ k.title }}</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;color:var(--color-text-sub-light)">{{ k.cat }}</span></div></div>
+                    
+                    <div style="{{ b.champCell }}"><img src="assets/wc48-crown-filled.svg" style="width:14px;height:14px;flex:none" alt=""><span style="font-size:14px;font-weight:700;color:var(--color-text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.champion }}</span></div><span style="{{ b.rankBtn }}">랭킹 보기</span><span style="{{ b.closedAt }}">{{ k.closedAt }}</span>
+                    
+                  </a>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:center;align-items:center;gap:6px">
+                <sc-for list="{{ b.pages }}" as="pg" hint-placeholder-count="5">
+                  <button style="{{ pg.style }}">{{ pg.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.closedEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:56px 24px;border:1px dashed var(--color-border-light);border-radius:5px;background:var(--color-surface-light);text-align:center">
+                <img src="assets/wc48-crown-circle-outline.svg" style="width:48px;opacity:.35" alt="">
+                <span style="font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--color-text-light)">아직 마감된 대회가 없습니다</span>
+                <span style="font-size:14px;line-height:1.5;color:var(--color-text-sub-light);text-wrap:pretty">첫 Crown이 곧 결정됩니다. 진행 중인 대회에 먼저 입장해 보세요.</span>
+                <button class="btn" style="margin-top:6px">진행 중인 대회 보기</button>
+              </div>
+            </sc-if>
+          </div>
+
+          <aside style="display:flex;flex-direction:column;gap:14px;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);padding:18px 20px;min-width:0;align-self:stretch">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--color-text-light)"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">마감대회뉴스</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">NEWSROOM</span></div>
+            <sc-if value="{{ b.hasNews }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ closedNewsList }}" as="n" hint-placeholder-count="3">
+                  <a href="#" style="display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--color-border-light);color:inherit;align-items:center">
+                    <div style="height:56px;border-radius:5px;background:#ECECF0;border:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:18px;opacity:.3" alt=""></div>
+                    <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:14px;font-weight:600;line-height:1.4;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--color-text-sub-light)">{{ n.when }}</span></div>
+                  </a>
+                </sc-for>
+              </div>
+              <div style="{{ b.thumbGrid }}">
+                <sc-for list="{{ closedBoxNews }}" as="n" hint-placeholder-count="6">
+                  <a href="#" style="display:flex;flex-direction:column;gap:6px;color:inherit;min-width:0"><div style="aspect-ratio:1;border-radius:5px;background:#ECECF0;border:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:20px;opacity:.3" alt=""></div><span style="font-size:12px;font-weight:600;line-height:1.35;color:var(--color-text-light);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span></a>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.newsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 12px;text-align:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:32px;opacity:.3" alt=""><span style="font-size:14px;font-weight:600;color:var(--color-text-light)">아직 관련 뉴스가 없습니다</span><span style="font-size:12px;color:var(--color-text-sub-light)">새 소식이 오면 이곳에 가장 먼저 올립니다.</span></div>
+            </sc-if>
+            <div style="{{ b.sideAdC }}">
+              <img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px" alt="">
+              <span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">공지</span>
+              <span style="{{ b.sideAdDesc }}">마감된 대회의 Crown 차트는 언제든 다시 볼 수 있습니다. (임시)</span>
+              <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light)">{{ b.sideAdTagC }}</span>
+            </div>
+          </aside>
+        </div>
+
+      </div>
+
+      
+    </section>
+  </sc-for>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;divider&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;line&quot;,&quot;options&quot;:[&quot;line&quot;,&quot;gap&quot;,&quot;diagonal&quot;],&quot;tsType&quot;:&quot;'line'|'gap'|'diagonal'&quot;,&quot;section&quot;:&quot;VS 커버&quot;},&quot;vsScale&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:6,&quot;max&quot;:16,&quot;step&quot;:1,&quot;unit&quot;:&quot;% of width&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;VS 커버&quot;},&quot;edgeAccent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;VS 커버&quot;}}">
+const ACTIVE = [
+  { cat: 'K-POP', title: '2026 걸그룹 타이틀곡 48 — 올해의 무대는?', desc: '올해 발매된 걸그룹 타이틀곡 48. 당신의 한 곡이 다음 무대를 엽니다.', deadline: '11.02 (일) 23:59', aPos: 50, bPos: 40 },
+  { cat: 'K-POP', title: '4세대 보이그룹 퍼포먼스 48', desc: '무대 영상 48편. 가장 다시 보고 싶은 퍼포먼스를 고르세요.', deadline: '11.05 (수) 23:59', aPos: 35, bPos: 55 },
+  { cat: 'CREATOR', title: '숏폼 크리에이터 48 · 2026 가을', desc: '이번 가을 가장 많이 돌려본 크리에이터, 당신의 선택은?', deadline: '11.08 (토) 23:59', aPos: 60, bPos: 30 },
+  { cat: 'K-POP', title: 'aespa 뮤직비디오 48', desc: '데뷔부터 지금까지, aespa의 MV 48편 중 단 하나.', deadline: '11.10 (월) 23:59', aPos: 45, bPos: 45 },
+  { cat: 'CREATOR', title: '게임 스트리머 명장면 48', desc: '올해 채팅창을 멈추게 한 48개의 순간.', deadline: '11.12 (수) 23:59', aPos: 30, bPos: 60 },
+  { cat: 'K-POP', title: 'K-POP 응원법 48 — 떼창의 순간', desc: '공연장을 하나로 만든 응원법 48.', deadline: '11.15 (토) 23:59', aPos: 55, bPos: 35 },
+  { cat: 'K-POP', title: '역대 연말 무대 48', desc: '12월을 빛낸 무대들, 다시 한 번.', deadline: '11.18 (화) 23:59', aPos: 40, bPos: 50 },
+  { cat: 'CREATOR', title: '요리 크리에이터 한 그릇 48', desc: '한 그릇으로 기억되는 크리에이터 48.', deadline: '11.20 (목) 23:59', aPos: 65, bPos: 40 },
+];
+const RECS = [
+  { cat: 'K-POP', title: '걸그룹 데뷔곡 48', aPos: 50, bPos: 40 },
+  { cat: 'CREATOR', title: '브이로그 크리에이터 48', aPos: 30, bPos: 55 },
+  { cat: 'K-POP', title: 'aespa 안무 48 — 포인트 동작', aPos: 40, bPos: 45 },
+  { cat: 'K-POP', title: '2010s 발라드 명곡 48', aPos: 60, bPos: 35 },
+  { cat: 'CREATOR', title: '뷰티 크리에이터 48', aPos: 45, bPos: 50 },
+  { cat: 'K-POP', title: '서머송 48 — 여름을 부른 노래', aPos: 55, bPos: 40 },
+  { cat: 'K-POP', title: '보이그룹 데뷔 무대 48', aPos: 35, bPos: 60 },
+  { cat: 'K-POP', title: '드라마 OST 48', aPos: 50, bPos: 30 },
+  { cat: 'CREATOR', title: '여행 크리에이터 48', aPos: 65, bPos: 45 },
+];
+const IDOLS = ['aespa','NewJeans','IVE','LE SSERAFIM','ILLIT','(G)I-DLE','BABYMONSTER','TWICE','BLACKPINK','ITZY','NMIXX','STAYC','Red Velvet','KISS OF LIFE','tripleS','fromis_9','BTS','SEVENTEEN','Stray Kids','TXT','ENHYPEN','NCT 127','ATEEZ','RIIZE'];
+const CLOSED_T = ['걸그룹 서머송 48','보이그룹 킬링파트 48','K-POP 뮤직비디오 48 · 2025','댄스 챌린지 48','aespa 무대 의상 48','크리에이터 밈 48','보이그룹 발라드 48','걸그룹 콘셉트 포토 48','숏폼 BGM 48','연말 무대 48 · 2025','K-POP 인트로 48','게임 크리에이터 48','걸그룹 안무 48','보이그룹 뮤직비디오 48','OST 48 · 2025','뷰티 크리에이터 48 · 여름','4세대 데뷔곡 48','aespa 라이브 48','브이로그 48 · 봄','팬송 48'];
+const CLOSED_AT = ['방금 전','20분 전','2시간 전','어제 21:00','어제 18:00','10.22','10.21','10.20','10.19','10.18','10.17','10.16','10.15','10.14','10.13','10.12','10.11','10.10','10.09','10.08'];
+const CLOSED = CLOSED_T.map((title, i) => ({ title, cat: /크리에이터|밈|숏폼|브이로그|게임|뷰티/.test(title) ? 'CREATOR' : 'K-POP', champion: /aespa/.test(title) ? 'aespa' : IDOLS[(i * 7) % IDOLS.length], closedAt: CLOSED_AT[i] }));
+const CAT_NEWS = [
+  { title: '걸그룹 컴백 캘린더 · 11월 첫째 주 무대 한눈에', when: 'NEWSROOM · 2시간 전' },
+  { title: '숏폼 크리에이터, 무대 위로 — 올해의 협업 무대 셋', when: 'NEWSROOM · 어제' },
+  { title: '4세대 보이그룹 월드투어, 북미 일정 공개', when: 'NEWSROOM · 10.22' },
+];
+const REC_NEWS = [{ title: '데뷔곡으로 돌아보는 걸그룹 10년' }, { title: '브이로그가 바꾼 하루의 풍경' }, { title: '안무 포인트, 팬들이 꼽은 순간' }, { title: '발라드 명곡, 다시 듣는 밤' }, { title: '뷰티 크리에이터 신제품 리뷰' }, { title: '서머송으로 돌아보는 여름' }];
+const CLOSED_NEWS = [
+  { title: '지난주 Crown — 걸그룹 서머송 48 챔피언이 말하는 그 여름', when: 'NEWSROOM · 어제' },
+  { title: '보이그룹 킬링파트 48, Crown을 결정한 마지막 선택', when: 'NEWSROOM · 10.22' },
+  { title: '댄스 챌린지 48 차트 다시 보기 — 팬들이 남긴 장면', when: 'NEWSROOM · 10.21' },
+];
+const CAT_BOX = [{ title: '컴백 티저 모아보기' }, { title: '이번 주 무대 하이라이트' }, { title: '크리에이터 협업 소식' }, { title: '팬미팅 일정 안내' }, { title: '새 앨범 트랙리스트' }, { title: '무대 의상 비하인드' }];
+const CLOSED_BOX = [{ title: '챔피언 인터뷰' }, { title: 'Crown 차트 리뷰' }, { title: '마지막 매치의 순간' }, { title: '팬들의 선택 돌아보기' }, { title: '다음 대회 예고' }, { title: '지난 Crown 모음' }];
+const ENTRIES = [...IDOLS, ...IDOLS].map((name, i) => ({ nn: String(i + 1).padStart(2, '0'), name }));
+
+const PANEL = { border: '1px solid var(--color-border-light)', borderRadius: '5px', background: 'var(--color-surface-light)' };
+
+function board(o) {
+  const stacked = o.w < 1000, mobile = o.w < 500;
+  const tab = o.tab || '전체', q = o.query || '';
+  const byTab = x => tab === '전체' || x.cat === tab;
+  const byQ = x => !q || (x.title + ' ' + (x.champion || '')).toLowerCase().includes(q.toLowerCase());
+  const active = ACTIVE.filter(byTab).filter(byQ);
+  const recsAll = RECS.filter(byTab).filter(byQ);
+  const closedAll = o.closedEmpty ? [] : CLOSED.filter(byTab).filter(byQ);
+  const page = o.closedPage || 1, per = mobile ? 5 : 10, pageCount = Math.max(1, Math.ceil(closedAll.length / per));
+  const closed = closedAll.slice((page - 1) * per, page * per);
+  const pages = [];
+  const pgBase = { width: '36px', height: '36px', borderRadius: '5px', border: '1px solid var(--color-border-light)', background: 'var(--color-surface-light)', color: 'var(--color-text-light)', fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' };
+  pages.push({ label: '‹', style: { ...pgBase, opacity: page === 1 ? 0.35 : 1 } });
+  for (let i = 1; i <= pageCount; i++) pages.push({ label: String(i), style: i === page ? { ...pgBase, background: 'var(--color-gold)', borderColor: 'var(--color-gold)', color: '#241754' } : pgBase });
+  pages.push({ label: '›', style: { ...pgBase, opacity: page === pageCount ? 0.35 : 1 } });
+  const tabBase = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '40px', padding: '0 18px', minWidth: '102px', borderRadius: '5px', border: '1px solid var(--color-border-light)', background: 'var(--color-surface-light)', color: 'var(--color-text-light)', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' };
+  const catTabs = ['전체', 'K-POP', 'CREATOR'].map(name => ({ name, style: name === tab ? { ...tabBase, background: 'var(--color-gold)', borderColor: 'var(--color-gold)', color: '#241754', fontWeight: 700 } : tabBase }));
+  const two = stacked ? { display: 'flex', flexDirection: 'column', gap: '24px' } : { display: 'grid', gridTemplateColumns: '924px minmax(0,1fr)', gap: '24px', alignItems: 'start' };
+  const rowThumb = mobile ? 132 : stacked ? 240 : 320;
+  const sideAdBase = { alignSelf: 'center', marginTop: 'auto', maxWidth: '100%', border: '1px solid var(--color-border-light)', borderRadius: '2px', background: '#ECECF0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: mobile ? '4px' : '10px', padding: mobile ? '8px 20px' : '20px', textAlign: 'center' };
+  const wrap = { ...two, alignItems: 'stretch', padding: mobile ? '6px' : '8px', border: '2px solid transparent', borderRadius: '5px', background: 'transparent', gap: mobile ? '12px' : stacked ? '20px' : '16px', gridTemplateColumns: stacked ? undefined : '924px minmax(0,1fr)' };
+  return {
+    ...o, stacked, mobile, notMobile: !mobile, tablet: stacked && !mobile, desktop: !stacked, tab,
+    rowBtn: { height: '36px', padding: 0, width: '320px', minWidth: '320px', fontSize: '14px', position: 'relative' }, catTabs, query: q, isSearch: !!q, showLinks: !mobile, showDesc: !mobile,
+    page: { width: o.w + 'px', background: 'var(--color-bg-light)', color: 'var(--color-text-light)', border: '1px solid var(--color-border-light)', borderRadius: '5px', padding: mobile ? '24px 16px 40px' : stacked ? '32px 24px 48px' : '48px 60px 60px', display: 'flex', flexDirection: 'column', gap: mobile ? '28px' : '40px' },
+    boardSec: wrap,
+    sec: wrap, secTight: { ...wrap, marginTop: mobile ? '-22px' : '-36px' }, leftBox: { display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0, ...PANEL, padding: mobile ? '12px' : '18px 20px' },
+    entriesPanel: { display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--color-border-light)', borderRadius: '5px', background: 'var(--color-surface-light)', padding: '18px 20px', minWidth: 0, ...(stacked ? {} : { height: '519.75px', boxSizing: 'border-box' }) },
+    entriesGrid: { display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : stacked ? 'repeat(4,minmax(0,1fr))' : '1fr 1fr', gap: stacked ? '0 24px' : '0 20px', ...(stacked ? {} : { flex: 1, minHeight: 0, overflow: 'auto', alignContent: 'start' }), ...(mobile ? { maxHeight: '204px', overflow: 'auto', alignContent: 'start' } : {}) },
+    titleSize: mobile ? 22 : stacked ? 29 : 38,
+    enterWrap: mobile ? { position: 'absolute', left: 0, right: 0, bottom: 0, padding: '0 14px 10px', zIndex: 10, display: 'flex', justifyContent: 'center' } : { position: 'absolute', right: 0, bottom: 0, padding: '28px', zIndex: 10 },
+    enterCls: '',
+    enterBtn: mobile ? { height: '34px', width: '100%', padding: 0, fontSize: '14px' } : { height: '58px', minWidth: '240px', padding: '0 56px', fontSize: '24px', fontWeight: 700 },
+    boardTitle: { fontSize: (mobile ? 18 : stacked ? 29 : 38) + 'px', fontWeight: 700, lineHeight: 1.2, letterSpacing: '-.015em', color: '#FFFFFF', textWrap: 'pretty', display: '-webkit-box', WebkitLineClamp: mobile ? 1 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+    overlayOnImage: !mobile,
+    overlay: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: mobile ? '24px 14px 72px' : stacked ? '100px 240px 28px 24px' : '120px 360px 28px 28px', background: 'linear-gradient(180deg, transparent, rgba(11,16,32,.72) 60%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: mobile ? '3px' : '6px', zIndex: 9, pointerEvents: 'none', color: 'var(--color-text)' },
+    tabsSec: { ...wrap, alignItems: 'center', marginTop: mobile ? '8px' : '16px', paddingTop: mobile ? '20px' : '28px', borderTop: '1px solid var(--color-text-light)', borderRadius: 0, ...(stacked ? { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '12px' } : {}) },
+    search: { display: 'flex', alignItems: 'center', gap: '10px', height: '40px', padding: '0 14px', ...PANEL },
+    searchText: { flex: 1, fontSize: '14px', color: q ? 'var(--color-text-light)' : 'var(--color-text-muted-light)', fontWeight: q ? 600 : 500 },
+    searchLabel: q || '대회 검색',
+    resultNote: `진행 중 ${active.length} · 추천 ${recsAll.length} · 마감 ${closedAll.length}`,
+    active: active.slice(0, 4), activeMore: active.length > 4, activeTotal: active.length, activeEmpty: active.length === 0,
+    activeSub: q ? 'ACTIVE · 검색 결과' : tab === '전체' ? 'ACTIVE · 전체' : `ACTIVE · ${tab}`,
+    row: { display: 'grid', gridTemplateColumns: `${rowThumb}px minmax(0,1fr)`, gap: mobile ? '12px' : '20px', ...PANEL, overflow: 'hidden', color: 'inherit', alignItems: 'stretch' },
+    rowBody: { padding: mobile ? '10px 12px 10px 0' : '18px 22px 18px 0', display: 'flex', flexDirection: 'column', gap: mobile ? '4px' : '8px', minWidth: 0, justifyContent: 'center' },
+    rowTitle: { fontSize: mobile ? '15px' : '18px', fontWeight: 700, lineHeight: 1.3, letterSpacing: '-.01em', color: 'var(--color-text-light)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textWrap: 'pretty' },
+    band: mobile ? { ...wrap, display: 'flex', flexDirection: 'column', alignItems: 'center' } : stacked ? { ...wrap, display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' } : { ...wrap, gridTemplateColumns: '970px minmax(0,1fr)', alignItems: 'center' },
+    banner: { width: stacked ? '320px' : '970px', maxWidth: '100%', height: stacked ? '100px' : '90px', ...PANEL, borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', gap: '20px' },
+    bannerTag: stacked ? 'AD · 320 × 100' : 'AD · 970 × 90',
+    bandAdTag: mobile ? 'AD · 320 × 100' : 'AD · 300 × 90',
+    sideAdA: { ...sideAdBase, width: '300px', height: '250px' }, sideAdTagA: 'AD · 300 × 250',
+    sideAdB: { ...sideAdBase, width: mobile ? '320px' : '300px', height: mobile ? '100px' : '250px' }, sideAdTagB: mobile ? 'AD · 320 × 100' : 'AD · 300 × 250',
+    sideAdC: { ...sideAdBase, width: mobile ? '320px' : '300px', height: mobile ? '100px' : '250px', ...(mobile ? { order: -1, marginTop: 0 } : {}) }, sideAdTagC: mobile ? 'AD · 320 × 100' : 'AD · 300 × 250',
+    sideAd: { alignSelf: 'center', marginTop: 'auto', width: '300px', maxWidth: '100%', height: mobile ? '120px' : '250px', border: '1px solid var(--color-border-light)', borderRadius: '2px', background: '#ECECF0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: mobile ? '6px' : '10px', padding: mobile ? '12px 20px' : '20px', textAlign: 'center' },
+    sideAdDesc: { fontSize: '13px', lineHeight: 1.5, color: 'var(--color-text-sub-light)', textWrap: 'pretty', display: mobile ? 'none' : 'block' },
+    showBand: !mobile,
+    sideAdTag: mobile ? 'AD · 300 × 120' : 'AD · 300 × 250',
+    bandAd: { width: mobile ? '320px' : '300px', maxWidth: '100%', height: mobile ? '100px' : '90px', ...PANEL, borderRadius: '2px', background: '#ECECF0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', justifySelf: 'end' },
+    recs: recsAll.slice(0, mobile ? 4 : 6),
+    recTitle: { fontSize: mobile ? '14px' : '16px', fontWeight: 700, lineHeight: 1.3, letterSpacing: '-.01em', color: 'var(--color-text-light)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textWrap: 'pretty', minHeight: mobile ? '36.4px' : '41.6px' },
+    recBtn: { width: '100%', height: mobile ? '32px' : '36px', marginTop: mobile ? '4px' : '4px', fontSize: mobile ? '13px' : '14px' },
+    recBody: { padding: mobile ? '6px 10px 10px' : '8px 12px 10px', display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }, recMore: recsAll.length > 0, recEmpty: recsAll.length === 0,
+    recSub: q ? 'PICKED FOR YOU · 검색 결과' : 'PICKED FOR YOU',
+    aiGrid: { display: 'grid', gridTemplateColumns: `repeat(${mobile ? 2 : 3},minmax(0,1fr))`, gap: mobile ? '12px' : '20px' },
+    closed, hasClosed: closed.length > 0, closedEmpty: closed.length === 0, pages,
+    closedSub: closedAll.length ? `CLOSED · 최신순 · ${page} / ${pageCount}` : 'CLOSED',
+    closedThumb: { display: mobile ? 'none' : 'flex', width: '64px', height: '48px', flex: 'none', borderRadius: '5px', background: 'var(--color-bg-deep)', flexDirection: 'column', gap: '3px', alignItems: 'center', justifyContent: 'center' },
+    closedHead: { display: 'grid', gridTemplateColumns: mobile ? 'minmax(0,1fr) 112px' : stacked ? 'minmax(0,1fr) 170px 90px 70px' : 'minmax(0,1fr) 300px 110px 96px', gap: mobile ? '8px' : '16px', padding: mobile ? '8px 12px' : '10px 18px', borderBottom: '1px solid var(--color-border-light)', fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '.18em', color: 'var(--color-text-sub-light)' },
+    closedRow: { display: 'grid', gridTemplateColumns: mobile ? 'minmax(0,1fr) 112px' : stacked ? 'minmax(0,1fr) 170px 90px 70px' : 'minmax(0,1fr) 300px 110px 96px', gap: mobile ? '8px' : '16px', alignItems: mobile ? 'start' : 'center', rowGap: mobile ? '4px' : undefined, padding: mobile ? '10px 8px' : '12px 18px', borderBottom: '1px solid var(--color-border-light)', color: 'inherit', fontSize: mobile ? '12px' : '14px' },
+    headChamp: mobile ? { gridColumn: 2 } : stacked ? { paddingLeft: '8px' } : { paddingLeft: '50px', position: 'relative', left: '94px' },
+    headClosed: mobile ? { display: 'none' } : { textAlign: 'right', gridColumn: 4 },
+    closedTitleCell: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, ...(mobile ? { gridColumn: 1, gridRow: '1 / span 3', alignSelf: 'start' } : {}) },
+    closedTitle: { fontSize: mobile ? '13px' : '15px', fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text-light)', display: '-webkit-box', WebkitLineClamp: mobile ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+    champCell: mobile ? { display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, gridColumn: 2, gridRow: 1 }
+      : stacked ? { display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, alignSelf: 'center', justifySelf: 'end', paddingRight: '4px' }
+      : { width: '133px', alignSelf: 'flex-start', position: 'relative', left: '170px' },
+    rankBtn: mobile ? { gridColumn: 2, gridRow: 2, justifySelf: 'start', display: 'inline-block', padding: '3px 12px', borderRadius: '4px', background: 'var(--arena-continue-bg)', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }
+      : { borderRadius: '4px', position: 'relative', left: stacked ? 0 : '29px', padding: stacked ? '0 12px' : '0 26px', background: 'var(--arena-continue-bg)', whiteSpace: 'nowrap', justifySelf: stacked ? 'center' : undefined },
+    closedAt: { fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '.06em', color: 'var(--color-text-sub-light)', whiteSpace: 'nowrap', ...(mobile ? { gridColumn: 2, gridRow: 3, justifySelf: 'start' } : { textAlign: 'right', justifySelf: 'end', gridColumn: 4 }) },
+    thumbGrid: { display: 'grid', gridTemplateColumns: stacked && !mobile ? 'repeat(6,minmax(0,1fr))' : 'repeat(3,minmax(0,1fr))', gap: '10px', maxWidth: '100%' },
+    closedTitleSize: mobile ? '13px' : '15px',
+    hasNews: !o.newsEmpty, newsEmpty: !!o.newsEmpty,
+    catNews: CAT_NEWS,
+  };
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const divider = this.props.divider ?? 'line';
+    const vsScale = this.props.vsScale ?? 10;
+    const edgeAccent = this.props.edgeAccent ?? true;
+    const boards = [
+      { id: 'D-1', anchor: 'd1', label: '아레나 홈 · 데스크톱 1440 · 기본 (전체 탭)', note: '/arena · 924 + 372', w: 1440 },
+      { id: 'D-2', anchor: 'd2', label: '데스크톱 · K-POP 탭', note: '진행 중 · 추천 · 마감 모두 K-POP만', w: 1440, tab: 'K-POP' },
+      { id: 'D-3', anchor: 'd3', label: '데스크톱 · 마감 게시판 2페이지째', note: '11 – 20 · 마감 시각 최신순', w: 1440, closedPage: 2 },
+      { id: 'D-4', anchor: 'd4', label: '데스크톱 · 검색 결과 “aespa”', note: '세 구역 모두 검색어로 걸러짐', w: 1440, query: 'aespa' },
+      { id: 'D-5', anchor: 'd5', label: '데스크톱 · 마감 대회가 아직 없을 때', note: '게시판 빈 상태 · 페이지 넘김 숨김', w: 1440, closedEmpty: true },
+      { id: 'D-6', anchor: 'd6', label: '데스크톱 · 관련 뉴스가 없을 때', note: '뉴스 칸 빈 상태 · 광고(공지) 자리는 유지', w: 1440, newsEmpty: true },
+      { id: 'T-1', anchor: 't1', label: '아레나 홈 · 태블릿 768 · 기본', note: '오른쪽 칸이 각 구역 아래로', w: 768 },
+      { id: 'M-1', anchor: 'm1', label: '아레나 홈 · 휴대폰 390 · 기본', note: '배너 320×100 · 추천 2열', w: 390 },
+    ].map(board);
+    return { boards, feat: ACTIVE[0], entries: ENTRIES, thumbs3: [1, 2, 3], recNews: REC_NEWS, closedNewsList: CLOSED_NEWS, catBoxNews: CAT_BOX, closedBoxNews: CLOSED_BOX, divider, vsScale, edgeAccent };
+  }
+}
+</script>
+</body>
+</html>

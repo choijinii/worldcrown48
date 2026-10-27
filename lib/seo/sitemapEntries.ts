@@ -5,7 +5,7 @@
  * 빼는가"만 정한다 — 그래야 단위 테스트로 그 규칙을 못 박을 수 있다.
  *
  * ## 넣는 것 (누구나 로그인 없이 볼 수 있는 페이지)
- * - `/` (The Pitch 피드) · `/news` (뉴스룸) · `/records` (Charts 대회 목록 · NAV-1) · `/policies/{4종}`
+ * - `/` (The Pitch 피드) · `/arena` (아레나 홈 · ARENA-2) · `/news` (뉴스룸) · `/records` (Charts 대회 목록 · NAV-1) · `/policies/{4종}`
  * - 공개 대회: `status === "active"` 인 대회의 `/arena/{id}` 와 `/arena/{id}/ranking`(차트)
  *   — 차트는 D-30(2026-09-23)으로 마감 전·비로그인에도 열린다.
  * - 발행된 기사: `status === "published"` 인 `/news/{slug}`
@@ -155,7 +155,9 @@ export function buildSitemapEntries(input: {
 
   pages.push({ path: "/", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 1 });
   pages.push({ path: "/news", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.8 });
-  // NAV-1 — Record Room ▸ Charts 대회 목록. `/arena` 임시 페이지는 noindex 라 싣지 않는다(ARENA-2 가 교체).
+  // ARENA-2 — 아레나 홈(전광판 · 진행 중 · 마감 대회 게시판). `?t=` · `?cat=` 상태 주소는 싣지 않는다.
+  pages.push({ path: "/arena", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.9 });
+  // NAV-1 — Record Room ▸ Charts 대회 목록.
   pages.push({ path: "/records", langs: SITEMAP_LANGS, changeFrequency: "daily", priority: 0.7 });
   for (const t of POLICY_TYPES) {
     pages.push({
