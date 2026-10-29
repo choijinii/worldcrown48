@@ -61,6 +61,15 @@ export interface LocalizedText {
   es: string;
 }
 
+/**
+ * 엔트리 단위 (ENTRY-UNIT-1 · 원장 D-73). 대회의 엔트리 48개가 무엇을 세는가.
+ *   individual = 사람 한 명 · group = 그룹(팀) 하나(멤버 개인은 넣지 않는다)
+ * functions/src/core/aiFillCore.ts 의 EntryUnit 과 같은 값이다.
+ */
+export type EntryUnit = "individual" | "group";
+export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group"];
+export const DEFAULT_ENTRY_UNIT: EntryUnit = "individual";
+
 export interface Tournament {
   id: string;
   title: string; // max 50 chars — flat ORIGINAL input, unchanged for back-compat
@@ -88,6 +97,11 @@ export interface Tournament {
    * (`resolveThumbnailPair`).
    */
   thumbnailPair?: ThumbnailPair;
+  /**
+   * ENTRY-UNIT-1 엔트리 단위(원장 D-73). 선택·additive: 2026-10-28 이전 문서엔 없다
+   * (백필 안 함) — 없으면 개인으로 읽는다. 편집기 STEP 1에서 운영자가 고른다.
+   */
+  entryUnit?: EntryUnit;
 }
 
 export interface Contestant {

@@ -13,6 +13,7 @@
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import type { EmbedOrientation } from "@/lib/media/mediaSlot";
 import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
+import { DEFAULT_ENTRY_UNIT, ENTRY_UNITS, type EntryUnit } from "@/lib/types/tournament";
 
 export const DRAFTS_COLLECTION = "tournamentDrafts";
 export const DRAFT_SCHEMA_VERSION = 1;
@@ -30,6 +31,7 @@ export const DRAFT_FIELDS = [
   "deadlineMs",
   "contestants",
   "thumbnailPair",
+  "entryUnit",
   "updatedAt",
 ] as const;
 
@@ -44,6 +46,8 @@ export interface DraftEditorState {
   contestants: ContestantDraft[];
   /** THUMB-1 대표 매치 — 그리드 칸 번호(0~47)와 위치 값. 게시 때 contestant id 로 바뀐다. */
   thumbnailPair: PairPick;
+  /** ENTRY-UNIT-1 엔트리 단위(원장 D-73). 옛 초안엔 없다 — 읽을 때 개인으로 채운다. */
+  entryUnit: EntryUnit;
 }
 
 /** 목록에 보여 줄 한 줄. */
@@ -72,6 +76,10 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     deadlineMs: s.deadlineMs,
     contestants: s.contestants.map((c) => stripUndefined({ ...c })),
     thumbnailPair: { ...s.thumbnailPair },
+    // ENTRY-UNIT-1: 팀일 때만 싣는다. 개인(기본값)은 칸을 빼고 저장한다 — 읽을 때 빠진 칸 =
+    // 개인이므로 뜻은 같고, 규칙이 배포되기 전(firestore.rules 는 main 병합 뒤에만 배포된다)
+    // 에도 개인 초안 저장이 막히지 않는다. 팀→개인으로 되돌리면 통째 덮어쓰기라 칸이 사라진다.
+    ...(s.entryUnit === "group" ? { entryUnit: s.entryUnit } : {}),
   };
 }
 
@@ -133,7 +141,15 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
     deadlineMs: num(d.deadlineMs) ?? 0,
     contestants: Array.isArray(d.contestants) ? d.contestants.map(toContestant) : [],
     thumbnailPair: toPick(d.thumbnailPair),
+    entryUnit: toEntryUnit(d.entryUnit),
   };
+}
+
+/** 모르는 값·빠진 칸(옛 초안)은 개인. */
+function toEntryUnit(v: unknown): EntryUnit {
+  return typeof v === "string" && (ENTRY_UNITS as readonly string[]).includes(v)
+    ? (v as EntryUnit)
+    : DEFAULT_ENTRY_UNIT;
 }
 
 function contestantTouched(c: ContestantDraft): boolean {
@@ -154,6 +170,8 @@ export function isDraftBlank(s: DraftEditorState): boolean {
     s.description.trim() === "" &&
     s.keywords.length === 0 &&
     s.campaignSlug === "" &&
+    // ENTRY-UNIT-1: 단위를 팀으로 바꾼 것도 입력이다(기본값 개인은 세지 않는다).
+    s.entryUnit === DEFAULT_ENTRY_UNIT &&
     !s.contestants.some(contestantTouched)
   );
 }

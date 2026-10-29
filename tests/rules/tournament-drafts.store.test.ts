@@ -48,6 +48,7 @@ function editorState(overrides: Partial<DraftEditorState> = {}): DraftEditorStat
     deadlineMs: 1_900_000_000_000,
     contestants: Array.from({ length: 48 }, (_, i) => contestant(i)),
     thumbnailPair: { a: 4, b: 30, aPos: 15, bPos: null, next: "a" },
+    entryUnit: "individual",
     ...overrides,
   };
 }
@@ -89,6 +90,15 @@ describe("저장소 통합 — 저장 → 다시 읽기 → 복원", () => {
     const s = editorState();
     await saveDraft(db, id, "host-1", s);
     expect(await loadDraft(db, id)).toEqual(s);
+  });
+
+  it("ENTRY-UNIT-1: 팀으로 고른 초안은 팀으로, 다시 개인으로 덮으면 개인으로 돌아온다", async () => {
+    const db = ownerDb();
+    const id = newDraftId(db);
+    await saveDraft(db, id, "host-1", editorState({ entryUnit: "group" }));
+    expect((await loadDraft(db, id))?.entryUnit).toBe("group");
+    await saveDraft(db, id, "host-1", editorState());
+    expect((await loadDraft(db, id))?.entryUnit).toBe("individual");
   });
 
   it("lists my drafts newest first with title and saved time", async () => {

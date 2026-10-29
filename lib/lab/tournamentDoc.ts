@@ -18,8 +18,10 @@ import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
 import {
+  ENTRY_UNITS,
   TOTAL_CONTESTANTS,
   type Category,
+  type EntryUnit,
   type Contestant,
   type LocalizedText,
   type Tournament,
@@ -43,6 +45,11 @@ export interface TournamentInput {
    * 검증한다 — 규칙 위반 값은 Tournament를 만들지 않는다(utm_campaign 오염 방지).
    */
   campaignSlug?: string;
+  /**
+   * 엔트리 단위(ENTRY-UNIT-1 · 원장 D-73). 빠지면 개인. 새 문서에는 늘 싣는다 —
+   * 나중에 읽는 쪽이 "없음 = 개인" 추측을 할 필요가 2026-10-28 이전 문서뿐이 되게.
+   */
+  entryUnit?: EntryUnit;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -108,6 +115,10 @@ export function buildTournamentDoc(
   if (!deadline.isValid) {
     throw new Error("Tournament Deadline은 미래 시각이어야 합니다.");
   }
+  const entryUnit = input.entryUnit ?? "individual";
+  if (!ENTRY_UNITS.includes(entryUnit)) {
+    throw new Error(`유효하지 않은 엔트리 단위: ${String(input.entryUnit)}`);
+  }
   const slug = validateCampaignSlug(input.campaignSlug ?? "");
   if (!slug.isValid) {
     throw new Error("캠페인 이름표는 소문자 영문·숫자·밑줄(_)만 쓸 수 있습니다.");
@@ -128,6 +139,7 @@ export function buildTournamentDoc(
     totalContestants: TOTAL_CONTESTANTS,
     settings: { aiNews: false, multiLang: false, showRanking: true },
     featured: false,
+    entryUnit,
     // Firestore rejects undefined — carry the field only when the host set one.
     ...(slug.isEmpty ? {} : { campaignSlug: slug.value }),
   };

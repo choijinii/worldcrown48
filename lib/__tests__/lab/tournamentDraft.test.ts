@@ -44,6 +44,7 @@ function state(overrides: Partial<DraftEditorState> = {}): DraftEditorState {
     deadlineMs: 1_800_000_000_000,
     contestants: Array.from({ length: 48 }, (_, i) => fullContestant(i)),
     thumbnailPair: { a: 3, b: 17, aPos: 22, bPos: null, next: "a" },
+    entryUnit: "individual",
     ...overrides,
   };
 }
@@ -64,7 +65,8 @@ describe("toDraftFields → fromDraftDoc", () => {
   });
 
   it("writes only the known fields plus the schema version", () => {
-    const fields = toDraftFields(state());
+    // ENTRY-UNIT-1: 엔트리 단위 칸은 팀일 때만 실린다 — 모든 칸이 보이게 팀 상태로 본다.
+    const fields = toDraftFields(state({ entryUnit: "group" }));
     expect(Object.keys(fields).sort()).toEqual(
       [...DRAFT_FIELDS].filter((k) => k !== "hostUid" && k !== "updatedAt").sort(),
     );
@@ -110,6 +112,7 @@ describe("isDraftBlank", () => {
     campaignSlug: "",
     deadlineMs: 1,
     contestants: [],
+    entryUnit: "individual",
   };
 
   it("is blank when nothing was typed (step·deadline don't count)", () => {
@@ -136,6 +139,40 @@ describe("isDraftBlank", () => {
         contestants: [{ name: "", nationality: "", affiliation: "", imageSearchKeyword: "", videoId: "x" }],
       }),
     ).toBe(false);
+  });
+});
+
+describe("ENTRY-UNIT-1 — 엔트리 단위도 초안에 저장·복원된다 (원장 D-73)", () => {
+  it("팀으로 고른 초안은 팀으로 돌아온다", () => {
+    const s = state({ entryUnit: "group" });
+    const fields = toDraftFields(s);
+    expect(fields.entryUnit).toBe("group");
+    expect(fromDraftDoc({ ...fields, hostUid: "u1", updatedAt: null })?.entryUnit).toBe("group");
+  });
+
+  it("개인(기본값)은 칸을 빼고 저장한다 — 규칙 배포 전에도 개인 초안 저장이 막히지 않게", () => {
+    const fields = toDraftFields(state());
+    expect("entryUnit" in fields).toBe(false);
+    expect(fromDraftDoc({ ...fields, hostUid: "u1", updatedAt: null })).toEqual(state());
+  });
+
+  it("단위 칸이 없는 옛 초안 · 모르는 값은 개인으로 읽는다", () => {
+    expect(fromDraftDoc({ hostUid: "u1" })?.entryUnit).toBe("individual");
+    expect(fromDraftDoc({ hostUid: "u1", entryUnit: "team" })?.entryUnit).toBe("individual");
+  });
+
+  it("단위를 팀으로만 바꿔도 빈 초안이 아니다 (기본값 개인은 세지 않는다)", () => {
+    const blank = state({
+      step: 1,
+      title: "",
+      category: "",
+      description: "",
+      keywords: [],
+      campaignSlug: "",
+      contestants: [],
+    });
+    expect(isDraftBlank(blank)).toBe(true);
+    expect(isDraftBlank({ ...blank, entryUnit: "group" })).toBe(false);
   });
 });
 

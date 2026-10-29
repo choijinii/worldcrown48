@@ -103,7 +103,7 @@ service cloud.firestore {
     function isValidDraft(d) {
       return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                                 'description', 'keywords', 'campaignSlug', 'deadlineMs',
-                                'contestants', 'thumbnailPair', 'updatedAt'])
+                                'contestants', 'thumbnailPair', 'entryUnit', 'updatedAt'])
         && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                             'description', 'keywords', 'campaignSlug', 'deadlineMs',
                             'contestants', 'updatedAt'])
@@ -118,6 +118,9 @@ service cloud.firestore {
         && d.deadlineMs is number
         && d.contestants is list && d.contestants.size() <= 48
         && (!('thumbnailPair' in d) || isValidDraftPair(d.thumbnailPair))
+        // ENTRY-UNIT-1(원장 D-73): 엔트리 단위. 칸 자체는 선택 — 이 칸을 모르는 옛 화면의
+        // 저장도 통과한다(hasAll 에 넣지 않음, thumbnailPair 와 같은 방식).
+        && (!('entryUnit' in d) || d.entryUnit == 'individual' || d.entryUnit == 'group')
         && d.updatedAt == request.time;
     }
     match /tournamentDrafts/{draftId} {
