@@ -270,6 +270,8 @@ describe("buildPrompt — 팀 경로 (ENTRY-UNIT-1)", () => {
   it("소속 칸 = 소속사, 국적 = ISO 두 글자 규칙은 그대로", () => {
     const p = buildPrompt({ ...base, entryUnit: "group" });
     expect(p).toContain("affiliation = 그 그룹의 소속사");
+    // 원장 D-61 — 이름 정본은 한글(개인 경로와 같음). 2026-10-29 사전 점검에서 영어로 와서 못 박았다.
+    expect(p).toContain("name = 그룹의 **한글 이름**");
     expect(p).toContain("ISO 3166-1 alpha-2");
   });
 
