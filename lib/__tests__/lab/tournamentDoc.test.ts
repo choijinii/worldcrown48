@@ -54,6 +54,20 @@ describe("buildTournamentDoc", () => {
     });
   });
 
+  it("ENTRY-UNIT-1: 엔트리 단위를 싣는다 — 빠지면 개인, 팀은 팀 (원장 D-73)", () => {
+    expect(buildTournamentDoc(validInput, VALID_IDS, NOW).entryUnit).toBe("individual");
+    expect(
+      buildTournamentDoc({ ...validInput, entryUnit: "group" }, VALID_IDS, NOW).entryUnit,
+    ).toBe("group");
+    expect(() =>
+      buildTournamentDoc(
+        { ...validInput, entryUnit: "team" as unknown as "group" },
+        VALID_IDS,
+        NOW,
+      ),
+    ).toThrow();
+  });
+
   it("stores the additive 3-language title + description + keywords", () => {
     const doc = buildTournamentDoc(validInput, VALID_IDS, NOW);
     expect(doc.title).toBe("Best Strikers 2026"); // flat original preserved

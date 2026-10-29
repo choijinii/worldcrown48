@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n/useT";
 import type { Step2Counters } from "@/lib/lab/step2Counters";
 import { lab } from "./theme";
+import { LabIcon } from "./LabIcon";
 
 export type ChainStage = "filling" | "sourcing";
 
@@ -67,6 +68,15 @@ export function GeneratePanel({
       opacity: busy && !running ? 0.45 : 1,
     }) as const;
 
+  // 버튼 이름 줄 — 서랍과 같은 선 아이콘(LabIcon) + 글자. 진행 중 문구로 바뀌어도 아이콘은 남는다.
+  const labelRow = {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 15,
+    fontWeight: 800,
+  } as const;
+
   const tool = (enabled: boolean) =>
     ({
       padding: "8px 14px",
@@ -116,7 +126,10 @@ export function GeneratePanel({
           data-testid="lab-generate-videos"
           style={primary(stage !== null)}
         >
-          <span style={{ fontSize: 15, fontWeight: 800 }}>{videoLabel}</span>
+          <span style={labelRow}>
+            <LabIcon name="video" />
+            {videoLabel}
+          </span>
           <span style={{ fontSize: 12, color: lab.textMuted, fontWeight: 400 }}>
             {t("lab.generate.videosSub")}
           </span>
@@ -128,7 +141,8 @@ export function GeneratePanel({
           data-testid="lab-generate-images"
           style={primary(false)}
         >
-          <span style={{ fontSize: 15, fontWeight: 800 }}>
+          <span style={labelRow}>
+            <LabIcon name="image" />
             {stage === "filling" ? t("lab.generate.filling") : t("lab.generate.images")}
           </span>
           <span style={{ fontSize: 12, color: lab.textMuted, fontWeight: 400 }}>

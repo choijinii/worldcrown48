@@ -52,6 +52,11 @@ export interface AiFillInput {
   keywords?: unknown;
   /** B-2 blank-only mode: names already filled → excluded, only blanks requested. */
   existing?: unknown;
+  /**
+   * ENTRY-UNIT-1 (원장 D-73) — 엔트리 단위. "individual"(기본) | "group".
+   * 빠지면 개인이다 — 이 칸을 모르는 옛 화면의 요청은 지금과 똑같이 돈다.
+   */
+  entryUnit?: unknown;
 }
 
 export interface AiFillDeps {
@@ -76,6 +81,16 @@ function toStringArray(v: unknown): string[] {
   return v.map((x) => (typeof x === "string" ? x.trim() : "")).filter(Boolean);
 }
 
+/**
+ * 엔트리 단위 (ENTRY-UNIT-1 · 원장 D-73). 대회 하나의 엔트리 48개가 무엇을 세는가.
+ *   individual = 사람 한 명(지금까지의 유일한 경로)
+ *   group      = 그룹(팀) 하나 — 멤버 개인은 넣지 않는다
+ * lib/types/tournament.ts 의 EntryUnit 과 같은 값이다(functions 는 lib 를 import 하지 않는다).
+ */
+export type EntryUnit = "individual" | "group";
+
+export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group"];
+
 export interface BuildPromptOptions {
   title: string;
   category: Category;
@@ -85,6 +100,8 @@ export interface BuildPromptOptions {
   existing?: string[];
   /** How many Contestants to return (48 for a full fill, fewer for blanks). */
   count: number;
+  /** 엔트리 단위. 빠지면 개인 — 개인 경로 프롬프트는 한 글자도 바뀌지 않는다. */
+  entryUnit?: EntryUnit;
 }
 
 /**
@@ -103,7 +120,20 @@ export interface BuildPromptOptions {
 const OVER_REQUEST_MIN = 3;
 const OVER_REQUEST_MAX = 5;
 
+/**
+ * 프롬프트 고르기 (ENTRY-UNIT-1). 단위가 group 일 때만 팀 경로로 간다.
+ *
+ * 개인 경로(buildIndividualPrompt)는 **글자 그대로** 두었다 — AI-1·AI-2 골든 실측이
+ * 그 문장들 위에서 나온 숫자라, 한 글자를 바꿔도 다시 재야 한다. 팀 경로는 별도
+ * 함수로 따로 쓴다(개인 경로에 if 를 끼워 넣으면 개인 문장이 흔들린다).
+ */
 export function buildPrompt(opts: BuildPromptOptions): string {
+  return opts.entryUnit === "group"
+    ? buildGroupPrompt(opts)
+    : buildIndividualPrompt(opts);
+}
+
+function buildIndividualPrompt(opts: BuildPromptOptions): string {
   const { title, category, description, keywords, existing, count } = opts;
   const askMin = count + OVER_REQUEST_MIN;
   const askMax = count + OVER_REQUEST_MAX;
@@ -177,6 +207,86 @@ export function buildPrompt(opts: BuildPromptOptions): string {
   return lines.join("\n");
 }
 
+/**
+ * 팀 경로 프롬프트 (ENTRY-UNIT-1 · 원장 D-73).
+ *
+ * 2026-10-27 대표 실측: 런칭 대회 ①("…최고의 무대를 연출한 팀은 누구?")을 개인 경로로
+ * 채웠더니 팀이 아니라 멤버 48명이 나왔다. 제목으로 단위를 짐작하게 두지 않고
+ * 운영자가 STEP 1에서 고른 단위가 여기까지 온다.
+ *
+ * 개인 경로의 규칙을 팀 단위로 옮겨 썼다:
+ *   - 수를 "명"이 아니라 "개"로 센다(원장 D-31 — 엔트리는 48"개")
+ *   - 적격성: 탈퇴 멤버 규칙은 팀에 없으니 빠지고, 해체·활동 중단 · 중대한 논란을 팀 단위로
+ *   - 검색어: 활동명 자리가 없다 — "<그룹 영문명> stage|performance" 2~3단어.
+ *     곡명 금지 · 메모 금지는 개인 경로와 같은 이유(AI-2 · AI-2.5)로 그대로
+ *
+ * 서버 그물(rosterExclusions · 중복 판정)은 경로와 상관없이 같은 것을 쓴다 — 그룹
+ * 이름에서 잘못 걸리지 않는 것은 aiFillCore.test.ts 의 팀 명단 시험이 지킨다.
+ */
+function buildGroupPrompt(opts: BuildPromptOptions): string {
+  const { title, category, description, keywords, existing, count } = opts;
+  const askMin = count + OVER_REQUEST_MIN;
+  const askMax = count + OVER_REQUEST_MAX;
+  const lines = [
+    `다음 Tournament 제목과 카테고리에 맞는 엔트리를 ${askMin}~${askMax}개 추천해줘.`,
+    "이 대회의 엔트리 단위는 **팀(그룹)**이다 — 엔트리 하나 = 그룹 하나.",
+    `제목: "${title}"`,
+    `카테고리: ${category}`,
+  ];
+  if (description && description.trim()) {
+    lines.push(`설명(참가 대상): ${description.trim()}`);
+  }
+  if (keywords && keywords.length > 0) {
+    lines.push(`키워드 힌트: ${keywords.join(", ")}`);
+  }
+  if (existing && existing.length > 0) {
+    lines.push(
+      `이미 엔트리 ${existing.length}개가 채워져 있어. 아래 그룹과 겹치지 않는 새 그룹만 추천해줘 (제외 목록): ${existing.join(", ")}`,
+    );
+  }
+  lines.push(
+    "",
+    "각 엔트리를 JSON 배열로 반환:",
+    `[{ "name": string, "nationality": string, "affiliation": string, "imageSearchKeyword": string }]`,
+    "",
+    "규칙:",
+    `- ${askMin}~${askMax}개 (서버가 앞에서부터 ${count}개만 채택하니 확실한 그룹부터 순서대로)`,
+    "- 각 항목은 **그룹(팀) 하나**다. 멤버 개인은 넣지 않는다. 솔로 활동가도 넣지 않는다",
+    "- 실존 그룹만. 가상·합성 그룹을 지어내지 말 것",
+    "- 같은 그룹을 두 번 넣지 말 것",
+    "- 퍼포먼스 기반 공개 데이터만 사용",
+    "- name = 그룹 이름",
+    "- affiliation = 그 그룹의 소속사 (예: YG Entertainment · JYP Entertainment). 소속사를 모르거나 없으면 빈 문자열",
+    "- nationality = **ISO 3166-1 alpha-2 국가 코드 두 글자 대문자** (예: KR · JP · US · TH). 나라 이름을 한글이나 영어로 적지 말 것 — 화면이 보는 사람의 언어로 바꿔 보여준다",
+    "- 카테고리에 실제로 속한 그룹이면 국적을 가리지 말 것 (K-POP이면 한국 그룹을 피하지 말 것). 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",
+    "- 명단 적격성 — 다음 두 부류는 넣지 않는다: ① 해체했거나 활동을 중단한 그룹 ② 학교폭력·범죄 등 중대한 사회적 물의로 그룹 자체가 논란이 된 그룹",
+    "- 한 그룹을 적을 때마다 스스로 확인한다: \"지금 활동 중인가 · 해체하지 않았나 · 논란이 없었나\". 셋 중 하나라도 걸리면 그 그룹을 빼고 **다른 그룹으로 채운다**",
+  );
+  lines.push(
+    "",
+    "imageSearchKeyword 규칙:",
+    "- 이 칸은 유튜브 검색창에 그대로 붙여 넣을 검색어다. 메모장이 아니다",
+    "- 형식: 그룹 영문명 + stage 또는 performance. 2~3단어로 끝낸다",
+    '- 예시 형식: "<그룹 영문명> stage" 또는 "<그룹 영문명> performance"',
+    "- 멤버 이름은 넣지 말 것. 엔트리는 그룹이다",
+    "- 곡 제목·노래 이름은 넣지 말 것. 곡명이 들어가면 검색이 지나치게 좁아져 결과가 0건이 되고, 같은 그룹이 곡만 바꿔 두 번 오른다",
+    "- 메모·설명·의문·확인 요청·괄호 주석·물음표를 절대 넣지 말 것. \"X 아님 Y 확인\" 같은 문자열은 검색어가 아니다",
+    "- 이 칸에 쓸 검색어를 확신할 수 없으면 그 그룹을 목록에서 빼라. 요청 개수보다 여유 있게 요청했으니 빠져도 된다",
+  );
+  return lines.join("\n");
+}
+
+/**
+ * 단위 값 읽기. 빠지면(undefined·null·빈 문자열) 개인 — 옛 화면 호환.
+ * 그 밖의 모르는 값은 null(호출자가 invalid-argument 로 돌려보낸다 — 모델을 부르기 전에).
+ */
+export function parseEntryUnit(v: unknown): EntryUnit | null {
+  if (v === undefined || v === null || v === "") return "individual";
+  return typeof v === "string" && (ENTRY_UNITS as readonly string[]).includes(v)
+    ? (v as EntryUnit)
+    : null;
+}
+
 export async function aiFillCore(
   input: AiFillInput,
   deps: AiFillDeps,
@@ -201,6 +311,11 @@ export async function aiFillCore(
     throw new AiFillError("invalid-argument", "유효한 category가 필요합니다.");
   }
 
+  const entryUnit = parseEntryUnit(input.entryUnit);
+  if (!entryUnit) {
+    throw new AiFillError("invalid-argument", "entryUnit은 individual 또는 group이어야 합니다.");
+  }
+
   const description =
     typeof input.description === "string" ? input.description : "";
   const keywords = toStringArray(input.keywords);
@@ -216,7 +331,7 @@ export async function aiFillCore(
   let text: string;
   try {
     text = await deps.createMessage(
-      buildPrompt({ title, category, description, keywords, existing, count }),
+      buildPrompt({ title, category, description, keywords, existing, count, entryUnit }),
     );
   } catch (e) {
     // DP-1 fix: capture the original error instead of swallowing it.

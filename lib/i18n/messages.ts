@@ -489,6 +489,11 @@ export const MESSAGES = {
     es: "ej. Best Strikers of the Decade",
   },
 
+  // ENTRY-UNIT-1 (원장 D-73) — STEP 1 엔트리 단위. 문구 = 지시서 v1.0 표(대표 승인 대기 → 승인 후 커밋)
+  "lab.entryUnit.label": { ko: "엔트리 단위", en: "Entry type", es: "Tipo de entrada" },
+  "lab.entryUnit.individual": { ko: "개인", en: "Individual", es: "Individual" },
+  "lab.entryUnit.group": { ko: "팀", en: "Group", es: "Grupo" },
+
   "lab.category.label": { ko: "카테고리", en: "Category", es: "Categoría" },
   "lab.category.placeholder": { ko: "카테고리 선택", en: "Select a category", es: "Selecciona una categoría" },
   "lab.category.loadError": {
@@ -668,7 +673,7 @@ export const MESSAGES = {
     en: "No Tournaments yet. Create your first one above.",
     es: "Aún no hay Tournaments. Crea el primero arriba.",
   },
-  "lab.list.contestantsCount": { ko: "{n}명", en: "{n} contestants", es: "{n} contestantes" },
+  "lab.list.contestantsCount": { ko: "엔트리 {n}개", en: "{n} contestants", es: "{n} contestantes" },
   "lab.list.arenaLink": { ko: "Arena에서 보기 →", en: "View in Arena →", es: "Ver en Arena →" },
   "lab.list.delete": { ko: "삭제", en: "Delete", es: "Eliminar" },
   "lab.list.deleteConfirm": { ko: "삭제 확인", en: "Confirm delete", es: "Confirmar" },
@@ -1296,27 +1301,28 @@ export const MESSAGES = {
     en: "Build the lineup — everything arrives as a proposal; nothing publishes until you press [Create Tournament].",
     es: "Crea la alineación — todo llega como propuesta; nada se publica hasta pulsar [Crear Tournament].",
   },
-  "lab.generate.videos": { ko: "🎬 동영상 생성", en: "🎬 Generate videos", es: "🎬 Generar videos" },
+  // ENTRY-UNIT-1(대표 2026-10-28): 버튼 앞 이모지 → 서랍과 같은 선 아이콘(LabIcon). 글자에서는 뺀다.
+  "lab.generate.videos": { ko: "동영상 생성", en: "Generate videos", es: "Generar videos" },
   "lab.generate.videosSub": {
-    ko: "AI가 48명을 채우고 → 영상을 찾고 → 검수까지 이어서 합니다",
+    ko: "AI가 엔트리 48개를 채우고 → 영상을 찾고 → 검수까지 이어서 합니다",
     en: "AI fills all 48 → finds a video for each → inspects them",
     es: "La IA rellena los 48 → busca un video → los inspecciona",
   },
-  "lab.generate.images": { ko: "🖼 이미지 생성", en: "🖼 Generate images", es: "🖼 Generar imágenes" },
+  "lab.generate.images": { ko: "이미지 생성", en: "Generate images", es: "Generar imágenes" },
   "lab.generate.imagesSub": {
-    ko: "AI가 48명을 채우고 → 검수까지 합니다 (영상 검색 없음)",
+    ko: "AI가 엔트리 48개를 채우고 → 검수까지 합니다 (영상 검색 없음)",
     en: "AI fills all 48 → inspects them (no video search)",
     es: "La IA rellena los 48 → los inspecciona (sin buscar videos)",
   },
   "lab.generate.filling": {
-    ko: "✨ 48명 채우는 중… (약 15초)",
+    ko: "✨ 엔트리 48개 채우는 중… (약 15초)",
     en: "✨ Filling all 48… (~15s)",
     es: "✨ Rellenando los 48… (~15s)",
   },
   "lab.generate.sourcing": {
-    ko: "🎬 영상 찾는 중… {done}/{total}",
-    en: "🎬 Finding videos… {done}/{total}",
-    es: "🎬 Buscando videos… {done}/{total}",
+    ko: "영상 찾는 중… {done}/{total}",
+    en: "Finding videos… {done}/{total}",
+    es: "Buscando videos… {done}/{total}",
   },
   "lab.generate.counter": {
     ko: "채움 {filled}/{total} · 제안 {suggested} · 손볼 칸 {todo}",
@@ -1334,7 +1340,7 @@ export const MESSAGES = {
     es: "Se detuvo al buscar videos — los resultados previos se mantienen; quedan {remaining}.",
   },
   "lab.generate.chainFillFailed": {
-    ko: "48명 채우기에서 멈춰 영상 찾기는 시작하지 않았어요.",
+    ko: "엔트리 48개 채우기에서 멈춰 영상 찾기는 시작하지 않았어요.",
     en: "Stopped while filling the 48 — video search never started.",
     es: "Se detuvo al rellenar los 48 — la búsqueda de videos no empezó.",
   },

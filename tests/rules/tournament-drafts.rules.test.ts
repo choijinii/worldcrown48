@@ -214,3 +214,19 @@ describe("tournamentDrafts — 대표 매치(thumbnailPair)", () => {
     await assertFails(setDoc(ref(), rawDraft("host-1", { thumbnailPair: "c1,c2" })));
   });
 });
+
+// ENTRY-UNIT-1(원장 D-73): 초안의 엔트리 단위. 없는 초안(옛 화면)도 통과.
+describe("tournamentDrafts — 엔트리 단위(entryUnit)", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts/d1");
+
+  it("ALLOWS individual, group, and no unit at all (older screens)", async () => {
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { entryUnit: "group" })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { entryUnit: "individual" })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1")));
+  });
+
+  it("DENIES an unknown unit", async () => {
+    await assertFails(setDoc(ref(), rawDraft("host-1", { entryUnit: "team" })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { entryUnit: 1 })));
+  });
+});

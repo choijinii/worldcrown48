@@ -45,7 +45,7 @@ import { translateMeta } from "@/lib/lab/translateMeta";
 import { translateNames } from "@/lib/lab/translateNames";
 import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
-import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
+import { DEFAULT_ENTRY_UNIT, TOTAL_CONTESTANTS, type EntryUnit } from "@/lib/types/tournament";
 import {
   applyVideoAssignments,
   clearVideo,
@@ -114,6 +114,7 @@ import { SlotVideoTuner } from "./SlotVideoTuner";
 import { TitleInput } from "./TitleInput";
 import { CampaignSlugInput } from "./CampaignSlugInput";
 import { CategorySelect } from "./CategorySelect";
+import { EntryUnitSelect } from "./EntryUnitSelect";
 import { DescriptionInput } from "./DescriptionInput";
 import { KeywordChips } from "./KeywordChips";
 import { DeadlinePicker } from "./DeadlinePicker";
@@ -176,6 +177,8 @@ export function TournamentCreator(): JSX.Element {
   const [category, setCategory] = useState<string>("");
   const [categories, setCategories] = useState<CategoryDoc[]>([]);
   const [description, setDescription] = useState("");
+  // ENTRY-UNIT-1 (원장 D-73) — 엔트리 48개가 사람인가 그룹인가. AI 채우기가 따른다.
+  const [entryUnit, setEntryUnit] = useState<EntryUnit>(DEFAULT_ENTRY_UNIT);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [campaignSlug, setCampaignSlug] = useState("");
   // Stable reference "now" for this create session (presets + gate use it).
@@ -243,6 +246,7 @@ export function TournamentCreator(): JSX.Element {
     deadlineMs,
     contestants,
     thumbnailPair: pairPick,
+    entryUnit,
   };
 
   /**
@@ -354,6 +358,7 @@ export function TournamentCreator(): JSX.Element {
     setDeadlineMs(s.deadlineMs);
     setContestants(s.contestants);
     setPairPick(s.thumbnailPair);
+    setEntryUnit(s.entryUnit);
     setSourcingStates({});
     lastQueuedRef.current = JSON.stringify(s);
   }
@@ -369,6 +374,7 @@ export function TournamentCreator(): JSX.Element {
       deadlineMs: presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS),
       contestants: [],
       thumbnailPair: EMPTY_PICK,
+      entryUnit: DEFAULT_ENTRY_UNIT,
     };
   }
 
@@ -516,6 +522,7 @@ export function TournamentCreator(): JSX.Element {
           description: string;
           keywords: string[];
           existing: string[];
+          entryUnit: EntryUnit;
         },
         { contestants: AiSuggestion[] }
       >(getFunctionsInstance(), "aiFillContestants");
@@ -525,6 +532,7 @@ export function TournamentCreator(): JSX.Element {
         description: description.trim(),
         keywords,
         existing: existingNames,
+        entryUnit,
       });
       const incoming = res.data.contestants.map(toDraft);
       // 체인이 다음 단계(소싱)에서 쓸 명단. setContestants는 비동기라 이 함수가
@@ -918,6 +926,7 @@ export function TournamentCreator(): JSX.Element {
             hostUid: uid,
             deadlineMs,
             campaignSlug,
+            entryUnit,
           },
           validCategoryIds,
           nowMs,
@@ -943,6 +952,7 @@ export function TournamentCreator(): JSX.Element {
       setTitle("");
       setCategory("");
       setDescription("");
+      setEntryUnit(DEFAULT_ENTRY_UNIT);
       setKeywords([]);
       setCampaignSlug("");
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
@@ -1050,6 +1060,7 @@ export function TournamentCreator(): JSX.Element {
             onChange={setCategory}
             categories={categories}
           />
+          <EntryUnitSelect value={entryUnit} onChange={setEntryUnit} />
           <DescriptionInput value={description} onChange={setDescription} />
           <KeywordChips
             value={keywords}
