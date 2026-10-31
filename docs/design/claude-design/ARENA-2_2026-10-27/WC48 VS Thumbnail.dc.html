@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/arena_stage_tokens.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/ui_kits/web/kit.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/styles.css">
+  <script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+  <style>
+    body { background: #00001F; margin: 0; }
+    :root { --color-bg-default: #080823; } /* Deep Obsidian */
+    a { color: var(--color-gold); text-decoration: none; }
+    a:hover { color: var(--color-gold-hover); }
+  </style>
+</helmet>
+
+<div style="padding:48px;min-height:100vh;background:#00001F;display:flex;flex-direction:column;gap:56px;font-family:var(--font-sans);color:var(--color-text);position:relative;z-index:1">
+
+  <!-- ── brief · decisions · report ── -->
+  <div style="max-width:960px;display:flex;flex-direction:column;gap:14px">
+    <div class="kicker">WorldCrown48 · 대회 썸네일 = VS 장면 · 부품 1개 · 3곳 사용</div>
+    <div style="font-size:14px;line-height:1.65;color:var(--color-text-sub)">
+      기준 부품: The Pitch <strong style="color:var(--color-text)">TournamentCard</strong>(kit.css .tcard) + <strong style="color:var(--color-text)">아레나 매치 무대</strong>(arena_stage_tokens · 칸 · 딤 · VS 표식). 커버만 16:9 VS 장면(<code>VSThumb</code>)으로 바꿨고 나머지는 그대로. 포스터 칸은 <code>&lt;img&gt;</code> src 비움 + object-position 자르기 값만. 문구는 전부 임시. 피치 카드·아레나 홈(A-1~A-3 · REF ②·③)은 화이트 테마(원장 D-38 · <code>[data-theme="light"]</code>), 편집기(B)는 The Lab 다크. Tweaks: <code>lang</code> ko/en/es · 경계 방식 · VS 크기 · 좌/우 색 띠.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;font-size:13px;line-height:1.6;color:var(--color-text-sub)">
+      <div><span class="kicker" style="font-size:10px">정한 것 · 화면 A</span><br>① 카드 길어지는 것 수용 · 제목은 커버 하단 딤 위 겹침(17px · 모바일 15px · 2줄 말줄임) · 몸통은 메타 + CTA만 ② VS = 커버 너비의 10% (매치 무대 136/1320 비율 그대로 축소) · 정중앙 ③ 경계 = 매치 무대와 같은 1px 흰 .10 선(기본) · 겹침/사선은 Tweak ④ 좌 Turquoise · 우 Crimson = 칸 아래 2px 띠만(띠 테두리 토큰 색 재사용)</div>
+      <div><span class="kicker" style="font-size:10px">정한 것 · 화면 B</span><br>① 미리보기 = 피치 카드 1개 ② 막대 = 가로 슬라이더 1개(칸 위 직접 끌기 없음) ③ 그리드 A/B = 모서리 사각 뱃지 + 2px 테두리(A 청록 · B 진홍) ④ 잠긴 게시 = 기존 btn[disabled] + 이유 한 줄 mono</div>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--color-text-muted)">
+      <a href="#a1">A-1 DESKTOP</a><a href="#a2">A-2 TABLET</a><a href="#a3">A-3 MOBILE</a><a href="#b1">B-1</a><a href="#b2">B-2</a><a href="#b3">B-3</a><a href="#b4">B-4</a><a href="#r1">REF ② ARCHIVE</a><a href="#r2">REF ③ BOARD</a>
+    </div>
+  </div>
+
+  <!-- ══ A-1 · Desktop 1440 · 3 cols ══ -->
+  <section id="a1" data-screen-label="A-1 Pitch Desktop" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:var(--color-gold);color:#241754;border-radius:5px;font-weight:700">A-1</span><span style="font-size:13px;font-weight:600">The Pitch 카드 · 데스크톱 1440 · 3열</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);letter-spacing:.08em">Featured · 일반 · 활성만 + 배너 자리</span></div>
+    <div data-theme="light" style="width:1440px;background:var(--color-bg-light);color:var(--color-text-light);border:1px solid var(--color-border-light);border-radius:5px;padding:48px 60px 60px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><div><div class="kicker" style="color:var(--color-turquoise);font-size:14px;letter-spacing:.24em;font-weight:700">The Pitch · 임시</div><h2 class="section-head__title" style="font-size:32px;color:var(--color-text-light)">{{ t.sectionTitle }}</h2></div><span class="section-head__sub" style="color:var(--color-text-sub-light)">3 ACTIVE</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+        <sc-for list="{{ cardsDesktop }}" as="c" hint-placeholder-count="3">
+          <article class="tcard" style="background:var(--color-surface-light);border-color:var(--color-border-light);box-shadow:var(--shadow-light)">
+            <div class="tcard__cover" style="height:auto">
+              <dc-import name="VSThumb" a-pos="{{ c.aPos }}" b-pos="{{ c.bPos }}" dim="{{ c.dim }}" title="{{ t.title }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,236px"></dc-import>
+              <div class="tcard__chips">
+                <sc-if value="{{ c.featured }}" hint-placeholder-val="{{ false }}"><span class="pill is-gold">{{ t.featured }}</span></sc-if>
+                <span class="tcard__cat">{{ t.cat }}</span>
+                <span class="pill {{ c.pill }}"><span class="dot"></span>{{ c.status }}</span>
+              </div>
+            </div>
+            <div class="tcard__body" style="gap: 0; padding: 9px 22px 16px; height: 79px">
+              <div class="tcard__meta" style="color: var(--color-text-sub-light); height: 12px"><span style="height: 20px">{{ t.contestants }}</span><span class="sep">·</span><span style="height: 20px">{{ t.deadline }}</span></div>
+              <div class="tcard__foot" style="padding-top:6px;border-top:0"><button class="tcard__enter" style="background: var(--color-gold); color: #241754; border-color: var(--color-gold); font-size: 16px; font-weight: 800; height: 35px">{{ c.cta }}</button></div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:24px">
+        <div style="width:970px;height:90px;border:1px solid var(--color-border-light);background:var(--color-surface-light);border-radius:2px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:24px;box-shadow:var(--shadow-light)">
+          <div style="display:flex;align-items:center;gap:16px"><img src="assets/wc48-crown-filled.svg" style="width:28px;height:28px" alt=""><div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--color-text-light)">{{ t.noticeTitle }}</span><span style="font-size:13px;color:var(--color-text-sub-light)">{{ t.noticeBody }}</span></div></div>
+          <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;color:var(--color-text-sub-light);flex:none">AD · 970 × 90</span>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">IAB Billboard 970×90 · 폴백 Leaderboard 728×90 · 광고 전까지 안내 문구</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ A-2 · Tablet 834 · 2 cols ══ -->
+  <section id="a2" data-screen-label="A-2 Pitch Tablet" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:var(--color-gold);color:#241754;border-radius:5px;font-weight:700">A-2</span><span style="font-size:13px;font-weight:600">The Pitch 카드 · 태블릿 834 · 2열</span></div>
+    <div data-theme="light" style="width:834px;background:var(--color-bg-light);color:var(--color-text-light);border:1px solid var(--color-border-light);border-radius:5px;padding:32px 24px 40px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><div><div class="kicker" style="color:var(--color-turquoise);font-size:13px;letter-spacing:.24em;font-weight:700">The Pitch · 임시</div><h2 class="section-head__title" style="font-size:28px;color:var(--color-text-light)">{{ t.sectionTitle }}</h2></div><span class="section-head__sub" style="color:var(--color-text-sub-light)">3 ACTIVE</span></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <sc-for list="{{ cardsTablet }}" as="c" hint-placeholder-count="4">
+          <article class="tcard" style="background:var(--color-surface-light);border-color:var(--color-border-light);box-shadow:var(--shadow-light)">
+            <div class="tcard__cover" style="height:auto">
+              <dc-import name="VSThumb" a-pos="{{ c.aPos }}" b-pos="{{ c.bPos }}" dim="{{ c.dim }}" title="{{ t.title }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,216px"></dc-import>
+              <div class="tcard__chips">
+                <sc-if value="{{ c.featured }}" hint-placeholder-val="{{ false }}"><span class="pill is-gold">{{ t.featured }}</span></sc-if>
+                <span class="tcard__cat">{{ t.cat }}</span>
+                <span class="pill {{ c.pill }}"><span class="dot"></span>{{ c.status }}</span>
+              </div>
+            </div>
+            <div class="tcard__body" style="gap: 0; padding: 7px 18px 14px; height: 70px; padding-bottom: 12px; padding-top: 6px">
+              <div class="tcard__meta" style="color: var(--color-text-sub-light); height: 11px"><span style="height: 20px">{{ t.contestants }}</span><span class="sep">·</span><span style="height: 20px">{{ t.deadline }}</span></div>
+              <div class="tcard__foot" style="padding-top:6px;border-top:0"><button class="tcard__enter" style="background: var(--color-gold); color: #241754; border-color: var(--color-gold); font-size: 16px; font-weight: 800; height: 35px">{{ c.cta }}</button></div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ A-3 · Mobile 390 · 1 col ══ -->
+  <section id="a3" data-screen-label="A-3 Pitch Mobile" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:var(--color-gold);color:#241754;border-radius:5px;font-weight:700">A-3</span><span style="font-size:13px;font-weight:600">The Pitch 카드 · 모바일 390 · 1열</span></div>
+    <div data-theme="light" style="width:390px;background:var(--color-bg-light);color:var(--color-text-light);border:1px solid var(--color-border-light);border-radius:5px;padding:24px 16px 32px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between"><div><div class="kicker" style="font-size:12px;color:var(--color-turquoise);letter-spacing:.24em;font-weight:700">The Pitch · 임시</div><h2 style="font-weight:800;font-size:24px;letter-spacing:-.02em;line-height:1.1;margin:6px 0 0;color:var(--color-text-light)">{{ t.sectionTitle }}</h2></div><span class="section-head__sub" style="color:var(--color-text-sub-light)">3 ACTIVE</span></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ cardsMobile }}" as="c" hint-placeholder-count="3">
+          <article class="tcard" style="background:var(--color-surface-light);border-color:var(--color-border-light);box-shadow:var(--shadow-light)">
+            <div class="tcard__cover" style="height:auto">
+              <dc-import name="VSThumb" a-pos="{{ c.aPos }}" b-pos="{{ c.bPos }}" dim="{{ c.dim }}" title="{{ t.title }}" title-size="15" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,200px"></dc-import>
+              <div class="tcard__chips">
+                <sc-if value="{{ c.featured }}" hint-placeholder-val="{{ false }}"><span class="pill is-gold">{{ t.featured }}</span></sc-if>
+                <span class="tcard__cat">{{ t.cat }}</span>
+                <span class="pill {{ c.pill }}"><span class="dot"></span>{{ c.status }}</span>
+              </div>
+            </div>
+            <div class="tcard__body" style="gap:0;padding:7px 18px 14px">
+              <div class="tcard__meta" style="color: var(--color-text-sub-light); height: 12px"><span>{{ t.contestants }}</span><span class="sep">·</span><span>{{ t.deadline }}</span></div>
+              <div class="tcard__foot" style="padding-top:6px;border-top:0"><button class="tcard__enter" style="height: 35px; background: var(--color-gold); color: #241754; border-color: var(--color-gold); font-size: 16px; font-weight: 800">{{ c.cta }}</button></div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ B-1…B-4 · 편집기 STEP 2 대표 매치 패널 · 1440 ══ -->
+  <sc-for list="{{ states }}" as="s" hint-placeholder-count="4">
+    <section id="{{ s.anchor }}" data-screen-label="{{ s.id }}" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:var(--color-gold);color:#241754;border-radius:5px;font-weight:700">{{ s.id }}</span><span style="font-size:13px;font-weight:600">편집기 STEP 2 · 대표 매치 · {{ s.label }}</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);letter-spacing:.08em">/admin/lab · Host only · 1440</span></div>
+      <div style="width: 1440px; border: 1px solid var(--color-border); border-radius: 5px; padding: 48px 60px 56px; display: flex; flex-direction: column; gap: 28px; background-color: var(--color-bg-void)">
+
+        <!-- panel -->
+        <div style="border: 1px solid var(--color-border-gold); padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px; background-color: var(--color-bg-deep)">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="kicker">{{ t.panelKicker }}</div>
+            <h3 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em">{{ t.panelTitle }}</h3>
+            <span style="font-size:13px;color:var(--color-text-sub)">{{ t.panelHelp }}</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:539px minmax(0,1fr);gap:24px;align-items:stretch">
+            <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+            <!-- slot A -->
+            <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid rgba(0,163,183,.45); border-radius: 5px; background-color: var(--color-bg-soft)">
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:5px;background:var(--color-turquoise);color:#00181B;font-family:var(--font-mono);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">A</span><span style="font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.A.name }}</span></div>
+              <div style="aspect-ratio:8/9;position:relative;background:var(--arena-cell-bg);border:1px solid rgba(255,255,255,.10);overflow:hidden">
+                <div style="{{ s.A.box }}"><div style="position:absolute;inset:0;border:1px dashed rgba(255,255,255,.18)"></div></div>
+                <div style="position:absolute;inset:0;background:var(--arena-cell-shade)"></div>
+                <sc-if value="{{ s.A.empty }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:40px;opacity:.35" alt=""></div></sc-if>
+                <span style="position:absolute;left:8px;top:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--arena-icon);background:rgba(11,16,32,.55);padding:2px 6px;border-radius:2px">{{ s.A.crop }}</span>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(0,163,183,.65)"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--color-text-sub)"><span>{{ s.A.posLabel }}</span><span style="color:var(--color-gold)">{{ s.A.val }}</span></div>
+                <div style="position:relative;height:24px;display:flex;align-items:center">
+                  <div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></div>
+                  <div style="{{ s.A.fill }}"></div>
+                  <div style="{{ s.A.thumb }}"></div>
+                </div>
+              </div>
+            </div>
+            <!-- slot B -->
+            <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid rgba(215,6,58,.45); border-radius: 5px; background-color: var(--color-bg-soft)">
+              <div style="display:flex;align-items:center;gap:10px"><span style="width:24px;height:24px;border-radius:5px;background:var(--color-crimson);color:#fff;font-family:var(--font-mono);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">B</span><span style="font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.B.name }}</span></div>
+              <div style="aspect-ratio:8/9;position:relative;background:var(--arena-cell-bg);border:1px solid rgba(255,255,255,.10);overflow:hidden">
+                <div style="{{ s.B.box }}"><div style="position:absolute;inset:0;border:1px dashed rgba(255,255,255,.18)"></div></div>
+                <div style="position:absolute;inset:0;background:var(--arena-cell-shade)"></div>
+                <sc-if value="{{ s.B.empty }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><img src="assets/wc48-crown-circle-outline.svg" style="width:40px;opacity:.35" alt=""></div></sc-if>
+                <span style="position:absolute;right:8px;top:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--arena-icon);background:rgba(11,16,32,.55);padding:2px 6px;border-radius:2px">{{ s.B.crop }}</span>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(215,6,58,.65)"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:var(--color-text-sub)"><span>{{ s.B.posLabel }}</span><span style="color:var(--color-gold)">{{ s.B.val }}</span></div>
+                <div style="position:relative;height:24px;display:flex;align-items:center">
+                  <div style="position:absolute;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></div>
+                  <div style="{{ s.B.fill }}"></div>
+                  <div style="{{ s.B.thumb }}"></div>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:auto">
+              <button class="btn" disabled="{{ s.locked }}">{{ t.publish }}</button>
+              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;color:{{ s.lockColor }};line-height:1.5">{{ s.lockReason }}</span>
+            </div>
+            </div>
+            <!-- previews -->
+            <div style="display:flex;flex-direction:column">
+                <article class="tcard" style="cursor:default;width:100%">
+                  <div class="tcard__cover" style="height:auto">
+                    <dc-import name="VSThumb" style="width:100%;display:block" a-pos="{{ s.A.pos }}" b-pos="{{ s.B.pos }}" a-empty="{{ s.A.empty }}" b-empty="{{ s.B.empty }}" show-crop="{{ true }}" title="{{ t.title }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="100%,420px"></dc-import>
+                    <div class="tcard__chips"><span class="tcard__cat">{{ t.cat }}</span><span class="pill"><span class="dot"></span>draft</span></div>
+                  </div>
+                  <div class="tcard__body" style="gap:0;padding:15px 22px 14px">
+                    <div class="tcard__meta"><span>{{ t.contestants }}</span><span class="sep">·</span><span>{{ t.deadline }}</span></div>
+                  </div>
+                </article>
+            </div>
+          </div>
+        </div>
+
+        <!-- 48 grid -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em">{{ t.gridTitle }}</h3><span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);letter-spacing:.06em">{{ t.gridNote }}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px">
+            <sc-for list="{{ s.cells }}" as="g" hint-placeholder-count="24">
+              <div style="{{ g.style }}">
+                <div style="position:absolute;inset:0;background:var(--arena-cell-shade)"></div>
+                <span style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:rgba(242,242,245,.6)">{{ g.nn }}</span>
+                <sc-if value="{{ g.has }}" hint-placeholder-val="{{ false }}"><span style="{{ g.badge }}">{{ g.mark }}</span></sc-if>
+                <span style="position:absolute;left:8px;right:8px;bottom:8px;font-size:11px;font-weight:600;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.name }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+  </sc-for>
+
+  <!-- ══ REF ② · Arena home archive card ══ -->
+  <section id="r1" data-screen-label="REF Archive card" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;border:1px solid var(--color-border-gold);color:var(--color-gold);border-radius:5px;font-weight:700">REF ②</span><span style="font-size:13px;font-weight:600">The Arena 홈 활성 아카이브 카드 · 참고 (합격 대상 아님) · 종료 대회는 게시판으로</span></div>
+    <div data-theme="light" style="width:720px;background:var(--color-bg-light);color:var(--color-text-light);border:1px solid var(--color-border-light);border-radius:5px;padding:32px">
+      <div style="display:grid;grid-template-columns:320px minmax(0,1fr);border:1px solid var(--color-border-light);border-radius:5px;overflow:hidden;background:var(--color-surface-light);box-shadow:var(--shadow-light)">
+        <dc-import name="VSThumb" a-pos="50" b-pos="40" title="{{ t.title }}" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="320px,180px"></dc-import>
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:8px;justify-content:center">
+          <div style="display:flex;align-items:center;gap:8px"><span class="tcard__cat">{{ t.cat }}</span><span class="pill is-gold"><span class="dot"></span>active</span></div>
+          <div class="tcard__meta" style="color:var(--color-text-sub-light)"><span>{{ t.contestants }}</span><span class="sep">·</span><span>{{ t.deadline }}</span></div>
+          <button class="tcard__enter" style="align-self:flex-start;background:var(--color-gold);color:#241754;border-color:var(--color-gold);font-size:16px;font-weight:800">{{ t.enter }}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ REF ③ · Waiting room scoreboard · light ══ -->
+  <section id="r2" data-screen-label="REF Scoreboard" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;padding:3px 8px;border:1px solid var(--color-border-gold);color:var(--color-gold);border-radius:5px;font-weight:700">REF ③</span><span style="font-size:13px;font-weight:600">대기실 전광판 · 화이트 테마 · 참고 (합격 대상 아님)</span></div>
+    <div data-theme="light" style="width:1440px;background:var(--color-bg-light);color:var(--color-text-light);border:1px solid var(--color-border-light);border-radius:5px;padding:48px 60px 60px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="kicker" style="color:var(--color-gold-hover)">{{ t.boardKicker }}</span><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--color-text-sub-light)">924 × 520 + 엔트리</span></div>
+      <div style="display:grid;grid-template-columns:924px minmax(0,1fr);gap:24px;align-items:stretch">
+        <div style="position:relative;width:924px;align-self:start;border-radius:5px;overflow:hidden;box-shadow:var(--shadow-light)">
+          <dc-import name="VSThumb" a-pos="50" b-pos="40" title="{{ t.title }}" title-size="20" divider="{{ divider }}" vs-scale="{{ vsScale }}" edge="{{ edgeAccent }}" hint-size="924px,520px"></dc-import>
+          <div style="position:absolute;left:0;top:0;padding:24px 28px;z-index:10"><button class="btn btn--lg" style="flex:none">{{ t.enter }}</button></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:120px 28px 72px;background:linear-gradient(180deg, transparent, rgba(11,16,32,.72) 60%);display:flex;flex-direction:column;gap:6px;z-index:9;pointer-events:none;color:var(--color-text)">
+            <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;color:var(--color-gold)">{{ t.cat }} · 48 CONTESTANTS</span>
+            <span style="font-size:15px;color:#DDDDEA">{{ t.desc }}</span>
+            <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--arena-icon)">TOURNAMENT DEADLINE · {{ t.deadline }}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;border:1px solid var(--color-border-light);border-radius:5px;background:var(--color-surface-light);box-shadow:var(--shadow-light);padding:18px 20px;min-width:0">
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:15px;font-weight:700;color:var(--color-text-light)">{{ t.entriesTitle }}</span><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--color-text-sub-light)">48</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px">
+            <sc-for list="{{ boardEntries }}" as="e" hint-placeholder-count="24">
+              <div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--color-border-light);min-width:0"><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--color-text-sub-light);flex:none">{{ e.nn }}</span><span style="font-size:13px;font-weight:600;color:var(--color-text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ e.name }}</span></div>
+            </sc-for>
+          </div>
+          <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--color-text-sub-light);text-align:center">25 – 48 · 아래로 스크롤 (임시)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ko&quot;,&quot;options&quot;:[&quot;ko&quot;,&quot;en&quot;,&quot;es&quot;],&quot;tsType&quot;:&quot;'ko'|'en'|'es'&quot;},&quot;divider&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;line&quot;,&quot;options&quot;:[&quot;line&quot;,&quot;gap&quot;,&quot;diagonal&quot;],&quot;tsType&quot;:&quot;'line'|'gap'|'diagonal'&quot;,&quot;section&quot;:&quot;VS 커버&quot;},&quot;vsScale&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:6,&quot;max&quot;:16,&quot;step&quot;:1,&quot;unit&quot;:&quot;% of width&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;VS 커버&quot;},&quot;edgeAccent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;VS 커버&quot;}}">
+const T = {
+  ko: { sectionTitle: '섹션 제목 자리 (임시)', title: '대회 제목 자리 · 두 줄까지 들어가는 긴 제목을 가정한 임시 문구입니다 (임시)', featured: 'FEATURED', cat: 'CATEGORY', contestants: '48 Contestants', deadline: '마감 · 10.12 (임시)', closedOn: '종료 · 09.21 (임시)', enter: '참가하기', results: '결과 보기 (임시)', panelKicker: 'STEP 2 · 대표 매치 (임시)', panelTitle: '대표 매치 고르기 (임시)', panelHelp: '그리드에서 엔트리를 누르면 A → B 순서로 들어갑니다. 세 번째부터는 A부터 다시 바뀝니다. (임시)', publish: '게시하기 (임시)', lockNone: 'A와 B를 모두 골라야 게시할 수 있습니다 (임시)', lockOne: 'B를 아직 고르지 않았습니다 (임시)', unlocked: '게시할 수 있습니다 (임시)', slotEmpty: '그리드에서 엔트리를 누르세요 (임시)', posH: 'A 위치 · 좌우 · 가로 영상', posV: 'B 위치 · 위아래 · 세로 사진', pvPitch: 'THE PITCH 카드', pvArchive: 'THE ARENA 아카이브 카드', pvBoard: '대기실 전광판', gridTitle: '엔트리 48칸 (임시)', gridNote: '25 – 48 · 아래로 스크롤 (임시)', desc: '대회 설명 한 줄 자리 (임시)', championName: 'Champion 이름 (임시)', boardKicker: '대기실 전광판 · 임시', entry: '엔트리', entriesTitle: '참가 엔트리 (임시)', noticeTitle: '48개 엔트리 · 하나의 Crown (임시)', noticeBody: '매치마다 당신의 선택이 다음 무대를 정합니다. 광고 자리 안내 문구 (임시)' },
+  en: { sectionTitle: 'Section title (tmp)', title: 'Tournament title placeholder — assumes a long title that wraps to two lines (tmp)', featured: 'FEATURED', cat: 'CATEGORY', contestants: '48 Contestants', deadline: 'Deadline · Oct 12 (tmp)', closedOn: 'Closed · Sep 21 (tmp)', enter: 'Pick Now', results: 'See results (tmp)', panelKicker: 'STEP 2 · FEATURED MATCH (tmp)', panelTitle: 'Choose the featured Match (tmp)', panelHelp: 'Tap a grid cell to fill A, then B. A third tap starts over at A. (tmp)', publish: 'Publish (tmp)', lockNone: 'Choose both A and B to publish (tmp)', lockOne: 'B is not chosen yet (tmp)', unlocked: 'Ready to publish (tmp)', slotEmpty: 'Tap an entry in the grid (tmp)', posH: 'A POSITION · LEFT–RIGHT · LANDSCAPE VIDEO', posV: 'B POSITION · UP–DOWN · PORTRAIT PHOTO', pvPitch: 'THE PITCH CARD', pvArchive: 'THE ARENA ARCHIVE CARD', pvBoard: 'WAITING ROOM BOARD', gridTitle: '48 entries (tmp)', gridNote: '25 – 48 · scroll down (tmp)', desc: 'One-line tournament description (tmp)', championName: 'Champion name (tmp)', boardKicker: 'WAITING ROOM BOARD · tmp', entry: 'Entry', entriesTitle: 'Entries (tmp)', noticeTitle: '48 entries · one Crown (tmp)', noticeBody: 'Every pick decides the next stage. Site notice shown until an ad is placed (tmp)' },
+  es: { sectionTitle: 'Título de sección (tmp)', title: 'Título del torneo · marcador que asume un título largo de hasta dos líneas (tmp)', featured: 'FEATURED', cat: 'CATEGORÍA', contestants: '48 Contestants', deadline: 'Cierre · 12 oct (tmp)', closedOn: 'Cerrado · 21 sep (tmp)', enter: 'Elige ahora', results: 'Ver resultados (tmp)', panelKicker: 'PASO 2 · MATCH DESTACADO (tmp)', panelTitle: 'Elige el Match destacado (tmp)', panelHelp: 'Toca una celda para llenar A, luego B. El tercer toque vuelve a A. (tmp)', publish: 'Publicar (tmp)', lockNone: 'Elige A y B para publicar (tmp)', lockOne: 'Falta elegir B (tmp)', unlocked: 'Listo para publicar (tmp)', slotEmpty: 'Toca una entrada en la cuadrícula (tmp)', posH: 'POSICIÓN A · IZQ–DER · VÍDEO HORIZONTAL', posV: 'POSICIÓN B · ARRIBA–ABAJO · FOTO VERTICAL', pvPitch: 'TARJETA THE PITCH', pvArchive: 'TARJETA ARCHIVO THE ARENA', pvBoard: 'PANEL SALA DE ESPERA', gridTitle: '48 entradas (tmp)', gridNote: '25 – 48 · desplázate (tmp)', desc: 'Descripción del torneo en una línea (tmp)', championName: 'Nombre del Champion (tmp)', boardKicker: 'PANEL SALA DE ESPERA · tmp', entry: 'Entrada', entriesTitle: 'Entradas (tmp)', noticeTitle: '48 entradas · una Crown (tmp)', noticeBody: 'Cada elección decide la siguiente ronda. Aviso del sitio hasta colocar un anuncio (tmp)' },
+};
+const STATES = [
+  { id: 'B-1', anchor: 'b1', label: '아무것도 안 고른 상태 · 게시 잠김', a: null, b: null },
+  { id: 'B-2', anchor: 'b2', label: 'A만 고른 상태', a: { idx: 7, pos: 50, orient: 'landscape' }, b: null },
+  { id: 'B-3', anchor: 'b3', label: 'A·B 고른 상태 · 막대 기본값', a: { idx: 7, pos: 50, orient: 'landscape' }, b: { idx: 19, pos: 40, orient: 'portrait' } },
+  { id: 'B-4', anchor: 'b4', label: '막대를 움직인 상태', a: { idx: 7, pos: 22, orient: 'landscape' }, b: { idx: 19, pos: 68, orient: 'portrait' } },
+];
+const box = (o, pos) => o === 'landscape'
+  ? { position: 'absolute', top: 0, height: '100%', width: '200%', left: `${-pos}%` }
+  : { position: 'absolute', left: 0, width: '100%', height: '118.5%', top: `${-(pos * 0.185)}%` };
+const crop = (o, pos) => o === 'landscape' ? `${pos}% 50%` : `50% ${pos}%`;
+
+class Component extends DCLogic {
+  renderVals() {
+    const lang = this.props.lang ?? 'ko';
+    const t = T[lang] || T.ko;
+    const vsScale = this.props.vsScale ?? 10;
+    const divider = this.props.divider ?? 'line';
+    const edgeAccent = this.props.edgeAccent ?? true;
+    const mk = (o) => ({ featured: false, status: 'active', pill: 'is-gold', cta: t.enter, dim: false, aPos: 50, bPos: 40, ...o });
+    const featured = mk({ featured: true });
+    const normal = mk({ aPos: 35, bPos: 55 });
+        const states = STATES.map(s => {
+      const a = s.a, b = s.b, locked = !(a && b);
+      const slot = (x, L) => {
+        const o = x ? x.orient : (L === 'A' ? 'landscape' : 'portrait');
+        const pos = x ? x.pos : (L === 'A' ? 50 : 40);
+        const color = L === 'A' ? 'var(--color-turquoise)' : 'var(--color-crimson)';
+        return {
+          empty: !x, name: x ? `${t.entry} ${x.idx}` : t.slotEmpty, pos, orient: o,
+          posLabel: o === 'landscape' ? t.posH : t.posV, val: x ? `${pos}%` : '—', op: x ? 1 : 0.4,
+          box: box(o, pos), crop: `${L} · ${crop(o, pos)}`,
+          fill: { position: 'absolute', left: 0, width: `${x ? pos : 0}%`, height: '4px', borderRadius: '2px', background: color },
+          thumb: { position: 'absolute', left: `calc(${x ? pos : 0}% - 8px)`, width: '16px', height: '16px', borderRadius: '50%', background: 'var(--color-gold)', boxShadow: 'var(--shadow-gold)' },
+        };
+      };
+      const cells = Array.from({ length: 24 }, (_, i) => {
+        const n = i + 1;
+        const mark = a && a.idx === n ? 'A' : b && b.idx === n ? 'B' : '';
+        const color = mark === 'A' ? 'var(--color-turquoise)' : 'var(--color-crimson)';
+        return {
+          n, nn: String(n).padStart(2, '0'), name: `${t.entry} ${n}`, mark, has: !!mark,
+          style: { aspectRatio: '8/9', position: 'relative', borderRadius: '5px', background: 'var(--arena-cell-bg)', overflow: 'hidden', border: mark ? `2px solid ${color}` : '1px solid rgba(255,255,255,.10)', boxShadow: mark === 'A' ? 'var(--shadow-turquoise)' : mark === 'B' ? 'var(--shadow-crimson)' : 'none' },
+          badge: { position: 'absolute', top: '8px', left: '8px', width: '24px', height: '24px', borderRadius: '5px', background: color, color: mark === 'A' ? '#00181B' : '#fff', fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+        };
+      });
+      return { ...s, locked, lockReason: !a && !b ? t.lockNone : locked ? t.lockOne : t.unlocked, lockColor: locked ? 'var(--color-text-sub)' : 'var(--color-turquoise)', A: slot(a, 'A'), B: slot(b, 'B'), cells };
+    });
+    const IDOLS = ['aespa','NewJeans','IVE','LE SSERAFIM','ILLIT','(G)I-DLE','BABYMONSTER','TWICE','BLACKPINK','ITZY','NMIXX','STAYC','Red Velvet','KISS OF LIFE','tripleS','fromis_9','BTS','SEVENTEEN','Stray Kids','TXT','ENHYPEN','NCT 127','ATEEZ','RIIZE'];
+    const boardEntries = IDOLS.map((name, i) => ({ nn: String(i + 1).padStart(2, '0'), name }));
+    return { t, lang, vsScale, divider, edgeAccent, boardEntries, cardsDesktop: [featured, normal, mk({ aPos: 60, bPos: 30 })], cardsTablet: [featured, normal, mk({ aPos: 60, bPos: 30 }), mk({ aPos: 45, bPos: 45 })], cardsMobile: [featured, normal, mk({ aPos: 60, bPos: 30 })], states };
+  }
+}
+</script>
+</body>
+</html>

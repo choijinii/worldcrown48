@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  ARENA_AD_BOX_NOTICES,
   BANNER_SLOT_NAMES,
   bannerAudience,
   defaultNotice,
@@ -167,7 +168,7 @@ describe("자리 이름 목록 (D-21)", () => {
 
   it("다른 자리의 기본 공지는 그대로(launch-below 만 바뀐다)", () => {
     // pitch-between 의 런칭 전 기본 공지는 D-59 시험이 따로 본다.
-    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below" && n !== "pitch-between")) {
+    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below" && n !== "pitch-between" && !(n in ARENA_AD_BOX_NOTICES))) {
       expect(resolveBanner([], slot, NOW, "guest")).toEqual({ source: "default", notice: defaultNotice("guest") });
       expect(resolveBanner([], slot, NOW, "member")).toEqual({ source: "default", notice: defaultNotice("member") });
     }
@@ -226,5 +227,44 @@ describe("D-59 — 런칭 전 pitch-between 기본 공지 = 사전등록 안내"
       expect(m[lang]).not.toMatch(/\d/);
       expect(m[lang]).not.toMatch(/표|투표|Vote|Voter|월드컵|FIFA|The Lab|배지|badge/i);
     }
+  });
+});
+
+// ARENA-2 PR 1 · 원장 D-21 · D-69 — 아레나 홈 자리. 가로 띠(970×90 / 320×100)는 기본 공지 그대로,
+// 광고 칸(300×250 · 300×90)은 자리마다 쓸모 있는 안내 하나(D-21 "팬에게 유익한 공지").
+describe("ARENA-2 — 아레나 홈 배너 자리", () => {
+  it("자리 이름 — 가로 띠 · 띠 옆 칸 · 오른쪽 칸 둘", () => {
+    for (const n of ["arena-between", "arena-beside", "arena-side-active", "arena-side-closed"]) {
+      expect(BANNER_SLOT_NAMES).toContain(n);
+    }
+  });
+
+  it("가로 띠 arena-between 은 사이트 기본 공지(로그인 · 공유 유도)", () => {
+    expect(resolveBanner([], "arena-between", NOW, "guest")).toEqual({ source: "default", notice: defaultNotice("guest") });
+    expect(resolveBanner([], "arena-between", NOW, "member")).toEqual({ source: "default", notice: defaultNotice("member") });
+  });
+
+  it("광고 칸의 기본 공지 — 차트 · 뉴스룸으로 가는 안내 (게스트 · 로그인 같다)", () => {
+    const expected = {
+      "arena-beside": { titleKey: "banner.arena.beside.title", action: "link", href: "/records" },
+      "arena-side-active": { titleKey: "banner.arena.sideActive.title", action: "link", href: "/news" },
+      "arena-side-closed": { titleKey: "banner.arena.sideClosed.title", action: "link", href: "/records" },
+    } as const;
+    for (const [slot, notice] of Object.entries(expected)) {
+      for (const audience of ["guest", "member"] as const) {
+        expect(resolveBanner([], slot, NOW, audience)).toEqual({ source: "default", notice });
+      }
+    }
+  });
+
+  it("광고 칸 기본 공지 문구는 3언어가 다 있다", () => {
+    for (const n of Object.values(ARENA_AD_BOX_NOTICES)) {
+      const m = MESSAGES[n.titleKey] as { ko: string; en: string; es?: string };
+      expect(m.ko && m.en && m.es).toBeTruthy();
+    }
+  });
+
+  it("관리자가 넣은 배너가 있으면 광고 칸도 그 배너", () => {
+    expect(resolveBanner([doc({ slot: "arena-side-active" })], "arena-side-active", NOW, "guest").source).toBe("doc");
   });
 });

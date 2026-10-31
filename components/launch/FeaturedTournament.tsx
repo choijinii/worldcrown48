@@ -8,7 +8,8 @@
  * OPS-FIX-1 (원장 D-66): 받아 온 문서도 `isPublicTournament` 를 지나야 보인다 — 실서비스에서
  * 시험 대회(`e2e: true`)를 추천 대회로 띄우지 않는다.
  *
- * The "ENTER ARENA →" CTA routes to /arena/[tournamentId].
+ * The "ENTER ARENA →" CTA routes to the Arena Home board (`/arena?t={id}`) — ARENA-2 · 원장 D-71:
+ * 피치와 같은 원칙(대기실을 거쳐 매치로 · 대표 2026-10-27).
  */
 
 import Link from "next/link";
@@ -20,6 +21,7 @@ import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
+import { arenaHomeHref } from "@/lib/arenaHome/arenaHome";
 import {
   formatClosesAt,
   resolveFeaturedView,
@@ -101,7 +103,7 @@ export function FeaturedTournament() {
       </div>
       <Link
         className="ft-cta"
-        href={`/arena/${tournament.id}`}
+        href={arenaHomeHref({ t: tournament.id })}
         onClick={() => {
           void track("featured_tournament_click", { tournament_id: tournament.id });
         }}

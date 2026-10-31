@@ -2,7 +2,8 @@
 
 /**
  * M3 · TournamentCard — cover (대표 매치 VS 장면) + featured/status pills + meta
- * + 참가하기. Links to the Arena (/arena/{id}).
+ * + 참가하기. Links to the Arena Home board (`/arena?t={id}`) — ARENA-2 · 원장 D-71: 피치 →
+ * 대기실(전광판) → 입장하기 → 매치. 매치 무대 주소(`/arena/{id}`)는 그대로다.
  *
  * THUMB-1 PR 2 (원장 D-35 · 합격 시안 `docs/design/claude-design/THUMB-1_2026-10-18/`
  * A-1~A-3): 커버 = 공용 `VSThumb`(16:9 · 제목은 커버 하단 딤 위 · 2줄 말줄임) · 몸통 = 메타 +
@@ -25,6 +26,7 @@ import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
 import { VSThumb } from "@/components/thumbnail/VSThumb";
 import { useCoverPair } from "@/components/thumbnail/useCoverPair";
+import { arenaHomeHref } from "@/lib/arenaHome/arenaHome";
 
 export interface TournamentCardProps {
   tournament: Tournament;
@@ -41,7 +43,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
   return (
     <Link
       className="tcard"
-      href={`/arena/${tournament.id}`}
+      href={arenaHomeHref({ t: tournament.id })}
       aria-label={displayTitle}
       onClick={() =>
         track("a1_card_click", { tournamentId: tournament.id, position })

@@ -28,6 +28,14 @@ export const BANNER_SLOT_NAMES = [
   "locker-below",
   /** PRE-REG-1 — `/launch` 맨 아래(SNS 링크 아래 · 970×90 / 320×100). 등록 칸 근처에 두지 않는다. */
   "launch-below",
+  /** ARENA-2 — 아레나 홈 진행 중 목록 아래 가로 띠(970×90 / 320×100 · D-21). */
+  "arena-between",
+  /** ARENA-2 — 가로 띠 오른쪽 칸(300×90 · 데스크톱만 · D-69). */
+  "arena-beside",
+  /** ARENA-2 — 진행 중 목록 오른쪽 "카테고리 뉴스" 칸 안(300×250 · D-69). */
+  "arena-side-active",
+  /** ARENA-2 — 마감 대회 게시판 오른쪽 "마감 대회 뉴스" 칸 안(300×250 · D-69). */
+  "arena-side-closed",
 ] as const;
 
 export type BannerSlotName = (typeof BANNER_SLOT_NAMES)[number];
@@ -100,9 +108,21 @@ export function bannerAudience(user: { signedIn: boolean; isAnonymous: boolean }
  *   게이트 1 (guest)  : 로그인 유도 — 링크는 로그인 화면
  *   게이트 4 (member) : 크라운 카드 **공유** 유도 — 링크는 /account 카드 목록
  */
+/**
+ * 아레나 홈 광고 칸(300×250 · 300×90 · D-69)의 기본 공지 — 자리마다 쓸모 있는 안내 하나
+ * (D-21 "팬에게 유익한 공지"). 같은 화면에 로그인 유도가 여러 번 겹치지 않게 가로 띠 하나만
+ * 사이트 기본 공지를 쓴다. 비로그인·로그인 같음.
+ */
+export const ARENA_AD_BOX_NOTICES = {
+  "arena-beside": { titleKey: "banner.arena.beside.title", action: "link", href: "/records" },
+  "arena-side-active": { titleKey: "banner.arena.sideActive.title", action: "link", href: "/news" },
+  "arena-side-closed": { titleKey: "banner.arena.sideClosed.title", action: "link", href: "/records" },
+} as const satisfies Partial<Record<BannerSlotName, DefaultNotice>>;
+
 export function defaultNotice(audience: BannerAudience, slot?: string): DefaultNotice {
   // 사전등록 페이지 맨 아래는 사전등록 참가 안내 글자 하나 — 로그인 유도를 하지 않는다(원장 D-60).
   if (slot === "launch-below") return { titleKey: "banner.launch.title", action: "text" };
+  if (slot && slot in ARENA_AD_BOX_NOTICES) return ARENA_AD_BOX_NOTICES[slot as keyof typeof ARENA_AD_BOX_NOTICES];
   return audience === "member"
     ? { titleKey: "banner.default.member.title", action: "link", href: "/account" }
     : { titleKey: "banner.default.guest.title", action: "signIn" };

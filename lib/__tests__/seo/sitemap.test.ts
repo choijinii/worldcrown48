@@ -128,16 +128,20 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
   });
 });
 
-describe("NAV-1 — /records 는 싣고 /arena 임시 페이지는 싣지 않는다", () => {
+describe("NAV-1 · ARENA-2 — /records 와 /arena 아레나 홈을 싣는다", () => {
   it("/records(Charts 대회 목록)는 데이터가 없어도 ko·en·es 언어판과 함께 싣는다", () => {
     const u = buildSitemapEntries({ tournaments: [], articles: [], deployEnv: "production" }).map((e) => e.url);
     for (const q of ["", "?lang=ko", "?lang=en", "?lang=es"]) expect(u).toContain(`${SITE_URL}/records${q}`);
   });
 
-  it("/arena 임시 페이지(noindex — ARENA-2 가 교체)는 싣지 않는다 · /arena/{id} 는 그대로", () => {
-    const u = urls();
-    expect(u.some((x) => new URL(x).pathname === "/arena")).toBe(false);
-    expect(u).toContain(`${SITE_URL}/arena/public-active`);
+  it("ARENA-2 — /arena 아레나 홈은 데이터가 없어도 ko·en·es 언어판과 함께 싣는다 (D-42) · /arena/{id} 는 그대로", () => {
+    const u = buildSitemapEntries({ tournaments: [], articles: [], deployEnv: "production" }).map((e) => e.url);
+    for (const q of ["", "?lang=ko", "?lang=en", "?lang=es"]) expect(u).toContain(`${SITE_URL}/arena${q}`);
+    expect(urls()).toContain(`${SITE_URL}/arena/public-active`);
+  });
+
+  it("ARENA-2 — 전광판·카테고리 주소(?t= · ?cat=)는 싣지 않는다(같은 화면의 다른 상태)", () => {
+    expect(urls().some((x) => /[?&](t|cat)=/.test(x))).toBe(false);
   });
 });
 

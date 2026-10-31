@@ -12,6 +12,8 @@
  *     *정하지 않는 것*: D-37 게시판의 정렬·페이지·검색(ARENA-2).
  *   · 챔피언 = 차트가 점수를 보이는 상태(`deriveRankState` = loaded)일 때 Crown Score 1위.
  *     10판 미만이면 차트도 점수를 숨기므로 여기서도 비운다.
+ *   · **끝난 대회 목록에는 챔피언이 있는 대회만 싣는다**(`crownedOnly` · 원장 D-72). Record Room 과
+ *     아레나 홈 마감 게시판이 같은 함수를 쓴다. 숨기기만 한다 — 대회·차트 주소·크라운 카드는 그대로.
  *
  * 순수 모듈 — 읽기는 app/records/page.tsx.
  */
@@ -63,6 +65,19 @@ export function chartChampion(cache: ChampionCache | null | undefined): NamedLik
   const name = top?.name;
   if (typeof name !== "string" || !name.trim()) return null;
   return top?.nameI18n ? { name: name.trim(), nameI18n: top.nameI18n } : { name: name.trim() };
+}
+
+/**
+ * 끝난 대회 목록(Record Room · 아레나 홈 마감 게시판)에 실을 줄 = 챔피언이 있는 줄 (원장 D-72).
+ *
+ * 10판 미만으로 마감된 대회는 목록에서만 빠진다. 대회 문서·차트 주소·크라운 카드·공유 링크는
+ * 지우지 않는다(참여한 팬이 있으면 삭제 금지 · 2026-09-02). "미정" 같은 글자로 남기지도 않는다.
+ * 차트 캐시를 못 읽은 줄도 챔피언을 말할 수 없으니 함께 빠진다. 순서는 받은 그대로.
+ */
+export function crownedOnly<R extends { champion: NamedLike | null }>(
+  rows: readonly R[],
+): (R & { champion: NamedLike })[] {
+  return rows.filter((r): r is R & { champion: NamedLike } => r.champion !== null);
 }
 
 export function chartHref(tournamentId: string): string {
