@@ -471,23 +471,13 @@ input { font: inherit; }
 .sns-link:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
 
 /* ── PRE-REG-1 · 배너 자리 launch-below (원장 D-21 적용) — SNS 링크 아래, .lp-inner(800) 밖 ──
-   970×90 / 모바일 320×100 (BannerSlot · useBannerVariant). 색은 배너 자리 기본(아레나 배너 토큰). */
+   970×90 · 728×90 · 320×100 — 공용 BannerSlot 이 자리 폭으로 고른다(D-74). 색은 배너 자리 기본(아레나 배너 토큰). */
 .lp-banner {
   position: relative;
   z-index: 2;
   display: flex;
   justify-content: center;
   padding: 0 var(--space-5) var(--space-12);
-}
-.lp-banner-slot[data-banner-variant="desktop"] {
-  width: var(--arena-banner-w);
-  max-width: 100%;
-  min-height: var(--arena-banner-h);
-}
-.lp-banner-slot[data-banner-variant="mobile"] {
-  width: var(--arena-banner-w-mobile);
-  max-width: 100%;
-  min-height: var(--arena-banner-h-mobile);
 }
 
 .lp-foot {

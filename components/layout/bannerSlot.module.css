@@ -1,7 +1,8 @@
 /**
- * BannerSlot — 배너 자리 (원장 D-21). 크기는 놓는 쪽이 정한다(자리마다 다르다):
- * 아레나 매치 무대 아래 = --arena-banner-w × --arena-banner-h (1320×140).
- * 색은 토큰만(불변 원칙 #2-1).
+ * BannerSlot — 배너 자리 (원장 D-21). 색은 토큰만(불변 원칙 #2-1).
+ * 가로 배너(leaderboard) 크기는 **여기 한 곳**에서 자리 폭으로 고른다(원장 D-74):
+ * 970 이 들어가면 970×90 · 안 들어가면 728×90 · 그것도 안 되면 320×100. 중간 크기 없음.
+ * 경계는 lib/banner/bannerVariant `LEADERBOARD_SIZES` 와 같다. 광고 칸(rect · strip)은 놓는 쪽 CSS.
  */
 
 .slot {
@@ -9,11 +10,41 @@
   display: flex;
   width: 100%;
   min-height: var(--banner-slot-h, auto);
-  /* 크기는 놓는 쪽이 정한다 — 아레나 매치는 970×90 / 320×100 (원장 D-21 바뀜 09-21). */
   background: var(--arena-banner-bg);
   outline: var(--arena-frame-border);
   outline-offset: -1px;
   border-radius: 2px;
+}
+
+/* 자리 폭을 재는 겉 상자 — 놓는 쪽이 정렬만 바꿀 수 있다(--banner-fit-justify). */
+.fit {
+  container: banner-fit / inline-size;
+  display: flex;
+  justify-content: var(--banner-fit-justify, center);
+  flex: 1 1 0%;
+  width: 100%;
+  min-width: 0;
+}
+
+.leaderboard {
+  flex: none;
+  width: var(--arena-banner-w-mobile);
+  max-width: 100%;
+  min-height: var(--arena-banner-h-mobile);
+}
+
+@container banner-fit (min-width: 728px) {
+  .leaderboard {
+    width: var(--arena-banner-w-mid);
+    min-height: var(--arena-banner-h-mid);
+  }
+}
+
+@container banner-fit (min-width: 970px) {
+  .leaderboard {
+    width: var(--arena-banner-w);
+    min-height: var(--arena-banner-h);
+  }
 }
 
 .action {
