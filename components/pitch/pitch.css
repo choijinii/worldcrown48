@@ -431,15 +431,7 @@
 .pitch .pitch-banner-slot a {
   color: var(--color-text-light);
 }
-.pitch .pitch-banner-slot[data-banner-variant="desktop"] {
-  width: var(--arena-banner-w);
-  max-width: 100%;
-  min-height: var(--arena-banner-h);
-}
-.pitch .pitch-banner-slot[data-banner-variant="mobile"] {
-  width: var(--arena-banner-w-mobile);
-  min-height: var(--arena-banner-h-mobile);
-}
+/* 크기(970×90 · 728×90 · 320×100)는 공용 BannerSlot 이 자리 폭으로 고른다(원장 D-74). */
 
 /* ── LabEntryCard ── */
 .pitch .lab-entry {

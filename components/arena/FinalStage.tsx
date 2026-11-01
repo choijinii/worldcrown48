@@ -235,7 +235,6 @@ export function FinalStage({
           <BannerSlot
             slot="arena-match-below"
             onSignIn={onSignIn}
-            className={styles.banner}
             variant={bannerVariant(mode) ?? undefined}
           />
         </div>

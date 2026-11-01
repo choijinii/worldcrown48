@@ -139,12 +139,12 @@ test.describe("THUMB-1 — The Pitch", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
   });
 
-  test("② 배너 pitch-between — 970×90 · 320×100 · 휴대폰 가로 없음 · 런칭 전 사전등록 안내", async ({ page }) => {
+  test("② 배너 pitch-between — 970×90 · 728×90 · 320×100(D-74) · 휴대폰 가로 없음 · 런칭 전 사전등록 안내", async ({ page }) => {
     const slot = page.locator("[data-banner-slot='pitch-between']");
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/?lang=ko");
-    await expect(slot).toHaveAttribute("data-banner-variant", "desktop");
+    await expect(slot).toHaveAttribute("data-banner-variant", "leaderboard");
     const d = await slot.boundingBox();
     expect([Math.round(d!.width), Math.round(d!.height)]).toEqual([970, 90]);
     if ((await slot.getAttribute("data-banner-source")) === "default") {
@@ -156,8 +156,13 @@ test.describe("THUMB-1 — The Pitch", () => {
       }
     }
 
+    // 970 이 안 들어가는 폭 = 728×90 (D-74 — 727 같은 중간 크기 ×, 320 으로 내리기 ×)
+    await page.setViewportSize({ width: 900, height: 1000 });
+    await expect.poll(async () => Math.round((await slot.boundingBox())!.width)).toBe(728);
+    expect(Math.round((await slot.boundingBox())!.height)).toBe(90);
+
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(slot).toHaveAttribute("data-banner-variant", "mobile");
+    await expect.poll(async () => Math.round((await slot.boundingBox())!.width)).toBe(320);
     const m = await slot.boundingBox();
     expect(Math.round(m!.width)).toBe(320);
     expect(Math.round(m!.height)).toBeGreaterThanOrEqual(100);
