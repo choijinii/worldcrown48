@@ -55,9 +55,11 @@ export function buildVoteDoc(input: VoteInput): VoteInput {
   if (!Number.isInteger(round) || round < 1 || round > 5)
     throw new VoteValidationError("round", `round는 1..5 (받음: ${round}).`);
 
-  // 회차 상한은 일일 판 한도(5)와 같다 — 6회차 vote가 쓰이면 한도 판정이 뚫린 것이다.
-  if (!Number.isInteger(runIndex) || runIndex < 1 || runIndex > 5)
-    throw new VoteValidationError("runIndex", `runIndex는 1..5 (받음: ${runIndex}).`);
+  // 회차는 평생 누적 번호라 위쪽 상한이 없다 — 참가 규칙 v2.0 은 "계정·대회·하루 5판"이고
+  // 평생 상한이 아니다. 하루 한도는 decideRun 이 오늘 판 수(runsToday)로 막는다.
+  // (2026-11-02 사고: 여기 `> 5` 가 있어 여러 날에 걸친 6번째 판의 첫 선택이 거절됐다.)
+  if (!Number.isInteger(runIndex) || runIndex < 1)
+    throw new VoteValidationError("runIndex", `runIndex는 1 이상의 정수 (받음: ${runIndex}).`);
 
   // 랭킹 집계(PR 3)가 읽는 필드라 값이 흐릿하면 필터가 조용히 빗나간다. 특히 문자열
   // "false" 는 truthy라 게스트가 아닌 기록을 게스트로 만든다 — 타입을 여기서 못박는다.
