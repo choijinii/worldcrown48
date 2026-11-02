@@ -160,3 +160,11 @@ describe("resolveStageMedia — 참가자 자료 칸 (D-11 · D-12)", () => {
     ).toBe("landscape");
   });
 });
+
+describe("내려간 영상 — 썸네일 대신 이름 첫 글자 (YT-FIX-1)", () => {
+  it("gone 표시가 있으면 무대 재료가 없다", () => {
+    expect(
+      resolveStageMedia({ type: "embed", embed: { videoId: "9bZkp7q19f0", gone: true } }),
+    ).toBeNull();
+  });
+});

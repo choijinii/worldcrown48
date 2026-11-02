@@ -9,6 +9,7 @@
  *   ② 끝난 대회(마감 시간 `tournamentDeadline` 이 지난 대회 — 원장 D-45·D-50)의 재생 판정
  *      `contestants.media.embed.status` · `tournaments.videoAlert` 를 지운다. 마감을 늘려 다시
  *      진행되면 월요일 scheduleEmbedRecheck 가 다시 채운다(대표 결정 2026-10-10).
+ *      내려감 표시 `media.embed.gone` 은 재생 판정이 아니라 지우지 않는다(YT-FIX-1).
  */
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";

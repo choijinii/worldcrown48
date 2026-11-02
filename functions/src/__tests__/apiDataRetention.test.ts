@@ -162,9 +162,11 @@ describe("다시 진행 중이 되면 월요일 재검사가 다시 채운다 (�
     ]);
   });
 
-  it("재검사 크론은 status==active 대회를 본다 — 마감을 늘려 다시 진행되면 대상이 된다", () => {
+  it("재검사 크론은 모든 대회를 본다 — 마감을 늘려 다시 진행되면 재생 판정을 다시 쓴다", () => {
     const src = readFileSync(join(__dirname, "..", "scheduleEmbedRecheck.ts"), "utf8");
-    expect(src).toContain('.where("status", "==", "active")');
+    expect(src).toContain('collection("tournaments").select("tournamentDeadline")');
+    expect(src).not.toContain('.where("status"');
+    expect(src).toContain("isDeadlinePassed(toDeadlineMs(");
   });
 });
 
