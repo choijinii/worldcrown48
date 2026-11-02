@@ -49,8 +49,7 @@ export const metadata: Metadata = {
  *     same effect over the body content.
  *
  * Footer (handoff §5 / §10):
- *   - "Report content" mailto:
- *   - "Cookie 설정 다시 열기" button (calls Provider.reopen())
+ *   - 공용 바닥 띠(개인정보처리방침 · 이용약관 · 콘텐츠 신고 · 쿠키 설정 — 쿠키 설정은 Provider.reopen())
  *   These need consent context, so they live in a client component
  *   (FooterPolicyRow) under the Provider.
  */

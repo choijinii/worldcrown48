@@ -420,6 +420,11 @@ export const MESSAGES = {
   "nav.sub.tournaments": { ko: "토너먼트", en: "Tournaments", es: "Torneos" },
   "nav.sub.worldPress": { ko: "외신", en: "World Press", es: "Prensa internacional" },
   "nav.sub.privacy": { ko: "개인정보처리방침", en: "Privacy", es: "Privacidad" },
+  // YT-FIX-1 PR A-1 — 모든 화면의 공용 바닥 띠(구글 정책 III.A.2a: 늘 눈에 띄고 언제든 닿게).
+  // 개인정보처리방침 문구 = 정책 문서 제목 그대로(content/*/privacy.md title). 이용약관은 nav.sub.terms.
+  "footer.privacy": { ko: "개인정보처리방침", en: "Privacy Policy", es: "Política de privacidad" },
+  "footer.report": { ko: "콘텐츠 신고", en: "Report content", es: "Denunciar contenido" },
+  "footer.cookies": { ko: "쿠키 설정", en: "Cookie settings", es: "Configuración de cookies" },
   "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   "nav.sub.community": { ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
   "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },

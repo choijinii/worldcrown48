@@ -28,6 +28,7 @@ const HAS_MARK = /e2eMark\(|e2e:\s*true/;
  */
 const NOT_A_SEEDER: Record<string, string> = {
   "global-teardown.ts": "표시(e2e == true)가 붙은 오래된 시험 대회를 지우기만 한다 — 심지 않는다 (OPS-FIX-1)",
+  "yt-fix1-privacy-link.spec.ts": "진행 중 공개 대회 하나를 읽기만 한다(매치 무대 바닥 링크 확인) — 심지도 지우지도 않는다 (YT-FIX-1 PR A-1)",
 };
 
 function needsMark(text: string): boolean {
