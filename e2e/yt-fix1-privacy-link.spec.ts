@@ -119,7 +119,7 @@ test.describe("매치 무대 · 차트", () => {
           const r = e.getBoundingClientRect();
           return { t: r.top + scrollY, b: r.bottom + scrollY, l: r.left, r: r.right };
         };
-        const others = [...document.querySelectorAll("iframe, button[data-side], aside[data-banner-variant]")]
+        const others = Array.from(document.querySelectorAll("iframe, button[data-side], aside[data-banner-variant]"))
           .filter((e) => e.getBoundingClientRect().width > 0)
           .map(box);
         return { band: box(document.querySelector('[data-testid="footer-band"]')!), vh: innerHeight, others };
