@@ -275,10 +275,12 @@ describe("buildPrompt — 팀 경로 (ENTRY-UNIT-1)", () => {
     expect(p).toContain("ISO 3166-1 alpha-2");
   });
 
-  it("적격성은 팀 단위 — 해체·활동 중단 · 중대한 논란. 탈퇴 멤버 문장은 없다", () => {
+  it("적격성은 팀 단위 — 중대한 논란만. 해체·활동 중단 제외는 없다(D-75) · 탈퇴 멤버 문장도 없다", () => {
     const p = buildPrompt({ ...base, entryUnit: "group" });
-    expect(p).toContain("해체했거나 활동을 중단한 그룹");
     expect(p).toContain("중대한 사회적 물의");
+    expect(p).not.toContain("해체");
+    expect(p).not.toContain("활동을 중단");
+    expect(p).not.toContain("지금 활동 중인가");
     expect(p).not.toContain("현재 공식 멤버");
   });
 
