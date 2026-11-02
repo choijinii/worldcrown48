@@ -1,24 +1,36 @@
 /**
- * bannerVariant — 배너 자리의 크기 변형 (ARENA-1 PR 2b · 원장 D-21 바뀜 2026-09-21).
+ * bannerVariant — 배너 자리의 크기 (원장 D-74 · 2026-11-01 · D-21 · D-55 를 바꿈).
  *
  * 배너 자리 크기를 **광고 크기와 같게** 둔다 — 자리와 광고가 같은 크기라 빈 테두리가 없다.
- *   데스크톱   970×90  (구글 애드센스 대형 리더보드)
- *   모바일 세로 320×100 (큰 모바일 배너)
- *   모바일 가로  없음   (가로 = 집중 모드 · D-17 ③)
- *
- * "1320×140 자리 안에 970×90"은 기각됐다(낭비). 라운드 전환 화면에는 배너가 없다(D-26).
+ * 크기는 그 자리에 들어가는 가장 큰 구글 애드센스 표준 하나:
+ *   970×90  (대형 리더보드) — 970 이 들어가면
+ *   728×90  (리더보드)     — 970 이 안 들어가면
+ *   320×100 (큰 모바일 배너) — 728 도 안 들어가면(휴대폰)
+ *   모바일 가로 = 없음 (집중 모드 · D-17 ③)
+ * 727×90 같은 비표준 축소는 쓰지 않는다. 실제 고르기는 공용 BannerSlot 의 CSS 컨테이너 쿼리가
+ * 자리 폭으로 한다(첫 화면부터 맞는 크기 · 하이드레이션 깜빡임 없음) — 여기 표와 같은 경계.
  */
 import type { StageMode } from "@/lib/arena/stageLayout";
 
-export type BannerVariant = "desktop" | "mobile";
+/** 가로 배너 자리 하나(크기는 자리 폭이 정한다). 아레나 홈 광고 칸은 따로 — AdBoxVariant. */
+export type BannerVariant = "leaderboard";
 
-export const BANNER_SIZES: Record<BannerVariant, { width: number; height: number }> = {
-  desktop: { width: 970, height: 90 },
-  mobile: { width: 320, height: 100 },
-};
+/** 큰 것부터. 들어가는 첫 크기를 쓴다. 경계는 components/layout/bannerSlot.module.css 와 같다. */
+export const LEADERBOARD_SIZES = [
+  { width: 970, height: 90 },
+  { width: 728, height: 90 },
+  { width: 320, height: 100 },
+] as const;
+
+export type LeaderboardSize = (typeof LEADERBOARD_SIZES)[number];
+
+/** 자리 폭 `available` 에 들어가는 가장 큰 표준 크기. 320 도 안 들어가면 320(넘치는 쪽은 자리 CSS 가 자른다). */
+export function leaderboardSize(available: number): LeaderboardSize {
+  return LEADERBOARD_SIZES.find((s) => s.width <= available) ?? LEADERBOARD_SIZES[LEADERBOARD_SIZES.length - 1];
+}
 
 /**
- * 아레나 홈 광고 칸 (원장 D-69) — 배너 자리와 따로 센다(배너는 970×90 / 320×100 둘뿐).
+ * 아레나 홈 광고 칸 (원장 D-69) — 배너 자리와 따로 센다(배너는 970×90 / 728×90 / 320×100).
  *   rect  300×250  오른쪽 뉴스 칸 안 (애드센스 "중간 사각형")
  *   strip 300×90   가로 띠 오른쪽 · 데스크톱만 (구글 표준 목록 밖 — 붙일 때 반응형 광고)
  */
@@ -29,23 +41,16 @@ export const AD_BOX_SIZES: Record<AdBoxVariant, { width: number; height: number 
   strip: { width: 300, height: 90 },
 };
 
-/** 이 배치에서 배너를 어떤 크기로 그리는가. null = 그리지 않는다. */
+/** 매치 무대에 배너를 그리나. null = 그리지 않는다(휴대폰 가로). */
 export function bannerVariant(mode: StageMode): BannerVariant | null {
-  if (mode === "desktop") return "desktop";
-  if (mode === "portrait") return "mobile";
-  return null;
+  return mode === "landscape" ? null : "leaderboard";
 }
 
 /** 휴대폰 가로로 보는 높이의 상한 — 이보다 낮은 가로 화면은 휴대폰 가로다(844×390 · 932×430). */
 const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
-/** 이 폭 이하 = 휴대폰 크기(320×100). useBannerVariant 와 같은 경계 — 메뉴바가 접히는 폭. */
-const MOBILE_MAX_WIDTH = 860;
 
-/**
- * 무대가 아닌 화면(피치 · THUMB-1 PR 2)의 배너 크기. 무대처럼 칸 계산이 없으니 창 크기만 본다.
- * 휴대폰 가로 = 없음(D-21) · 좁은 화면 = 320×100 · 그 밖 = 970×90.
- */
+/** 무대가 아닌 화면(피치 · 아레나 홈)의 배너 — 휴대폰 가로만 없음(D-21). 크기는 자리 폭이 정한다. */
 export function pageBannerVariant(width: number, height: number): BannerVariant | null {
   if (width > height && height <= PHONE_LANDSCAPE_MAX_HEIGHT) return null;
-  return width <= MOBILE_MAX_WIDTH ? "mobile" : "desktop";
+  return "leaderboard";
 }

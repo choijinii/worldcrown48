@@ -580,10 +580,10 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
     });
 
-    test("배너 자리 = 광고 표준 크기 (D-21 바뀜 09-21)", async ({ page }) => {
+    test("배너 자리 = 광고 표준 크기 (D-21 바뀜 09-21 · D-74)", async ({ page }) => {
       await openStage(page);
       const banner = page.getByTestId("banner-slot");
-      await expect(banner).toHaveAttribute("data-banner-variant", "desktop");
+      await expect(banner).toHaveAttribute("data-banner-variant", "leaderboard");
       const b = await box(page, '[data-testid="banner-slot"]');
       expect([b.w, b.h]).toEqual([970, 90]);
     });

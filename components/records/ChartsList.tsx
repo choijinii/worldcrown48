@@ -17,12 +17,10 @@ import { localizedTitle } from "@/lib/tournamentTitle";
 import { chartHref } from "@/lib/records/chartList";
 import type { ChartRowData, RecordsData } from "@/lib/records/recordsData";
 import { BannerSlot } from "@/components/layout/BannerSlot";
-import { useBannerVariant } from "@/components/layout/useBannerVariant";
 import styles from "./chartsList.module.css";
 
 export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
   const { t, lang } = useT();
-  const variant = useBannerVariant();
 
   const row = (r: ChartRowData, ended: boolean) => (
     <li key={r.id} className={styles.row} data-testid="records-row" data-tid={r.id}>
@@ -81,7 +79,7 @@ export function ChartsList({ data }: { data: RecordsData }): JSX.Element {
         <div className={styles.banner}>
           <BannerSlot
             slot="records-below"
-            variant={variant}
+            variant="leaderboard"
             className={styles.bannerSlot}
           />
         </div>

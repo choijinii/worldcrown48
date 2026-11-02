@@ -117,16 +117,7 @@
   display: flex;
   justify-content: center;
 }
-/* 배너 크기 = 매치 무대 배너와 같은 토큰(D-21 바뀜 09-21) — 데스크톱 970×90 · 모바일 320×100 */
-.bannerSlot[data-banner-variant="desktop"] {
-  width: var(--arena-banner-w);
-  max-width: 100%;
-  min-height: var(--arena-banner-h);
-}
-.bannerSlot[data-banner-variant="mobile"] {
-  width: var(--arena-banner-w-mobile);
-  min-height: var(--arena-banner-h-mobile);
-}
+/* 배너 크기(970×90 · 728×90 · 320×100)는 공용 BannerSlot 이 자리 폭으로 고른다(원장 D-74). */
 
 /* 모바일 세로 (정본 32) — 줄이 접혀 칩·챔피언이 제목 아래로 */
 @media (max-width: 860px) {

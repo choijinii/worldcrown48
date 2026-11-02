@@ -483,16 +483,7 @@
 .slot div {
   color: var(--color-text-light);
 }
-.slot[data-banner-variant="desktop"] {
-  width: var(--arena-banner-w);
-  max-width: 100%;
-  min-height: var(--arena-banner-h);
-}
-.slot[data-banner-variant="mobile"] {
-  width: var(--arena-banner-w-mobile);
-  max-width: 100%;
-  min-height: var(--arena-banner-h-mobile);
-}
+/* 가로 띠 크기(970×90 · 728×90 · 320×100)는 공용 BannerSlot 이 자리 폭으로 고른다(원장 D-74). */
 .slot[data-banner-variant="rect"] {
   width: 300px;
   max-width: 100%;
@@ -503,12 +494,23 @@
   min-height: 90px;
 }
 
-/* ── 4 · 가로 띠 ── */
+/* ── 4 · 가로 띠 ── 배너는 남는 폭을 다 받고(970 / 728 / 320 은 BannerSlot 이 고른다) 왼쪽에 붙는다.
+   띠 옆 300×90 은 728 + 20 + 300 = 1048 이 들어갈 때만 — 아니면 숨겨 배너가 표준 크기를 지킨다(D-74). */
 .band {
+  container: arena-band / inline-size;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
+  --banner-fit-justify: flex-start;
+}
+.beside {
+  flex: none;
+}
+@container arena-band (max-width: 1047.98px) {
+  .beside {
+    display: none;
+  }
 }
 .bandSolo {
   display: flex;
@@ -685,6 +687,117 @@
 }
 
 /* ── 태블릿 · 좁은 데스크톱 (오른쪽 칸이 각 구역 아래로 · 정본 T-1) ── */
+
+/* ── ⑤ 추천 대회 (ARENA-2 PR 2 · D-70 · 정본 D-1 3열 · M-1 2열) ── */
+.recGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.recCard {
+  composes: panel;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+.recCard:hover {
+  border-color: var(--color-gold-ink);
+}
+.recBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px 12px;
+}
+.recTitle {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-light);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-align: left;
+  cursor: pointer;
+  min-height: 2.6em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.recTitle:focus-visible {
+  outline: 2px solid var(--color-gold-ink);
+  outline-offset: 2px;
+}
+.recEnter {
+  width: 100%;
+  height: 36px;
+  margin-top: auto;
+  font-size: 14px;
+}
+
+/* ── 관련 뉴스 목록 (ARENA-2 PR 2 · D-70 · 정본 D-1) ── */
+.newsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.newsItem {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-light);
+  color: inherit;
+  text-decoration: none;
+}
+.newsItem:hover .newsTitle {
+  text-decoration: underline;
+}
+.newsThumb {
+  width: 88px;
+  height: 56px;
+  border-radius: var(--radius-border);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-light);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.newsThumbIcon {
+  width: 18px;
+  opacity: 0.3;
+}
+.newsText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.newsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-light);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 1199px) {
   .two,
   .tabsRow {
@@ -715,6 +828,17 @@
 
 /* ── 휴대폰 (정본 M-1) ── */
 @media (max-width: 599px) {
+  .recGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .recTitle {
+    font-size: 14px;
+  }
+  .recEnter {
+    height: 32px;
+    font-size: 13px;
+  }
   .page {
     padding: calc(var(--nav-h) + 20px) 16px 48px;
   }

@@ -9,6 +9,11 @@
  *   ⑥ 배너·광고 칸 빈 상자 0
  *   ⑦ 피치 카드 → /arena?t=
  *   ⑧ 챔피언 없는(10판 미만 · 캐시 없음) 마감 대회는 게시판과 Record Room 에서 빠지고 차트 주소는 열린다 (D-72)
+ *   ⑨ 추천 대회(PR 2 · D-70) — 전광판 대회 제외 · 같은 카테고리 먼저 · 탭 거르기 · 카드 → 전광판 · 입장하기 · 뉴스 칸 3개
+ *   ⑩ 가로 띠 배너 = 970×90 · 728×90 · 320×100 만 (D-74) — 1024 에서 띠 옆 칸은 숨김
+ *
+ * 기사는 심지 않는다 — 뉴스룸(/news)엔 시험 기사를 거르는 칸이 없어 실서비스 팬에게 보인다.
+ * 뉴스 칸의 기사 고르기·그리기는 유닛(arenaPicks · picksView)이 본다.
  *
  * admin SDK 로 진행 중 3개 · 마감 11개(전부 챔피언 캐시) + 챔피언 없는 마감 2개를 잠깐 심고 끝나면 지운다. 미리보기는
  * 실서비스와 같은 DB 라 다른 대회가 섞여 있다 — 이번 실행의 표식(RUN)으로 검색해 우리 것만 센다.
@@ -347,8 +352,12 @@ test.describe("ARENA-2 — 아레나 홈", () => {
     await expect(page.locator("[data-testid='arena-board-entry']:visible")).toHaveCount(14);
     await expect(more).toHaveAttribute("aria-expanded", "true");
     const banner = page.locator("[data-banner-slot='arena-between']");
-    await expect(banner).toHaveAttribute("data-banner-variant", "mobile");
+    await expect(banner).toHaveAttribute("data-banner-variant", "leaderboard");
+    const bb = await banner.boundingBox();
+    expect([Math.round(bb!.width), Math.round(bb!.height)]).toEqual([320, 100]);
     await expect(page.locator("[data-banner-slot='arena-beside']")).toHaveCount(0); // 300×90 = 데스크톱만
+    // 추천 대회 — 휴대폰은 2열 · 처음 4개까지
+    expect(await page.getByTestId("arena-rec-card").count()).toBeLessThanOrEqual(4);
     const docWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(docWidth).toBeLessThanOrEqual(390);
   });
@@ -358,8 +367,8 @@ test.describe("ARENA-2 — 아레나 홈", () => {
     await prime(page, baseURL);
     await page.goto("/arena?lang=en");
     const slots = page.getByTestId("banner-slot");
-    await expect(slots).toHaveCount(4);
-    for (const name of ["arena-between", "arena-beside", "arena-side-active", "arena-side-closed"]) {
+    await expect(slots).toHaveCount(5); // 진행 중 대회가 둘 이상이라 추천 구역(+ 칸)이 있다
+    for (const name of ["arena-between", "arena-beside", "arena-side-active", "arena-side-recommend", "arena-side-closed"]) {
       const s = page.locator(`[data-banner-slot='${name}']`);
       await expect(s).toBeVisible();
       expect((await s.innerText()).trim().length, name).toBeGreaterThan(0);
@@ -401,5 +410,69 @@ test.describe("ARENA-2 — 아레나 홈", () => {
     // 숨기기만 한다 — 차트 주소는 열린다(대회 데이터 삭제 없음).
     const res = await page.goto(`/arena/${hiddenIds[0]}/ranking?lang=en`);
     expect(res?.status()).toBe(200);
+  });
+  test("⑨ 추천 대회 — 전광판 제외 · 같은 카테고리 먼저 · 탭 · 카드 → 전광판 · 뉴스 칸 3개 (D-70)", async ({ page, baseURL }) => {
+    await page.setViewportSize(DESKTOP);
+    await prime(page, baseURL);
+    await page.goto(`/arena?t=${A1}&lang=en`);
+    await ready(page);
+    const rec = page.getByTestId("arena-rec");
+    await expect(rec.getByRole("heading", { level: 2 })).toHaveText("Recommended Tournaments");
+    const cards = page.getByTestId("arena-rec-card");
+    // 다 펼친다
+    for (let i = 0; i < 10 && (await page.getByTestId("arena-rec-more").count()) > 0; i++) {
+      await page.getByTestId("arena-rec-more").click();
+    }
+    const ids = await cards.evaluateAll((els) => els.map((e) => e.getAttribute("data-tid")));
+    expect(ids).not.toContain(A1); // 전광판 대회는 빠진다
+    expect(ids).toContain(A2);
+    expect(ids).toContain(A3);
+    expect(ids.indexOf(A3)).toBeLessThan(ids.indexOf(A2)); // A1 과 같은 KPOP 인 A3 가 CREATOR A2 보다 먼저
+
+    const card = page.locator(`[data-testid='arena-rec-card'][data-tid='${A3}']`);
+    await expect(card.getByTestId("arena-rec-enter")).toHaveAttribute("href", `/arena/${A3}`);
+    const box = await card.boundingBox();
+    await card.click({ position: { x: box!.width - 12, y: 8 } }); // 그림 자리 = 카드의 빈 자리
+    await expect(page).toHaveURL(new RegExp(`/arena\\?t=${A3}$`));
+    await expect(page.getByTestId("arena-board")).toHaveAttribute("data-board-id", A3);
+    await expect(page.locator(`[data-testid='arena-rec-card'][data-tid='${A3}']`)).toHaveCount(0);
+
+    // 탭 = 추천도 거른다
+    await page.getByTestId("arena-tab-creator").click();
+    const creatorIds = await cards.evaluateAll((els) => els.map((e) => e.getAttribute("data-tid")));
+    expect(creatorIds).toContain(A2);
+    expect(creatorIds).not.toContain(A1);
+
+    // 뉴스 칸 3개 — 기사 줄이거나 "뉴스 없음" 모양 중 하나(빈 상자 없음)
+    for (const id of ["arena-news-category", "arena-news-recommend", "arena-news-closed"]) {
+      const items = await page.getByTestId(`${id}-item`).count();
+      const empty = await page.getByTestId(`${id}-empty`).count();
+      expect(items > 0 || empty === 1, id).toBe(true);
+      expect(items).toBeLessThanOrEqual(3);
+    }
+  });
+
+  test("⑩ 가로 띠 배너 = 표준 크기만 (970×90 · 728×90 · 320×100 · D-74)", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    const banner = page.locator("[data-banner-slot='arena-between']");
+    const beside = page.locator("[data-banner-slot='arena-beside']");
+    const dims = async () => {
+      const b = await banner.boundingBox();
+      return `${Math.round(b!.width)}x${Math.round(b!.height)}`;
+    };
+    // 1440 — 970×90 과 띠 옆 300×90 이 나란히
+    await page.setViewportSize(DESKTOP);
+    await page.goto("/arena?lang=ko");
+    await expect.poll(dims).toBe("970x90");
+    await expect(beside).toBeVisible();
+    // 1024 — 728 + 띠 옆이 안 들어가 띠 옆을 숨기고, 띠 폭(976)에 970 이 들어가 970×90 (727×90 ×)
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await expect.poll(dims).toBe("970x90");
+    await expect(beside).toBeHidden();
+    // 그 사이 어떤 폭에서도 세 표준 크기 중 하나
+    for (const w of [1300, 1180, 960, 900, 768, 600]) {
+      await page.setViewportSize({ width: w, height: 1000 });
+      await expect.poll(dims, { message: `${w}` }).toMatch(/^(970x90|728x90|320x100)$/);
+    }
   });
 });

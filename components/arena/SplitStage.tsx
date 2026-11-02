@@ -260,13 +260,12 @@ export function SplitStage({
       ) : null}
 
       {/* 배너 자리 = 구글 광고 표준 크기 (원장 D-21 바뀜 2026-09-21):
-          데스크톱 970×90 · 모바일 세로 320×100 · 모바일 가로 없음(집중 모드 · D-17 ③). */}
+          자리 폭대로 970×90 · 728×90 · 320×100(D-74) · 모바일 가로 없음(집중 모드 · D-17 ③). */}
       {bannerVariant(mode) ? (
         <div className={styles.bannerRow} data-stage-layer="banner">
           <BannerSlot
             slot="arena-match-below"
             onSignIn={onSignIn}
-            className={styles.banner}
             variant={bannerVariant(mode) ?? undefined}
           />
         </div>

@@ -22,13 +22,13 @@ export const BANNER_SLOT_NAMES = [
   "pitch-between",
   "newsroom-list",
   "newsroom-article",
-  /** NAV-1 — `/records` Charts 대회 목록 아래(970×90 / 320×100, 정본 31 · 32). */
+  /** NAV-1 — `/records` Charts 대회 목록 아래(970×90 · 728×90 · 320×100 · D-74, 정본 31 · 32). */
   "records-below",
-  /** NAV-1 — `/account` 비로그인 안내 화면 아래(970×90 / 320×100, 정본 v4 40 · 41). */
+  /** NAV-1 — `/account` 비로그인 안내 화면 아래(970×90 · 728×90 · 320×100 · D-74, 정본 v4 40 · 41). */
   "locker-below",
-  /** PRE-REG-1 — `/launch` 맨 아래(SNS 링크 아래 · 970×90 / 320×100). 등록 칸 근처에 두지 않는다. */
+  /** PRE-REG-1 — `/launch` 맨 아래(SNS 링크 아래 · 970×90 · 728×90 · 320×100 · D-74). 등록 칸 근처에 두지 않는다. */
   "launch-below",
-  /** ARENA-2 — 아레나 홈 진행 중 목록 아래 가로 띠(970×90 / 320×100 · D-21). */
+  /** ARENA-2 — 아레나 홈 진행 중 목록 아래 가로 띠(970×90 · 728×90 · 320×100 · D-74 · D-21). */
   "arena-between",
   /** ARENA-2 — 가로 띠 오른쪽 칸(300×90 · 데스크톱만 · D-69). */
   "arena-beside",
@@ -36,6 +36,8 @@ export const BANNER_SLOT_NAMES = [
   "arena-side-active",
   /** ARENA-2 — 마감 대회 게시판 오른쪽 "마감 대회 뉴스" 칸 안(300×250 · D-69). */
   "arena-side-closed",
+  /** ARENA-2 PR 2 — 추천 대회 오른쪽 "추천 대회 뉴스" 칸 안(300×250 · D-69). */
+  "arena-side-recommend",
 ] as const;
 
 export type BannerSlotName = (typeof BANNER_SLOT_NAMES)[number];
@@ -117,6 +119,7 @@ export const ARENA_AD_BOX_NOTICES = {
   "arena-beside": { titleKey: "banner.arena.beside.title", action: "link", href: "/records" },
   "arena-side-active": { titleKey: "banner.arena.sideActive.title", action: "link", href: "/news" },
   "arena-side-closed": { titleKey: "banner.arena.sideClosed.title", action: "link", href: "/records" },
+  "arena-side-recommend": { titleKey: "banner.arena.sideRecommend.title", action: "link", href: "/" },
 } as const satisfies Partial<Record<BannerSlotName, DefaultNotice>>;
 
 export function defaultNotice(audience: BannerAudience, slot?: string): DefaultNotice {

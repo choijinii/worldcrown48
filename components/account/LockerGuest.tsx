@@ -14,13 +14,11 @@ import { useAuthStore } from "@/lib/authStore";
 import { useT } from "@/lib/i18n/useT";
 import { LOCK_COPY } from "@/lib/crown/lockCopy";
 import { BannerSlot } from "@/components/layout/BannerSlot";
-import { useBannerVariant } from "@/components/layout/useBannerVariant";
 import styles from "./lockerGuest.module.css";
 
 export function LockerGuest(): JSX.Element {
   const { t, lang } = useT();
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
-  const variant = useBannerVariant();
   const signIn = () => void signInWithGoogle("account").catch(() => {});
 
   return (
@@ -41,7 +39,7 @@ export function LockerGuest(): JSX.Element {
         <div className={styles.cardSlot} aria-hidden="true" />
       </div>
       <div className={styles.banner}>
-        <BannerSlot slot="locker-below" variant={variant} onSignIn={signIn} className={styles.bannerSlot} />
+        <BannerSlot slot="locker-below" variant="leaderboard" onSignIn={signIn} className={styles.bannerSlot} />
       </div>
     </main>
   );

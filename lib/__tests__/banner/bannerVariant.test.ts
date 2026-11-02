@@ -1,62 +1,99 @@
 /**
- * ARENA-1 PR 2b — 배너 자리 크기 (원장 D-21 바뀜 2026-09-21 · 구글 광고 표준).
+ * 배너 자리 크기 — 원장 D-74 (2026-11-01 · D-21 · D-55 를 바꿈).
  *
- *   데스크톱   970×90  (무대 프레임 아래 가운데 정렬 · 대형 리더보드)
- *   모바일 세로 320×100 (큰 모바일 배너)
- *   모바일 가로  없음   (D-17 ③ 집중 모드 · D-21 바뀜 09-19 계승)
- *   라운드 전환  없음   (약 2초 전환 화면 · D-26)
+ *   자리에 970 이 들어가면 970×90 · 안 들어가면 728×90 · 그것도 안 들어가면(휴대폰) 320×100.
+ *   세 크기 모두 구글 애드센스 표준. 727×90 같은 비표준 축소는 없다.
+ *   모바일 가로 = 없음 (D-17 ③ 집중 모드 · D-21 바뀜 09-19 계승) · 라운드 전환 = 없음 (D-26).
  *
- * 자리와 광고가 같은 크기라 빈 테두리가 없다(D-21 정의). 옛 1320×140 · 폭 366 은 폐기.
+ * 크기는 공용 BannerSlot 이 **자기 자리 폭**(컨테이너 쿼리)으로 고른다 — 화면마다 따로 정하지 않는다.
  */
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { AD_BOX_SIZES, bannerVariant, BANNER_SIZES, pageBannerVariant } from "@/lib/banner/bannerVariant";
+import {
+  AD_BOX_SIZES,
+  bannerVariant,
+  LEADERBOARD_SIZES,
+  leaderboardSize,
+  pageBannerVariant,
+} from "@/lib/banner/bannerVariant";
 
-describe("bannerVariant — 어느 화면에 어떤 크기", () => {
-  it("데스크톱 = 970×90", () => {
-    expect(bannerVariant("desktop")).toBe("desktop");
-    expect(BANNER_SIZES.desktop).toEqual({ width: 970, height: 90 });
+/** 구글 애드센스 표준 크기 중 배너 자리가 쓰는 셋. */
+const ADSENSE = ["970x90", "728x90", "320x100"];
+const key = (s: { width: number; height: number }) => `${s.width}x${s.height}`;
+
+describe("leaderboardSize — 자리 폭에 맞는 표준 크기 하나 (D-74)", () => {
+  it("970 이 들어가면 970×90", () => {
+    expect(leaderboardSize(1320)).toEqual({ width: 970, height: 90 });
+    expect(leaderboardSize(970)).toEqual({ width: 970, height: 90 });
   });
-
-  it("모바일 세로 = 320×100", () => {
-    expect(bannerVariant("portrait")).toBe("mobile");
-    expect(BANNER_SIZES.mobile).toEqual({ width: 320, height: 100 });
+  it("970 이 안 들어가면 728×90 — 320×100 으로 내리지 않는다", () => {
+    expect(leaderboardSize(969)).toEqual({ width: 728, height: 90 });
+    expect(leaderboardSize(800)).toEqual({ width: 728, height: 90 });
+    expect(leaderboardSize(728)).toEqual({ width: 728, height: 90 });
   });
-
-  it("모바일 가로 = 배너 없음", () => {
-    expect(bannerVariant("landscape")).toBeNull();
+  it("728 도 안 들어가면(휴대폰) 320×100", () => {
+    expect(leaderboardSize(727)).toEqual({ width: 320, height: 100 });
+    expect(leaderboardSize(358)).toEqual({ width: 320, height: 100 });
   });
-
-  it("광고 표준 크기 그대로 — 자리 안에 광고를 넣지 않는다 (D-21 아니라고 한 것)", () => {
-    // 1320×140 · 366×문구높이 는 폐기된 값이다.
-    for (const s of Object.values(BANNER_SIZES)) {
-      expect([970, 320]).toContain(s.width);
-      expect([90, 100]).toContain(s.height);
-    }
+  it("어떤 폭에서도 세 표준 크기 중 하나 — 727×90 같은 중간 크기는 없다", () => {
+    for (let w = 280; w <= 1600; w += 1) expect(ADSENSE).toContain(key(leaderboardSize(w)));
+    expect(LEADERBOARD_SIZES.map(key)).toEqual(ADSENSE);
   });
 });
 
-// THUMB-1 PR 2 · 원장 D-21 · D-55 — 무대가 아닌 화면(피치)의 배너 크기.
-// 무대처럼 칸 계산이 없으니 폭·높이만 본다: 휴대폰 가로(높이 ≤ 500)는 없음 · 폭 ≤ 860 은
-// 320×100 · 그 밖은 970×90. 860 은 기존 useBannerVariant 와 같은 경계(메뉴바가 접히는 폭).
-describe("pageBannerVariant — 피치 배너 크기 (D-21)", () => {
-  it("데스크톱 1440 · 태블릿 가로 1180×820 = 970×90", () => {
-    expect(pageBannerVariant(1440, 900)).toBe("desktop");
-    expect(pageBannerVariant(1180, 820)).toBe("desktop");
+describe("bannerVariant — 매치 무대에 배너가 있나", () => {
+  it("데스크톱 · 모바일 세로 = 있음(크기는 자리 폭이 정함)", () => {
+    expect(bannerVariant("desktop")).toBe("leaderboard");
+    expect(bannerVariant("portrait")).toBe("leaderboard");
   });
-  it("모바일 세로 390 · 태블릿 세로 834 = 320×100", () => {
-    expect(pageBannerVariant(390, 844)).toBe("mobile");
-    expect(pageBannerVariant(834, 1194)).toBe("mobile");
+  it("모바일 가로 = 배너 없음", () => {
+    expect(bannerVariant("landscape")).toBeNull();
+  });
+});
+
+describe("pageBannerVariant — 무대가 아닌 화면", () => {
+  it("데스크톱 · 태블릿 · 휴대폰 세로 = 있음", () => {
+    for (const [w, h] of [[1440, 900], [1180, 820], [1024, 768], [768, 1024], [390, 844], [1000, 800]]) {
+      expect(pageBannerVariant(w, h)).toBe("leaderboard");
+    }
   });
   it("모바일 가로(844×390 · 932×430) = 없음", () => {
     expect(pageBannerVariant(844, 390)).toBeNull();
     expect(pageBannerVariant(932, 430)).toBeNull();
   });
-  it("작은 데스크톱 창(1000×800 가로)은 휴대폰 가로가 아니다 = 970×90", () => {
-    expect(pageBannerVariant(1000, 800)).toBe("desktop");
+});
+
+// 크기 규칙이 CSS 한 곳(공용 부품)에만 있는지 — 자리마다 970 을 따로 박으면 727×90 이 다시 생긴다.
+describe("배너 크기는 공용 BannerSlot 한 곳에서만 (D-74 · D-21 공통 부품 하나)", () => {
+  const css = readFileSync("components/layout/bannerSlot.module.css", "utf8");
+  it("컨테이너 쿼리 경계 = 728 · 970", () => {
+    expect(css).toMatch(/@container[^{]*\(min-width:\s*728px\)/);
+    expect(css).toMatch(/@container[^{]*\(min-width:\s*970px\)/);
+    expect(css).toMatch(/--arena-banner-w-mid/);
+  });
+  it("다른 CSS 는 배너 폭 토큰을 쓰지 않는다", () => {
+    const files: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const p = join(dir, f);
+        if (statSync(p).isDirectory()) walk(p);
+        else if (p.endsWith(".css")) files.push(p);
+      }
+    };
+    walk("components");
+    walk("app");
+    const offenders = files.filter(
+      (f) =>
+        !f.endsWith("components/layout/bannerSlot.module.css") &&
+        !f.endsWith("app/arena_stage_tokens.css") &&
+        /var\(--arena-banner-[wh]/.test(readFileSync(f, "utf8")),
+    );
+    expect(offenders).toEqual([]);
   });
 });
 
-// ARENA-2 · 원장 D-69 — 아레나 홈 광고 칸. 배너(970×90 / 320×100)와 따로 둔다.
+// ARENA-2 · 원장 D-69 — 아레나 홈 광고 칸. 배너와 따로 센다.
 describe("AD_BOX_SIZES — 아레나 홈 광고 칸 (D-69)", () => {
   it("오른쪽 칸 = 300×250 (애드센스 중간 사각형) · 띠 옆 = 300×90", () => {
     expect(AD_BOX_SIZES.rect).toEqual({ width: 300, height: 250 });

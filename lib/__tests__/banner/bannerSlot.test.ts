@@ -234,7 +234,7 @@ describe("D-59 — 런칭 전 pitch-between 기본 공지 = 사전등록 안내"
 // 광고 칸(300×250 · 300×90)은 자리마다 쓸모 있는 안내 하나(D-21 "팬에게 유익한 공지").
 describe("ARENA-2 — 아레나 홈 배너 자리", () => {
   it("자리 이름 — 가로 띠 · 띠 옆 칸 · 오른쪽 칸 둘", () => {
-    for (const n of ["arena-between", "arena-beside", "arena-side-active", "arena-side-closed"]) {
+    for (const n of ["arena-between", "arena-beside", "arena-side-active", "arena-side-closed", "arena-side-recommend"]) {
       expect(BANNER_SLOT_NAMES).toContain(n);
     }
   });
@@ -249,6 +249,8 @@ describe("ARENA-2 — 아레나 홈 배너 자리", () => {
       "arena-beside": { titleKey: "banner.arena.beside.title", action: "link", href: "/records" },
       "arena-side-active": { titleKey: "banner.arena.sideActive.title", action: "link", href: "/news" },
       "arena-side-closed": { titleKey: "banner.arena.sideClosed.title", action: "link", href: "/records" },
+      // PR 2 — 추천 대회 뉴스 칸 → 새 대회가 먼저 열리는 The Pitch
+      "arena-side-recommend": { titleKey: "banner.arena.sideRecommend.title", action: "link", href: "/" },
     } as const;
     for (const [slot, notice] of Object.entries(expected)) {
       for (const audience of ["guest", "member"] as const) {

@@ -518,6 +518,9 @@ export const MESSAGES = {
   "arenaHome.page.next": { ko: "다음 쪽", en: "Next page", es: "Página siguiente" },
   "arenaHome.page.n": { ko: "{n}쪽", en: "Page {n}", es: "Página {n}" },
   "arenaHome.news.category": { ko: "카테고리 뉴스", en: "Category news", es: "Noticias de la categoría" },
+  "arenaHome.news.recommend": { ko: "추천 대회 뉴스", en: "Recommended Tournament news", es: "Noticias de Tournaments recomendados" },
+  "arenaHome.recommend.title": { ko: "추천 대회", en: "Recommended Tournaments", es: "Tournaments recomendados" },
+  "arenaHome.recommend.more": { ko: "추천 대회 더 보기", en: "Show more recommended Tournaments", es: "Ver más Tournaments recomendados" },
   "arenaHome.news.closed": { ko: "마감 대회 뉴스", en: "Closed Tournament news", es: "Noticias de Tournaments cerrados" },
   "arenaHome.news.empty.title": {
     ko: "아직 관련 뉴스가 없어요",
@@ -1158,6 +1161,11 @@ export const MESSAGES = {
     ko: "마감 대회의 차트는 언제든 다시 볼 수 있어요",
     en: "Charts of closed Tournaments stay open anytime",
     es: "Los charts de los Tournaments cerrados siguen abiertos siempre",
+  },
+  "banner.arena.sideRecommend.title": {
+    ko: "새 대회는 The Pitch에서 가장 먼저 열려요",
+    en: "New Tournaments open first on The Pitch",
+    es: "Los nuevos Tournaments se abren primero en The Pitch",
   },
   "banner.default.guest.title": {
     ko: "로그인하면 크라운 카드를 간직하고, 대회마다 하루 5번 참여할 수 있어요",

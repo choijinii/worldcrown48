@@ -33,8 +33,9 @@ interface BannerSlotProps {
   /** 기본 공지(비로그인)의 "로그인 화면" — 화면이 가진 로그인 모달을 연다. */
   onSignIn?: () => void;
   /**
-   * 크기 변형 — desktop 970×90 · mobile 320×100 (원장 D-21 바뀜 09-21) · 아레나 홈 광고 칸
-   * rect 300×250 · strip 300×90 (D-69). 화면 밖 판정 · 실제 크기는 놓는 쪽 CSS 가 정한다.
+   * 크기 변형 — leaderboard = 가로 배너(자리 폭에 970×90 이 들어가면 970×90, 안 들어가면 728×90,
+   * 그것도 안 되면 320×100 · 원장 D-74 — 이 부품이 컨테이너 쿼리로 고른다) · 아레나 홈 광고 칸
+   * rect 300×250 · strip 300×90 (D-69, 크기는 놓는 쪽 CSS). 그릴지 말지(휴대폰 가로)는 놓는 쪽이 정한다.
    */
   variant?: BannerVariant | AdBoxVariant;
   className?: string;
@@ -68,8 +69,18 @@ export function BannerSlot({ slot, onSignIn, variant, className }: BannerSlotPro
     isAnonymous: Boolean(user?.isAnonymous),
   });
   const resolved = resolveBanner(docs, slot, Date.now(), audience);
-  const rootClass = [styles.slot, className ?? ""].filter(Boolean).join(" ");
+  const leaderboard = variant === "leaderboard";
+  const rootClass = [styles.slot, leaderboard ? styles.leaderboard : "", className ?? ""].filter(Boolean).join(" ");
   const sizeAttrs = variant ? { "data-banner-variant": variant } : {};
+  // 가로 배너는 자리 폭을 재는 겉 상자 안에 둔다 — 컨테이너는 자기 자신을 잴 수 없다.
+  const fit = (el: JSX.Element): JSX.Element =>
+    leaderboard ? (
+      <div className={styles.fit} data-banner-fit="">
+        {el}
+      </div>
+    ) : (
+      el
+    );
 
   if (resolved.source === "doc") {
     const b = resolved.banner;
@@ -81,7 +92,7 @@ export function BannerSlot({ slot, onSignIn, variant, className }: BannerSlotPro
         {body ? <span className={styles.body}>{body}</span> : null}
       </>
     );
-    return (
+    return fit(
       <aside className={rootClass} data-testid="banner-slot" data-banner-slot={slot} data-banner-source="doc" {...sizeAttrs}>
         {b.href ? (
           <Link href={b.href} className={styles.action}>
@@ -96,7 +107,7 @@ export function BannerSlot({ slot, onSignIn, variant, className }: BannerSlotPro
 
   const notice = resolved.notice;
   const label = <span className={styles.title}>{t(notice.titleKey)}</span>;
-  return (
+  return fit(
     <aside
       className={rootClass}
       data-testid="banner-slot"
