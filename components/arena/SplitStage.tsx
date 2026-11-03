@@ -22,6 +22,7 @@ import type { Contestant } from "@/lib/types/tournament";
 import { useT } from "@/lib/i18n/useT";
 import {
   armedSide,
+  heldSide,
   initialStage,
   isStageLocked,
   pickedSide,
@@ -167,7 +168,8 @@ export function SplitStage({
     return () => clearTimeout(timer);
   }, [picked, sendPick, timeline.autoAdvance, timeline.holdMs]);
 
-  const armed = armedSide(status);
+  const held = heldSide(status, lastPick.current);
+  const armed = armedSide(status) ?? held;
   const locked = isStageLocked(status) || loading;
   const onEnter = useCallback((side: StageSideKey, pointer: StagePointer) => {
     if (canHover()) dispatch({ type: "enter", side, pointer });
@@ -190,7 +192,7 @@ export function SplitStage({
     side,
     size: box(side),
     armed: armed === side,
-    dimmed: picked !== null ? picked !== side : armed !== null && armed !== side,
+    dimmed: armed !== null && armed !== side,
     onEnter,
     onLeave,
     onTap,
@@ -200,9 +202,9 @@ export function SplitStage({
     // 데스크톱은 버튼 폭이 상자 폭을 따라간다(시안). 휴대폰은 두 버튼이 나란히 같은 폭이다.
     width: mode === "desktop" ? box(side)?.w : undefined,
     focused: armed === side,
-    dimmed: picked !== null ? picked !== side : armed !== null && armed !== side,
-    confirmed: picked === side,
-    waiting: picked === side && loading,
+    dimmed: armed !== null && armed !== side,
+    confirmed: held === side,
+    waiting: held === side && loading,
     errorNote: lastPick.current === side ? errorNote : null,
     locked,
     onEnter,

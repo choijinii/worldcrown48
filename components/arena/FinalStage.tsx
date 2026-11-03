@@ -24,6 +24,7 @@ import {
 } from "@/lib/arena/fullscreenGate";
 import {
   armedSide,
+  heldSide,
   initialStage,
   isStageLocked,
   pickedSide,
@@ -107,7 +108,6 @@ export function FinalStage({
 
   const timeline = confirmTimeline({ baseScale: 1, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
-  const armed = armedSide(status);
   const locked = isStageLocked(status) || loading;
 
   // 다음 화면(Crown Card)으로 넘어갔다가 돌아오는 경우를 위해 명단이 바뀌면 처음으로.
@@ -129,6 +129,8 @@ export function FinalStage({
   // 실패하면 상태가 처음으로 돌아간다 — 오류 한 줄은 마지막으로 고른 버튼 아래에 남긴다.
   const lastPick = useRef<StageSideKey | null>(null);
   if (picked) lastPick.current = picked;
+  const held = heldSide(status, lastPick.current);
+  const armed = armedSide(status) ?? held;
   const sendPick = useCallback(() => {
     if (!pickedId) return;
     dispatch({ type: "submit" });
@@ -167,8 +169,7 @@ export function FinalStage({
 
   const box = (side: StageSideKey) =>
     layout ? stageBoxSize(layout, armed === side, armed !== null) : null;
-  const dimmedOf = (side: StageSideKey) =>
-    picked !== null ? picked !== side : armed !== null && armed !== side;
+  const dimmedOf = (side: StageSideKey) => armed !== null && armed !== side;
   const boxOf = (c: Contestant, side: StageSideKey) => (
     <StageBox
       contestant={c}
@@ -188,8 +189,8 @@ export function FinalStage({
       width={mode === "portrait" ? undefined : box(side)?.w}
       focused={armed === side}
       dimmed={dimmedOf(side)}
-      confirmed={picked === side}
-      waiting={picked === side && loading}
+      confirmed={held === side}
+      waiting={held === side && loading}
       errorNote={lastPick.current === side ? errorNote : null}
       locked={locked}
       onEnter={onEnter}

@@ -64,6 +64,11 @@ export function pickedSide(status: StageStatus): StageSideKey | null {
   return m ? (m[1] as StageSideKey) : null;
 }
 
+/** 확정부터 서버 응답까지 고른 칸. `loading` 상태는 칸을 모르므로 화면이 기억한 값을 받는다. */
+export function heldSide(status: StageStatus, lastPick: StageSideKey | null): StageSideKey | null {
+  return pickedSide(status) ?? (status === "loading" ? lastPick : null);
+}
+
 /** 확정 이후 — 호버·탭이 더는 아무것도 바꾸지 않는다. */
 export function isStageLocked(status: StageStatus): boolean {
   return status === "loading" || pickedSide(status) !== null;

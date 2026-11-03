@@ -14,7 +14,7 @@ import {
   isStageLocked,
   pickedSide,
   reduceStage,
-  type StageStatus,
+  type StageStatus, heldSide
 } from "@/lib/arena/stageState";
 
 const run = (from: StageStatus, ...events: Parameters<typeof reduceStage>[1][]) =>
@@ -98,5 +98,18 @@ describe("selectors", () => {
     expect(isStageLocked("loading")).toBe(true);
     expect(isStageLocked("pickedL")).toBe(true);
     expect(isStageLocked("focusL")).toBe(false);
+  });
+});
+
+describe("heldSide — 서버 응답을 기다리는 동안에도 고른 칸을 잊지 않는다", () => {
+  it("확정 중에는 그 칸", () => {
+    expect(heldSide("pickedR", "R")).toBe("R");
+  });
+  it("보낸 뒤 기다리는 동안에는 마지막으로 고른 칸", () => {
+    expect(heldSide("loading", "L")).toBe("L");
+  });
+  it("실패해서 처음으로 돌아오면 없음 — 오류 줄만 남는다", () => {
+    expect(heldSide("idle", "L")).toBeNull();
+    expect(heldSide("focusL", "L")).toBeNull();
   });
 });
