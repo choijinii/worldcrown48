@@ -522,8 +522,13 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.getByTestId("module-nav")).toHaveCount(0);
       expect(await page.evaluate(() => (window as unknown as { __stageMarker?: number }).__stageMarker)).toBe(1);
       expect((await page.getByTestId("vote-left").innerText()).trim()).toBe(m1Left);
-      const l = await box(page, '[data-testid="stage-box-L"]');
-      expect([l.w, l.h]).toEqual([330, 186]);
+      // 상자 크기는 0.3초 전환으로 바뀐다 — 끝난 값을 본다.
+      await expect
+        .poll(async () => {
+          const l = await box(page, '[data-testid="stage-box-L"]');
+          return [l.w, l.h];
+        })
+        .toEqual([330, 186]);
       await page.screenshot({ path: "playwright-report/arena1-landscape-844.png" });
 
       // 가로에서도 같은 규칙 — 확정하면 선택이 이어서 쌓인다(판이 처음으로 돌아가지 않는다).
