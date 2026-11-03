@@ -223,3 +223,22 @@ export function stageBoxSize(layout: StageLayout, focused: boolean, anyFocused: 
   if (!anyFocused) return layout.base;
   return focused ? layout.big : layout.small;
 }
+
+/** 버튼 아래 한 줄과 배너 사이에 남기는 틈. */
+export const NOTE_BANNER_GAP = 6;
+
+/**
+ * 배너를 아래로 미는 양 (D-76 "버튼 아래 한 줄 · 배너 위에 아무것도 없음").
+ * "확인 중"·실패 한 줄은 버튼 아래에 뜨는데, 휴대폰 세로는 버튼과 배너 사이가 좁아 그 줄이
+ * 배너에 닿는다. 줄이 떠 있는 동안만 겹친 만큼(+틈) 배너를 민다. 이미 민 상태에서 다시 재도
+ * 같은 값이 나오도록 원래 자리(bannerTop − currentPush) 기준으로 센다.
+ */
+export function bannerPush(input: {
+  noteBottom: number | null;
+  bannerTop: number;
+  currentPush: number;
+}): number {
+  if (input.noteBottom === null) return 0;
+  const over = input.noteBottom - (input.bannerTop - input.currentPush);
+  return over > 0 ? Math.ceil(over + NOTE_BANNER_GAP) : 0;
+}

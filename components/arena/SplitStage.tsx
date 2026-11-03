@@ -17,7 +17,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import type { Contestant } from "@/lib/types/tournament";
 import { useT } from "@/lib/i18n/useT";
 import {
@@ -35,7 +35,7 @@ import {
   fullscreenAction,
   nextRequestedThisLandscape,
 } from "@/lib/arena/fullscreenGate";
-import { stageBoxSize } from "@/lib/arena/stageLayout";
+import { bannerPush, stageBoxSize } from "@/lib/arena/stageLayout";
 import { useStageViewport } from "@/lib/arena/useStageViewport";
 import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
@@ -212,6 +212,24 @@ export function SplitStage({
     onPress,
   });
 
+  // 버튼 아래 한 줄이 떠 있는 동안만 배너를 그만큼 민다 — 배너 위에 아무것도 없게 (D-76).
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const [push, setPush] = useState(0);
+  const showWaiting = held !== null && loading;
+  useLayoutEffect(() => {
+    const banner = bannerRef.current;
+    if (!banner) return setPush(0);
+    const notes = frameRef.current?.querySelectorAll('[data-testid="confirm-waiting"], [data-testid="confirm-error"]');
+    const bottoms = Array.from(notes ?? []).map((n) => n.getBoundingClientRect().bottom);
+    setPush((current) =>
+      bannerPush({
+        noteBottom: bottoms.length ? Math.max(...bottoms) : null,
+        bannerTop: banner.getBoundingClientRect().top,
+        currentPush: current,
+      }),
+    );
+  }, [errorNote, showWaiting, mode, layout]);
+
   const stageVars = layout
     ? ({
         "--stage-frame-w": `${layout.frameW}px`,
@@ -277,7 +295,12 @@ export function SplitStage({
       {/* 배너 자리 = 구글 광고 표준 크기 (원장 D-21 바뀜 2026-09-21):
           자리 폭대로 970×90 · 728×90 · 320×100(D-74) · 모바일 가로 없음(집중 모드 · D-17 ③). */}
       {bannerVariant(mode) ? (
-        <div className={styles.bannerRow} data-stage-layer="banner">
+        <div
+          ref={bannerRef}
+          className={styles.bannerRow}
+          data-stage-layer="banner"
+          style={push ? ({ "--banner-push": `${push}px` } as React.CSSProperties) : undefined}
+        >
           <BannerSlot
             slot="arena-match-below"
             onSignIn={onSignIn}

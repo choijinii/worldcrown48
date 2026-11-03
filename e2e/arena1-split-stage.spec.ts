@@ -540,6 +540,49 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.locator("header.wc-nav")).toBeVisible();
     });
 
+    test("세로 — 확인 중 · 실패 한 줄은 버튼 아래, 배너와 겹침 0 (D-76)", async ({ page }) => {
+      // 선택을 서버에 보내지 않는다 — onVote 를 붙잡았다가 실패로 돌려준다(쓰기 0).
+      let release: () => void = () => {};
+      const held = new Promise<void>((r) => (release = r));
+      await page.route("**/onVote*", async (route) => {
+        await held;
+        await route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: { status: "INTERNAL", message: "e2e" } }),
+        });
+      });
+      await openStage(page);
+      const bannerTop0 = (await box(page, '[data-testid="banner-slot"]')).y;
+      const noOverlap = async (testid: string) => {
+        const note = await page.getByTestId(testid).boundingBox();
+        const banner = await page.getByTestId("banner-slot").boundingBox();
+        if (!note || !banner) throw new Error(`no box ${testid}`);
+        const btn = await page.getByTestId("vote-left").boundingBox();
+        expect(note.y, `${testid} 은 버튼 아래`).toBeGreaterThanOrEqual((btn?.y ?? 0) + (btn?.height ?? 0));
+        return banner.y - (note.y + note.height);
+      };
+
+      await page.getByTestId("vote-left").tap();
+      await expect(page.getByTestId("confirm-waiting")).toBeVisible({ timeout: 10_000 });
+      await expect.poll(() => noOverlap("confirm-waiting")).toBeGreaterThanOrEqual(0);
+      await page.screenshot({ path: "playwright-report/arena1-portrait-wait.png" });
+
+      release();
+      await expect(page.getByTestId("confirm-error")).toBeVisible({ timeout: 10_000 });
+      await expect.poll(() => noOverlap("confirm-error")).toBeGreaterThanOrEqual(0);
+      await page.screenshot({ path: "playwright-report/arena1-portrait-error.png" });
+      expect(await votesFor()).toBe(0);
+
+      // 다음에 고르면 줄이 사라지고 배너는 제자리로.
+      await page.unroute("**/onVote*");
+      await page.getByTestId("vote-left").tap();
+      await expect(page.getByTestId("confirm-error")).toHaveCount(0, { timeout: 15_000 });
+      await expect.poll(async () => (await box(page, '[data-testid="banner-slot"]')).y).toBe(bannerTop0);
+      // 일부러 돌려준 500 응답이 남기는 브라우저 로그는 앱 오류가 아니다.
+      consoleErrors = consoleErrors.filter((t) => !/500|onVote|Internal/i.test(t));
+    });
+
     // ── PR 2a — 모바일 가로 첫 탭 전체화면 (원장 "D-17 · 바뀜 2026-09-20") ──
     test("가로 첫 탭에 전체화면 1회 · 같은 진입에서 추가 0회 · 세로 복귀 시 해제", async ({ page }) => {
       await installFullscreenSpy(page);

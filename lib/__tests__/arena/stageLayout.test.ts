@@ -9,7 +9,7 @@ import {
   computeStageLayout,
   pickViewportHeight,
   stageMode,
-  stageBoxSize,
+  stageBoxSize, bannerPush
 } from "@/lib/arena/stageLayout";
 
 describe("stageMode — 태블릿 기준 폭 1024 (D-17 ④)", () => {
@@ -131,5 +131,21 @@ describe("stageBoxSize", () => {
     expect(stageBoxSize(l, false, false)).toEqual(l.base);
     expect(stageBoxSize(l, true, true)).toEqual(l.big);
     expect(stageBoxSize(l, false, true)).toEqual(l.small);
+  });
+});
+
+describe("bannerPush — 버튼 아래 한 줄이 배너를 덮지 않게 배너를 민다 (D-76)", () => {
+  it("겹치지 않으면 밀지 않는다 (데스크톱 실패 줄 790 · 배너 794)", () => {
+    expect(bannerPush({ noteBottom: 790.3, bannerTop: 794.5, currentPush: 0 })).toBe(0);
+  });
+  it("휴대폰 세로 — 겹친 만큼 + 6 띄움 (실패 줄 720 · 배너 706 → 20)", () => {
+    expect(bannerPush({ noteBottom: 720, bannerTop: 706, currentPush: 0 })).toBe(20);
+  });
+  it("이미 민 상태에서 다시 재도 같은 값 — 원래 자리 기준", () => {
+    expect(bannerPush({ noteBottom: 720, bannerTop: 726, currentPush: 20 })).toBe(20);
+  });
+  it("두 줄이면 더 민다 · 줄이 사라지면 0", () => {
+    expect(bannerPush({ noteBottom: 736.7, bannerTop: 706, currentPush: 0 })).toBe(37);
+    expect(bannerPush({ noteBottom: null, bannerTop: 726, currentPush: 20 })).toBe(0);
   });
 });
