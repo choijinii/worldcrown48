@@ -5,10 +5,9 @@
  * modal flags. Lives where SignInButton used to live; Navbar swaps between
  * the two based on auth state.
  *
- * Visual contract (handoff §4-1):
- *   - photoURL → 56x56 (desktop) / 40x40 (mobile) circle, 2px gold ring.
- *   - No photoURL → display-name initial on a deep-navy chip with a gold
- *     letter — the fallback states are spelled out in the design system.
+ * Visual contract (YT-FIX-1 · 원장 D-76 · 시안 GNB 부품):
+ *   - 프로필 알약 높이 36(휴대폰 30) 안에 사진 알약 42×28(휴대폰 34×22) + 이름.
+ *   - photoURL 이 없으면 이름 첫 글자.
  *   - displayName label is truncated to 24 chars with a CSS ellipsis.
  */
 
@@ -25,7 +24,6 @@ interface UserAvatarProps {
 }
 
 const DISPLAY_NAME_MAX = 24;
-const AVATAR_SIZE_DESKTOP = 56;
 
 export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
   const { lang } = useI18n();
@@ -53,19 +51,21 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 10,
-          padding: "4px 8px 4px 4px",
+          gap: 8,
+          boxSizing: "border-box",
+          height: 36,
+          padding: "0 14px 0 4px",
           borderRadius: 999,
-          border: "1px solid transparent",
-          background: "transparent",
+          border: "1px solid color-mix(in srgb, var(--color-white) 22%, transparent)",
+          background: "color-mix(in srgb, var(--color-white) 8%, transparent)",
           cursor: "pointer",
         }}
       >
-        <AvatarRing user={user} size={AVATAR_SIZE_DESKTOP} />
+        <AvatarPill user={user} />
         <span
           style={{
-            fontFamily: "Inter, system-ui, sans-serif",
-            fontSize: 14,
+            fontFamily: "var(--font-sans)",
+            fontSize: 13,
             fontWeight: 600,
             color: "var(--color-text-light)",
             overflow: "hidden",
@@ -94,56 +94,37 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
   );
 }
 
-function AvatarRing({ user, size }: { user: User; size: number }): JSX.Element {
-  const ringWidth = 2;
-  const innerSize = size - ringWidth * 2;
-  const initials = (user.displayName ?? user.email ?? "?").slice(0, 1).toUpperCase();
-
+function AvatarPill({ user }: { user: User }): JSX.Element {
+  const initial = (user.displayName ?? user.email ?? "?").slice(0, 1).toUpperCase();
   return (
     <span
       aria-hidden="true"
       style={{
-        display: "inline-block",
-        width: size,
-        height: size,
-        padding: ringWidth,
-        borderRadius: "50%",
-        background: "var(--color-gold)",
-        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flex: "none",
+        boxSizing: "border-box",
+        width: 42,
+        height: 28,
+        overflow: "hidden",
+        borderRadius: 999,
+        border: "1px solid color-mix(in srgb, var(--color-white) 22%, transparent)",
+        background: "var(--arena-continue-text)",
+        color: "var(--arena-icon)",
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        fontWeight: 600,
       }}
     >
       {user.photoURL ? (
         <img
           src={user.photoURL}
           alt=""
-          width={innerSize}
-          height={innerSize}
-          style={{
-            display: "block",
-            width: innerSize,
-            height: innerSize,
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
+          style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
         />
       ) : (
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: innerSize,
-            height: innerSize,
-            borderRadius: "50%",
-            background: "var(--color-bg-default)",
-            color: "var(--color-gold)",
-            fontFamily: "Inter, system-ui, sans-serif",
-            fontWeight: 700,
-            fontSize: innerSize * 0.42,
-          }}
-        >
-          {initials}
-        </span>
+        initial
       )}
     </span>
   );
