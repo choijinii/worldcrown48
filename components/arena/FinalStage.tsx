@@ -148,9 +148,7 @@ export function FinalStage({
   const onLeave = useCallback((side: StageSideKey, pointer: StagePointer) => {
     if (canHover()) dispatch({ type: "leave", side, pointer });
   }, []);
-  const onTap = useCallback((side: StageSideKey) => {
-    if (!canHover()) dispatch({ type: "tap", side });
-  }, []);
+  const onTap = useCallback((side: StageSideKey) => dispatch({ type: "tap", side }), []);
   const onPress = useCallback(
     (side: StageSideKey) => {
       if (loading) return;

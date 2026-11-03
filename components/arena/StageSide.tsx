@@ -124,7 +124,10 @@ export function StageBox({
       style={size ? { width: size.w, height: size.h } : undefined}
       onPointerEnter={(e) => onEnter(side, asPointer(e.pointerType))}
       onPointerLeave={(e) => onLeave(side, asPointer(e.pointerType))}
-      onClick={() => onTap(side)}
+      onClick={(e) => {
+        // 마우스는 호버로 이미 재생 중이다. 터치 노트북도 손가락 탭은 여기로 온다.
+        if ((e.nativeEvent as PointerEvent).pointerType !== "mouse") onTap(side);
+      }}
     >
       {playing && media ? (
         <div className={styles.video} data-testid="stage-player">

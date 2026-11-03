@@ -238,6 +238,10 @@ test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {
     await page.getByTestId("contestant-tune-0").click();
     const tuner = page.getByTestId("slot-video-tuner");
     await expect(tuner).toBeVisible();
+    // YT-FIX-1 (D-76 · 정책 III.C.1) — 자르지 않은 플레이어 480×270 이상.
+    const player = await page.getByTestId("slot-tuner-player").boundingBox();
+    expect(player?.width ?? 0).toBeGreaterThanOrEqual(480);
+    expect(player?.height ?? 0).toBeGreaterThanOrEqual(270);
     await expect(page.getByTestId("slot-tuner-open-original")).toHaveAttribute(
       "href",
       new RegExp(`youtube\\.com/watch\\?v=${PASS_ID}`),
