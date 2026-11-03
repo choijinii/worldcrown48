@@ -212,6 +212,12 @@ test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {
     // 통과·경고 2개만 슬롯 1·2에 들어간다. 차단은 슬롯을 차지하지 않는다.
     await expect(page.getByTestId("contestant-tune-0")).toBeVisible();
     await expect(page.getByTestId("contestant-tune-1")).toBeVisible();
+
+    // YT-FIX-1 (개발자 정책 III.C.1) — 재생을 시작하는 썸네일은 120×70 이상. 1440 폭에서 잰다.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const card = await page.getByTestId("contestant-pick-0").boundingBox();
+    expect(card?.width ?? 0).toBeGreaterThanOrEqual(120);
+    expect(card?.height ?? 0).toBeGreaterThanOrEqual(70);
     await expect(page.getByTestId("contestant-tune-2")).toHaveCount(0);
 
     // ③ — 확신한 칸은 이름까지 채워지고 "제안", 확신 못 한 칸은 이름이 빈 채

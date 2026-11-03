@@ -53,6 +53,12 @@ export interface EmbedMedia {
    * 포스터 object-position 과 iframe top 이 같은 값을 쓴다(D-15). 가로 영상은 쓰지 않는다.
    */
   focusY?: number;
+  /**
+   * YT-FIX-1 (III.E.4) — 재검사에서 내려갔거나 비공개로 확인된 영상. 썸네일 대신 이름 첫 글자를 쓴다.
+   * status 와 따로 둔다 — status 는 끝난 대회에서 지워지지만 이 표시는 남아야 한다. 영상이 되살아나면
+   * 재검사가 걷고, 운영자가 링크를 갈면 embed 가 통째로 새로 써져 사라진다.
+   */
+  gone?: boolean;
 }
 
 export type EmbedOrientation = "landscape" | "portrait";
@@ -114,7 +120,7 @@ export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
  */
 export function contestantThumbnail(media: ContestantMedia | undefined): string {
   const videoId = media?.embed?.videoId;
-  return videoId && isValidVideoId(videoId) ? buildThumbnailUrl(videoId) : "";
+  return videoId && isValidVideoId(videoId) && !media?.embed?.gone ? buildThumbnailUrl(videoId) : "";
 }
 
 function imageOrNone(imageUrl: string): MediaRenderDecision {
@@ -130,7 +136,7 @@ export function decideMediaRender(
   media: ContestantMedia | undefined,
   imageUrl: string,
 ): MediaRenderDecision {
-  if (media?.type === "embed" && isValidVideoId(media.embed?.videoId)) {
+  if (media?.type === "embed" && isValidVideoId(media.embed?.videoId) && !media.embed?.gone) {
     return { render: "embed", facade: buildEmbedFacade(media.embed!) };
   }
   // image · clip · absent · invalid-embed → the licensed still (backward compat).

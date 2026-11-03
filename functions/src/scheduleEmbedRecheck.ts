@@ -1,27 +1,32 @@
 /**
  * scheduleEmbedRecheck — 주간 임베드 재검증 크론 (LAB-EV-1 W7).
  *
- * 매주 월 05:00 KST, **라이브 Tournament의 영상만** 전수 재검증한다. 끝난 대회의
- * 링크가 썩는 건 아무도 아프지 않지만, 진행 중인 대회의 카드가 검은 사각형이 되면
+ * 매주 월 05:00 KST, **모든 Tournament의 영상**을 전수 재검증한다(YT-FIX-1 · 개발자 정책 III.E.4 —
+ * 끝난 대회 · 초안의 영상 ID 도 30일 안에 한 번 확인). 진행 중인 대회의 카드가 검은 사각형이 되면
  * 그 Match는 그대로 망가진다.
  *
- * 쿼터: videos.list는 콜당 1유닛(id 50개까지). 라이브 대회 10개(480영상)라도
- * 10콜 = 10유닛/주. 일일 10,000 한도에 비하면 무시할 수 있다.
+ * 쿼터: videos.list는 콜당 1유닛(id 50개까지). 대회 20개(960영상)라도
+ * 20콜 = 20유닛/주. 일일 10,000 한도에 비하면 무시할 수 있다.
  *
- * 결과는 두 곳에 남는다:
- *   · contestant.media.embed.status — 어느 칸이 왜 죽었는지 (운영자가 고칠 자리)
- *   · tournament.videoAlert         — 목록 화면의 ⚠️ 배지 (48칸을 안 읽어도 되게)
+ * 결과는 세 곳에 남는다:
+ *   · contestant.media.embed.status — 어느 칸이 왜 죽었는지 (운영자가 고칠 자리 · 마감 전 대회만)
+ *   · tournament.videoAlert         — 목록 화면의 ⚠️ 배지 (48칸을 안 읽어도 되게 · 마감 전 대회만)
+ *   · contestant.media.embed.gone   — 내려간·비공개 영상 (모든 대회 · 썸네일 대신 이름 첫 글자)
  *
  * 알림 고도화(메일·Slack)는 후속 — 지금은 문서 + 로그까지다(킥 W7).
  */
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { MAX_VIDEOS_PER_CALL } from "./_embed/constants";
 import { buildVerdicts, type LinkVerdict } from "./_embed/verdict";
+import { isDeadlinePassed, toDeadlineMs } from "./_run/deadline";
 import {
   collectVideoIds,
+  planGoneUpdates,
   planRecheckUpdates,
+  splitByDeadline,
   summarizeAlerts,
   type ContestantEmbedLike,
 } from "./core/embedRecheckCore";
@@ -52,26 +57,32 @@ export const scheduleEmbedRecheck = onSchedule(
     }
 
     try {
-      const liveSnap = await adminDb
-        .collection("tournaments")
-        .where("status", "==", "active")
-        .get();
-      if (liveSnap.empty) {
-        logger.info("scheduleEmbedRecheck: no active Tournament — skip");
+      const allSnap = await adminDb.collection("tournaments").select("tournamentDeadline").get();
+      if (allSnap.empty) {
+        logger.info("scheduleEmbedRecheck: no Tournament — skip");
         return;
       }
+      const nowMs = Date.now();
+      const endedIds = new Set(
+        allSnap.docs
+          .filter((d) => isDeadlinePassed(toDeadlineMs(d.get("tournamentDeadline")), nowMs))
+          .map((d) => d.id),
+      );
 
       // 대회별로 Contestant를 읽고 임베드가 붙은 칸만 추린다. 복합 인덱스를 만들지
       // 않으려고 필터는 메모리에서 한다(대회당 48개 — 읽기가 아깝지 않다).
       const contestants: ContestantEmbedLike[] = [];
-      for (const tournament of liveSnap.docs) {
+      for (const tournament of allSnap.docs) {
         const snap = await adminDb
           .collection("contestants")
           .where("tournamentId", "==", tournament.id)
           .get();
         for (const doc of snap.docs) {
           const media = doc.data().media as
-            | { type?: string; embed?: { videoId?: string; status?: { embeddable?: boolean } } }
+            | {
+                type?: string;
+                embed?: { videoId?: string; gone?: boolean; status?: { embeddable?: boolean } };
+              }
             | undefined;
           const videoId = media?.embed?.videoId;
           if (media?.type !== "embed" || !videoId) continue;
@@ -80,12 +91,13 @@ export const scheduleEmbedRecheck = onSchedule(
             tournamentId: tournament.id,
             videoId,
             storedEmbeddable: media.embed?.status?.embeddable,
+            storedGone: media.embed?.gone,
           });
         }
       }
 
       if (contestants.length === 0) {
-        logger.info("scheduleEmbedRecheck: no embeds in active Tournaments — skip");
+        logger.info("scheduleEmbedRecheck: no embeds — skip");
         return;
       }
 
@@ -99,7 +111,8 @@ export const scheduleEmbedRecheck = onSchedule(
       }
 
       const now = Date.now();
-      const updates = planRecheckUpdates(contestants, verdicts, now);
+      const { open } = splitByDeadline(contestants, endedIds);
+      const updates = planRecheckUpdates(open, verdicts, now);
       for (const group of chunk(updates, WRITE_CHUNK)) {
         const batch = adminDb.batch();
         for (const u of group) {
@@ -110,7 +123,18 @@ export const scheduleEmbedRecheck = onSchedule(
         await batch.commit();
       }
 
-      const alerts = summarizeAlerts(contestants, verdicts, now);
+      const goneUpdates = planGoneUpdates(contestants, verdicts);
+      for (const group of chunk(goneUpdates, WRITE_CHUNK)) {
+        const batch = adminDb.batch();
+        for (const u of group) {
+          batch.update(adminDb.collection("contestants").doc(u.contestantId), {
+            "media.embed.gone": u.gone ? true : FieldValue.delete(),
+          });
+        }
+        await batch.commit();
+      }
+
+      const alerts = summarizeAlerts(open, verdicts, now);
       for (const group of chunk(alerts, WRITE_CHUNK)) {
         const batch = adminDb.batch();
         for (const a of group) {
@@ -123,7 +147,7 @@ export const scheduleEmbedRecheck = onSchedule(
 
       const failed = alerts.reduce((sum, a) => sum + a.failed, 0);
       logger.info(
-        `scheduleEmbedRecheck: ${contestants.length} embeds in ${liveSnap.size} live Tournament(s) · videos.list ×${apiCalls} · ${updates.length} marked · ${failed} blocked`,
+        `scheduleEmbedRecheck: ${contestants.length} embeds in ${allSnap.size} Tournament(s) (${endedIds.size} ended) · videos.list ×${apiCalls} · ${updates.length} marked · ${failed} blocked · ${goneUpdates.length} gone changed`,
       );
     } catch (err) {
       // 크론은 절대 throw로 죽지 않는다 — 다음 주에 다시 돈다.

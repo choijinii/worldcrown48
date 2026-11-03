@@ -7,7 +7,9 @@
 import { describe, expect, it } from "vitest";
 import {
   collectVideoIds,
+  planGoneUpdates,
   planRecheckUpdates,
+  splitByDeadline,
   summarizeAlerts,
   type ContestantEmbedLike,
 } from "../core/embedRecheckCore";
@@ -114,5 +116,56 @@ describe("summarizeAlerts", () => {
     expect(summarizeAlerts([contestant("c1", A)], [verdict(A, "pass")], NOW)).toEqual([
       { tournamentId: "t1", failed: 0, warned: 0, checkedAt: NOW },
     ]);
+  });
+});
+
+describe("splitByDeadline — 끝난 대회는 재생 판정을 남기지 않는다 (YT-FIX-1 · III.E.4)", () => {
+  const rows = [
+    contestant("live", A, { tournamentId: "open" }),
+    contestant("old", B, { tournamentId: "ended" }),
+  ];
+
+  it("마감이 지난 대회의 칸만 ended 로 가른다", () => {
+    const { open, ended } = splitByDeadline(rows, new Set(["ended"]));
+    expect(open.map((c) => c.id)).toEqual(["live"]);
+    expect(ended.map((c) => c.id)).toEqual(["old"]);
+  });
+});
+
+describe("planGoneUpdates — 내려간·비공개 영상 표시 (YT-FIX-1 · III.E.4)", () => {
+  const withReason = (videoId: string, reason: "not-found" | "private" | "not-embeddable") => ({
+    ...verdict(videoId, "blocked"),
+    reasons: [reason] as LinkVerdict["reasons"],
+  });
+
+  it("없는 영상·비공개 영상을 표시한다", () => {
+    const plan = planGoneUpdates(
+      [contestant("c1", A), contestant("c2", B)],
+      [withReason(A, "not-found"), withReason(B, "private")],
+    );
+    expect(plan).toEqual([
+      { contestantId: "c1", gone: true },
+      { contestantId: "c2", gone: true },
+    ]);
+  });
+
+  it("임베드만 꺼진 영상은 썸네일이 살아 있으므로 표시하지 않는다", () => {
+    expect(planGoneUpdates([contestant("c1", A)], [withReason(A, "not-embeddable")])).toEqual([]);
+  });
+
+  it("되살아난 영상은 표시를 걷는다", () => {
+    expect(planGoneUpdates([contestant("c1", A, { storedGone: true })], [verdict(A, "pass")])).toEqual([
+      { contestantId: "c1", gone: false },
+    ]);
+  });
+
+  it("이미 표시된 칸은 다시 쓰지 않는다", () => {
+    expect(
+      planGoneUpdates([contestant("c1", A, { storedGone: true })], [withReason(A, "not-found")]),
+    ).toEqual([]);
+  });
+
+  it("API가 답을 안 준 칸은 건드리지 않는다", () => {
+    expect(planGoneUpdates([contestant("c1", A, { storedGone: true })], [])).toEqual([]);
   });
 });

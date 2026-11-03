@@ -97,7 +97,7 @@ export interface StageMedia {
  */
 export function resolveStageMedia(media: ContestantMedia | undefined): StageMedia | null {
   const embed = media?.embed;
-  if (!embed || !isValidVideoId(embed.videoId)) return null;
+  if (!embed || !isValidVideoId(embed.videoId) || embed.gone) return null;
   const startSec = typeof embed.start === "number" && embed.start > 0 ? Math.floor(embed.start) : 0;
   const endSec =
     typeof embed.end === "number" && embed.end > startSec

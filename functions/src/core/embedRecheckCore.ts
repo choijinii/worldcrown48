@@ -5,6 +5,10 @@
  * 발행 당시 통과였다는 사실은 다음 주의 재생을 보장하지 않으므로, 살아 있는
  * Tournament의 영상을 주 1회 전수 재검증하고 문제를 문서에 남긴다.
  *
+ * YT-FIX-1(개발자 정책 III.E.4): 끝난 대회 · 초안의 영상 ID 도 함께 묻는다. 주 1회라 "30일 안에 한 번"을
+ * 늘 지킨다. 끝난 대회의 재생 판정은 scheduleYouTubeDataRetention 이 지우므로 쓰지 않고(splitByDeadline),
+ * 내려간·비공개 표시 `media.embed.gone` 만 남긴다(planGoneUpdates).
+ *
  * 쓰기는 아낀다 — 48칸 × 라이브 대회 수만큼 매주 갱신하면 의미 없는 쓰기가 쌓인다.
  * "지금 문제거나, 문제였다가 나은" 칸만 쓴다(그 외는 상태가 그대로다).
  */
@@ -16,7 +20,17 @@ export interface ContestantEmbedLike {
   videoId: string;
   /** 문서에 이미 저장된 판정(media.embed.status). 없으면 미검증. */
   storedEmbeddable?: boolean;
+  /** 문서에 이미 저장된 내려감 표시(media.embed.gone). */
+  storedGone?: boolean;
 }
+
+export interface GoneUpdate {
+  contestantId: string;
+  gone: boolean;
+}
+
+/** 썸네일까지 사라지는 사유. 임베드만 꺼진 영상은 썸네일이 살아 있다. */
+const GONE_REASONS: VerdictReason[] = ["not-found", "private"];
 
 export interface EmbedStatusUpdate {
   contestantId: string;
@@ -76,6 +90,35 @@ export function planRecheckUpdates(
     });
   }
 
+  return updates;
+}
+
+/** 끝난 대회의 칸을 가른다 — 재생 판정·⚠️ 배지는 마감 전 대회에만 쓴다. */
+export function splitByDeadline(
+  contestants: ContestantEmbedLike[],
+  endedTournamentIds: ReadonlySet<string>,
+): { open: ContestantEmbedLike[]; ended: ContestantEmbedLike[] } {
+  return {
+    open: contestants.filter((c) => !endedTournamentIds.has(c.tournamentId)),
+    ended: contestants.filter((c) => endedTournamentIds.has(c.tournamentId)),
+  };
+}
+
+/**
+ * 내려감 표시가 바뀐 칸만 고른다. 판정이 없는 칸은 건드리지 않는다(planRecheckUpdates 와 같은 까닭).
+ */
+export function planGoneUpdates(
+  contestants: ContestantEmbedLike[],
+  verdicts: LinkVerdict[],
+): GoneUpdate[] {
+  const byId = new Map(verdicts.map((v) => [v.videoId, v]));
+  const updates: GoneUpdate[] = [];
+  for (const c of contestants) {
+    const verdict = byId.get(c.videoId);
+    if (!verdict) continue;
+    const gone = verdict.reasons.some((r) => GONE_REASONS.includes(r));
+    if (gone !== (c.storedGone === true)) updates.push({ contestantId: c.id, gone });
+  }
   return updates;
 }
 

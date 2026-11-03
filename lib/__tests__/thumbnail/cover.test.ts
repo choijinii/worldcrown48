@@ -127,3 +127,13 @@ describe("probePoster — 관리자 화면의 그림 깨짐 확인(㉣)", () => 
     expect(await probePoster(SRC, async () => ({ loadedWidth: 120 }))).toBe("broken");
   });
 });
+
+describe("내려간 영상 — 대표 매치에 쓰지 않는다 (YT-FIX-1)", () => {
+  it("gone 표시가 있으면 쓸 수 없는 칸이다", () => {
+    const { entry } = coverEntry(
+      { id: "c1", order: 1, media: { embed: { videoId: "9bZkp7q19f0", gone: true } } },
+      new Set(),
+    );
+    expect(entry.usable).toBe(false);
+  });
+});

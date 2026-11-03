@@ -18,7 +18,7 @@ import { resolveThumbnailPair, type PairEntry, type ThumbnailPair } from "./pair
 export interface CoverContestant {
   id: string;
   order: number;
-  media?: { embed?: { videoId?: string; orientation?: EmbedOrientation } };
+  media?: { embed?: { videoId?: string; orientation?: EmbedOrientation; gone?: boolean } };
 }
 
 /** VSThumb 한 칸(`VSThumbSide`)과 같은 모양. */
@@ -45,7 +45,7 @@ export function coverEntry(
   const videoId = embed?.videoId ?? "";
   const orientation: EmbedOrientation = embed?.orientation === "portrait" ? "portrait" : "landscape";
   return {
-    entry: { id: c.id, order: c.order, orientation, usable: isValidVideoId(videoId) && !broken.has(c.id) },
+    entry: { id: c.id, order: c.order, orientation, usable: isValidVideoId(videoId) && !embed?.gone && !broken.has(c.id) },
     videoId,
   };
 }
