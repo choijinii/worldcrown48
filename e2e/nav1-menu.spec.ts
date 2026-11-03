@@ -389,9 +389,10 @@ async function measureDrawerHead(page: Page) {
 const GEOMETRY = {
   // 대표 눈검사 2026-10-13: 메뉴바를 창 위에 붙이고(위 0) 높이 58 / 42. 가로 위치는 그대로(GNB.jsx).
   // 세로 = 테두리 1 + (안쪽 높이 − 부품) ÷ 2 → 데스크톱 ☰ y7 · 왕관 y16 / 휴대폰 ☰ y1 · 왕관 y11.
-  desktop: { burger: [10, 7, 44], crown: [55, 16, 26], word: 91, font: "15px", barH: 58 },
+  // D-76(2026-11-03): 로고+로고타입 +10px 오른쪽 — 왕관 55→65 · 워드마크 91→101 / 휴대폰 53→63 · 81→91.
+  desktop: { burger: [10, 7, 44], crown: [65, 16, 26], word: 101, font: "15px", barH: 58 },
   // 휴대폰 좌우 여백 12 → 0(대표 결정 2026-10-13) — 데스크톱처럼 창 가득: ☰ x = 테두리 1 + 안쪽 4.
-  mobile: { burger: [5, 1, 40], crown: [53, 11, 20], word: 81, font: "13px", barH: 42 },
+  mobile: { burger: [5, 1, 40], crown: [63, 11, 20], word: 91, font: "13px", barH: 42 },
 } as const;
 
 for (const [name, vp, kind] of [
