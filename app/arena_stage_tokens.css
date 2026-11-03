@@ -54,6 +54,7 @@
   --arena-band-right-bg: rgba(215,6,58,.22); /* @kind color */
   --arena-band-right-border: 1px solid rgba(215,6,58,.65); /* @kind other */
   --arena-band-blur: blur(8px); /* @kind other */
+  --arena-name-confirm-shadow: 0 0 0 1px rgba(252,208,6,.55), 0 18px 48px rgba(252,208,6,.32); /* 확정 이름 버튼 둘레 빛 · D-76 @kind shadow */
   --arena-band-name-size: 24px;               /* 700, -0.01em @kind spacing */
   --arena-band-meta-size: 11px;               /* JetBrains Mono 600 .14em, #EAEAF2 @kind spacing */
   --arena-band-desc: #DDDDEA;                 /* 13px @kind color */

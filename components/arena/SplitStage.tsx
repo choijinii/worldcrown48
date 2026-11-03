@@ -34,11 +34,12 @@ import {
   fullscreenAction,
   nextRequestedThisLandscape,
 } from "@/lib/arena/fullscreenGate";
+import { stageBoxSize } from "@/lib/arena/stageLayout";
 import { useStageViewport } from "@/lib/arena/useStageViewport";
 import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
 import { ArenaIntroModal } from "./ArenaIntroModal";
-import { StageSide } from "./StageSide";
+import { StageBox, StageNameButton } from "./StageSide";
 import styles from "./stage.module.css";
 
 interface SplitStageProps {
@@ -49,7 +50,7 @@ interface SplitStageProps {
   /** 서버가 선택을 처리 중 (page.tsx 의 submitting). */
   loading: boolean;
   onVote: (contestantId: string) => void;
-  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  /** 선택이 실패했을 때 고른 버튼 아래 뜨는 한 줄 (기존 오류 키 문구). */
   errorNote?: string | null;
   /** 배너 기본 공지(비로그인)의 로그인 화면. */
   onSignIn?: () => void;
@@ -145,11 +146,14 @@ export function SplitStage({
 
   // 확정 → 520ms 확정 연출 → 선택 전송. reduced-motion 이면 대기 시간도 없다 (R5).
   // 연출의 단계·시각은 lib/arena/confirmTimeline (디자인 10~14 · 27).
-  const timeline = confirmTimeline({ baseScale: 1.2, reducedMotion: prefersReducedMotion() });
+  const timeline = confirmTimeline({ baseScale: 1, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
   const onVoteRef = useRef(onVote);
   onVoteRef.current = onVote;
   const pickedId = picked === "L" ? left.id : picked === "R" ? right.id : null;
+  // 실패하면 상태가 처음으로 돌아간다 — 오류 한 줄은 마지막으로 고른 버튼 아래에 남긴다.
+  const lastPick = useRef<StageSideKey | null>(null);
+  if (picked) lastPick.current = picked;
   const sendPick = useCallback(() => {
     if (!pickedId) return;
     dispatch({ type: "submit" });
@@ -171,24 +175,40 @@ export function SplitStage({
   const onLeave = useCallback((side: StageSideKey, pointer: StagePointer) => {
     if (canHover()) dispatch({ type: "leave", side, pointer });
   }, []);
+  const onTap = useCallback(
+    (side: StageSideKey) => {
+      if (!canHover()) dispatch({ type: "tap", side });
+    },
+    [],
+  );
   const onPress = useCallback(
-    (side: StageSideKey, pointer: StagePointer) => {
+    (side: StageSideKey) => {
       if (loading) return;
-      dispatch({ type: "press", side, pointer });
+      dispatch({ type: "press", side });
     },
     [loading],
   );
 
-  const sideProps = (side: StageSideKey) => ({
+  const box = (side: StageSideKey) =>
+    layout ? stageBoxSize(layout, armed === side, armed !== null) : null;
+  const boxProps = (side: StageSideKey) => ({
     side,
+    size: box(side),
     armed: armed === side,
-    dimmed: armed !== null && armed !== side,
+    dimmed: picked !== null ? picked !== side : armed !== null && armed !== side,
+    onEnter,
+    onLeave,
+    onTap,
+  });
+  const nameProps = (side: StageSideKey) => ({
+    side,
+    // 데스크톱은 버튼 폭이 상자 폭을 따라간다(시안). 휴대폰은 두 버튼이 나란히 같은 폭이다.
+    width: mode === "desktop" ? box(side)?.w : undefined,
+    focused: armed === side,
+    dimmed: picked !== null ? picked !== side : armed !== null && armed !== side,
     confirmed: picked === side,
-    rings: timeline.rings.count,
-    // 대기·실패 표시는 **고른 칸 안**에만 (디자인 11·12).
     waiting: picked === side && loading,
-    errorNote: picked === side || armed === side ? errorNote : null,
-    lost: picked !== null && picked !== side,
+    errorNote: lastPick.current === side ? errorNote : null,
     locked,
     onEnter,
     onLeave,
@@ -197,8 +217,10 @@ export function SplitStage({
 
   const stageVars = layout
     ? ({
-        "--stage-cell": `${layout.cell}px`,
         "--stage-frame-w": `${layout.frameW}px`,
+        "--stage-row-h": `${layout.rowH}px`,
+        "--stage-slot-h": `${layout.slotH}px`,
+        "--stage-vs-left": `${mode === "desktop" ? (box("L")?.w ?? 0) : 0}px`,
       } as React.CSSProperties)
     : undefined;
 
@@ -215,30 +237,32 @@ export function SplitStage({
       {mode === "landscape" ? <style>{HIDE_MENU_IN_LANDSCAPE}</style> : null}
       {/* 첫 입장 안내 — 기기당 1회, 닫기 전에는 선택할 수 없다(D-13 · 디자인 24~26). */}
       <ArenaIntroModal mode={mode} />
-      {/* ② 안내 문구 층 — 대회 제목·설명만. 게스트 안내 한 줄은 2026-09-20 대표 결정으로
-          매치 화면에서 뺐다(원장 "RUN-1 게스트 안내 · 바뀜"). 소진 안내·카드 저장 안내는 그대로.
-          모바일 세로·가로는 디자인 아트보드 6·9대로 이 층이 없다. */}
-      {mode === "desktop" ? (
-        <header className={styles.guide} data-stage-layer="guide">
-          <div className={styles.eyebrow}>The Arena</div>
-          <h1 className={styles.title}>{title}</h1>
-          {description ? <p className={styles.desc}>{description}</p> : null}
-        </header>
-      ) : null}
+      {/* ② 안내 문구 층 — 대회 제목·설명 (시안: 휴대폰 세로·가로도 무대 위에 둔다).
+          게스트 안내 한 줄은 2026-09-20 대표 결정으로 매치 화면에서 뺐다. */}
+      <header className={styles.guide} data-stage-layer="guide">
+        <div className={styles.eyebrow}>The Arena</div>
+        <h1 className={styles.title}>{title}</h1>
+        {description ? <p className={styles.desc}>{description}</p> : null}
+      </header>
 
-      <div
-        ref={frameRef}
-        className={styles.frame}
-        data-stage-layer="frame"
-        aria-busy={loading || picked !== null}
-      >
-        <div className={styles.cells}>
-          <StageSide contestant={left} {...sideProps("L")} />
-          <StageSide contestant={right} {...sideProps("R")} />
-          <div className={styles.vs} aria-hidden="true">
-            VS
+      <div ref={frameRef} className={styles.slot}>
+        <div
+          className={styles.frame}
+          data-stage-layer="frame"
+          aria-busy={loading || picked !== null}
+        >
+          <div className={styles.boxes}>
+            <StageBox contestant={left} {...boxProps("L")} />
+            <StageBox contestant={right} {...boxProps("R")} />
           </div>
-          {mode === "landscape" ? <div className={styles.pill}>{title}</div> : null}
+          {/* VS 는 두 이름 버튼 사이 — 재생 화면과 절대 겹치지 않는다 (D-76). */}
+          <div className={styles.names}>
+            <StageNameButton contestant={left} {...nameProps("L")} />
+            <StageNameButton contestant={right} {...nameProps("R")} />
+            <div className={styles.vs} aria-hidden="true">
+              VS
+            </div>
+          </div>
         </div>
       </div>
 
@@ -253,12 +277,6 @@ export function SplitStage({
         </button>
       ) : null}
 
-      {mode === "portrait" ? (
-        <p className={styles.rotateHint} data-testid="stage-rotate-hint">
-          {t("arena.stage.rotateHint")}
-        </p>
-      ) : null}
-
       {/* 배너 자리 = 구글 광고 표준 크기 (원장 D-21 바뀜 2026-09-21):
           자리 폭대로 970×90 · 728×90 · 320×100(D-74) · 모바일 가로 없음(집중 모드 · D-17 ③). */}
       {bannerVariant(mode) ? (
@@ -269,6 +287,12 @@ export function SplitStage({
             variant={bannerVariant(mode) ?? undefined}
           />
         </div>
+      ) : null}
+
+      {mode === "portrait" ? (
+        <p className={styles.rotateHint} data-testid="stage-rotate-hint">
+          {t("arena.stage.rotateHint")}
+        </p>
       ) : null}
     </section>
   );

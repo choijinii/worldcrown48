@@ -1,18 +1,15 @@
 /**
- * StageSide — VS 스플릿 무대의 칸 하나 (ARENA-1 PR 1 · 원장 D-11 · D-12 · D-15).
+ * 매치 무대의 칸 — 영상 상자(StageBox)와 이름 버튼(StageNameButton) (YT-FIX-1 · 원장 D-76).
  *
- * 칸 = 정사각 창문. 안에 세 겹:
- *   ① 정지 포스터 <img> (object-fit: cover + object-position — lib/media/stageCrop)
- *   ② arm 된 쪽만 LoopPlayer (동시 1개 R3 · 자동재생 금지 R4 · pointer-events:none)
- *      재생이 실제로 시작되면 0.25초 크로스페이드로 포스터를 덮는다 (D-15 ②)
- *   ③ 덮개(세로 그늘 · 확정 순간 골드 빛) + 띠(이름 · 국적 · 소속)
+ * 보기와 고르기를 다른 자리로 나눈다. 플레이어 안 클릭은 유튜브만 받고 IFrame API 는 클릭 신호를
+ * 주지 않으므로, 클릭을 가로채지 않는 "영상 눌러 선택"은 불가능하다(정책 III.I.4 · III.I.21).
  *
- * 칸 전체가 버튼이다 — 선택 버튼은 따로 없다 (D-11 조작 ④). 출처 칩 "▶ YouTube"(R4 임베드
- * 파사드 법리)는 링크라 버튼 안에 둘 수 없어 버튼의 형제로 둔다. 누른 도구(마우스/터치/키보드)를
- * 상태 머신에 넘기면 데스크톱은 한 번에, 모바일은 두 번째 탭에 확정된다 (D-17).
+ *   · StageBox — 16:9 상자. 플레이어를 자르지 않고, 위에 아무것도 겹치지 않고, 버튼 안에 넣지 않는다.
+ *     포스터는 재생이 시작되면 0.25초 동안 사라진 뒤 DOM 에서 걷어 낸다. 플레이어에는 opacity ·
+ *     filter · transform 을 걸지 않는다.
+ *   · StageNameButton — 칸 아래 이름 · 국적 · 소속. 한 번 누르면 확정. "확인 중"·실패 한 줄은 버튼 아래.
  *
- * 무대에 올리지 않는 것 (R2 · D-11 금지 4종): 라운드 라벨 · 득표율 · 마감 타이머 · 고지문.
- * 이 컴포넌트는 그런 값을 props 로 받지도 않는다.
+ * 선택 엔진(onVote · voteStore · roundProgress)은 모른다. 데이터 층 호출 없음 (R1 · R6).
  */
 "use client";
 
@@ -22,8 +19,8 @@ import { contestantAffiliation } from "@/lib/types/tournament";
 import { displayRegion } from "@/lib/i18n/regionName";
 import { useT } from "@/lib/i18n/useT";
 import { localizedName } from "@/lib/contestantName";
-import { posterCrop, posterSources, resolveStageMedia } from "@/lib/media/stageCrop";
-import { buildWatchUrl } from "@/lib/embed/loopRange";
+import { posterSources, resolveStageMedia } from "@/lib/media/stageCrop";
+import type { StageBox as StageBoxSize } from "@/lib/arena/stageLayout";
 import type { StagePointer, StageSideKey } from "@/lib/arena/stageState";
 import { LoopPlayer } from "@/components/embed/LoopPlayer";
 import styles from "./stage.module.css";
@@ -32,29 +29,6 @@ type SideContestant = Pick<
   Contestant,
   "id" | "name" | "nameI18n" | "nationality" | "affiliation" | "position" | "media"
 >;
-
-interface StageSideProps {
-  contestant: SideContestant;
-  side: StageSideKey;
-  /** 커진 칸(호버·1탭) — 이 칸만 재생한다. */
-  armed: boolean;
-  /** 옆칸이 커져 있다 — 채도만 낮춘다. */
-  dimmed: boolean;
-  /** 이 칸이 선택 확정됐다. */
-  confirmed: boolean;
-  /** 확정 순간의 금색 고리 두 겹 (reduced-motion 이면 끈다 · 디자인 10 · 27). */
-  rings?: number;
-  /** 서버 응답을 기다리는 중 — 고른 칸 안 오른쪽 위 작은 표시 (디자인 11). */
-  waiting?: boolean;
-  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
-  errorNote?: string | null;
-  /** 옆칸이 선택 확정됐다 — 어둡게. */
-  lost: boolean;
-  locked: boolean;
-  onEnter: (side: StageSideKey, pointer: StagePointer) => void;
-  onLeave: (side: StageSideKey, pointer: StagePointer) => void;
-  onPress: (side: StageSideKey, pointer: StagePointer) => void;
-}
 
 /**
  * 포스터는 이 화면의 LCP 다 — 글꼴보다 먼저 받게 한다.
@@ -67,8 +41,7 @@ interface StageSideProps {
 const HIGH_PRIORITY = { fetchPriority: "high" } as unknown as Record<string, string>;
 
 /**
- * 칸의 시험용 이름표. 매치는 왼쪽·오른쪽 둘, 결승은 가운데(M)가 하나 더 있다(D-06).
- * PR 1·2a E2E 가 vote-left / vote-right 를 쓰므로 그 이름은 그대로 둔다.
+ * 이름 버튼의 시험용 이름표. 매치는 왼쪽·오른쪽 둘, 결승은 가운데(M)가 하나 더 있다(D-06).
  */
 const SIDE_TESTID: Record<StageSideKey, string> = {
   L: "vote-left",
@@ -79,32 +52,43 @@ const SIDE_TESTID: Record<StageSideKey, string> = {
 /** 유튜브가 "그런 썸네일 없음" 대신 돌려주는 회색 자리표시 그림의 폭. */
 const YT_PLACEHOLDER_WIDTH = 120;
 
+/** 포스터가 사라지는 시간 — CSS `.poster` transition 과 같은 값. */
+const POSTER_FADE_MS = 250;
+
 function asPointer(type: string | undefined): StagePointer {
   return type === "touch" || type === "pen" ? type : "mouse";
 }
 
-export function StageSide({
+interface StageBoxProps {
+  contestant: SideContestant;
+  side: StageSideKey;
+  size: StageBoxSize | null;
+  /** 이 칸이 재생된다 — 포커스·확정. */
+  armed: boolean;
+  /** 옆칸이 커져 있거나 확정됐다 — 채도만 낮춘다. 재생 중인 칸에는 걸리지 않는다. */
+  dimmed: boolean;
+  onEnter: (side: StageSideKey, pointer: StagePointer) => void;
+  onLeave: (side: StageSideKey, pointer: StagePointer) => void;
+  onTap: (side: StageSideKey) => void;
+}
+
+export function StageBox({
   contestant,
   side,
+  size,
   armed,
   dimmed,
-  confirmed,
-  rings = 0,
-  waiting = false,
-  errorNote = null,
-  lost,
-  locked,
   onEnter,
   onLeave,
-  onPress,
-}: StageSideProps): JSX.Element {
-  const { t, lang } = useT();
+  onTap,
+}: StageBoxProps): JSX.Element {
+  const { lang } = useT();
   const media = resolveStageMedia(contestant.media);
   const sources = media ? posterSources(media.videoId, media.orientation) : [];
   const [sourceIndex, setSourceIndex] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
+  const [posterGone, setPosterGone] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
-  const pointerRef = useRef<StagePointer>("mouse");
 
   // 다음 매치로 넘어가 참가자가 바뀌면 포스터·재생 상태를 새로 시작한다.
   useEffect(() => {
@@ -112,56 +96,63 @@ export function StageSide({
     setVideoFailed(false);
   }, [contestant.id]);
 
-  // 재생기가 내려가면 다음 arm 때 다시 크로스페이드한다.
   const playing = armed && Boolean(media) && !videoFailed;
   useEffect(() => {
-    if (!playing) setVideoReady(false);
+    if (!playing) {
+      setVideoReady(false);
+      setPosterGone(false);
+    }
   }, [playing]);
 
-  const meta = [displayRegion(contestant.nationality, lang), contestantAffiliation(contestant)]
-    .filter(Boolean)
-    .join(" · ");
+  // 재생이 시작되면 포스터가 사라지고, 다 사라지면 DOM 에서 걷어 낸다 — 플레이어 위에 아무것도 남지 않는다.
+  useEffect(() => {
+    if (!videoReady) return;
+    const timer = setTimeout(() => setPosterGone(true), POSTER_FADE_MS);
+    return () => clearTimeout(timer);
+  }, [videoReady]);
+
   const posterSrc = sources[sourceIndex];
-  // 화면 언어의 이름 — 비면 en → 한글 (NAME-I18N-1 · D-61).
   const name = localizedName(contestant, lang);
   const initial = name.charAt(0).toUpperCase() || "?";
 
   return (
     <div
-      className={styles.cell}
+      className={styles.box}
       data-side={side}
-      data-armed={armed}
       data-dimmed={dimmed}
-      data-confirmed={confirmed}
-      data-lost={lost}
+      data-testid={`stage-box-${side}`}
+      style={size ? { width: size.w, height: size.h } : undefined}
       onPointerEnter={(e) => onEnter(side, asPointer(e.pointerType))}
       onPointerLeave={(e) => onLeave(side, asPointer(e.pointerType))}
+      onClick={() => onTap(side)}
     >
-      <button
-        type="button"
-        className={styles.hit}
-        data-testid={SIDE_TESTID[side]}
-        aria-pressed={armed}
-        aria-disabled={locked}
-        onPointerDown={(e) => {
-          pointerRef.current = asPointer(e.pointerType);
-        }}
-        onClick={(e) => {
-          // 키보드(Enter·Space)로 눌린 click 은 detail 이 0 이다 — 터치처럼 두 단계로.
-          const pointer: StagePointer = e.detail === 0 ? "keyboard" : pointerRef.current;
-          pointerRef.current = "mouse";
-          onPress(side, pointer);
-        }}
-      >
-        <span className={styles.media}>
+      {playing && media ? (
+        <div className={styles.video} data-testid="stage-player">
+          <LoopPlayer
+            fill
+            showSourceChip={false}
+            videoId={media.videoId}
+            startSec={media.startSec}
+            endSec={media.endSec}
+            title={name}
+            onPlaying={() => setVideoReady(true)}
+            onError={() => setVideoFailed(true)}
+          />
+        </div>
+      ) : null}
+      {posterGone ? null : (
+        <div
+          className={styles.poster}
+          data-portrait={media?.orientation === "portrait"}
+          data-ready={videoReady}
+          data-testid="stage-poster"
+        >
           {posterSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              className={styles.poster}
               src={posterSrc}
               alt=""
               {...HIGH_PRIORITY}
-              style={posterCrop(media!.orientation, media!.focusY)}
               onError={() => setSourceIndex((i) => i + 1)}
               onLoad={(e) => {
                 // 없는 해상도를 요청하면 404 대신 120×90 회색 그림이 올 때가 있다.
@@ -178,66 +169,82 @@ export function StageSide({
               {initial}
             </span>
           )}
-          {playing && media ? (
-            <span className={styles.video} data-ready={videoReady} data-testid="stage-player">
-              <LoopPlayer
-                fill
-                showSourceChip={false}
-                videoId={media.videoId}
-                startSec={media.startSec}
-                endSec={media.endSec}
-                orientation={media.orientation}
-                focusY={media.focusY}
-                title={name}
-                onPlaying={() => setVideoReady(true)}
-                onError={() => setVideoFailed(true)}
-              />
-            </span>
-          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface StageNameButtonProps {
+  contestant: SideContestant;
+  side: StageSideKey;
+  /** 시안: 데스크톱은 버튼 폭이 상자 폭을 따라간다. 휴대폰은 칸마다 같다(undefined). */
+  width?: number;
+  focused: boolean;
+  dimmed: boolean;
+  confirmed: boolean;
+  /** 서버 응답을 기다리는 중 — 버튼 아래 작은 표시. */
+  waiting?: boolean;
+  /** 선택이 실패했을 때 버튼 아래 뜨는 한 줄 (기존 오류 키 문구). */
+  errorNote?: string | null;
+  locked: boolean;
+  onEnter: (side: StageSideKey, pointer: StagePointer) => void;
+  onLeave: (side: StageSideKey, pointer: StagePointer) => void;
+  onPress: (side: StageSideKey) => void;
+}
+
+export function StageNameButton({
+  contestant,
+  side,
+  width,
+  focused,
+  dimmed,
+  confirmed,
+  waiting = false,
+  errorNote = null,
+  locked,
+  onEnter,
+  onLeave,
+  onPress,
+}: StageNameButtonProps): JSX.Element {
+  const { t, lang } = useT();
+  const meta = [displayRegion(contestant.nationality, lang), contestantAffiliation(contestant)]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className={styles.nameCell} style={width ? { width } : undefined}>
+      <button
+        type="button"
+        className={styles.nameButton}
+        data-side={side}
+        data-focused={focused}
+        data-dimmed={dimmed}
+        data-confirmed={confirmed}
+        data-testid={SIDE_TESTID[side]}
+        aria-disabled={locked}
+        // 키보드로 온 팬도 무엇이 재생되는지 먼저 본다 — 영상 상자는 초점을 받지 않는다.
+        onFocus={(e) => {
+          if (e.currentTarget.matches(":focus-visible")) onEnter(side, "mouse");
+        }}
+        onBlur={() => onLeave(side, "mouse")}
+        onClick={() => onPress(side)}
+      >
+        <span className={styles.bandName} data-testid="stage-name">
+          {localizedName(contestant, lang)}
         </span>
-
-        <span className={styles.shade} aria-hidden="true" />
-        {confirmed ? <span className={styles.glow} aria-hidden="true" /> : null}
-        {/* 확정 순간 금색 고리 — 크라운 표식은 넣지 않는다(D-28). */}
-        {confirmed && rings > 0
-          ? Array.from({ length: rings }, (_, i) => (
-              <span
-                key={i}
-                className={styles.ring}
-                data-ring={i === 0 ? "a" : "b"}
-                data-testid="confirm-ring"
-                aria-hidden="true"
-              />
-            ))
-          : null}
-
-        {waiting ? (
-          <span className={styles.waiting} data-testid="confirm-waiting">
-            {t("arena.confirm.waiting")}
-          </span>
-        ) : null}
-        {errorNote ? (
-          <span className={styles.errorNote} data-testid="confirm-error" role="status">
-            {errorNote}
-          </span>
-        ) : null}
-
-        <span className={styles.band} data-side={side}>
-          <span className={styles.bandName} data-testid="stage-name">{name}</span>
-          {meta ? <span className={styles.bandMeta}>{meta}</span> : null}
-        </span>
+        {meta ? <span className={styles.bandMeta}>{meta}</span> : null}
       </button>
-
-      {playing && media ? (
-        <a
-          className={styles.sourceChip}
-          href={buildWatchUrl(media.videoId, media.startSec)}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="stage-source"
-        >
-          ▶ YouTube
-        </a>
+      {waiting ? (
+        <span className={styles.waiting} data-testid="confirm-waiting">
+          <span className={styles.spinner} aria-hidden="true" />
+          {t("arena.confirm.waiting")}
+        </span>
+      ) : null}
+      {errorNote ? (
+        <span className={styles.errorNote} data-testid="confirm-error" role="status">
+          {errorNote}
+        </span>
       ) : null}
     </div>
   );
