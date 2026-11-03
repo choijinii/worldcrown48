@@ -94,6 +94,8 @@ export function LoopPlayer({
 
         const player = new YT.Player(hostRef.current, {
           videoId,
+          // 개인정보처리방침의 약속 — 개인정보 보호 강화 모드로 재생한다.
+          host: "https://www.youtube-nocookie.com",
           playerVars: buildPlayerVars(rangeRef.current),
           events: {
             onReady: (e) => {
