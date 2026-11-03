@@ -1,18 +1,16 @@
 /**
- * VS 스플릿 무대 (ARENA-1 PR 1) — 원장 D-08 · D-11 · D-17 · 디자인 시스템 v4.2 §3.
- * 실측 원본: docs/design/claude-design/Arena_Match_Stage_v1A_9boards_2026-09-19.dc.html
- *            (아트보드 1 데스크톱 · 6 모바일 세로 · 9 모바일 가로)
+ * 매치 무대 (YT-FIX-1) — 원장 D-76 · 시안 docs/design/claude-design/bundle_ytfix1_v5_2026-11-01.
  *
- * 색·크기·움직임은 전부 var(--arena-*) / var(--color-*) (app/arena_stage_tokens.css ·
- * app/globals.css). 칸 한 변(--stage-cell)은 기기별 숫자가 아니라 useStageViewport 가
- * "주어진 자리의 짧은 쪽" 규칙(lib/arena/stageLayout)으로 계산해 넣는다 (D-17).
+ * 영상 상자에는 아무것도 겹치지 않는다. VS · 이름 · 대기 · 오류는 전부 상자 아래다.
+ * 상자는 16:9 이고 크기는 lib/arena/stageLayout 이 계산해 인라인으로 넣는다.
+ * 색·크기는 var(--arena-*) / var(--color-*) (app/arena_stage_tokens.css · app/globals.css).
  */
 
 /* ── 화면 (4층: 메뉴 → 안내 문구 → 무대 → 배너) ─────────────────────── */
 .page {
-  /* 측정 전 첫 그림 — 데스크톱 규칙과 같은 식. 측정되면 인라인 값이 덮는다. */
-  --stage-cell: min(var(--arena-cell), calc((100vw - 160px) / 2));
-  --stage-frame-w: calc(var(--stage-cell) * 2 + var(--arena-frame-pad) * 2);
+  /* 측정 전 첫 그림. 측정되면 인라인 값이 덮는다. */
+  --stage-frame-w: min(1320px, calc(100vw - 120px));
+  --stage-t: 300ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
 
   box-sizing: border-box;
   display: flex;
@@ -31,10 +29,9 @@
   background: var(--arena-page-bg-mobile);
 }
 
-/* 첫 측정 전에는 그리지 않는다(자리만 잡는다). 칸 크기는 무대 윗변을 재야 정해지는데,
-   재기 전 임시 크기로 먼저 그리면 곧바로 튀어 CLS 가 된다(2026-09-19 Lighthouse 0.348 실측).
-   visibility 는 배치에서 빠지지 않아 측정은 그대로 된다. */
-.page:not([data-stage-ready="true"]) .frame,
+/* 첫 측정 전에는 그리지 않는다(자리만 잡는다). 재기 전 임시 크기로 먼저 그리면 곧바로 튀어
+   CLS 가 된다(2026-09-19 Lighthouse 0.348 실측). visibility 는 배치에서 빠지지 않아 측정은 된다. */
+.page:not([data-stage-ready="true"]) .slot,
 .page:not([data-stage-ready="true"]) .rotateHint,
 .page:not([data-stage-ready="true"]) .bannerRow {
   visibility: hidden;
@@ -43,14 +40,26 @@
 /* ── ② 안내 문구 층 ─────────────────────────────────────────────── */
 .guide {
   width: min(1100px, 100%);
-  padding-top: 10px;
-  margin-bottom: 20px;
+  padding-top: 36px;
+  margin-bottom: 17px;
   text-align: center;
 }
 
+/* 시안: 메뉴 아래 "선택 이어가기" 알약 자리를 비운다 — 제목 위쪽 96 · 무대 위쪽 216. */
 .page[data-stage-mode="portrait"] .guide {
-  padding-top: 0;
-  margin-bottom: 10px;
+  padding-top: 54px;
+  margin-bottom: 29px;
+}
+
+/* 결승은 세 칸이 첫 화면을 다 쓴다 — 시안: 제목 위쪽 56 · 무대 위쪽 150. */
+.final.page[data-stage-mode="portrait"] .guide {
+  padding-top: 14px;
+  margin-bottom: 25px;
+}
+
+.page[data-stage-mode="landscape"] .guide {
+  padding-top: 6px;
+  margin-bottom: 4px;
 }
 
 .eyebrow {
@@ -79,196 +88,158 @@
   color: var(--color-text-sub);
 }
 
-/* ── ③ 무대 프레임 ──────────────────────────────────────────────── */
+.page[data-stage-mode="portrait"] .eyebrow {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.page[data-stage-mode="portrait"] .title {
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.page[data-stage-mode="portrait"] .desc {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.page[data-stage-mode="portrait"] .title,
+.page[data-stage-mode="portrait"] .desc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.page[data-stage-mode="landscape"] .eyebrow {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.page[data-stage-mode="landscape"] .title {
+  margin-top: 1px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page[data-stage-mode="landscape"] .desc {
+  margin-top: 1px;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── ③ 무대 ─────────────────────────────────────────────────────── */
+/* 자리 = 프레임이 가장 커졌을 때 높이. 프레임은 아래에 붙어 **위로만** 자란다 (D-76). */
+.slot {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  width: var(--stage-frame-w);
+  max-width: 100%;
+  height: var(--stage-slot-h, auto);
+}
+
 .frame {
   position: relative;
-  box-sizing: content-box;
+  box-sizing: border-box;
+  width: var(--stage-frame-w);
+  max-width: 100%;
   padding: var(--arena-frame-pad);
   background: var(--arena-frame-bg);
-  /* 테두리가 자리를 먹지 않게 안쪽 outline — 1320 = 칸 640×2 + 패딩 20×2 그대로 */
-  outline: var(--arena-frame-border);
-  outline-offset: -1px;
+  border: var(--arena-frame-border);
 }
 
 .page[data-stage-mode="portrait"] .frame {
   padding: 0;
-  background: none;
-  outline: none;
-  border: var(--arena-frame-border);
 }
 
 .page[data-stage-mode="landscape"] .frame {
-  margin-top: 12px;
   padding: 0;
   background: none;
-  outline: none;
+  border: 0;
 }
 
-.cells {
-  position: relative;
+.boxes {
   display: flex;
   flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.page[data-stage-mode="portrait"] .cells {
+.page[data-stage-mode="portrait"] .boxes {
   flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--stage-row-h);
 }
 
-/* ── 칸 ─────────────────────────────────────────────────────────── */
-.cell {
-  /* 확대 배율 — 매치 1.2(D-11) · 결승 1.3(D-29). 화면이 덮어쓴다. */
-  --stage-scale: var(--arena-hover-scale);
+.page[data-stage-mode="landscape"] .boxes {
+  gap: 42px; /* 시안 값 — lib/arena/stageLayout LANDSCAPE_GAP */
+  height: var(--stage-row-h);
+}
+
+.final.page[data-stage-mode="landscape"] .boxes {
+  gap: 0;
+}
+
+/* ── 영상 상자 ──────────────────────────────────────────────────── */
+.box {
   position: relative;
-  z-index: 1;
   flex: none;
-  width: var(--stage-cell);
-  height: var(--stage-cell);
-  transform: scale(1);
-  /* 빠질 때 — 바운스 없음 */
+  overflow: hidden;
+  background: var(--arena-cell-bg);
+  cursor: pointer;
   transition:
-    transform var(--arena-t-out) var(--arena-ease-out),
-    filter var(--arena-t-out) var(--arena-ease-out);
+    width var(--stage-t),
+    height var(--stage-t),
+    filter var(--stage-t);
 }
 
-/* 커지는 방향 = 옆칸 쪽(안쪽). 바깥 여백은 그대로 (D-11 조작 ①). */
-.cell[data-side="L"] {
-  transform-origin: left center;
-}
-.cell[data-side="R"] {
-  transform-origin: right center;
-}
-.page[data-stage-mode="portrait"] .cell[data-side="L"] {
-  transform-origin: center top;
-}
-.page[data-stage-mode="portrait"] .cell[data-side="R"] {
-  transform-origin: center bottom;
-}
-
-/* 들어갈 때 — 끝에서 살짝 넘쳤다 돌아온다. 확대·줌인·채도가 한 몸으로 (D-11 움직임). */
-.cell[data-armed="true"],
-.cell[data-confirmed="true"] {
-  z-index: 4;
-  transform: scale(var(--stage-scale));
-  transition:
-    transform var(--arena-t-in-transform) var(--arena-ease-in),
-    filter var(--arena-t-in-filter) var(--arena-ease-in);
-}
-
-.cell[data-confirmed="true"] {
-  z-index: 7;
-}
-
-/* 옆칸은 크기 그대로 채도만 50% (기본은 양쪽 100%). */
-.cell[data-dimmed="true"] {
+/* 옆칸은 채도만 50%. 재생 중인 칸에는 걸리지 않는다 — 플레이어에 filter 금지(D-76). */
+.box[data-dimmed="true"] {
   filter: saturate(var(--arena-side-desat));
 }
 
-/* 옆칸이 확정되면 어둡게. */
-.cell[data-lost="true"] {
-  filter: saturate(var(--arena-side-desat)) brightness(var(--arena-confirm-side-brightness));
-}
-
-/* ── 선택 확정 연출 (디자인 10~14 · lib/arena/confirmTimeline) ──────────────
-   0→180ms 크기 스냅(기준 → 기준+0.035 → 기준) · 0→300ms 금색 고리 두 겹.
-   크기·투명도만 움직인다(R5). 크라운 표식은 넣지 않는다(D-28). */
-@keyframes confirmSnap {
-  0% {
-    transform: scale(var(--stage-scale));
-  }
-  50% {
-    transform: scale(calc(var(--stage-scale) + var(--arena-confirm-snap-delta)));
-  }
-  100% {
-    transform: scale(var(--stage-scale));
-  }
-}
-
-.cell[data-confirmed="true"] {
-  animation: confirmSnap var(--arena-confirm-snap-ms) ease-out 1;
-}
-
-.ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 6;
-  border: 2px solid var(--arena-confirm-ring-color);
-  border-radius: 999px;
-  pointer-events: none;
-  animation: confirmRing var(--arena-confirm-ring-ms) ease-out 1 forwards;
-}
-
-.ring[data-ring="a"] {
-  width: var(--arena-confirm-ring-a);
-  aspect-ratio: 1 / 1;
-}
-
-.ring[data-ring="b"] {
-  width: var(--arena-confirm-ring-b);
-  aspect-ratio: 1 / 1;
-}
-
-@keyframes confirmRing {
-  from {
-    transform: translate(-50%, -50%) scale(var(--arena-confirm-ring-from));
-    opacity: 0.9;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(var(--arena-confirm-ring-to));
-    opacity: 0;
-  }
-}
-
-.hit {
+.video {
   position: absolute;
   inset: 0;
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border: var(--arena-cell-border);
-  background: var(--arena-cell-bg);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.hit:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: -2px;
-}
-
-.cell[data-confirmed="true"] .hit {
-  border: var(--arena-cell-confirm-border);
-  box-shadow: var(--arena-cell-confirm-shadow);
-}
-
-/* 포스터 + 영상 — 같은 상자라 함께 줌인한다 (칸 확대와 별개 효과 · D-11 조작 ②). */
-.media {
-  position: absolute;
-  inset: 0;
-  transform: scale(1);
-  transform-origin: center;
-  transition: transform var(--arena-t-out) var(--arena-ease-out);
-}
-
-.cell[data-armed="true"] .media,
-.cell[data-confirmed="true"] .media {
-  transform: scale(var(--arena-poster-zoom));
-  transition: transform var(--arena-t-in-transform) var(--arena-ease-in);
-}
-
+/* 재생이 시작되면 0.25초 동안 사라진 뒤 DOM 에서 빠진다 (StageSide). 플레이어는 불투명 그대로. */
 .poster {
   position: absolute;
   inset: 0;
+  box-sizing: border-box;
+  background: var(--arena-cell-bg);
+  opacity: 1;
+  transition: opacity 250ms ease;
+  pointer-events: none;
+}
+
+.poster[data-ready="true"] {
+  opacity: 0;
+}
+
+/* 세로 영상 — 같은 16:9 상자 안에 양옆 검은 띠 (시안 안쪽 여백 22%). */
+.poster[data-portrait="true"] {
+  padding: 0 22%;
+  background: var(--arena-frame-bg);
+}
+
+.poster img {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
 .initial {
@@ -280,178 +251,120 @@
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 900;
-  font-size: calc(var(--stage-cell) * 0.36);
+  font-size: 96px;
   color: var(--color-text);
   opacity: 0.13;
 }
 
-/* 포스터 → 영상 크로스페이드 0.25초 (D-15 ②). 재생이 실제로 시작돼야 덮는다. */
-.video {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 250ms ease;
+/* ── 이름 버튼 ──────────────────────────────────────────────────── */
+.names {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 
-.video[data-ready="true"] {
-  opacity: 1;
+.page[data-stage-mode="portrait"] .names {
+  gap: 12px;
+  margin-top: 0;
+  padding: 12px 6px;
 }
 
-.shade,
-.glow {
-  position: absolute;
-  inset: 0;
+.page[data-stage-mode="landscape"] .names {
+  gap: 12px;
+  margin-top: 10px;
 }
 
-.shade {
-  background: var(--arena-cell-shade);
-  /* 방패 — iframe 의 pointer-events:none 만으로는 Chrome 이 커서를 유튜브 창까지 흘려보내
-     재생 중에 유튜브 자체 UI(가운데 일시정지 버튼·제목 줄)가 떠 있었다(2026-09-19 실측).
-     영상 위를 덮는 이 겹이 커서를 받는다 — 버튼 안이라 클릭은 그대로 선택이 된다. */
-  pointer-events: auto;
-}
-
-.glow {
-  background: var(--arena-cell-glow);
-  pointer-events: none;
-}
-
-/* ── 결승 3분할 (디자인 19~23 · D-29) ───────────────────────────────
-   같은 프레임을 셋으로 나눈다. 확대는 1.3배, 가운데 칸은 가운데 기준으로 커진다.
-   띠는 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (같은 투명도). */
-/* 프레임은 매치와 같은 크기를 유지하고(1320×680 · 732×366), 세 칸을 가운데 둔다. */
-.final .frame {
+.nameCell {
+  position: relative;
+  flex: none;
   box-sizing: border-box;
-  width: var(--stage-frame-w);
-  height: var(--stage-frame-h);
+  padding: 0 6px;
+  transition: width var(--stage-t);
 }
 
-.final .cells {
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
+.page[data-stage-mode="portrait"] .nameCell,
+.page[data-stage-mode="landscape"] .nameCell {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
 }
 
-.final .cell {
-  --stage-scale: var(--arena-final-hover-scale);
-  --arena-confirm-ring-a: 59%;
-  --arena-confirm-ring-b: 87%;
-}
-
-.final .cell[data-side="M"] {
-  transform-origin: center center;
-}
-
-.final .band[data-side="M"] {
-  flex-direction: row;
-  justify-content: center;
-  text-align: center;
-  background: var(--arena-band-mid-bg);
-  border: var(--arena-band-mid-border);
-}
-
-/* 모바일 세로에서는 안내 문구 층을 얇게 — 부제를 숨기고(컴포넌트) 두 줄을 줄여
-   무대를 디자인 값(칸 232)만큼 키운다 (2026-09-23 대표 판정 ③). 문구 값은 그대로. */
-.page[data-stage-mode="portrait"].final .guide {
-  padding-top: 0;
-  margin-bottom: 0;
-}
-
-.page[data-stage-mode="portrait"].final .eyebrow {
-  font-size: 18px;
-  line-height: 18px;
-}
-
-.page[data-stage-mode="portrait"].final .title {
-  margin-top: 2px;
-  font-size: 18px;
-}
-
-/* 결승 맨 아래 한 줄 — 매치 무대의 배너 자리 위. */
-.finalFoot {
-  margin: 18px 0 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-/* reduced-motion 에서 자동 넘김을 대신하는 버튼 (아트보드 18 · 27). */
-.advanceButton {
-  margin-top: 18px;
-  padding: 12px 28px;
-  border: 0;
-  border-radius: 2px;
-  background: var(--color-gold);
-  color: var(--arena-continue-text);
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.advanceButton:hover {
-  background: var(--color-gold-hover);
-}
-
-/* 서버 응답 대기 — 고른 칸 **안** 오른쪽 위에만. 화면 전체를 덮지 않는다(디자인 11). */
-.waiting {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 8;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--arena-ink) 72%, transparent);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  pointer-events: none;
-}
-
-/* 선택 실패 — 고른 칸 안 크림슨 한 줄 (디자인 12). 문구는 기존 오류 키 그대로. */
-.errorNote {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 12px;
-  z-index: 8;
-  padding: 6px 10px;
-  background: color-mix(in srgb, var(--color-crimson) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-crimson) 65%, transparent);
-  color: var(--color-text);
-  font-size: 12px;
-  line-height: 1.4;
-  text-align: center;
-  pointer-events: none;
-}
-
-/* ── 띠 (이름 · 국적 · 소속) — 칸 안쪽 오버랩 ──────────────────────── */
-.band {
-  position: absolute;
-  left: var(--arena-band-inset);
-  right: var(--arena-band-inset);
-  bottom: var(--arena-band-inset);
+.nameButton {
   display: flex;
   flex-direction: row;
   align-items: baseline;
   gap: 14px;
   box-sizing: border-box;
-  padding: var(--arena-band-pad);
-  background: var(--arena-band-left-bg);
+  width: 100%;
+  height: 72px;
+  padding: 12px 16px;
   border: var(--arena-band-left-border);
+  border-radius: 0;
+  background: var(--arena-band-left-bg);
   backdrop-filter: var(--arena-band-blur);
   -webkit-backdrop-filter: var(--arena-band-blur);
-  pointer-events: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.band[data-side="R"] {
+.nameButton[data-side="R"] {
   flex-direction: row-reverse;
-  background: var(--arena-band-right-bg);
   border: var(--arena-band-right-border);
+  background: var(--arena-band-right-bg);
+  text-align: right;
+}
+
+.nameButton[data-side="M"] {
+  justify-content: center;
+  border: var(--arena-band-mid-border);
+  background: var(--arena-band-mid-bg);
+  text-align: center;
+}
+
+.nameButton:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.nameButton[data-focused="true"][data-side="L"] {
+  border-color: var(--color-turquoise);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-turquoise) 45%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-turquoise) 25%, transparent);
+}
+
+.nameButton[data-focused="true"][data-side="R"] {
+  border-color: var(--color-crimson);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-crimson) 45%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-crimson) 25%, transparent);
+}
+
+.nameButton[data-focused="true"][data-side="M"] {
+  border-color: var(--color-gold);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 45%, transparent),
+    0 12px 32px color-mix(in srgb, var(--color-gold) 25%, transparent);
+}
+
+.nameButton[data-dimmed="true"] {
+  opacity: 0.6;
+}
+
+/* 확정 — 버튼이 금색, 빛은 버튼 둘레 (D-76 · 칸 테두리 고리 없음). */
+.nameButton[data-confirmed="true"] {
+  border: 2px solid var(--color-gold);
+  background: var(--color-gold);
+  box-shadow: var(--arena-name-confirm-shadow);
+  color: var(--arena-continue-text);
+}
+
+.nameButton[data-confirmed="true"] .bandMeta {
+  color: var(--arena-continue-text);
 }
 
 .bandName {
@@ -473,65 +386,50 @@
   white-space: nowrap;
 }
 
-.page[data-stage-mode="portrait"] .band,
-.page[data-stage-mode="landscape"] .band {
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 9px 12px;
+/* 휴대폰 — 이름 위 · 국적·소속 아래, 가운데. */
+.page[data-stage-mode="portrait"] .nameButton,
+.page[data-stage-mode="landscape"] .nameButton {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 64px;
+  padding: 6px 10px;
+  text-align: center;
 }
 
-.page[data-stage-mode="portrait"] .band {
-  /* 상하 배치는 좌우 거울이 아니다 — 디자인 아트보드 6 은 둘 다 row */
-  flex-direction: row;
+.page[data-stage-mode="landscape"] .nameButton {
+  height: 56px;
 }
 
 .page[data-stage-mode="portrait"] .bandName,
 .page[data-stage-mode="landscape"] .bandName {
+  max-width: 100%;
   font-size: 17px;
 }
 
 .page[data-stage-mode="portrait"] .bandMeta,
 .page[data-stage-mode="landscape"] .bandMeta {
-  font-size: 10px;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
   letter-spacing: 0.12em;
+  text-overflow: ellipsis;
 }
 
-/* 출처 칩 (R4 임베드 파사드 법리) — 원본으로 나가는 유일한 통로. */
-.sourceChip {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 5;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--arena-ink) 70%, transparent);
-  color: var(--color-text-sub);
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.5;
-  text-decoration: none;
-}
-
-.sourceChip:hover,
-.sourceChip:focus-visible {
-  color: var(--color-text);
-}
-
-/* ── VS — 맞닿는 선 정중앙 고정. 칸이 요동쳐도 흔들리지 않는다 (D-11). ── */
+/* VS — 두 이름 버튼 사이 정중앙. 재생 화면과는 절대 겹치지 않는다 (D-76). */
 .vs {
   position: absolute;
-  left: 50%;
+  left: var(--stage-vs-left, 50%);
   top: 50%;
   z-index: 9;
   transform: translate(-50%, -50%);
+  transition: left var(--stage-t);
   pointer-events: none;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 700;
-  font-size: var(--arena-vs-size);
+  font-size: 80px;
   line-height: 1;
   color: var(--arena-vs-color);
   text-shadow: var(--arena-vs-shadow);
@@ -539,28 +437,158 @@
 
 .page[data-stage-mode="portrait"] .vs,
 .page[data-stage-mode="landscape"] .vs {
-  font-size: 58px;
+  left: 50%;
+  font-size: 44px;
   text-shadow: var(--arena-vs-shadow-mobile);
 }
 
-/* 모바일 가로 — 메뉴·안내 문구 층이 없어 대회 제목을 무대 위 알약 하나로 (아트보드 9). */
-.pill {
+/* 서버 응답 대기 — 고른 버튼 아래 작은 칩. */
+.waiting {
   position: absolute;
-  left: 50%;
-  top: 14px;
-  z-index: 9;
-  max-width: 80%;
-  overflow: hidden;
-  transform: translateX(-50%);
-  padding: 5px 12px;
-  background: color-mix(in srgb, var(--arena-ink) 66%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  left: 6px;
+  top: calc(100% + 6px);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--arena-ink) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 50%, transparent);
+  color: var(--color-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.spinner {
+  display: block;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--color-gold) 28%, transparent);
+  border-top-color: var(--color-gold);
+  border-radius: 999px;
+  animation: stageSpin 900ms linear infinite;
+}
+
+@keyframes stageSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 선택 실패 — 고른 버튼 아래 크림슨 한 줄. 문구는 기존 오류 키 그대로. */
+.errorNote {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: calc(100% + 6px);
+  z-index: 8;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--color-crimson) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-crimson) 70%, transparent);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ── 결승 세 칸 (D-29 · D-76) ───────────────────────────────────── */
+.final .nameButton {
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  padding: 10px 14px;
+}
+
+.final .nameButton[data-side="L"] {
+  align-items: flex-start;
+}
+
+.final .nameButton[data-side="R"] {
+  align-items: flex-end;
+}
+
+.final .nameButton[data-side="M"] {
+  align-items: center;
+}
+
+.final .bandName {
+  font-size: 22px;
+}
+
+.final .bandMeta {
+  font-size: 10px;
+}
+
+.final.page[data-stage-mode="landscape"] .names {
+  gap: 0;
+}
+
+.final.page[data-stage-mode="landscape"] .nameCell {
+  flex: none;
+  padding: 0 4px;
+}
+
+.final.page[data-stage-mode="landscape"] .nameButton,
+.final.page[data-stage-mode="portrait"] .nameButton {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.final.page[data-stage-mode="landscape"] .bandName,
+.final.page[data-stage-mode="portrait"] .bandName {
+  font-size: 15px;
+}
+
+.final.page[data-stage-mode="portrait"] .nameButton {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+.finalStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.finalStack .nameCell {
+  flex: none !important;
+  width: 100%;
+  padding: 4px 6px !important;
+}
+
+.finalFoot {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-text-sub);
+  text-align: center;
+}
+
+.page[data-stage-mode="portrait"] .finalFoot {
+  margin: 8px 0;
   font-size: 11px;
-  color: var(--arena-icon);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  pointer-events: none;
+}
+
+/* reduced-motion 에서 자동 넘김을 대신하는 버튼 (아트보드 18 · 27). */
+.advanceButton {
+  margin-top: 18px;
+  padding: 12px 28px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-gold);
+  color: var(--arena-continue-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.advanceButton:hover {
+  background: var(--color-gold-hover);
 }
 
 /* 모바일 세로에서만 (D-17 ②). */
@@ -573,39 +601,33 @@
   color: var(--color-text-sub);
 }
 
-/* ── ④ 배너 자리 — 첫 화면 밖(스크롤) ─────────────────────────────── */
-/* ④ 배너 자리 — 구글 광고 표준 크기(D-74). 무대 프레임 아래 가운데 정렬. */
+/* ── ④ 배너 자리 — 첫 화면 안 (D-76) ─────────────────────────────── */
+/* 구글 광고 표준 크기(D-74). 무대 프레임 아래 가운데 정렬. */
 .bannerRow {
   display: flex;
   justify-content: center;
   width: var(--stage-frame-w);
   max-width: 100%;
-  margin-top: 60px;
+  /* --banner-push: 버튼 아래 한 줄이 떠 있는 동안만 SplitStage 가 넣는다(D-76 · 겹침 0). */
+  margin-top: calc(22px + var(--banner-push, 0px));
 }
 
 /* 크기(970×90 · 728×90 · 320×100)는 공용 BannerSlot 이 자리 폭으로 고른다(원장 D-74).
-   모바일 세로는 무대 폭(366)이라 320×100. 모바일 가로는 배너 없음 (D-21 바뀜 09-21). */
+   모바일 가로는 배너 없음 · 결승 모바일 세로도 없음 (D-76). */
 .page[data-stage-mode="portrait"] .bannerRow {
-  margin-top: 16px;
+  margin-top: calc(12px + var(--banner-push, 0px));
 }
 
 /* R5 — 모션 제거 (대기 시간은 SplitStage 가 0 으로). */
 @media (prefers-reduced-motion: reduce) {
-  /* 아트보드 27 — 확대 스냅 없음 · 고리 확장 없음 · 즉시. */
-  .cell[data-confirmed="true"] {
-    animation: none;
-  }
-  .ring {
-    display: none;
-  }
-
-  .cell,
-  .cell[data-armed="true"],
-  .cell[data-confirmed="true"],
-  .media,
-  .cell[data-armed="true"] .media,
-  .cell[data-confirmed="true"] .media,
-  .video {
+  .box,
+  .nameCell,
+  .nameButton,
+  .vs,
+  .poster {
     transition: none;
+  }
+  .spinner {
+    animation: none;
   }
 }

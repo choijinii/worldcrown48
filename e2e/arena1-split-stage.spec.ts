@@ -315,20 +315,18 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.describe("데스크톱 1440", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test("① 스플릿 렌더 — 칸 정사각 두 개 맞붙음(틈 0), 프레임 = 칸×2 + 패딩 20, VS 정중앙, 탭 줄 없음", async ({ page }) => {
+    test("① 무대 — 16:9 두 칸 맞붙음(틈 0) · 이름 버튼 칸 아래 · VS · 탭 줄 없음", async ({ page }) => {
       await openStage(page);
+      await page.mouse.move(5, 5);
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "desktop");
       const frame = await box(page, '[data-stage-layer="frame"]');
-      const left = await box(page, '[data-testid="vote-left"]');
-      const right = await box(page, '[data-testid="vote-right"]');
-      // D-17 규칙: 한 변 = min(가로 자리 (1440-120-40)/2=640, 세로 자리 900-프레임위-40), 상한 640.
-      // 프레임 윗변은 글꼴 렌더에 따라 몇 px 달라진다(CI 리눅스 222 · 로컬 195) — 숫자가 아니라
-      // 규칙을 검산한다. 디자인 값 그대로(1320×680·640)는 아래 "충분히 높은 화면" 테스트가 본다.
-      const expected = Math.min(640, Math.floor(900 - frame.y - 40));
-      expect([left.w, left.h, right.w, right.h]).toEqual([expected, expected, expected, expected]);
-      expect(frame.w).toBe(expected * 2 + 40);
-      expect(frame.h).toBe(expected + 40);
+      const left = await box(page, '[data-testid="stage-box-L"]');
+      const right = await box(page, '[data-testid="stage-box-R"]');
+      // 숫자를 박지 않는다 — 글꼴 렌더에 따라 무대 윗변이 달라져 상자가 줄 수 있다(CI 리눅스).
+      expect(left.w).toBe(right.w);
+      expect(left.w / left.h).toBeCloseTo(16 / 9, 1);
       expect(right.x - (left.x + left.w)).toBe(0); // 틈 0
+      expect(frame.x).toBeGreaterThanOrEqual(60);
       // D-08 네 층 — 아레나 탭 줄(ModuleNav)은 매치 화면에 없다 (대표 판정 2026-09-19).
       await expect(page.getByTestId("module-nav")).toHaveCount(0);
       await expect(stage(page).getByText("VS", { exact: true })).toBeVisible();
@@ -343,7 +341,6 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       expect(text).not.toMatch(/ENDS IN|DEADLINE|\d{1,2}:\d{2}/i); // 마감 타이머
       expect(text).not.toMatch(/No Vote Rate|VOTE 3\/5|No Round|ENDS-IN/i); // vs-foot
       await expect(page.locator('[class*="vsFoot"]')).toHaveCount(0);
-      // 선택 버튼 없음 — 칸 자체가 선택 (D-11 조작 ④)
       await expect(stage(page).getByText(/VOTE LEFT|VOTE RIGHT/)).toHaveCount(0);
     });
 
@@ -353,38 +350,80 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.waitForTimeout(1500);
       await expect(stage(page).locator("iframe")).toHaveCount(0); // R4 자동재생 금지
       await expect(page.getByTestId("stage-player")).toHaveCount(0);
-      await page.hover('[data-testid="vote-left"]');
+      await page.hover('[data-testid="stage-box-L"]');
       // 재생기는 호버한 쪽에만 붙는다. (유튜브 API 로드 성공 여부는 외부 사정이라 iframe 은 ≤1 로만 본다)
       await expect(page.getByTestId("stage-player")).toHaveCount(1);
       await page.waitForTimeout(3000);
       expect(await stage(page).locator("iframe").count()).toBeLessThanOrEqual(1);
-      await page.hover('[data-testid="vote-right"]', { position: { x: 560, y: 320 } });
+      await page.hover('[data-testid="stage-box-R"]');
       await page.waitForTimeout(1500);
       // arm 이 오른쪽으로 옮겨가고, 왼쪽 재생기는 내려간다 — 동시 재생 ≤ 1 (R3).
       // 오른쪽 재생기가 떠 있는지는 단언하지 않는다: 유튜브가 CI 의 데이터센터 IP 에 재생 오류를
       // 돌려주면 StageSide 는 설계대로 재생기를 내리고 포스터로 산다(2026-09-19 CI 실측).
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusR");
-      await expect(page.getByTestId("vote-left").locator('[data-testid="stage-player"]')).toHaveCount(0);
+      await expect(page.getByTestId("stage-box-L").locator('[data-testid="stage-player"]')).toHaveCount(0);
       expect(await page.getByTestId("stage-player").count()).toBeLessThanOrEqual(1);
       expect(await stage(page).locator("iframe").count()).toBeLessThanOrEqual(1);
     });
 
-    test("⑥ 세로 숏츠 — 원본 비율 포스터(oar2) · 위 40% 크롭 · 검은 띠 없음", async ({ page }) => {
+    test("⑥ 세로 숏츠 — 원본 비율 포스터(oar2) · 같은 16:9 상자 · 양옆 검은 띠", async ({ page }) => {
       await openStage(page);
-      const poster = page.getByTestId("vote-left").locator("img").first();
+      const side = page.getByTestId("stage-box-L");
+      const poster = side.locator("img").first();
       await expect(poster).toHaveAttribute("src", new RegExp(`/vi/${PORTRAIT_VIDEO}/(oar2|hqdefault)\\.jpg`));
-      expect(await poster.evaluate((el) => getComputedStyle(el).objectPosition)).toBe("50% 40%");
-      expect(await poster.evaluate((el) => getComputedStyle(el).objectFit)).toBe("cover");
-      await page.getByTestId("vote-left").screenshot({ path: "playwright-report/arena1-portrait-short.png" });
-      // 호버 → iframe 은 영상과 같은 9:16 비율 상자 (정사각 창문 안)
-      await page.hover('[data-testid="vote-left"]');
-      const crop = page.getByTestId("vote-left").locator('[class*="LoopPlayer_crop"]');
-      await expect(crop).toHaveCount(1, { timeout: 5_000 });
-      const ratio = await crop.evaluate((el) => el.getBoundingClientRect().height / el.getBoundingClientRect().width);
-      expect(ratio).toBeCloseTo(16 / 9, 1);
+      const b = await box(page, '[data-testid="stage-box-L"]');
+      expect(b.w / b.h).toBeCloseTo(16 / 9, 1);
+      expect(await page.getByTestId("stage-poster").first().evaluate((el) => getComputedStyle(el).paddingLeft)).not.toBe("0px");
+      await side.screenshot({ path: "playwright-report/arena1-portrait-short.png" });
     });
 
-    test("마우스 클릭 = 곧바로 확정 → 다음 매치 (선택 엔진 그대로)", async ({ page }) => {
+    test("정책 — 플레이어는 버튼 밖 · 위에 겹침 없음 · 막는 속성 없음 (III.I.4 · III.I.6 · III.I.21)", async ({ page }) => {
+      await openStage(page);
+      await page.hover('[data-testid="stage-box-L"]');
+      const iframe = page.locator('[data-testid="stage-player"] iframe');
+      await expect(iframe).toHaveCount(1, { timeout: 15_000 });
+      const report = await iframe.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const chain: Element[] = [];
+        for (let n: Element | null = el; n; n = n.parentElement) chain.push(n);
+        const blocked = chain.filter((n) => {
+          const c = getComputedStyle(n);
+          return c.pointerEvents === "none" || c.opacity !== "1" || c.filter !== "none" || c.transform !== "none";
+        });
+        return {
+          w: r.width,
+          h: r.height,
+          inButton: chain.some((n) => n.tagName === "BUTTON"),
+          top: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === el,
+          blocked: blocked.map((n) => n.tagName),
+          src: (el as HTMLIFrameElement).src,
+        };
+      });
+      expect(report.inButton).toBe(false);
+      expect(report.top).toBe(true);
+      expect(report.blocked).toEqual([]);
+      expect(report.w).toBeGreaterThanOrEqual(200);
+      expect(report.h).toBeGreaterThanOrEqual(200);
+      expect(report.src).not.toMatch(/controls=0|disablekb=1|fs=0|modestbranding=1/);
+    });
+
+    test("이름 버튼·VS 는 상자와 겹치지 않는다 · 포커스해도 아래 선 고정", async ({ page }) => {
+      await openStage(page);
+      await page.mouse.move(5, 5);
+      const before = await box(page, '[data-testid="vote-left"]');
+      const beforeBox = await box(page, '[data-testid="stage-box-L"]');
+      expect(beforeBox.y + beforeBox.h).toBeLessThanOrEqual(before.y);
+      await page.hover('[data-testid="stage-box-L"]');
+      await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
+      await page.waitForTimeout(500);
+      const after = await box(page, '[data-testid="vote-left"]');
+      const afterBox = await box(page, '[data-testid="stage-box-L"]');
+      expect(after.y).toBe(before.y);
+      expect(afterBox.y + afterBox.h).toBe(beforeBox.y + beforeBox.h);
+      expect(afterBox.h).toBeGreaterThan(beforeBox.h);
+    });
+
+    test("이름 버튼 한 번 = 곧바로 확정 → 다음 매치 (선택 엔진 그대로)", async ({ page }) => {
       await openStage(page);
       const [m0Left] = seededRound1Ids();
       await expect(page.getByTestId("vote-left")).toContainText(nameOf(m0Left));
@@ -393,13 +432,14 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
     });
 
-    test("화면이 충분히 높으면 디자인 값 그대로 — 프레임 1320×680 · 좌우 여백 60 · 칸 640", async ({ page }) => {
+    test("화면이 충분히 높으면 시안 값 그대로 — 프레임 1320 · 좌우 여백 60 · 칸 640×360", async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 1100 });
       await openStage(page);
+      await page.mouse.move(5, 5);
       const frame = await box(page, '[data-stage-layer="frame"]');
-      expect([frame.x, frame.w, frame.h]).toEqual([60, 1320, 680]);
-      const left = await box(page, '[data-testid="vote-left"]');
-      expect([left.w, left.h]).toEqual([640, 640]);
+      expect([frame.x, frame.w]).toEqual([60, 1320]);
+      const left = await box(page, '[data-testid="stage-box-L"]');
+      expect([left.w, left.h]).toEqual([640, 360]);
     });
 
     for (const lang of ["ko", "en", "es"] as const) {
@@ -429,12 +469,12 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.describe("모바일 (터치)", () => {
     test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-    test("① 세로 390×844 — 상하 2분할 · 칸 정사각 · 가로 안내 한 줄", async ({ page }) => {
+    test("① 세로 390×844 — 상하 2칸 320×180 · 가로 안내 한 줄", async ({ page }) => {
       await openStage(page);
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "portrait");
-      const left = await box(page, '[data-testid="vote-left"]');
-      const right = await box(page, '[data-testid="vote-right"]');
-      expect(left.w).toBe(left.h);
+      const left = await box(page, '[data-testid="stage-box-L"]');
+      const right = await box(page, '[data-testid="stage-box-R"]');
+      expect([left.w, left.h]).toEqual([320, 180]);
       expect(right.y - (left.y + left.h)).toBe(0); // 위아래로 맞붙음
       expect(left.x).toBe(right.x);
       await expect(page.getByTestId("stage-rotate-hint")).toHaveText("가로로 돌리면 무대가 더 크게 열립니다");
@@ -446,7 +486,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await page.screenshot({ path: "playwright-report/arena1-portrait-390.png", fullPage: true });
     });
 
-    test("④⑤ 1탭 arm · 2탭 확정 · 회전해도 진행 유지 · 가로는 메뉴 없음", async ({ page }) => {
+    test("④⑤ 상자 탭 = 재생 · 이름 버튼 한 번 = 확정 · 회전해도 진행 유지 · 가로는 메뉴 없음", async ({ page }) => {
       // 이 테스트가 보는 것은 탭 규칙과 회전이다. 스파이를 심어 **진짜** 전체화면을 막는다 —
       // PR 2a 이후 가로에서 탭하면 실제로 전체화면에 들어가고, 그 상태의 창은 크기를 바꿀 수
       // 없어 아래 setViewportSize 가 거부된다(2026-09-21 CI 실측). 전체화면 동작 자체는
@@ -455,14 +495,18 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await openStage(page);
       const [m0Left] = seededRound1Ids();
 
-      // 1탭 — 확대·재생만. 선택은 나가지 않는다.
-      await page.getByTestId("vote-left").tap();
+      // 상자 탭 — 재생 칸 364×205. 선택은 나가지 않는다.
+      await page.getByTestId("stage-box-L").tap();
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
       await page.waitForTimeout(1500);
       expect(await votesFor()).toBe(0);
       await expect(page.getByTestId("vote-left")).toContainText(nameOf(m0Left));
 
-      // 2탭 — 확정 → 다음 매치.
+      const played = await box(page, '[data-testid="stage-box-L"]');
+      expect(played.w).toBeGreaterThanOrEqual(200);
+      expect(played.h).toBeGreaterThanOrEqual(200);
+
+      // 이름 버튼 한 번 — 확정 → 다음 매치.
       await page.getByTestId("vote-left").tap();
       await expect(page.getByTestId("vote-left")).not.toContainText(nameOf(m0Left), { timeout: 15_000 });
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(1);
@@ -478,20 +522,65 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(page.getByTestId("module-nav")).toHaveCount(0);
       expect(await page.evaluate(() => (window as unknown as { __stageMarker?: number }).__stageMarker)).toBe(1);
       expect((await page.getByTestId("vote-left").innerText()).trim()).toBe(m1Left);
-      const l = await box(page, '[data-testid="vote-left"]');
-      const r = await box(page, '[data-testid="vote-right"]');
-      expect(l.w).toBe(l.h);
-      expect(r.x - (l.x + l.w)).toBe(0); // 좌우 50:50
+      // 상자 크기는 0.3초 전환으로 바뀐다 — 끝난 값을 본다.
+      await expect
+        .poll(async () => {
+          const l = await box(page, '[data-testid="stage-box-L"]');
+          return [l.w, l.h];
+        })
+        .toEqual([330, 186]);
       await page.screenshot({ path: "playwright-report/arena1-landscape-844.png" });
 
-      // 가로에서도 같은 탭 규칙 — 확정하면 선택이 이어서 쌓인다(판이 처음으로 돌아가지 않는다).
-      await page.getByTestId("vote-left").tap();
+      // 가로에서도 같은 규칙 — 확정하면 선택이 이어서 쌓인다(판이 처음으로 돌아가지 않는다).
       await page.getByTestId("vote-left").tap();
       await expect.poll(votesFor, { timeout: 15_000 }).toBe(2);
 
       // 세로로 되돌리면 메뉴가 돌아온다 — 나가는 길.
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(page.locator("header.wc-nav")).toBeVisible();
+    });
+
+    test("세로 — 확인 중 · 실패 한 줄은 버튼 아래, 배너와 겹침 0 (D-76)", async ({ page }) => {
+      // 선택을 서버에 보내지 않는다 — onVote 를 붙잡았다가 실패로 돌려준다(쓰기 0).
+      let release: () => void = () => {};
+      const held = new Promise<void>((r) => (release = r));
+      await page.route("**/onVote*", async (route) => {
+        await held;
+        await route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: { status: "INTERNAL", message: "e2e" } }),
+        });
+      });
+      await openStage(page);
+      const bannerTop0 = (await box(page, '[data-testid="banner-slot"]')).y;
+      const noOverlap = async (testid: string) => {
+        const note = await page.getByTestId(testid).boundingBox();
+        const banner = await page.getByTestId("banner-slot").boundingBox();
+        if (!note || !banner) throw new Error(`no box ${testid}`);
+        const btn = await page.getByTestId("vote-left").boundingBox();
+        expect(note.y, `${testid} 은 버튼 아래`).toBeGreaterThanOrEqual((btn?.y ?? 0) + (btn?.height ?? 0));
+        return banner.y - (note.y + note.height);
+      };
+
+      await page.getByTestId("vote-left").tap();
+      await expect(page.getByTestId("confirm-waiting")).toBeVisible({ timeout: 10_000 });
+      await expect.poll(() => noOverlap("confirm-waiting")).toBeGreaterThanOrEqual(0);
+      await page.screenshot({ path: "playwright-report/arena1-portrait-wait.png" });
+
+      release();
+      await expect(page.getByTestId("confirm-error")).toBeVisible({ timeout: 10_000 });
+      await expect.poll(() => noOverlap("confirm-error")).toBeGreaterThanOrEqual(0);
+      await page.screenshot({ path: "playwright-report/arena1-portrait-error.png" });
+      expect(await votesFor()).toBe(0);
+
+      // 다음에 고르면 줄이 사라지고 배너는 제자리로.
+      await page.unroute("**/onVote*");
+      await page.getByTestId("vote-left").tap();
+      await expect(page.getByTestId("confirm-error")).toHaveCount(0, { timeout: 15_000 });
+      await expect.poll(async () => (await box(page, '[data-testid="banner-slot"]')).y).toBe(bannerTop0);
+      // 일부러 돌려준 500 응답이 남기는 브라우저 로그는 앱 오류가 아니다.
+      consoleErrors = consoleErrors.filter((t) => !/500|onVote|Internal/i.test(t));
     });
 
     // ── PR 2a — 모바일 가로 첫 탭 전체화면 (원장 "D-17 · 바뀜 2026-09-20") ──
@@ -502,13 +591,13 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await expect(stage(page)).toHaveAttribute("data-stage-mode", "landscape");
       expect(await fsCalls(page)).toEqual([]); // 진입만으로는 요청하지 않는다(사용자 동작 필요)
 
-      // 첫 탭: 전체화면 1회 + 탭 규칙 그대로 arm (전체화면은 탭을 소비하지 않는다)
-      await page.getByTestId("vote-left").tap();
+      // 첫 탭: 전체화면 1회 + 그 칸 재생 (전체화면은 탭을 소비하지 않는다)
+      await page.getByTestId("stage-box-L").tap();
       expect(await fsCalls(page)).toEqual(["request"]);
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
       expect(await votesFor()).toBe(0);
 
-      // 두 번째 탭: 추가 요청 없음 + 선택 확정 (2탭 규칙 불변)
+      // 이름 버튼: 추가 요청 없음 + 선택 확정
       const [m0Left] = seededRound1Ids();
       await page.getByTestId("vote-left").tap();
       expect(await fsCalls(page)).toEqual(["request"]);
@@ -532,7 +621,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
     test("모바일 세로에서는 전체화면을 요청하지 않는다", async ({ page }) => {
       await installFullscreenSpy(page);
       await openStage(page);
-      await page.getByTestId("vote-left").tap();
+      await page.getByTestId("stage-box-L").tap();
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
       expect(await fsCalls(page)).toEqual([]);
     });
@@ -541,13 +630,10 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       await installFullscreenSpy(page, { supported: false });
       await page.setViewportSize({ width: 844, height: 390 });
       await openStage(page);
-      await page.getByTestId("vote-left").tap();
+      await page.getByTestId("stage-box-L").tap();
       await expect(stage(page)).toHaveAttribute("data-stage-status", "focusL");
       expect(await fsCalls(page)).toEqual([]);
-      // 칸은 남는 높이 안에 들어간다 (D-17 칸 규칙 — 기기별 숫자 하드코딩 없음)
-      const l = await box(page, '[data-testid="vote-left"]');
       const f = await box(page, '[data-stage-layer="frame"]');
-      expect(l.w).toBe(l.h);
       expect(f.y + f.h).toBeLessThanOrEqual(390);
     });
   });
@@ -567,12 +653,12 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
   test.describe("PR 2b · 확정 연출 · 결승 · 배너", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test("확정 연출 — 금색 고리 두 겹 · 크라운 0건 · 520ms 뒤 다음 매치", async ({ page }) => {
+    test("확정 연출 — 금색 이름 버튼 · 크라운 0건 · 520ms 뒤 다음 매치", async ({ page }) => {
       await openStage(page);
       const [m0Left] = seededRound1Ids();
       await page.getByTestId("vote-left").click();
-      // 고리는 확정 순간에만, 두 겹 (D-11 · 디자인 10)
-      await expect(page.getByTestId("confirm-ring")).toHaveCount(2);
+      // 확정 표시 = 이름 버튼 금색 (D-76)
+      await expect(page.getByTestId("vote-left")).toHaveAttribute("data-confirmed", "true");
       // 크라운 표식은 무대 어디에도 없다 (D-28)
       await expect(page.locator('[data-testid="split-stage"] [class*="crown" i]')).toHaveCount(0);
       await expect(page.locator('[data-testid="split-stage"] img[src*="crown" i]')).toHaveCount(0);
@@ -588,28 +674,22 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
       expect([b.w, b.h]).toEqual([970, 90]);
     });
 
-    test("결승 3분할 — 세 칸 정사각 · 띠 3색 · 크라운 0건 (D-06 · D-29 · D-28)", async ({ page }) => {
+    test("결승 — 세 칸 16:9 · 버튼 3색 · 크라운 0건 (D-06 · D-29 · D-28 · D-76)", async ({ page }) => {
       await seedRound1Votes(24);
       await seedLaterRounds(); // 2~4라운드까지 채워 결승만 남긴다
       // openStage 는 split-stage 를 기다린다 — 결승 화면에는 그것이 없다.
       await page.goto(`/arena/${TID}?lang=ko`);
       await dismissCookieBanner(page);
       await expect(page.getByTestId("final-stage")).toBeVisible({ timeout: 30_000 });
-      const l = await box(page, '[data-testid="vote-left"]');
-      const m = await box(page, '[data-testid="vote-mid"]');
-      const r = await box(page, '[data-testid="vote-right"]');
-      for (const c of [l, m, r]) expect(c.w).toBe(c.h); // 정사각
-      expect([m.x - (l.x + l.w), r.x - (m.x + m.w)]).toEqual([0, 0]); // 균등·틈 0
-      // 프레임은 매치와 같다. 숫자를 박지 않고 D-17 규칙으로 검산한다 —
-      // 무대 윗변은 글꼴 렌더에 따라 몇 px 달라진다(CI 리눅스 ≈222 · 로컬 195).
-      const frame = await box(page, '[data-stage-layer="frame"]');
-      const matchCell = Math.min(640, 900 - frame.y - 40);
-      expect(frame.w).toBe(matchCell * 2 + 40); // 매치와 같은 프레임(1440 기준 1320)
-      expect(l.w).toBe(Math.floor((matchCell * 2) / 3)); // 그 프레임을 셋으로
-      // 띠 3색 — 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (D-29)
+      const l = await box(page, '[data-testid="stage-box-L"]');
+      const m = await box(page, '[data-testid="stage-box-M"]');
+      const r = await box(page, '[data-testid="stage-box-R"]');
+      for (const c of [l, m, r]) expect(c.w / c.h).toBeCloseTo(16 / 9, 1);
+      expect([m.x - (l.x + l.w), r.x - (m.x + m.w)]).toEqual([0, 0]); // 맞붙음
+      // 버튼 3색 — 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson (D-29)
       const bands = await page.evaluate(() =>
         ["vote-left", "vote-mid", "vote-right"].map((id) => {
-          const el = document.querySelector(`[data-testid="${id}"] [class*="band"]`);
+          const el = document.querySelector(`[data-testid="${id}"]`);
           return el ? getComputedStyle(el).backgroundColor : "";
         }),
       );
@@ -677,7 +757,7 @@ test.describe("ARENA-1 VS 스플릿 무대", () => {
 
       await page.getByTestId("arena-intro-start").tap();
       await expect(intro).toHaveCount(0);
-      await page.getByTestId("vote-left").tap();
+      await page.getByTestId("stage-box-L").tap();
       await expect(page.getByTestId("split-stage")).toHaveAttribute("data-stage-status", "focusL");
 
       // 두 번째 방문 — 같은 기기라 다시 뜨지 않는다.

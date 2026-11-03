@@ -1,21 +1,20 @@
 /**
- * FinalStage — THE FINAL 3분할 무대 (ARENA-1 PR 2b · 디자인 정본 19~23 · 원장 D-06 · D-29 · D-28).
+ * FinalStage — THE FINAL 세 칸 무대 (ARENA-1 PR 2b · YT-FIX-1 · 원장 D-06 · D-29 · D-28 · D-76).
  *
- * 매치 무대(SplitStage)와 **같은 프레임을 셋으로 나눈다** — 결승이 매치와 한 가족으로 보이게
- * (D-29 의도). 칸 크기는 lib/arena/stageLayout 의 computeFinalLayout 이 규칙으로 계산한다.
+ * 16:9 상자 셋을 맞붙이고 각 상자 아래 이름 버튼을 둔다. 크기는 lib/arena/stageLayout.
  *
- *   · 호버(모바일 1탭) 확대 **1.3배** — 가장자리 칸은 가장자리 기준, 가운데 칸은 가운데 기준
- *   · 옆칸 채도 50% · 재생은 한 칸만(R3 · R4 자동재생 금지)
- *   · 클릭(모바일 2탭) = 확정 → 매치와 같은 확정 연출 → **바로 Crown Card** (D-24 대관 연출 폐기)
- *   · 이름 띠 3색: 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson, 같은 투명도 (D-29)
+ *   · 호버(휴대폰 탭) 확대 1.12배 · 옆칸 채도 50% · 재생은 한 칸만(R3 · R4 자동재생 금지)
+ *   · 이름 버튼 한 번 = 확정 → 금색 버튼 → **바로 Crown Card** (D-24 대관 연출 폐기)
+ *   · 버튼 3색: 왼쪽 Turquoise · 가운데 Crown Gold · 오른쪽 Crimson, 같은 투명도 (D-29)
  *   · **크라운 표식 없음** (D-28) · 라운드 라벨·득표율·타이머·고지문 없음 (R2)
+ *   · 휴대폰 세로는 세 칸으로 첫 화면이 다 차서 배너가 없다 (D-76)
  *
- * 문구는 PR 2a 에서 승인·적용된 `arena.final.*` 키를 그대로 쓴다. 선택 엔진은 모른다 —
+ * 문구는 `arena.final.*` 키를 그대로 쓴다. 선택 엔진은 모른다 —
  * 확정되면 기존 onPick(contestantId) 을 부를 뿐이다(R1).
  */
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { Fragment, useCallback, useEffect, useReducer, useRef } from "react";
 import type { Contestant } from "@/lib/types/tournament";
 import { useT } from "@/lib/i18n/useT";
 import { confirmTimeline } from "@/lib/arena/confirmTimeline";
@@ -25,6 +24,7 @@ import {
 } from "@/lib/arena/fullscreenGate";
 import {
   armedSide,
+  heldSide,
   initialStage,
   isStageLocked,
   pickedSide,
@@ -32,10 +32,11 @@ import {
   type StagePointer,
   type StageSideKey,
 } from "@/lib/arena/stageState";
+import { stageBoxSize } from "@/lib/arena/stageLayout";
 import { useStageViewport } from "@/lib/arena/useStageViewport";
 import { bannerVariant } from "@/lib/banner/bannerVariant";
 import { BannerSlot } from "@/components/layout/BannerSlot";
-import { StageSide } from "./StageSide";
+import { StageBox, StageNameButton } from "./StageSide";
 import styles from "./stage.module.css";
 
 interface FinalStageProps {
@@ -43,7 +44,7 @@ interface FinalStageProps {
   finalists: Contestant[];
   loading: boolean;
   onPick: (contestantId: string) => void;
-  /** 선택이 실패했을 때 고른 칸 안에 뜨는 한 줄 (디자인 12 · 기존 오류 키 문구). */
+  /** 선택이 실패했을 때 고른 버튼 아래 뜨는 한 줄 (기존 오류 키 문구). */
   errorNote?: string | null;
   onSignIn?: () => void;
 }
@@ -105,9 +106,8 @@ export function FinalStage({
     requestedRef.current = false;
   }, [mode]);
 
-  const timeline = confirmTimeline({ baseScale: 1.3, reducedMotion: prefersReducedMotion() });
+  const timeline = confirmTimeline({ baseScale: 1, reducedMotion: prefersReducedMotion() });
   const picked = pickedSide(status);
-  const armed = armedSide(status);
   const locked = isStageLocked(status) || loading;
 
   // 다음 화면(Crown Card)으로 넘어갔다가 돌아오는 경우를 위해 명단이 바뀌면 처음으로.
@@ -126,6 +126,11 @@ export function FinalStage({
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   const pickedId = picked ? (finalists[SIDES.indexOf(picked)]?.id ?? null) : null;
+  // 실패하면 상태가 처음으로 돌아간다 — 오류 한 줄은 마지막으로 고른 버튼 아래에 남긴다.
+  const lastPick = useRef<StageSideKey | null>(null);
+  if (picked) lastPick.current = picked;
+  const held = heldSide(status, lastPick.current);
+  const armed = armedSide(status) ?? held;
   const sendPick = useCallback(() => {
     if (!pickedId) return;
     dispatch({ type: "submit" });
@@ -145,21 +150,56 @@ export function FinalStage({
   const onLeave = useCallback((side: StageSideKey, pointer: StagePointer) => {
     if (canHover()) dispatch({ type: "leave", side, pointer });
   }, []);
+  const onTap = useCallback((side: StageSideKey) => dispatch({ type: "tap", side }), []);
   const onPress = useCallback(
-    (side: StageSideKey, pointer: StagePointer) => {
+    (side: StageSideKey) => {
       if (loading) return;
-      dispatch({ type: "press", side, pointer });
+      dispatch({ type: "press", side });
     },
     [loading],
   );
 
   const stageVars = layout
     ? ({
-        "--stage-cell": `${layout.cell}px`,
         "--stage-frame-w": `${layout.frameW}px`,
-        "--stage-frame-h": `${layout.frameH}px`,
+        "--stage-row-h": `${layout.rowH}px`,
+        "--stage-slot-h": `${layout.slotH}px`,
       } as React.CSSProperties)
     : undefined;
+
+  const box = (side: StageSideKey) =>
+    layout ? stageBoxSize(layout, armed === side, armed !== null) : null;
+  const dimmedOf = (side: StageSideKey) => armed !== null && armed !== side;
+  const boxOf = (c: Contestant, side: StageSideKey) => (
+    <StageBox
+      contestant={c}
+      side={side}
+      size={box(side)}
+      armed={armed === side}
+      dimmed={dimmedOf(side)}
+      onEnter={onEnter}
+      onLeave={onLeave}
+      onTap={onTap}
+    />
+  );
+  const nameOf = (c: Contestant, side: StageSideKey) => (
+    <StageNameButton
+      contestant={c}
+      side={side}
+      width={mode === "portrait" ? undefined : box(side)?.w}
+      focused={armed === side}
+      dimmed={dimmedOf(side)}
+      confirmed={held === side}
+      waiting={held === side && loading}
+      errorNote={lastPick.current === side ? errorNote : null}
+      locked={locked}
+      onEnter={onEnter}
+      onLeave={onLeave}
+      onPress={onPress}
+    />
+  );
+  const shown = finalists.slice(0, 3);
+  const banner = mode === "portrait" ? null : bannerVariant(mode);
 
   return (
     <section
@@ -173,45 +213,43 @@ export function FinalStage({
       onPointerDownCapture={onStagePointerDown}
     >
       {mode === "landscape" ? <style>{HIDE_MENU_IN_LANDSCAPE}</style> : null}
-      {/* 안내 문구 층 — 모바일 가로에는 없다(아트보드 23: 프레임이 화면 맨 위 12px). */}
-      {mode !== "landscape" ? (
-        <header className={styles.guide} data-stage-layer="guide">
-          <div className={styles.eyebrow}>{t("arena.final.eyebrow")}</div>
-          <h1 className={styles.title}>{t("arena.final.title")}</h1>
-          {/* 모바일 세로는 안내 문구 층을 얇게 — 부제를 숨겨 무대를 디자인(칸 232)만큼 키운다
-              (2026-09-23 대표 판정 ③). 문구 값은 그대로 두고 이 화면에서만 감춘다. */}
-          {mode === "desktop" ? <p className={styles.desc}>{t("arena.final.sub")}</p> : null}
-        </header>
-      ) : null}
+      <header className={styles.guide} data-stage-layer="guide">
+        <div className={styles.eyebrow}>{t("arena.final.eyebrow")}</div>
+        <h1 className={styles.title}>{t("arena.final.title")}</h1>
+        <p className={styles.desc}>{t("arena.final.sub")}</p>
+      </header>
 
-      <div
-        ref={frameRef}
-        className={styles.frame}
-        data-stage-layer="frame"
-        aria-busy={loading || picked !== null}
-      >
-        <div className={styles.cells}>
-          {finalists.slice(0, 3).map((c, i) => {
-            const side = SIDES[i];
-            return (
-              <StageSide
-                key={c.id}
-                contestant={c}
-                side={side}
-                armed={armed === side}
-                dimmed={armed !== null && armed !== side}
-                confirmed={picked === side}
-                rings={timeline.rings.count}
-                waiting={picked === side && loading}
-                errorNote={picked === side || armed === side ? errorNote : null}
-                lost={picked !== null && picked !== side}
-                locked={locked}
-                onEnter={onEnter}
-                onLeave={onLeave}
-                onPress={onPress}
-              />
-            );
-          })}
+      <div ref={frameRef} className={styles.slot}>
+        <div
+          className={styles.frame}
+          data-stage-layer="frame"
+          aria-busy={loading || picked !== null}
+        >
+          {mode === "portrait" ? (
+            // 세로는 칸마다 상자 바로 아래 버튼 (시안 22).
+            shown.map((c, i) => (
+              <div key={c.id} className={styles.finalStack}>
+                {boxOf(c, SIDES[i])}
+                {nameOf(c, SIDES[i])}
+              </div>
+            ))
+          ) : (
+            <>
+              <div className={styles.boxes}>
+                {shown.map((c, i) => (
+                  <Fragment key={c.id}>{boxOf(c, SIDES[i])}</Fragment>
+                ))}
+              </div>
+              <div className={styles.names}>
+                {shown.map((c, i) => (
+                  <Fragment key={c.id}>{nameOf(c, SIDES[i])}</Fragment>
+                ))}
+              </div>
+            </>
+          )}
+          {mode !== "landscape" ? (
+            <p className={styles.finalFoot}>{t("arena.final.foot")}</p>
+          ) : null}
         </div>
       </div>
 
@@ -226,16 +264,12 @@ export function FinalStage({
         </button>
       ) : null}
 
-      {mode !== "landscape" ? (
-        <p className={styles.finalFoot}>{t("arena.final.foot")}</p>
-      ) : null}
-
-      {bannerVariant(mode) ? (
+      {banner ? (
         <div className={styles.bannerRow} data-stage-layer="banner">
           <BannerSlot
             slot="arena-match-below"
             onSignIn={onSignIn}
-            variant={bannerVariant(mode) ?? undefined}
+            variant={banner}
           />
         </div>
       ) : null}

@@ -49,13 +49,8 @@ export function buildPlayerVars({ startSec, endSec }: LoopRange): Record<string,
   return {
     autoplay: 1,
     mute: 1,
-    controls: 0,
     playsinline: 1,
     rel: 0,
-    modestbranding: 1,
-    disablekb: 1,
-    fs: 0,
-    iv_load_policy: 3,
     start: startSec,
     end: endSec,
   };

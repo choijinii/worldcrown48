@@ -30,6 +30,7 @@ export interface YTNamespace {
     element: HTMLElement,
     options: {
       videoId: string;
+      host?: string;
       playerVars?: Record<string, number | string>;
       events?: {
         onReady?: (e: YTPlayerEvent) => void;

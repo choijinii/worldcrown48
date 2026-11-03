@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>BannerSlot</title>
+<link rel="stylesheet" href="../../preview/_card.css">
+<style>
+  .card { width: 760px; }
+  .slot { box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,.16); background: rgba(36,23,84,.4); }
+  .slot span { font-family: var(--font-sans); line-height: 1.5; color: #DDDDEA; text-align: center; }
+  .dt { width: 970px; height: 90px; padding: 0 28px; transform: scale(.72); transform-origin: left center; }
+  .mo { width: 320px; height: 100px; padding: 0 18px; }
+  .dt span { font-size: 14px; }
+  .mo span { font-size: 13px; }
+  .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em; color: var(--color-text-muted); }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .pair { display: flex; gap: 20px; align-items: flex-start; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="kicker">BannerSlot · 두 크기만 존재</p>
+    <div class="stack">
+      <div class="panel">
+        <span class="panel__label">desktop 970 × 90 · left 235</span>
+        <div class="slot dt"><span>대회를 마치면 크라운 카드가 생겨요 — 친구에게 공유해 보세요</span></div>
+        <p class="meta" style="margin:10px 0 0">무대 프레임 아래 · 가로 가운데 정렬</p>
+      </div>
+      <div class="panel">
+        <span class="panel__label">mobile portrait 320 × 100 · left 35</span>
+        <div class="pair">
+          <div class="slot mo"><span>로그인하면 크라운 카드를 간직하고, 대회마다 하루 5번 참여할 수 있어요</span></div>
+          <div class="stack">
+            <p class="meta" style="margin:0">signed-out · 로그인 유도 문구</p>
+            <p class="meta" style="margin:0">signed-in · 크라운 카드 공유 문구</p>
+            <p class="meta" style="margin:0">가로 화면 · 라운드 전환 = 배너 없음</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

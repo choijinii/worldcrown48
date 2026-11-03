@@ -66,7 +66,10 @@ describe("buildPlayerVars — ADR-EV-3 카드 노출 조합", () => {
 
   it("무음·컨트롤 없음·인라인 재생 고정", () => {
     expect(vars.mute).toBe(1);
-    expect(vars.controls).toBe(0);
+    // 유튜브 기본값을 건드리지 않는다 (D-76 · 정책 III.I.6).
+    for (const key of ["controls", "disablekb", "fs", "modestbranding", "iv_load_policy"]) {
+      expect(vars).not.toHaveProperty(key);
+    }
     expect(vars.playsinline).toBe(1);
   });
 
@@ -77,9 +80,6 @@ describe("buildPlayerVars — ADR-EV-3 카드 노출 조합", () => {
 
   it("추천 영상·키보드·정보 오버레이를 끈다 (카드에 유튜브 UI가 새지 않게)", () => {
     expect(vars.rel).toBe(0);
-    expect(vars.modestbranding).toBe(1);
-    expect(vars.disablekb).toBe(1);
-    expect(vars.iv_load_policy).toBe(3);
   });
 });
 

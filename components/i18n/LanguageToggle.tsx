@@ -114,14 +114,17 @@ export function LanguageToggle(): JSX.Element {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          height: 34,
+          // YT-FIX-1 (D-76) — 밝은 알약.
+          height: 36,
           padding: "0 16px",
+          boxSizing: "border-box",
           borderRadius: 999,
-          border: "1px solid color-mix(in srgb, var(--color-white) 22%, transparent)",
-          background: "transparent",
-          color: "var(--color-text-sub)",
+          border: "1px solid var(--color-text)",
+          background: "var(--color-text)",
+          color: "var(--color-bg-void)",
           fontFamily: "var(--font-mono)",
-          fontSize: 13,
+          fontSize: 12,
+          fontWeight: 600,
           letterSpacing: "0.14em",
           cursor: "pointer",
         }}

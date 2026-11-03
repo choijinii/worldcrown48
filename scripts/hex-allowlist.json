@@ -2,26 +2,6 @@
   "$comment": "TOK-1 W4 — 가드 예외. file+hex 쌍으로 좁게 등록하고 reason을 반드시 적는다. 우리 팔레트 색을 편의로 넣는 곳이 아니다: 토큰화가 '불가능'하거나 ADR이 스윕 대상에서 뺀 것만 들어온다.",
   "entries": [
     {
-      "file": "components/auth/SignInButton.tsx",
-      "hex": "#4285F4",
-      "reason": "brand-fixed: Google 로고 blue — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
-    },
-    {
-      "file": "components/auth/SignInButton.tsx",
-      "hex": "#34A853",
-      "reason": "brand-fixed: Google 로고 green — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
-    },
-    {
-      "file": "components/auth/SignInButton.tsx",
-      "hex": "#FBBC05",
-      "reason": "brand-fixed: Google 로고 yellow — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
-    },
-    {
-      "file": "components/auth/SignInButton.tsx",
-      "hex": "#EA4335",
-      "reason": "brand-fixed: Google 로고 red — 서드파티 브랜드 팔레트 (ADR-TOK-3)"
-    },
-    {
       "file": "components/auth/LoginModal.tsx",
       "hex": "#4285F4",
       "reason": "brand-fixed: Google 로고 blue — 서드파티 브랜드 팔레트 (ADR-TOK-3)"

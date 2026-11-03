@@ -50,6 +50,20 @@ export function ContinuePill({ pathname }: { pathname: string }): JSX.Element | 
     <div className="wc-nav wc-pill-layer">
       <div className="wc-pill-inner">
         <Link href={href} className="wc-pill" aria-describedby={noteId} data-testid="continue-pill">
+          <svg
+            width="1em"
+            height="1em"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
           {t("nav.pill.label")}
         </Link>
         <span id={noteId} role="tooltip" className="wc-pill-note" data-testid="continue-pill-note">

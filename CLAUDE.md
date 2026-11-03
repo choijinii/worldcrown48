@@ -78,9 +78,9 @@ RULE 1: 기존 용어 정의 절대 변경 금지.  RULE 2: 새 개념 → 새 �
 
 1. Tournament에만 Deadline 존재. **Round Deadline = 없음**
 2. 라운드 전환: Voter가 해당 Round 마지막 Match 완료 → `advanceRound()` 자동 실행
-3. Match는 Voter에게 순서대로 1개씩 제시 (동시 진행·건너뛰기·직접 선택 불가)
+3. Match는 Voter에게 순서대로 1개씩 제시 (동시 진행·건너뛰기·직접 선택 불가). 무대는 **16:9 상자 + 칸 아래 이름 버튼** — 영상은 유튜브 플레이어 그대로 보고, 이름 버튼 한 번으로 고른다(D-76)
 4. **THE FINAL(결승)** = 3명 동시 표시 → Voter가 1명 직접 선택. 1v1 매치 2개로 쪼개지 않음
-5. **Round 정보는 라운드 전환 ANNOUNCEMENT에서만 표시**. 매치 화면에는 Round 배지·HUD 없음. (Voter는 관중이 아닌 선수 — "N강 · X/Y" 같은 진행 HUD는 관중 환상)
+5. **Round 정보는 라운드 전환 ANNOUNCEMENT에서만 표시**. 매치 화면에는 Round 배지·HUD 없음. (Voter는 관중이 아닌 선수 — "N강 · X/Y" 같은 진행 HUD는 관중 환상). 플레이어 위에는 어떤 표시도 겹치지 않는다(D-76)
 6. 라운드명: `ROUND OF 48` → `ROUND OF 24` → `ROUND OF 12` → `ROUND OF 6` → `THE FINAL`
 7. 금지 라운드명: `ROUND OF 16`, `QUARTERFINAL`, `SEMIFINAL` (FIFA 표준 — WC48에 없음)
 8. Vote Count(절대 수치)는 어디에도 표시 금지. **차트(구 랭킹) 화면에 나가는 수치는 Crown Score 정수 하나뿐**이다. 순위 기준 = **Crown Score = (순위점수율×0.4 + 우승율×0.3 + 점유율×0.3) × 1000** → 0~1000 (**v1.0, 2026-09-23 대표 확정** · 정본 `marketing/00_strategy/CROWN_SCORE_v1.0.md`). 세 비율은 캐시에 저장만 하고 화면에 나열하지 않는다. 점수 옆 **? 설명창 = 계산식 안내 공통 문구 하나**. 완주 판수 **10판** 미만이면 점수 없이 기다림 안내(차트로 가는 길은 숨기지 않는다). ~~우승비율×50% + 점유율×50%~~(2026-07-11)·~~우승비율→점유율→승률 3종 나열~~·~~Vote Rate/득표율~~은 **폐기**
@@ -136,7 +136,7 @@ SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/si
 | Domain 0 | Launch Pad (사전등록) | 🌑 다크 | MVP 1 |
 | Domain 1 | The Pitch | ☀️ 화이트 (THUMB-1 PR 2에서 전환 — D-39) | MVP 1 |
 | Domain 2 | The Lab | 🌑 다크 | MVP 1 |
-| Domain 3 | The Arena — 매치 무대(`/arena/{id}`, 라운드 전환·결승 포함) | 🌑 다크 | MVP 1 |
+| Domain 3 | The Arena — 매치 무대(`/arena/{id}`, 라운드 전환·결승 포함 · 새 모양 D-76) | 🌑 다크 | MVP 1 |
 | Domain 3 | The Arena — 차트(`/arena/{id}/ranking`) | 🌑 다크 (D-40) | MVP 1 |
 | Domain 3 | The Arena — 아레나 홈(대기실 · 마감 대회 게시판 D-37) | ☀️ 화이트 (ARENA-2) | MVP 1 |
 | — | Crown Card | ☀️ 화이트 (크라운 카드 새 디자인 때) | MVP 1 |

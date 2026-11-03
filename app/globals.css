@@ -1531,19 +1531,6 @@ input { font: inherit; }
 /* (NAV-1) 예전엔 ≤768px 에서 메뉴바 오른쪽(언어·아바타)을 숨기고 바닥 탭바에 맡겼다. 탭바는
    만들어지지 않았고(MobileProfileTab 미장착) 정본 6·7 은 모바일 메뉴바에 언어·아바타를 둔다. */
 
-/* Compact avatar on tablet/mobile (handoff §4-1 desktop 56 / mobile 40). */
-@media (max-width: 768px) {
-  .user-avatar button > span:first-child {
-    width: 40px !important;
-    height: 40px !important;
-  }
-  .user-avatar button > span:first-child > img,
-  .user-avatar button > span:first-child > span {
-    width: 36px !important;
-    height: 36px !important;
-  }
-}
-
 /* User dropdown — bottom sheet on mobile (≤ 480px) per handoff §6. */
 @media (max-width: 480px) {
   .user-dropdown {

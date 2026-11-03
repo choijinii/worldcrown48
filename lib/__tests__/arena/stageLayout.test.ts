@@ -1,8 +1,7 @@
 /**
- * ARENA-1 PR 1 — 칸 크기 일반 규칙 (원장 D-17 · D-11 바뀜 09-17).
+ * YT-FIX-1 — 무대 상자 크기 (원장 D-76 · 시안 Arena Match Stage v5).
  *
- * "칸은 언제나 정사각이다. 한 변은 그 칸에 주어진 자리의 가로·세로 중 짧은 쪽."
- * 기기별 숫자를 하드코딩하지 않는다 — 아래 숫자는 디자인 파일(아트보드 1·6·9) 검산값.
+ * 숫자는 시안 값이다. 상자는 16:9 고, 재생 200×200 · 포스터 120×70 하한은 정책(III.C.1)이다.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -10,6 +9,7 @@ import {
   computeStageLayout,
   pickViewportHeight,
   stageMode,
+  stageBoxSize, bannerPush
 } from "@/lib/arena/stageLayout";
 
 describe("stageMode — 태블릿 기준 폭 1024 (D-17 ④)", () => {
@@ -25,65 +25,6 @@ describe("stageMode — 태블릿 기준 폭 1024 (D-17 ④)", () => {
   });
 });
 
-describe("computeStageLayout — 디자인 검산값", () => {
-  it("데스크톱 1440×900, 무대 위쪽 220 → 칸 640, 프레임 1320×680", () => {
-    const l = computeStageLayout({ width: 1440, height: 900, top: 220 });
-    expect(l.mode).toBe("desktop");
-    expect(l.direction).toBe("row");
-    expect(l.cell).toBe(640);
-    expect(l.frameW).toBe(1320);
-    expect(l.frameH).toBe(680);
-  });
-
-  it("데스크톱은 칸이 640을 넘지 않는다 — 썸네일 원본 1280×720이 흐려진다 (D-08)", () => {
-    expect(computeStageLayout({ width: 2560, height: 1440, top: 220 }).cell).toBe(640);
-  });
-
-  it("데스크톱 1280×720 (Playwright 기본) → 높이가 정한다", () => {
-    // 가로 자리 (1280-120-40)/2 = 560, 세로 자리 720-220-40 = 460
-    const l = computeStageLayout({ width: 1280, height: 720, top: 220 });
-    expect(l.cell).toBe(460);
-  });
-
-  it("모바일 세로 390×844, 무대 위쪽 68 → 칸 364 정사각, 상하", () => {
-    const l = computeStageLayout({ width: 390, height: 844, top: 68 });
-    expect(l.mode).toBe("portrait");
-    expect(l.direction).toBe("column");
-    expect(l.cell).toBe(364);
-    expect(l.frameW).toBe(366);
-  });
-
-  it("모바일 가로 844×390, 메뉴 없음(위쪽 12) → 칸 366, 프레임 732×366 (여백 56)", () => {
-    const l = computeStageLayout({ width: 844, height: 390, top: 12 });
-    expect(l.mode).toBe("landscape");
-    expect(l.direction).toBe("row");
-    expect(l.cell).toBe(366);
-    expect(l.frameW).toBe(732);
-    expect(l.frameH).toBe(366);
-    // 가로에서는 칸 크기를 높이가 정한다 — 남는 폭은 가운데 정렬 여백이 된다.
-    expect((844 - l.frameW) / 2).toBe(56);
-  });
-
-  it("칸은 항상 정사각 한 변 하나 (정수 px)", () => {
-    for (const [w, h, top] of [
-      [1024, 768, 220],
-      [768, 1024, 68],
-      [1023, 600, 12],
-      [360, 640, 68],
-      [320, 800, 68],
-    ] as const) {
-      const l = computeStageLayout({ width: w, height: h, top });
-      expect(Number.isInteger(l.cell)).toBe(true);
-      expect(l.cell).toBeGreaterThan(0);
-    }
-  });
-
-  it("너무 좁은 화면에서도 칸이 바닥(120) 밑으로 줄지 않는다", () => {
-    expect(computeStageLayout({ width: 130, height: 600, top: 68 }).cell).toBe(120);
-  });
-});
-
-// ── ARENA-1 PR 2a — 실제로 남는 높이 (주소창이 접히고 펴지는 기기) ──
 describe("pickViewportHeight — 주소창이 가린 높이 (D-17 칸 규칙의 입력)", () => {
   it("visualViewport 가 있으면 그 높이를 쓴다 — 크롬 안드로이드의 innerHeight 는 주소창을 반영하지 않는다", () => {
     expect(pickViewportHeight(844, 731)).toBe(731);
@@ -106,50 +47,105 @@ describe("pickViewportHeight — 주소창이 가린 높이 (D-17 칸 규칙의 
 });
 
 // ── ARENA-1 PR 2b — 결승 3분할 (디자인 정본 19·22·23 · 원장 D-06 · D-29) ──
-describe("computeFinalLayout — 결승은 매치 무대 프레임을 셋으로 나눈다", () => {
-  it("데스크톱 1440×900 → 프레임 1320×680 그대로, 칸 426 정사각 3개", () => {
-    const f = computeFinalLayout({ width: 1440, height: 900, top: 220 });
-    expect(f.mode).toBe("desktop");
-    expect(f.direction).toBe("row");
-    expect([f.frameW, f.frameH]).toEqual([1320, 680]); // 매치와 같은 프레임
-    expect(f.cell).toBe(426); // 1280 / 3 = 426.67 → 정수
-    expect(f.cells).toBe(3);
+const DESK = { width: 1440, height: 900, top: 211 };
+const PORT = { width: 390, height: 844, top: 216 };
+const LAND = { width: 844, height: 390, top: 62 };
+
+const wh = (b: { w: number; h: number }) => `${b.w}×${b.h}`;
+
+describe("computeStageLayout — 시안 v5 값 (D-76)", () => {
+  it("데스크톱 1440 — 640×360 두 칸 · 포커스 768×432 + 512×288 · 프레임 1320", () => {
+    const l = computeStageLayout(DESK);
+    expect([wh(l.base), wh(l.big), wh(l.small)]).toEqual(["640×360", "768×432", "512×288"]);
+    expect(l.frameW).toBe(1320);
+    expect(l.rowH).toBe(432);
   });
 
-  it("모바일 가로 844×390 → 프레임 732×366 그대로, 칸 244", () => {
-    const f = computeFinalLayout({ width: 844, height: 390, top: 12 });
-    expect(f.direction).toBe("row");
-    expect(f.frameW).toBe(732);
-    expect(f.cell).toBe(244); // 732 / 3
+  it("휴대폰 세로 390 — 320×180 위아래 · 재생 364×205 · 옆 칸 그대로", () => {
+    const l = computeStageLayout(PORT);
+    expect(l.direction).toBe("column");
+    expect([wh(l.base), wh(l.big), wh(l.small)]).toEqual(["320×180", "364×205", "320×180"]);
   });
 
-  it("모바일 세로 390×844 → 위·가운데·아래 3단, 칸은 정사각 (디자인 검산 232 ± 규칙 계산 236)", () => {
-    const match = computeStageLayout({ width: 390, height: 844, top: 90 });
-    const f = computeFinalLayout({ width: 390, height: 844, top: 90 });
-    expect(f.direction).toBe("column");
-    expect(f.cell).toBe(Math.floor((match.cell * 2) / 3)); // 프레임을 셋으로
-    expect(f.cell).toBeLessThanOrEqual(364);
+  it("휴대폰 가로 844 — 330×186 · 재생 366×206", () => {
+    const l = computeStageLayout(LAND);
+    expect([wh(l.base), wh(l.big)]).toEqual(["330×186", "366×206"]);
   });
 
-  it("칸은 언제나 정사각이고 매치 칸보다 작다 (같은 프레임을 셋으로 나누므로)", () => {
-    for (const [w, h, top] of [
-      [1440, 900, 220],
-      [844, 390, 12],
-      [390, 844, 90],
-      [1280, 720, 220],
-    ] as const) {
-      const match = computeStageLayout({ width: w, height: h, top });
-      const final = computeFinalLayout({ width: w, height: h, top });
-      expect(final.cell).toBeLessThan(match.cell);
-      expect(final.frameH).toBe(match.frameH);
-      expect(Number.isInteger(final.cell)).toBe(true);
-      if (final.direction === "row") {
-        expect(final.frameW).toBe(match.frameW); // 좌우 3칸: 매치 프레임 그대로
-      } else {
-        // 상하 3단: 프레임이 화면 폭을 쓰고 좁아진 칸을 가운데 둔다 (아트보드 22)
-        expect(final.frameW).toBeGreaterThanOrEqual(match.frameW);
-        expect(final.frameW).toBe(w - 24);
+  it("데스크톱이 낮으면 첫 화면에 들어가게 줄어든다", () => {
+    const l = computeStageLayout({ width: 1440, height: 760, top: 211 });
+    expect(l.big.h).toBeLessThan(432);
+    expect(l.big.w / l.big.h).toBeCloseTo(16 / 9, 1);
+  });
+});
+
+describe("computeFinalLayout — 시안 v5 값 (D-76)", () => {
+  it("데스크톱 1440 — 426×240 세 칸 · 호버 1.12배", () => {
+    const l = computeFinalLayout(DESK);
+    expect(wh(l.base)).toBe("426×240");
+    expect(l.big.w).toBe(478);
+    expect(l.big.w + 2 * l.small.w).toBeLessThanOrEqual(1281);
+  });
+
+  it("휴대폰 세로 — 320×180 세 칸 · 재생 364×205", () => {
+    const l = computeFinalLayout(PORT);
+    expect([wh(l.base), wh(l.big)]).toEqual(["320×180", "364×205"]);
+  });
+
+  it("휴대폰 가로 — 240×135 · 재생 366×206 · 옆 183×103", () => {
+    const l = computeFinalLayout(LAND);
+    expect([wh(l.base), wh(l.big), wh(l.small)]).toEqual(["240×135", "366×206", "183×103"]);
+  });
+});
+
+describe("정책 하한 — 재생 200×200 · 포스터 120×70 (III.C.1)", () => {
+  const screens = [
+    [1024, 600], [1024, 768], [1280, 720], [1440, 900], [1920, 1080], [2560, 1440],
+    [320, 568], [360, 640], [375, 667], [390, 844], [412, 915], [768, 1024],
+    [568, 320], [640, 360], [667, 375], [844, 390], [915, 412], [1000, 500],
+  ] as const;
+
+  it.each(screens)("%i×%i", (width, height) => {
+    for (const compute of [computeStageLayout, computeFinalLayout]) {
+      const l = compute({ width, height, top: 200 });
+      expect(l.big.w).toBeGreaterThanOrEqual(200);
+      expect(l.big.h).toBeGreaterThanOrEqual(200);
+      for (const b of [l.base, l.small]) {
+        expect(b.w).toBeGreaterThanOrEqual(120);
+        expect(b.h).toBeGreaterThanOrEqual(70);
       }
     }
+  });
+
+  it("상자는 언제나 16:9", () => {
+    for (const [width, height] of screens) {
+      const l = computeStageLayout({ width, height, top: 200 });
+      for (const b of [l.base, l.big, l.small]) expect(Math.abs(b.h - (b.w * 9) / 16)).toBeLessThanOrEqual(0.5);
+    }
+  });
+});
+
+describe("stageBoxSize", () => {
+  const l = computeStageLayout(DESK);
+  it("아무도 없으면 base · 포커스 칸 big · 옆 칸 small", () => {
+    expect(stageBoxSize(l, false, false)).toEqual(l.base);
+    expect(stageBoxSize(l, true, true)).toEqual(l.big);
+    expect(stageBoxSize(l, false, true)).toEqual(l.small);
+  });
+});
+
+describe("bannerPush — 버튼 아래 한 줄이 배너를 덮지 않게 배너를 민다 (D-76)", () => {
+  it("겹치지 않으면 밀지 않는다 (데스크톱 실패 줄 790 · 배너 794)", () => {
+    expect(bannerPush({ noteBottom: 790.3, bannerTop: 794.5, currentPush: 0 })).toBe(0);
+  });
+  it("휴대폰 세로 — 겹친 만큼 + 6 띄움 (실패 줄 720 · 배너 706 → 20)", () => {
+    expect(bannerPush({ noteBottom: 720, bannerTop: 706, currentPush: 0 })).toBe(20);
+  });
+  it("이미 민 상태에서 다시 재도 같은 값 — 원래 자리 기준", () => {
+    expect(bannerPush({ noteBottom: 720, bannerTop: 726, currentPush: 20 })).toBe(20);
+  });
+  it("두 줄이면 더 민다 · 줄이 사라지면 0", () => {
+    expect(bannerPush({ noteBottom: 736.7, bannerTop: 706, currentPush: 0 })).toBe(37);
+    expect(bannerPush({ noteBottom: null, bannerTop: 726, currentPush: 20 })).toBe(0);
   });
 });

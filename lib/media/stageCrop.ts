@@ -1,17 +1,8 @@
 /**
- * stageCrop — 정사각 창문 크롭 (ARENA-1 PR 1 · 원장 D-11 · D-14 · D-15).
+ * stageCrop — 무대 영상 자료 (ARENA-1 PR 1 · YT-FIX-1 · 원장 D-76).
  *
- * 무대 칸은 정사각인데 영상은 16:9(가로) 또는 9:16(세로)다.
- *
- *   · 영상 <iframe> — 그림이 아니라 웹페이지를 담는 창이라 object-fit 이 듣지 않는다.
- *     iframe 을 **영상과 같은 비율**로 만든 뒤 정사각 창문(overflow:hidden)으로 자른다.
- *     비율이 다르면 유튜브가 스스로 검은 띠를 넣고, 창문으로 잘라도 띠가 따라온다 (D-11).
- *   · 정지 포스터 <img> — object-fit: cover + object-position.
- *   · 두 방식의 잘리는 자리가 같아야 포스터 → 영상 전환 때 인물이 튀지 않는다 (D-15 ①):
- *     가로는 둘 다 가운데, 세로는 둘 다 위에서 focusY% (기본 40 → 위 40 : 아래 60).
- *
- * 수치는 디자인 파일(Arena_Match_Stage_v1A_9boards_2026-09-19) crop() 그대로.
- * 48강 그리드(D-14, 런칭 후)도 만들 때 이 모듈을 그대로 쓴다.
+ * 정사각 크롭은 폐기했다(D-76) — 플레이어는 16:9 상자에 자르지 않고 넣고, 세로 영상의 포스터는
+ * 같은 상자 안에 양옆 검은 띠로 놓는다. 여기는 포스터 주소와 재생 구간만 다룬다.
  */
 import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
@@ -25,44 +16,9 @@ export const DEFAULT_FOCUS_Y = 40;
 /** 무대 루프 길이 = 검수기·functions 와 같은 한 값 (D-12: 15초). */
 export const STAGE_LOOP_SECONDS = LOOP_SECONDS;
 
-/** 16:9 ↔ 9:16 을 정사각에 채울 때 긴 변 = 짧은 변 × 16/9 = 177.78%. 넘치는 양은 77.78%. */
-const LONG_SIDE = 177.78;
-const OVERFLOW = LONG_SIDE - 100;
-
-const pct = (n: number): string => `${n.toFixed(2)}%`;
-
 function clampFocus(focusY: number | undefined): number {
   const v = typeof focusY === "number" && Number.isFinite(focusY) ? focusY : DEFAULT_FOCUS_Y;
   return Math.min(100, Math.max(0, v));
-}
-
-export interface CropBox {
-  width: string;
-  height: string;
-  left: string;
-  top: string;
-}
-
-/** iframe 상자 — 정사각 창문 안에서의 크기·위치. */
-export function videoCrop(orientation: EmbedOrientation, focusY?: number): CropBox {
-  if (orientation === "portrait") {
-    return {
-      width: "100%",
-      height: `${LONG_SIDE}%`,
-      left: "0%",
-      top: pct(-(OVERFLOW * clampFocus(focusY)) / 100),
-    };
-  }
-  return { width: `${LONG_SIDE}%`, height: "100%", left: pct(-OVERFLOW / 2), top: "0%" };
-}
-
-/** 포스터 <img> — 같은 자리를 브라우저가 자르게 한다. */
-export function posterCrop(
-  orientation: EmbedOrientation,
-  focusY?: number,
-): { objectFit: "cover"; objectPosition: string } {
-  const y = orientation === "portrait" ? clampFocus(focusY) : 50;
-  return { objectFit: "cover", objectPosition: `center ${y}%` };
 }
 
 /**
