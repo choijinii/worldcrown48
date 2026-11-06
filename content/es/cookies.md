@@ -2,13 +2,13 @@
 title: Política de cookies
 type: cookies
 lang: es
-lastUpdated: 2026-10-18
-version: 1.3
+lastUpdated: 2026-11-06
+version: 1.4
 ---
 
 # Política de cookies · Cookie Policy
 
-**Última actualización: 18 de octubre de 2026**
+**Última actualización: 6 de noviembre de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -134,7 +134,6 @@ Esta Política de cookies puede actualizarse en caso de modificaciones legislati
 Envíe sus consultas o reclamaciones relacionadas con la Política de cookies a través de los siguientes canales:
 
 - **Correo electrónico**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
-- **Denuncias**: [report@worldcrown48.com](mailto:report@worldcrown48.com) (denuncias de contenido o cuentas)
 - **Compromiso de respuesta**: en un plazo de 7 días hábiles
 
 Los residentes en la UE tienen derecho a presentar una reclamación directamente ante la autoridad de protección de datos de su país de residencia.
@@ -142,4 +141,4 @@ Los residentes en la UE tienen derecho a presentar una reclamación directamente
 ---
 
 *Esta política puede actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Cookie Policy v1.3*
+*© 2026 WorldCrown48 · Cookie Policy v1.4*

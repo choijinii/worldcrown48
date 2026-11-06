@@ -2,13 +2,13 @@
 title: Normas de la comunidad
 type: community
 lang: es
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # Normas de la comunidad · Community Guidelines
 
-**Última actualización: 10 de octubre de 2026**
+**Última actualización: 6 de noviembre de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -91,6 +91,8 @@ El siguiente contenido no está permitido en ninguna de sus formas. Se eliminar�
 - Uso no autorizado de marcas protegidas, como marcas comerciales o logotipos de otras organizaciones (WC48 no está afiliado a ninguna organización oficial)
 - Hacer pasar contenido ajeno como propio
 
+> Las imágenes de los Contestants en los Tournaments creados por WC48 siguen el procedimiento del [§5.4 de los Términos del Servicio, Solicitudes de retirada de los titulares de derechos](/policies/terms#5.4).
+
 ---
 
 ## 3. Permiso limitado para el desnudo y la expresión artística
@@ -155,10 +157,11 @@ En el caso de CSAM (§2.2) y del contenido sexual explícito (§2.1), **se omite
 
 Si detecta un incumplimiento de estas Normas, denúncielo a través del siguiente canal.
 
-- **Correo electrónico**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Compromiso de respuesta**: **primera revisión en un plazo de 24 horas** (días hábiles)
+- **Correo electrónico**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Etiqueta en el asunto**: si empieza el asunto con `[신고]` (Denuncia), `[내리기 요청]` (Retirada) o `[이의신청]` (Apelación), podremos tramitarlo con mayor rapidez
+- **Compromiso de respuesta**: **primera revisión en un plazo de 24 horas desde la recepción**
 - **Denuncias de CSAM**: utilice el mismo correo electrónico; se recomienda incluir `[URGENT-CSAM]` en el asunto
-- **Apelaciones**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Apelaciones**: el mismo correo electrónico, con `[이의신청]` en el asunto (§8)
 
 Si incluye la siguiente información en su denuncia, podremos tramitarla con mayor rapidez.
 
@@ -196,8 +199,7 @@ El uso continuado del Servicio implica la aceptación de las Normas actualizadas
 
 ## 10. Contacto
 
-- **Denuncias**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Apelaciones y consultas sobre las políticas**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Denuncias, solicitudes de retirada, apelaciones y consultas sobre las políticas**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **Consultas generales**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
 
 WC48 mejora continuamente estas Normas para ser una plataforma global en la que todos los fans, Contestants y organizadores de Tournaments puedan participar con seguridad.
@@ -205,4 +207,4 @@ WC48 mejora continuamente estas Normas para ser una plataforma global en la que 
 ---
 
 *Estas Normas pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Community Guidelines v1.2*
+*© 2026 WorldCrown48 · Community Guidelines v1.3*

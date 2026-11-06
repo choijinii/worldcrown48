@@ -2,13 +2,13 @@
 title: Terms of Service
 type: terms
 lang: en
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # Terms of Service
 
-**Last updated: October 10, 2026 · Effective date: June 11, 2026**
+**Last updated: November 6, 2026 · Effective date: June 11, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -84,6 +84,15 @@ The license ends when the user deletes the content or terminates the account (ex
 
 - **Crown Card**: Automatically generated card images from the user's picks — users may freely share them on social media or external channels
 - **AI-Report**: AI-generated analysis and news content — the copyright belongs to WC48 (subject to the v2.4 "Footer-Only Lock" of the design system)
+
+### 5.4 Takedown requests from rights holders
+
+If the person, their agency, or their representative asks us to stop using or to remove an image or video thumbnail used for a Contestant in a Tournament created by WC48, we will take that image down **within 24 hours of receipt**. Once taken down, the image disappears from the screen and from Crown Cards, and only the first letter of the name remains.
+
+- **Where to send**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com) · put `[내리기 요청]` (Takedown) in the subject line
+- **Please include**: the Tournament name or URL · the Contestant's name · your relationship to the rights (the person, their agency, or their representative)
+- **Process**: we confirm receipt → take the image down within 24 hours → reply "Taken down." If you disagree, write to the same address with `[이의신청]` (Appeal) in the subject line.
+- **Records**: we keep a record of the Contestant taken down, the reason, and the date.
 
 ---
 
@@ -161,12 +170,11 @@ Users may terminate their account at any time from account settings. Personal da
 
 ## 13. Contact
 
+- **Reports · takedown requests · appeals · policy · legal inquiries**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **General inquiries**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
-- **Reports · content appeals**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Policy · legal inquiries**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **Response time**: within 7 business days
 
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Terms of Service v1.2*
+*© 2026 WorldCrown48 · Terms of Service v1.3*

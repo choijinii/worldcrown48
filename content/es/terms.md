@@ -2,13 +2,13 @@
 title: Términos del servicio
 type: terms
 lang: es
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # Términos del servicio · Terms of Service
 
-**Última actualización: 10 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 6 de noviembre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -84,6 +84,15 @@ La licencia finaliza cuando usted elimina el contenido o cancela su cuenta (salv
 
 - **Crown Card**: imagen de tarjeta generada automáticamente a partir del resultado de sus elecciones; usted puede compartirla libremente en redes sociales y fuera del Servicio
 - **AI-Report**: contenido de análisis y noticias generado por IA, cuyos derechos de autor pertenecen a WC48 (conforme a la regla Footer-Only Lock del sistema de diseño v2.4)
+
+### 5.4 Solicitudes de retirada de los titulares de derechos
+
+Si la propia persona, su agencia o su representante nos pide dejar de usar o eliminar una imagen o una miniatura de video utilizada para un Contestant en un Tournament creado por WC48, retiraremos esa imagen **en un plazo de 24 horas desde la recepción**. Una vez retirada, la imagen desaparece de la pantalla y de las Crown Cards, y solo queda la primera letra del nombre.
+
+- **Dirección**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com) · incluya `[내리기 요청]` (Retirada) en el asunto
+- **Indique**: el nombre o la URL del Tournament · el nombre del Contestant · su relación con los derechos (la propia persona, su agencia o su representante)
+- **Trámite**: confirmamos la recepción → retiramos la imagen en un plazo de 24 horas → le respondemos "Retirada". Si no está de acuerdo, escriba a la misma dirección con `[이의신청]` (Apelación) en el asunto.
+- **Registro**: conservamos el registro del Contestant retirado, el motivo y la fecha.
 
 ---
 
@@ -161,12 +170,11 @@ Usted puede cancelar su cuenta en cualquier momento desde la configuración de l
 
 ## 13. Contacto
 
+- **Denuncias, solicitudes de retirada, apelaciones y consultas sobre políticas y asuntos legales**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **Consultas generales**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
-- **Denuncias y apelaciones sobre contenido**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Consultas sobre políticas y asuntos legales**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **Compromiso de respuesta**: en un plazo de 7 días hábiles
 
 ---
 
 *Estos Términos pueden actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Terms of Service v1.2*
+*© 2026 WorldCrown48 · Terms of Service v1.3*

@@ -3,6 +3,9 @@
  *
  *   개인정보처리방침(맨 앞) · 이용약관 · 콘텐츠 신고(mailto) · 쿠키 설정(동의 바 다시 열기)
  *
+ * 콘텐츠 신고 = policy@ — 법적 문제 창구는 하나(원장 D-83 · LEGAL-CS-1). 옛 신고 전용 주소는 Cloudflare 전달로
+ * 살아 있지만 화면·문서에는 쓰지 않는다.
+ *
  * root layout 이 한 번만 붙인다 — 화면마다 따로 만들지 않는다. 띠는 언제나 어두운 면이라
  * 다크·화이트 화면 어디서나 같은 모양이고, 네 항목은 글꼴·크기·색·간격이 같다(app/globals.css).
  * 매치 무대·크라운 카드·차트도 같은 띠를 쓴다 — [data-arena-root] 가 최소 100vh 라 띠는
@@ -28,7 +31,7 @@ export function FooterPolicyRow(): JSX.Element {
         {t("footer.privacy")}
       </a>
       <a href={policyLinkHref("/policies/terms", lang)}>{t("nav.sub.terms")}</a>
-      <a href="mailto:report@worldcrown48.com">{t("footer.report")}</a>
+      <a href="mailto:policy@worldcrown48.com">{t("footer.report")}</a>
       <button type="button" onClick={reopen}>
         {t("footer.cookies")}
       </button>
