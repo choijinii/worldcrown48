@@ -45,7 +45,7 @@ export function PairBadge({ side, size = 24 }: { side: PairSide; size?: number }
         width: size,
         height: size,
         flex: "none",
-        borderRadius: 5,
+        borderRadius: "var(--radius-border)",
         background: SIDE_COLOR[side],
         color: SIDE_INK[side],
         fontFamily: "var(--font-mono)",
@@ -101,7 +101,7 @@ function Slot({
         gap: 12,
         padding: 16,
         border: `1px solid color-mix(in srgb, ${SIDE_COLOR[side]} 45%, transparent)`,
-        borderRadius: 5,
+        borderRadius: "var(--radius-border)",
         background: "var(--color-bg-soft)",
       }}
     >
@@ -242,7 +242,7 @@ export function PairPanel({ contestants, pick, onPosChange, title, deadlineMs }:
           data-testid="pair-preview"
           style={{
             width: "100%",
-            borderRadius: 5,
+            borderRadius: "var(--radius-border)",
             overflow: "hidden",
             border: `1px solid ${lab.border}`,
             background: "var(--color-bg-soft)",

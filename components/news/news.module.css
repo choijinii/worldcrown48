@@ -138,11 +138,11 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 5px;
+  border-radius: var(--radius-border);
 }
 .heroBox {
   position: relative;
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   overflow: hidden;
   background: linear-gradient(180deg, var(--color-twilight-soft) 0%, var(--color-twilight) 55%, var(--color-twilight-deep) 100%);
   padding: 44px 28px 36px;
@@ -199,7 +199,7 @@
 .stat {
   background: var(--wc-twilight-deep);
   padding: 18px 16px 15px;
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   text-align: center;
 }
 .statN {
@@ -246,7 +246,7 @@
   grid-template-columns: 1fr 54px 1fr;
   align-items: stretch;
   background: var(--wc-twilight);
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   overflow: hidden;
 }
 .muSide {

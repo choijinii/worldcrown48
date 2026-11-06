@@ -80,23 +80,23 @@
   --shadow-crimson:   0 0 24px rgba(215, 6, 58, 0.25);
   --shadow-turquoise: 0 0 24px rgba(0, 163, 183, 0.20);
   --shadow-gnb:       0 8px 32px rgba(0, 0, 58, 0.40);
-  --shadow-light:     0 1px 2px rgba(36, 23, 84, 0.06), 0 8px 24px rgba(36, 23, 84, 0.06);
+  --shadow-light:     none;   /* light surfaces carry no shadow (D-85) */
 
   /* ── Radius ── ANGULAR SYSTEM · three values only
      0      → Rectangle (no radius)
-     5px    → Border (default for surfaces, cards, buttons, inputs)
+     2px    → Border (default for surfaces, cards, buttons, inputs) — max 2px, dark & light (D-85)
      999px  → Pill · chip (full-round) */
   --radius-rect:   0;
-  --radius-border: 5px;
+  --radius-border: 2px;
   --radius-chip:   999px;
 
-  /* Legacy aliases — all collapsed onto the 5px border value */
-  --radius-card:      5px;
-  --radius-card-hero: 5px;
-  --radius-modal:     5px;
-  --radius-panel:     5px;
-  --radius-btn:       5px;
-  --radius-badge:     5px;
+  /* Legacy aliases — all collapsed onto the 2px border value */
+  --radius-card:      2px;
+  --radius-card-hero: 2px;
+  --radius-modal:     2px;
+  --radius-panel:     2px;
+  --radius-btn:       2px;
+  --radius-badge:     2px;
 
   /* ── Spacing (8-grid) ── */
   --space-1:  4px;

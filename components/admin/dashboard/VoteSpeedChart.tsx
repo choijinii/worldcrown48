@@ -117,7 +117,7 @@ export function VoteSpeedChart({ chart }: VoteSpeedChartProps): JSX.Element {
                 <Tooltip
                   formatter={(value: number | string) => [`${n(Number(value))} ${t.perHr}`, t.side]}
                   labelFormatter={(label: number | string) => hhmm(Number(label))}
-                  contentStyle={{ background: "var(--color-bg-default)", border: "none", borderRadius: 5, color: "var(--color-white)", fontFamily: "var(--font-mono)", fontSize: 11 }}
+                  contentStyle={{ background: "var(--color-bg-default)", border: "none", borderRadius: "var(--radius-border)", color: "var(--color-white)", fontFamily: "var(--font-mono)", fontSize: 11 }}
                 />
                 <Area type="monotone" dataKey="votes" stroke={GOLD} strokeWidth={2.5} fill="url(#vs-grad)" />
               </AreaChart>

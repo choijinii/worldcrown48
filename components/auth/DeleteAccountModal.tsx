@@ -158,7 +158,7 @@ export function DeleteAccountModal({
             width: "100%",
             maxWidth: 480,
             background: "var(--color-surface-light)",
-            borderRadius: 20,
+            borderRadius: "var(--radius-border)",
             padding: 24,
             boxShadow: "0 24px 60px rgba(14,9,68,0.22)",
             fontFamily: "Inter, system-ui, sans-serif",
@@ -182,7 +182,7 @@ export function DeleteAccountModal({
           <div
             style={{
               padding: "12px 14px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-border)",
               background: "rgba(215,6,58,0.08)",
               border: "1px solid rgba(215,6,58,0.24)",
               marginBottom: 16,
@@ -212,7 +212,7 @@ export function DeleteAccountModal({
           <div
             style={{
               padding: "10px 12px",
-              borderRadius: 10,
+              borderRadius: "var(--radius-border)",
               background: "var(--color-bg-light)",
               marginBottom: 16,
             }}
@@ -247,7 +247,7 @@ export function DeleteAccountModal({
               width: "100%",
               boxSizing: "border-box",
               padding: "10px 12px",
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               border: "1px solid var(--color-border-light)",
               fontFamily: "JetBrains Mono, monospace",
               fontSize: 14,
@@ -264,7 +264,7 @@ export function DeleteAccountModal({
               disabled={busy}
               style={{
                 padding: "10px 18px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-border)",
                 border: "1px solid var(--color-border-light)",
                 background: "transparent",
                 color: "var(--color-text-light)",
@@ -282,7 +282,7 @@ export function DeleteAccountModal({
               disabled={!canDelete}
               style={{
                 padding: "10px 18px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-border)",
                 border: "none",
                 background: canDelete ? "var(--color-crimson)" : "rgba(215,6,58,0.4)",
                 color: "var(--color-white)",

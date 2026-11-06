@@ -12,7 +12,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   background: var(--color-bg-void);
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   overflow: hidden;
 }
 

@@ -618,7 +618,7 @@
 .rankBtn {
   justify-self: start;
   padding: 4px 14px;
-  border-radius: 4px;
+  border-radius: var(--radius-border);
   background: var(--arena-continue-bg);
   color: var(--color-royal);
   font-size: 13px;

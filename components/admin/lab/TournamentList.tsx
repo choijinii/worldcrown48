@@ -189,7 +189,7 @@ export function TournamentList({
                 alignItems: "center",
                 gap: 16,
                 padding: "12px 16px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-border)",
                 background: lab.surface,
                 border: `1px solid ${r.featured ? lab.gold : lab.border}`,
               }}
@@ -220,7 +220,7 @@ export function TournamentList({
                 data-testid={`arena-link-${r.id}`}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-border)",
                   border: `1px solid ${lab.turquoise}`,
                   background: "transparent",
                   color: lab.turquoise,
@@ -240,7 +240,7 @@ export function TournamentList({
                 data-testid={`names-toggle-${r.id}`}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-border)",
                   border: `1px solid ${lab.border}`,
                   background: "transparent",
                   color: lab.textSub,
@@ -259,7 +259,7 @@ export function TournamentList({
                 aria-pressed={r.featured}
                 style={{
                   padding: "6px 12px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-border)",
                   border: `1px solid ${lab.gold}`,
                   background: r.featured ? lab.gold : "transparent",
                   color: r.featured ? "var(--color-bg-default)" : lab.gold,
@@ -278,7 +278,7 @@ export function TournamentList({
                     onClick={() => remove(r.id)}
                     style={{
                       padding: "6px 10px",
-                      borderRadius: 8,
+                      borderRadius: "var(--radius-border)",
                       border: "none",
                       background: lab.crimson,
                       color: "var(--color-white)",
@@ -294,7 +294,7 @@ export function TournamentList({
                     onClick={() => setConfirmId(null)}
                     style={{
                       padding: "6px 10px",
-                      borderRadius: 8,
+                      borderRadius: "var(--radius-border)",
                       border: `1px solid ${lab.border}`,
                       background: "transparent",
                       color: lab.textSub,
@@ -312,7 +312,7 @@ export function TournamentList({
                   aria-label={t("lab.list.deleteAria", { title: localizedTitle(r, lang) })}
                   style={{
                     padding: "6px 10px",
-                    borderRadius: 8,
+                    borderRadius: "var(--radius-border)",
                     border: `1px solid ${lab.border}`,
                     background: "transparent",
                     color: lab.textMuted,

@@ -79,7 +79,7 @@ export function SourcingQuotaDialog({
             gap: 14,
             background: lab.surface,
             border: `1px solid ${lab.border}`,
-            borderRadius: 16,
+            borderRadius: "var(--radius-border)",
             padding: 24,
             fontFamily: lab.font,
             color: lab.text,
@@ -110,7 +110,7 @@ export function SourcingQuotaDialog({
               onClick={onCancel}
               style={{
                 padding: "10px 16px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-border)",
                 border: `1px solid ${lab.border}`,
                 background: "transparent",
                 color: lab.textSub,
@@ -128,7 +128,7 @@ export function SourcingQuotaDialog({
               data-testid="auto-source-run"
               style={{
                 padding: "10px 18px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-border)",
                 border: "none",
                 background: lab.gold,
                 color: "var(--color-bg-default)",

@@ -107,7 +107,7 @@ export function AdminAuthGuard({ children }: { children: ReactNode }): JSX.Eleme
             style={{
               width: "100%",
               padding: "12px 16px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-border)",
               border: "2px solid var(--color-gold)",
               background: "rgba(252,208,6,0.12)",
               color: "var(--color-gold)",

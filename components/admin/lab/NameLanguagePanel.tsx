@@ -19,7 +19,7 @@ import { lab } from "./theme";
 const input = {
   width: "100%",
   padding: "6px 8px",
-  borderRadius: 6,
+  borderRadius: "var(--radius-border)",
   border: `1px solid ${lab.border}`,
   background: lab.bg,
   color: lab.text,
@@ -145,7 +145,7 @@ export function NameLanguagePanel({ tournamentId }: { tournamentId: string }): J
             style={{
               marginTop: 12,
               padding: "6px 14px",
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               border: "none",
               background: lab.gold,
               color: "var(--color-bg-default)",

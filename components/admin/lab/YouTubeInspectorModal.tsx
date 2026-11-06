@@ -202,7 +202,7 @@ export function YouTubeInspectorModal({
             gap: 16,
             background: lab.surface,
             border: `1px solid ${lab.border}`,
-            borderRadius: 16,
+            borderRadius: "var(--radius-border)",
             padding: 24,
             fontFamily: lab.font,
             color: lab.text,
@@ -256,7 +256,7 @@ export function YouTubeInspectorModal({
               width: "100%",
               resize: "vertical",
               padding: 12,
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               border: `1px solid ${lab.border}`,
               background: lab.surfaceElev,
               color: lab.text,
@@ -300,7 +300,7 @@ export function YouTubeInspectorModal({
                 disabled={busy}
                 style={{
                   padding: "10px 16px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-border)",
                   border: `1px solid ${lab.border}`,
                   background: "transparent",
                   color: lab.textSub,
@@ -318,7 +318,7 @@ export function YouTubeInspectorModal({
                 data-testid="embed-inspector-validate"
                 style={{
                   padding: "10px 18px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-border)",
                   border: "none",
                   background: busy ? lab.surfaceElev : lab.gold,
                   color: busy ? lab.textMuted : "var(--color-bg-default)",
@@ -363,7 +363,7 @@ export function YouTubeInspectorModal({
                       alignItems: "center",
                       gap: 10,
                       padding: "8px 10px",
-                      borderRadius: 8,
+                      borderRadius: "var(--radius-border)",
                       border: `1px solid ${lab.border}`,
                       borderLeft: `3px solid ${color}`,
                       background: lab.surfaceElev,
@@ -383,7 +383,7 @@ export function YouTubeInspectorModal({
                       <img
                         src={verdict.thumbnailUrl}
                         alt=""
-                        style={{ width: 48, height: 27, objectFit: "cover", borderRadius: 3 }}
+                        style={{ width: 48, height: 27, objectFit: "cover", borderRadius: "var(--radius-border)" }}
                       />
                     )}
 

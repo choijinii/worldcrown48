@@ -71,7 +71,7 @@
 
   /* Radii / spacing */
   --radius-rect: 0;
-  --radius-border: 5px;
+  --radius-border: 2px; /* 상자 모서리 최대 2px — 다크·화이트 모두 (원장 D-85) */
   --radius-chip: 999px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
@@ -538,10 +538,11 @@ input { font: inherit; }
      쓰는데, 토큰이 없어 선언이 무효화되면서 그림자 없음이 된다. 그게 현재의
      다크 네비바 모습이다. :root로 올리면 없던 그림자가 생긴다 —
      실제로 첫 시도에서 그렇게 됐고 런타임 색상 대조가 잡아냈다. */
-  --shadow-light: 0 1px 2px rgba(36, 23, 84, 0.06), 0 8px 24px rgba(36, 23, 84, 0.06);
-  --shadow-gnb: 0 10px 30px rgba(36, 23, 84, 0.10);
-  --shadow-modal: 0 24px 60px rgba(14, 9, 68, 0.22);
-  --shadow-banner: 0 -8px 30px rgba(14, 9, 68, 0.10);
+  /* 밝은 면 그림자 없음(원장 D-85 · 2026-11-06 대표). 토큰은 남겨 두고 값만 none — 쓰는 곳은 그대로. */
+  --shadow-light: none;
+  --shadow-gnb: none;
+  --shadow-modal: none;
+  --shadow-banner: none;
 
   background: var(--color-bg-light);
   color: var(--color-text-light);
@@ -801,7 +802,7 @@ input { font: inherit; }
   padding: 4px var(--space-2);
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-border);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
@@ -1190,7 +1191,7 @@ input { font: inherit; }
   padding: 6px var(--space-3);
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-border);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -1300,7 +1301,7 @@ input { font: inherit; }
   background: var(--color-surface-soft);
   color: var(--color-royal);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-border);
   border: 1px solid var(--color-border-soft);
 }
 .policy-doc pre {
@@ -1544,7 +1545,7 @@ input { font: inherit; }
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
+    border-radius: var(--radius-border) var(--radius-border) 0 0 !important;
     box-shadow: 0 -16px 40px rgba(14, 9, 68, 0.18) !important;
     padding: 12px 12px max(16px, env(safe-area-inset-bottom)) !important;
   }

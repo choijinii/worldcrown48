@@ -93,7 +93,7 @@ export default function AccountPage(): JSX.Element {
         style={{
           background: "var(--color-surface-light)",
           border: "1px solid var(--color-border-light)",
-          borderRadius: 16,
+          borderRadius: "var(--radius-border)",
           padding: 24,
           marginBottom: 24,
         }}
@@ -110,7 +110,7 @@ export default function AccountPage(): JSX.Element {
         style={{
           background: "var(--color-surface-light)",
           border: "1px solid var(--color-border-light)",
-          borderRadius: 16,
+          borderRadius: "var(--radius-border)",
           padding: 24,
         }}
       >
@@ -131,7 +131,7 @@ export default function AccountPage(): JSX.Element {
           onClick={() => setDeleteOpen(true)}
           style={{
             padding: "10px 16px",
-            borderRadius: 10,
+            borderRadius: "var(--radius-border)",
             border: "1px solid var(--color-crimson)",
             background: "transparent",
             color: "var(--color-crimson)",
