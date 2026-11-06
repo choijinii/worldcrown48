@@ -71,6 +71,34 @@ test.describe("D-1.1 Fix — 4 critical flows", () => {
     await ctx.close();
   });
 
+  test("1b. 프로필 알약 — 연한 노랑 바탕 + 진한 글자 · 대비 4.5 이상 (D-76 · 2026-11-04)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const avatar = page.getByTestId("user-avatar");
+    await expect(avatar).toBeVisible({ timeout: 5000 });
+    const colors = await avatar.evaluate((el) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--color-aura)";
+      document.body.appendChild(probe);
+      const aura = getComputedStyle(probe).color;
+      probe.remove();
+      const name = el.querySelector("span:nth-child(2)") as HTMLElement;
+      return { aura, bg: getComputedStyle(el).backgroundColor, fg: getComputedStyle(name).color };
+    });
+    expect(colors.bg).toBe(colors.aura);
+    const rgb = (s: string) => (s.match(/\d+/g) ?? []).slice(0, 3).map(Number);
+    const lum = ([r, g, b]: number[]) => {
+      const f = (c: number) => {
+        const v = c / 255;
+        return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    };
+    const [hi, lo] = [lum(rgb(colors.bg)), lum(rgb(colors.fg))].sort((a, b) => b - a);
+    expect((hi + 0.05) / (lo + 0.05)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test('2. P2 로그아웃 토스트 — "로그아웃 됐어요." 5초 노출', async ({ page }) => {
     await page.goto("/");
 

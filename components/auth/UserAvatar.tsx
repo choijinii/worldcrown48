@@ -7,6 +7,8 @@
  *
  * Visual contract (YT-FIX-1 · 원장 D-76 · 시안 GNB 부품):
  *   - 프로필 알약 높이 36(휴대폰 30) 안에 사진 알약 42×28(휴대폰 34×22) + 이름.
+ *   - 알약 바탕 = 연한 노랑(--color-aura) · 이름 = 진한 남색(--arena-continue-text) · 대비 11:1
+ *     (2026-11-04 대표). 로그인 전 "로그인" 알약은 진한 노랑(--color-gold) 그대로.
  *   - photoURL 이 없으면 이름 첫 글자.
  *   - displayName label is truncated to 24 chars with a CSS ellipsis.
  */
@@ -56,8 +58,8 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
           height: 36,
           padding: "0 14px 0 4px",
           borderRadius: 999,
-          border: "1px solid color-mix(in srgb, var(--color-white) 22%, transparent)",
-          background: "color-mix(in srgb, var(--color-white) 8%, transparent)",
+          border: "1px solid var(--color-aura)",
+          background: "var(--color-aura)",
           cursor: "pointer",
         }}
       >
@@ -67,7 +69,7 @@ export function UserAvatar({ user }: UserAvatarProps): JSX.Element {
             fontFamily: "var(--font-sans)",
             fontSize: 13,
             fontWeight: 600,
-            color: "var(--color-text-light)",
+            color: "var(--arena-continue-text)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
