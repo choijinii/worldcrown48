@@ -1,6 +1,6 @@
 name: gutter E2E (Playwright)
 
-# D-78 (2026-11-06 대표): 공개 페이지 좌우 여백 20 통일(매치 무대 제외). 여섯 페이지 × 390·768·1024 에서
+# D-84 (2026-11-06 대표): 공개 페이지 좌우 여백 20 통일(매치 무대 제외). 여섯 페이지 × 390·768·1024 에서
 # 내용 시작 = 창 끝에서 20px · 가로 넘침 없음을 이 커밋의 Vercel Preview 에서 확인한다.
 # Preview URL 은 커밋마다 Deployments API 로 찾는다 — 고정 시크릿 없음 ([[feedback_c2_preview_url_pinned]]).
 
