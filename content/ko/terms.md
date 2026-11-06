@@ -2,13 +2,13 @@
 title: 이용약관
 type: terms
 lang: ko
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # 이용약관 · Terms of Service
 
-**최종 업데이트: 2026년 10월 10일 · 시행일: 2026년 6월 11일**
+**최종 업데이트: 2026년 11월 6일 · 시행일: 2026년 6월 11일**
 
 > 이 문서는 한국어로 작성되었으며, 번역본과 내용이 다를 경우 한국어 원문이 우선합니다.
 
@@ -84,6 +84,15 @@ version: 1.2
 
 - **Crown Card**: 사용자의 선택 결과로 자동 생성되는 카드 이미지로, 사용자가 자유롭게 SNS·외부에 공유할 수 있습니다
 - **AI-Report**: AI가 생성한 분석·뉴스 콘텐츠로, 월크48에 저작권이 귀속됩니다 (디자인 시스템 v2.4 Footer-Only Lock 준수)
+
+### 5.4 권리자의 내리기 요청 (Takedown)
+
+월크48이 만든 대회의 엔트리에 쓰인 이미지·영상 썸네일에 대해 본인·소속사·대리인이 제지나 삭제를 요청하시면, **접수 후 24시간 안에** 해당 이미지를 내립니다. 내리면 화면과 크라운 카드에서 이미지가 사라지고 이름의 첫 글자만 남습니다.
+
+- **요청 주소**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com) · 제목에 `[내리기 요청]`
+- **적어 주실 것**: 대회 이름 또는 주소 · 엔트리 이름 · 요청하시는 분과 권리의 관계(본인·소속사·대리인)
+- **처리**: 접수 확인 → 24시간 안에 내림 → "내렸습니다" 회신. 이의가 있으면 같은 주소로 `[이의신청]`.
+- **기록**: 내린 엔트리·사유·날짜는 보관합니다.
 
 ---
 
@@ -161,12 +170,11 @@ version: 1.2
 
 ## 13. 문의
 
+- **신고·내리기 요청·이의신청·정책·법적 문의**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **일반 문의**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
-- **신고·콘텐츠 이의**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **정책·법적 문의**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **응답 약속**: 영업일 기준 7일 이내
 
 ---
 
 *본 약관은 법적·서비스 변경에 따라 사전 공지 후 업데이트될 수 있습니다.*
-*© 2026 WorldCrown48 · Terms of Service v1.2*
+*© 2026 WorldCrown48 · Terms of Service v1.3*

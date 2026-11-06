@@ -2,13 +2,13 @@
 title: Cookie Policy
 type: cookies
 lang: en
-lastUpdated: 2026-10-18
-version: 1.3
+lastUpdated: 2026-11-06
+version: 1.4
 ---
 
 # Cookie Policy
 
-**Last updated: October 18, 2026**
+**Last updated: November 6, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -134,7 +134,6 @@ This Cookie Policy may be updated due to legal changes, service updates, or new 
 For questions or objections related to this Cookie Policy:
 
 - **Email**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
-- **Report**: [report@worldcrown48.com](mailto:report@worldcrown48.com) (content or account reports)
 - **Response time**: within 7 business days
 
 EU residents have the right to file a complaint with their national data protection authority.
@@ -142,4 +141,4 @@ EU residents have the right to file a complaint with their national data protect
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Cookie Policy v1.3*
+*© 2026 WorldCrown48 · Cookie Policy v1.4*
