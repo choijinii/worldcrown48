@@ -1,0 +1,122 @@
+name: gutter E2E (Playwright)
+
+# D-78 (2026-11-06 대표): 공개 페이지 좌우 여백 20 통일(매치 무대 제외). 여섯 페이지 × 390·768·1024 에서
+# 내용 시작 = 창 끝에서 20px · 가로 넘침 없음을 이 커밋의 Vercel Preview 에서 확인한다.
+# Preview URL 은 커밋마다 Deployments API 로 찾는다 — 고정 시크릿 없음 ([[feedback_c2_preview_url_pinned]]).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/globals.css'
+      - 'components/pitch/**'
+      - 'components/arenaHome/**'
+      - 'components/records/**'
+      - 'components/account/**'
+      - 'app/account/**'
+      - 'components/news/**'
+      - 'components/launch/**'
+      - 'app/launch/**'
+      - 'docs/design/colors_and_type.css'
+      - 'lib/__tests__/layout/**'
+      - 'e2e/gutter20-pages.spec.ts'
+      - 'playwright.config.ts'
+      - '.github/workflows/gutter-e2e.yml'
+
+concurrency:
+  group: gutter-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # PREVIEW_URL is NOT a secret — it is resolved per-commit from the GitHub
+      # Deployments API below (see the "Resolve … Preview URL" step).
+      TEST_UID: ${{ secrets.DEV_VISUAL_AID_TEST_UID }}
+      FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (tsc)
+        run: npx tsc --noEmit
+
+      - name: Unit tests (vitest) — layout
+        run: npm run test:unit -- lib/__tests__/layout
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve this commit's own Vercel Preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Resolving the Preview deployment for commit $HEAD_SHA"
+          URL=""
+          for i in $(seq 1 40); do
+            DID=$(gh api "repos/${{ github.repository }}/deployments?sha=$HEAD_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$DID" ]; then
+              URL=$(gh api "repos/${{ github.repository }}/deployments/$DID/statuses" \
+                    --jq 'map(select(.state=="success"))[0].environment_url // empty')
+            fi
+            if [ -n "$URL" ]; then
+              echo "Preview deployment ready: $URL"
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Preview deployment for $HEAD_SHA not success yet (attempt $i/40) — sleeping 15s."
+            sleep 15
+          done
+          if [ -z "$URL" ]; then
+            echo "No successful Vercel Preview deployment for $HEAD_SHA after ~10m." >&2
+            exit 1
+          fi
+
+      - name: Wait for Preview reachability (bypass-protected)
+        run: |
+          HEADER_ARGS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            HEADER_ARGS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+          for i in {1..30}; do
+            if curl -fsSL --max-time 10 "${HEADER_ARGS[@]}" "$PREVIEW_URL" >/dev/null; then
+              echo "Preview reachable at $PREVIEW_URL"; exit 0
+            fi
+            echo "Preview not reachable yet (attempt $i) — sleeping 10s."; sleep 10
+          done
+          echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
+
+      - name: E2E (Playwright) — gutter spec only
+        run: npm run test:e2e -- e2e/gutter20-pages.spec.ts
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gutter-playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload trace + video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gutter-playwright-traces
+          path: test-results/
+          retention-days: 14

@@ -10,7 +10,7 @@
   background: var(--color-bg-light);
   color: var(--color-text-light);
   font-family: var(--font-sans);
-  padding: calc(var(--nav-h) + 32px) 24px 72px;
+  padding: calc(var(--nav-h) + 32px) var(--page-gutter) 72px;
 }
 .inner {
   max-width: 1320px;
@@ -840,7 +840,7 @@
     font-size: 13px;
   }
   .page {
-    padding: calc(var(--nav-h) + 20px) 16px 48px;
+    padding: calc(var(--nav-h) + 20px) var(--page-gutter) 48px;
   }
   .inner {
     gap: 28px;

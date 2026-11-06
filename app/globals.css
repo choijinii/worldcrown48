@@ -76,6 +76,8 @@
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
   --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+  /* 공개 페이지 좌우 여백 — 모든 폭 20 하나(원장 D-78 · 매치 무대 제외). 넓은 화면의 최대 폭·가운데 정렬은 따로. */
+  --page-gutter: 20px;
 
   /* Type stacks */
   --font-sans: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', sans-serif;
@@ -135,7 +137,7 @@ input { font: inherit; }
   container-name: lp;
   max-width: 800px;
   margin: 0 auto;
-  padding: var(--space-16) var(--space-5) var(--space-12);
+  padding: var(--space-16) var(--page-gutter) var(--space-12);
 }
 
 /* ── M1 · LaunchHero ── */
@@ -477,7 +479,7 @@ input { font: inherit; }
   z-index: 2;
   display: flex;
   justify-content: center;
-  padding: 0 var(--space-5) var(--space-12);
+  padding: 0 var(--page-gutter) var(--space-12);
 }
 
 .lp-foot {
@@ -1496,7 +1498,7 @@ input { font: inherit; }
    Tablet ≥760 · Desktop ≥1100 of .lp-inner width.
    ════════════════════════════════════════════════ */
 @container lp (min-width: 760px) {
-  .lp-inner { padding: var(--space-24) var(--space-8) var(--space-16); }
+  .lp-inner { padding: var(--space-24) var(--page-gutter) var(--space-16); }
   .hero-crown { width: 104px; }
   .hero-line1 { font-size: 44px; }
   .hero-line2 { font-size: 40px; }

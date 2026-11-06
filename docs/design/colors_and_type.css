@@ -113,6 +113,9 @@
   --space-24: 96px;
   --space-32: 128px;
 
+  /* ── Page gutter (D-78 · 2026-11-06) — 공개 페이지 좌우 여백, 모든 폭 20 · 매치 무대 제외 ── */
+  --page-gutter: 20px;
+
   /* ── Typography ──
      Inter      → UI · body · headings
      Playfair   → display · italic accent · Champion names · manifesto
