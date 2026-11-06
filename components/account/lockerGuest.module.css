@@ -5,7 +5,7 @@
  */
 .page {
   min-height: 100vh;
-  padding: 56px 16px 96px;
+  padding: 56px var(--page-gutter) 96px;
   box-sizing: border-box;
   background: var(--color-surface-light);
   color: var(--color-bg-void);
@@ -114,7 +114,7 @@
 
 @media (max-width: 860px) {
   .page {
-    padding: 32px 20px 64px;
+    padding: 32px var(--page-gutter) 64px;
   }
   .inner {
     flex-direction: column;

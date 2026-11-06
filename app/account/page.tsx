@@ -54,7 +54,7 @@ export default function AccountPage(): JSX.Element {
         style={{
           maxWidth: 640,
           margin: "0 auto",
-          padding: "64px 24px",
+          padding: "64px var(--page-gutter)",
           fontFamily: "Inter, system-ui, sans-serif",
           color: "var(--color-text-sub-light)",
         }}
@@ -71,7 +71,7 @@ export default function AccountPage(): JSX.Element {
       style={{
         maxWidth: 640,
         margin: "0 auto",
-        padding: "64px 24px",
+        padding: "64px var(--page-gutter)",
         fontFamily: "Inter, system-ui, sans-serif",
         color: "var(--color-text-light)",
       }}

@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px clamp(20px, 5vw, 40px);
+  padding: 20px var(--page-gutter);
   border-bottom: 3px solid var(--wc-ink);
 }
 .brand {
@@ -66,7 +66,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 12px clamp(20px, 5vw, 40px);
+  padding: 12px var(--page-gutter);
   border-bottom: 1px solid var(--wc-paper-line);
 }
 .tag {
@@ -87,7 +87,7 @@
 }
 
 .article {
-  padding: 36px clamp(20px, 5vw, 40px) 44px;
+  padding: 36px var(--page-gutter) 44px;
 }
 .headline {
   font-family: var(--font-display);
@@ -302,7 +302,7 @@
 /* ✦ AI-Report — v2.5: 8px · 50% 투명 · 골드 모노 · 본문 블록 최하단 */
 .articleFooter {
   background: var(--wc-twilight-deep);
-  padding: 12px clamp(20px, 5vw, 40px);
+  padding: 12px var(--page-gutter);
 }
 .aiReport {
   font-family: var(--font-mono);
@@ -316,7 +316,7 @@
 .listWrap {
   max-width: 760px;
   margin: 32px auto 64px;
-  padding: 0 clamp(20px, 5vw, 40px);
+  padding: 0 var(--page-gutter);
 }
 .listHead {
   font-family: var(--font-display);
@@ -365,5 +365,5 @@
   justify-content: flex-end;
   max-width: 760px;
   margin: 12px auto 0;
-  padding: 0 clamp(20px, 5vw, 40px);
+  padding: 0 var(--page-gutter);
 }

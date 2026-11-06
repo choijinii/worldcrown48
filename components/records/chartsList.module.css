@@ -5,7 +5,7 @@
   background: var(--color-bg-void);
   color: var(--color-text);
   font-family: var(--font-sans);
-  padding: 80px 16px 64px;
+  padding: 80px var(--page-gutter) 64px;
 }
 .inner {
   max-width: 970px;
