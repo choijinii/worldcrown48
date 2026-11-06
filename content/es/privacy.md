@@ -2,13 +2,13 @@
 title: Política de privacidad
 type: privacy
 lang: es
-lastUpdated: 2026-10-18
-version: 1.3
+lastUpdated: 2026-11-06
+version: 1.4
 ---
 
 # Política de privacidad · Privacy Policy
 
-**Última actualización: 18 de octubre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
+**Última actualización: 6 de noviembre de 2026 · Fecha de entrada en vigor: 11 de junio de 2026**
 
 > Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.
 
@@ -219,12 +219,11 @@ Esta Política se actualiza en función de cambios normativos, de la ampliación
 
 | Tipo | Canal |
 |---|---|
-| Consultas sobre políticas y asuntos legales | [policy@worldcrown48.com](mailto:policy@worldcrown48.com) |
-| Denuncias de contenido | [report@worldcrown48.com](mailto:report@worldcrown48.com) |
+| Consultas sobre políticas y asuntos legales, denuncias y solicitudes de retirada | [policy@worldcrown48.com](mailto:policy@worldcrown48.com) |
 | Consultas generales | [hello@worldcrown48.com](mailto:hello@worldcrown48.com) |
 | Plazo de respuesta | En un plazo de 7 días hábiles (30 días para solicitudes de ejercicio de derechos) |
 
 ---
 
 *Esta Política podrá actualizarse, previo aviso, en función de cambios legales o del Servicio.*
-*© 2026 WorldCrown48 · Privacy Policy v1.3*
+*© 2026 WorldCrown48 · Privacy Policy v1.4*

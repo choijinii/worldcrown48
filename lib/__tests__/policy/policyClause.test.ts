@@ -11,6 +11,9 @@
  * PRE-REG-1 (2026-10-18): 개인정보처리방침·쿠키 정책만 1.2 → 1.3 · 최종 업데이트 2026-10-18
  * (사전등록 순번·처음 들어온 경로·wc48_utm). 이용약관·커뮤니티 정책은 1.2 · 2026-10-10 그대로 —
  * 그래서 판 번호·날짜를 문서마다 따로 본다.
+ *
+ * LEGAL-CS-1 (2026-11-06 · 원장 D-83): 네 문서 모두 창구를 policy@ 하나로 → 한 단계씩 올림
+ * (terms·community 1.2 → 1.3 · privacy·cookies 1.3 → 1.4) · 최종 업데이트 2026-11-06.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -27,23 +30,18 @@ const CLAUSE = {
   es: "Este documento fue redactado en coreano. Si una traducción difiere del original en coreano, prevalecerá el original en coreano.",
 } as const;
 
-const UPDATED_1010 = {
-  ko: "최종 업데이트: 2026년 10월 10일",
-  en: "Last updated: October 10, 2026",
-  es: "Última actualización: 10 de octubre de 2026",
-} as const;
-const UPDATED_1018 = {
-  ko: "최종 업데이트: 2026년 10월 18일",
-  en: "Last updated: October 18, 2026",
-  es: "Última actualización: 18 de octubre de 2026",
+const UPDATED_1106 = {
+  ko: "최종 업데이트: 2026년 11월 6일",
+  en: "Last updated: November 6, 2026",
+  es: "Última actualización: 6 de noviembre de 2026",
 } as const;
 
 /** 문서마다 판 번호 · 최종 업데이트. */
-const DOC: Record<string, { version: string; date: string; updated: typeof UPDATED_1010 | typeof UPDATED_1018 }> = {
-  privacy: { version: "1.3", date: "2026-10-18", updated: UPDATED_1018 },
-  cookies: { version: "1.3", date: "2026-10-18", updated: UPDATED_1018 },
-  terms: { version: "1.2", date: "2026-10-10", updated: UPDATED_1010 },
-  community: { version: "1.2", date: "2026-10-10", updated: UPDATED_1010 },
+const DOC: Record<string, { version: string; date: string; updated: typeof UPDATED_1106 }> = {
+  privacy: { version: "1.4", date: "2026-11-06", updated: UPDATED_1106 },
+  cookies: { version: "1.4", date: "2026-11-06", updated: UPDATED_1106 },
+  terms: { version: "1.3", date: "2026-11-06", updated: UPDATED_1106 },
+  community: { version: "1.3", date: "2026-11-06", updated: UPDATED_1106 },
 };
 
 const LANGS = ["ko", "en", "es"] as const;
@@ -83,7 +81,7 @@ describe("R4 — 문서 버전과 동의 버전은 별개", () => {
     expect(CURRENT_POLICY_VERSION).toBe("1.0");
   });
 
-  it("이미 동의한 팬의 흔적 쿠키 1.0.<ms> 는 문서가 1.3 이 된 뒤에도 유효하다", () => {
+  it("이미 동의한 팬의 흔적 쿠키 1.0.<ms> 는 문서가 1.4 가 된 뒤에도 유효하다", () => {
     const saved = new Date("2026-09-01T00:00:00Z");
     const now = new Date("2026-10-06T00:00:00Z");
     expect(parseConsentBreadcrumb(`1.0.${saved.getTime()}`, now)?.getTime()).toBe(saved.getTime());

@@ -2,13 +2,13 @@
 title: 개인정보처리방침
 type: privacy
 lang: ko
-lastUpdated: 2026-10-18
-version: 1.3
+lastUpdated: 2026-11-06
+version: 1.4
 ---
 
 # 개인정보처리방침 · Privacy Policy
 
-**최종 업데이트: 2026년 10월 18일 · 시행일: 2026년 6월 11일**
+**최종 업데이트: 2026년 11월 6일 · 시행일: 2026년 6월 11일**
 
 > 이 문서는 한국어로 작성되었으며, 번역본과 내용이 다를 경우 한국어 원문이 우선합니다.
 
@@ -219,12 +219,11 @@ EU 거주자는 본인의 거주국 데이터 보호 감독기관(DPA)에 직접
 
 | 구분 | 채널 |
 |---|---|
-| 정책·법적 문의 | [policy@worldcrown48.com](mailto:policy@worldcrown48.com) |
-| 콘텐츠 신고 | [report@worldcrown48.com](mailto:report@worldcrown48.com) |
+| 정책·법적 문의 · 신고·내리기 요청 | [policy@worldcrown48.com](mailto:policy@worldcrown48.com) |
 | 일반 문의 | [hello@worldcrown48.com](mailto:hello@worldcrown48.com) |
 | 응답 약속 | 영업일 기준 7일 이내 (권리 행사 요청은 30일) |
 
 ---
 
 *본 방침은 법적·서비스 변경에 따라 사전 공지 후 업데이트될 수 있습니다.*
-*© 2026 WorldCrown48 · Privacy Policy v1.3*
+*© 2026 WorldCrown48 · Privacy Policy v1.4*

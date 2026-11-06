@@ -2,13 +2,13 @@
 title: Community Guidelines
 type: community
 lang: en
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # Community Guidelines
 
-**Last updated: October 10, 2026**
+**Last updated: November 6, 2026**
 
 > This document was written in Korean. If a translation differs from the Korean original, the Korean original prevails.
 
@@ -91,6 +91,8 @@ The following content is not allowed in any form. It will be removed on sight, a
 - Unauthorized use of protected marks such as other organizations' trademarks or logos (WC48 is not affiliated with any official organization)
 - Passing off someone else's content as your own
 
+> Images used for Contestants in Tournaments created by WC48 follow the [Terms of Service §5.4 Takedown requests from rights holders](/policies/terms#5.4) process.
+
 ---
 
 ## 3. Limited Allowance for Nudity in Art Categories
@@ -155,10 +157,11 @@ For §2.2 CSAM and §2.1 sexually explicit content, **steps are skipped and the 
 
 If you find a violation, please report it through one of the following channels.
 
-- **Email**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Response commitment**: First review within **24 hours** (business days)
+- **Email**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Subject tag**: Starting the subject line with `[신고]` (Report), `[내리기 요청]` (Takedown), or `[이의신청]` (Appeal) helps us act faster
+- **Response commitment**: **First review within 24 hours of receipt**
 - **CSAM reports**: Same email; we recommend including `[URGENT-CSAM]` in the subject line
-- **Appeals**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Appeals**: Same email, with `[이의신청]` in the subject line (§8)
 
 Including the following helps us act faster.
 
@@ -196,8 +199,7 @@ Continued use of the Service after an update constitutes acceptance of the updat
 
 ## 10. Contact
 
-- **Report**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **Appeals · policy inquiries**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **Reports · takedown requests · appeals · policy inquiries**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **General inquiries**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
 
 WC48 continues to refine these Guidelines so that every fan, Contestant, and Tournament organizer has a safe, global place to play.
@@ -205,4 +207,4 @@ WC48 continues to refine these Guidelines so that every fan, Contestant, and Tou
 ---
 
 *This policy may be updated after prior notice in response to legal or service changes.*
-*© 2026 WorldCrown48 · Community Guidelines v1.2*
+*© 2026 WorldCrown48 · Community Guidelines v1.3*

@@ -2,13 +2,13 @@
 title: 커뮤니티 가이드
 type: community
 lang: ko
-lastUpdated: 2026-10-10
-version: 1.2
+lastUpdated: 2026-11-06
+version: 1.3
 ---
 
 # 커뮤니티 가이드라인 · Community Guidelines
 
-**최종 업데이트: 2026년 10월 10일**
+**최종 업데이트: 2026년 11월 6일**
 
 > 이 문서는 한국어로 작성되었으며, 번역본과 내용이 다를 경우 한국어 원문이 우선합니다.
 
@@ -91,6 +91,8 @@ WorldCrown48(이하 "월크48", "서비스")은 전 세계 팬이 자신이 좋�
 - 다른 단체의 상표·로고 등 보호 표장의 무단 사용 (월크48은 어떤 공식 단체와도 제휴되어 있지 않습니다)
 - 타인의 콘텐츠를 자신의 것으로 위장
 
+> 월크48이 만든 대회의 엔트리 그림은 [이용약관 §5.4 권리자의 내리기 요청](/policies/terms#5.4) 절차를 따릅니다.
+
 ---
 
 ## 3. 누드·예술 표현의 제한적 허용
@@ -155,10 +157,11 @@ Tournament를 만드는 운영자는 다음을 약속한 것으로 간주됩니�
 
 가이드라인 위반을 발견하시면 다음 채널로 신고해 주세요.
 
-- **이메일**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **응답 약속**: 영업일 기준 **24시간 내 1차 검토**
+- **이메일**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **제목 머리말**: 제목 앞에 `[신고]` · `[내리기 요청]` · `[이의신청]` 중 하나를 적어 주시면 더 빨리 처리됩니다
+- **응답 약속**: **접수 후 24시간 안에 1차 검토**
 - **CSAM 신고**: 동일 이메일 사용, 제목에 `[URGENT-CSAM]` 표기 권장
-- **이의신청**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **이의신청**: 동일 이메일 사용, 제목에 `[이의신청]` (§8)
 
 신고 시 다음 정보를 포함해 주시면 처리가 빨라집니다.
 
@@ -196,8 +199,7 @@ EU 거주자는 EU DSA(Digital Services Act)에 따라 **분쟁 외 해결(ODR)*
 
 ## 10. 문의
 
-- **신고**: [report@worldcrown48.com](mailto:report@worldcrown48.com)
-- **이의신청·정책 문의**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
+- **신고·내리기 요청·이의신청·정책 문의**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
 - **일반 문의**: [hello@worldcrown48.com](mailto:hello@worldcrown48.com)
 
 월크48은 모든 팬, Contestant, Tournament 운영자가 안전하게 활동할 수 있는 글로벌 플랫폼이 되기 위해 본 가이드라인을 지속적으로 개선합니다.
@@ -205,4 +207,4 @@ EU 거주자는 EU DSA(Digital Services Act)에 따라 **분쟁 외 해결(ODR)*
 ---
 
 *본 가이드라인은 법적·서비스 변경에 따라 사전 공지 후 업데이트될 수 있습니다.*
-*© 2026 WorldCrown48 · Community Guidelines v1.2*
+*© 2026 WorldCrown48 · Community Guidelines v1.3*

@@ -2,13 +2,13 @@
 title: 쿠키 정책
 type: cookies
 lang: ko
-lastUpdated: 2026-10-18
-version: 1.3
+lastUpdated: 2026-11-06
+version: 1.4
 ---
 
 # 쿠키 정책 · Cookie Policy
 
-**최종 업데이트: 2026년 10월 18일**
+**최종 업데이트: 2026년 11월 6일**
 
 > 이 문서는 한국어로 작성되었으며, 번역본과 내용이 다를 경우 한국어 원문이 우선합니다.
 
@@ -134,7 +134,6 @@ WorldCrown48(이하 "월크48", "서비스")은 사용자 경험 개선과 서�
 쿠키 정책 관련 문의·이의신청은 다음 채널로 보내주세요.
 
 - **이메일**: [policy@worldcrown48.com](mailto:policy@worldcrown48.com)
-- **신고**: [report@worldcrown48.com](mailto:report@worldcrown48.com) (콘텐츠·계정 신고)
 - **응답 약속**: 영업일 기준 7일 이내
 
 EU 거주자는 본인의 거주국 데이터 보호 감독기관에 직접 신고할 권리가 있습니다.
@@ -142,4 +141,4 @@ EU 거주자는 본인의 거주국 데이터 보호 감독기관에 직접 신�
 ---
 
 *본 정책은 법적·서비스 변경에 따라 사전 공지 후 업데이트될 수 있습니다.*
-*© 2026 WorldCrown48 · Cookie Policy v1.3*
+*© 2026 WorldCrown48 · Cookie Policy v1.4*
