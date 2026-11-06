@@ -1,5 +1,5 @@
 /**
- * D-78 (2026-11-06 대표) — 공개 페이지 좌우 여백은 모든 폭에서 20px 하나(매치 무대 제외).
+ * D-84 (2026-11-06 대표) — 공개 페이지 좌우 여백은 모든 폭에서 20px 하나(매치 무대 제외).
  *
  * 잡으려는 사고: 페이지마다 16·20·24·27·40·48·5vw 로 제각각이라 같은 서비스로 보이지 않았고,
  * 768 에서 피치·아레나 홈 배너가 728 대신 320 으로 떨어졌다(2026-11-02 실측).
@@ -67,7 +67,7 @@ const GUTTER_RULES: Array<[file: string, selector: string]> = [
   ["components/news/news.module.css", ".articleFooter"],
 ];
 
-describe("D-78 공개 페이지 좌우 여백 = --page-gutter(20px) 하나", () => {
+describe("D-84 공개 페이지 좌우 여백 = --page-gutter(20px) 하나", () => {
   it("globals.css 와 디자인 정본 사본에 --page-gutter: 20px 이 있다", () => {
     expect(read("app/globals.css")).toMatch(/--page-gutter:\s*20px/);
     expect(read("docs/design/colors_and_type.css")).toMatch(/--page-gutter:\s*20px/);

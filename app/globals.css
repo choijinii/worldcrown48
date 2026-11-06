@@ -76,7 +76,7 @@
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
   --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
-  /* 공개 페이지 좌우 여백 — 모든 폭 20 하나(원장 D-78 · 매치 무대 제외). 넓은 화면의 최대 폭·가운데 정렬은 따로. */
+  /* 공개 페이지 좌우 여백 — 모든 폭 20 하나(원장 D-84 · 매치 무대 제외). 넓은 화면의 최대 폭·가운데 정렬은 따로. */
   --page-gutter: 20px;
 
   /* Type stacks */
