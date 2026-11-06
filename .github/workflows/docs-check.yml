@@ -1,0 +1,47 @@
+name: Docs check (DOC-PR D-77)
+
+# CLAUDE.md · LANGUAGE.md 문서 검사 3가지 — 금지 낱말(바뀐 줄) · 링크 깨짐 · Stale-Doc 대조.
+# 문서 PR 은 Preview 화면이 없어 E2E 대신 이 검사가 3층을 맡는다(지시서 §11).
+# 원장(outputs/DECISIONS_…)이 바뀌어도 대조 ①이 흔들리므로 원장도 경로에 넣는다.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CLAUDE.md'
+      - 'LANGUAGE.md'
+      - 'outputs/DECISIONS_결정원장_v1.0_2026-09-11.md'
+      - 'scripts/check-docs.mjs'
+      - 'scripts/check-docs.lib.mjs'
+      - 'scripts/docs-link-allowlist.json'
+      - 'lib/__tests__/docsCheck.test.ts'
+      - '.github/workflows/docs-check.yml'
+  push:
+    branches: [main]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # merge-base 로 바뀐 줄을 찾는다
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests (docs check logic)
+        run: npm run test:unit -- lib/__tests__/docsCheck.test.ts
+
+      - name: Check docs
+        env:
+          # PR = 받는 쪽 브랜치 · push(main) = 직전 커밋
+          DOCS_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || 'HEAD~1' }}
+        run: npm run check:docs
