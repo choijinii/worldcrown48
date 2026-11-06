@@ -16,7 +16,7 @@ import { lab } from "./theme";
 const smallButton = (primary: boolean, danger = false) =>
   ({
     padding: "7px 14px",
-    borderRadius: 8,
+    borderRadius: "var(--radius-border)",
     border: `1px solid ${danger ? lab.crimson : primary ? lab.gold : lab.border}`,
     background: primary ? lab.gold : "transparent",
     color: danger ? lab.crimson : primary ? "var(--color-bg-default)" : lab.textSub,
@@ -61,7 +61,7 @@ export function DraftPicker({
           style={{
             margin: 0,
             padding: "18px 16px",
-            borderRadius: 10,
+            borderRadius: "var(--radius-border)",
             border: `1px dashed ${lab.border}`,
             fontSize: 13,
             color: lab.textMuted,
@@ -81,7 +81,7 @@ export function DraftPicker({
                 justifyContent: "space-between",
                 gap: 12,
                 padding: "12px 14px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-border)",
                 border: `1px solid ${confirming === d.id ? lab.crimson : lab.border}`,
                 background: lab.surface,
               }}

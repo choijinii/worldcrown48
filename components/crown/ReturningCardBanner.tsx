@@ -46,7 +46,7 @@ export function ReturningCardBanner({ tournamentId }: { tournamentId: string }):
         alignItems: "center",
         gap: 12,
         padding: "12px 16px",
-        borderRadius: 12,
+        borderRadius: "var(--radius-border)",
         border: "1px solid var(--color-gold)",
         background: "rgba(18,18,22,0.94)",
         color: "var(--color-text)",

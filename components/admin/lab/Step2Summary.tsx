@@ -37,7 +37,7 @@ export function Step2Summary({
       data-testid="step2-summary"
       style={{
         padding: 16,
-        borderRadius: 12,
+        borderRadius: "var(--radius-border)",
         background: lab.surface,
         border: `1px solid ${lab.border}`,
         display: "grid",
@@ -55,7 +55,7 @@ export function Step2Summary({
             style={{
               justifySelf: "start",
               padding: "8px 16px",
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               border: "none",
               background: lab.gold,
               color: "var(--color-bg-default)",
@@ -112,7 +112,7 @@ export function Step2Summary({
             style={{
               flexShrink: 0,
               padding: "6px 12px",
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               border: `1px solid ${lab.border}`,
               background: "transparent",
               color: lab.textSub,

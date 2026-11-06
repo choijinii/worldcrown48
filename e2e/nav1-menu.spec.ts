@@ -266,7 +266,7 @@ test.describe("데스크톱 1280", () => {
     const pill = page.getByTestId("continue-pill");
     await expect(pill).toBeVisible();
     await expect(pill).toHaveAttribute("href", "/arena/nav1-e2e-tid");
-    await expect(pill).toHaveText("Continue your picks");
+    await expect(pill).toHaveText("Continue"); // D-85 · 2026-11-06 대표: "이어서 하기"
     const note = page.getByTestId("continue-pill-note");
     await expect(note).toBeHidden();
     const noteId = await note.getAttribute("id");

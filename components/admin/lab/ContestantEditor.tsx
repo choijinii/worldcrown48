@@ -72,7 +72,7 @@ const TONE_COLOR = {
 const fieldStyle: React.CSSProperties = {
   width: "100%",
   padding: "4px 6px",
-  borderRadius: 4,
+  borderRadius: "var(--radius-border)",
   border: `1px solid ${lab.border}`,
   background: lab.surfaceElev,
   color: lab.text,
@@ -142,7 +142,7 @@ export function ContestantEditor({
       style={{
         position: "relative",
         background: lab.surface,
-        borderRadius: 5,
+        borderRadius: "var(--radius-border)",
         border: pairMark
           ? `2px solid ${pairMark === "a" ? lab.turquoise : lab.crimson}`
           : isEmpty
@@ -202,7 +202,7 @@ export function ContestantEditor({
         style={{
           cursor: onPick ? "pointer" : undefined,
           aspectRatio: "1 / 1",
-          borderRadius: 4,
+          borderRadius: "var(--radius-border)",
           background: lab.surfaceElev,
           backgroundImage: previewUrl ? `url(${previewUrl})` : undefined,
           // 1:1 중앙 크롭 — 16:9 썸네일도 숏폼도 인물이 크게 잡힌다(결정 ②).

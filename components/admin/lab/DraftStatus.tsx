@@ -57,7 +57,7 @@ export function DraftStatus({
             style={{
               flexShrink: 0,
               padding: "3px 10px",
-              borderRadius: 6,
+              borderRadius: "var(--radius-border)",
               border: `1px solid ${lab.crimson}`,
               background: "transparent",
               color: lab.crimson,

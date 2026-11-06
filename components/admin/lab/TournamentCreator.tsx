@@ -1020,7 +1020,7 @@ export function TournamentCreator(): JSX.Element {
                 style={{
                   flexShrink: 0,
                   padding: "4px 10px",
-                  borderRadius: 6,
+                  borderRadius: "var(--radius-border)",
                   border: `1px solid ${lab.border}`,
                   background: "transparent",
                   color: lab.textSub,
@@ -1077,7 +1077,7 @@ export function TournamentCreator(): JSX.Element {
             style={{
               width: "100%",
               padding: "14px 18px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-border)",
               border: "none",
               background: step1Ready ? lab.gold : lab.surfaceElev,
               color: step1Ready ? "var(--color-bg-default)" : lab.textMuted,
@@ -1114,7 +1114,7 @@ export function TournamentCreator(): JSX.Element {
               onClick={() => setStep(1)}
               style={{
                 padding: "8px 14px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-border)",
                 border: `1px solid ${lab.border}`,
                 background: "transparent",
                 color: lab.textSub,

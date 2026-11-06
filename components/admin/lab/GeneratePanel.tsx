@@ -58,7 +58,7 @@ export function GeneratePanel({
       display: "grid",
       gap: 4,
       padding: "16px 20px",
-      borderRadius: 12,
+      borderRadius: "var(--radius-border)",
       border: `2px solid ${lab.gold}`,
       background: running ? lab.goldSubtle : "transparent",
       color: lab.gold,
@@ -80,7 +80,7 @@ export function GeneratePanel({
   const tool = (enabled: boolean) =>
     ({
       padding: "8px 14px",
-      borderRadius: 8,
+      borderRadius: "var(--radius-border)",
       border: `1px solid ${lab.border}`,
       background: "transparent",
       color: lab.textSub,
@@ -109,7 +109,7 @@ export function GeneratePanel({
         display: "grid",
         gap: 14,
         padding: "16px 18px",
-        borderRadius: 12,
+        borderRadius: "var(--radius-border)",
         background: lab.surface,
         border: `1px solid ${lab.border}`,
       }}

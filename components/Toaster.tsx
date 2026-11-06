@@ -60,7 +60,7 @@ export function Toaster(): JSX.Element | null {
             width: 360,
             maxWidth: "100%",
             padding: "12px 12px 12px 16px",
-            borderRadius: 12,
+            borderRadius: "var(--radius-border)",
             border: "1px solid",
             borderColor:
               t.variant === "error"
@@ -93,7 +93,7 @@ export function Toaster(): JSX.Element | null {
               height: 28,
               padding: 0,
               border: "none",
-              borderRadius: 8,
+              borderRadius: "var(--radius-border)",
               background: "rgba(255,255,255,0.16)",
               color: "var(--color-white)",
               fontSize: 16,

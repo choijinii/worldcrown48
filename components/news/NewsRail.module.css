@@ -21,13 +21,13 @@
   color: var(--wc-gold);
   background: var(--wc-ink);
   padding: 8px 12px;
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-border) var(--radius-border) 0 0;
 }
 
 .list {
   border: 1px solid var(--wc-paper-line);
   border-top: none;
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radius-border) var(--radius-border);
   overflow: hidden;
   background: var(--wc-paper); /* 불투명 — 히어로가 비쳐 판독 불가되던 문제 차단 */
 }
@@ -51,7 +51,7 @@
 .thumb {
   width: 44px;
   height: 44px;
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   object-fit: cover;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--color-twilight-soft), var(--color-twilight-deep));

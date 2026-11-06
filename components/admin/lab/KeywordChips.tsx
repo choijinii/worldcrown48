@@ -106,7 +106,7 @@ export function KeywordChips({
           data-testid="keyword-ai-button"
           style={{
             padding: "6px 12px",
-            borderRadius: 8,
+            borderRadius: "var(--radius-border)",
             border: `1px solid ${lab.gold}`,
             background: aiBusy ? "transparent" : lab.goldSubtle,
             color: lab.gold,
@@ -127,7 +127,7 @@ export function KeywordChips({
           flexWrap: "wrap",
           gap: 8,
           padding: 10,
-          borderRadius: 8,
+          borderRadius: "var(--radius-border)",
           border: `1px solid ${v.hasTooLong ? lab.crimson : lab.border}`,
           background: lab.surface,
           minHeight: 48,

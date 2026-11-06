@@ -93,7 +93,7 @@
   flex: none;
   box-sizing: border-box;
   border: 1px dashed color-mix(in srgb, var(--color-bg-void) 22%, transparent);
-  border-radius: 5px;
+  border-radius: var(--radius-border);
   background: color-mix(in srgb, var(--color-bg-soft) 3%, transparent);
 }
 .banner {

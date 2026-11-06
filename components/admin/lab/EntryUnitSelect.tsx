@@ -54,7 +54,7 @@ export function EntryUnitSelect({ value, onChange }: EntryUnitSelectProps): JSX.
               style={{
                 flex: 1,
                 padding: "12px 14px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-border)",
                 border: `1px solid ${selected ? lab.gold : lab.border}`,
                 background: selected ? lab.goldSubtle : lab.surface,
                 color: selected ? lab.gold : lab.textSub,

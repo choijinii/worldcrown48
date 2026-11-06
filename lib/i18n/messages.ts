@@ -446,9 +446,9 @@ export const MESSAGES = {
     es: "Aún no ha terminado ningún Tournament",
   },
 
-  // ── NAV-1 선택 이어가기 알약 (원장 D-18 승인 2026-09-18 · 설명 = 대표 승인 2026-10-11, 글자 그대로) ──
+  // ── NAV-1 이어서 하기 알약 (원장 D-18 · 이름 = D-85 "이어서 하기" 2026-11-06 대표 · 설명 = 대표 승인 2026-10-11, 글자 그대로) ──
   "nav.signIn": { ko: "로그인", en: "Sign in", es: "Iniciar sesión" },
-  "nav.pill.label": { ko: "선택 이어가기", en: "Continue your picks", es: "Continuar tus elecciones" },
+  "nav.pill.label": { ko: "이어서 하기", en: "Continue", es: "Continuar" },
   "nav.pill.note": {
     ko: "같은 기기에서만 이어갈 수 있습니다. 다른 기기에서는 이어서 진행할 수 없습니다.",
     en: "You can continue only on this device. You can't continue on another device.",

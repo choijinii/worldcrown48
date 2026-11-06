@@ -57,7 +57,7 @@ export function CategorySelect({
         style={{
           width: "100%",
           padding: "12px 14px",
-          borderRadius: 8,
+          borderRadius: "var(--radius-border)",
           border: `1px solid ${lab.border}`,
           background: lab.surface,
           color: value ? lab.text : lab.textMuted,

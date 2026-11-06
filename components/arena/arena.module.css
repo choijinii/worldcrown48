@@ -24,7 +24,7 @@
   --text-muted: var(--color-text-muted);
   --border: var(--color-border);
   --border-gold: rgba(252, 208, 6, 0.3);
-  --radius: 5px;
+  --radius: var(--radius-border);
   --font-sans: "Inter", "Pretendard", system-ui, sans-serif;
   --font-display: "Playfair Display", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;

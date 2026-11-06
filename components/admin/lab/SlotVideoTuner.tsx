@@ -130,7 +130,7 @@ export function SlotVideoTuner({
             gap: 14,
             background: lab.surface,
             border: `1px solid ${lab.border}`,
-            borderRadius: 16,
+            borderRadius: "var(--radius-border)",
             padding: 40,
             fontFamily: lab.font,
             color: lab.text,
@@ -263,7 +263,7 @@ export function SlotVideoTuner({
               onClick={onClose}
               style={{
                 padding: "8px 18px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-border)",
                 border: "none",
                 background: lab.gold,
                 color: "var(--color-bg-default)",
@@ -284,7 +284,7 @@ export function SlotVideoTuner({
 
 const nudgeStyle: React.CSSProperties = {
   padding: "6px 12px",
-  borderRadius: 8,
+  borderRadius: "var(--radius-border)",
   border: `1px solid ${lab.border}`,
   background: "transparent",
   color: lab.textSub,

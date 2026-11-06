@@ -42,7 +42,7 @@ export function PublishButton({
       disabled={!ready}
       style={{
         padding: "14px 28px",
-        borderRadius: 12,
+        borderRadius: "var(--radius-border)",
         border: "none",
         background: ready ? lab.gold : lab.surfaceElev,
         color: ready ? "var(--color-bg-default)" : lab.textMuted,
