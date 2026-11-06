@@ -60,7 +60,7 @@ async function measure(page: Page) {
   return page.evaluate(() => {
     const vw = document.documentElement.clientWidth;
     const h = document.querySelector("h1")!.getBoundingClientRect();
-    const strips = [...document.querySelectorAll<HTMLElement>("aside[data-banner-variant]")]
+    const strips = Array.from(document.querySelectorAll<HTMLElement>("aside[data-banner-variant]"))
       .filter((a) => a.dataset.bannerVariant !== "rect")
       .map((a) => a.getBoundingClientRect())
       .filter((r) => r.width > 0)
