@@ -25,7 +25,7 @@
   --arena-avatar-border: 1px solid rgba(255,255,255,.22); /* @kind other */
 
   /* 선택 이어가기 알약 */
-  --arena-continue-bg: #FCD006; /* @kind color */
+  --arena-continue-bg: #00A3B7; /* @kind color · = --color-turquoise (D-76 · 2026-11-07) */
   --arena-continue-text: #241754; /* @kind color */
   --arena-continue-h: 30px;                   /* 모바일 28px @kind spacing */
 

@@ -642,7 +642,7 @@
   justify-self: start;
   padding: 4px 14px;
   border-radius: var(--radius-border);
-  background: var(--arena-continue-bg);
+  background: var(--color-gold);
   color: var(--color-royal);
   font-size: 13px;
   font-weight: 600;

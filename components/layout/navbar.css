@@ -579,7 +579,7 @@ header.wc-nav {
   height: 40px;
   padding: 0 20px 0 16px;
   border-radius: 999px;
-  background: var(--color-turquoise);
+  background: var(--arena-continue-bg);
   color: var(--color-bg-void);
   font-family: var(--font-sans);
   font-size: 15px;
