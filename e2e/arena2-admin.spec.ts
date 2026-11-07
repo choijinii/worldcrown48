@@ -14,7 +14,8 @@
  * 유닛(decideRun)과 에뮬레이터 시험(상태 active 그대로 · 팬이 대회를 읽음)이 본다.
  * `?lang=ko` 로 언어를 고정한다.
  */
-import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { expect, test, type BrowserContextOptions, type ConsoleMessage, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { e2eMark } from "./e2eMark";
 import {
@@ -42,6 +43,21 @@ const IGNORED_CONSOLE = [
   // 숨긴 대회는 규칙이 읽기를 거절한다 — 화면은 그 거절을 "찾을 수 없어요"로 보인다(그게 이 시험이 보는 것).
   /Missing or insufficient permissions/i,
 ];
+
+type StorageState = NonNullable<Exclude<BrowserContextOptions["storageState"], string>>;
+
+/**
+ * 로그인하지 않은 팬 — 미리보기 통과 쿠키(Vercel)는 남기고 Firebase 로그인(origins)만 비운다
+ * (gutter20 · nav1 스펙과 같은 방식).
+ */
+function signedOutState(): StorageState {
+  try {
+    const saved = JSON.parse(readFileSync("tests/.auth/user.json", "utf8")) as Partial<StorageState>;
+    return { cookies: saved.cookies ?? [], origins: [] };
+  } catch {
+    return { cookies: [], origins: [] };
+  }
+}
 
 let consoleErrors: string[] = [];
 const seeded = { tournaments: [] as string[], contestants: [] as string[], votes: [] as string[] };
@@ -156,7 +172,7 @@ test.describe("ARENA-2 PR 3 — 삭제 · 조기 마감 · 숨김 (D-86)", () =>
   test("① 숨김 — 무대 · 차트 = 찾을 수 없어요 · 목록에서 빠짐 → 다시 보이기 = 돌아옴", async ({ browser, baseURL }) => {
     const t = await seedTournament("숨김");
     // 팬 = 로그인하지 않은 새 창(게스트)
-    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const ctx = await browser.newContext({ storageState: signedOutState() });
     const page = await ctx.newPage();
     page.on("console", (m) => {
       if (m.type() === "error" && !IGNORED_CONSOLE.some((re) => re.test(m.text()))) consoleErrors.push(m.text());
@@ -191,7 +207,7 @@ test.describe("ARENA-2 PR 3 — 삭제 · 조기 마감 · 숨김 (D-86)", () =>
     expect(doc?.status).toBe("active");
     expect(doc?.closedEarlyBy).toBe(actor);
 
-    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const ctx = await browser.newContext({ storageState: signedOutState() });
     const page = await ctx.newPage();
     page.on("console", (m) => {
       if (m.type() === "error" && !IGNORED_CONSOLE.some((re) => re.test(m.text()))) consoleErrors.push(m.text());
@@ -211,7 +227,7 @@ test.describe("ARENA-2 PR 3 — 삭제 · 조기 마감 · 숨김 (D-86)", () =>
     expect((await db().doc(`tournaments/${t.id}`).get()).exists).toBe(false);
     expect((await db().collection("contestants").where("tournamentId", "==", t.id).get()).size).toBe(0);
 
-    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const ctx = await browser.newContext({ storageState: signedOutState() });
     const page = await ctx.newPage();
     await prime(page, baseURL);
     await page.goto(`/arena/${t.id}?lang=ko`);
