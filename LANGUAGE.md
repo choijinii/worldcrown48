@@ -48,7 +48,7 @@
 
 **es 지칭 고정 (2026-08-08 대표 확정 — B안):** 스페인어 독자 지칭은 **"fan / fans" 고정**이다.
 번역 층이 `aficionados`·`votantes` 등 현지 동의어로 옮기지 않는다 — 3언어에서 같은 단어로 읽히는 것이 목적.
-(구현: `lib/displayTerms.ts` + 번역 프롬프트 용어집 박제 — PR #64)
+(구현: `functions/src/core/displayTerms.ts` + 번역 프롬프트 용어집 박제 — PR #64)
 
 **판(Run)·선택의 표시 용어 (2026-09-07 대표 확정 — v2.2):**
 | 시스템 층 | 표시 층 ko | 표시 층 en / es | 이유 |
@@ -68,7 +68,7 @@
 
 승인 문구 정본: RUN-1 핸드오프 §8 (`outputs/HANDOFF_RUN-1_참가규칙v2.0_2026-09-03.md`).
 
-**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `lib/displayTerms.ts`.
+**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `functions/src/core/displayTerms.ts`.
 
 **미결 2건 (기록만 — 이 절의 정의는 무변경):**
 - ① 발행 기사 `20260726-3fb980` ko 문단의 **기존 오타 "어떤 한글로 는"** — 표시 용어 백필과 무관한 선재 오타. 수정 여부 **대표 판단 대기**.
@@ -254,6 +254,7 @@ AI 에이전트가 혼용하면 즉시 지적하고 공식 용어로 교정하�
 | 비로그인 하루 1판 / 게스트 1판 / 무료 1판 | **게스트 일일 판 한도 (하루 통틀어 3판)** | ★ v2.1 (2026-09-06 대표 확정): 1판 정의는 폐기. 09-05 승인 문구 "오늘의 무료 1판"도 무효 — 재승인 문구로 교체 |
 | 라운드 자동 종료 | **Voter의 마지막 Match 완료 → advanceRound()** | 종료가 아니라 '전환'이며 Voter 행동에 의해 트리거됨 |
 | Host가 라운드를 전환한다 | **시스템이 자동으로 advanceRound()** | ★ v1.2: 라운드 전환은 Host가 아닌 시스템이 자동 수행 |
+| 팀 경로(코드 이름) | **팀 AI 지시문** | 엔트리 단위=팀일 때 AI가 그룹 48개를 채우는 지시문(D-73·D-75). 코드 밖에서 '팀 경로'라 부르지 않는다 — 뜻이 희석된 줄임말(대표 2026-10-31) |
 
 ---
 
