@@ -475,4 +475,34 @@ test.describe("ARENA-2 — 아레나 홈", () => {
       await expect.poll(dims, { message: `${w}` }).toMatch(/^(970x90|728x90|320x100)$/);
     }
   });
+
+  test("⑪ 페이지 제목 \"The Arena Home\" — 3언어 같음 · 전광판 바로 위 · Record Room 제목과 같은 글꼴·크기 · 메뉴바 아래 24/16", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
+    const typo = () =>
+      page.locator("h1").first().evaluate((el) => {
+        const s = getComputedStyle(el);
+        return [s.fontFamily, s.fontSize, s.fontWeight, s.letterSpacing, s.lineHeight].join(" | ");
+      });
+    for (const size of [DESKTOP, { width: 768, height: 1000 }, PHONE]) {
+      await page.setViewportSize(size);
+      await page.goto("/records?lang=en");
+      const want = await typo();
+      for (const lang of ["ko", "en", "es"]) {
+        await page.goto(`/arena?lang=${lang}`);
+        const h1 = page.locator("h1");
+        await expect(h1).toHaveCount(1);
+        await expect(h1).toBeVisible();
+        await expect(h1).toHaveText("The Arena Home");
+        expect(await typo(), `${size.width} ${lang}`).toBe(want);
+        const t = (await h1.boundingBox())!;
+        // 메뉴바 아래 끝(= 본문 시작) → 제목 위 끝: 데스크톱 24 · 태블릿/휴대폰 16 (2026-11-07 대표)
+        const m = (await page.getByTestId("arena-home").boundingBox())!;
+        expect(Math.round(t.y - m.y), `${size.width} 메뉴바 → 제목 간격`).toBe(size.width > 860 ? 24 : 16);
+        const b = (await page.getByTestId("arena-board").boundingBox())!;
+        const gap = b.y - (t.y + t.height);
+        expect(gap, `${size.width} 제목 → 전광판 간격`).toBeGreaterThanOrEqual(8);
+        expect(gap, `${size.width} 제목 → 전광판 간격`).toBeLessThanOrEqual(24);
+      }
+    }
+  });
 });
