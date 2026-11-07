@@ -27,8 +27,8 @@
   --arena-avatar-bg: linear-gradient(180deg, #362261, #241754); /* @kind color */
   --arena-avatar-border: 1px solid rgba(255,255,255,.22); /* @kind other */
 
-  /* 선택 이어가기 알약 */
-  --arena-continue-bg: #FCD006; /* @kind color */
+  /* 이어서 하기 알약 — 바탕 = 청록(원장 D-76 · 2026-11-07 옛 노랑 #FCD006 정리) */
+  --arena-continue-bg: #00A3B7; /* @kind color · = --color-turquoise */
   --arena-continue-text: #241754; /* @kind color */
   --arena-continue-h: 30px;                   /* 모바일 28px @kind spacing */
 

@@ -3,7 +3,7 @@
  *
  * 잡으려는 사고: 알약 바탕이 메뉴바와 거의 같은 반투명 흰색이고 이름 글자는 밝은 지면용
  * 진한 남색이라, 다크 메뉴바 위에서 이름이 읽히지 않았다(대비 약 1.1).
- * 정해진 모양: 바탕 = Aura Yellow(--color-aura) · 글자 = 진한 남색(--arena-continue-text) ·
+ * 정해진 모양: 바탕 = Aura Yellow(--color-aura) · 글자 = 진한 남색(--color-royal · 2026-11-07 무대 토큰에서 옮김) ·
  * 대비 4.5 이상. 로그인 전 "로그인" 알약(진한 노랑)과 사진 알약은 이 테스트 밖이다.
  */
 import { describe, expect, it } from "vitest";
@@ -51,12 +51,12 @@ describe("로그인 뒤 프로필 알약 = 연한 노랑 바탕 + 진한 글자"
   });
 
   it("이름 글자는 진한 남색 토큰이다", () => {
-    expect(nameStyle(src)).toMatch(/color:\s*"var\(--arena-continue-text\)"/);
+    expect(nameStyle(src)).toMatch(/color:\s*"var\(--color-royal\)"/);
   });
 
   it("두 토큰의 글자 대비가 4.5 이상이다", () => {
     const aura = tokenHex(read("app/globals.css"), "--color-aura");
-    const ink = tokenHex(read("app/arena_stage_tokens.css"), "--arena-continue-text");
+    const ink = tokenHex(read("app/globals.css"), "--color-royal");
     expect(contrast(aura, ink)).toBeGreaterThanOrEqual(4.5);
   });
 });
