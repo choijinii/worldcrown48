@@ -175,6 +175,8 @@ export { scheduleRankingCache } from "./scheduleRankingCache";
 // Both re-verify ADMIN_UID server-side (defense-in-depth — handoff §9 trap #5).
 export { getAdminKpis } from "./getAdminKpis";
 export { listAdminAlerts } from "./listAdminAlerts";
+// ARENA-2 PR 3 (원장 D-86) — 대회 삭제(참여 0명만) · 조기 마감 · 숨김. 관리자 전용.
+export { manageTournament } from "./manageTournament";
 
 // ND-1 News Desk — 승인제 뉴스 팩토리. 모든 경로는 draft 생성까지만 (자동 발행 0건).
 export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수동/AI 초안)

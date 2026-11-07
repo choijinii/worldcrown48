@@ -8,6 +8,7 @@
  */
 import { expect, type Page } from "@playwright/test";
 import * as admin from "firebase-admin";
+import { stubManageTournament } from "./labManage";
 
 function loadServiceAccount(): admin.ServiceAccount | null {
   const raw = process.env.FIREBASE_ADMIN_SDK_KEY;
@@ -29,6 +30,8 @@ function adminDb(): admin.firestore.Firestore | null {
 
 /** /admin/lab 을 열고 빈 편집기(STEP 1)까지 간다. */
 export async function openFreshLabEditor(page: Page, path = "/admin/lab?lang=ko"): Promise<void> {
+  // ARENA-2 PR 3 — 대회 목록이 manageTournament 를 부른다(배포 전 미리보기에서도 콘솔 오류 0).
+  await stubManageTournament(page);
   await page.goto(path);
   const title = page.getByLabel("Tournament 제목");
   const picker = page.getByTestId("draft-picker");

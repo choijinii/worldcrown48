@@ -42,7 +42,7 @@ service cloud.firestore {
     //   create — MVP1 has no custom claims, so operator-only is enforced
     //            client-side (AdminAuthGuard). Rules enforce owner-scoping:
     //            you may only create a Tournament you host.
-    //   update/delete — owner only.
+    //   update — owner only · delete — nobody (server function only, D-86).
     match /tournaments/{tournamentId} {
       // C-1: Voters read ACTIVE tournaments to vote (active-public). Launch Pad
       // still relies on featured-public; the operator reads their own.
@@ -52,8 +52,12 @@ service cloud.firestore {
                       && resource.data.hostUid == request.auth.uid);
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
-      allow update, delete: if request.auth != null
+      allow update: if request.auth != null
                     && resource.data.hostUid == request.auth.uid;
+      // ARENA-2 PR 3 (원장 D-86) — 브라우저에서 대회를 바로 지우지 않는다. 삭제는 관리자 함수
+      // manageTournament 로만(참여 0명 확인 · 딸린 기록까지 정리). 숨김(status 'hidden')은 위의
+      // 읽기 규칙이 그대로 막는다 — 'active' 가 아니고 featured 도 꺼지므로 주인만 읽는다.
+      allow delete: if false;
     }
 
     // ── contestants (B-1) ──────────────────────────────────────────
@@ -322,15 +326,20 @@ service cloud.firestore {
     // 쓰기는 여전히 전면 차단: 유일한 작성자는 scheduleRankingCache(admin SDK, 규칙 우회).
     // `voteCount` 와 세 비율이 문서 안에 함께 실리지만(내부 전용) 규칙은 필드를 가릴 수
     // 없다 — 화면에 안 나오게 막는 일은 클라이언트 + E2E가 한다 (trap #7).
+    // ARENA-2 PR 3 (원장 D-86): 숨긴 대회(status 'hidden')의 차트도 닫는다. get() 은 없는 문서에서
+    // 실패하므로 "부모가 있어야 읽힌다"도 그대로다.
+    function tournamentChartOpen(database, tournamentId) {
+      return get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('status', '') != 'hidden';
+    }
     match /ranking_cache/{tournamentId} {
-      allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId));
+      allow read: if tournamentChartOpen(database, tournamentId);
       allow write: if false;
 
       // history generations (T-3 24h baseline) — 같은 상시 공개 + 쓰기 차단.
       // 보관 세대 수는 `scheduleRankingCache.HISTORY_KEEP` 가 정한다 (RUN-1 PR 3에서
       // 24 → 2. 발표가 하루 두 번이 되면서 "24시간 전" 이 2세대 전이 됐다).
       match /history/{generationSequence} {
-        allow read: if exists(/databases/$(database)/documents/tournaments/$(tournamentId));
+        allow read: if tournamentChartOpen(database, tournamentId);
         allow write: if false;
       }
     }

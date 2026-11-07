@@ -12,6 +12,7 @@
  * REQUIRES PREVIEW_URL + FIREBASE_ADMIN_SDK_KEY (+ VERCEL_AUTOMATION_BYPASS_SECRET).
  */
 import { expect, test, type Page } from "@playwright/test";
+import { stubManageTournament } from "./labManage";
 import * as admin from "firebase-admin";
 
 const LINK_TEXT = { ko: "개인정보처리방침", en: "Privacy Policy", es: "Política de privacidad" } as const;
@@ -144,6 +145,7 @@ test.describe("매치 무대 · 차트", () => {
 test("The Lab(관리자) — 바닥 줄에 링크가 보이고 방침으로 간다 (ko)", async ({ page, baseURL }) => {
   const errors = watchErrors(page);
   await seedConsent(page, baseURL);
+  await stubManageTournament(page); // ARENA-2 PR 3 — 대회 목록이 부르는 관리자 함수(배포 전 콘솔 오류 0)
   await page.goto("/admin/lab?lang=ko");
   await expectLinkLeadsToPolicy(page, "ko");
   expect(errors).toEqual([]);

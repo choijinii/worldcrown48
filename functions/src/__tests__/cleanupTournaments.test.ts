@@ -37,8 +37,8 @@ describe("정리 대상 목록 — 2026-09-08 실측과 대표 확정본", () =>
     expect(overlap).toEqual([]);
   });
 
-  it("숨김 status 는 코드에 실재하는 값이다 (hidden·archived 는 없다)", () => {
-    // lib/types/tournament.ts: TournamentStatus = "active" | "ended" | "draft"
+  it("시험 대회 숨김 status 는 draft 다 (운영자 숨김 hidden · D-86 과 다른 개념)", () => {
+    // lib/types/tournament.ts: TournamentStatus = "active" | "ended" | "draft" | "hidden"
     expect(["active", "ended", "draft"]).toContain(HIDDEN_STATUS);
     expect(HIDDEN_STATUS).toBe("draft");
   });

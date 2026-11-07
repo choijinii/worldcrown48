@@ -19,6 +19,7 @@
  * secrets), not on the local box.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { stubManageTournament } from "./labManage";
 import * as admin from "firebase-admin";
 import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 import { attachVideosToFirstSlots, stubVideoInspector } from "./labVideos";
@@ -147,6 +148,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
   );
 
   test("operator reaches the console (gate allows admin)", async ({ page }) => {
+    await stubManageTournament(page);
     await page.goto("/admin/lab?lang=ko"); // §7: E2E ?lang=ko 강제 (한국어 셀렉터 정합)
     await expect(
       page.getByRole("heading", { name: "Tournament 만들기" }),
@@ -267,8 +269,22 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await row.getByRole("button", { name: /Feature/ }).click();
     await expect(row.getByRole("button", { name: /★ Featured/ })).toBeVisible();
 
-    // delete → confirm → row gone.
+    // ARENA-2 PR 3 (원장 D-86) — 참여 0명이면 [삭제] · [숨기기]. 숨기면 표시 '숨김' + [다시 보이기] + 대표 대회 표시 꺼짐.
+    // (manageTournament 는 오가는 길만 가로챈다 — 판정·쓰기는 같은 저장 코드 · e2e/labManage.ts)
+    if (newId) {
+      await row.getByTestId(`hide-${newId}`).click();
+      await expect(row.getByTestId(`admin-confirm-${newId}`)).toContainText("이 Tournament를 모든 화면에서 숨겨요.");
+      await row.getByRole("button", { name: "숨기기 확인" }).click();
+      await expect(row.getByTestId(`badge-hidden-${newId}`)).toHaveText("숨김");
+      await expect(row.getByRole("button", { name: /☆ Feature/ })).toBeDisabled();
+      await row.getByTestId(`unhide-${newId}`).click();
+      await expect(row.getByTestId(`badge-hidden-${newId}`)).toHaveCount(0);
+      await expect(row.getByTestId(`hide-${newId}`)).toBeVisible();
+    }
+
+    // delete → 안내 → confirm → row gone.
     await row.getByRole("button", { name: "E2E Tournament 삭제" }).click();
+    await expect(row).toContainText("이 Tournament와 딸린 기록을 모두 지워요. 되돌릴 수 없어요.");
     await row.getByRole("button", { name: "삭제 확인" }).click();
     await expect(row).toHaveCount(0);
   });

@@ -21,6 +21,19 @@ on:
       - 'lib/records/chartList.ts'
       - 'lib/i18n/messages.ts'
       - 'e2e/arena2-home.spec.ts'
+      # ARENA-2 PR 3 (원장 D-86) — 대회 삭제 · 조기 마감 · 숨김
+      - 'e2e/arena2-admin.spec.ts'
+      - 'e2e/labManage.ts'
+      - 'functions/src/core/tournamentAdmin.ts'
+      - 'functions/src/core/tournamentAdminStore.ts'
+      - 'functions/src/manageTournament.ts'
+      - 'components/admin/lab/TournamentList.tsx'
+      - 'lib/lab/tournamentAdmin.ts'
+      - 'lib/lab/manageTournament.ts'
+      - 'lib/arena/tournamentRead.ts'
+      - 'lib/arena/voteStore.ts'
+      - 'app/arena/**'
+      - 'firestore.rules'
       - 'playwright.config.ts'
       - '.github/workflows/arena2-e2e.yml'
 
@@ -58,7 +71,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Unit tests (vitest) — ARENA-2
-        run: npm run test:unit -- lib/__tests__/arenaHome lib/__tests__/banner lib/__tests__/records lib/__tests__/seo lib/__tests__/layout
+        run: npm run test:unit -- lib/__tests__/arenaHome lib/__tests__/banner lib/__tests__/records lib/__tests__/seo lib/__tests__/layout lib/__tests__/lab/tournamentRowActions.test.ts lib/__tests__/arena/tournamentRead.test.ts
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -103,8 +116,8 @@ jobs:
           done
           echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
-      - name: E2E (Playwright) — ARENA-2 spec only
-        run: npm run test:e2e -- e2e/arena2-home.spec.ts
+      - name: E2E (Playwright) — ARENA-2 specs only
+        run: npm run test:e2e -- e2e/arena2-home.spec.ts e2e/arena2-admin.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()

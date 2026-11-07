@@ -70,6 +70,7 @@ export default function ChampionPage(): JSX.Element {
   const contestants = useVoteStore((s) => s.contestants);
   const loadTournament = useVoteStore((s) => s.loadTournament);
   const run = useVoteStore((s) => s.run);
+  const loadError = useVoteStore((s) => s.error);
 
   // `?run=n` — 완주 화면의 "이전 참여의 Crown Card" 목록이 붙이는 회차. 없으면 현재 회차다.
   //
@@ -104,6 +105,18 @@ export default function ChampionPage(): JSX.Element {
   useEffect(() => {
     if (uid) void loadTournament(tournamentId, uid, isGuest);
   }, [uid, tournamentId, loadTournament, isGuest]);
+
+  // ARENA-2 PR 3 (원장 D-86): 숨긴 · 없는 대회의 카드 화면은 닫는다 — 매치 무대와 같은 "찾을 수 없어요".
+  if (loadError === "not-found") {
+    return (
+      <Center>
+        {t("arena.load.notFound")}&nbsp;
+        <a href="/" style={{ color: "var(--color-gold)" }}>
+          {t("arena.load.home")}
+        </a>
+      </Center>
+    );
+  }
 
   // No confirmed Champion yet (or still loading the per-Voter doc).
   if (!progress?.complete || !progress.championId) {
