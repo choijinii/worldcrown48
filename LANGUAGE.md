@@ -48,7 +48,7 @@
 
 **es 지칭 고정 (2026-08-08 대표 확정 — B안):** 스페인어 독자 지칭은 **"fan / fans" 고정**이다.
 번역 층이 `aficionados`·`votantes` 등 현지 동의어로 옮기지 않는다 — 3언어에서 같은 단어로 읽히는 것이 목적.
-(구현: `lib/displayTerms.ts` + 번역 프롬프트 용어집 박제 — PR #64)
+(구현: `functions/src/core/displayTerms.ts` + 번역 프롬프트 용어집 박제 — PR #64)
 
 **판(Run)·선택의 표시 용어 (2026-09-07 대표 확정 — v2.2):**
 | 시스템 층 | 표시 층 ko | 표시 층 en / es | 이유 |
@@ -68,7 +68,7 @@
 
 승인 문구 정본: RUN-1 핸드오프 §8 (`outputs/HANDOFF_RUN-1_참가규칙v2.0_2026-09-03.md`).
 
-**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `lib/displayTerms.ts`.
+**박제 위치:** `functions/src/core/newsPrompts.ts`(기사 지침 6항) · `components/policy/ConsentModal.tsx` · `functions/src/core/displayTerms.ts`.
 
 **미결 2건 (기록만 — 이 절의 정의는 무변경):**
 - ① 발행 기사 `20260726-3fb980` ko 문단의 **기존 오타 "어떤 한글로 는"** — 표시 용어 백필과 무관한 선재 오타. 수정 여부 **대표 판단 대기**.

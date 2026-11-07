@@ -56,6 +56,14 @@ export function extractPaths(text) {
   return [...set];
 }
 
+/** 버전 기록 행(| v2.1 | … · | **v2.9** | …)은 옛 기록 — 그때의 경로를 그대로 둔다. 링크 검사 전에 뺀다. */
+export function withoutChangelogRows(text) {
+  return text
+    .split("\n")
+    .filter((l) => !/^\|\s*\**v\d/.test(l))
+    .join("\n");
+}
+
 const MODULE_EXT = ["", ".ts", ".tsx", ".mjs", ".js", ".md"];
 
 /** exists(path) → boolean 을 받아, 확장자 없는 모듈 경로까지 찾아본 뒤 없는 것만. */

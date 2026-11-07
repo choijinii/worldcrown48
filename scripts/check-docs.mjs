@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import {
   addedLines,
   extractPaths,
+  withoutChangelogRows,
   findForbidden,
   missingPaths,
   staleChecks,
@@ -36,7 +37,7 @@ const allow = JSON.parse(readFileSync("scripts/docs-link-allowlist.json", "utf8"
 const allowPaths = allow.map((a) => a.path);
 const broken = [];
 for (const f of DOCS) {
-  for (const p of missingPaths(extractPaths(readFileSync(f, "utf8")), existsSync, allowPaths))
+  for (const p of missingPaths(extractPaths(withoutChangelogRows(readFileSync(f, "utf8"))), existsSync, allowPaths))
     broken.push(`${f}: ${p}`);
 }
 report("링크 깨짐 (marketing/ · docs/ · lib/)", broken);

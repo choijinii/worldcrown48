@@ -7,6 +7,7 @@ import {
   ledgerPrinciple,
   missingPaths,
   staleChecks,
+  withoutChangelogRows,
 } from "../../scripts/check-docs.lib.mjs";
 
 const PRINCIPLE = "런칭 후 언론사 등록 전까지는, 막지 않는다. 적극 수렴한다.";
@@ -66,6 +67,13 @@ describe("extractPaths · missingPaths", () => {
     const files = new Set(["components/x.tsx", "lib/y.tsx"]);
     const exists = (p: string) => files.has(p);
     expect(missingPaths(["lib/y", "lib/z.ts", "lib/old.ts"], exists, ["lib/old.ts"])).toEqual(["lib/z.ts"]);
+  });
+});
+
+describe("withoutChangelogRows", () => {
+  it("버전 기록 행(| v… · | **v…)은 옛 기록이라 링크 검사에서 뺀다", () => {
+    const text = "본문 `lib/a.ts`\n| **v2.1** | 2026-08-08 | 옛 `lib/old.ts` |\n| v1.0 | 옛 lib/older.ts |\n| 표 | lib/b.ts |";
+    expect(extractPaths(withoutChangelogRows(text)).sort()).toEqual(["lib/a.ts", "lib/b.ts"]);
   });
 });
 
