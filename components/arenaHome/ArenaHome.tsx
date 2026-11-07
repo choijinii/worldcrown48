@@ -122,9 +122,11 @@ export function ArenaHome({ data }: { data: ArenaHomeData }): JSX.Element {
   return (
     <main className={styles.page} data-theme="light" data-testid="arena-home">
       <div className={styles.inner}>
-        <h1 className={styles.srOnly}>{t("arenaHome.h1")}</h1>
-
-        <Scoreboard tournament={board} categories={data.categories} />
+        {/* 페이지 제목(2026-11-07 대표) — 매치 무대의 "The Arena" 와 구별. 전광판 바로 위. */}
+        <div className={styles.head}>
+          <h1 className={styles.h1}>{t("arenaHome.h1")}</h1>
+          <Scoreboard tournament={board} categories={data.categories} />
+        </div>
         {phone && banner && <div className={styles.bandSolo}>{banner}</div>}
 
         <CategoryTabs

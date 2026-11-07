@@ -10,7 +10,8 @@
   background: var(--color-bg-light);
   color: var(--color-text-light);
   font-family: var(--font-sans);
-  padding: calc(var(--nav-h) + 32px) var(--page-gutter) 72px;
+  /* 메뉴바 자리는 레이아웃이 이미 비운다 — 여기선 메뉴바 아래 끝 → 제목 위 끝 간격만(2026-11-07 대표) */
+  padding: var(--space-6) var(--page-gutter) 72px;
 }
 .inner {
   max-width: 1320px;
@@ -26,6 +27,28 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+/* 페이지 제목 "The Arena Home" — Record Room 제목(chartsList .h1)과 같은 글꼴·크기 · 전광판 바로 위 */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 38px;
+}
+@media (max-width: 860px) {
+  .page {
+    padding-top: var(--space-4);
+  }
+  .h1 {
+    font-size: 26px;
+    line-height: 32px;
+  }
 }
 
 /* ── 두 칸 (왼쪽 924 · 오른쪽 372) ── */
@@ -840,7 +863,7 @@
     font-size: 13px;
   }
   .page {
-    padding: calc(var(--nav-h) + 20px) var(--page-gutter) 48px;
+    padding: var(--space-4) var(--page-gutter) 48px;
   }
   .inner {
     gap: 28px;

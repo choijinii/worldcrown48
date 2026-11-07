@@ -465,7 +465,7 @@ export const MESSAGES = {
   // ── ARENA-2 PR 1 — 아레나 홈 /arena (원장 D-37 · D-63 · D-67 · D-68 · D-71) ──
   // 문구 승인표 outputs/ARENA-2_PR1_문구승인표_2026-10-27.md. 금지어: "표" · 투표 · 참가자 · 예측 · 전투 말투.
   // Tournament · Contestant · Champion 은 en·es 에서 영문 그대로(LANGUAGE.md §10) — es "Campeón" 만 Record Room 승인본을 따른다.
-  "arenaHome.h1": { ko: "The Arena", en: "The Arena", es: "The Arena" },
+  "arenaHome.h1": { ko: "The Arena Home", en: "The Arena Home", es: "The Arena Home" },
   "arenaHome.enter": { ko: "입장하기", en: "Enter", es: "Entrar" },
   "arenaHome.deadline": { ko: "마감 {date}", en: "Closes {date}", es: "Cierra {date}" },
   "arenaHome.entries": { ko: "엔트리", en: "Contestants", es: "Contestants" },
