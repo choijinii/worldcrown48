@@ -37,6 +37,7 @@ import {
 import { RankingView } from "@/components/ranking/RankingView";
 import type { RankingCache } from "@/lib/ranking/rankingTypes";
 import type { LocalizedText } from "@/lib/types/tournament";
+import { tournamentReadFailureIsNotFound } from "@/lib/arena/tournamentRead";
 
 /** Wireframe deadline chip format — "2026·06·20". */
 function formatDeadline(value: unknown): string | null {
@@ -81,6 +82,8 @@ export default function RankingPage(): JSX.Element {
   const [deadlineMs, setDeadlineMs] = useState<number | null | undefined>(
     undefined,
   );
+  // 지운 대회 · 숨긴 대회(D-86) — 차트를 보이지 않는다.
+  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     const ref = doc(getDb(), "ranking_cache", tournamentId);
@@ -98,6 +101,8 @@ export default function RankingPage(): JSX.Element {
     void getDoc(doc(getDb(), "tournaments", tournamentId)).then((snap) => {
       if (!alive) return;
       if (!snap.exists()) {
+        // ARENA-2 PR 3 (원장 D-86): 지운 대회의 차트는 "찾을 수 없어요".
+        setMissing(true);
         setDeadlineMs(null);
         return;
       }
@@ -110,6 +115,9 @@ export default function RankingPage(): JSX.Element {
       );
       setDeadlineText(formatDeadline(data.tournamentDeadline));
       setDeadlineMs(deadlineMillis(data.tournamentDeadline));
+    }, (e: unknown) => {
+      // 숨긴 대회는 규칙이 읽기를 거절한다 → 차트도 "찾을 수 없어요". 그 밖의 실패는 지금처럼 캐시만 보인다.
+      if (alive && tournamentReadFailureIsNotFound(e)) setMissing(true);
     });
     return () => {
       alive = false;
@@ -155,6 +163,30 @@ export default function RankingPage(): JSX.Element {
   const updatedText: string | null = last
     ? t(`ranking.updated.${last.day}`, { time: last.time, date: last.date })
     : null;
+
+  if (missing) {
+    return (
+      <div
+        role="status"
+        data-testid="ranking-not-found"
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--color-text)",
+          fontFamily: "var(--font-sans)",
+          textAlign: "center",
+          padding: 24,
+        }}
+      >
+        {t("arena.load.notFound")}&nbsp;
+        <a href="/" style={{ color: "var(--color-gold)" }}>
+          {t("arena.load.home")}
+        </a>
+      </div>
+    );
+  }
 
   return (
     <>

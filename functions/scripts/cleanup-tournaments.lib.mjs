@@ -20,8 +20,9 @@ export const EXTENDED_DEADLINE_KST = "2026-11-30T23:59:00+09:00";
 /**
  * 숨김에 쓰는 status 값.
  *
- * `hidden`·`archived` 는 **코드에 존재하지 않는다** — `TournamentStatus` 는
- * `active | ended | draft` 세 값뿐이다(lib/types/tournament.ts). 이미 숨겨져 있는
+ * 시험 대회 정리는 `draft` 를 쓴다(2026-09-08 · 당시 `TournamentStatus` 는 `active | ended | draft`).
+ * 운영자가 문제 대회를 숨기는 `hidden`(ARENA-2 PR 3 · 원장 D-86)은 그 뒤에 생긴 다른 개념이라
+ * 이 스크립트는 그대로 `draft` 를 쓴다. 이미 숨겨져 있는
  * 미리보기 3건(a1-preview-5·6 · dev-preview-lab)이 `draft` 를 쓰고 있어 선례를 따른다.
  * The Pitch 는 `status == "active"` 만 조회하므로(lib/pitch/pitchStore.ts) draft 는 빠진다.
  */

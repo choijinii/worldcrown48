@@ -36,6 +36,7 @@ import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
 import { isDeadlinePassed, toDeadlineMs } from "./_run/deadline";
 import { planRunWrite } from "./core/planRunWrite";
 import { VOTE_ERROR_CODES } from "./core/voteErrorCodes";
+import { isTournamentOpenForChoices } from "./core/tournamentAdmin";
 
 // Per-uid token bucket — 40 calls / uid / minute / instance.
 // RUN-1 (2026-09-03 대표 확정): HF-1.5의 20 → 40. 5판 = 선택 230번인데 분당 20이면 규칙이
@@ -116,6 +117,18 @@ export const onVote = onCall(
         tx.get(legacyProgressRef),
         tx.get(tournamentRef),
       ]);
+
+      // ARENA-2 PR 3 (원장 D-86) — 없는 대회 · 숨긴 대회 · 지우는 중인 대회는 선택을 받지 않는다.
+      // 화면은 이 대회를 읽지 못해 무대가 열리지 않으므로 팬 문구는 따로 없다(일반 실패 배너).
+      if (
+        !isTournamentOpenForChoices({
+          exists: tournamentSnap.exists,
+          status: tournamentSnap.get("status"),
+          removingAt: tournamentSnap.get("removingAt"),
+        })
+      ) {
+        throw new HttpsError("failed-precondition", "tournament unavailable");
+      }
 
       const stored = runsSnap.data() ?? {};
       const runIndex = normalizeRunIndex({
