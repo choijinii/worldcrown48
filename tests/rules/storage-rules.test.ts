@@ -21,7 +21,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
-import { ref, uploadBytes, getBytes } from "firebase/storage";
+import { ref, uploadBytes, getBytes, deleteObject } from "firebase/storage";
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47]); // "‰PNG"
 const CARD_PATH = "crown-cards/t1/voter1.png";
@@ -77,5 +77,74 @@ describe("non-crown paths — denied (whitelist)", () => {
   it("DENIES writing an arbitrary non-crown path", async () => {
     const storage = testEnv.authenticatedContext("voter1").storage();
     await assertFails(uploadBytes(ref(storage, OTHER_PATH), PNG));
+  });
+});
+
+// ─── IMAGE-1 PR 1 (원장 D-77) — 엔트리 그림 ───────────────────────────────
+// drafts: 읽기 공개 · 쓰기/삭제 = 로그인(익명 아님) + 경로 uid == 나 + image/* + 10MB 이하
+// tournaments: 읽기 공개 · 쓰기 금지(서버 함수 finalizeEntryImages 만)
+const JPG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0]);
+const DRAFT_IMG = "entry-images/drafts/host-1/d1/0.jpg";
+const TOUR_IMG = "entry-images/tournaments/t1/0.jpg";
+const google = (uid = "host-1") =>
+  testEnv.authenticatedContext(uid, { firebase: { sign_in_provider: "google.com" } }).storage();
+const jpeg = { contentType: "image/jpeg" };
+
+async function seed(path: string): Promise<void> {
+  await testEnv.withSecurityRulesDisabled(async (c) => {
+    await uploadBytes(ref(c.storage(), path), JPG, jpeg);
+  });
+}
+
+describe("entry-images/drafts — 자기 uid 경로만", () => {
+  it("ALLOWS a signed-in (non-anonymous) owner to upload a jpg", async () => {
+    await assertSucceeds(uploadBytes(ref(google(), DRAFT_IMG), JPG, jpeg));
+  });
+  it("DENIES uploading into someone else's uid path", async () => {
+    await assertFails(uploadBytes(ref(google("other"), DRAFT_IMG), JPG, jpeg));
+  });
+  it("DENIES anonymous (guest) accounts", async () => {
+    const anon = testEnv
+      .authenticatedContext("host-1", { firebase: { sign_in_provider: "anonymous" } })
+      .storage();
+    await assertFails(uploadBytes(ref(anon, DRAFT_IMG), JPG, jpeg));
+  });
+  it("DENIES signed-out upload", async () => {
+    await assertFails(uploadBytes(ref(testEnv.unauthenticatedContext().storage(), DRAFT_IMG), JPG, jpeg));
+  });
+  it("DENIES a file over 10MB", async () => {
+    const big = new Uint8Array(11 * 1024 * 1024);
+    await assertFails(uploadBytes(ref(google(), DRAFT_IMG), big, jpeg));
+  });
+  it("ALLOWS exactly 10MB", async () => {
+    const ok = new Uint8Array(10 * 1024 * 1024);
+    await assertSucceeds(uploadBytes(ref(google(), DRAFT_IMG), ok, jpeg));
+  });
+  it("DENIES text/plain", async () => {
+    await assertFails(uploadBytes(ref(google(), DRAFT_IMG), JPG, { contentType: "text/plain" }));
+  });
+  it("ALLOWS the owner to delete; DENIES others", async () => {
+    await seed(DRAFT_IMG);
+    await assertFails(deleteObject(ref(google("other"), DRAFT_IMG)));
+    await assertSucceeds(deleteObject(ref(google(), DRAFT_IMG)));
+  });
+  it("ALLOWS public read (signed out)", async () => {
+    await seed(DRAFT_IMG);
+    await assertSucceeds(getBytes(ref(testEnv.unauthenticatedContext().storage(), DRAFT_IMG)));
+  });
+});
+
+describe("entry-images/tournaments — 서버 함수만 쓴다", () => {
+  it("DENIES any client write (even the host)", async () => {
+    await assertFails(uploadBytes(ref(google(), TOUR_IMG), JPG, jpeg));
+    await assertFails(uploadBytes(ref(testEnv.unauthenticatedContext().storage(), TOUR_IMG), JPG, jpeg));
+  });
+  it("DENIES client delete", async () => {
+    await seed(TOUR_IMG);
+    await assertFails(deleteObject(ref(google(), TOUR_IMG)));
+  });
+  it("ALLOWS public read (signed out)", async () => {
+    await seed(TOUR_IMG);
+    await assertSucceeds(getBytes(ref(testEnv.unauthenticatedContext().storage(), TOUR_IMG)));
   });
 });
