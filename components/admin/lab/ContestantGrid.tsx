@@ -13,7 +13,7 @@ import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import { GRID_COLUMNS } from "@/lib/lab/gridLayout";
 import type { SourcingStates } from "@/lib/lab/sourcingDraft";
 import type { ReviewFlags } from "@/lib/lab/reviewFlags";
-import { ContestantEditor, slotDomId } from "./ContestantEditor";
+import { ContestantEditor, slotDomId, type SlotImageHandlers } from "./ContestantEditor";
 
 interface ContestantGridProps {
   contestants: ContestantDraft[];
@@ -34,6 +34,11 @@ interface ContestantGridProps {
   /** THUMB-1: 칸을 대표 매치로 고르기. `canPick(i)` 가 참인 칸에만 연결된다. */
   onPick?: (index: number) => void;
   canPick?: (index: number) => boolean;
+  /** IMAGE-1 — 칸마다 그림 넣기 · 지우기. `busyImage` 는 올리는 중인 칸 번호. */
+  image?: Omit<SlotImageHandlers, "busy">;
+  busyImage?: ReadonlySet<number>;
+  /** IMAGE-1 — 이름↔영상 불일치 칸 번호(0부터). */
+  videoMismatch?: ReadonlySet<number>;
 }
 
 /**
@@ -42,7 +47,7 @@ interface ContestantGridProps {
  * 48칸 중 3번과 38번이 같은 인물이라는 걸 알아도, 38번을 손으로 찾아 스크롤하는
  * 동안 운영자는 무엇을 비교하려 했는지 잊는다. 그래서 이동은 화면이 한다.
  */
-function scrollToSlot(index: number): void {
+export function scrollToSlot(index: number): void {
   const node = document.getElementById(slotDomId(index));
   if (!node) return;
   node.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -62,6 +67,9 @@ export function ContestantGrid({
   pairB = null,
   onPick,
   canPick,
+  image,
+  busyImage,
+  videoMismatch,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -102,6 +110,8 @@ export function ContestantGrid({
           refreshing={refreshingIndex === i}
           pairMark={pairA === i ? "a" : pairB === i ? "b" : null}
           onPick={onPick && canPick?.(i) ? onPick : undefined}
+          image={image ? { ...image, busy: busyImage?.has(i) ?? false } : undefined}
+          videoMismatch={videoMismatch?.has(i) ?? false}
         />
       ))}
     </div>

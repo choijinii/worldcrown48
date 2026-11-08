@@ -86,7 +86,23 @@ import type { SourcingBatchSummary, SourcingTarget } from "@/lib/embed/sourcing/
 import { useT } from "@/lib/i18n/useT";
 import { buildPublishBatch } from "@/lib/lab/publishBatch";
 import { publishWithImages } from "@/lib/lab/publishImages";
-import { callCleanupEntryImages, callFinalizeEntryImages } from "@/lib/lab/entryImageCalls";
+import { callCleanupEntryImages, callFinalizeEntryImages, callImportEntryImage } from "@/lib/lab/entryImageCalls";
+import {
+  assignToEmptySlots,
+  clearImageFields,
+  ENTRY_IMAGE_CLIENT,
+  fieldsFromImport,
+  nameCandidate,
+  naturalSortFiles,
+  slotHasImage,
+  type ImageFields,
+} from "@/lib/lab/entryImages";
+import { deleteEntryImageFiles, uploadEntryImageFile } from "@/lib/lab/uploadEntryImage";
+import { mismatchSlots } from "@/lib/lab/nameVideoMismatch";
+import { MakingManualDialog } from "./MakingManualDialog";
+import { PublishConfirmDialog } from "./PublishConfirmDialog";
+import { scrollToSlot } from "./ContestantGrid";
+import type { ImportFailure } from "./ContestantEditor";
 import { createDraftAutosaver, type AutosaveStatus } from "@/lib/lab/draftAutosaver";
 import { deleteDraft, listMyDrafts, loadDraft, newDraftId, saveDraft } from "@/lib/lab/draftStore";
 import {
@@ -197,6 +213,11 @@ export function TournamentCreator(): JSX.Element {
   // LAB-EV-1: 검수기 모달 + 슬롯 미세조정(열린 슬롯 index, 닫힘이면 null).
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [tuningIndex, setTuningIndex] = useState<number | null>(null);
+  // IMAGE-1 — 그림 올리는 중인 칸 · 매뉴얼 창 · 발행 확인창.
+  const [busyImage, setBusyImage] = useState<ReadonlySet<number>>(() => new Set());
+  const [manualOpen, setManualOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const imageFilesRef = useRef<HTMLInputElement>(null);
   // LAB-EV-2: 슬롯별 소싱 배지(제안·수동 필요·실존 의심). 화면 전용 — 발행되지 않는다.
   const [sourcingStates, setSourcingStates] = useState<SourcingStates>({});
   // THUMB-1 대표 매치 — 그리드 칸 번호(0~47) 두 개 + 위치 값. 둘 다 골라야 게시된다.
@@ -872,6 +893,95 @@ export function TournamentCreator(): JSX.Element {
     setTuningIndex(null);
   }
 
+  // ── IMAGE-1 (원장 D-77) — 엔트리 그림 ① 파일 48장 · ④ 칸마다 ──────────────────────
+  /** 그림 경로에 초안 id 가 들어간다 — 아직 저장 전이면 id 만 먼저 정한다(저장은 자동 저장기가 한다). */
+  function ensureDraftId(): string {
+    if (!draftIdRef.current) draftIdRef.current = newDraftId(getDb());
+    return draftIdRef.current;
+  }
+
+  function patchSlot(index: number, patch: (c: ContestantDraft) => ContestantDraft) {
+    setContestants((prev) => {
+      const next = Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => prev[i] ?? emptyDraft());
+      next[index] = patch(next[index]);
+      return next;
+    });
+  }
+
+  function setBusy(index: number, on: boolean) {
+    setBusyImage((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(index);
+      else next.delete(index);
+      return next;
+    });
+  }
+
+  async function uploadToSlot(index: number, file: File): Promise<boolean> {
+    if (!uid) return false;
+    const draftId = ensureDraftId();
+    setBusy(index, true);
+    try {
+      const fields: ImageFields = await uploadEntryImageFile({ uid, draftId, slot: index, file });
+      const candidate = nameCandidate(file.name);
+      // 그림을 다시 넣으면 자르기 값은 새 그림 기준으로 처음부터.
+      patchSlot(index, (c) => ({
+        ...clearImageFields(c),
+        ...fields,
+        ...(c.name.trim() === "" && candidate ? { name: candidate } : {}),
+      }));
+      return true;
+    } catch (err) {
+      console.warn("entry image upload failed", err);
+      return false;
+    } finally {
+      setBusy(index, false);
+    }
+  }
+
+  /** ① 여러 장 — 파일 이름 자연 정렬 순서로 그림이 없는 칸부터 채운다(넘치면 버린다). */
+  async function addImageFiles(list: FileList | File[] | null) {
+    const files = naturalSortFiles(Array.from(list ?? []).filter((f) => f.type.startsWith("image/")));
+    if (files.length === 0) return;
+    const slots = assignToEmptySlots(
+      Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => slotHasImage(contestants[i])),
+      files.length,
+    );
+    // 4장씩 — 브라우저가 줄이는 일과 올리는 일이 한꺼번에 몰리지 않게.
+    const queue = slots.map((slot, k) => ({ slot, file: files[k] }));
+    const workers = Array.from({ length: Math.min(4, queue.length) }, async () => {
+      for (let job = queue.shift(); job; job = queue.shift()) await uploadToSlot(job.slot, job.file);
+    });
+    await Promise.all(workers);
+  }
+
+  /** ④ [URL] — 서버가 내려받아 줄여 우리 Storage 에 둔다. 실패하면 이유. */
+  async function importUrlToSlot(index: number, url: string): Promise<ImportFailure | null> {
+    const draftId = ensureDraftId();
+    setBusy(index, true);
+    try {
+      const r = await callImportEntryImage({ draftId, slot: index, url });
+      if (!r.ok) return r.reason;
+      patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r) }));
+      return null;
+    } catch (err) {
+      console.warn("importEntryImage failed", err);
+      return "fetch-failed";
+    } finally {
+      setBusy(index, false);
+    }
+  }
+
+  function removeSlotImage(index: number) {
+    const path = contestants[index]?.imageStoragePath;
+    patchSlot(index, clearImageFields);
+    void deleteEntryImageFiles(path);
+  }
+
+  const imagesFilled = contestants.filter(slotHasImage).length;
+  const mismatchList = useMemo(() => mismatchSlots(contestants), [contestants]);
+  const videoMismatch = useMemo(() => new Set(mismatchList), [mismatchList]);
+
   function updateContestant(index: number, patch: Partial<ContestantDraft>) {
     const current = contestants[index];
     const renamed =
@@ -1164,7 +1274,8 @@ export function TournamentCreator(): JSX.Element {
               <PublishButton
                 contestants={contestants}
                 busy={publishing}
-                onClick={publish}
+                // IMAGE-1 — 바로 발행하지 않고 마지막 확인창을 연다(체크 3칸).
+                onClick={() => setConfirmOpen(true)}
                 pairReady={isPickComplete(pairPick)}
               />
             </div>
@@ -1189,8 +1300,85 @@ export function TournamentCreator(): JSX.Element {
             onFillBlanks={() => void startVideoChain("blanks")}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}
             disabled={publishing}
+            primaryEnd={
+              <button
+                type="button"
+                onClick={() => setManualOpen(true)}
+                data-testid="lab-making-manual"
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius-border)",
+                  border: `1px solid ${lab.border}`,
+                  background: "transparent",
+                  color: lab.textSub,
+                  fontSize: 13,
+                  fontFamily: lab.font,
+                  cursor: "pointer",
+                }}
+              >
+                {t("lab.manual.button")}
+              </button>
+            }
+            toolsEnd={
+              <>
+                <button
+                  type="button"
+                  onClick={() => imageFilesRef.current?.click()}
+                  disabled={publishing}
+                  data-testid="lab-add-image-files"
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "var(--radius-border)",
+                    border: `1px solid ${lab.border}`,
+                    background: "transparent",
+                    color: lab.textSub,
+                    fontSize: 13,
+                    fontFamily: lab.font,
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("lab.image.addFiles")}
+                </button>
+                <input
+                  ref={imageFilesRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  data-testid="lab-add-image-files-input"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    e.target.value = "";
+                    void addImageFiles(files);
+                  }}
+                />
+              </>
+            }
           />
+          {(imagesFilled > 0 || busyImage.size > 0) && (
+            <p
+              data-testid="image-progress"
+              data-busy={busyImage.size > 0}
+              style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: 12, color: lab.textSub }}
+            >
+              {imagesFilled} / {ENTRY_IMAGE_CLIENT.SLOTS}
+            </p>
+          )}
+          <div
+            data-testid="entry-image-dropzone"
+            onDragOver={(e) => {
+              if (Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault();
+            }}
+            onDrop={(e) => {
+              if (e.dataTransfer.files.length === 0) return;
+              e.preventDefault();
+              void addImageFiles(e.dataTransfer.files);
+            }}
+          >
           <ContestantGrid
+            image={{ onFile: (i, f) => void uploadToSlot(i, f), onUrl: importUrlToSlot, onRemove: removeSlotImage }}
+            busyImage={busyImage}
+            videoMismatch={videoMismatch}
             pairA={pairPick.a}
             pairB={pairPick.b}
             onPick={(i) => setPairPick((p) => pickSlot(p, i))}
@@ -1203,6 +1391,7 @@ export function TournamentCreator(): JSX.Element {
             onRefreshVideo={(index) => void refreshSlot(index)}
             refreshingIndex={refreshingIndex}
           />
+          </div>
           <p style={{ margin: 0, fontSize: 12, color: lab.textMuted }}>
             {t("lab.fill.hint")}
           </p>
@@ -1219,6 +1408,24 @@ export function TournamentCreator(): JSX.Element {
           onRun={() => void runVideoChain()}
         />
       )}
+
+      {/* IMAGE-1 — [만들기 매뉴얼] 창 · [토너먼트 생성] 확인창(마티오 메모 · D-77 보충). */}
+      <PublishConfirmDialog
+        open={confirmOpen}
+        mismatch={mismatchList}
+        onGoTo={(i) => {
+          setConfirmOpen(false);
+          scrollToSlot(i);
+        }}
+        onBack={() => setConfirmOpen(false)}
+        onManual={() => setManualOpen(true)}
+        onPublish={() => {
+          setConfirmOpen(false);
+          void publish();
+        }}
+      />
+      {/* 확인창의 [만들기 매뉴얼 다시 보기]는 확인창 위에 겹쳐 연다(체크한 칸이 그대로 남는다). */}
+      <MakingManualDialog open={manualOpen} onClose={() => setManualOpen(false)} />
 
       {/* LAB-EV-1 — 검수기(W4)와 슬롯 미세조정(W5). 둘 다 STEP 2 전용. */}
       <YouTubeInspectorModal

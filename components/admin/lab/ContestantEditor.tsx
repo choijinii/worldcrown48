@@ -20,8 +20,11 @@
  */
 "use client";
 
+import { useRef, useState } from "react";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
-import { buildThumbnailUrl } from "@/lib/embed/loopRange";
+import { slotPreview } from "@/lib/lab/entryImages";
+import { sourceHost } from "@/lib/media/storageUrl";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { useT } from "@/lib/i18n/useT";
 import type { SlotSourcingState } from "@/lib/lab/sourcingDraft";
 import type { SlotReviewFlag } from "@/lib/lab/reviewFlags";
@@ -55,7 +58,43 @@ interface ContestantEditorProps {
   pairMark?: PairSide | null;
   /** THUMB-1: 미리보기 칸을 누르면 대표 매치로 고른다. 영상이 있는 칸에만 넘어온다. */
   onPick?: (index: number) => void;
+  /** IMAGE-1 (D-77) — 칸마다 그림 넣기 · 지우기. 없으면 칩을 그리지 않는다. */
+  image?: SlotImageHandlers;
+  /** IMAGE-1 — 이름↔영상 불일치(영상 제목·채널에 이름·소속이 없다). */
+  videoMismatch?: boolean;
 }
+
+export type ImportFailure = "fetch-failed" | "not-image" | "too-large" | "too-small";
+
+export interface SlotImageHandlers {
+  onFile: (index: number, file: File) => void;
+  /** 실패하면 이유, 성공하면 null. */
+  onUrl: (index: number, url: string) => Promise<ImportFailure | null>;
+  onRemove: (index: number) => void;
+  /** 이 칸이 올리는 중. */
+  busy?: boolean;
+}
+
+const FAIL_KEY: Record<ImportFailure, MessageKey> = {
+  "fetch-failed": "lab.image.fail.fetchFailed",
+  "not-image": "lab.image.fail.notImage",
+  "too-large": "lab.image.fail.tooLarge",
+  "too-small": "lab.image.fail.tooSmall",
+};
+
+/** 주황 — 팔레트에 없어 금색과 크림슨을 섞는다(토큰만 · check:hex). */
+const ORANGE = "color-mix(in srgb, var(--color-gold) 55%, var(--color-crimson))";
+
+const chipStyle: React.CSSProperties = {
+  padding: "2px 7px",
+  borderRadius: 999,
+  border: `1px solid ${lab.border}`,
+  background: "transparent",
+  color: lab.textSub,
+  fontSize: 9,
+  fontFamily: lab.font,
+  cursor: "pointer",
+};
 
 /** 슬롯 카드의 DOM id — [N번 보기] 스크롤이 이걸로 찾는다. */
 export function slotDomId(index: number): string {
@@ -104,14 +143,46 @@ export function ContestantEditor({
   refreshing = false,
   pairMark = null,
   onPick,
+  image,
+  videoMismatch = false,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [urlOpen, setUrlOpen] = useState(false);
+  const [urlValue, setUrlValue] = useState("");
+  const [urlBusy, setUrlBusy] = useState(false);
+  const [urlFail, setUrlFail] = useState<ImportFailure | null>(null);
   const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
   // LAB-EV-1: 영상만 있는 슬롯도 그리드에서 비어 보이면 안 된다 — 유튜브 썸네일을
   // 미리보기로 쓴다(imageUrl은 건드리지 않는다. 라이선스된 스틸의 자리다).
   const videoId = contestant.videoId ?? "";
-  const previewUrl = videoId ? buildThumbnailUrl(videoId) : "";
+  // IMAGE-1 — 영상 썸네일 > 그림 600 사본 > 없음.
+  const preview = slotPreview(contestant);
+  const previewUrl = preview.url;
+  // 이름 아래 한 줄: 영상 칸은 제목 · 채널, 그림 엔트리는 출처 도메인 글자.
+  const metaLine = videoId
+    ? [contestant.videoTitle, contestant.videoChannel].filter(Boolean).join(" · ")
+    : contestant.imageUrl
+      ? sourceHost(contestant.imageSource?.sourcePage)
+      : "";
+
+  async function submitUrl() {
+    const url = urlValue.trim();
+    if (!image || !url || urlBusy) return;
+    setUrlBusy(true);
+    setUrlFail(null);
+    try {
+      const fail = await image.onUrl(index, url);
+      setUrlFail(fail);
+      if (!fail) {
+        setUrlValue("");
+        setUrlOpen(false);
+      }
+    } finally {
+      setUrlBusy(false);
+    }
+  }
   const hint = (contestant.imageSearchKeyword ?? "").trim();
   const duplicate = reviewFlags?.find((f) => f.kind === "duplicate-suspect");
   const mismatch = reviewFlags?.find((f) => f.kind === "name-hint-mismatch");
@@ -139,6 +210,19 @@ export function ContestantEditor({
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       data-pair={pairMark ?? ""}
+      onDragOver={image ? (e) => e.preventDefault() : undefined}
+      onDrop={
+        image
+          ? (e) => {
+              // 한 칸에 한 장을 놓으면 그 칸만 — 그리드 전체 끌어놓기로 번지지 않게 멈춘다.
+              const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
+              if (!file) return;
+              e.preventDefault();
+              e.stopPropagation();
+              image.onFile(index, file);
+            }
+          : undefined
+      }
       style={{
         position: "relative",
         background: lab.surface,
@@ -217,6 +301,31 @@ export function ContestantEditor({
         }}
       >
         {!previewUrl && (isEmpty ? "+" : "🏆")}
+        {preview.imageOnly && (
+          <span
+            data-testid={`slot-image-badge-${index}`}
+            style={{
+              position: "absolute",
+              right: 4,
+              bottom: 4,
+              padding: "1px 6px",
+              borderRadius: 999,
+              background: "rgba(0,0,31,0.72)",
+              color: lab.turquoise,
+              fontSize: 9,
+              fontWeight: 700,
+            }}
+          >
+            {t("lab.image.badge")}
+          </span>
+        )}
+        {image?.busy && (
+          <span
+            data-testid={`slot-image-busy-${index}`}
+            aria-hidden="true"
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,31,0.55)" }}
+          />
+        )}
         {pairMark && (
           <span style={{ position: "absolute", left: 4, top: 4, zIndex: 1 }}>
             <PairBadge side={pairMark} size={20} />
@@ -293,6 +402,20 @@ export function ContestantEditor({
           ✎
         </span>
       </div>
+      {metaLine && (
+        <span
+          data-testid={`slot-meta-${index}`}
+          title={metaLine}
+          style={{
+            marginTop: 2,
+            fontSize: 9,
+            color: lab.textMuted,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >{metaLine}</span>
+      )}
       <div style={{ display: "flex", gap: 4 }}>
         <input
           value={contestant.affiliation}
@@ -312,11 +435,21 @@ export function ContestantEditor({
         />
       </div>
       {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
-      {(duplicate || mismatch) && (
+      {(duplicate || mismatch || videoMismatch) && (
         <div
           data-testid={`contestant-review-${index}`}
           style={{ marginTop: 6, display: "grid", gap: 3 }}
         >
+          {/* IMAGE-1 — 이름↔영상 불일치. 새 배지가 맨 앞(지시서 2-C 12). */}
+          {videoMismatch && (
+            <span
+              data-review-flag="name-video-mismatch"
+              title={t("lab.badge.nameVideoDesc")}
+              style={{ ...badgeStyle(ORANGE), cursor: "help" }}
+            >
+              {t("lab.badge.nameVideo")}
+            </span>
+          )}
           {duplicate && (
             <>
               <span
@@ -396,6 +529,79 @@ export function ContestantEditor({
             ) : null;
           })()}
         </div>
+      )}
+
+      {/* IMAGE-1 (D-77) — ④ 칸마다: [파일] 한 장 · [URL] 한 개(서버가 받아 줄인다) · [그림 지우기]. */}
+      {image && (
+        <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <button
+            type="button"
+            data-testid={`slot-image-file-${index}`}
+            disabled={image.busy}
+            onClick={() => fileRef.current?.click()}
+            style={chipStyle}
+          >
+            {t("lab.image.chipFile")}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            data-testid={`slot-image-file-input-${index}`}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) image.onFile(index, file);
+            }}
+          />
+          <button
+            type="button"
+            data-testid={`slot-image-url-${index}`}
+            aria-expanded={urlOpen}
+            onClick={() => {
+              setUrlOpen((o) => !o);
+              setUrlFail(null);
+            }}
+            style={chipStyle}
+          >
+            {t("lab.image.chipUrl")}
+          </button>
+          {contestant.imageUrl && (
+            <button
+              type="button"
+              data-testid={`slot-image-remove-${index}`}
+              onClick={() => image.onRemove(index)}
+              style={{ ...chipStyle, color: lab.crimson, borderColor: lab.crimson }}
+            >
+              {t("lab.image.remove")}
+            </button>
+          )}
+        </div>
+      )}
+      {image && urlOpen && (
+        <input
+          type="url"
+          value={urlValue}
+          autoFocus
+          disabled={urlBusy}
+          placeholder={t("lab.image.chipUrl")}
+          aria-label={t("lab.image.chipUrl")}
+          data-testid={`slot-image-url-input-${index}`}
+          onChange={(e) => setUrlValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void submitUrl();
+            }
+          }}
+          style={fieldStyle}
+        />
+      )}
+      {urlFail && (
+        <span data-testid={`slot-image-fail-${index}`} role="status" style={{ marginTop: 3, fontSize: 9, color: lab.crimson }}>
+          {t(FAIL_KEY[urlFail])}
+        </span>
       )}
 
       {/* 영상 찾기 — 배지와 **무관하게** 이름이 있는 칸이면 언제나 준다.

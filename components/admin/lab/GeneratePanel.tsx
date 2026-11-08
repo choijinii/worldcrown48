@@ -31,6 +31,10 @@ interface GeneratePanelProps {
   onPasteLinks: () => void;
   /** 접이식 도구 — 빈칸만 AI. */
   onFillBlanks: () => void;
+  /** IMAGE-1 — 두 버튼 줄 오른쪽 끝([만들기 매뉴얼]). */
+  primaryEnd?: React.ReactNode;
+  /** IMAGE-1 — 도구 줄 끝([이미지 파일 넣기] · 진행 표시). */
+  toolsEnd?: React.ReactNode;
   /** 빈칸이 없으면 [빈칸만 AI]를 잠근다. */
   hasBlanks: boolean;
   /** 발행 중 등 바깥 사정으로 전체를 잠글 때. */
@@ -45,6 +49,8 @@ export function GeneratePanel({
   onGenerateImages,
   onPasteLinks,
   onFillBlanks,
+  primaryEnd,
+  toolsEnd,
   hasBlanks,
   disabled = false,
 }: GeneratePanelProps): JSX.Element {
@@ -149,6 +155,7 @@ export function GeneratePanel({
             {t("lab.generate.imagesSub")}
           </span>
         </button>
+        {primaryEnd ? <div style={{ marginLeft: "auto", alignSelf: "center" }}>{primaryEnd}</div> : null}
       </div>
 
       <p
@@ -209,6 +216,7 @@ export function GeneratePanel({
             <span style={{ fontSize: 12, color: lab.textMuted }}>
               {t("lab.generate.toolsHint")}
             </span>
+            {toolsEnd}
           </div>
         )}
       </div>
