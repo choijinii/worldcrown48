@@ -109,5 +109,22 @@ export function staleChecks(claude, ledger) {
   for (const l of launch.split("\n"))
     if (/10[\/-]0?8(?!\d)/.test(l) && !l.includes("49일 밀림"))
       fails.push(`⑤ 런칭 절에 10/08(10/8)이 '49일 밀림' 문맥 밖에 남음: ${l.trim().slice(0, 60)}`);
+
+  // ⑥ D-20(디자인 정본)은 D-85로 바뀜 — 옛 기록(버전 머리 줄 · 버전 기록 행 · 취소선) 밖에서 D-20 만 홀로 남지 않게.
+  for (const l of withoutChangelogRows(claude).split("\n")) {
+    if (/^#\s*v\d/.test(l)) continue;
+    const live = l.replace(/~~[^~]*~~/g, "");
+    if (/D-20(?!\d)/.test(live) && !l.includes("D-85"))
+      fails.push(`⑥ D-20 이 'D-85로 바뀜' 없이 지금 규칙으로 남음: ${l.trim().slice(0, 60)}`);
+  }
   return fails;
+}
+
+/** LANGUAGE.md — 원장 D-86 새 낱말(조기 마감 · 숨김)이 §17 에 있는지. */
+export function languageChecks(language) {
+  const sec = section(language, "## 17.");
+  if (!sec) return ["⑦ LANGUAGE.md §17(조기 마감 · 숨김) 절이 없음"];
+  return ["조기 마감", "숨김", "D-86", "tournamentDeadline", "hidden"]
+    .filter((w) => !sec.includes(w))
+    .map((w) => `⑦ LANGUAGE.md §17 에 '${w}' 없음`);
 }

@@ -6,6 +6,7 @@ import {
   findForbidden,
   ledgerPrinciple,
   missingPaths,
+  languageChecks,
   staleChecks,
   withoutChangelogRows,
 } from "../../scripts/check-docs.lib.mjs";
@@ -104,5 +105,33 @@ describe("staleChecks", () => {
     expect(staleChecks(claude(row6, GOOD_LAUNCH), LEDGER)).toEqual([
       "① 불변 원칙 6행에 원장 D-77 원칙 문장이 글자 그대로 없음",
     ]);
+  });
+});
+
+describe("staleChecks ⑥ — D-20 은 D-85로 바뀜 (2026-11-06)", () => {
+  const row6 = `이미지 엔트리 원칙(원장 D-77): ${PRINCIPLE}`;
+  const withLine = (l: string) => claude(row6, GOOD_LAUNCH) + "\n" + l;
+  it("지금 규칙 줄에 D-20 만 있으면 실패", () => {
+    expect(staleChecks(withLine("| 클로드 디자인 | **디자인 정본(D-20)** — 값은 여기서만 |"), LEDGER).map((s) => s[0])).toEqual(["⑥"]);
+  });
+  it("D-85 와 같이 있거나 취소선 · 버전 기록 행 · 버전 머리 줄이면 통과", () => {
+    for (const l of [
+      "| 클로드 디자인 | ~~디자인 정본(D-20)~~ **D-85로 바뀜** |",
+      "값 → 정본 규칙 C(~~D-20~~ → D-85)",
+      "| **v2.8** | 2026-10-04 | 디자인 정본 = 클로드 디자인(D-20) |",
+      "# v2.8 (2026-10-04): 디자인 정본(D-20)",
+    ])
+      expect(staleChecks(withLine(l), LEDGER)).toEqual([]);
+  });
+});
+
+describe("languageChecks — D-86 새 낱말", () => {
+  const GOOD = "## 17. 조기 마감 · 숨김 (원장 D-86)\n| 조기 마감 | `tournamentDeadline` |\n| 숨김 | `status: 'hidden'` |\n## 변경 이력";
+  it("§17 에 조기 마감 · 숨김 · D-86 · tournamentDeadline · hidden 이 있으면 통과", () => {
+    expect(languageChecks(GOOD)).toEqual([]);
+  });
+  it("없으면 실패", () => {
+    expect(languageChecks("## 16. 초안\n## 변경 이력").length).toBeGreaterThan(0);
+    expect(languageChecks(GOOD.replace("숨김 |", "감춤 |").replace("숨김 (", "("))).toEqual(["⑦ LANGUAGE.md §17 에 '숨김' 없음"]);
   });
 });
