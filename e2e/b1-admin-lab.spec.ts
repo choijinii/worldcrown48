@@ -199,6 +199,11 @@ test.describe("B-1 The Lab — operator critical path", () => {
     });
     expect(await countE2EDrafts("E2E Tournament")).toBeGreaterThan(0);
     await publish.click();
+    // IMAGE-1(D-77 보충) — [토너먼트 생성]은 마지막 확인창을 연다. 체크 3칸을 다 해야 [발행하기]가 켜진다.
+    await expect(page.getByTestId("publish-confirm")).toBeVisible();
+    await expect(page.getByTestId("confirm-publish")).toBeDisabled();
+    for (const n of [1, 2, 3]) await page.getByTestId(`confirm-check-${n}`).check();
+    await page.getByTestId("confirm-publish").click();
 
     // The new Tournament shows in the list.
     const row = page
