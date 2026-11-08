@@ -54,7 +54,8 @@ export function collectConsoleErrors(page: Page): string[] {
 
 /** 관리자(e2e-admin)로 로그인 — 앱의 에뮬레이터 전용 손잡이(lib/firebase.ts)로 토큰을 넣는다. */
 export async function signInAsAdmin(page: Page): Promise<void> {
-  const token = await adminApp().auth().createCustomToken(ADMIN_UID);
+  // 실서비스 운영자 계정처럼 관리자 표시(admin: true)를 단다 — storage.rules 그림 쓰기 조건(D-77 보충).
+  const token = await adminApp().auth().createCustomToken(ADMIN_UID, { admin: true });
   await page.waitForFunction(() => typeof (window as unknown as { __wc48SignIn?: unknown }).__wc48SignIn === "function");
   await page.evaluate(async (t) => {
     await (window as unknown as { __wc48SignIn: (x: string) => Promise<unknown> }).__wc48SignIn(t);

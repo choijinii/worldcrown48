@@ -89,6 +89,11 @@ const TOUR_IMG = "entry-images/tournaments/t1/0.jpg";
 const google = (uid = "host-1") =>
   testEnv.authenticatedContext(uid, { firebase: { sign_in_provider: "google.com" } }).storage();
 const jpeg = { contentType: "image/jpeg" };
+/** 관리자 표시(custom claim admin: true)가 있는 구글 로그인 — firestore.rules 배너·운영자 알림과 같은 표시. */
+const adminGoogle = (uid = "host-1") =>
+  testEnv
+    .authenticatedContext(uid, { admin: true, firebase: { sign_in_provider: "google.com" } })
+    .storage();
 
 async function seed(path: string): Promise<void> {
   await testEnv.withSecurityRulesDisabled(async (c) => {
@@ -96,16 +101,25 @@ async function seed(path: string): Promise<void> {
   });
 }
 
-describe("entry-images/drafts — 자기 uid 경로만", () => {
-  it("ALLOWS a signed-in (non-anonymous) owner to upload a jpg", async () => {
-    await assertSucceeds(uploadBytes(ref(google(), DRAFT_IMG), JPG, jpeg));
+// D-77 보충(대표 2026-11-08): 그림 저장소 쓰기는 관리자만. MVP 1.5 때 일반 사용자에게 다시 연다.
+describe("entry-images/drafts — 관리자 + 자기 uid 경로만", () => {
+  it("① ALLOWS an admin uploading into their own uid path", async () => {
+    await assertSucceeds(uploadBytes(ref(adminGoogle(), DRAFT_IMG), JPG, jpeg));
+  });
+  it("② DENIES a signed-in non-admin even in their own uid path (upload and delete)", async () => {
+    await assertFails(uploadBytes(ref(google(), DRAFT_IMG), JPG, jpeg));
+    await seed(DRAFT_IMG);
+    await assertFails(deleteObject(ref(google(), DRAFT_IMG)));
+  });
+  it("③ DENIES an admin writing into someone else's uid path", async () => {
+    await assertFails(uploadBytes(ref(adminGoogle("other"), DRAFT_IMG), JPG, jpeg));
   });
   it("DENIES uploading into someone else's uid path", async () => {
     await assertFails(uploadBytes(ref(google("other"), DRAFT_IMG), JPG, jpeg));
   });
-  it("DENIES anonymous (guest) accounts", async () => {
+  it("④ DENIES anonymous (guest) accounts — even with an admin flag", async () => {
     const anon = testEnv
-      .authenticatedContext("host-1", { firebase: { sign_in_provider: "anonymous" } })
+      .authenticatedContext("host-1", { admin: true, firebase: { sign_in_provider: "anonymous" } })
       .storage();
     await assertFails(uploadBytes(ref(anon, DRAFT_IMG), JPG, jpeg));
   });
@@ -114,21 +128,21 @@ describe("entry-images/drafts — 자기 uid 경로만", () => {
   });
   it("DENIES a file over 10MB", async () => {
     const big = new Uint8Array(11 * 1024 * 1024);
-    await assertFails(uploadBytes(ref(google(), DRAFT_IMG), big, jpeg));
+    await assertFails(uploadBytes(ref(adminGoogle(), DRAFT_IMG), big, jpeg));
   });
   it("ALLOWS exactly 10MB", async () => {
     const ok = new Uint8Array(10 * 1024 * 1024);
-    await assertSucceeds(uploadBytes(ref(google(), DRAFT_IMG), ok, jpeg));
+    await assertSucceeds(uploadBytes(ref(adminGoogle(), DRAFT_IMG), ok, jpeg));
   });
   it("DENIES text/plain", async () => {
-    await assertFails(uploadBytes(ref(google(), DRAFT_IMG), JPG, { contentType: "text/plain" }));
+    await assertFails(uploadBytes(ref(adminGoogle(), DRAFT_IMG), JPG, { contentType: "text/plain" }));
   });
-  it("ALLOWS the owner to delete; DENIES others", async () => {
+  it("ALLOWS the admin owner to delete; DENIES another admin's uid", async () => {
     await seed(DRAFT_IMG);
-    await assertFails(deleteObject(ref(google("other"), DRAFT_IMG)));
-    await assertSucceeds(deleteObject(ref(google(), DRAFT_IMG)));
+    await assertFails(deleteObject(ref(adminGoogle("other"), DRAFT_IMG)));
+    await assertSucceeds(deleteObject(ref(adminGoogle(), DRAFT_IMG)));
   });
-  it("ALLOWS public read (signed out)", async () => {
+  it("⑤ ALLOWS public read (signed out)", async () => {
     await seed(DRAFT_IMG);
     await assertSucceeds(getBytes(ref(testEnv.unauthenticatedContext().storage(), DRAFT_IMG)));
   });
