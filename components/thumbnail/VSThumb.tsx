@@ -16,15 +16,17 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { posterSources, type EmbedOrientation } from "@/lib/media/stageCrop";
+import type { EmbedOrientation } from "@/lib/media/stageCrop";
 import { coverObjectPosition } from "@/lib/thumbnail/pair";
-import { posterStep, posterZoom } from "@/lib/thumbnail/poster";
+import { coverSideSources, coverSideZoom, posterStep } from "@/lib/thumbnail/poster";
 
 export interface VSThumbSide {
   videoId: string;
   orientation: EmbedOrientation;
   /** 0~100 — 가로 영상은 좌우, 세로는 위아래. */
   pos: number;
+  /** IMAGE-1 (D-77) — 그림 엔트리(영상 없음)의 600 사본. 있으면 videoId 는 빈 글자다. */
+  imageUrl?: string;
 }
 
 export interface VSThumbProps {
@@ -62,14 +64,15 @@ function Half({
   /** 혼자 그려지는 칸(편집기 자르기 창) — A/B 경계선이 필요 없다. */
   alone?: boolean;
 }) {
-  const sources = data ? posterSources(data.videoId, data.orientation) : [];
+  const sources = data ? coverSideSources(data) : [];
   const [index, setIndex] = useState(0);
   const [broken, setBroken] = useState(false);
   const videoId = data?.videoId;
+  const imageUrl = data?.imageUrl;
   useEffect(() => {
     setIndex(0);
     setBroken(false);
-  }, [videoId]);
+  }, [videoId, imageUrl]);
 
   const settle = (outcome: "error" | { loadedWidth: number }) => {
     const step = posterStep(index, sources.length, outcome);
@@ -82,7 +85,7 @@ function Half({
 
   const crop = data ? coverObjectPosition(data.orientation, data.pos) : "";
   // hqdefault 폴백이면 그림에 박힌 검은 띠를 가운데 기준 확대로 칸 밖에 민다(`posterZoom`).
-  const zoom = data ? posterZoom(index, sources.length, data.orientation) : 1;
+  const zoom = data ? coverSideZoom(data, index) : 1;
   const cell: CSSProperties = {
     flex: 1,
     minWidth: 0,

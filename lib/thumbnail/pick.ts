@@ -6,6 +6,7 @@
  * 게시된다. 위치 값 null = 기본값(방향은 엔트리의 영상이 정한다, `pair.ts`).
  */
 import type { EmbedOrientation } from "@/lib/media/stageCrop";
+import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { defaultPos } from "@/lib/thumbnail/pair";
 
 export type PairSide = "a" | "b";
@@ -62,4 +63,12 @@ export function publishPair(
     aPos: p.aPos ?? defaultPos(orientationOf(p.a)),
     bPos: p.bPos ?? defaultPos(orientationOf(p.b)),
   };
+}
+
+/**
+ * IMAGE-1 (원장 D-77) — 대표 매치로 고를 수 있는 칸 = 영상이 있거나 그림이 있는 칸.
+ * (THUMB-1 때는 썸네일이 영상 포스터뿐이라 영상 칸만이었다.)
+ */
+export function pairSlotUsable(c: { videoId?: string; imageUrl?: string } | undefined): boolean {
+  return Boolean(c && (isValidVideoId(c.videoId ?? "") || c.imageUrl));
 }

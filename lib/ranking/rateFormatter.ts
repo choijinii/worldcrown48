@@ -9,6 +9,7 @@
  * 절대 수치(`voteCount`)는 여전히 어디에도 표시하지 않는다 (CLAUDE.md 원칙 #8).
  * `barWidth` 는 1위를 100%로 잡는 막대 길이 — 이제 Crown Score 로 먹인다.
  */
+import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 
 /** Format a 1-decimal percentage share. NaN/Infinity guarded → "0.0%". */
 export function formatRate(rate: number): string {
@@ -39,4 +40,13 @@ export function avatarGlyph(name: string): string {
 export function formatCrownScore(score: number): string {
   if (!Number.isFinite(score)) return "0";
   return String(Math.round(score));
+}
+
+/**
+ * IMAGE-1 (원장 D-77) — 차트 아바타 주소. 캐시의 `imageUrl` 은 유효 영상이 없는 엔트리에만 실리므로
+ * (scheduleRankingCache · contestantMetaOf) 있으면 그것이 먼저다. 없으면 영상 썸네일, 둘 다 없으면 "".
+ */
+export function avatarUrl(entry: { videoId: string | null; imageUrl?: string | null }): string {
+  if (entry.imageUrl) return entry.imageUrl;
+  return entry.videoId ? buildThumbnailUrl(entry.videoId) : "";
 }

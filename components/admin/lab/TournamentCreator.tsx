@@ -99,6 +99,7 @@ import {
 import {
   EMPTY_PICK,
   isPickComplete,
+  pairSlotUsable,
   pickSlot,
   prunePick,
   publishPair,
@@ -272,9 +273,12 @@ export function TournamentCreator(): JSX.Element {
   );
   // THUMB-1: 대표 매치로 고를 수 있는 칸 = 영상이 있는 칸(썸네일은 영상 포스터다).
   // 고른 칸의 영상이 빠지면 그 쪽을 비운다 — 게시 전에는 자동 대체가 없다(킥 §4-1).
-  const slotUsable = (slot: number) => isValidVideoId(contestants[slot]?.videoId ?? "");
+  // IMAGE-1: 그림 엔트리도 고를 수 있다(표지는 600 사본 · 가로로 본다).
+  const slotUsable = (slot: number) => pairSlotUsable(contestants[slot]);
   const slotOrientation = (slot: number): EmbedOrientation =>
-    contestants[slot]?.videoOrientation === "portrait" ? "portrait" : "landscape";
+    isValidVideoId(contestants[slot]?.videoId ?? "") && contestants[slot]?.videoOrientation === "portrait"
+      ? "portrait"
+      : "landscape";
   useEffect(() => {
     setPairPick((p) => prunePick(p, slotUsable));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- slotUsable 은 contestants 만 본다
