@@ -1076,6 +1076,76 @@ export const MESSAGES = {
   "lab.embed.tuner.remove": { ko: "영상 빼기", en: "Remove video", es: "Quitar video" },
   "lab.embed.tuner.done": { ko: "완료", en: "Done", es: "Hecho" },
   // ARENA-1 PR 2b — 선택 확정 연출 (디자인 10~14 · 27). 2026-09-23 대표 승인.
+  // ── IMAGE-1 PR 1 (원장 D-77) — 지시서 6절 승인표 33줄(2026-11-08 14:45 대표 승인) 글자 그대로.
+  //    30·32번은 한 줄에 두 부품이라 둘로 나눴다. 시험: lib/__tests__/i18n/image1Copy.test.ts
+  // 1
+  "lab.image.addFiles": { ko: "이미지 파일 넣기", en: "Add image files", es: "Añadir archivos de imagen" },
+  // 2
+  "lab.image.chipFile": { ko: "파일", en: "File", es: "Archivo" },
+  // 3
+  "lab.image.chipUrl": { ko: "URL", en: "URL", es: "URL" },
+  // 4
+  "lab.image.remove": { ko: "그림 지우기", en: "Remove image", es: "Quitar imagen" },
+  // 5
+  "lab.image.badge": { ko: "그림", en: "Image", es: "Imagen" },
+  // 6
+  "lab.manual.button": { ko: "만들기 매뉴얼", en: "Creation Manual", es: "Manual de creación" },
+  // 7
+  "lab.image.fail.fetchFailed": { ko: "주소에서 그림을 받지 못했어요", en: "Couldn't fetch an image from that address", es: "No se pudo obtener la imagen de esa dirección" },
+  // 8
+  "lab.image.fail.notImage": { ko: "그림 파일이 아니에요", en: "That isn't an image file", es: "No es un archivo de imagen" },
+  // 9
+  "lab.image.fail.tooLarge": { ko: "10MB를 넘어요", en: "Larger than 10 MB", es: "Supera los 10 MB" },
+  // 10
+  "lab.image.fail.tooSmall": { ko: "세로 400px보다 작아요", en: "Shorter than 400 px", es: "Menos de 400 px de alto" },
+  // 11
+  "lab.manual.title": { ko: "대회 만들기 — 이렇게 진행하세요", en: "Creating a tournament — step by step", es: "Crear un torneo — paso a paso" },
+  // 12
+  "lab.manual.step1": { ko: "대회 정하기 — 제목·설명·카테고리·마감일, 엔트리 단위(개인/팀)", en: "Set up the tournament — title, description, category, deadline, entry unit (solo/team)", es: "Define el torneo — título, descripción, categoría, fecha límite, unidad de entrada (individual/equipo)" },
+  // 13
+  "lab.manual.step2": { ko: "엔트리 48개 채우기 — [동영상 생성] 또는 [이미지 생성]으로 한 번에, 또는 칸마다 직접", en: "Fill 48 entries — all at once with [Generate videos] or [Generate images], or slot by slot", es: "Completa 48 entradas — de una vez con [Generar videos] o [Generar imágenes], o casilla por casilla" },
+  // 14
+  "lab.manual.step3": { ko: "칸마다 확인하기 — 아래 \"꼭 지킬 것\"을 보며 배지가 뜬 칸부터 고칩니다", en: "Check every slot — start with flagged slots, using \"Must-dos\" below", es: "Revisa cada casilla — empieza por las marcadas, siguiendo \"Imprescindibles\"" },
+  // 15
+  "lab.manual.step4": { ko: "대표 매치 고르기 — 대회 표지에 나란히 보일 엔트리 A·B", en: "Pick the cover match — entries A and B shown on the cover", es: "Elige el enfrentamiento de portada — entradas A y B" },
+  // 16
+  "lab.manual.step5": { ko: "[토너먼트 생성] — 마지막 확인창의 세 칸을 체크하면 발행됩니다", en: "[Create tournament] — tick the three boxes in the final check to publish", es: "[Crear torneo] — marca las tres casillas de la comprobación final para publicar" },
+  // 17
+  "lab.manual.mustTitle": { ko: "꼭 지킬 것", en: "Must-dos", es: "Imprescindibles" },
+  // 18
+  "lab.manual.must1": { ko: "엔트리와 영상·그림이 같은지 — 썸네일 속 엔트리가 그 칸의 이름과 맞는지", en: "Entry matches its video/image — the thumbnail shows the entry named in that slot", es: "La entrada coincide con su video/imagen — la miniatura muestra la entrada nombrada" },
+  // 19
+  "lab.manual.must2": { ko: "영상 제목·채널에 엔트리 이름이나 그룹 이름이 있는지. 공식 채널이면 더 좋습니다", en: "Video title or channel includes the entry or group name — official channels are best", es: "El título o canal del video incluye el nombre de la entrada o del grupo — mejor si es oficial" },
+  // 20
+  "lab.manual.must3": { ko: "경고 배지가 남은 칸이 없는지 — 불일치·중복 의심·실존 의심·수동 필요", en: "No warning badges left — mismatch, possible duplicate, unverified, needs manual check", es: "Sin insignias de aviso — discrepancia, posible duplicado, sin verificar, revisión manual" },
+  // 21
+  "lab.manual.must4": { ko: "같은 엔트리를 두 번 넣지 않기", en: "Never add the same entry twice", es: "No añadas la misma entrada dos veces" },
+  // 22
+  "lab.manual.must5": { ko: "대표 매치 A·B 영상은 끝까지 보고 고르기 — 가장 많이 보이는 칸입니다", en: "Watch cover match videos A and B to the end — they're seen the most", es: "Mira los videos A y B de portada hasta el final — son los más vistos" },
+  // 23
+  "lab.manual.must6": { ko: "팀 대회는 멤버 한 사람 직캠이 아니라 팀 무대 영상으로", en: "Team tournaments use full-team stage videos, not single-member fancams", es: "En torneos de equipo usa videos del escenario completo, no fancams de un miembro" },
+  // 24
+  "lab.manual.must7": { ko: "커뮤니티 규칙 — 혐오·차별, 성적인 내용, 미성년자를 성적으로 다루는 내용은 만들 수 없습니다. 당사자나 대리인이 요청하면 그림·영상이 내려질 수 있습니다", en: "Community rules — no hate, discrimination, sexual content, or sexualization of minors. Images and videos may be taken down at the request of the person or their representative", es: "Normas de la comunidad — sin odio, discriminación, contenido sexual ni sexualización de menores. Las imágenes y videos pueden retirarse a petición del interesado o su representante" },
+  // 25
+  "lab.confirm.title": { ko: "발행 전 마지막 확인", en: "Final check before publishing", es: "Comprobación final antes de publicar" },
+  // 26
+  "lab.confirm.warn": { ko: "이름과 영상이 다를 수 있는 칸 {n}개 — {번호} (눌러서 이동)", en: "{n} slots where name and video may not match — {numbers} (tap to go)", es: "{n} casillas donde nombre y video podrían no coincidir — {números} (toca para ir)" },
+  // 27
+  "lab.confirm.check1": { ko: "48칸 썸네일이 각 칸의 엔트리와 맞는지 확인했다", en: "I checked that all 48 thumbnails match their entries", es: "Comprobé que las 48 miniaturas coinciden con sus entradas" },
+  // 28
+  "lab.confirm.check2": { ko: "대표 매치 A·B 영상을 끝까지 확인했다", en: "I watched cover match videos A and B to the end", es: "Vi los videos A y B de portada hasta el final" },
+  // 29
+  "lab.confirm.check3": { ko: "경고 배지가 남은 칸이 없다", en: "No warning badges remain", es: "No quedan insignias de aviso" },
+  // 30
+  "lab.confirm.back": { ko: "돌아가서 고치기", en: "Go back and fix", es: "Volver y corregir" },
+  "lab.confirm.publish": { ko: "발행하기", en: "Publish", es: "Publicar" },
+  // 31
+  "lab.confirm.manualAgain": { ko: "만들기 매뉴얼 다시 보기", en: "View the creation manual again", es: "Ver de nuevo el manual de creación" },
+  // 32
+  "lab.badge.nameVideo": { ko: "이름↔영상 불일치", en: "Name ≠ video", es: "Nombre ≠ video" },
+  "lab.badge.nameVideoDesc": { ko: "영상 제목·채널에 이 엔트리 이름이 없어요", en: "the entry name isn't in the video title or channel", es: "el nombre de la entrada no está en el título ni el canal" },
+  // 33
+  "arena.stage.source": { ko: "출처: {도메인}", en: "Source: {domain}", es: "Fuente: {dominio}" },
   "arena.confirm.waiting": { ko: "확인 중", en: "Confirming", es: "Confirmando" },
   "arena.confirm.nextMatch": { ko: "다음 매치로", en: "Next Match", es: "Siguiente Match" },
   "arena.confirm.toCrownCard": {
@@ -1625,12 +1695,16 @@ export const MESSAGES = {
 export type MessageKey = keyof typeof MESSAGES;
 
 /** Interpolate `{token}` occurrences from `vars`. Leaves unknown tokens intact. */
+// tsconfig target 이 es5 라 /u 정규식 글자를 못 쓴다 — 생성자로 만든다(브라우저는 전부 지원).
+const PLACEHOLDER = new RegExp("\\{([\\p{L}\\p{N}_]+)\\}", "gu");
+
 function interpolate(
   template: string,
   vars?: Record<string, string | number>,
 ): string {
   if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
+  // IMAGE-1: 승인 문구의 한국어·스페인어 자리 표시({도메인} · {números})도 받는다.
+  return template.replace(PLACEHOLDER, (whole, name: string) =>
     name in vars ? String(vars[name]) : whole,
   );
 }
