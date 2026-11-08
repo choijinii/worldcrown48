@@ -28,7 +28,9 @@ import {
   BG_ELEV,
   BG_SOFT,
   type Canvas2D,
+  drawPhotoCover,
   type CrownImage,
+  type CrownPhoto,
 } from "./primitives";
 import type { CrownData } from "../formats";
 
@@ -38,6 +40,10 @@ export function drawLink(
   H: number,
   d: CrownData,
   img: CrownImage,
+  /** IMAGE-1 — 챔피언 그림(없으면 이니셜). */
+  photo?: CrownPhoto,
+  /** 사진 세로 자르기 0~100(기본 40 · 무대와 같은 값). */
+  photoFocusY = 40,
 ): void {
   bg(ctx, W, H, H * 0.42);
   const pad = W * 0.022;
@@ -65,11 +71,14 @@ export function drawLink(
   pg.addColorStop(1, BG_SOFT);
   ctx.fillStyle = pg;
   ctx.fillRect(px, py, side, side);
-  ctx.fillStyle = G(0.9);
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "900 italic " + side * 0.56 + 'px "Playfair Display","Playfair Display Local",serif';
-  ctx.fillText(d.initial, px + side / 2, py + side * 0.5);
+  // IMAGE-1 (D-77) — 그림 엔트리 챔피언은 그 그림. 못 그리면 이니셜.
+  if (!drawPhotoCover(ctx, photo, px, py, side, side, photoFocusY)) {
+    ctx.fillStyle = G(0.9);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "900 italic " + side * 0.56 + 'px "Playfair Display","Playfair Display Local",serif';
+    ctx.fillText(d.initial, px + side / 2, py + side * 0.5);
+  }
   ctx.restore();
   ctx.lineWidth = Math.max(2, W * 0.003);
   ctx.strokeStyle = G(0.5);

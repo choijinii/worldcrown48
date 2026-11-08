@@ -32,6 +32,42 @@ export function loadCrownImage(): HTMLImageElement | null {
   return crownImg;
 }
 
+/**
+ * IMAGE-1 (원장 D-77) — 챔피언 그림. 주소마다 한 번만 불러온다. `crossOrigin = "anonymous"` 가 있어야
+ * 캔버스가 오염되지 않아 PNG 로 저장된다(버킷 CORS 설정 필요 · storage.cors.json). 못 불러오면 null →
+ * 이니셜로 그린다(다운로드는 깨지지 않는다).
+ */
+const photoCache = new Map<string, Promise<HTMLImageElement | null>>();
+const photoReady = new Map<string, HTMLImageElement | null>();
+
+export function loadCrownPhoto(url: string | undefined): Promise<HTMLImageElement | null> {
+  if (!url || typeof window === "undefined") return Promise.resolve(null);
+  let p = photoCache.get(url);
+  if (!p) {
+    p = new Promise((resolve) => {
+      const im = new Image();
+      im.crossOrigin = "anonymous";
+      im.decoding = "async";
+      im.onload = () => {
+        photoReady.set(url, im);
+        resolve(im);
+      };
+      im.onerror = () => {
+        photoReady.set(url, null);
+        resolve(null);
+      };
+      im.src = url;
+    });
+    photoCache.set(url, p);
+  }
+  return p;
+}
+
+/** 이미 불러온 그림(없으면 null) — 그리는 순간에 동기로 쓴다. */
+function readyPhoto(url: string | undefined): HTMLImageElement | null {
+  return url ? photoReady.get(url) ?? null : null;
+}
+
 /** Paint `fmt` onto `canvas`, sizing it to the format and dispatching the renderer. */
 export function paintCrown(
   canvas: HTMLCanvasElement,
@@ -46,15 +82,26 @@ export function paintCrown(
   // only the common subset; the browser type is wider — incl. CanvasPattern).
   const ctx = canvas.getContext("2d") as unknown as Canvas2D | null;
   if (!ctx) return;
-  if (fmt === "link") drawLink(ctx, F.w, F.h, data, img);
-  else drawPortrait(ctx, F.w, F.h, data, img);
+  const photo = readyPhoto(data.photoUrl);
+  if (fmt === "link") drawLink(ctx, F.w, F.h, data, img, photo, data.photoFocusY);
+  else drawPortrait(ctx, F.w, F.h, data, img, photo, data.photoFocusY);
 }
 
-/** Render `fmt` off-screen and resolve a PNG blob. */
-export function crownBlob(fmt: FormatKey, data: CrownData, img: HTMLImageElement | null): Promise<Blob | null> {
+/** Render `fmt` off-screen and resolve a PNG blob. 그림 엔트리면 그림을 먼저 불러온다. */
+export async function crownBlob(fmt: FormatKey, data: CrownData, img: HTMLImageElement | null): Promise<Blob | null> {
+  await loadCrownPhoto(data.photoUrl);
   const c = document.createElement("canvas");
   paintCrown(c, fmt, data, img);
-  return new Promise((resolve) => c.toBlob(resolve, "image/png"));
+  return new Promise((resolve) => {
+    try {
+      c.toBlob(resolve, "image/png");
+    } catch {
+      // 만일 캔버스가 오염됐으면(CORS) 사진 없이 다시 굽는다 — 저장은 늘 된다.
+      const plain = document.createElement("canvas");
+      paintCrown(plain, fmt, { ...data, photoUrl: undefined }, img);
+      plain.toBlob(resolve, "image/png");
+    }
+  });
 }
 
 /** Render `fmt` and trigger a browser download (wireframe download(), line 1338). */
@@ -128,24 +175,33 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
   // Depend on the rendered fields, not the `data` object identity — toCrownData
   // builds a fresh object every parent render, which would otherwise repaint the
   // canvas on every unrelated re-render (path is not drawn, so it's excluded).
-  const { initial, name, title, url, campaign } = data;
+  const { initial, name, title, url, campaign, photoUrl, photoFocusY } = data;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const d: CrownData = { initial, name, title, url, path: "", campaign };
+    const d: CrownData = { initial, name, title, url, path: "", campaign, photoUrl, photoFocusY };
     const img = loadCrownImage();
+    let alive = true;
     let raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     // Re-render once the crown SVG finishes loading so it replaces the glyph.
     const onLoad = (): void => {
       raf = requestAnimationFrame(() => paintCrown(canvas, fmt, d, img));
     };
     if (img && !img.complete) img.addEventListener("load", onLoad);
+    // IMAGE-1 — 챔피언 그림이 다 불러와지면 이니셜 대신 그림으로 다시 그린다.
+    if (photoUrl) {
+      void loadCrownPhoto(photoUrl).then((photo) => {
+        if (alive && photo) onLoad();
+      });
+    }
     return () => {
+      alive = false;
       cancelAnimationFrame(raf);
       if (img) img.removeEventListener("load", onLoad);
     };
-  }, [fmt, initial, name, title, url]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- campaign 은 그림에 안 그려진다(옛 그대로)
+  }, [fmt, initial, name, title, url, photoUrl, photoFocusY]);
 
   return (
     <div className={styles.ccCanvasWrap}>

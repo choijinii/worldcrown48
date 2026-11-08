@@ -28,21 +28,44 @@ interface NodeCanvas {
   getContext(type: "2d"): unknown;
   toBuffer(mime: "image/png"): Buffer;
 }
+interface NodeImage {
+  width: number;
+  height: number;
+  src: Buffer | string;
+  onerror: ((err: unknown) => void) | null;
+}
 interface CanvasLib {
   createCanvas(width: number, height: number): NodeCanvas;
+  Image: new () => NodeImage;
 }
 
-/** Render the 1.91:1 Crown Card and return a PNG buffer. */
-export function renderCrownPng(data: CrownData): Buffer {
+/**
+ * Render the 1.91:1 Crown Card and return a PNG buffer.
+ *
+ * IMAGE-1 (원장 D-77) — `photo` = 그림 엔트리 챔피언의 그림 바이트(Storage 에서 받은 것). node-canvas 의
+ * Image 는 Buffer 를 넣으면 **그 자리에서** 읽는다(동기). 못 읽으면 사진 없이 그린다 — 카드는 굽혀야 한다.
+ */
+export function renderCrownPng(data: CrownData, photo?: Buffer, photoFocusY = 40): Buffer {
   // Lazy require: 필수 의존성(canvas 3.x) — 배포된 함수에는 언제나 있다.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createCanvas } = require("canvas") as CanvasLib;
+  const { createCanvas, Image } = require("canvas") as CanvasLib;
   const W = 1200;
   const H = 630;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d") as unknown as Canvas2D;
+  let img: NodeImage | null = null;
+  if (photo && photo.length > 0) {
+    try {
+      const candidate = new Image();
+      candidate.onerror = () => undefined;
+      candidate.src = photo;
+      if (candidate.width > 0 && candidate.height > 0) img = candidate;
+    } catch {
+      img = null;
+    }
+  }
   // PR #89가 QR을 없애며 drawLink 인자를 6→5로 줄였다. 서버 호출부가 그때 같이
   // 안 고쳐져 functions 빌드가 깨져 있었다.
-  drawLink(ctx, W, H, data, null);
+  drawLink(ctx, W, H, data, null, img, photoFocusY);
   return canvas.toBuffer("image/png");
 }
