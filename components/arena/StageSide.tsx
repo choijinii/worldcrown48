@@ -19,7 +19,7 @@ import { contestantAffiliation } from "@/lib/types/tournament";
 import { displayRegion } from "@/lib/i18n/regionName";
 import { useT } from "@/lib/i18n/useT";
 import { localizedName } from "@/lib/contestantName";
-import { posterSources, resolveStageMedia } from "@/lib/media/stageCrop";
+import { posterSources, resolveStageImage, resolveStageMedia } from "@/lib/media/stageCrop";
 import type { StageBox as StageBoxSize } from "@/lib/arena/stageLayout";
 import type { StagePointer, StageSideKey } from "@/lib/arena/stageState";
 import { LoopPlayer } from "@/components/embed/LoopPlayer";
@@ -84,6 +84,8 @@ export function StageBox({
 }: StageBoxProps): JSX.Element {
   const { lang } = useT();
   const media = resolveStageMedia(contestant.media);
+  // IMAGE-1 (D-77) — 영상이 없는 그림 엔트리는 정지 그림. 재생기는 만들지 않는다.
+  const still = media ? null : resolveStageImage(contestant.media);
   const sources = media ? posterSources(media.videoId, media.orientation) : [];
   const [sourceIndex, setSourceIndex] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
@@ -150,7 +152,16 @@ export function StageBox({
           data-ready={videoReady}
           data-testid="stage-poster"
         >
-          {posterSrc ? (
+          {still ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={still.url}
+              alt=""
+              data-testid="stage-still"
+              {...HIGH_PRIORITY}
+              style={{ objectPosition: `50% ${still.focusY}%` }}
+            />
+          ) : posterSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={posterSrc}
@@ -214,6 +225,8 @@ export function StageNameButton({
   const meta = [displayRegion(contestant.nationality, lang), contestantAffiliation(contestant)]
     .filter(Boolean)
     .join(" · ");
+  // IMAGE-1 (D-77) — 그림 엔트리의 출처는 도메인 글자만. 누르는 링크는 없다. 파일 올리기는 출처 없음.
+  const sourceHost = resolveStageImage(contestant.media)?.sourceHost ?? "";
 
   return (
     <div className={styles.nameCell} style={width ? { width } : undefined}>
@@ -238,6 +251,11 @@ export function StageNameButton({
         </span>
         {meta ? <span className={styles.bandMeta}>{meta}</span> : null}
       </button>
+      {sourceHost ? (
+        <span className={styles.source} data-testid="stage-source">
+          {t("arena.stage.source", { 도메인: sourceHost, domain: sourceHost, dominio: sourceHost })}
+        </span>
+      ) : null}
       {waiting ? (
         <span className={styles.waiting} data-testid="confirm-waiting">
           <span className={styles.spinner} aria-hidden="true" />
