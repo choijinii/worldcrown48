@@ -26,6 +26,7 @@ import {
   getAuth,
   setPersistence,
   signInAnonymously,
+  signInWithCustomToken,
   type Auth,
   type User,
 } from "firebase/auth";
@@ -115,7 +116,15 @@ let persistenceReady: Promise<void> | null = null;
 export function getAuthInstance(): Auth {
   if (auth) return auth;
   auth = getAuth(getFirebaseApp());
-  if (USE_EMULATORS) connectAuthEmulator(auth, `http://${EMU_HOST}:${EMULATOR_PORTS.auth}`, { disableWarnings: true });
+  if (USE_EMULATORS) {
+    connectAuthEmulator(auth, `http://${EMU_HOST}:${EMULATOR_PORTS.auth}`, { disableWarnings: true });
+    // 에뮬레이터 E2E 만 — 시험이 만든 토큰으로 관리자 계정에 들어간다(e2e/emulator/helpers.ts).
+    if (typeof window !== "undefined") {
+      const a = auth;
+      (window as unknown as { __wc48SignIn?: (token: string) => Promise<unknown> }).__wc48SignIn = (token) =>
+        signInWithCustomToken(a, token);
+    }
+  }
   // Handoff §9 trap 7 — persistence must be applied to the Auth instance
   // BEFORE signInWithPopup so the resulting session survives a tab close.
   // We fire-and-cache here so it's idempotent across the app and any caller

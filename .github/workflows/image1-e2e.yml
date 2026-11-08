@@ -1,0 +1,71 @@
+name: IMAGE-1 E2E (emulator)
+
+# IMAGE-1 PR 1 — 엔트리 그림(원장 D-77)의 E2E 4경로를 Firebase 에뮬레이터 위에서 돌린다(지시서 §11.3).
+#
+# 왜 미리보기(Vercel Preview)가 아니라 에뮬레이터인가: Storage 올리기 · 콜러블 두 개 · 발행(배치 + 복사)은
+# 병합·배포 전에는 실서비스 Firebase 에 없다. 에뮬레이터(auth · firestore · storage · functions)는 이 PR 의
+# 규칙과 함수를 그대로 싣는다. 프로젝트 id 는 demo-wc48 — 실제 프로젝트에 닿지 않는다. 바깥 사이트는
+# 부르지 않는다(가짜 그림 서버는 시험 안의 로컬 http · 유튜브 포스터는 시험 그림으로 대신 · AI 주소는 닫힘).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'functions/src/**'
+      - 'functions/scripts/**'
+      - 'storage.rules'
+      - 'firestore.rules'
+      - 'firebase.json'
+      - 'e2e/emulator/**'
+      - 'e2e/fixtures/entry-images/**'
+      - 'playwright.emulator.config.ts'
+      - 'scripts/e2e-emulator.sh'
+      - '.github/workflows/image1-e2e.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 에뮬레이터는 JRE 가 필요하다 — firebase-tools 는 Java 21+.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install functions dependencies
+        run: npm ci
+        working-directory: functions
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # 함수 빌드 → next build(에뮬레이터 연결판) → emulators:exec 안에서 Playwright.
+      - name: Emulator E2E (4 paths)
+        env:
+          CI: '1'
+        run: bash scripts/e2e-emulator.sh
+
+      - name: Upload report · video · trace · evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image1-e2e-emulator
+          path: |
+            playwright-report-emulator
+            test-results-emulator
+            outputs/image-1-pr1-evidence
+          retention-days: 14
