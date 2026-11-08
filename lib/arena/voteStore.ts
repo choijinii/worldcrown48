@@ -37,6 +37,7 @@ import { resolveActiveRun, type ActiveRunState } from "@/lib/run/activeRun";
 import { isDeadlinePassed, toDeadlineMs } from "@/lib/run/deadline";
 import { todayKST } from "@/lib/run/kstReset";
 import { runDocId, tournamentRunsDocId } from "@/lib/run/runDocId";
+import { tournamentReadFailureIsNotFound } from "@/lib/arena/tournamentRead";
 
 export interface VoteSlice {
   tournament: Tournament | null;
@@ -180,7 +181,11 @@ async function loadInto(
   // votes 쿼리에 회차 필터를 걸려면 **먼저** 회차를 알아야 한다 — 그래서 두 단계다.
   // 한 단계로 합치면 그 대회의 모든 판의 선택을 통째로 불러오게 되고, 그게 §9 함정 9다.
   const [tSnap, cSnap, runsSnap, guestSnap, legacySnap] = await Promise.all([
-    getDoc(doc(db, "tournaments", tournamentId)),
+    // ARENA-2 PR 3 (원장 D-86): 숨긴 대회는 규칙이 읽기를 거절한다 → "찾을 수 없어요"(다시 시도 화면 아님).
+    getDoc(doc(db, "tournaments", tournamentId)).catch((e: unknown) => {
+      if (tournamentReadFailureIsNotFound(e)) throw NOT_FOUND;
+      throw e;
+    }),
     getDocs(
       query(
         collection(db, "contestants"),

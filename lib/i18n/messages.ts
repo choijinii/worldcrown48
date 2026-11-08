@@ -770,6 +770,45 @@ export const MESSAGES = {
     en: "Delete failed.",
     es: "No se pudo eliminar.",
   },
+  // ARENA-2 PR 3 (원장 D-86) — 삭제(참여 0명만) · 조기 마감 · 숨김. 승인 2026-11-07 대표
+  // (outputs/ARENA-2_PR3_문구승인표_2026-11-07.md ①~⑰).
+  "lab.list.deleteNote": {
+    ko: "이 Tournament와 딸린 기록을 모두 지워요. 되돌릴 수 없어요.",
+    en: "This deletes the Tournament and all its records. It can't be undone.",
+    es: "Se eliminarán el Tournament y todos sus registros. No se puede deshacer.",
+  },
+  "lab.list.toast.deleteHasFans": {
+    ko: "그사이 참여한 팬이 생겨 지울 수 없어요. 조기 마감을 써 주세요.",
+    en: "Fans have joined, so it can't be deleted. Use Close early instead.",
+    es: "Ya hay fans participando, así que no se puede eliminar. Usa Cerrar antes.",
+  },
+  "lab.list.toast.deleteHasArticle": {
+    ko: "이 Tournament를 다룬 발행 기사가 있어 지울 수 없어요. 기사를 먼저 내려 주세요.",
+    en: "A published article covers this Tournament, so it can't be deleted. Unpublish the article first.",
+    es: "Hay un artículo publicado sobre este Tournament, así que no se puede eliminar. Primero retira el artículo.",
+  },
+  "lab.list.closeEarly": { ko: "조기 마감", en: "Close early", es: "Cerrar antes" },
+  "lab.list.closeEarlyNote": {
+    ko: "마감 시각을 지금으로 당겨요. 진행 중인 팬은 끝까지 마칠 수 있고, 새로 시작할 수는 없어요. 되돌릴 수 없어요.",
+    en: "This moves the deadline to now. Fans mid-run can finish, but no one can start a new run. It can't be undone.",
+    es: "La fecha límite pasa a ahora. Los fans que ya empezaron pueden terminar, pero nadie puede empezar de nuevo. No se puede deshacer.",
+  },
+  "lab.list.closeEarlyConfirm": { ko: "조기 마감 확인", en: "Confirm close", es: "Confirmar cierre" },
+  "lab.list.toast.closeEarlySuccess": { ko: "조기 마감했어요.", en: "Closed early.", es: "Cerrado antes de tiempo." },
+  "lab.list.toast.closeEarlyFail": { ko: "조기 마감에 실패했어요.", en: "Couldn't close early.", es: "No se pudo cerrar." },
+  "lab.list.hide": { ko: "숨기기", en: "Hide", es: "Ocultar" },
+  "lab.list.hideNote": {
+    ko: "이 Tournament를 모든 화면에서 숨겨요. 기록은 지우지 않고, 다시 보이게 할 수 있어요.",
+    en: "This hides the Tournament everywhere. Records are kept, and you can show it again.",
+    es: "El Tournament se ocultará en todas partes. Los registros se conservan y puedes volver a mostrarlo.",
+  },
+  "lab.list.hideConfirm": { ko: "숨기기 확인", en: "Confirm hide", es: "Confirmar" },
+  "lab.list.unhide": { ko: "다시 보이기", en: "Show again", es: "Mostrar de nuevo" },
+  "lab.list.toast.hidden": { ko: "숨겼어요.", en: "Hidden.", es: "Oculto." },
+  "lab.list.toast.unhidden": { ko: "다시 보이게 했어요.", en: "Visible again.", es: "Visible de nuevo." },
+  "lab.list.toast.hideFail": { ko: "바꾸지 못했어요.", en: "Couldn't update.", es: "No se pudo actualizar." },
+  "lab.list.badge.closedEarly": { ko: "조기 마감", en: "Closed early", es: "Cerrado antes" },
+  "lab.list.badge.hidden": { ko: "숨김", en: "Hidden", es: "Oculto" },
 
   "lab.list.videoAlert": {
     ko: "영상 {n}개 재생 불가",

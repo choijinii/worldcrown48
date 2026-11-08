@@ -32,7 +32,11 @@ export type { ContestantMedia };
 /** Exactly 48 Contestants per Tournament — the binary tree halves 48→24→12→6→FINAL. */
 export const TOTAL_CONTESTANTS = 48;
 
-export type TournamentStatus = "active" | "ended" | "draft";
+/**
+ * `hidden` = 운영자가 숨긴 문제 대회(ARENA-2 PR 3 · 원장 D-86) — 공개 목록 · 직접 주소 모두 닫힘,
+ * 기록은 남고 다시 보이기 = `active`. 정리 스크립트가 시험 대회를 숨길 때 쓰는 `draft` 와는 다른 개념이다.
+ */
+export type TournamentStatus = "active" | "ended" | "draft" | "hidden";
 
 /**
  * currentRound: 1=ROUND OF 48, 2=ROUND OF 24, 3=ROUND OF 12, 4=ROUND OF 6,
@@ -97,6 +101,13 @@ export interface Tournament {
    * (`resolveThumbnailPair`).
    */
   thumbnailPair?: ThumbnailPair;
+  /**
+   * ARENA-2 PR 3 (원장 D-86) — 관리자 함수 manageTournament 만 쓴다. 조기 마감한 시각(마감을 지금으로 당긴 때) ·
+   * 숨긴 시각 · 지우는 중 표시(삭제가 끝나면 문서째 없어진다 · 막히면 거둔다). 전부 선택·additive.
+   */
+  closedEarlyAt?: unknown;
+  hiddenAt?: unknown;
+  removingAt?: unknown;
   /**
    * ENTRY-UNIT-1 엔트리 단위(원장 D-73). 선택·additive: 2026-10-28 이전 문서엔 없다
    * (백필 안 함) — 없으면 개인으로 읽는다. 편집기 STEP 1에서 운영자가 고른다.

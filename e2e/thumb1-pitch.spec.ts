@@ -12,6 +12,7 @@
  * `?lang=` 로 언어를 고정한다.
  */
 import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
+import { stubManageTournament } from "./labManage";
 import * as admin from "firebase-admin";
 import { e2eMark } from "./e2eMark";
 
@@ -209,6 +210,7 @@ test.describe("THUMB-1 — The Pitch", () => {
       const { id: seededId } = await seed();
       seededIds.push(seededId);
       await page.setViewportSize({ width: 1600, height: 1000 }); // The Lab ≥1440
+      await stubManageTournament(page); // ARENA-2 PR 3 — 대회 목록이 부르는 관리자 함수(배포 전 콘솔 오류 0)
       await page.goto("/admin/lab?lang=ko");
       const row = page.getByTestId(`tournament-row-${seededId}`);
       await expect(row).toBeVisible({ timeout: 20_000 });
