@@ -9,8 +9,9 @@ rules_version = '2';
 //
 //   /entry-images/drafts/{uid}/{draftId}/{file}   (IMAGE-1 · 원장 D-77)
 //     read  — public (편집기 미리보기 · 토큰 없는 공개 주소)
-//     write — 로그인(익명 아님) + 경로 uid == 나 + image/* + 10MB 이하. 삭제는 uid 만 본다
-//             (삭제 요청엔 request.resource 가 없다).
+//     write — 관리자(token.admin == true) + 로그인(익명 아님) + 경로 uid == 나 + image/* + 10MB 이하.
+//             삭제는 관리자 + uid 만 본다(삭제 요청엔 request.resource 가 없다).
+//             D-77 보충(대표 2026-11-08): 지금은 관리자 편집기만. MVP 1.5 때 일반 사용자에게 다시 연다.
 //   /entry-images/tournaments/{tournamentId}/{file}
 //     read  — public (무대 · 표지 · 차트 · 카드)
 //     write — denied; only finalizeEntryImages (admin SDK) copies here
@@ -25,6 +26,7 @@ service firebase.storage {
     }
     function isOwnerWriter(uid) {
       return request.auth != null
+        && request.auth.token.admin == true
         && request.auth.token.firebase.sign_in_provider != 'anonymous'
         && request.auth.uid == uid;
     }
