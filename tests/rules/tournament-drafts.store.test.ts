@@ -188,4 +188,24 @@ describe("발행 배치 — 성공하면 초안 삭제, 실패하면 유지", ()
     });
     await assertSucceeds(batch.commit());
   });
+
+  // IMAGE-1: 그림 복사가 대회 id 를 먼저 알아야 한다 — 밖에서 정한 id 로 쓰고, media.image 도 통과한다.
+  it("IMAGE-1: writes the Tournament at a caller-chosen id, with media.image on contestants", async () => {
+    const db = ownerDb();
+    const { batch, tournamentId } = buildPublishBatch(db, {
+      tournament: tournamentData("host-1"),
+      contestants: (tid) =>
+        contestantData("host-1")(tid).map((c) => ({
+          ...c,
+          media: { type: "image", image: { url: "u", thumbUrl: "t", storagePath: `entry-images/tournaments/${tid}/0.jpg`, origin: "upload", width: 1, height: 1, addedAt: 1 } },
+        })),
+      draftId: null,
+      tournamentId: "preChosenId1",
+    });
+    expect(tournamentId).toBe("preChosenId1");
+    await assertSucceeds(batch.commit());
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      expect((await getDoc(doc(ctx.firestore(), "tournaments", "preChosenId1"))).exists()).toBe(true);
+    });
+  });
 });

@@ -28,7 +28,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { httpsCallable } from "firebase/functions";
-import { serverTimestamp, Timestamp } from "firebase/firestore";
+import { collection, doc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getDb, getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
 import { showToast } from "@/lib/toast";
@@ -85,6 +85,8 @@ import type { LinkVerdict } from "@/lib/embed/verdict";
 import type { SourcingBatchSummary, SourcingTarget } from "@/lib/embed/sourcing/types";
 import { useT } from "@/lib/i18n/useT";
 import { buildPublishBatch } from "@/lib/lab/publishBatch";
+import { publishWithImages } from "@/lib/lab/publishImages";
+import { callCleanupEntryImages, callFinalizeEntryImages } from "@/lib/lab/entryImageCalls";
 import { createDraftAutosaver, type AutosaveStatus } from "@/lib/lab/draftAutosaver";
 import { deleteDraft, listMyDrafts, loadDraft, newDraftId, saveDraft } from "@/lib/lab/draftStore";
 import {
@@ -935,14 +937,27 @@ export function TournamentCreator(): JSX.Element {
         tournamentDeadline: Timestamp.fromMillis(deadlineMs),
       };
       // 초안 삭제는 같은 배치 — 발행이 성공해야만 지워진다(EDITOR-FIX-1).
-      const { batch, tournamentId } = buildPublishBatch(db, {
-        tournament,
-        contestants: (id) => buildContestantDocs(id, uid, contestants, nameI18n),
+      // IMAGE-1: 그림 칸이 있으면 대회 id 를 먼저 정해 초안 그림을 대회 경로로 복사한 뒤 쓴다.
+      const tournamentId = await publishWithImages(
+        {
+          newTournamentId: () => doc(collection(db, "tournaments")).id,
+          finalize: callFinalizeEntryImages,
+          commit: async (id, drafts) => {
+            const { batch } = buildPublishBatch(db, {
+              tournament,
+              contestants: (tid) => buildContestantDocs(tid, uid, drafts, nameI18n),
+              draftId,
+              thumbnailPair: publishPair(pairPick, slotOrientation) ?? undefined,
+              tournamentId: id,
+            });
+            await batch.commit();
+          },
+          cleanup: callCleanupEntryImages,
+          warn: (m, e) => console.warn(m, e),
+        },
         draftId,
-        thumbnailPair: publishPair(pairPick, slotOrientation) ?? undefined,
-      });
-
-      await batch.commit();
+        contestants,
+      );
       draftIdRef.current = null;
       void track("admin_lab_publish", { tournament_id: tournamentId, category });
       showToast(t("lab.toast.publishSuccess"), "success");
