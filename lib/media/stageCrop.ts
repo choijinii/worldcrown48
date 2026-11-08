@@ -7,6 +7,7 @@
 import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
+import { sourceHost } from "@/lib/media/storageUrl";
 
 export type { EmbedOrientation };
 
@@ -65,5 +66,29 @@ export function resolveStageMedia(media: ContestantMedia | undefined): StageMedi
     focusY: clampFocus(embed.focusY),
     startSec,
     endSec,
+  };
+}
+
+/**
+ * IMAGE-1 (원장 D-77 · D-76) — 그림 엔트리의 무대 정지 그림. 16:9 상자에 cover 로 놓고
+ * `focusY` 로 위아래를 자른다. 출처는 도메인 글자만(링크 없음) — 파일 올리기(upload)는 출처 없음.
+ *
+ * 유효 영상이 있으면 null: 무대는 영상이 먼저다(resolveStageMedia). 영상 함수는 건드리지 않는다 —
+ * 재생기가 StageMedia 를 그대로 쓰기 때문이다.
+ */
+export interface StageImage {
+  url: string;
+  focusY: number;
+  sourceHost: string;
+}
+
+export function resolveStageImage(media: ContestantMedia | undefined): StageImage | null {
+  if (resolveStageMedia(media)) return null;
+  const image = media?.image;
+  if (!image?.url) return null;
+  return {
+    url: image.url,
+    focusY: clampFocus(image.focusY),
+    sourceHost: image.origin === "upload" ? "" : sourceHost(image.sourcePage),
   };
 }

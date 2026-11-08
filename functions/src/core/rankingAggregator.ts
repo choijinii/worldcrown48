@@ -26,7 +26,11 @@ export interface ContestantMeta {
   videoId: string;
   /** NAME-I18N-1 (원장 D-61) — 이름 3언어. 옛 문서엔 없다. */
   nameI18n?: NameI18n;
+  /** IMAGE-1 — 그림 아바타(600 사본). 유효 영상이 있으면 빈 글자(아바타는 영상 우선). */
+  imageUrl?: string;
 }
+
+const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 
 /**
  * Contestant 문서 → 크론이 쓰는 메타(순수). 문서 모양을 읽는 곳을 여기 한 곳에 둔다.
@@ -35,10 +39,16 @@ export interface ContestantMeta {
 export function contestantMetaOf(id: string, data: Record<string, unknown>): ContestantMeta {
   const str = (v: unknown) => (typeof v === "string" ? v : "");
   const name = str(data.name);
-  const videoId = str((data.media as { embed?: { videoId?: unknown } } | undefined)?.embed?.videoId);
+  const media = data.media as
+    | { embed?: { videoId?: unknown; gone?: unknown }; image?: { thumbUrl?: unknown; url?: unknown } }
+    | undefined;
+  const videoId = str(media?.embed?.videoId);
+  const videoOk = VIDEO_ID.test(videoId) && media?.embed?.gone !== true;
+  const imageUrl = videoOk ? "" : str(media?.image?.thumbUrl) || str(media?.image?.url);
+  const base = { id, name, videoId, ...(imageUrl ? { imageUrl } : {}) };
   const raw = data.nameI18n as Record<string, unknown> | undefined;
-  if (!raw || typeof raw !== "object") return { id, name, videoId };
-  return { id, name, videoId, nameI18n: { ko: str(raw.ko) || name, en: str(raw.en), es: str(raw.es) } };
+  if (!raw || typeof raw !== "object") return base;
+  return { ...base, nameI18n: { ko: str(raw.ko) || name, en: str(raw.en), es: str(raw.es) } };
 }
 
 /**
@@ -80,6 +90,8 @@ export function buildTallies(
     name: c.name,
     ...(c.nameI18n ? { nameI18n: c.nameI18n } : {}),
     videoId: c.videoId ? c.videoId : null,
+    // IMAGE-1 — 있을 때만(옛 tally 모양 그대로).
+    ...(c.imageUrl ? { imageUrl: c.imageUrl } : {}),
     voteCount: counts.get(c.id) ?? 0,
   }));
 }

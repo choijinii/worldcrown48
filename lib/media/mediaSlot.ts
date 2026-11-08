@@ -149,7 +149,9 @@ export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
  */
 export function contestantThumbnail(media: ContestantMedia | undefined): string {
   const videoId = media?.embed?.videoId;
-  return videoId && isValidVideoId(videoId) && !media?.embed?.gone ? buildThumbnailUrl(videoId) : "";
+  if (videoId && isValidVideoId(videoId) && !media?.embed?.gone) return buildThumbnailUrl(videoId);
+  // IMAGE-1 (D-77) — 영상이 없거나 내려갔으면 그림(600 사본, 없으면 원본).
+  return media?.image?.thumbUrl || media?.image?.url || "";
 }
 
 function imageOrNone(imageUrl: string): MediaRenderDecision {
@@ -168,6 +170,6 @@ export function decideMediaRender(
   if (media?.type === "embed" && isValidVideoId(media.embed?.videoId) && !media.embed?.gone) {
     return { render: "embed", facade: buildEmbedFacade(media.embed!) };
   }
-  // image · clip · absent · invalid-embed → the licensed still (backward compat).
-  return imageOrNone(imageUrl);
+  // IMAGE-1 — 엔트리 그림(우리 Storage 복사본)이 있으면 그것. 없으면 옛 인자 그대로(backward compat).
+  return imageOrNone(media?.image?.url || imageUrl);
 }
