@@ -44,3 +44,7 @@ firebase-debug.*.log*
 # Firestore emulator debug log (test:rules)
 firestore-debug.log
 firestore-debug.*.log
+
+# Claude Code — 워크트리·개인 설정은 올리지 않는다 (SESSION-RULES-1)
+.claude/worktrees/
+.claude/settings.local.json
