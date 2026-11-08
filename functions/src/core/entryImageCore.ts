@@ -44,22 +44,39 @@ export function fitLongEdge(w: number, h: number, max: number): { w: number; h: 
  * 메타데이터 서버는 에뮬레이터에서도 늘 막는다. DNS 로 내부 주소를 가리키는 도메인은 여기서
  * 못 잡는다 — 관리자 게이트가 그 몫을 맡는다.
  */
+/** IPv4 를 품은 IPv6(::ffff:a.b.c.d · ::ffff:7f00:1) → 안의 IPv4. 아니면 null. */
+function mappedIPv4(h: string): string | null {
+  const m = /^::ffff:(.+)$/.exec(h);
+  if (!m) return null;
+  if (isIP(m[1]) === 4) return m[1];
+  const hex = /^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(m[1]);
+  if (!hex) return null;
+  const hi = parseInt(hex[1], 16);
+  const lo = parseInt(hex[2], 16);
+  return `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`;
+}
+
 export function isBlockedHost(hostname: string, allowLoopback: boolean): boolean {
-  const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  let h = hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+  h = mappedIPv4(h) ?? h;
   if (h === "metadata.google.internal" || h.startsWith("169.254.")) return true;
   const loopback = h === "localhost" || h === "::1" || h.startsWith("127.");
   if (loopback) return !allowLoopback;
-  if (h === "0.0.0.0" || h === "::") return true;
+  if (h === "::") return true;
   if (isIP(h) === 4) {
     const [a, b] = h.split(".").map(Number);
+    if (a === 0) return true;
     if (a === 10) return true;
     if (a === 192 && b === 168) return true;
     if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true; // 통신사 공유 주소(100.64/10)
     return false;
   }
   if (isIP(h) === 6) return h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80");
   return false;
 }
+
+const MAX_REDIRECTS = 3;
 
 export interface FetchOptions {
   fetchImpl?: typeof fetch;
@@ -76,18 +93,34 @@ export async function fetchImageBytes(url: string, opts: FetchOptions = {}): Pro
   } catch {
     throw new ImportError("fetch-failed", "bad url");
   }
-  if (u.protocol !== "http:" && u.protocol !== "https:") throw new ImportError("fetch-failed", "protocol");
-  if (isBlockedHost(u.hostname, opts.allowLoopback === true)) throw new ImportError("fetch-failed", "blocked host");
-
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? ENTRY_IMAGE.FETCH_TIMEOUT_MS);
   try {
-    let res: Response;
-    try {
-      res = await (opts.fetchImpl ?? fetch)(u.toString(), { signal: ctrl.signal, redirect: "follow" });
-    } catch (e) {
-      throw new ImportError("fetch-failed", String(e));
+    // 되돌림(3xx)은 직접 따라간다 — 한 번 넘어갈 때마다 내부 주소인지 다시 본다(리뷰 I-4).
+    let res: Response | null = null;
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      if (u.protocol !== "http:" && u.protocol !== "https:") throw new ImportError("fetch-failed", "protocol");
+      if (isBlockedHost(u.hostname, opts.allowLoopback === true)) throw new ImportError("fetch-failed", "blocked host");
+      let r: Response;
+      try {
+        r = await (opts.fetchImpl ?? fetch)(u.toString(), { signal: ctrl.signal, redirect: "manual" });
+      } catch (e) {
+        throw new ImportError("fetch-failed", String(e));
+      }
+      const location = r.headers.get("location");
+      if (r.status >= 300 && r.status < 400 && location) {
+        void r.body?.cancel().catch(() => undefined);
+        try {
+          u = new URL(location, u);
+        } catch {
+          throw new ImportError("fetch-failed", "bad redirect");
+        }
+        continue;
+      }
+      res = r;
+      break;
     }
+    if (!res) throw new ImportError("fetch-failed", "too many redirects");
     if (!res.ok) throw new ImportError("fetch-failed", `status ${res.status}`);
     const type = (res.headers.get("content-type") ?? "").toLowerCase();
     if (!type.startsWith("image/")) throw new ImportError("not-image", type);

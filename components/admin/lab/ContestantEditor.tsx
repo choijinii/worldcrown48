@@ -559,6 +559,7 @@ export function ContestantEditor({
             type="button"
             data-testid={`slot-image-url-${index}`}
             aria-expanded={urlOpen}
+            disabled={image.busy}
             onClick={() => {
               setUrlOpen((o) => !o);
               setUrlFail(null);
@@ -571,6 +572,8 @@ export function ContestantEditor({
             <button
               type="button"
               data-testid={`slot-image-remove-${index}`}
+              // 리뷰 M-4 — 올리는 중에 지우면 끝난 업로드가 그림을 되살린다.
+              disabled={image.busy}
               onClick={() => image.onRemove(index)}
               style={{ ...chipStyle, color: lab.crimson, borderColor: lab.crimson }}
             >

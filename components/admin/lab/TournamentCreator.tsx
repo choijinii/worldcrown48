@@ -89,7 +89,10 @@ import { publishWithImages } from "@/lib/lab/publishImages";
 import { callCleanupEntryImages, callFinalizeEntryImages, callImportEntryImage } from "@/lib/lab/entryImageCalls";
 import {
   assignToEmptySlots,
+  carryUnnamedImage,
   clearImageFields,
+  filledForAssignment,
+  uploadStillCurrent,
   ENTRY_IMAGE_CLIENT,
   fieldsFromImport,
   nameCandidate,
@@ -218,6 +221,9 @@ export function TournamentCreator(): JSX.Element {
   const [manualOpen, setManualOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const imageFilesRef = useRef<HTMLInputElement>(null);
+  // 리뷰 I-1 — 올리는 중인 칸(렌더를 기다리지 않는 즉시 값)과 최신 칸 목록.
+  const reservedSlotsRef = useRef<Set<number>>(new Set());
+  const contestantsRef = useRef<ContestantDraft[]>([]);
   // LAB-EV-2: 슬롯별 소싱 배지(제안·수동 필요·실존 의심). 화면 전용 — 발행되지 않는다.
   const [sourcingStates, setSourcingStates] = useState<SourcingStates>({});
   // THUMB-1 대표 매치 — 그리드 칸 번호(0~47) 두 개 + 위치 값. 둘 다 골라야 게시된다.
@@ -570,7 +576,8 @@ export function TournamentCreator(): JSX.Element {
       if (mode === "all") {
         applied = Array.from(
           { length: TOTAL_CONTESTANTS },
-          (_, i) => incoming[i] ?? emptyDraft(),
+          // IMAGE-1 (리뷰 I-3) — 이름 없이 그림만 넣은 칸의 그림은 남긴다.
+          (_, i) => carryUnnamedImage(grid[i], incoming[i] ?? emptyDraft()),
         );
         touched = applied.map((d, i) => (d.name.trim() ? i : -1)).filter((i) => i >= 0);
         setContestants(applied);
@@ -584,7 +591,7 @@ export function TournamentCreator(): JSX.Element {
         const merged = grid.map((d, i) => {
           if (d.name.trim() || k >= incoming.length) return d;
           filledIndexes.push(i);
-          return incoming[k++];
+          return carryUnnamedImage(d, incoming[k++]);
         });
         applied = merged;
         touched = filledIndexes;
@@ -917,12 +924,22 @@ export function TournamentCreator(): JSX.Element {
     });
   }
 
-  async function uploadToSlot(index: number, file: File): Promise<boolean> {
-    if (!uid) return false;
+  /** `reserved` = 묶음 배정이 이 칸을 이미 잡아 두었다(addImageFiles). */
+  async function uploadToSlot(index: number, file: File, reserved = false): Promise<boolean> {
+    if (!uid || (!reserved && reservedSlotsRef.current.has(index))) {
+      if (reserved) reservedSlotsRef.current.delete(index);
+      return false;
+    }
     const draftId = ensureDraftId();
+    reservedSlotsRef.current.add(index);
     setBusy(index, true);
     try {
       const fields: ImageFields = await uploadEntryImageFile({ uid, draftId, slot: index, file });
+      // 리뷰 I-2 — 올리는 사이 발행했거나 다른 초안으로 갔으면 이 그림은 버린다(파일도 지운다).
+      if (!uploadStillCurrent(draftId, draftIdRef.current)) {
+        void deleteEntryImageFiles(fields.imageStoragePath);
+        return false;
+      }
       const candidate = nameCandidate(file.name);
       // 그림을 다시 넣으면 자르기 값은 새 그림 기준으로 처음부터.
       patchSlot(index, (c) => ({
@@ -935,6 +952,7 @@ export function TournamentCreator(): JSX.Element {
       console.warn("entry image upload failed", err);
       return false;
     } finally {
+      reservedSlotsRef.current.delete(index);
       setBusy(index, false);
     }
   }
@@ -943,31 +961,37 @@ export function TournamentCreator(): JSX.Element {
   async function addImageFiles(list: FileList | File[] | null) {
     const files = naturalSortFiles(Array.from(list ?? []).filter((f) => f.type.startsWith("image/")));
     if (files.length === 0) return;
-    const slots = assignToEmptySlots(
-      Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => slotHasImage(contestants[i])),
-      files.length,
-    );
+    const slots = assignToEmptySlots(filledForAssignment(contestantsRef.current, reservedSlotsRef.current), files.length);
+    // 배정한 칸은 바로 잡아 둔다 — 아직 차례가 안 온 칸도 다음 묶음이 가져가지 않게(리뷰 I-1).
+    for (const slot of slots) reservedSlotsRef.current.add(slot);
     // 4장씩 — 브라우저가 줄이는 일과 올리는 일이 한꺼번에 몰리지 않게.
     const queue = slots.map((slot, k) => ({ slot, file: files[k] }));
     const workers = Array.from({ length: Math.min(4, queue.length) }, async () => {
-      for (let job = queue.shift(); job; job = queue.shift()) await uploadToSlot(job.slot, job.file);
+      for (let job = queue.shift(); job; job = queue.shift()) await uploadToSlot(job.slot, job.file, true);
     });
     await Promise.all(workers);
   }
 
   /** ④ [URL] — 서버가 내려받아 줄여 우리 Storage 에 둔다. 실패하면 이유. */
   async function importUrlToSlot(index: number, url: string): Promise<ImportFailure | null> {
+    if (reservedSlotsRef.current.has(index)) return null;
     const draftId = ensureDraftId();
+    reservedSlotsRef.current.add(index);
     setBusy(index, true);
     try {
       const r = await callImportEntryImage({ draftId, slot: index, url });
       if (!r.ok) return r.reason;
+      if (!uploadStillCurrent(draftId, draftIdRef.current)) {
+        void deleteEntryImageFiles(r.storagePath);
+        return null;
+      }
       patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r) }));
       return null;
     } catch (err) {
       console.warn("importEntryImage failed", err);
       return "fetch-failed";
     } finally {
+      reservedSlotsRef.current.delete(index);
       setBusy(index, false);
     }
   }
@@ -978,6 +1002,7 @@ export function TournamentCreator(): JSX.Element {
     void deleteEntryImageFiles(path);
   }
 
+  contestantsRef.current = contestants;
   const imagesFilled = contestants.filter(slotHasImage).length;
   const mismatchList = useMemo(() => mismatchSlots(contestants), [contestants]);
   const videoMismatch = useMemo(() => new Set(mismatchList), [mismatchList]);
@@ -1273,7 +1298,8 @@ export function TournamentCreator(): JSX.Element {
               </span>
               <PublishButton
                 contestants={contestants}
-                busy={publishing}
+                // 리뷰 I-2 — 그림을 올리는 중에는 발행하지 않는다(그림 없이 발행 · 늦은 업로드가 섞임).
+                busy={publishing || busyImage.size > 0}
                 // IMAGE-1 — 바로 발행하지 않고 마지막 확인창을 연다(체크 3칸).
                 onClick={() => setConfirmOpen(true)}
                 pairReady={isPickComplete(pairPick)}

@@ -95,3 +95,42 @@ describe("fieldsFromImport · clearImageFields", () => {
     expect(d).toEqual({ name: "A", nationality: "", affiliation: "", imageSearchKeyword: "", videoId: "dQw4w9WgXcQ" });
   });
 });
+
+import { carryUnnamedImage } from "@/lib/lab/entryImages";
+describe("carryUnnamedImage (리뷰 I-3 — AI 채우기가 그림을 지우지 않는다)", () => {
+  const img = { imageUrl: "u", imageThumbUrl: "t", imageStoragePath: "p", imageSource: { origin: "upload" as const }, imageWidth: 1, imageHeight: 1, imageAddedAt: 1 };
+  const blank = { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
+  const incoming = { name: "새 엔트리", nationality: "KR", affiliation: "G", imageSearchKeyword: "h" };
+  it("이름 없는 칸의 그림은 새로 채운 이름에 남는다", () => {
+    expect(carryUnnamedImage({ ...blank, ...img }, incoming)).toEqual({ ...incoming, ...img });
+  });
+  it("이름 있던 칸의 그림은 넘기지 않는다(다른 인물의 그림이 된다)", () => {
+    expect(carryUnnamedImage({ ...blank, name: "옛 엔트리", ...img }, incoming)).toEqual(incoming);
+  });
+  it("그림 없는 칸 · 칸 없음 → 그대로", () => {
+    expect(carryUnnamedImage(blank, incoming)).toEqual(incoming);
+    expect(carryUnnamedImage(undefined, incoming)).toEqual(incoming);
+  });
+});
+
+import { filledForAssignment, uploadStillCurrent } from "@/lib/lab/entryImages";
+describe("filledForAssignment (리뷰 I-1 — 묶음을 연달아 넣어도 같은 칸에 두 번 배정하지 않는다)", () => {
+  const blank = { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
+  it("그림이 있는 칸 + 올리는 중인 칸 = 찬 칸 · 48칸", () => {
+    const f = filledForAssignment([{ ...blank, imageUrl: "u" }, blank, blank], new Set([2]));
+    expect(f).toHaveLength(48);
+    expect(f.slice(0, 4)).toEqual([true, false, true, false]);
+  });
+  it("두 번째 묶음은 첫 묶음이 잡은 칸을 건너뛴다", () => {
+    const reserved = new Set(assignToEmptySlots(filledForAssignment([], new Set()), 20));
+    expect(assignToEmptySlots(filledForAssignment([], reserved), 20)).toEqual(Array.from({ length: 20 }, (_, i) => 20 + i));
+  });
+});
+
+describe("uploadStillCurrent (리뷰 I-2 — 끝난 업로드가 다른 초안에 섞이지 않는다)", () => {
+  it("시작한 초안과 지금 초안이 같을 때만", () => {
+    expect(uploadStillCurrent("d1", "d1")).toBe(true);
+    expect(uploadStillCurrent("d1", null)).toBe(false);
+    expect(uploadStillCurrent("d1", "d2")).toBe(false);
+  });
+});

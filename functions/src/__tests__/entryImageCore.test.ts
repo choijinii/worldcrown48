@@ -65,6 +65,15 @@ beforeAll(async () => {
         res.end();
       };
       pump();
+    } else if (url === "/redir-meta") {
+      res.writeHead(302, { Location: "http://169.254.169.254/computeMetadata/v1/" });
+      res.end();
+    } else if (url === "/redir-ok") {
+      res.writeHead(302, { Location: "/ok.png" });
+      res.end();
+    } else if (url === "/redir-loop") {
+      res.writeHead(302, { Location: "/redir-loop" });
+      res.end();
     } else if (url === "/slow") {
       setTimeout(() => {
         res.writeHead(200, { "Content-Type": "image/png" });
@@ -133,6 +142,27 @@ describe("fetchImageBytes", () => {
   });
   it("실서비스(allowLoopback 아님)에서는 내부 주소를 부르지 않는다", async () => {
     expect(await codeOf(fetchImageBytes(`${base}/ok.png`))).toBe("fetch-failed");
+  });
+});
+
+describe("fetchImageBytes — 주소 되돌림(리뷰 I-4)", () => {
+  it("되돌림이 내부 주소(메타데이터)를 가리키면 따라가지 않는다", async () => {
+    expect(await codeOf(fetchImageBytes(`${base}/redir-meta`, local))).toBe("fetch-failed");
+  });
+  it("보통 되돌림은 따라간다", async () => {
+    expect((await fetchImageBytes(`${base}/redir-ok`, local)).equals(JPG_BODY)).toBe(true);
+  });
+  it("끝없는 되돌림 → fetch-failed", async () => {
+    expect(await codeOf(fetchImageBytes(`${base}/redir-loop`, local))).toBe("fetch-failed");
+  });
+});
+
+describe("isBlockedHost — 빈틈(리뷰 I-4)", () => {
+  it("IPv4 를 품은 IPv6 · 끝 점 · 100.64/10 · 0.x 도 막는다", () => {
+    for (const h of ["[::ffff:127.0.0.1]", "::ffff:7f00:1", "::ffff:a9fe:a9fe", "localhost.", "100.64.0.1", "100.127.255.1", "0.1.2.3"]) {
+      expect(isBlockedHost(h, false), h).toBe(true);
+    }
+    expect(isBlockedHost("100.63.0.1", false)).toBe(false);
   });
 });
 

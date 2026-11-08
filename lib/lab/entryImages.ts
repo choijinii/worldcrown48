@@ -99,3 +99,43 @@ export function clearImageFields(d: ContestantDraft): ContestantDraft {
   void [imageUrl, imageThumbUrl, imageStoragePath, imageSource, imageWidth, imageHeight, imageAddedAt, imageFocusY];
   return rest;
 }
+
+const IMAGE_KEYS = [
+  "imageUrl",
+  "imageThumbUrl",
+  "imageStoragePath",
+  "imageSource",
+  "imageWidth",
+  "imageHeight",
+  "imageAddedAt",
+  "imageFocusY",
+] as const;
+
+/**
+ * AI 채우기가 칸을 새 인물로 바꿀 때(리뷰 I-3): 이름이 **비어 있던** 칸의 그림은 새 이름에 남긴다
+ * (그림을 먼저 넣고 이름을 AI 로 받는 흐름). 이름이 있던 칸의 그림은 그 인물의 것이라 넘기지 않는다.
+ */
+export function carryUnnamedImage(prev: ContestantDraft | undefined, next: ContestantDraft): ContestantDraft {
+  if (!prev?.imageUrl || prev.name.trim() !== "") return next;
+  const carried: Partial<ContestantDraft> = {};
+  for (const k of IMAGE_KEYS) {
+    if (prev[k] !== undefined) (carried as Record<string, unknown>)[k] = prev[k];
+  }
+  return { ...next, ...carried };
+}
+
+/**
+ * ① 배정용 "찬 칸" — 그림이 있거나 **올리는 중인** 칸(리뷰 I-1). 화면 상태만 보면 올리는 중인 칸이 빈
+ * 칸으로 보여, 묶음을 연달아 넣을 때 같은 칸에 두 업로드가 겹친다.
+ */
+export function filledForAssignment(
+  contestants: readonly (ContestantDraft | undefined)[],
+  reserved: ReadonlySet<number>,
+): boolean[] {
+  return Array.from({ length: ENTRY_IMAGE_CLIENT.SLOTS }, (_, i) => slotHasImage(contestants[i]) || reserved.has(i));
+}
+
+/** 끝난 업로드를 칸에 넣어도 되는가 — 올리는 사이 발행·초안 전환이 있었으면 버린다(리뷰 I-2). */
+export function uploadStillCurrent(startDraftId: string, currentDraftId: string | null): boolean {
+  return currentDraftId === startDraftId;
+}

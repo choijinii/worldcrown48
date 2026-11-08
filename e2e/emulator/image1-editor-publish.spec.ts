@@ -166,3 +166,20 @@ test("① 48장 넣기 → 48 / 48 → 저장 → 새로고침 뒤 남음 → �
   await expect(page.getByTestId("stage-player")).toHaveCount(0);
   await expectNoConsoleErrors(stageErrors);
 });
+
+test("리뷰 I-1 — 24장 + 24장을 연달아 넣어도 48칸이 다 다른 그림", async ({ page }) => {
+  const draftId = await seedDraft();
+  const errors = collectConsoleErrors(page);
+  await stubYouTubeImages(page);
+  await openSeededDraft(page);
+  await page.getByTestId("lab-manual-tools-toggle").click();
+  const input = page.getByTestId("lab-add-image-files-input");
+  await input.setInputFiles(FIXTURE_48.slice(0, 24));
+  await input.setInputFiles(FIXTURE_48.slice(24));
+  await expect(page.getByTestId("image-progress")).toHaveText("48 / 48", { timeout: 90_000 });
+  await expect(page.getByTestId("image-progress")).toHaveAttribute("data-busy", "false");
+  await expect.poll(() => draftImageCount(draftId), { timeout: 30_000 }).toBe(48);
+  const cs = (await db().collection("tournamentDrafts").doc(draftId).get()).get("contestants") as { imageStoragePath?: string }[];
+  expect(new Set(cs.map((c) => c.imageStoragePath)).size).toBe(48);
+  await expectNoConsoleErrors(errors);
+});
