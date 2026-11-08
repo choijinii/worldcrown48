@@ -47,6 +47,10 @@ for (const file of sourcingFiles) {
   copyFileSync(join(libEmbed, "sourcing", file), join(dest, "sourcing", file));
 }
 
+// IMAGE-1 (원장 D-77) — Storage 공개 주소 · 출처 도메인. 서버(finalizeEntryImages)와 화면이
+// 같은 주소 모양을 쓰게 한다. import 없는 파일이다.
+copyFileSync(join(root, "lib", "media", "storageUrl.ts"), join(dest, "storageUrl.ts"));
+
 console.log(
   `[copy-embed] mirrored lib/embed/{${files.length} files} + sourcing/{${sourcingFiles.length} files}` +
     ` → functions/src/_embed`,
