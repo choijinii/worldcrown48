@@ -8,6 +8,7 @@ import {
   extractPaths,
   withoutChangelogRows,
   findForbidden,
+  languageChecks,
   missingPaths,
   staleChecks,
 } from "./check-docs.lib.mjs";
@@ -42,6 +43,9 @@ for (const f of DOCS) {
 }
 report("링크 깨짐 (marketing/ · docs/ · lib/)", broken);
 
-report("Stale-Doc 대조", staleChecks(readFileSync("CLAUDE.md", "utf8"), readFileSync(LEDGER, "utf8")));
+report("Stale-Doc 대조", [
+  ...staleChecks(readFileSync("CLAUDE.md", "utf8"), readFileSync(LEDGER, "utf8")),
+  ...languageChecks(readFileSync("LANGUAGE.md", "utf8")),
+]);
 
 process.exit(failed ? 1 : 0);
