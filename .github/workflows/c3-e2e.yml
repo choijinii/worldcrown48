@@ -89,10 +89,19 @@ jobs:
         # unit tests are covered by their own workflows.
         run: npm run test:unit -- lib/__tests__/ranking
 
+      # canvas(그림 처리 꾸러미)는 보통 GitHub 에서 미리 만든 파일을 내려받는데, 그 내려받기가 시간 초과로
+      # 막히면 원본 빌드로 넘어가고 시험 컴퓨터에 그래픽 부품이 없어 설치가 깨졌다(#157 · G-1 · B-1).
+      # 부품을 먼저 깔고 functions npm ci 는 늘 원본에서 빌드한다 — 내려받기에 기대지 않는다(#158 과 같은 고침).
+      - name: Install canvas build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config \
+            libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev libpixman-1-dev
+
       - name: Functions unit tests (vitest)
-        # canvas is an optionalDependency — npm ci tolerates its native build
-        # failing; the cores under test do not need it. Runs ALL functions
-        # tests (incl. onVote, rankingAggregator, scheduleRankingCacheCore).
+        # Runs ALL functions tests (incl. onVote, rankingAggregator, scheduleRankingCacheCore).
+        env:
+          npm_config_build_from_source: 'true'
         run: |
           npm ci --prefix functions
           npm test --prefix functions
