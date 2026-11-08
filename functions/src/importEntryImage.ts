@@ -40,7 +40,11 @@ export type ImportEntryImageResult =
     }
   | { ok: false; reason: ImportFailure };
 
-const CACHE = "public,max-age=31536000"; // 주소 끝 &v= 가 바뀌므로 길게 둬도 옛 그림이 남지 않는다
+const CACHE = "public,max-age=31536000";
+/** 에뮬레이터에서는 주소 앞부분이 에뮬레이터다(실서비스는 기본값). */
+const ORIGIN = process.env.FIREBASE_STORAGE_EMULATOR_HOST
+  ? `http://${process.env.FIREBASE_STORAGE_EMULATOR_HOST}`
+  : undefined; // 주소 끝 &v= 가 바뀌므로 길게 둬도 옛 그림이 남지 않는다
 
 export const importEntryImage = onCall(
   { cors: ALLOWED_ORIGINS, secrets: ["ADMIN_UID"], timeoutSeconds: 60, memory: "1GiB" },
@@ -66,8 +70,8 @@ export const importEntryImage = onCall(
       const addedAt = Date.now();
       return {
         ok: true,
-        url: publicStorageUrl(bucket.name, storagePath, addedAt),
-        thumbUrl: publicStorageUrl(bucket.name, thumbPathOf(storagePath), addedAt),
+        url: publicStorageUrl(bucket.name, storagePath, addedAt, ORIGIN),
+        thumbUrl: publicStorageUrl(bucket.name, thumbPathOf(storagePath), addedAt, ORIGIN),
         storagePath,
         width: r.width,
         height: r.height,

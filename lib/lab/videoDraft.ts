@@ -23,6 +23,9 @@ export interface VideoDraftFields {
   videoStartSec: number;
   videoEndSec: number;
   videoSourceUrl: string;
+  /** IMAGE-1 — 검수 때 받은 영상 제목·채널(이름↔영상 불일치 배지의 재료). */
+  videoTitle?: string;
+  videoChannel?: string;
 }
 
 /** 판정 하나 → 슬롯에 저장될 영상 필드. 시작점은 요청값 우선. */
@@ -37,6 +40,9 @@ export function buildVideoFields(
     videoStartSec: range.startSec,
     videoEndSec: range.endSec,
     videoSourceUrl: buildWatchUrl(verdict.videoId, range.startSec),
+    // Firestore 는 undefined 를 거부한다 — 있을 때만.
+    ...(verdict.title ? { videoTitle: verdict.title } : {}),
+    ...(verdict.channelTitle ? { videoChannel: verdict.channelTitle } : {}),
   };
 }
 
@@ -113,8 +119,12 @@ export function clearVideo(draft: ContestantDraft): ContestantDraft {
     videoSourceUrl,
     videoOrientation,
     videoFocusY,
+    videoTitle,
+    videoChannel,
     ...rest
   } = draft;
+  void videoTitle;
+  void videoChannel;
   void videoId;
   void videoStartSec;
   void videoEndSec;

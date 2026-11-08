@@ -26,6 +26,10 @@ export interface FinalizedImage {
 }
 
 const CACHE = "public,max-age=31536000";
+/** 에뮬레이터에서는 주소 앞부분이 에뮬레이터다(실서비스는 기본값). */
+const ORIGIN = process.env.FIREBASE_STORAGE_EMULATOR_HOST
+  ? `http://${process.env.FIREBASE_STORAGE_EMULATOR_HOST}`
+  : undefined;
 
 export const finalizeEntryImages = onCall(
   { cors: ALLOWED_ORIGINS, secrets: ["ADMIN_UID"], timeoutSeconds: 120 },
@@ -67,10 +71,10 @@ export const finalizeEntryImages = onCall(
           logger.warn("finalizeEntryImages thumb missing", { from: step.fromThumb, err: String(e) });
         }
         await bucket.file(step.to).setMetadata({ cacheControl: CACHE }).catch(() => undefined);
-        const url = publicStorageUrl(bucket.name, step.to, version);
+        const url = publicStorageUrl(bucket.name, step.to, version, ORIGIN);
         images[step.slot] = {
           url,
-          thumbUrl: thumbOk ? publicStorageUrl(bucket.name, step.toThumb, version) : url,
+          thumbUrl: thumbOk ? publicStorageUrl(bucket.name, step.toThumb, version, ORIGIN) : url,
           storagePath: step.to,
         };
       }),

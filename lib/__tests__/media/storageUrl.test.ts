@@ -27,3 +27,11 @@ describe("sourceHost", () => {
     expect(sourceHost("javascript:alert(1)")).toBe("");
   });
 });
+
+describe("publicStorageUrl — 에뮬레이터 주소 앞부분", () => {
+  it("origin 을 주면 그 앞부분으로(에뮬레이터 시험용)", () => {
+    expect(publicStorageUrl("b", "a/0.jpg", 5, "http://127.0.0.1:9199")).toBe(
+      "http://127.0.0.1:9199/v0/b/b/o/a%2F0.jpg?alt=media&v=5",
+    );
+  });
+});

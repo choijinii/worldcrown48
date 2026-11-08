@@ -50,6 +50,9 @@ describe("buildVideoFields", () => {
       videoStartSec: 90,
       videoEndSec: 105,
       videoSourceUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0&t=90s",
+      // IMAGE-1 — 판정의 제목·채널이 함께 실린다.
+      videoTitle: "t",
+      videoChannel: "c",
     });
   });
 
@@ -271,5 +274,21 @@ describe("releaseRenamedSlot — 이름이 다른 인물로 바뀐 칸 (LAB-UX-1
     releaseRenamedSlot(harin, "허윤진");
     expect(harin.videoId).toBe(A);
     expect(harin.imageSearchKeyword).toBe("Harin stage");
+  });
+});
+
+// IMAGE-1 (마티오 메모 · D-77 보충) — 검수·자동 찾기가 받은 영상 제목·채널을 칸에 저장한다
+// (이름↔영상 불일치 배지의 재료). 영상을 빼거나 갈면 함께 사라진다.
+describe("영상 제목·채널 (IMAGE-1)", () => {
+  it("buildVideoFields 가 제목·채널을 싣는다", () => {
+    expect(buildVideoFields(verdict(A, { title: "Ditto MV", channelTitle: "HYBE LABELS" }), 90)).toMatchObject({
+      videoTitle: "Ditto MV",
+      videoChannel: "HYBE LABELS",
+    });
+  });
+  it("clearVideo 가 제목·채널도 뗀다", () => {
+    const d = clearVideo({ name: "n", nationality: "", affiliation: "", imageSearchKeyword: "", videoId: A, videoTitle: "x", videoChannel: "y" });
+    expect("videoTitle" in d).toBe(false);
+    expect("videoChannel" in d).toBe(false);
   });
 });
