@@ -63,9 +63,38 @@ export interface EmbedMedia {
 
 export type EmbedOrientation = "landscape" | "portrait";
 
+/**
+ * IMAGE-1 (원장 D-77) — 엔트리 그림. 어느 길로 들어오든 우리 Firebase Storage 복사본이다
+ * (`url`·`thumbUrl` 은 토큰 없는 공개 주소). 바깥 주소는 `sourceUrl`·`sourcePage` 에 기록만 한다.
+ * `search` 는 PR 2(이미지 검색) 예약값.
+ */
+export type EntryImageOrigin = "upload" | "url" | "search";
+export const ENTRY_IMAGE_ORIGINS: readonly EntryImageOrigin[] = ["upload", "url", "search"];
+
+export interface EntryImage {
+  /** 긴 변 1600 jpg. */
+  url: string;
+  /** 긴 변 600 사본. */
+  thumbUrl: string;
+  storagePath: string;
+  /** 그림 자체의 바깥 주소(④ URL · ② 검색). */
+  sourceUrl?: string;
+  /** 출처 페이지 — 무대에는 이 주소의 도메인 글자만 보인다(링크 없음 · D-77). */
+  sourcePage?: string;
+  origin: EntryImageOrigin;
+  width: number;
+  height: number;
+  /** epoch ms — 주소 끝 `&v=` 로 캐시를 깬다. */
+  addedAt: number;
+  /** 16:9 무대에서 자를 때 위에서 버리는 비율 0~100(기본 40). 영상 focusY 와 따로 둔다. */
+  focusY?: number;
+}
+
 export interface ContestantMedia {
   type: MediaKind;
   embed?: EmbedMedia;
+  /** IMAGE-1 — 영상과 함께 있을 수 있다. 보여 줄 때는 영상이 먼저다. */
+  image?: EntryImage;
 }
 
 export interface EmbedFacade {
