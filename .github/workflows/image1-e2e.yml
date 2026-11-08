@@ -46,9 +46,20 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      # canvas(그림 줄이기 · 크라운 카드)는 보통 GitHub 에서 미리 만든 파일을 내려받는데, 그 내려받기가
+      # 시간 초과로 막히면 원본 빌드로 넘어가고 시험 컴퓨터에 그래픽 부품이 없어 설치가 깨졌다(#157 · 2회 연속).
+      # 부품을 먼저 깔고 늘 원본에서 빌드한다 — 내려받기에 기대지 않는다(1~2분 더 걸린다).
+      - name: Install canvas build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config \
+            libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev libpixman-1-dev
+
       - name: Install functions dependencies
         run: npm ci
         working-directory: functions
+        env:
+          npm_config_build_from_source: 'true'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
