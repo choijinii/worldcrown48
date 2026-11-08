@@ -18,7 +18,11 @@ import { resolveThumbnailPair, type PairEntry, type ThumbnailPair } from "./pair
 export interface CoverContestant {
   id: string;
   order: number;
-  media?: { embed?: { videoId?: string; orientation?: EmbedOrientation; gone?: boolean } };
+  media?: {
+    embed?: { videoId?: string; orientation?: EmbedOrientation; gone?: boolean };
+    /** IMAGE-1 — 그림 엔트리. 표지는 600 사본으로 그린다. */
+    image?: { thumbUrl?: string; url?: string };
+  };
 }
 
 /** VSThumb 한 칸(`VSThumbSide`)과 같은 모양. */
@@ -26,6 +30,8 @@ export interface CoverSide {
   videoId: string;
   orientation: EmbedOrientation;
   pos: number;
+  /** IMAGE-1 — 그림 칸(영상 없음)일 때만. 이때 videoId 는 빈 글자다. */
+  imageUrl?: string;
 }
 
 export interface CoverSides {
@@ -40,13 +46,23 @@ export interface CoverSides {
 export function coverEntry(
   c: CoverContestant,
   broken: ReadonlySet<string>,
-): { entry: PairEntry; videoId: string } {
+): { entry: PairEntry; videoId: string; imageUrl?: string } {
   const embed = c.media?.embed;
-  const videoId = embed?.videoId ?? "";
+  const rawVideoId = embed?.videoId ?? "";
+  const videoOk = isValidVideoId(rawVideoId) && !embed?.gone;
+  // IMAGE-1 (D-77) — 영상이 먼저, 없으면 그림(600 사본).
+  const imageUrl = videoOk ? "" : c.media?.image?.thumbUrl || c.media?.image?.url || "";
+  if (imageUrl) {
+    return {
+      entry: { id: c.id, order: c.order, orientation: "landscape", usable: !broken.has(c.id) },
+      videoId: "",
+      imageUrl,
+    };
+  }
   const orientation: EmbedOrientation = embed?.orientation === "portrait" ? "portrait" : "landscape";
   return {
-    entry: { id: c.id, order: c.order, orientation, usable: isValidVideoId(videoId) && !embed?.gone && !broken.has(c.id) },
-    videoId,
+    entry: { id: c.id, order: c.order, orientation, usable: videoOk && !broken.has(c.id) },
+    videoId: rawVideoId,
   };
 }
 
@@ -56,10 +72,18 @@ export function coverSides(
   broken: ReadonlySet<string>,
 ): CoverSides {
   const mapped = contestants.map((c) => coverEntry(c, broken));
-  const videoOf = new Map(mapped.map((m) => [m.entry.id, m.videoId]));
+  const byId = new Map(mapped.map((m) => [m.entry.id, m]));
   const r = resolveThumbnailPair(pair, mapped.map((m) => m.entry));
-  const side = (s: typeof r.a): CoverSide | null =>
-    s ? { videoId: videoOf.get(s.entry.id) ?? "", orientation: s.entry.orientation, pos: s.pos } : null;
+  const side = (s: typeof r.a): CoverSide | null => {
+    if (!s) return null;
+    const m = byId.get(s.entry.id);
+    return {
+      videoId: m?.videoId ?? "",
+      orientation: s.entry.orientation,
+      pos: s.pos,
+      ...(m?.imageUrl ? { imageUrl: m.imageUrl } : {}),
+    };
+  };
   return {
     a: side(r.a),
     b: side(r.b),

@@ -44,6 +44,11 @@ export interface RankingEntry {
    */
   videoId: string | null;
   /**
+   * IMAGE-1 (원장 D-77) — 그림 엔트리의 아바타(600 사본 · 우리 Storage 공개 주소). 유효 영상이
+   * 있는 엔트리엔 싣지 않는다(아바타는 영상 우선). 선택: 옛 캐시엔 없다 = 그림 없음.
+   */
+  imageUrl?: string;
+  /**
    * INTERNAL ONLY — NEVER render (Vote Count 금지). Used by the cron for rate
    * math, T-3 growth, and admin_alerts detail.
    */
@@ -125,6 +130,8 @@ export interface ContestantTally {
   /** NAME-I18N-1 — 있으면 차트 행에 그대로 실린다. */
   nameI18n?: NameI18n;
   videoId: string | null;
+  /** IMAGE-1 — 그림 엔트리 아바타(영상이 없거나 내려갔을 때만). */
+  imageUrl?: string | null;
   voteCount: number;
 }
 

@@ -52,6 +52,17 @@ export interface Canvas2D {
   fillRect(x: number, y: number, w: number, h: number): void;
   fillText(text: string, x: number, y: number): void;
   drawImage(image: unknown, dx: number, dy: number, dw: number, dh: number): void;
+  drawImage(
+    image: unknown,
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number,
+  ): void;
   measureText(text: string): { width: number };
   createLinearGradient(x0: number, y0: number, x1: number, y1: number): CanvasGradientLike;
   createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number): CanvasGradientLike;
@@ -59,6 +70,37 @@ export interface Canvas2D {
 
 /** Image-like accepted by the renderers — null in node/tests → glyph fallback. */
 export type CrownImage = { complete?: boolean; naturalWidth?: number } | null;
+
+/**
+ * IMAGE-1 (원장 D-77) — 챔피언 사진(그림 엔트리의 그 그림). 브라우저 HTMLImageElement · node-canvas Image
+ * 둘 다 width/height 를 가진다. null = 사진 없음 → 이니셜.
+ */
+export type CrownPhoto = { width: number; height: number; naturalWidth?: number; naturalHeight?: number } | null;
+
+/**
+ * 사진을 칸에 cover 로 채운다(가로는 가운데, 세로는 focusY% 만큼 위를 버린다 — 무대와 같은 뜻).
+ * 못 그리면 false — 호출부가 이니셜을 그린다.
+ */
+export function drawPhotoCover(
+  ctx: Canvas2D,
+  photo: CrownPhoto | undefined,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  focusY: number,
+): boolean {
+  if (!photo) return false;
+  const pw = photo.naturalWidth || photo.width;
+  const ph = photo.naturalHeight || photo.height;
+  if (!pw || !ph || !w || !h) return false;
+  const scale = Math.max(w / pw, h / ph);
+  const sw = w / scale;
+  const sh = h / scale;
+  const f = Math.min(100, Math.max(0, focusY)) / 100;
+  ctx.drawImage(photo, (pw - sw) / 2, (ph - sh) * f, sw, sh, x, y, w, h);
+  return true;
+}
 
 /** A font-string maker, e.g. (s) => `900 italic ${s}px "Playfair Display"`. */
 export type FontMaker = (size: number) => string;

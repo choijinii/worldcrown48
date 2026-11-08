@@ -22,7 +22,21 @@ export function CrownStaticCard({ data, loadingLabel }: CrownStaticCardProps): J
     <div className={styles.crownCard}>
       {/* eslint-disable-next-line @next/next/no-img-element — brand SVG, no optimization needed */}
       <img className={styles.crownCardMark} src="/brand/wc48-crown-filled.svg" alt="" />
-      <div className={styles.crownCardPhoto}>{data.initial}</div>
+      {/* IMAGE-1 (D-77) — 그림 엔트리 챔피언은 그 그림(우리 Storage 복사본). 아니면 이니셜. */}
+      <div className={styles.crownCardPhoto}>
+        {data.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className={styles.crownCardPhotoImg}
+            src={data.photoUrl}
+            alt=""
+            data-testid="crown-card-photo"
+            style={{ objectPosition: `50% ${data.photoFocusY ?? 40}%` }}
+          />
+        ) : (
+          data.initial
+        )}
+      </div>
       <div className={styles.crownCardInfo}>
         <div className={styles.cl}>CHAMPION</div>
         <div className={styles.cn} data-testid="crown-card-name">{data.name}</div>

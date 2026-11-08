@@ -16,7 +16,7 @@ import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
-import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
+import type { ContestantMedia, EmbedOrientation, EntryImage, EntryImageOrigin } from "@/lib/media/mediaSlot";
 import {
   ENTRY_UNITS,
   TOTAL_CONTESTANTS,
@@ -83,6 +83,25 @@ export interface ContestantDraft {
   videoOrientation?: EmbedOrientation;
   /** ARENA-1 (D-11) — 세로 영상 잘림 기준 0~100 (비우면 40). */
   videoFocusY?: number;
+  /** IMAGE-1 — 검수·소싱 때 받은 영상 제목·채널(이름↔영상 불일치 배지의 재료). */
+  videoTitle?: string;
+  videoChannel?: string;
+  /** IMAGE-1 (D-77) — 그림(우리 Storage 복사본). 발행 때 media.image 로 옮겨진다. */
+  imageUrl?: string;
+  imageThumbUrl?: string;
+  imageStoragePath?: string;
+  imageSource?: ContestantImageSource;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageAddedAt?: number;
+  /** 무대 16:9 자르기 기준 0~100(비우면 40). */
+  imageFocusY?: number;
+}
+
+export interface ContestantImageSource {
+  origin: EntryImageOrigin;
+  sourceUrl?: string;
+  sourcePage?: string;
 }
 
 /** A Contestant doc minus the Firestore-owned `id`. */
@@ -154,9 +173,30 @@ export function buildTournamentDoc(
  * 한다는 RULE 2에 맞춰 EmbedMedia를 확장해 재사용한다. Contestant를 읽는 기존
  * 코드는 전부 무영향(media 부재 = image).
  */
-function mediaOf(d: ContestantDraft): ContestantMedia | undefined {
-  if (!d.videoId) return undefined;
+function imageOf(d: ContestantDraft): EntryImage | undefined {
+  if (!d.imageUrl) return undefined;
+  const src = d.imageSource;
   return {
+    url: d.imageUrl,
+    thumbUrl: d.imageThumbUrl ?? d.imageUrl,
+    storagePath: d.imageStoragePath ?? "",
+    origin: src?.origin ?? "upload",
+    width: d.imageWidth ?? 0,
+    height: d.imageHeight ?? 0,
+    addedAt: d.imageAddedAt ?? 0,
+    // Firestore는 undefined를 거부한다 — 있을 때만 싣는다.
+    ...(src?.sourceUrl ? { sourceUrl: src.sourceUrl } : {}),
+    ...(src?.sourcePage ? { sourcePage: src.sourcePage } : {}),
+    ...(typeof d.imageFocusY === "number" ? { focusY: d.imageFocusY } : {}),
+  };
+}
+
+/** IMAGE-1: 영상이 있으면 type embed(그림도 함께 싣는다), 그림만 있으면 type image. */
+function mediaOf(d: ContestantDraft): ContestantMedia | undefined {
+  const image = imageOf(d);
+  if (!d.videoId) return image ? { type: "image", image } : undefined;
+  return {
+    ...(image ? { image } : {}),
     type: "embed",
     embed: {
       videoId: d.videoId,

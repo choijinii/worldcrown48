@@ -8,13 +8,13 @@
  */
 import {
   avatarGlyph,
+  avatarUrl,
   barWidth,
   formatCrownScore,
 } from "@/lib/ranking/rateFormatter";
 import type { Lang } from "@/lib/cookieConsent";
 import { localizedName } from "@/lib/contestantName";
 import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
-import { buildThumbnailUrl } from "@/lib/embed/loopRange";
 
 export function RankList({
   entries,
@@ -40,9 +40,9 @@ export function RankList({
           <div key={entry.contestantId} className={cls} data-testid="rank-row">
             <div className="rank-no">{entry.rank}</div>
             <div className="rank-av">
-              {entry.videoId ? (
+              {avatarUrl(entry) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={buildThumbnailUrl(entry.videoId)} alt="" />
+                <img src={avatarUrl(entry)} alt="" />
               ) : (
                 <span>{avatarGlyph(name)}</span>
               )}

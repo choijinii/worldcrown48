@@ -6,6 +6,7 @@
  * StageSide 실측) — 그래서 "불러왔다"도 폭을 봐야 한다. 마지막 주소까지 실패하면
  * "그림 깨짐": 대표 매치에서는 지워진 엔트리처럼 대체한다(`resolveThumbnailPair`).
  */
+import { posterSources } from "@/lib/media/stageCrop";
 
 /** 유튜브 회색 자리 그림의 폭. 이보다 좁으면 진짜 그림이 아니다. */
 export const YT_PLACEHOLDER_WIDTH = 120;
@@ -31,4 +32,25 @@ export function posterStep(index: number, total: number, outcome: PosterOutcome)
 export function posterZoom(index: number, total: number, orientation: "landscape" | "portrait"): number {
   if (index < total - 1) return 1;
   return orientation === "portrait" ? 128 / 81 : 4 / 3;
+}
+
+/**
+ * IMAGE-1 (원장 D-77) — VS 표지 한 칸의 주소 목록. 그림 칸(`imageUrl`)은 우리 Storage 600 사본
+ * 한 장이고, 영상 칸은 지금처럼 유튜브 포스터 두 장(`posterSources`).
+ */
+export interface CoverSideLike {
+  videoId: string;
+  orientation: "landscape" | "portrait";
+  imageUrl?: string;
+}
+
+export function coverSideSources(side: CoverSideLike): string[] {
+  if (side.imageUrl) return [side.imageUrl];
+  return posterSources(side.videoId, side.orientation);
+}
+
+/** 그림 칸은 띠가 없어 확대하지 않는다. 영상 칸은 `posterZoom` 그대로. */
+export function coverSideZoom(side: CoverSideLike, index: number): number {
+  if (side.imageUrl) return 1;
+  return posterZoom(index, 2, side.orientation);
 }

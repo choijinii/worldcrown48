@@ -115,3 +115,27 @@ describe("toCrownData", () => {
     });
   });
 });
+
+// IMAGE-1 (원장 D-77) — 그림 엔트리 챔피언의 다운로드 카드(9:16 · 4:5 · 1.91:1) 사진 자리.
+describe("toCrownData — 그림 (IMAGE-1)", () => {
+  const image = {
+    url: "https://firebasestorage.googleapis.com/v0/b/b/o/full?alt=media",
+    thumbUrl: "t",
+    storagePath: "entry-images/tournaments/t1/0.jpg",
+    origin: "upload" as const,
+    width: 1600,
+    height: 900,
+    addedAt: 1,
+    focusY: 20,
+  };
+  it("그림 엔트리 → photoUrl = 1600 원본 · photoFocusY", () => {
+    const d = toCrownData({ ...CHAMPION, media: { type: "image", image } }, TOURNAMENT, "en");
+    expect(d.photoUrl).toBe(image.url);
+    expect(d.photoFocusY).toBe(20);
+  });
+  it("그림 없는 엔트리 → photoUrl 키 없음(지금 모양 그대로)", () => {
+    const d = toCrownData(CHAMPION, TOURNAMENT, "en");
+    expect("photoUrl" in d).toBe(false);
+    expect("photoFocusY" in d).toBe(false);
+  });
+});

@@ -110,6 +110,19 @@
   margin: var(--space-4);
   border-radius: var(--radius-border);
 }
+
+/* IMAGE-1 (D-77) — 그림 엔트리 챔피언의 그림이 사진 자리를 꽉 채운다. */
+.crownCardPhoto {
+  position: relative;
+  overflow: hidden;
+}
+.crownCardPhotoImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .crownCardInfo {
   display: flex;
   flex-direction: column;

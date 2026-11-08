@@ -10,8 +10,8 @@
  *
  * 일시 상태(바쁨 표시·할당량 미리보기·소싱 배지)는 싣지 않는다.
  */
-import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
-import type { EmbedOrientation } from "@/lib/media/mediaSlot";
+import type { ContestantDraft, ContestantImageSource } from "@/lib/lab/tournamentDoc";
+import { ENTRY_IMAGE_ORIGINS, type EmbedOrientation, type EntryImageOrigin } from "@/lib/media/mediaSlot";
 import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
 import { DEFAULT_ENTRY_UNIT, ENTRY_UNITS, type EntryUnit } from "@/lib/types/tournament";
 
@@ -74,7 +74,9 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     keywords: [...s.keywords],
     campaignSlug: s.campaignSlug,
     deadlineMs: s.deadlineMs,
-    contestants: s.contestants.map((c) => stripUndefined({ ...c })),
+    contestants: s.contestants.map((c) =>
+      stripUndefined({ ...c, ...(c.imageSource ? { imageSource: stripUndefined({ ...c.imageSource }) } : {}) }),
+    ),
     thumbnailPair: { ...s.thumbnailPair },
     // ENTRY-UNIT-1: 팀일 때만 싣는다. 개인(기본값)은 칸을 빼고 저장한다 — 읽을 때 빠진 칸 =
     // 개인이므로 뜻은 같고, 규칙이 배포되기 전(firestore.rules 는 main 병합 뒤에만 배포된다)
@@ -86,6 +88,19 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 const num = (v: unknown): number | undefined =>
   typeof v === "number" && Number.isFinite(v) ? v : undefined;
+const optStr = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
+/** IMAGE-1 — 모르는 origin 이면 칸 전체를 버린다. 출처 주소는 문자열일 때만. */
+function toImageSource(v: unknown): ContestantImageSource | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const r = v as Record<string, unknown>;
+  if (!(ENTRY_IMAGE_ORIGINS as readonly unknown[]).includes(r.origin)) return undefined;
+  return stripUndefined({
+    origin: r.origin as EntryImageOrigin,
+    sourceUrl: optStr(r.sourceUrl),
+    sourcePage: optStr(r.sourcePage),
+  });
+}
 
 function toContestant(raw: unknown): ContestantDraft {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -104,6 +119,16 @@ function toContestant(raw: unknown): ContestantDraft {
     videoSourceUrl: typeof r.videoSourceUrl === "string" ? r.videoSourceUrl : undefined,
     videoOrientation: orientation,
     videoFocusY: num(r.videoFocusY),
+    videoTitle: optStr(r.videoTitle),
+    videoChannel: optStr(r.videoChannel),
+    imageUrl: optStr(r.imageUrl),
+    imageThumbUrl: optStr(r.imageThumbUrl),
+    imageStoragePath: optStr(r.imageStoragePath),
+    imageSource: toImageSource(r.imageSource),
+    imageWidth: num(r.imageWidth),
+    imageHeight: num(r.imageHeight),
+    imageAddedAt: num(r.imageAddedAt),
+    imageFocusY: num(r.imageFocusY),
   });
 }
 
@@ -155,7 +180,8 @@ function toEntryUnit(v: unknown): EntryUnit {
 function contestantTouched(c: ContestantDraft): boolean {
   return (
     [c.name, c.nationality, c.affiliation, c.imageSearchKeyword].some((x) => x.trim() !== "") ||
-    Boolean(c.videoId)
+    Boolean(c.videoId) ||
+    Boolean(c.imageUrl)
   );
 }
 

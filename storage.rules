@@ -7,11 +7,35 @@ rules_version = '2';
 //     read  — public (SNS / OG crawlers fetch the shared 1.91:1 PNG)
 //     write — denied; only onChampionConfirmed (admin SDK) writes cards
 //
+//   /entry-images/drafts/{uid}/{draftId}/{file}   (IMAGE-1 · 원장 D-77)
+//     read  — public (편집기 미리보기 · 토큰 없는 공개 주소)
+//     write — 로그인(익명 아님) + 경로 uid == 나 + image/* + 10MB 이하. 삭제는 uid 만 본다
+//             (삭제 요청엔 request.resource 가 없다).
+//   /entry-images/tournaments/{tournamentId}/{file}
+//     read  — public (무대 · 표지 · 차트 · 카드)
+//     write — denied; only finalizeEntryImages (admin SDK) copies here
+//
 // Everything else is denied by default (whitelist only).
 // ════════════════════════════════════════════════════════════════════
 service firebase.storage {
   match /b/{bucket}/o {
     match /crown-cards/{tournamentId}/{cardFile} {
+      allow read: if true;
+      allow write: if false;
+    }
+    function isOwnerWriter(uid) {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.auth.uid == uid;
+    }
+    match /entry-images/drafts/{uid}/{draftId}/{file} {
+      allow read: if true;
+      allow create, update: if isOwnerWriter(uid)
+                            && request.resource.size <= 10 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if isOwnerWriter(uid);
+    }
+    match /entry-images/tournaments/{tournamentId}/{file} {
       allow read: if true;
       allow write: if false;
     }

@@ -31,6 +31,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      // IMAGE-1 (원장 D-77) — 엔트리 그림은 늘 우리 Storage 복사본(토큰 없는 공개 주소).
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+      },
     ],
   },
 };

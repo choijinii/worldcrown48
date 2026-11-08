@@ -22,19 +22,35 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   browserLocalPersistence,
+  connectAuthEmulator,
   getAuth,
   setPersistence,
   signInAnonymously,
+  signInWithCustomToken,
   type Auth,
   type User,
 } from "firebase/auth";
 import {
+  connectFirestoreEmulator,
   getFirestore,
   initializeFirestore,
   type Firestore,
 } from "firebase/firestore";
-import { getFunctions, type Functions } from "firebase/functions";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
+import { connectFunctionsEmulator, getFunctions, type Functions } from "firebase/functions";
+import { connectStorageEmulator, getStorage, type FirebaseStorage } from "firebase/storage";
+
+/**
+ * IMAGE-1 PR 1 — 에뮬레이터 E2E 판(playwright.emulator.config.ts)에서만 켠다. 빌드 때 값이 박히는
+ * NEXT_PUBLIC_ 변수라 실서비스 번들에서는 이 분기가 늘 꺼져 있다.
+ */
+export const USE_EMULATORS = process.env.NEXT_PUBLIC_USE_EMULATORS === "1";
+const EMU_HOST = "127.0.0.1";
+export const EMULATOR_PORTS = { auth: 9099, firestore: 8080, functions: 5001, storage: 9199 } as const;
+
+/** 화면에 나가는 Storage 공개 주소의 앞부분(에뮬레이터면 에뮬레이터). */
+export function storageOriginForClient(): string | undefined {
+  return USE_EMULATORS ? `http://${EMU_HOST}:${EMULATOR_PORTS.storage}` : undefined;
+}
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -84,6 +100,13 @@ export function getDb(): Firestore {
     // Already initialized (HMR / a prior getFirestore call) — reuse it.
     db = getFirestore(fbApp);
   }
+  if (USE_EMULATORS) {
+    try {
+      connectFirestoreEmulator(db, EMU_HOST, EMULATOR_PORTS.firestore);
+    } catch {
+      /* 이미 연결됨(HMR) */
+    }
+  }
   return db;
 }
 
@@ -93,6 +116,15 @@ let persistenceReady: Promise<void> | null = null;
 export function getAuthInstance(): Auth {
   if (auth) return auth;
   auth = getAuth(getFirebaseApp());
+  if (USE_EMULATORS) {
+    connectAuthEmulator(auth, `http://${EMU_HOST}:${EMULATOR_PORTS.auth}`, { disableWarnings: true });
+    // 에뮬레이터 E2E 만 — 시험이 만든 토큰으로 관리자 계정에 들어간다(e2e/emulator/helpers.ts).
+    if (typeof window !== "undefined") {
+      const a = auth;
+      (window as unknown as { __wc48SignIn?: (token: string) => Promise<unknown> }).__wc48SignIn = (token) =>
+        signInWithCustomToken(a, token);
+    }
+  }
   // Handoff §9 trap 7 — persistence must be applied to the Auth instance
   // BEFORE signInWithPopup so the resulting session survives a tab close.
   // We fire-and-cache here so it's idempotent across the app and any caller
@@ -129,6 +161,7 @@ export function getFunctionsInstance(): Functions {
   if (functions) return functions;
   const region = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "asia-northeast3";
   functions = getFunctions(getFirebaseApp(), region);
+  if (USE_EMULATORS) connectFunctionsEmulator(functions, EMU_HOST, EMULATOR_PORTS.functions);
   return functions;
 }
 
@@ -145,6 +178,7 @@ let storage: FirebaseStorage | null = null;
 export function getStorageInstance(): FirebaseStorage {
   if (storage) return storage;
   storage = getStorage(getFirebaseApp());
+  if (USE_EMULATORS) connectStorageEmulator(storage, EMU_HOST, EMULATOR_PORTS.storage);
   return storage;
 }
 

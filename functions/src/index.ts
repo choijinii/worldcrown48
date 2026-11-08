@@ -198,3 +198,6 @@ export { extractContestantsFromVideos } from "./extractContestants"; // 링크 �
 
 // PRE-REG-1 사전등록 — 로그인 없이 부른다(원장 D-41). 선착순 번호는 서버만 매기고 돌려주지 않는다.
 export { registerWaitlist } from "./registerWaitlist";
+// IMAGE-1 PR 1 (원장 D-77) — 엔트리 그림: ④ URL 한 장 · 발행 때 대회 경로로 복사
+export { importEntryImage } from "./importEntryImage";
+export { finalizeEntryImages } from "./finalizeEntryImages";

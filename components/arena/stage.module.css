@@ -442,6 +442,24 @@
   text-shadow: var(--arena-vs-shadow-mobile);
 }
 
+/* IMAGE-1 (D-77) — 그림 엔트리 출처. 도메인 글자만, 링크 아님. 이름 버튼 바로 아래 오른쪽 끝. */
+.source {
+  position: absolute;
+  right: 6px;
+  top: calc(100% + 6px);
+  z-index: 7;
+  max-width: 60%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* 서버 응답 대기 — 고른 버튼 아래 작은 칩. */
 .waiting {
   position: absolute;

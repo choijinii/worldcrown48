@@ -78,5 +78,12 @@ export function toCrownData(champion: Contestant, tournament: Tournament, lang: 
     path: VICTORY_PATH,
     campaign: campaignForTournament(tournament),
     displayName: localizedName(champion, lang),
+    // IMAGE-1 — 그림이 있을 때만 싣는다(옛 모양 그대로).
+    ...(champion.media?.image?.url
+      ? {
+          photoUrl: champion.media.image.url,
+          ...(typeof champion.media.image.focusY === "number" ? { photoFocusY: champion.media.image.focusY } : {}),
+        }
+      : {}),
   };
 }

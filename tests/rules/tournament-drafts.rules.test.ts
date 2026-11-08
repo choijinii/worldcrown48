@@ -230,3 +230,31 @@ describe("tournamentDrafts — 엔트리 단위(entryUnit)", () => {
     await assertFails(setDoc(ref(), rawDraft("host-1", { entryUnit: 1 })));
   });
 });
+
+// IMAGE-1 PR 1(원장 D-77): 칸 안의 새 칸(그림 · 영상 제목·채널). 규칙은 칸 목록 안을 훑지 않는다 —
+// 이 시험이 그 약속을 박는다(칸 하나 더할 때마다 규칙을 바꾸지 않아도 된다).
+describe("tournamentDrafts — 칸 안의 그림 칸(IMAGE-1)", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts/d1");
+
+  it("ALLOWS slots carrying image + video title/channel fields (create and update)", async () => {
+    const slot = {
+      name: "Entry 1",
+      nationality: "KR",
+      affiliation: "",
+      imageSearchKeyword: "",
+      videoId: "dQw4w9WgXcQ",
+      videoTitle: "Official MV",
+      videoChannel: "HYBE LABELS",
+      imageUrl: "https://firebasestorage.googleapis.com/v0/b/b/o/x?alt=media",
+      imageThumbUrl: "https://firebasestorage.googleapis.com/v0/b/b/o/y?alt=media",
+      imageStoragePath: "entry-images/drafts/host-1/d1/0.jpg",
+      imageSource: { origin: "url", sourceUrl: "https://a.com/x.jpg", sourcePage: "https://a.com/x.jpg" },
+      imageWidth: 1600,
+      imageHeight: 900,
+      imageAddedAt: 1_762_000_000_000,
+      imageFocusY: 40,
+    };
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { contestants: [slot] })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { contestants: [slot, { ...slot, imageUrl: "x" }] })));
+  });
+});

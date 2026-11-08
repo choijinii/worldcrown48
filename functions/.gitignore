@@ -14,3 +14,7 @@ src/_embed/
 # copy-run.mjs (단일 소스: lib/run)
 src/_run/
 
+
+# IMAGE-1 — 에뮬레이터 E2E 가 만드는 가짜 비밀 값(scripts/e2e-emulator.sh). 커밋하지 않는다.
+.secret.local
+.env.local

@@ -59,3 +59,15 @@ export function crownPngInput(args: {
     }),
   };
 }
+
+/**
+ * IMAGE-1 (원장 D-77) — 공유 카드 사진 자리에 그릴 그림. 그림 엔트리면 그 그림(우리 Storage 대회 경로),
+ * 아니면 null(이니셜). 영상 대회의 유튜브 썸네일은 PR 3. 대회 경로가 아닌 값은 믿지 않는다.
+ */
+export function championPhoto(contestant: { media?: unknown }): { storagePath: string; focusY: number } | null {
+  const image = (contestant.media as { image?: { storagePath?: unknown; focusY?: unknown } } | undefined)?.image;
+  const path = typeof image?.storagePath === "string" ? image.storagePath : "";
+  if (!/^entry-images\/tournaments\/[A-Za-z0-9]+\/\d{1,2}\.jpg$/.test(path)) return null;
+  const f = typeof image?.focusY === "number" && Number.isFinite(image.focusY) ? image.focusY : 40;
+  return { storagePath: path, focusY: Math.min(100, Math.max(0, f)) };
+}

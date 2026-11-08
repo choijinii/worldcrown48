@@ -51,6 +51,8 @@ export function computeRankings(tallies: ContestantTally[]): RankingEntry[] {
       // Firestore 는 undefined 를 거부한다 — 있을 때만 싣는다(NAME-I18N-1).
       ...(t.nameI18n ? { nameI18n: t.nameI18n } : {}),
       videoId: t.videoId,
+      // IMAGE-1 — 그림 아바타는 있을 때만(옛 캐시 모양 그대로).
+      ...(t.imageUrl ? { imageUrl: t.imageUrl } : {}),
       voteCount: t.voteCount,
       rate: roundRate((t.voteCount / totalVotes) * 100),
     });

@@ -27,10 +27,17 @@ export function buildPublishBatch(
     draftId: string | null;
     /** 그리드 칸 번호(0~47)와 위치 값(0~100). 없으면 싣지 않는다. */
     thumbnailPair?: { a: number; b: number; aPos: number; bPos: number };
+    /**
+     * IMAGE-1 — 그림 복사(finalizeEntryImages)가 대회 id 를 먼저 알아야 해서 밖에서 정할 수 있다.
+     * 없으면 지금처럼 여기서 새로 만든다.
+     */
+    tournamentId?: string;
   },
 ): { batch: WriteBatch; tournamentId: string } {
   const batch = writeBatch(db);
-  const tRef = doc(collection(db, "tournaments"));
+  const tRef = args.tournamentId
+    ? doc(db, "tournaments", args.tournamentId)
+    : doc(collection(db, "tournaments"));
   const contestants = args.contestants(tRef.id);
   const cRefs = contestants.map(() => doc(collection(db, "contestants")));
   const pair = args.thumbnailPair;

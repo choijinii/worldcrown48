@@ -68,7 +68,12 @@ export function sideData(
 ): VSThumbSide | null {
   if (slot === null) return null;
   const c = contestants[slot];
-  if (!c || !isValidVideoId(c.videoId ?? "")) return null;
+  if (!c) return null;
+  if (!isValidVideoId(c.videoId ?? "")) {
+    // IMAGE-1 (D-77) — 그림 엔트리는 600 사본으로 그린다(가로로 본다).
+    const imageUrl = c.imageThumbUrl || c.imageUrl;
+    return imageUrl ? { videoId: "", orientation: "landscape", pos: pos ?? defaultPos("landscape"), imageUrl } : null;
+  }
   const orientation = c.videoOrientation === "portrait" ? "portrait" : "landscape";
   return { videoId: c.videoId!, orientation, pos: pos ?? defaultPos(orientation) };
 }

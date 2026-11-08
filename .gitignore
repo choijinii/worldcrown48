@@ -48,3 +48,5 @@ firestore-debug.*.log
 # Claude Code — 워크트리·개인 설정은 올리지 않는다 (SESSION-RULES-1)
 .claude/worktrees/
 .claude/settings.local.json
+/playwright-report-emulator
+/test-results-emulator

@@ -75,3 +75,16 @@ describe("formatCrownScore — 차트에 나가는 유일한 수치", () => {
     expect(formatCrownScore(548.8)).toBe("549");
   });
 });
+
+// IMAGE-1 (D-77) — 차트 아바타: 캐시의 그림 주소(영상이 없거나 내려간 엔트리에만 실린다)가 먼저,
+// 없으면 영상 썸네일, 둘 다 없으면 빈 글자(화면은 글자 아바타).
+import { avatarUrl } from "@/lib/ranking/rateFormatter";
+describe("avatarUrl (IMAGE-1)", () => {
+  it("그림 주소 > 영상 썸네일 > 빈 글자", () => {
+    expect(avatarUrl({ videoId: "dQw4w9WgXcQ", imageUrl: "https://firebasestorage.googleapis.com/x" })).toBe(
+      "https://firebasestorage.googleapis.com/x",
+    );
+    expect(avatarUrl({ videoId: "dQw4w9WgXcQ" })).toContain("ytimg.com/vi/dQw4w9WgXcQ");
+    expect(avatarUrl({ videoId: null })).toBe("");
+  });
+});

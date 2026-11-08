@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://worldcrown48.com", "https://www.worldcrown48.com", "https://*.vercel.app", "http://localhost:3000"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, documentId, getDocs, orderBy, query, where } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
-import { posterSources } from "@/lib/media/stageCrop";
+import { coverSideSources } from "@/lib/thumbnail/poster";
 import { coverSides, needsFullList, probePoster, type CoverContestant, type CoverSides } from "@/lib/thumbnail/cover";
 import type { ThumbnailPair } from "@/lib/thumbnail/pair";
 import type { PosterOutcome } from "@/lib/thumbnail/poster";
@@ -123,7 +123,7 @@ export function useCoverBroken(tournamentId: string, pair: ThumbnailPair | undef
       if (sides.replaced) return true; // 문서가 없거나 영상이 없다
       const picked = [sides.a, sides.b].filter((s): s is NonNullable<typeof s> => s !== null);
       const results = await Promise.all(
-        picked.map((s) => probePoster(posterSources(s.videoId, s.orientation), loadImage)),
+        picked.map((s) => probePoster(coverSideSources(s), loadImage)),
       );
       return results.includes("broken");
     })()
