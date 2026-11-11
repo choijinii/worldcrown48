@@ -34,6 +34,7 @@ import { assignSlots, parseLinkBatch, type SlotAssignment } from "@/lib/embed/pa
 import type { LinkStatus, LinkVerdict } from "@/lib/embed/verdict";
 import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
 import type { ExtractedContestant } from "@/lib/lab/pasteExtract";
+import type { EntryUnit } from "@/lib/types/tournament";
 import {
   inspectErrorCode,
   validateYouTubeLinks,
@@ -51,9 +52,12 @@ interface YouTubeInspectorModalProps {
   onClose: () => void;
   /**
    * 비어 있는 슬롯의 0-based index — 화면 순서대로 (LAB-UX-1 ③).
-   * 링크는 **여기에만, 이 개수만큼** 들어간다. 채워 둔 칸을 덮지 않는다.
+   * 빈칸 = **영상이 없는 칸**(원장 D-87). 링크는 여기에만, 이 개수만큼 들어간다 —
+   * 영상을 붙여 둔 칸을 덮지 않는다(이름만 적어 둔 칸에는 들어간다).
    */
   blankIndexes: number[];
+  /** 대회의 엔트리 단위(원장 D-73) — 제목에서 인물(개인)을 읽을지 그룹(팀)을 읽을지. */
+  entryUnit: EntryUnit;
   /**
    * 통과·경고분을 그리드에 얹는다. 차단 판정은 여기까지 오지 않는다.
    * `extractions`는 제목에서 읽어낸 인물 — 확신 못 한 항목은 이름이 비어 있다.
@@ -76,22 +80,27 @@ export function YouTubeInspectorModal({
   isOpen,
   onClose,
   blankIndexes,
+  entryUnit,
   onApply,
 }: YouTubeInspectorModalProps): JSX.Element | null {
   const { t } = useT();
   const [size, setSize] = useState<BracketSize>(DEFAULT_BRACKET_SIZE);
   const [text, setText] = useState("");
   const [verdicts, setVerdicts] = useState<LinkVerdict[] | null>(null);
+  // 검수를 누른 순간의 배정 — 결과 줄(영수증)은 이것으로 그린다(LAB-FIX-2). 주입이 끝나면 그 칸들은
+  // 영상이 생겨 빈칸에서 빠지므로(원장 D-87) 지금 빈칸으로 다시 배정하면 들어간 링크가 "대기"로 보인다.
+  // 링크 글이나 규모를 바꾸면 줄 번호가 달라지므로 풀어 둔다.
+  const [appliedSlots, setAppliedSlots] = useState<SlotAssignment[] | null>(null);
   const [busy, setBusy] = useState(false);
 
   const rows = useMemo(() => parseLinkBatch(text, size), [text, size]);
-  // ③ — 빈칸에만, 빈칸 개수만큼. 남는 링크는 배정되지 않는다.
+  // ③ — 빈칸(= 영상이 없는 칸 · 원장 D-87)에만, 빈칸 개수만큼. 영상을 붙여 둔 칸은 덮지 않는다. 남는 링크는 배정되지 않는다.
   const slots = useMemo(() => assignSlots(rows, blankIndexes), [rows, blankIndexes]);
   const passingRows = rows.filter((r) => r.ok && r.videoId).length;
   const overflow = Math.max(0, passingRows - blankIndexes.length);
   const slotByIndex = useMemo(
-    () => new Map(slots.map((s) => [s.index, s])),
-    [slots],
+    () => new Map((appliedSlots ?? slots).map((s) => [s.index, s])),
+    [appliedSlots, slots],
   );
   const verdictById = useMemo(
     () => new Map((verdicts ?? []).map((v) => [v.videoId, v])),
@@ -129,6 +138,7 @@ export function YouTubeInspectorModal({
               title: v.title,
               channelTitle: v.channelTitle,
             })),
+            entryUnit,
           );
         } catch (err) {
           // 검수는 성공했고 **추출만** 실패했다. 여기서 검수 실패 문구를 띄우면
@@ -144,6 +154,7 @@ export function YouTubeInspectorModal({
         }
       }
 
+      setAppliedSlots(slots);
       onApply(slots, res.verdicts, extractions);
 
       const applied = usable.length;
@@ -227,7 +238,10 @@ export function YouTubeInspectorModal({
                 aria-selected={size === n}
                 aria-label={t("lab.embed.sizeAria", { n })}
                 data-testid={`embed-size-${n}`}
-                onClick={() => setSize(n)}
+                onClick={() => {
+                  setSize(n);
+                  setAppliedSlots(null);
+                }}
                 style={{
                   padding: "6px 14px",
                   borderRadius: 999,
@@ -248,7 +262,10 @@ export function YouTubeInspectorModal({
           <textarea
             id="embed-inspector-input"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setAppliedSlots(null);
+            }}
             placeholder={t("lab.embed.placeholder", { n: size })}
             data-testid="embed-inspector-input"
             rows={8}

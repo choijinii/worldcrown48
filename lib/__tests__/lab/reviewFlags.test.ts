@@ -16,7 +16,7 @@ import {
   TEAM_TOKEN_MIN_OWNERS,
   type ReviewSlot,
 } from "@/lib/lab/reviewFlags";
-import { isRenamedTo, normalizeNameKey, parentheticalOf } from "@/lib/lab/nameKey";
+import { normalizeNameKey, parentheticalOf } from "@/lib/lab/nameKey";
 
 function slot(
   name: string,
@@ -55,22 +55,6 @@ describe("parentheticalOf", () => {
 
   it("괄호가 없으면 빈 문자열", () => {
     expect(parentheticalOf("허윤진")).toBe("");
-  });
-});
-
-describe("isRenamedTo — 영상·힌트 해제의 방아쇠", () => {
-  it("한글 알맹이가 바뀌면 다른 인물이다", () => {
-    expect(isRenamedTo("하린", "허윤진")).toBe(true);
-  });
-
-  it("로마자 꼬리만 손질한 건 같은 인물이다 — 떼지 않는다", () => {
-    expect(isRenamedTo("지수 (JISOO)", "지수 (Jisoo)")).toBe(false);
-    expect(isRenamedTo("지수 (JISOO)", "지수")).toBe(false);
-  });
-
-  it("빈칸으로 만드는 경로는 여기서 다루지 않는다(카드 비우기가 처리)", () => {
-    expect(isRenamedTo("하린", "")).toBe(false);
-    expect(isRenamedTo("", "하린")).toBe(false);
   });
 });
 

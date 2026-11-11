@@ -29,7 +29,12 @@
  *
  * 주입식 deps(`createMessage`)는 aiFillCore·aiSuggestKeywordsCore와 같은 모양이라
  * Firebase·네트워크 없이 단위 테스트가 돈다.
+ *
+ * 엔트리 단위(원장 D-73 · LAB-FIX-2 2026-11-08): 팀 대회면 `buildTeamExtractPrompt` 로 **그룹**을
+ * 읽는다. 개인 지시문(`buildExtractPrompt`)은 한 글자도 바꾸지 않았다 — 골든 실측이 그 문장 위에서
+ * 나온 결과라서(aiFillCore 의 개인/팀 분리와 같은 원칙). 시험이 개인 지시문의 sha256 을 잠근다.
  */
+import { parseEntryUnit, type EntryUnit } from "./aiFillCore";
 
 /** 추출 대상 1건 — 검수기가 이미 받아 둔 값만 넘긴다(추가 API 0콜). */
 export interface ExtractItem {
@@ -129,6 +134,45 @@ export function buildExtractPrompt(items: readonly ExtractItem[]): string {
 }
 
 /**
+ * 팀 단위 추출 지시문 (D-73 적용 · LAB-FIX-2). 자제 규칙("모르면 비워라 · 지어내지 마라")과 항목·출력
+ * 형식은 개인과 같다 — 같은 파서(parseExtractions)가 읽는다. 다른 것은 name 이 **그룹**이라는 점:
+ * 표기는 aiFillCore 팀 지시문과 같은 규칙(한글 정본 · 원장 D-61)이다.
+ */
+export function buildTeamExtractPrompt(items: readonly ExtractItem[]): string {
+  const rows = items
+    .map(
+      (it, i) =>
+        `${i + 1}. id="${it.videoId}" | 제목="${it.title}" | 채널="${it.channelTitle}"`,
+    )
+    .join("\n");
+
+  return [
+    "아래는 유튜브 영상의 제목과 채널명이다. 각 줄이 **어느 그룹(팀)의 영상인지** 읽어라.",
+    "",
+    "규칙:",
+    "- 제목·채널에 적힌 것과, 거기 적힌 이름이 속한 그룹만 근거로 삼는다",
+    "- 그룹을 **확신할 수 없으면 name을 빈 문자열로 두고 confident를 false로** 한다. 빈칸은 정상이고, 사람이 나중에 채운다",
+    "- 절대로 그럴듯한 그룹 이름을 지어내지 마라. 틀린 이름 하나가 빈칸 하나보다 훨씬 나쁘다",
+    "",
+    "- name: 그룹(팀) 하나의 **한글 이름** (예: 방탄소년단 · 블랙핑크 · 베이비몬스터). 영어 표기는 쓰지 말 것 — 영어 이름은 발행 때 따로 붙는다. 한글 표기가 없는 그룹만 공식 표기 그대로",
+    "- 멤버 개인 영상이면 그 멤버가 속한 **그룹**을 name에 적는다. 멤버 이름은 적지 않는다. 그룹이 없는 솔로 활동가면 비운다",
+    "- affiliation: 그 그룹의 소속사 또는 채널. **영문(로마자) 공식 표기가 있으면 그걸 쓴다** (예: YG Entertainment · JYP Entertainment). 모르면 빈 문자열",
+    "- nationality: ISO 3166-1 alpha-2 두 글자 대문자 (예: KR · JP · US). 그룹의 국적이 확실할 때만, 아니면 비운다",
+    "- confident: 그룹을 특정하면 true, 비웠거나 애매하면 false",
+    "",
+    "- 목록에 있는 id만 쓴다. 새 id를 만들지 마라",
+    "- 줄 수와 결과 수를 같게 한다",
+    "- 설명·머리말 없이 JSON 한 줄만 출력한다",
+    "",
+    "출력 형식:",
+    '{"extractions":[{"id":"<id>","name":"","affiliation":"","nationality":"","confident":false}]}',
+    "",
+    "목록:",
+    rows,
+  ].join("\n");
+}
+
+/**
  * 모델 응답 → 항목별 결과.
  *
  * 파싱 실패·누락 id는 **보수적으로 빈 결과**다: 못 읽은 칸은 "수동 필요"로 남아
@@ -184,6 +228,8 @@ export function parseExtractions(
 export interface ExtractInput {
   uid: string | null | undefined;
   items: unknown;
+  /** 엔트리 단위(D-73). 빠지면 개인 — 옛 화면 호환(aiFillCore 와 같은 읽기 함수). */
+  entryUnit?: unknown;
 }
 
 export async function extractContestantsCore(
@@ -192,6 +238,10 @@ export async function extractContestantsCore(
 ): Promise<ExtractedContestant[]> {
   if (!input.uid) {
     throw new ExtractError("unauthenticated", "로그인이 필요합니다.");
+  }
+  const entryUnit: EntryUnit | null = parseEntryUnit(input.entryUnit);
+  if (!entryUnit) {
+    throw new ExtractError("invalid-argument", "entryUnit은 individual 또는 group이어야 합니다.");
   }
   if (!Array.isArray(input.items) || input.items.length === 0) {
     throw new ExtractError("invalid-argument", "추출할 영상이 없습니다.");
@@ -220,7 +270,9 @@ export async function extractContestantsCore(
 
   let text: string;
   try {
-    text = await deps.createMessage(buildExtractPrompt(items));
+    text = await deps.createMessage(
+      entryUnit === "group" ? buildTeamExtractPrompt(items) : buildExtractPrompt(items),
+    );
   } catch (e) {
     deps.logError?.("extractContestantsCore createMessage failed", e);
     throw new ExtractError("ai-failed", "AI 호출에 실패했습니다.");
@@ -229,7 +281,7 @@ export async function extractContestantsCore(
   const out = parseExtractions(text, items);
   const named = out.filter((x) => x.confident).length;
   deps.logInfo?.(
-    `extractContestants: ${items.length}건 중 이름 확정 ${named}건 · 수동 필요 ${items.length - named}건`,
+    `extractContestants(${entryUnit}): ${items.length}건 중 이름 확정 ${named}건 · 수동 필요 ${items.length - named}건`,
   );
   return out;
 }

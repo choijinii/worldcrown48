@@ -11,6 +11,7 @@
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
 import type { ExtractedContestant } from "@/lib/lab/pasteExtract";
+import type { EntryUnit } from "@/lib/types/tournament";
 
 export interface ExtractItem {
   videoId: string;
@@ -18,13 +19,17 @@ export interface ExtractItem {
   channelTitle: string;
 }
 
+/**
+ * `entryUnit` = 대회의 엔트리 단위(원장 D-73 · LAB-FIX-2). 팀이면 서버가 그룹을 읽는 지시문을 쓴다.
+ */
 export async function extractContestantsFromVideos(
   items: ExtractItem[],
+  entryUnit: EntryUnit,
 ): Promise<ExtractedContestant[]> {
   const callable = httpsCallable<
-    { items: ExtractItem[] },
+    { items: ExtractItem[]; entryUnit: EntryUnit },
     { extractions: ExtractedContestant[] }
   >(getFunctionsInstance(), "extractContestantsFromVideos");
-  const res = await callable({ items });
+  const res = await callable({ items, entryUnit });
   return res.data.extractions ?? [];
 }

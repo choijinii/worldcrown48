@@ -1569,11 +1569,6 @@ export const MESSAGES = {
     en: "Edit Contestant {n} name",
     es: "Editar el nombre del Contestant {n}",
   },
-  "lab.contestant.released": {
-    ko: "이름이 바뀌어 이전 인물의 영상·검색어를 뗐어요.",
-    en: "Name changed — the previous person's video and search term were released.",
-    es: "El nombre cambió — se soltaron el video y el término de búsqueda anteriores.",
-  },
   "lab.review.duplicate": { ko: "중복 의심", en: "Possible duplicate", es: "Posible duplicado" },
   "lab.review.duplicateTip": {
     ko: "{slots}번 칸과 같은 인물로 보입니다. 어느 쪽을 남길지 정하고 나머지는 ✕로 비우거나 이름을 고치세요.",

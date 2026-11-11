@@ -71,3 +71,71 @@ describe("planNameEdits — 저장할 값", () => {
     ]);
   });
 });
+
+// LAB-FIX-2 (원장 D-88) — 편집기 이름 칸은 글자만 바꾼다. 영상·검색어·소속·국가·그림은 그대로 두고,
+// AI 배지("제안"·"수동 필요")만 뗀다. 영상 빼기는 운영자가 영상 ✕ · [새 영상 찾기]를 눌러서만.
+import { applyContestantPatch, namePatchDropsBadge } from "@/lib/lab/nameEdits";
+import { mismatchSlots } from "@/lib/lab/nameVideoMismatch";
+import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
+
+const withVideo: ContestantDraft = {
+  name: "방탄소년단",
+  nationality: "KR",
+  affiliation: "BIGHIT MUSIC",
+  imageSearchKeyword: "BTS stage",
+  videoId: "dQw4w9WgXcQ",
+  videoStartSec: 30,
+  videoEndSec: 45,
+  videoSourceUrl: "u",
+  videoTitle: "방탄소년단 무대",
+  videoChannel: "HYBE LABELS",
+  imageUrl: "still.jpg",
+};
+
+describe("applyContestantPatch — 이름 칸은 글자만 바꾼다 (D-88)", () => {
+  it("★오타 고치기(방탄소년닫 → 방탄소년단) — 영상·검색어 그대로", () => {
+    const typo = applyContestantPatch(withVideo, { name: "방탄소년닫" });
+    const fixed = applyContestantPatch(typo, { name: "방탄소년단" });
+    expect(fixed).toEqual(withVideo);
+  });
+
+  it("★다른 인물로 바꿔도(세븐틴) 영상·검색어·소속·국가·그림을 떼지 않는다", () => {
+    const next = applyContestantPatch(withVideo, { name: "세븐틴" });
+    expect(next).toEqual({ ...withVideo, name: "세븐틴" });
+  });
+
+  it("★영상만 있는 칸에 한 글자씩 치기 — 어느 글자에서도 영상이 사라지지 않는다", () => {
+    let d: ContestantDraft = { ...withVideo, name: "" };
+    for (const partial of ["베", "베이", "베이비", "베이비몬", "베이비몬스", "베이비몬스터"]) {
+      d = applyContestantPatch(d, { name: partial });
+      expect(d.videoId).toBe("dQw4w9WgXcQ");
+      expect(d.imageSearchKeyword).toBe("BTS stage");
+    }
+  });
+
+  it("입력 draft 를 바꾸지 않는다", () => {
+    applyContestantPatch(withVideo, { name: "세븐틴" });
+    expect(withVideo.name).toBe("방탄소년단");
+  });
+});
+
+describe("namePatchDropsBadge — 이름이 바뀌면 AI 배지만 뗀다", () => {
+  it("이름 글자가 바뀌면 뗀다 · 비워도 뗀다", () => {
+    expect(namePatchDropsBadge("카리나", { name: "카리나2" })).toBe(true);
+    expect(namePatchDropsBadge("카리나", { name: "" })).toBe(true);
+  });
+  it("이름이 그대로거나 이름이 아닌 칸만 바뀌면 그대로", () => {
+    expect(namePatchDropsBadge("카리나", { name: "카리나" })).toBe(false);
+    expect(namePatchDropsBadge("카리나", { affiliation: "aespa" })).toBe(false);
+  });
+});
+
+describe("이름을 바꾼 칸 — 불일치 배지가 유일한 안전장치 (D-88)", () => {
+  it("★세븐틴으로 바꾼 칸은 영상(방탄소년단 무대)과 어긋나 불일치로 잡힌다", () => {
+    const renamed = applyContestantPatch({ ...withVideo, affiliation: "" }, { name: "세븐틴" });
+    expect(mismatchSlots([withVideo, renamed])).toEqual([1]);
+  });
+  it("오타를 바로잡은 칸은 불일치가 아니다", () => {
+    expect(mismatchSlots([applyContestantPatch(withVideo, { name: "방탄소년단" })])).toEqual([]);
+  });
+});

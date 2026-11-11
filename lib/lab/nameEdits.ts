@@ -9,6 +9,7 @@
  * es 는 en 을 따라간다(es = en 복사) — 사람이 es 를 따로 고친 칸만 그대로 둔다.
  */
 import type { LocalizedText } from "@/lib/types/tournament";
+import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 
 export interface NameEditRow {
   id: string;
@@ -79,4 +80,25 @@ export function planNameEdits(
     writes.push({ id: r.id, nameI18n: { ko: r.name, en, es } });
   }
   return { writes, invalid };
+}
+
+/**
+ * 편집기 이름 칸 패치 (LAB-FIX-2 · 원장 D-88) — **글자만** 바꾼다.
+ *
+ * 이름을 채우든·고치든·다른 인물로 바꾸든 그 칸의 영상·소속·국가·검색어·그림은 그대로다.
+ * 컴퓨터는 오타 고치기(방탄소년닫 → 방탄소년단)와 다른 인물로 바꾸기를 구별하지 못한다 —
+ * 예전 "다른 인물로 바뀜" 자동 판정은 오타 고치기에서도 영상을 지웠다(2026-11-08 대표 실측).
+ * 영상을 빼거나 바꾸는 일은 운영자가 영상 ✕ · [새 영상 찾기]를 눌러서만 일어난다. 이름과 영상이
+ * 어긋나 보이면 "이름↔영상 불일치" 배지(nameVideoMismatch)가 알리기만 한다.
+ */
+export function applyContestantPatch(
+  draft: ContestantDraft,
+  patch: Partial<ContestantDraft>,
+): ContestantDraft {
+  return { ...draft, ...patch };
+}
+
+/** 이름 글자가 바뀌면(비우기 포함) AI 배지("제안"·"수동 필요")만 뗀다 — 더는 AI 제안이 아니다. */
+export function namePatchDropsBadge(prevName: string, patch: Partial<ContestantDraft>): boolean {
+  return patch.name !== undefined && patch.name !== prevName;
 }

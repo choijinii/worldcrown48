@@ -50,7 +50,6 @@ import {
   applyVideoAssignments,
   clearVideo,
   reframeDraft,
-  releaseRenamedSlot,
   retimeDraft,
 } from "@/lib/lab/videoDraft";
 import type { EmbedOrientation } from "@/lib/media/mediaSlot";
@@ -77,7 +76,7 @@ import {
   type ExtractedContestant,
 } from "@/lib/lab/pasteExtract";
 import { step2Counters } from "@/lib/lab/step2Counters";
-import { isRenamedTo } from "@/lib/lab/nameKey";
+import { applyContestantPatch, namePatchDropsBadge } from "@/lib/lab/nameEdits";
 import { inspectErrorCode } from "@/lib/lab/inspectYouTube";
 import { sourcingErrorMessage } from "@/lib/lab/sourcingMessages";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
@@ -130,6 +129,7 @@ import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { lab } from "./theme";
 import { DraftStatus } from "./DraftStatus";
 import { DraftPicker } from "./DraftPicker";
+import { DraftMenu } from "./DraftMenu";
 import { SourcingQuotaDialog } from "./SourcingQuotaDialog";
 import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
 import { SlotVideoTuner } from "./SlotVideoTuner";
@@ -448,14 +448,25 @@ export function TournamentCreator(): JSX.Element {
     }
   }
 
-  async function showDraftList() {
+  /** [초안 목록] 펼칠 때 — 지금 초안을 먼저 저장하고 목록을 새로 읽는다(LAB-FIX-2 §3-5). */
+  async function refreshDraftList() {
     await autosaver.flush();
     try {
       setDrafts(await listMyDrafts(getDb(), uid));
     } catch {
       showToast(t("lab.draft.listFail"), "error");
     }
-    setPhase("choose");
+  }
+
+  /** 펼치기 목록의 [열기] — 지금 초안을 저장한 뒤 고른 초안을 연다. */
+  async function openDraftAfterSave(id: string) {
+    await autosaver.flush();
+    await openDraft(id);
+  }
+
+  async function startNewDraftAfterSave() {
+    await autosaver.flush();
+    await startNewDraft();
   }
 
   const step1Ready = isStep1Ready({
@@ -602,13 +613,15 @@ export function TournamentCreator(): JSX.Element {
       void track("admin_lab_ai_fill_success", {
         category,
         mode,
+        // LAB-FIX-2 §8 — 팀 대회에서 개인이 추천된 사례를 다시 보게 단위를 남긴다.
+        entry_unit: entryUnit,
         duration_ms: Date.now() - started,
         contestant_count: incoming.length,
       });
       return { drafts: applied, filledIndexes: touched };
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
-      void track("admin_lab_ai_fill_error", { category, mode, error_code: code });
+      void track("admin_lab_ai_fill_error", { category, mode, error_code: code, entry_unit: entryUnit });
       showToast(t("lab.toast.fillFail"), "error");
       return null;
     } finally {
@@ -1007,27 +1020,21 @@ export function TournamentCreator(): JSX.Element {
   const mismatchList = useMemo(() => mismatchSlots(contestants), [contestants]);
   const videoMismatch = useMemo(() => new Set(mismatchList), [mismatchList]);
 
+  /**
+   * 칸 하나 고치기. 이름 칸은 **글자만** 바꾼다(원장 D-88 · LAB-FIX-2) — 영상·검색어·소속·국가·
+   * 그림은 그대로 두고, 이름이 바뀌면 AI 배지("제안"·"수동 필요")만 뗀다. 영상 빼기·바꾸기는
+   * 운영자가 영상 ✕(removeSlotVideo) · [새 영상 찾기](refreshSlot)를 눌러서만 일어난다.
+   */
   function updateContestant(index: number, patch: Partial<ContestantDraft>) {
-    const current = contestants[index];
-    const renamed =
-      patch.name !== undefined && isRenamedTo(current?.name ?? "", patch.name);
-    // 이름을 지우거나(LAB-EV-2) 다른 인물로 고치면(LAB-UX-1) 그 칸은 다른 사람의
-    // 자리가 된다 — 배지도 함께 뗀다.
-    if (patch.name !== undefined && (patch.name.trim() === "" || renamed)) {
+    if (namePatchDropsBadge(contestants[index]?.name ?? "", patch)) {
       setSourcingStates((states) => dropSourcingStates(states, [index]));
     }
-    if (renamed) showToast(t("lab.contestant.released"), "info");
     setContestants((prev) => {
       const next =
         prev.length === TOTAL_CONTESTANTS
           ? [...prev]
           : Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => prev[i] ?? emptyDraft());
-      // 이름이 바뀐 칸은 이전 인물의 영상·검색어까지 뗀 draft로 갈아 끼운다.
-      // 그러지 않으면 카드에는 새 이름이, 재생에는 옛 인물이 남는다.
-      const base = renamed
-        ? releaseRenamedSlot(next[index], patch.name as string)
-        : next[index];
-      next[index] = { ...base, ...patch };
+      next[index] = applyContestantPatch(next[index], patch);
       return next;
     });
   }
@@ -1167,24 +1174,14 @@ export function TournamentCreator(): JSX.Element {
               }}
             >
               <span style={{ fontSize: 13, color: lab.textMuted }}>STEP {step} / 2</span>
-              <button
-                type="button"
-                onClick={() => void showDraftList()}
-                data-testid="draft-back-to-list"
-                style={{
-                  flexShrink: 0,
-                  padding: "4px 10px",
-                  borderRadius: "var(--radius-border)",
-                  border: `1px solid ${lab.border}`,
-                  background: "transparent",
-                  color: lab.textSub,
-                  fontSize: 12,
-                  fontFamily: lab.font,
-                  cursor: "pointer",
-                }}
-              >
-                {t("lab.draft.backToList")}
-              </button>
+              {/* LAB-FIX-2 §3-5 — 화면을 떠나지 않고 버튼 밑에 목록을 펼친다. */}
+              <DraftMenu
+                drafts={drafts}
+                currentId={draftIdRef.current}
+                onShow={refreshDraftList}
+                onOpen={(id) => void openDraftAfterSave(id)}
+                onNew={() => void startNewDraftAfterSave()}
+              />
             </div>
             {/* 저장 상태는 자기 줄을 갖는다 — 긴 실패 문구(es 2줄)가 나타나도 위 줄이 밀리지 않고,
                 상태가 처음 생길 때 화면이 튀지 않게 한 줄 높이를 비워 둔다. */}
@@ -1458,6 +1455,7 @@ export function TournamentCreator(): JSX.Element {
         isOpen={inspectorOpen}
         onClose={() => setInspectorOpen(false)}
         blankIndexes={blankSlotIndexes(contestants, TOTAL_CONTESTANTS)}
+        entryUnit={entryUnit}
         onApply={applyVideoSlots}
       />
       {tuningIndex !== null && contestants[tuningIndex]?.videoId && (
