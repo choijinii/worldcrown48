@@ -21,7 +21,7 @@
  * secret (local/unprotected) we write an empty state.
  */
 import { chromium, type FullConfig } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import * as admin from "firebase-admin";
 
@@ -108,7 +108,42 @@ async function primeBypassOnly(
   }
 }
 
-export default async function globalSetup(_config: FullConfig): Promise<void> {
+/**
+ * CURTAIN-1 — 저장 상태에 관리자 미리보기 쿠키(wc48_preview=1)를 더한다. 미리보기 환경에 런칭 전
+ * 커튼이 켜져 있어도(LAUNCH_CURTAIN=on) 기존 시험이 /launch 로 끌려가지 않게. 커튼 자체의 시험은
+ * 따로(playwright.curtain.config.ts) 쿠키 없는 창으로 돈다.
+ */
+function addCurtainPreviewCookie(previewUrl: string): void {
+  try {
+    const url = new URL(previewUrl);
+    const state = JSON.parse(readFileSync(STORAGE_STATE_PATH, "utf8")) as {
+      cookies: Array<Record<string, unknown>>;
+      origins: unknown[];
+    };
+    state.cookies = (state.cookies ?? []).filter((c) => c.name !== "wc48_preview");
+    state.cookies.push({
+      name: "wc48_preview",
+      value: "1",
+      domain: url.hostname,
+      path: "/",
+      expires: -1,
+      httpOnly: false,
+      secure: url.protocol === "https:",
+      sameSite: "Lax",
+    });
+    writeFileSync(STORAGE_STATE_PATH, JSON.stringify(state));
+  } catch (err) {
+    console.warn(`[global-setup] curtain preview cookie not added: ${(err as Error).message}`);
+  }
+}
+
+export default async function globalSetup(config: FullConfig): Promise<void> {
+  const previewUrl = process.env.PREVIEW_URL ?? "http://localhost:3000";
+  await setupStorageState(config);
+  addCurtainPreviewCookie(previewUrl);
+}
+
+async function setupStorageState(_config: FullConfig): Promise<void> {
   const previewUrl = process.env.PREVIEW_URL ?? "http://localhost:3000";
   const testUid = process.env.TEST_UID;
   const serviceAccount = loadServiceAccount();

@@ -647,3 +647,9 @@ header.wc-nav {
     color: var(--color-text-sub); /* 보조 글자색 */
   }
 }
+
+/* CURTAIN-1 — 런칭 전 커튼 중 /launch 는 메뉴바 · 서랍 · 알약을 숨긴다(메뉴 한 번이면 홈으로 가므로).
+   표시는 app/launch/layout.tsx 가 서버에서 단다(관리자 쿠키가 있으면 달지 않는다). */
+body:has([data-curtain-root]) .wc-nav {
+  display: none;
+}

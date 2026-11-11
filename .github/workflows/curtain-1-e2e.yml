@@ -1,0 +1,68 @@
+name: CURTAIN-1 런칭 전 커튼 E2E
+
+# 런칭 전 커튼(CURTAIN-1)은 환경 변수(LAUNCH_CURTAIN · LAUNCH_AT)로 켜고 끈다. 미리보기 주소에서는
+# 그 값을 시험마다 바꿀 수 없어서, 같은 빌드를 `next start` 로 세 번 띄워(켜짐 · 꺼짐 · 시각 지남)
+# 쿠키 없는 창으로 돈다(playwright.curtain.config.ts). Firebase 값은 가짜(demo) — 실서비스에 닿지 않는다.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'middleware.ts'
+      - 'app/layout.tsx'
+      - 'app/launch/**'
+      - 'components/launch/**'
+      - 'components/layout/**'
+      - 'lib/launch/**'
+      - 'lib/lab/adminGate.ts'
+      - 'e2e/curtain-1.spec.ts'
+      - 'playwright.curtain.config.ts'
+      - 'package.json'
+      - '.github/workflows/curtain-1-e2e.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_FIREBASE_API_KEY: demo-api-key
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-wc48
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: localhost
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: demo-wc48.appspot.com
+      NEXT_PUBLIC_FIREBASE_APP_ID: '1:000000000000:web:0000000000000000'
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '000000000000'
+      NEXT_PUBLIC_ADMIN_UID: e2e-admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit · integration tests (vitest — 커튼 판정 · middleware)
+        run: npx vitest run lib/__tests__/launch/
+
+      - name: Build
+        run: npx next build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Curtain E2E (켜짐 · 꺼짐 · 시각 지남)
+        env:
+          CI: '1'
+        run: npx playwright test -c playwright.curtain.config.ts
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: curtain-1-playwright-report
+          path: |
+            playwright-report-curtain
+            test-results-curtain
+          retention-days: 14

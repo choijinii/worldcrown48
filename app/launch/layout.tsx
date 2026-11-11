@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { PREVIEW_COOKIE, hideNavOnLaunch } from "@/lib/launch/curtain";
 
 /**
  * Launch Pad (A-0) route metadata — moved out of the root layout during the
@@ -28,10 +30,25 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * CURTAIN-1 — 런칭 전 커튼 중에는 메뉴바를 숨긴다. 메뉴바는 맨 바깥 틀에 있으므로 여기서는
+ * 표시(`data-curtain-root`)만 달고, 숨기기는 navbar.css 가 한다(아레나 무대가 메뉴를 숨기는 것과
+ * 같은 방식 — 메뉴바 자리도 함께 사라진다). 쿠키와 시각을 읽어야 해서 이 화면은 요청마다 그린다.
+ */
 export default function LaunchLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const hideNav = hideNavOnLaunch({
+    env: { LAUNCH_CURTAIN: process.env.LAUNCH_CURTAIN, LAUNCH_AT: process.env.LAUNCH_AT },
+    nowMs: Date.now(),
+    previewCookie: cookies().get(PREVIEW_COOKIE)?.value,
+  });
+  return (
+    <>
+      {hideNav && <div data-curtain-root hidden />}
+      {children}
+    </>
+  );
 }

@@ -9,6 +9,7 @@ import { CookieBanner } from "@/components/policy/CookieBanner";
 import { ConsentModal } from "@/components/policy/ConsentModal";
 import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
 import { FirstTouchCapture } from "@/components/launch/FirstTouchCapture";
+import { CurtainPreviewCookie } from "@/components/launch/CurtainPreviewCookie";
 import { FooterPolicyRow } from "@/components/policy/FooterPolicyRow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -85,6 +86,8 @@ export default function RootLayout({
             {/* PRE-REG-1 — 처음 들어온 경로(UTM). 그리지 않는다 · 7일 기억은 분석 동의 뒤(원장 D-53). */}
             <FirstTouchCapture />
             <AuthProvider>
+              {/* CURTAIN-1 — 관리자면 런칭 전 커튼 통과 쿠키를 심는다. 그리지 않는다. */}
+              <CurtainPreviewCookie />
               <Navbar />
               {children}
               <FooterPolicyRow />
