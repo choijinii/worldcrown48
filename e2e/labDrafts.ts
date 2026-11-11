@@ -59,6 +59,22 @@ export async function deleteE2EDrafts(titles: string[]): Promise<void> {
   if (n > 0) await batch.commit();
 }
 
+/**
+ * 운영자(TEST_UID)의 초안을 하나 심는다(EDITOR-GRID-FIX — 긴 영상 제목 칸).
+ * 관리자 키나 TEST_UID 가 없으면 false(→ 호출한 spec 이 단언으로 실패한다).
+ */
+export async function seedE2EDraft(fields: Record<string, unknown>): Promise<boolean> {
+  const db = adminDb();
+  const uid = process.env.TEST_UID;
+  if (!db || !uid) return false;
+  await db.collection("tournamentDrafts").add({
+    ...fields,
+    hostUid: uid,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return true;
+}
+
 /** 운영자(TEST_UID)의 초안 중 제목이 `title` 인 것의 수. 관리자 키가 없으면 null(→ 단언 실패). */
 export async function countE2EDrafts(title: string): Promise<number | null> {
   const db = adminDb();

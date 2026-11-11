@@ -10,7 +10,7 @@
 
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
-import { GRID_COLUMNS } from "@/lib/lab/gridLayout";
+import { GRID_TEMPLATE_COLUMNS } from "@/lib/lab/gridLayout";
 import type { SourcingStates } from "@/lib/lab/sourcingDraft";
 import type { ReviewFlags } from "@/lib/lab/reviewFlags";
 import { ContestantEditor, slotDomId, type SlotImageHandlers } from "./ContestantEditor";
@@ -76,7 +76,7 @@ export function ContestantGrid({
       data-testid="contestant-grid"
       style={{
         display: "grid",
-        gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)`,
+        gridTemplateColumns: GRID_TEMPLATE_COLUMNS,
         gap: 12,
         // 너비 하한은 두지 않는다 — ≥1440 은 창 크기를 DesktopOnly 가 막는다. 여기 1440 을
         // 걸면 main 좌우 여백(32×2)만큼 1440 창에서 가로로 넘친다(THUMB-1 눈검사).

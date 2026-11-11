@@ -235,6 +235,9 @@ export function ContestantEditor({
         padding: 8,
         display: "flex",
         flexDirection: "column",
+        // 그리드 칸의 최소 너비는 기본이 내용 폭이다 — 긴 글자(영상 제목·소속·출처 도메인)가
+        // 칸을, 그리고 세로줄 전체를 넓히지 못하게 0 으로 둔다(EDITOR-GRID-FIX).
+        minWidth: 0,
       }}
     >
       {hasContent && (
@@ -407,6 +410,7 @@ export function ContestantEditor({
           data-testid={`slot-meta-${index}`}
           title={metaLine}
           style={{
+            display: "block",
             marginTop: 2,
             fontSize: 9,
             color: lab.textMuted,

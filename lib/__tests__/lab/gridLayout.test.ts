@@ -5,7 +5,7 @@
  * (R5 — 48 리터럴 금지와 같은 이유).
  */
 import { describe, expect, it } from "vitest";
-import { GRID_COLUMNS, gridRows } from "@/lib/lab/gridLayout";
+import { GRID_COLUMNS, GRID_TEMPLATE_COLUMNS, gridRows } from "@/lib/lab/gridLayout";
 import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 
 describe("gridLayout", () => {
@@ -21,5 +21,11 @@ describe("gridLayout", () => {
 
   it("0칸은 0행", () => {
     expect(gridRows(0)).toBe(0);
+  });
+
+  // EDITOR-GRID-FIX — `1fr` 의 최소 너비는 내용 최소 폭이라, 줄바꿈 없는 긴 영상 제목 하나가
+  // 그 세로줄을 제목 길이만큼 넓혀 화면 밖으로 넘쳤다(대표 실측 2026-11-10). 하한 0 으로 고정.
+  it("열 설정은 minmax(0, 1fr) — 내용이 칸 너비를 늘리지 못한다", () => {
+    expect(GRID_TEMPLATE_COLUMNS).toBe("repeat(8, minmax(0, 1fr))");
   });
 });
