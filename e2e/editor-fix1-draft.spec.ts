@@ -9,7 +9,7 @@
  * 돈다.** 정리는 이 spec 이 쓴 제목의 초안만 지운다(labDrafts.ts).
  */
 import { expect, test } from "@playwright/test";
-import { deleteE2EDrafts, openFreshLabEditor, seedE2EDraft } from "./labDrafts";
+import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor, seedE2EDraft } from "./labDrafts";
 import { stubManageTournament } from "./labManage";
 
 const TITLE = "EDITOR-FIX-1 E2E";
@@ -171,5 +171,68 @@ test.describe("EDITOR-GRID-FIX — 긴 영상 제목 칸 넘침", () => {
     const clip = await meta.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
     expect(clip.client, "제목 줄에 너비가 있어야 한다(인라인이면 0)").toBeGreaterThan(0);
     expect(clip.scroll, `scrollWidth ${clip.scroll} ≤ clientWidth ${clip.client}`).toBeGreaterThan(clip.client);
+  });
+});
+
+/**
+ * LAB-FIX-2 §3-5 · §5-7 — 편집 중 [초안 목록]은 화면을 떠나지 않고 버튼 밑에 목록을 펼친다.
+ * [열기] = 지금 초안을 먼저 저장하고 고른 초안을 연다 · 지금 초안 줄은 [열기]가 꺼짐 · Esc 로 닫힘.
+ */
+const MENU_A = "LAB-FIX-2 메뉴 A";
+const MENU_B = "LAB-FIX-2 메뉴 B";
+const MENU_A2 = "LAB-FIX-2 메뉴 A 고침";
+
+test.describe("LAB-FIX-2 — 초안 목록 펼치기", () => {
+  test.skip(!process.env.PREVIEW_URL, "PREVIEW_URL not set — 프리뷰 없이는 /admin/lab에 갈 수 없다");
+
+  test.afterAll(async () => {
+    await deleteE2EDrafts([MENU_A, MENU_B, MENU_A2]);
+  });
+
+  test("[초안 목록] → 버튼 밑 목록 · Esc 닫힘 · 다른 초안 열기 전에 지금 초안 저장", async ({ page }) => {
+    await deleteE2EDrafts([MENU_A, MENU_B, MENU_A2]);
+    const base = {
+      schemaVersion: 1,
+      step: 1,
+      category: "",
+      description: "",
+      keywords: [],
+      campaignSlug: "",
+      deadlineMs: 0,
+      contestants: [],
+      thumbnailPair: { a: null, b: null, aPos: null, bPos: null, next: "a" },
+    };
+    expect(await seedE2EDraft({ ...base, title: MENU_A })).toBe(true);
+    expect(await seedE2EDraft({ ...base, title: MENU_B })).toBe(true);
+
+    await stubManageTournament(page);
+    await page.goto("/admin/lab?lang=ko");
+    await page.getByTestId("draft-row").filter({ hasText: MENU_A }).getByTestId("draft-open").click();
+    const title = page.getByLabel("Tournament 제목");
+    await expect(title).toHaveValue(MENU_A);
+
+    // 펼치기 — 편집 화면은 그대로 남는다.
+    await page.getByTestId("draft-back-to-list").click();
+    const menu = page.getByTestId("draft-menu");
+    await expect(menu).toBeVisible();
+    await expect(page.getByTestId("draft-picker")).toHaveCount(0);
+    await expect(title).toBeVisible();
+    await test.info().attach("fix2-draft-menu", { body: await page.screenshot(), contentType: "image/png" });
+
+    // 지금 초안 줄의 [열기]는 꺼져 있다 · 지우기는 없다.
+    await expect(menu.getByTestId("draft-menu-row").filter({ hasText: MENU_A }).getByTestId("draft-menu-open")).toBeDisabled();
+    await expect(menu.getByTestId("draft-delete")).toHaveCount(0);
+
+    // Esc 로 닫힘.
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+
+    // 제목을 고친 뒤 다른 초안 [열기] → 고친 제목이 먼저 저장된다.
+    await title.fill(MENU_A2);
+    await page.getByTestId("draft-back-to-list").click();
+    await page.getByTestId("draft-menu-row").filter({ hasText: MENU_B }).getByTestId("draft-menu-open").click();
+    await expect(title).toHaveValue(MENU_B);
+    await expect(page.getByTestId("draft-menu")).toHaveCount(0);
+    await expect.poll(() => countE2EDrafts(MENU_A2), { timeout: 15_000 }).toBe(1);
   });
 });

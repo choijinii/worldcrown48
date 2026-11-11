@@ -15,7 +15,8 @@
  * NEXT_PUBLIC_ADMIN_UID가 그 uid여야 AdminAuthGuard를 통과한다.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
+import { deleteE2EDrafts, openFreshLabEditor, seedE2EDraft } from "./labDrafts";
+import { stubManageTournament } from "./labManage";
 
 const PASS_ID = "9bZkp7q19f0";
 const WARN_ID = "dQw4w9WgXcQ";
@@ -127,7 +128,7 @@ test.afterEach(async () => {
 
 // EDITOR-FIX-1 — 이 spec 이 친 내용은 자동 저장으로 초안이 된다(발행은 안 한다).
 test.afterAll(async () => {
-  await deleteE2EDrafts(["LAB-EV-1 E2E"]);
+  await deleteE2EDrafts(["LAB-EV-1 E2E", FIX2_TITLE]);
 });
 
 /** STEP 1을 최소 입력으로 통과해 STEP 2(48칸 그리드)로 간다. */
@@ -253,5 +254,187 @@ test.describe("LAB-EV-1 — 유튜브 임베드 검수기", () => {
 
     await page.getByRole("button", { name: "완료" }).click();
     await expect(page.getByTestId("slot-video-tuner")).toHaveCount(0);
+  });
+});
+
+/**
+ * LAB-FIX-2 — 편집기 '직접 손보기' 고장 수리(지시서 §5 재현 2·3·4·5·6).
+ *
+ * 팀 단위 초안(칸 1~46 이름·영상 · 47·48 비어 있음)을 관리자 SDK로 심고 [이어서 만들기]로 연다.
+ * 검수·추출 콜러블은 스텁 — 추출 스텁은 받은 요청을 기억해 엔트리 단위가 넘어오는지 본다.
+ */
+const FIX2_TITLE = "LAB-FIX-2 E2E";
+const STRAY_ID = "9bZkp7q19f0"; // 47번 칸에 들어갈 링크
+const BABY_ID = "kJQP7kiw5Fk"; // 48번 칸 — BABYMONSTER M/V 자리
+const SEED_VIDEO = "dQw4w9WgXcQ";
+const RELEASED_TOAST = "이름이 바뀌어 이전 인물의 영상·검색어를 뗐어요.";
+
+async function seedTeamDraft(): Promise<void> {
+  await deleteE2EDrafts([FIX2_TITLE]);
+  const contestants = Array.from({ length: 48 }, (_, i) => {
+    if (i >= 46) return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
+    const name = i === 0 ? "방탄소년단" : `E2E 팀 ${i + 1}`;
+    return {
+      name,
+      nationality: "KR",
+      affiliation: "E2E",
+      imageSearchKeyword: i === 0 ? "BTS stage" : "",
+      videoId: SEED_VIDEO,
+      videoTitle: `${name} 무대`,
+      videoChannel: "E2E 채널",
+    };
+  });
+  const ok = await seedE2EDraft({
+    schemaVersion: 1,
+    step: 2,
+    title: FIX2_TITLE,
+    category: "",
+    description: "",
+    keywords: [],
+    campaignSlug: "",
+    deadlineMs: 0,
+    contestants,
+    thumbnailPair: { a: null, b: null, aPos: null, bPos: null, next: "a" },
+    entryUnit: "group",
+  });
+  expect(ok, "관리자 키·TEST_UID 가 있어야 초안을 심는다").toBe(true);
+}
+
+async function openSeededTeamDraft(page: Page): Promise<void> {
+  await stubManageTournament(page);
+  await page.goto("/admin/lab?lang=ko");
+  const row = page.getByTestId("draft-row").filter({ hasText: FIX2_TITLE });
+  await expect(row).toHaveCount(1);
+  await row.getByTestId("draft-open").click();
+  await expect(page.getByTestId("contestant-grid")).toBeVisible();
+}
+
+/** 검수 스텁: 받은 id 를 전부 통과 · 추출 스텁: 받은 요청을 `seen` 에 남긴다. */
+async function stubFix2Inspector(page: Page, seen: { extract: Record<string, unknown>[] }) {
+  await page.route("**/validateYouTubeLinks*", async (route) => {
+    const ids = ((route.request().postDataJSON()?.data?.videoIds ?? []) as string[]);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ result: { verdicts: ids.map((id) => verdict(id, "pass")), apiCalls: 1 } }),
+    });
+  });
+  await page.route("**/extractContestantsFromVideos*", async (route) => {
+    const data = (route.request().postDataJSON()?.data ?? {}) as Record<string, unknown>;
+    seen.extract.push(data);
+    const table: Record<string, object> = {
+      // 이름을 못 읽었지만 소속·국가는 읽은 결과 — 이름 칸에 운영자가 쓴 값이 있다.
+      [STRAY_ID]: { name: "", affiliation: "JYP Entertainment", nationality: "KR", confident: false },
+      [BABY_ID]: { name: "베이비몬스터", affiliation: "YG Entertainment", nationality: "KR", confident: true },
+    };
+    const items = (data.items ?? []) as { videoId: string }[];
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        result: {
+          extractions: items.map((it) => ({
+            videoId: it.videoId,
+            ...(table[it.videoId] ?? { name: "", affiliation: "", nationality: "", confident: false }),
+          })),
+        },
+      }),
+    });
+  });
+}
+
+async function runInspector(page: Page, links: string[]): Promise<void> {
+  await page.getByTestId("lab-manual-tools-toggle").click();
+  await page.getByTestId("lab-open-embed-inspector").click();
+  await expect(page.getByTestId("embed-inspector")).toBeVisible();
+  await page.getByTestId("embed-inspector-input").fill(links.join("\n"));
+}
+
+test.describe("LAB-FIX-2 — 직접 손보기 수리", () => {
+  test.skip(!process.env.PREVIEW_URL, "PREVIEW_URL not set — 프리뷰 없이는 /admin/lab에 갈 수 없다");
+
+  test("빈칸 = 영상 없는 칸 · 추출 AI 에 엔트리 단위 · 이름 쓴 칸 보존 · 다시 넣어도 덮지 않음", async ({ page }) => {
+    const seen = { extract: [] as Record<string, unknown>[] };
+    await seedTeamDraft();
+    await stubFix2Inspector(page, seen);
+    await openSeededTeamDraft(page);
+
+    // §5-2 — 47번 이름 칸에 먼저 이름을 쓴다(영상 없음).
+    const name47 = page.getByLabel("Contestant 47 이름");
+    await name47.fill("스트레이 키");
+    await name47.blur();
+
+    await runInspector(page, [`https://youtu.be/${STRAY_ID}`, `https://youtu.be/${BABY_ID}`]);
+    // 빈칸 = 영상이 없는 47·48 두 칸(이름 유무와 상관없이).
+    await expect(page.getByTestId("embed-inspector")).toContainText("빈칸 2개");
+    await page.getByTestId("embed-inspector-validate").click();
+    await expect(page.getByTestId("embed-row-2")).toHaveAttribute("data-status", "pass");
+    await test.info().attach("fix2-inspector", { body: await page.screenshot(), contentType: "image/png" });
+    await page.getByRole("button", { name: "닫기" }).click();
+
+    // §5-3 — 추출 요청에 엔트리 단위(팀)가 실린다.
+    expect(seen.extract.at(-1)?.entryUnit).toBe("group");
+
+    // 47번: 영상 들어감 · 운영자가 쓴 이름 그대로 · 읽어 둔 소속은 채움 · 배지 없음
+    await expect(page.getByTestId("contestant-tune-46")).toBeVisible();
+    await expect(name47).toHaveValue("스트레이 키");
+    await expect(page.getByLabel("Contestant 47 소속")).toHaveValue("JYP Entertainment");
+    await expect(page.getByTestId("contestant-sourcing-46")).toHaveCount(0);
+    // 48번: 이름 · 소속 · 국가 · 배지 "제안"
+    await expect(page.getByTestId("contestant-tune-47")).toBeVisible();
+    await expect(page.getByLabel("Contestant 48 이름")).toHaveValue("베이비몬스터");
+    await expect(page.getByLabel("Contestant 48 소속")).toHaveValue("YG Entertainment");
+    await expect(page.getByLabel("Contestant 48 국가")).toHaveValue("KR");
+    await expect(page.getByTestId("contestant-sourcing-47")).toHaveAttribute("data-sourcing-status", "suggested");
+    await page.getByTestId("contestant-node-46").scrollIntoViewIfNeeded();
+    await test.info().attach("fix2-slots-47-48", { body: await page.screenshot(), contentType: "image/png" });
+
+    // §5-6 — 같은 링크를 다시 넣어도 영상 있는 칸은 빈칸이 아니다 → 0개 · 덮지 않음.
+    await runInspector(page, [`https://youtu.be/${STRAY_ID}`]);
+    await expect(page.getByTestId("embed-inspector")).toContainText("빈칸 0개");
+    await page.getByRole("button", { name: "닫기" }).click();
+    await expect(page.getByLabel("Contestant 48 이름")).toHaveValue("베이비몬스터");
+  });
+
+  test("이름을 고쳐도 영상은 그대로 · 불일치 배지만 · 영상 빼기는 직접", async ({ page }) => {
+    await seedTeamDraft();
+    await openSeededTeamDraft(page);
+
+    // §5-5 — 오타 → 바로잡기, 커서를 넣었다 빼기 여러 번.
+    const name1 = page.getByLabel("Contestant 1 이름");
+    await name1.fill("방탄소년닫");
+    await name1.blur();
+    await name1.fill("방탄소년단");
+    for (let k = 0; k < 3; k++) {
+      await name1.focus();
+      await name1.blur();
+    }
+    await expect(page.getByTestId("contestant-tune-0")).toBeVisible();
+    await expect(page.getByText(RELEASED_TOAST)).toHaveCount(0);
+
+    // 다른 인물로 바꿔도 영상은 남고, 불일치 배지가 켜진다.
+    await name1.fill("세븐틴");
+    await name1.blur();
+    await expect(page.getByTestId("contestant-tune-0")).toBeVisible();
+    await expect(
+      page.getByTestId("contestant-node-0").locator('[data-review-flag="name-video-mismatch"]'),
+    ).toBeVisible();
+    await expect(page.getByText(RELEASED_TOAST)).toHaveCount(0);
+
+    // §5-4 — 영상만 있는 칸에 한 글자씩 이름 치기.
+    const name2 = page.getByLabel("Contestant 2 이름");
+    await name2.fill("");
+    await name2.pressSequentially("베이비몬스터");
+    await name2.blur();
+    await expect(page.getByTestId("contestant-tune-1")).toBeVisible();
+    await expect(page.getByText(RELEASED_TOAST)).toHaveCount(0);
+    await page.getByTestId("contestant-node-0").scrollIntoViewIfNeeded();
+    await test.info().attach("fix2-rename-keeps-video", { body: await page.screenshot(), contentType: "image/png" });
+
+    // 영상 빼기는 운영자가 직접 누를 때만.
+    await page.getByTestId("contestant-tune-0").click();
+    await page.getByTestId("slot-tuner-remove").click();
+    await expect(page.getByTestId("contestant-tune-0")).toHaveCount(0);
+    await expect(name1).toHaveValue("세븐틴");
   });
 });
