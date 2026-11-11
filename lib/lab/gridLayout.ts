@@ -9,6 +9,13 @@
  */
 export const GRID_COLUMNS = 8;
 
+/**
+ * 그리드 열 설정(EDITOR-GRID-FIX). `1fr` 의 최소 너비는 내용 최소 폭이라, 줄바꿈 없는 긴
+ * 영상 제목 하나가 그 세로줄을 제목 길이만큼 넓혀 페이지가 가로로 넘쳤다(대표 실측
+ * 2026-11-10 · 1440 창에서 0번 칸 1841px). 하한을 0 으로 묶어 칸 너비는 열 수로만 정한다.
+ */
+export const GRID_TEMPLATE_COLUMNS = `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`;
+
 /** 총 N칸을 GRID_COLUMNS 열로 깔았을 때의 행 수. */
 export function gridRows(total: number): number {
   return Math.ceil(total / GRID_COLUMNS);
