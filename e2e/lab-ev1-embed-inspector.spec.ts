@@ -274,14 +274,16 @@ async function seedTeamDraft(): Promise<void> {
   const contestants = Array.from({ length: 48 }, (_, i) => {
     if (i >= 46) return { name: "", nationality: "", affiliation: "", imageSearchKeyword: "" };
     const name = i === 0 ? "방탄소년단" : `E2E 팀 ${i + 1}`;
+    // 1번 칸은 불일치 판정 재료(소속 · 채널)가 새 이름(세븐틴)과 겹치지 않게 실제 같은 값으로 둔다 —
+    // 소속이 채널 글자 안에 있으면 판정이 "일치"로 본다.
     return {
       name,
       nationality: "KR",
-      affiliation: "E2E",
+      affiliation: i === 0 ? "BIGHIT MUSIC" : "E2E",
       imageSearchKeyword: i === 0 ? "BTS stage" : "",
       videoId: SEED_VIDEO,
       videoTitle: `${name} 무대`,
-      videoChannel: "E2E 채널",
+      videoChannel: i === 0 ? "HYBE LABELS" : "E2E 채널",
     };
   });
   const ok = await seedE2EDraft({
@@ -344,7 +346,10 @@ async function stubFix2Inspector(page: Page, seen: { extract: Record<string, unk
 }
 
 async function runInspector(page: Page, links: string[]): Promise<void> {
-  await page.getByTestId("lab-manual-tools-toggle").click();
+  // 도구 줄은 접기 버튼 하나로 열고 닫는다 — 이미 열려 있으면 누르지 않는다(두 번째 검수).
+  if (!(await page.getByTestId("lab-open-embed-inspector").isVisible())) {
+    await page.getByTestId("lab-manual-tools-toggle").click();
+  }
   await page.getByTestId("lab-open-embed-inspector").click();
   await expect(page.getByTestId("embed-inspector")).toBeVisible();
   await page.getByTestId("embed-inspector-input").fill(links.join("\n"));

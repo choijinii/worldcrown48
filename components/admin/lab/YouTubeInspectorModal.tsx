@@ -87,6 +87,10 @@ export function YouTubeInspectorModal({
   const [size, setSize] = useState<BracketSize>(DEFAULT_BRACKET_SIZE);
   const [text, setText] = useState("");
   const [verdicts, setVerdicts] = useState<LinkVerdict[] | null>(null);
+  // 검수를 누른 순간의 배정 — 결과 줄(영수증)은 이것으로 그린다(LAB-FIX-2). 주입이 끝나면 그 칸들은
+  // 영상이 생겨 빈칸에서 빠지므로(원장 D-87) 지금 빈칸으로 다시 배정하면 들어간 링크가 "대기"로 보인다.
+  // 링크 글이나 규모를 바꾸면 줄 번호가 달라지므로 풀어 둔다.
+  const [appliedSlots, setAppliedSlots] = useState<SlotAssignment[] | null>(null);
   const [busy, setBusy] = useState(false);
 
   const rows = useMemo(() => parseLinkBatch(text, size), [text, size]);
@@ -95,8 +99,8 @@ export function YouTubeInspectorModal({
   const passingRows = rows.filter((r) => r.ok && r.videoId).length;
   const overflow = Math.max(0, passingRows - blankIndexes.length);
   const slotByIndex = useMemo(
-    () => new Map(slots.map((s) => [s.index, s])),
-    [slots],
+    () => new Map((appliedSlots ?? slots).map((s) => [s.index, s])),
+    [appliedSlots, slots],
   );
   const verdictById = useMemo(
     () => new Map((verdicts ?? []).map((v) => [v.videoId, v])),
@@ -150,6 +154,7 @@ export function YouTubeInspectorModal({
         }
       }
 
+      setAppliedSlots(slots);
       onApply(slots, res.verdicts, extractions);
 
       const applied = usable.length;
@@ -233,7 +238,10 @@ export function YouTubeInspectorModal({
                 aria-selected={size === n}
                 aria-label={t("lab.embed.sizeAria", { n })}
                 data-testid={`embed-size-${n}`}
-                onClick={() => setSize(n)}
+                onClick={() => {
+                  setSize(n);
+                  setAppliedSlots(null);
+                }}
                 style={{
                   padding: "6px 14px",
                   borderRadius: 999,
@@ -254,7 +262,10 @@ export function YouTubeInspectorModal({
           <textarea
             id="embed-inspector-input"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setAppliedSlots(null);
+            }}
             placeholder={t("lab.embed.placeholder", { n: size })}
             data-testid="embed-inspector-input"
             rows={8}
