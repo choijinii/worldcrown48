@@ -34,6 +34,7 @@ import { assignSlots, parseLinkBatch, type SlotAssignment } from "@/lib/embed/pa
 import type { LinkStatus, LinkVerdict } from "@/lib/embed/verdict";
 import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
 import type { ExtractedContestant } from "@/lib/lab/pasteExtract";
+import type { EntryUnit } from "@/lib/types/tournament";
 import {
   inspectErrorCode,
   validateYouTubeLinks,
@@ -51,9 +52,12 @@ interface YouTubeInspectorModalProps {
   onClose: () => void;
   /**
    * 비어 있는 슬롯의 0-based index — 화면 순서대로 (LAB-UX-1 ③).
-   * 링크는 **여기에만, 이 개수만큼** 들어간다. 채워 둔 칸을 덮지 않는다.
+   * 빈칸 = **영상이 없는 칸**(원장 D-87). 링크는 여기에만, 이 개수만큼 들어간다 —
+   * 영상을 붙여 둔 칸을 덮지 않는다(이름만 적어 둔 칸에는 들어간다).
    */
   blankIndexes: number[];
+  /** 대회의 엔트리 단위(원장 D-73) — 제목에서 인물(개인)을 읽을지 그룹(팀)을 읽을지. */
+  entryUnit: EntryUnit;
   /**
    * 통과·경고분을 그리드에 얹는다. 차단 판정은 여기까지 오지 않는다.
    * `extractions`는 제목에서 읽어낸 인물 — 확신 못 한 항목은 이름이 비어 있다.
@@ -76,6 +80,7 @@ export function YouTubeInspectorModal({
   isOpen,
   onClose,
   blankIndexes,
+  entryUnit,
   onApply,
 }: YouTubeInspectorModalProps): JSX.Element | null {
   const { t } = useT();
@@ -85,7 +90,7 @@ export function YouTubeInspectorModal({
   const [busy, setBusy] = useState(false);
 
   const rows = useMemo(() => parseLinkBatch(text, size), [text, size]);
-  // ③ — 빈칸에만, 빈칸 개수만큼. 남는 링크는 배정되지 않는다.
+  // ③ — 빈칸(= 영상이 없는 칸 · 원장 D-87)에만, 빈칸 개수만큼. 영상을 붙여 둔 칸은 덮지 않는다. 남는 링크는 배정되지 않는다.
   const slots = useMemo(() => assignSlots(rows, blankIndexes), [rows, blankIndexes]);
   const passingRows = rows.filter((r) => r.ok && r.videoId).length;
   const overflow = Math.max(0, passingRows - blankIndexes.length);
@@ -129,6 +134,7 @@ export function YouTubeInspectorModal({
               title: v.title,
               channelTitle: v.channelTitle,
             })),
+            entryUnit,
           );
         } catch (err) {
           // 검수는 성공했고 **추출만** 실패했다. 여기서 검수 실패 문구를 띄우면

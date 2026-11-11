@@ -11,7 +11,6 @@ import {
   buildVideoFields,
   clearVideo,
   reframeDraft,
-  releaseRenamedSlot,
   retimeDraft,
 } from "@/lib/lab/videoDraft";
 import type { LinkVerdict } from "@/lib/embed/verdict";
@@ -65,6 +64,15 @@ describe("buildVideoFields", () => {
       videoStartSec: 0,
       videoEndSec: 8,
     });
+  });
+});
+
+describe("applyVideoAssignments — 이름 쓴 칸에 영상 얹기 (D-87)", () => {
+  it("이름·소속·국가·검색어·그림을 그대로 두고 영상 필드만 얹는다", () => {
+    const named = { name: "스트레이 키", nationality: "KR", affiliation: "JYP", imageSearchKeyword: "kw", imageUrl: "i.jpg", imageThumbUrl: "t.jpg" };
+    const [next] = applyVideoAssignments([named], [{ slot: 1, index: 1, videoId: A, startSec: null }], [verdict(A)], 1, emptyDraft);
+    expect(next).toMatchObject(named);
+    expect(next.videoId).toBe(A);
   });
 });
 
@@ -232,48 +240,6 @@ describe("reframeDraft — 영상 비율·세로 잘림 위치", () => {
     expect(next[0].videoId).toBe(B);
     expect(next[0].videoOrientation).toBeUndefined();
     expect(next[0].videoFocusY).toBeUndefined();
-  });
-});
-
-describe("releaseRenamedSlot — 이름이 다른 인물로 바뀐 칸 (LAB-UX-1)", () => {
-  const harin: ContestantDraft = {
-    ...emptyDraft(),
-    name: "하린",
-    nationality: "대한민국",
-    imageSearchKeyword: "Harin stage",
-    videoId: A,
-    videoStartSec: 30,
-    videoEndSec: 45,
-    videoSourceUrl: "u",
-  };
-
-  it("영상과 검색 힌트를 함께 뗀다 — 힌트를 남기면 재검색이 또 이전 인물을 데려온다", () => {
-    const next = releaseRenamedSlot(harin, "허윤진");
-    expect(next.name).toBe("허윤진");
-    expect(next.videoId).toBeUndefined();
-    expect(next.videoSourceUrl).toBeUndefined();
-    expect(next.imageSearchKeyword).toBe("");
-    // 국적은 남긴다 — 이름과 함께 바뀌는 값이 아니다.
-    expect(next.nationality).toBe("대한민국");
-  });
-
-  it("로마자 꼬리만 손질하면 영상·힌트를 유지한다", () => {
-    const jisoo: ContestantDraft = { ...harin, name: "지수 (JISOO)" };
-    const next = releaseRenamedSlot(jisoo, "지수 (Jisoo)");
-    expect(next.videoId).toBe(A);
-    expect(next.imageSearchKeyword).toBe("Harin stage");
-  });
-
-  it("빈칸으로 만드는 경로는 그대로 통과시킨다(카드 비우기가 따로 처리한다)", () => {
-    const next = releaseRenamedSlot(harin, "");
-    expect(next.name).toBe("");
-    expect(next.videoId).toBe(A);
-  });
-
-  it("입력 draft를 바꾸지 않는다", () => {
-    releaseRenamedSlot(harin, "허윤진");
-    expect(harin.videoId).toBe(A);
-    expect(harin.imageSearchKeyword).toBe("Harin stage");
   });
 });
 

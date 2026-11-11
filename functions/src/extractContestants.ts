@@ -4,7 +4,7 @@
  * 붙여넣은 링크의 제목·채널명 → 인물(이름·소속·국가). 검수기가 이미 받아 둔
  * 문자열만 넘기므로 **YouTube API를 한 콜도 더 쓰지 않는다** — 비용은 Haiku 1콜뿐.
  *
- *   request.data:  { items: [{ videoId, title, channelTitle }] }  (≤48)
+ *   request.data:  { items: [{ videoId, title, channelTitle }], entryUnit?: "individual" | "group" }  (≤48 · 단위 빠지면 개인)
  *   returns:       { extractions: [{ videoId, name, affiliation, nationality, confident }] }
  *
  * 검증·프롬프트·파싱은 단위 테스트된 core에 있다. 여기는 배선만:
@@ -98,7 +98,7 @@ export const extractContestantsFromVideos = onCall(
 
     try {
       const extractions = await extractContestantsCore(
-        { uid, items: req.data?.items },
+        { uid, items: req.data?.items, entryUnit: req.data?.entryUnit },
         {
           createMessage,
           logInfo: (msg) => logger.info(msg),

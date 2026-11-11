@@ -37,16 +37,3 @@ export function parentheticalOf(name: string): string {
   const inside = (name ?? "").match(PARENTHETICAL_INNER);
   return (inside?.[1] ?? "").trim();
 }
-
-/**
- * 이름이 **다른 인물로** 바뀌었는가.
- *
- * 키로 비교하는 게 요점이다. `지수 (JISOO)`의 로마자 꼬리를 고치는 건 같은 사람의
- * 표기 손질이라 영상·힌트를 뗄 이유가 없다. 한글 알맹이가 바뀌면 다른 사람이다.
- */
-export function isRenamedTo(prevName: string, nextName: string): boolean {
-  const prev = normalizeNameKey(prevName);
-  const next = normalizeNameKey(nextName);
-  if (prev === "" || next === "") return false; // 빈칸 경로는 카드 비우기가 처리한다
-  return prev !== next;
-}

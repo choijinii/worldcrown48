@@ -6,8 +6,10 @@
  * 모르면 비운다, 지어낸 값은 파서가 막는다, 요청하지 않은 id는 버린다.
  */
 import { describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 import {
   buildExtractPrompt,
+  buildTeamExtractPrompt,
   extractContestantsCore,
   ExtractError,
   MAX_EXTRACT_ITEMS,
@@ -132,5 +134,71 @@ describe("extractContestantsCore — 게이트", () => {
     await expect(
       extractContestantsCore({ uid: "u1", items }, boom),
     ).rejects.toMatchObject({ reason: "ai-failed" });
+  });
+});
+
+// LAB-FIX-2 — 검수기 추출에도 엔트리 단위(원장 D-73)를 넘긴다. 개인 지시문은 한 글자도 바꾸지 않는다
+// (골든 실측 보호 — aiFillCore 와 같은 원칙). 팀은 별도 함수 buildTeamExtractPrompt.
+describe("개인 지시문 — 바이트 동일 (LAB-FIX-2 전후)", () => {
+  it("★buildExtractPrompt 의 결과가 고치기 전과 같다(sha256 · 길이)", () => {
+    const p = buildExtractPrompt(items);
+    expect(p.length).toBe(1013);
+    expect(createHash("sha256").update(p).digest("hex")).toBe(
+      "9ab2f5dd1cbbff1cf66b59a010cf893b86cde9ea08b1d469c834097b6cf05e4e",
+    );
+  });
+});
+
+describe("buildTeamExtractPrompt — 팀 단위 (D-73 적용 · LAB-FIX-2)", () => {
+  const teamItems: ExtractItem[] = [
+    { videoId: A, title: "BABYMONSTER - 'SHEESH' M/V", channelTitle: "BABYMONSTER" },
+    { videoId: B, title: "[MPD직캠] 스트레이 키즈 방찬 직캠", channelTitle: "M2" },
+  ];
+  const p = buildTeamExtractPrompt(teamItems);
+
+  it("name = 그룹(팀) 한글 정본 · 멤버 개인 영상이면 그 멤버의 그룹", () => {
+    expect(p).toContain("그룹(팀)");
+    expect(p).toContain("한글 이름");
+    expect(p).toContain("멤버 개인 영상이면");
+  });
+  it("affiliation = 소속사·채널 · nationality = ISO alpha-2 · 그룹을 특정하면 confident true", () => {
+    expect(p).toContain("소속사");
+    expect(p).toContain("ISO 3166-1 alpha-2");
+    expect(p).toContain("그룹을 특정하면");
+  });
+  it("자제 규칙은 팀에서도 그대로 — 모르면 비운다 · 지어내지 않는다", () => {
+    expect(p).toContain("지어내지 마라");
+    expect(p).toContain("빈 문자열");
+  });
+  it("항목·출력 형식은 개인과 같다 — 같은 파서가 읽는다", () => {
+    expect(p).toContain(`id="${A}"`);
+    expect(p).toContain('{"extractions":[{"id":"<id>","name":"","affiliation":"","nationality":"","confident":false}]}');
+  });
+  it("개인 지시문과 다르다", () => {
+    expect(p).not.toBe(buildExtractPrompt(teamItems));
+  });
+});
+
+describe("extractContestantsCore — 엔트리 단위 갈래 (통합)", () => {
+  const reply = JSON.stringify({ extractions: [] });
+
+  it("entryUnit = group → 팀 지시문으로 모델을 부른다", async () => {
+    const spy = vi.fn(async (_p: string) => reply);
+    await extractContestantsCore({ uid: "u1", items, entryUnit: "group" }, { createMessage: spy });
+    expect(spy.mock.calls[0][0]).toBe(buildTeamExtractPrompt(items));
+  });
+  it("entryUnit 이 빠지면 개인(옛 화면 호환) — 개인 지시문 그대로", async () => {
+    const spy = vi.fn(async (_p: string) => reply);
+    await extractContestantsCore({ uid: "u1", items }, { createMessage: spy });
+    expect(spy.mock.calls[0][0]).toBe(buildExtractPrompt(items));
+    await extractContestantsCore({ uid: "u1", items, entryUnit: "individual" }, { createMessage: spy });
+    expect(spy.mock.calls[1][0]).toBe(buildExtractPrompt(items));
+  });
+  it("모르는 값은 invalid-argument — 모델을 부르지 않는다", async () => {
+    const spy = vi.fn(async (_p: string) => reply);
+    await expect(
+      extractContestantsCore({ uid: "u1", items, entryUnit: "squad" }, { createMessage: spy }),
+    ).rejects.toMatchObject({ reason: "invalid-argument" });
+    expect(spy).not.toHaveBeenCalled();
   });
 });

@@ -5,14 +5,17 @@
  * **인물 정보**뿐이다: 제목에서 읽어낸 이름·소속·국가, 그리고 그 결과를 화면에
  * 알리는 배지.
  *
- * 규칙 셋이 전부다.
+ * 규칙 넷이 전부다.
  *   ① 이름을 확신한 칸 → 이름·소속·국가를 채우고 배지 "제안"
- *   ② 확신 못 한 칸 → **이름을 비운 채** 영상만 두고 배지 "수동 필요"
+ *   ② 확신 못 한 칸 → **이름을 비운 채** 영상을 두고, 읽어 둔 소속·국가는 채우고 배지 "수동 필요"
+ *      (LAB-FIX-2 — 이름을 못 읽었다고 읽어 둔 소속까지 버릴 이유가 없다)
  *   ③ 운영자가 이미 적어 둔 값은 덮지 않는다
+ *   ④ 운영자가 이름을 이미 적은 칸에는 배지를 달지 않는다(LAB-FIX-2) — 사람이 쓴 이름 위에
+ *      "AI 제안"이나 "수동 필요"를 붙이면 운영자가 자기 이름을 의심하게 된다
  *
  * ③이 중요하다. 이 도구는 복구용이고, 복구 도구가 사람이 쓴 것을 지우면 안 된다.
- * 링크는 빈칸에만 배정되므로(assignSlots) 보통은 부딪히지 않지만, 같은 칸을
- * 두 번 처리하는 경로가 생겨도 안전하도록 여기서 한 번 더 막는다.
+ * 빈칸 = 영상이 없는 칸(원장 D-87)이라 이름을 먼저 적은 칸에도 링크가 들어온다 —
+ * 그래서 여기서 사람이 쓴 이름·소속·국가를 지킨다.
  */
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
@@ -71,6 +74,17 @@ export function applyExtractions(
     if (index < 0 || index >= total) continue;
     const found = byVideoId.get(assignment.videoId);
 
+    const operatorNamed = (next[index].name ?? "").trim() !== "";
+    // 소속·국가는 확신 여부와 상관없이 읽어 둔 것이 있으면 빈 칸에만 채운다(규칙 ②·③).
+    next[index] = {
+      ...next[index],
+      name: found?.confident ? keep(next[index].name, found.name) : next[index].name,
+      affiliation: keep(next[index].affiliation, found?.affiliation ?? ""),
+      nationality: keep(next[index].nationality, found?.nationality ?? ""),
+    };
+    // 운영자가 이름을 이미 적은 칸은 배지 없이 둔다(규칙 ④).
+    if (operatorNamed) continue;
+
     // 추출 결과가 아예 없는 칸도 "수동 필요"다 — 영상은 들어갔는데 인물을
     // 모르는 상태이므로 사람이 봐야 한다.
     if (!found || !found.confident) {
@@ -82,12 +96,6 @@ export function applyExtractions(
       continue;
     }
 
-    next[index] = {
-      ...next[index],
-      name: keep(next[index].name, found.name),
-      affiliation: keep(next[index].affiliation, found.affiliation),
-      nationality: keep(next[index].nationality, found.nationality),
-    };
     states[index] = { status: "suggested" };
     named += 1;
   }
@@ -98,13 +106,14 @@ export function applyExtractions(
 /**
  * 비어 있는 슬롯의 index — 화면 순서대로.
  *
- * "빈칸"의 기준은 **이름**이다(그리드의 빈 칸 표시와 같은 기준). 영상만 붙어 있고
- * 이름이 없는 칸도 빈칸으로 본다 — 그 칸이야말로 이 도구가 채우려는 자리다.
+ * "빈칸" = **영상(`videoId`)이 없는 칸**이다(원장 D-87 · LAB-FIX-2). 이름·소속·국가가 있든 없든
+ * 상관없다. 검수기는 영상을 넣는 도구라, 이름 기준이면 ⓐ 이름을 먼저 적은 칸에 영상을 못 넣고
+ * ⓑ 영상만 들어간 칸이 다음 검수 때 덮어쓰였다(2026-11-08 실측 둘 다).
  */
 export function blankSlotIndexes(drafts: ContestantDraft[], total: number): number[] {
   const out: number[] = [];
   for (let i = 0; i < total; i += 1) {
-    if ((drafts[i]?.name ?? "").trim() === "") out.push(i);
+    if (!drafts[i]?.videoId) out.push(i);
   }
   return out;
 }

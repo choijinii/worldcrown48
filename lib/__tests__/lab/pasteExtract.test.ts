@@ -38,15 +38,27 @@ function found(videoId: string, over: Partial<ExtractedContestant> = {}): Extrac
   };
 }
 
-describe("blankSlotIndexes", () => {
-  it("이름이 빈 칸만 센다 — 화면 순서 그대로", () => {
-    const grid = [draft({ name: "지수" }), draft(), draft({ name: "  " }), draft()];
-    expect(blankSlotIndexes(grid, TOTAL)).toEqual([1, 2, 3]);
+describe("blankSlotIndexes — 빈칸 = 영상이 없는 칸 (D-87)", () => {
+  it("영상이 없는 칸만 센다 — 이름 유무와 상관없이, 화면 순서 그대로", () => {
+    const grid = [
+      draft({ name: "지수", videoId: A }),
+      draft(),
+      draft({ name: "스트레이 키즈" }),
+      draft({ videoId: B }),
+    ];
+    expect(blankSlotIndexes(grid, TOTAL)).toEqual([1, 2]);
   });
 
-  it("영상만 있고 이름이 없는 칸도 빈칸이다 — 그 칸이야말로 채우려는 자리다", () => {
-    const grid = [draft({ videoId: A })];
-    expect(blankSlotIndexes(grid, 1)).toEqual([0]);
+  it("★이름을 먼저 적은 칸도 영상이 없으면 빈칸이다 (2026-11-08 실측 ⓐ)", () => {
+    expect(blankSlotIndexes([draft({ name: "스트레이 키" })], 1)).toEqual([0]);
+  });
+
+  it("★영상만 들어간 칸은 빈칸이 아니다 — 다음 검수가 덮어쓰지 않는다 (실측 ⓑ)", () => {
+    expect(blankSlotIndexes([draft({ videoId: A })], 1)).toEqual([]);
+  });
+
+  it("없는 칸(배열이 짧음)은 빈칸", () => {
+    expect(blankSlotIndexes([], 2)).toEqual([0, 1]);
   });
 });
 
@@ -114,5 +126,39 @@ describe("applyExtractions", () => {
     const grid = [draft()];
     applyExtractions(grid, [assign(1, A)], [found(A)], TOTAL, emptyDraft);
     expect(grid[0].name).toBe("");
+  });
+
+  it("★이름이 이미 있는 칸에는 배지를 달지 않는다 — 운영자가 쓴 이름 위에 AI 제안 표시 ×", () => {
+    const grid = [draft({ name: "스트레이 키" })];
+    const r = applyExtractions(grid, [assign(1, A)], [found(A, { name: "스트레이 키즈" })], TOTAL, emptyDraft);
+    expect(r.drafts[0].name).toBe("스트레이 키");
+    expect(r.states[0]).toBeUndefined();
+    expect(r.tally).toEqual({ named: 0, manual: 0 });
+  });
+
+  it("★이름이 있는 칸은 확신 못 한 결과여도 배지 없이 비어 있던 소속·국가만 채운다", () => {
+    const grid = [draft({ name: "스트레이 키" })];
+    const r = applyExtractions(
+      grid,
+      [assign(1, A)],
+      [found(A, { name: "", affiliation: "JYP Entertainment", nationality: "KR", confident: false })],
+      TOTAL,
+      emptyDraft,
+    );
+    expect(r.drafts[0]).toMatchObject({ name: "스트레이 키", affiliation: "JYP Entertainment", nationality: "KR" });
+    expect(r.states[0]).toBeUndefined();
+  });
+
+  it("★이름을 못 읽어도 읽어 둔 소속·국가는 채운다 — 이름만 '수동 필요'", () => {
+    const r = applyExtractions(
+      [],
+      [assign(1, A)],
+      [found(A, { name: "", affiliation: "YG Entertainment", nationality: "KR", confident: false })],
+      TOTAL,
+      emptyDraft,
+    );
+    expect(r.drafts[0]).toMatchObject({ name: "", affiliation: "YG Entertainment", nationality: "KR" });
+    expect(r.states[0]).toEqual({ status: "manual" });
+    expect(r.tally).toEqual({ named: 0, manual: 1 });
   });
 });

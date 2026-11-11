@@ -217,3 +217,14 @@ export function phaseAfterDraftList(current: DraftPhase, draftCount: number): Dr
 export function sortDraftsByUpdated<T extends { updatedAtMs: number }>(list: T[]): T[] {
   return [...list].sort((a, b) => b.updatedAtMs - a.updatedAtMs);
 }
+
+/**
+ * 편집 중 [초안 목록] 펼치기 목록의 줄 (LAB-FIX-2 §3-5) — 최근 저장 순, 지금 초안 줄은 `current`
+ * (표시만 하고 [열기]를 끈다). 지금 초안이 아직 저장 전이면(`currentId` null) 모두 열 수 있다.
+ */
+export function draftMenuRows<T extends DraftSummary>(
+  list: readonly T[],
+  currentId: string | null,
+): Array<T & { current: boolean }> {
+  return sortDraftsByUpdated([...list]).map((d) => ({ ...d, current: d.id === currentId }));
+}
