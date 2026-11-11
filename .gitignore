@@ -50,3 +50,5 @@ firestore-debug.*.log
 .claude/settings.local.json
 /playwright-report-emulator
 /test-results-emulator
+/playwright-report-curtain
+/test-results-curtain

@@ -19,7 +19,8 @@ const PREVIEW_URL = process.env.PREVIEW_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "e2e",
-  testIgnore: ["**/global-setup.ts", "**/global-teardown.ts"],
+  // curtain-1 은 커튼을 켠 서버가 따로 필요하다 → playwright.curtain.config.ts 로만 돈다.
+  testIgnore: ["**/global-setup.ts", "**/global-teardown.ts", "**/curtain-1.spec.ts"],
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
