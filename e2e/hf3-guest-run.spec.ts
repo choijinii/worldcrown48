@@ -243,6 +243,9 @@ async function anonContext(browser: Browser): Promise<BrowserContext> {
       /* 저장소가 막힌 환경 — 그 경우 팝업은 애초에 뜨지 않는다 */
     }
   });
+  // CURTAIN-1 — 미리보기에 런칭 전 커튼이 켜져 있어도 /arena 에 들어가게 관리자 미리보기 쿠키를 심는다
+  // (global-setup 이 저장 상태에 심는 것과 같다 · 이 창은 저장 상태를 비우고 시작한다).
+  if (PREVIEW) await context.addCookies([{ name: "wc48_preview", value: "1", url: PREVIEW }]);
   if (BYPASS) {
     const p = await context.newPage();
     await p.goto(`${PREVIEW}?x-vercel-protection-bypass=${encodeURIComponent(BYPASS)}&x-vercel-set-bypass-cookie=true`);
