@@ -129,6 +129,10 @@ function toContestant(raw: unknown): ContestantDraft {
     imageHeight: num(r.imageHeight),
     imageAddedAt: num(r.imageAddedAt),
     imageFocusY: num(r.imageFocusY),
+    // LAB-FIX-3 (D-89) — 손 넣기 표시 · 주소 기억. 모양이 다르면 버린다(옛 초안엔 없다).
+    manualVideo: r.manualVideo === true ? true : undefined,
+    manualVideoUrl: optStr(r.manualVideoUrl),
+    manualImageUrl: optStr(r.manualImageUrl),
   });
 }
 

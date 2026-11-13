@@ -152,8 +152,11 @@ export function applySourcingResults(
     const index = result.index;
     if (index < 0 || index >= total) continue;
     if (result.status !== "suggested" || !result.verdict) continue;
+    // 자동 길로 들어온 영상 — 손 넣기 표시를 떼어 자동 칸으로 만든다(LAB-FIX-3 · D-89).
+    const { manualVideo, ...rest } = next[index];
+    void manualVideo;
     next[index] = {
-      ...next[index],
+      ...rest,
       ...buildVideoFields(result.verdict, result.startSec ?? null),
     };
   }

@@ -96,6 +96,14 @@ export interface ContestantDraft {
   imageAddedAt?: number;
   /** 무대 16:9 자르기 기준 0~100(비우면 40). */
   imageFocusY?: number;
+  /**
+   * LAB-FIX-3 (원장 D-89) — 칸의 [영상]으로 손으로 넣은 영상이면 true(수동 칸 판정). 자동 길이 새 영상을
+   * 넣으면 빠진다. 초안에만 있다 — 발행 문서(buildContestantDocs)는 이 칸들을 싣지 않는다.
+   */
+  manualVideo?: boolean;
+  /** 칸의 [영상]·[이미지]에 마지막으로 넣은 주소(주소 기억 · 초안에만). */
+  manualVideoUrl?: string;
+  manualImageUrl?: string;
 }
 
 export interface ContestantImageSource {

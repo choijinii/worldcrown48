@@ -87,9 +87,13 @@ export function retimeDraft(
   };
 }
 
-/** 영상만 지운다 — 이름·이미지는 남긴다(운영자가 링크만 갈아 끼우는 흐름). */
+/**
+ * 영상만 지운다 — 이름·이미지는 남긴다(운영자가 링크만 갈아 끼우는 흐름).
+ * 손 넣기 표시(`manualVideo`)도 영상과 함께 빠진다 — 기억한 주소(`manualVideoUrl`)는 남는다(LAB-FIX-3 · D-89).
+ */
 export function clearVideo(draft: ContestantDraft): ContestantDraft {
   const {
+    manualVideo,
     videoId,
     videoStartSec,
     videoEndSec,
@@ -100,6 +104,7 @@ export function clearVideo(draft: ContestantDraft): ContestantDraft {
     videoChannel,
     ...rest
   } = draft;
+  void manualVideo;
   void videoTitle;
   void videoChannel;
   void videoId;
