@@ -1081,11 +1081,10 @@ export const MESSAGES = {
   // 1
   "lab.image.addFiles": { ko: "이미지 파일 넣기", en: "Add image files", es: "Añadir archivos de imagen" },
   // 2
-  "lab.image.chipFile": { ko: "파일", en: "File", es: "Archivo" },
+  "lab.image.chipFile": { ko: "이미지 파일", en: "Image file", es: "Archivo de imagen" }, // LAB-FIX-3 승인표 v3 6번
   // 3
-  "lab.image.chipUrl": { ko: "URL", en: "URL", es: "URL" },
-  // 4
-  "lab.image.remove": { ko: "그림 지우기", en: "Remove image", es: "Quitar imagen" },
+  "lab.image.chipUrl": { ko: "이미지", en: "Image", es: "Imagen" }, // LAB-FIX-3 승인표 v3 4번
+  // 4 [그림 지우기] — LAB-FIX-3(D-89)에서 삭제: 켜진 [이미지]가 그 일을 한다.
   // 5
   "lab.image.badge": { ko: "그림", en: "Image", es: "Imagen" },
   // 6
@@ -1490,9 +1489,25 @@ export const MESSAGES = {
     es: "Penalizado: palabra sensible ({terms}) — no se encontró otro video. Revísalo",
   },
   "lab.source.refresh": { ko: "새 영상 찾기", en: "Find another", es: "Buscar otro" },
-  // 영상이 아직 없는 칸의 라벨. "새" 영상은 이미 하나 있을 때 쓰는 말이라,
-  // 빈 칸에 그대로 두면 운영자가 "뭘 바꾸라는 거지?"로 읽는다.
-  "lab.source.find": { ko: "영상 찾기", en: "Find a video", es: "Buscar video" },
+  // 영상이 없는 칸의 [영상 찾기]는 LAB-FIX-3(D-89)에서 삭제 — 수동 칸은 [영상]으로 주소를 넣는다.
+  // LAB-FIX-3 (원장 D-89) — 칸의 손 넣기. 대표 승인표 v3(2026-11-13). 시험: lib/__tests__/i18n/labFix3Copy.test.ts
+  "lab.slot.video": { ko: "영상", en: "Video", es: "Video" },
+  "lab.slot.videoPlaceholder": { ko: "영상 주소 붙여 넣기", en: "Paste a video link", es: "Pega un enlace de video" },
+  "lab.slot.onlyYouTube": {
+    ko: "지금은 유튜브 영상만 넣을 수 있어요.",
+    en: "Only YouTube videos can be added for now.",
+    es: "Por ahora solo se pueden añadir videos de YouTube.",
+  },
+  "lab.slot.imagePlaceholder": { ko: "이미지 주소 붙여 넣기", en: "Paste an image link", es: "Pega un enlace de imagen" },
+  "lab.slot.submit": { ko: "넣기 (Enter)", en: "Add (Enter)", es: "Añadir (Enter)" },
+  // LAB-FIX-3 추가분 (원장 D-90) — 대회 종류. 대표 승인 2026-11-13 16:13. 시험: labFix3Copy.test.ts
+  "lab.kind.note": {
+    ko: "처음 누른 버튼으로 대회 종류(영상 · 이미지)가 정해집니다. 바꾸려면 초안을 지우고 새로 시작하세요.",
+    en: "The first button you press sets the tournament type (video or image). To change it, delete the draft and start over.",
+    es: "El primer botón que pulses define el tipo de torneo (video o imagen). Para cambiarlo, borra el borrador y empieza de nuevo.",
+  },
+  "lab.kind.lockedVideo": { ko: "이 대회는 영상 대회입니다.", en: "This is a video tournament.", es: "Este es un torneo de video." },
+  "lab.kind.lockedImage": { ko: "이 대회는 이미지 대회입니다.", en: "This is an image tournament.", es: "Este es un torneo de imágenes." },
   "lab.source.refreshing": { ko: "찾는 중…", en: "Searching…", es: "Buscando…" },
   "lab.source.refreshEmpty": {
     ko: "다른 후보를 찾지 못했습니다.",
@@ -1585,11 +1600,6 @@ export const MESSAGES = {
     ko: "이름 칸이 검색어가 가리키는 인물과 어긋납니다. 검색어 기준 후보: {tokens}",
     en: "The name disagrees with the person the search term points at. Candidates from the term: {tokens}",
     es: "El nombre no coincide con la persona que indica la búsqueda. Candidatos: {tokens}",
-  },
-  "lab.review.hintTip": {
-    ko: "Claude가 남긴 검색어: {hint}",
-    en: "Search term left by Claude: {hint}",
-    es: "Término de búsqueda de Claude: {hint}",
   },
   "lab.step2.translateNote": {
     ko: "제목·설명은 발행 시 KO/EN/ES로 자동 번역됩니다 — 편집기에는 원문만 보입니다.",

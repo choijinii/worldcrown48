@@ -22,6 +22,8 @@ interface PublishButtonProps {
   onClick: () => void;
   /** THUMB-1: 대표 매치 A·B 를 둘 다 골랐는지 — 아니면 잠근다(원장 D-35). */
   pairReady?: boolean;
+  /** LAB-FIX-3 추가분(원장 D-90): 영상과 그림이 섞여 있으면 false — 잠근다. */
+  mediaReady?: boolean;
 }
 
 export function PublishButton({
@@ -29,9 +31,10 @@ export function PublishButton({
   busy,
   onClick,
   pairReady = true,
+  mediaReady = true,
 }: PublishButtonProps): JSX.Element {
   const { t } = useT();
-  const ready = isPublishReady(contestants) && pairReady && !busy;
+  const ready = isPublishReady(contestants) && pairReady && mediaReady && !busy;
   const filled = countFilledContestants(contestants);
 
   return (

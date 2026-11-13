@@ -12,9 +12,8 @@ type Row = [n: number, keys: MessageKey[], sep: string, ko: string, en: string, 
 
 const TABLE: Row[] = [
   [1, ["lab.image.addFiles"], "", "이미지 파일 넣기", "Add image files", "Añadir archivos de imagen"],
-  [2, ["lab.image.chipFile"], "", "파일", "File", "Archivo"],
-  [3, ["lab.image.chipUrl"], "", "URL", "URL", "URL"],
-  [4, ["lab.image.remove"], "", "그림 지우기", "Remove image", "Quitar imagen"],
+  // 2·3번은 LAB-FIX-3 승인표 v3(2026-11-13)로 바뀌었고, 4번 [그림 지우기]는 삭제됐다(원장 D-89).
+  // 지금 글자 시험은 lib/__tests__/i18n/labFix3Copy.test.ts 가 갖는다.
   [5, ["lab.image.badge"], "", "그림", "Image", "Imagen"],
   [6, ["lab.manual.button"], "", "만들기 매뉴얼", "Creation Manual", "Manual de creación"],
   [7, ["lab.image.fail.fetchFailed"], "", "주소에서 그림을 받지 못했어요", "Couldn't fetch an image from that address", "No se pudo obtener la imagen de esa dirección"],
@@ -47,8 +46,8 @@ const TABLE: Row[] = [
 ];
 
 describe("IMAGE-1 문구 33줄 = 승인표", () => {
-  it("33줄 전부 있다", () => {
-    expect(TABLE.map((r) => r[0])).toEqual(Array.from({ length: 33 }, (_, i) => i + 1));
+  it("33줄 전부 있다(2·3·4번은 LAB-FIX-3 로 옮김)", () => {
+    expect(TABLE.map((r) => r[0])).toEqual(Array.from({ length: 33 }, (_, i) => i + 1).filter((n) => n < 2 || n > 4));
   });
   for (const [n, keys, sep, ko, en, es] of TABLE) {
     it(`${n}번 — 3언어 글자까지 같다`, () => {

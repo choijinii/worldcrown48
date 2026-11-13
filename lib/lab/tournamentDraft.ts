@@ -14,6 +14,7 @@ import type { ContestantDraft, ContestantImageSource } from "@/lib/lab/tournamen
 import { ENTRY_IMAGE_ORIGINS, type EmbedOrientation, type EntryImageOrigin } from "@/lib/media/mediaSlot";
 import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
 import { DEFAULT_ENTRY_UNIT, ENTRY_UNITS, type EntryUnit } from "@/lib/types/tournament";
+import { resolveMediaKind, type MediaKind } from "@/lib/lab/mediaKind";
 
 export const DRAFTS_COLLECTION = "tournamentDrafts";
 export const DRAFT_SCHEMA_VERSION = 1;
@@ -32,6 +33,7 @@ export const DRAFT_FIELDS = [
   "contestants",
   "thumbnailPair",
   "entryUnit",
+  "mediaKind",
   "updatedAt",
 ] as const;
 
@@ -48,6 +50,11 @@ export interface DraftEditorState {
   thumbnailPair: PairPick;
   /** ENTRY-UNIT-1 엔트리 단위(원장 D-73). 옛 초안엔 없다 — 읽을 때 개인으로 채운다. */
   entryUnit: EntryUnit;
+  /**
+   * LAB-FIX-3 추가분(원장 D-90) 대회 종류 — 처음 누른 생성 버튼이 정한다. null = 미정(아직 생성 버튼을
+   * 누르지 않음). 옛 초안엔 칸이 없다 — 읽을 때 칸에서 추론한다(lib/lab/mediaKind).
+   */
+  mediaKind: MediaKind | null;
 }
 
 /** 목록에 보여 줄 한 줄. */
@@ -82,6 +89,8 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     // 개인이므로 뜻은 같고, 규칙이 배포되기 전(firestore.rules 는 main 병합 뒤에만 배포된다)
     // 에도 개인 초안 저장이 막히지 않는다. 팀→개인으로 되돌리면 통째 덮어쓰기라 칸이 사라진다.
     ...(s.entryUnit === "group" ? { entryUnit: s.entryUnit } : {}),
+    // D-90: 정해졌을 때만 싣는다(미정 = 칸 없음).
+    ...(s.mediaKind ? { mediaKind: s.mediaKind } : {}),
   };
 }
 
@@ -129,6 +138,10 @@ function toContestant(raw: unknown): ContestantDraft {
     imageHeight: num(r.imageHeight),
     imageAddedAt: num(r.imageAddedAt),
     imageFocusY: num(r.imageFocusY),
+    // LAB-FIX-3 (D-89) — 손 넣기 표시 · 주소 기억. 모양이 다르면 버린다(옛 초안엔 없다).
+    manualVideo: r.manualVideo === true ? true : undefined,
+    manualVideoUrl: optStr(r.manualVideoUrl),
+    manualImageUrl: optStr(r.manualImageUrl),
   });
 }
 
@@ -154,6 +167,7 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
   if (!data || typeof data !== "object") return null;
   const d = data as Record<string, unknown>;
   if (typeof d.hostUid !== "string") return null;
+  const contestants = Array.isArray(d.contestants) ? d.contestants.map(toContestant) : [];
   return {
     step: d.step === 2 ? 2 : 1,
     title: str(d.title),
@@ -164,9 +178,10 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
       : [],
     campaignSlug: str(d.campaignSlug),
     deadlineMs: num(d.deadlineMs) ?? 0,
-    contestants: Array.isArray(d.contestants) ? d.contestants.map(toContestant) : [],
+    contestants,
     thumbnailPair: toPick(d.thumbnailPair),
     entryUnit: toEntryUnit(d.entryUnit),
+    mediaKind: resolveMediaKind(d.mediaKind, contestants),
   };
 }
 

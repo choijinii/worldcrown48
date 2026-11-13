@@ -9,7 +9,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
-import { attachVideosToFirstSlots, stubVideoInspector } from "./labVideos";
+import { attachVideosToFirstSlots, stubVideoInspector, fillAsVideoTournament } from "./labVideos";
 
 const TITLE = "THUMB-1 E2E";
 let consoleErrors: string[] = [];
@@ -65,7 +65,8 @@ test.describe("THUMB-1 — 대표 매치 고르기", () => {
     await page.getByLabel("키워드 추가").press("Enter");
     await page.getByTestId("lab-next-button").click();
 
-    await page.getByTestId("lab-generate-images").click();
+    // D-90 — 검수기는 영상 대회에서만: [동영상 생성](채우기 스텁 → 견적 창 [취소])으로 시작한다.
+    await fillAsVideoTournament(page);
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");
     await attachVideosToFirstSlots(page, 3);
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");

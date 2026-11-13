@@ -13,7 +13,8 @@ import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import { GRID_TEMPLATE_COLUMNS } from "@/lib/lab/gridLayout";
 import type { SourcingStates } from "@/lib/lab/sourcingDraft";
 import type { ReviewFlags } from "@/lib/lab/reviewFlags";
-import { ContestantEditor, slotDomId, type SlotImageHandlers } from "./ContestantEditor";
+import type { MediaKind } from "@/lib/lab/mediaKind";
+import { ContestantEditor, slotDomId, type SlotImageHandlers, type SlotVideoHandlers } from "./ContestantEditor";
 
 interface ContestantGridProps {
   contestants: ContestantDraft[];
@@ -39,6 +40,10 @@ interface ContestantGridProps {
   busyImage?: ReadonlySet<number>;
   /** IMAGE-1 — 이름↔영상 불일치 칸 번호(0부터). */
   videoMismatch?: ReadonlySet<number>;
+  /** LAB-FIX-3 (D-89) — 수동 칸의 [영상] 넣기 · 빼기. */
+  video?: SlotVideoHandlers;
+  /** LAB-FIX-3 추가분 (D-90) — 대회 종류(칸 버튼이 따른다). */
+  mediaKind?: MediaKind | null;
 }
 
 /**
@@ -70,6 +75,8 @@ export function ContestantGrid({
   image,
   busyImage,
   videoMismatch,
+  video,
+  mediaKind = null,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -99,7 +106,8 @@ export function ContestantGrid({
           sourcing={sourcing?.[i]}
           reviewFlags={reviewFlags?.[i]}
           onGoToSlot={scrollToSlot}
-          // 이름이 있으면 언제나 [영상 찾기]를 준다. 예전에는 소싱 배지가 있는
+          // [새 영상 찾기]는 자동 칸에서만 보인다(LAB-FIX-3 · D-89 — 칸이 판정한다). 이름이 있어야 찾는다.
+          // (옛 주석) 이름이 있으면 언제나 [영상 찾기]를 준다. 예전에는 소싱 배지가 있는
           // 칸에만 줬는데, 그러면 **이름을 고친 칸**(배지가 해제된다)과 **빈칸을
           // 새로 채운 칸**에서 영상을 찾을 길이 사라진다 — 복구 수단이 링크
           // 붙여넣기뿐이 됐다(대표 스모크 2026-08-25 ①②).
@@ -112,6 +120,8 @@ export function ContestantGrid({
           onPick={onPick && canPick?.(i) ? onPick : undefined}
           image={image ? { ...image, busy: busyImage?.has(i) ?? false } : undefined}
           videoMismatch={videoMismatch?.has(i) ?? false}
+          video={video}
+          mediaKind={mediaKind}
         />
       ))}
     </div>

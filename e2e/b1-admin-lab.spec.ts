@@ -22,7 +22,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { stubManageTournament } from "./labManage";
 import * as admin from "firebase-admin";
 import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
-import { attachVideosToFirstSlots, stubVideoInspector } from "./labVideos";
+import { attachVideosToFirstSlots, fillAsVideoTournament, stubVideoInspector } from "./labVideos";
 import { e2eMark } from "./e2eMark";
 
 let consoleErrors: string[] = [];
@@ -179,11 +179,11 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(next).toBeEnabled();
     await next.click();
 
-    // STEP 2 — [🖼 이미지 생성]으로 48칸을 스텁에서 채운다 → Publish 활성.
+    // STEP 2 — [🎬 동영상 생성]으로 48칸을 스텁에서 채운다 → Publish 활성.
     // LAB-UX-1에서 부품 버튼(fill-all-button)이 사라지고 결과물 2버튼이 됐다.
-    // 이미지 경로를 쓰는 건 유튜브 search 콜을 한 번도 안 쓰기 때문이다 —
-    // E2E가 프리뷰의 하루 100콜 버킷을 갉아먹으면 안 된다.
-    await page.getByTestId("lab-generate-images").click();
+    // LAB-FIX-3 추가분(D-90) — 아래에서 검수기로 영상을 붙이므로 영상 대회로 시작한다. 견적 창은
+    // [취소]해 유튜브 search 콜을 한 번도 안 쓴다 — E2E가 프리뷰의 하루 100콜 버킷을 갉아먹으면 안 된다.
+    await fillAsVideoTournament(page);
     await expect(page.getByTestId("contestant-grid")).toBeVisible();
     await expect(page.getByTestId("lab-step2-counter")).toContainText("48/48");
     const publish = page.getByRole("button", { name: /토너먼트 생성 \(48\/48\)/ });

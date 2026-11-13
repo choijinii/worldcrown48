@@ -1,7 +1,7 @@
 /**
  * IMAGE-1 PR 1 — §11.2 E2E ② (에뮬레이터).
  *
- * 칸 [URL] → 로컬 가짜 그림 서버 주소 → 서버 함수 importEntryImage 가 받아 줄여 우리 Storage 에 둔다 →
+ * 칸 [이미지](옛 [URL]) → 로컬 가짜 그림 서버 주소 → 서버 함수 importEntryImage 가 받아 줄여 우리 Storage 에 둔다 →
  * 미리보기 + 출처 도메인 글자. 실패 주소(그림 아님 · 세로 400px 미만 · 없음) → 이유 문구(6절 ⓑ).
  */
 import { expect, test } from "@playwright/test";
@@ -29,7 +29,7 @@ test.beforeEach(async () => {
 });
 
 test("② [URL] 성공 → 미리보기 + 출처 글자 · 실패 → 이유 문구", async ({ page }) => {
-  const draftId = await seedDraft();
+  const draftId = await seedDraft("e2eDraft1", "image"); // D-90 — 그림 주소는 이미지 대회에서만
   const errors = collectConsoleErrors(page);
   await page.goto("/admin/lab?lang=ko");
   await signInAsAdmin(page);
@@ -80,8 +80,9 @@ test("② [URL] 성공 → 미리보기 + 출처 글자 · 실패 → 이유 문
     }, { timeout: 30_000 })
     .toBe("url");
 
-  // [그림 지우기] → 저장소 파일도 지워진다
-  await page.getByTestId(`slot-image-remove-${slot}`).click();
+  // 켜진 [이미지] → 그림이 빠지고 저장소 파일도 지워진다(LAB-FIX-3 · [그림 지우기] 대신)
+  await expect(page.getByTestId(`slot-image-url-${slot}`)).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId(`slot-image-url-${slot}`).click();
   await expect(page.getByTestId(`slot-image-badge-${slot}`)).toHaveCount(0);
   await expect
     .poll(async () => (await adminApp().storage().bucket().getFiles({ prefix: `entry-images/drafts/${ADMIN_UID}/${draftId}/` }))[0].length)

@@ -113,6 +113,11 @@ export interface Tournament {
    * (백필 안 함) — 없으면 개인으로 읽는다. 편집기 STEP 1에서 운영자가 고른다.
    */
   entryUnit?: EntryUnit;
+  /**
+   * LAB-FIX-3 추가분 대회 종류(원장 D-90) — 영상 대회 또는 이미지 대회. 선택·additive: 2026-11-13 이전
+   * 문서엔 없다(백필 안 함 · 이미 발행된 대회는 바꾸지 않는다).
+   */
+  mediaKind?: "video" | "image";
 }
 
 export interface Contestant {

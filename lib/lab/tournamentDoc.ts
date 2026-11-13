@@ -16,6 +16,7 @@ import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 import type { ContestantMedia, EmbedOrientation, EntryImage, EntryImageOrigin } from "@/lib/media/mediaSlot";
 import {
   ENTRY_UNITS,
@@ -50,6 +51,8 @@ export interface TournamentInput {
    * 나중에 읽는 쪽이 "없음 = 개인" 추측을 할 필요가 2026-10-28 이전 문서뿐이 되게.
    */
   entryUnit?: EntryUnit;
+  /** LAB-FIX-3 추가분(원장 D-90) — 대회 종류. 정해졌을 때만 문서에 싣는다(크라운 카드·무대가 쓸 수 있게). */
+  mediaKind?: MediaKind;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -96,6 +99,14 @@ export interface ContestantDraft {
   imageAddedAt?: number;
   /** 무대 16:9 자르기 기준 0~100(비우면 40). */
   imageFocusY?: number;
+  /**
+   * LAB-FIX-3 (원장 D-89) — 칸의 [영상]으로 손으로 넣은 영상이면 true(수동 칸 판정). 자동 길이 새 영상을
+   * 넣으면 빠진다. 초안에만 있다 — 발행 문서(buildContestantDocs)는 이 칸들을 싣지 않는다.
+   */
+  manualVideo?: boolean;
+  /** 칸의 [영상]·[이미지]에 마지막으로 넣은 주소(주소 기억 · 초안에만). */
+  manualVideoUrl?: string;
+  manualImageUrl?: string;
 }
 
 export interface ContestantImageSource {
@@ -161,6 +172,7 @@ export function buildTournamentDoc(
     entryUnit,
     // Firestore rejects undefined — carry the field only when the host set one.
     ...(slug.isEmpty ? {} : { campaignSlug: slug.value }),
+    ...(input.mediaKind ? { mediaKind: input.mediaKind } : {}),
   };
 }
 

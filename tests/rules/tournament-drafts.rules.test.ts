@@ -258,3 +258,19 @@ describe("tournamentDrafts — 칸 안의 그림 칸(IMAGE-1)", () => {
     await assertSucceeds(setDoc(ref(), rawDraft("host-1", { contestants: [slot, { ...slot, imageUrl: "x" }] })));
   });
 });
+
+// LAB-FIX-3 추가분(원장 D-90): 대회 종류. 없는 초안(종류 미정 · 옛 화면)도 통과.
+describe("tournamentDrafts — 대회 종류(mediaKind)", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts/d1");
+
+  it("ALLOWS video, image, and no kind at all", async () => {
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { mediaKind: "video" })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { mediaKind: "image" })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1")));
+  });
+
+  it("DENIES an unknown kind", async () => {
+    await assertFails(setDoc(ref(), rawDraft("host-1", { mediaKind: "both" })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { mediaKind: 1 })));
+  });
+});
