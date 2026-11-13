@@ -9,7 +9,12 @@
  * - 지금 초안 줄은 표시만 하고 [열기]를 끈다.
  * - [지우기]는 넣지 않는다(실수 방지) — 지우기는 "이어서 만들기" 화면에만 있다.
  * - 다시 누르기 · 바깥 누르기 · Esc 로 닫힌다.
- * 문구는 기존 사전 키(lab.draft.*)만 쓴다. 편집기를 처음 열 때의 "이어서 만들기" 화면은 그대로다.
+ * 문구는 기존 사전 키(lab.draft.*)만 쓴다. 편집기를 처음 열 때의 "이어서 만들기" 화면은 그대로다
+ * (MVP 1.5 까지 — 대표 2026-11-13).
+ *
+ * LAB-FIX-3 §3-6 — 제목이 긴 초안이 있으면 [열기]가 창 오른쪽 밖으로 밀렸다(대표 실측 2026-11-13 · 재현).
+ * 원인: 상자와 줄 목록이 격자(grid)인데 격자 칸의 최소 너비 기본값이 "내용 너비"라, 한 줄로 자르는 긴 제목이
+ * 칸을 제목 길이만큼 넓혔다(EDITOR-GRID-FIX 와 같은 종류). 칸을 minmax(0, 1fr) 로 묶고, 상자 폭은 창 폭을 넘지 않게.
  */
 "use client";
 
@@ -20,6 +25,35 @@ import { useT } from "@/lib/i18n/useT";
 import { useEscapeClose, useOutsideClose } from "@/lib/ui/dismiss";
 import { formatDraftTime } from "./DraftStatus";
 import { lab } from "./theme";
+
+/** 펼친 상자 — 버튼 오른쪽 끝에 맞춰 왼쪽으로 펼친다. */
+export const DRAFT_MENU_STYLE: React.CSSProperties = {
+  position: "absolute",
+  top: "calc(100% + 6px)",
+  right: 0,
+  zIndex: 40,
+  width: 360,
+  maxWidth: "calc(100vw - 32px)",
+  maxHeight: 420,
+  overflowY: "auto",
+  padding: 8,
+  borderRadius: "var(--radius-border)",
+  border: `1px solid ${lab.border}`,
+  background: lab.surface,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: 6,
+};
+
+/** 줄 목록 — 칸이 긴 제목 때문에 넓어지지 않게 minmax(0, 1fr). */
+export const DRAFT_MENU_LIST_STYLE: React.CSSProperties = {
+  listStyle: "none",
+  margin: 0,
+  padding: 0,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: 6,
+};
 
 export function DraftMenu({
   drafts,
@@ -86,21 +120,7 @@ export function DraftMenu({
           data-testid="draft-menu"
           role="dialog"
           aria-label={t("lab.draft.list.title")}
-          style={{
-            position: "absolute",
-            top: "calc(100% + 6px)",
-            right: 0,
-            zIndex: 40,
-            width: 360,
-            maxHeight: 420,
-            overflowY: "auto",
-            padding: 8,
-            borderRadius: "var(--radius-border)",
-            border: `1px solid ${lab.border}`,
-            background: lab.surface,
-            display: "grid",
-            gap: 6,
-          }}
+          style={DRAFT_MENU_STYLE}
         >
           {loading && rows.length === 0 ? (
             <p style={{ margin: 0, padding: 8, fontSize: 13, color: lab.textMuted }}>
@@ -111,7 +131,7 @@ export function DraftMenu({
               {t("lab.draft.list.empty")}
             </p>
           ) : (
-            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
+            <ul style={DRAFT_MENU_LIST_STYLE}>
               {rows.map((d) => (
                 <li
                   key={d.id}
