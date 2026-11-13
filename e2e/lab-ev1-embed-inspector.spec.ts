@@ -17,6 +17,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { deleteE2EDrafts, openFreshLabEditor, seedE2EDraft } from "./labDrafts";
 import { stubManageTournament } from "./labManage";
+import { lockAsVideoTournament } from "./labVideos";
 
 const PASS_ID = "9bZkp7q19f0";
 const WARN_ID = "dQw4w9WgXcQ";
@@ -142,6 +143,8 @@ async function goToStep2(page: Page) {
   await expect(next).toBeEnabled();
   await next.click();
   await expect(page.getByTestId("contestant-grid")).toBeVisible();
+  // LAB-FIX-3 추가분(D-90) — 검수기는 영상 대회에서만 보인다. 칸은 비운 채 영상 대회로 잠근다.
+  await lockAsVideoTournament(page);
   // LAB-UX-1: 검수기는 "직접 손보기 도구" 안으로 접혀 들어갔다(결정 1 · B안).
   // 기본이 접힘이라 열어야 버튼이 보인다.
   await page.getByTestId("lab-manual-tools-toggle").click();

@@ -29,7 +29,7 @@ test.beforeEach(async () => {
 });
 
 test("② [URL] 성공 → 미리보기 + 출처 글자 · 실패 → 이유 문구", async ({ page }) => {
-  const draftId = await seedDraft();
+  const draftId = await seedDraft("e2eDraft1", "image"); // D-90 — 그림 주소는 이미지 대회에서만
   const errors = collectConsoleErrors(page);
   await page.goto("/admin/lab?lang=ko");
   await signInAsAdmin(page);

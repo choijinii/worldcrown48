@@ -126,14 +126,22 @@ export async function expectNoConsoleErrors(errors: string[]): Promise<void> {
 export const DRAFT_TITLE = "IMAGE-1 시험 대회";
 export const MISMATCH_SLOT = 10;
 
-/** STEP 2 에 바로 들어가는 초안 — 48칸 이름 · 10번 칸만 영상(제목·채널이 이름과 다름 → 불일치). */
-export async function seedDraft(id = "e2eDraft1"): Promise<string> {
+/**
+ * STEP 2 에 바로 들어가는 초안 — 48칸 이름.
+ * 대회 종류(원장 D-90): "video"(기본) = 영상 대회 · 10번 칸만 영상(제목·채널이 이름과 다름 → 불일치) ·
+ * "image" = 이미지 대회 · 영상 없음. `storeKind: false` 면 종류 칸 없이 심는다(옛 초안 — 칸에서 추론).
+ */
+export async function seedDraft(
+  id = "e2eDraft1",
+  kind: "video" | "image" = "video",
+  { storeKind = true }: { storeKind?: boolean } = {},
+): Promise<string> {
   const contestants = Array.from({ length: 48 }, (_, i) => ({
     name: `엔트리${String(i + 1).padStart(2, "0")}`,
     nationality: "KR",
     affiliation: `그룹${i + 1}`,
     imageSearchKeyword: "",
-    ...(i === MISMATCH_SLOT
+    ...(kind === "video" && i === MISMATCH_SLOT
       ? { videoId: "dQw4w9WgXcQ", videoStartSec: 0, videoEndSec: 15, videoSourceUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", videoTitle: "Other MV", videoChannel: "Other Channel" }
       : {}),
   }));
@@ -148,6 +156,7 @@ export async function seedDraft(id = "e2eDraft1"): Promise<string> {
     campaignSlug: "",
     deadlineMs: Date.now() + 7 * 86_400_000,
     contestants,
+    ...(storeKind ? { mediaKind: kind } : {}),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
   return id;

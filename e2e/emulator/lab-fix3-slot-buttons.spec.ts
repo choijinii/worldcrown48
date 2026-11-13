@@ -142,8 +142,8 @@ test("§5-1·2·3 [영상] 넣기 → 켜짐 · 이름 채움 · 다시 누르�
   expect(errors, errors.join("\n")).toHaveLength(0);
 });
 
-test("§5-4·5·8 [이미지] 넣기 → 켜짐 → 빼기 · [이미지 파일] 그림도 켜진 [이미지]로 빠짐 · 새로고침 뒤 주소 기억", async ({ page }) => {
-  const draftId = await seedDraft();
+test("§5-4·5·8 [이미지] 넣기 → 켜짐 → 빼기 · [이미지 파일] 그림도 켜진 [이미지]로 빠짐 · 새로고침 뒤 주소 기억 (이미지 대회)", async ({ page }) => {
+  const draftId = await seedDraft("e2eDraft1", "image"); // D-90 — [이미지]는 이미지 대회에서만
   const errors = collectConsoleErrors(page);
   await stubYouTubeImages(page);
   await stubYouTubeCallables(page);
@@ -182,7 +182,7 @@ test("§5-4·5·8 [이미지] 넣기 → 켜짐 → 빼기 · [이미지 파일]
   expect(errors, errors.join("\n")).toHaveLength(0);
 });
 
-test("§5-6·7 자동 칸은 [새 영상 찾기]만 · 수동 칸에 [영상 찾기]·🔎·[그림 지우기] 없음 · 빈 칸 크라운 로고 · 칸 높이", async ({ page }) => {
+test("§5-6·7 자동 칸은 [새 영상 찾기]만 · 수동 칸에 [영상 찾기]·🔎·[그림 지우기] 없음 · 빈 칸 크라운 로고 · 칸 높이 (영상 대회)", async ({ page }) => {
   await seedDraft();
   await stubYouTubeImages(page);
   await openSeededDraft(page);
@@ -192,10 +192,10 @@ test("§5-6·7 자동 칸은 [새 영상 찾기]만 · 수동 칸에 [영상 찾
   for (const id of ["slot-video", "slot-image-url", "slot-image-file"]) {
     await expect(page.getByTestId(`${id}-${AUTO_SLOT}`)).toHaveCount(0);
   }
-  // 수동 칸
+  // 수동 칸 — 영상 대회라 [영상]만(D-90)
   await expect(page.getByTestId("slot-video-0")).toHaveText("영상");
-  await expect(page.getByTestId("slot-image-url-0")).toHaveText("이미지");
-  await expect(page.getByTestId("slot-image-file-0")).toHaveText("이미지 파일");
+  await expect(page.getByTestId("slot-image-url-0")).toHaveCount(0);
+  await expect(page.getByTestId("slot-image-file-0")).toHaveCount(0);
   await expect(page.getByTestId("contestant-refresh-0")).toHaveCount(0);
   await expect(page.locator('[data-testid^="contestant-hint-"]')).toHaveCount(0);
   await expect(page.locator('[data-testid^="slot-image-remove-"]')).toHaveCount(0);
