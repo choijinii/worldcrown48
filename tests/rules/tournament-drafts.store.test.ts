@@ -49,6 +49,8 @@ function editorState(overrides: Partial<DraftEditorState> = {}): DraftEditorStat
     contestants: Array.from({ length: 48 }, (_, i) => contestant(i)),
     thumbnailPair: { a: 4, b: 30, aPos: 15, bPos: null, next: "a" },
     entryUnit: "individual",
+    // LAB-FIX-3 추가분(D-90) — 영상이 든 바탕 자료 = 영상 대회(저장·복원 왕복에 함께 실린다).
+    mediaKind: "video",
     ...overrides,
   };
 }
