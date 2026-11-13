@@ -77,7 +77,10 @@ import {
 } from "@/lib/lab/pasteExtract";
 import { step2Counters } from "@/lib/lab/step2Counters";
 import { applyContestantPatch, namePatchDropsBadge } from "@/lib/lab/nameEdits";
-import { inspectErrorCode } from "@/lib/lab/inspectYouTube";
+import { inspectErrorCode, validateYouTubeLinks } from "@/lib/lab/inspectYouTube";
+import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
+import { inspectErrorMessage, verdictMessages, type Message } from "@/lib/lab/embedMessages";
+import { addManualVideo, removeManualVideo, runManualVideoAdd } from "@/lib/lab/manualMedia";
 import { sourcingErrorMessage } from "@/lib/lab/sourcingMessages";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkVerdict } from "@/lib/embed/verdict";
@@ -998,7 +1001,8 @@ export function TournamentCreator(): JSX.Element {
         void deleteEntryImageFiles(r.storagePath);
         return null;
       }
-      patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r) }));
+      // LAB-FIX-3 (D-89) — 주소 기억: 다시 [이미지]를 누르면 이 주소가 채워진 채 열린다.
+      patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r), manualImageUrl: url }));
       return null;
     } catch (err) {
       console.warn("importEntryImage failed", err);
@@ -1007,6 +1011,47 @@ export function TournamentCreator(): JSX.Element {
       reservedSlotsRef.current.delete(index);
       setBusy(index, false);
     }
+  }
+
+  /**
+   * LAB-FIX-3 (원장 D-89) — 수동 칸의 [영상] 넣기. 검수기와 같은 검사(영상 1개) · 이름 빈 칸이면 제목 추출
+   * (엔트리 단위 전달) · 그 칸 하나에만 넣는다. 이름이 있는 칸의 이름은 그대로다(D-88). 실패하면 칸 아래 문구.
+   */
+  async function addSlotVideo(index: number, url: string): Promise<Message | null> {
+    const current = contestantsRef.current[index] ?? emptyDraft();
+    try {
+      const r = await runManualVideoAdd(
+        { url, nameEmpty: current.name.trim() === "", entryUnit },
+        { validate: validateYouTubeLinks, extract: extractContestantsFromVideos },
+      );
+      if (r.kind === "parse-fail") {
+        return r.reason === "no-video-id" ? { key: "lab.embed.reason.noVideoId" } : { key: "lab.slot.onlyYouTube" };
+      }
+      if (r.kind === "blocked") return verdictMessages(r.verdict)[0] ?? { key: "lab.embed.status.blocked" };
+      if (r.extractFailed) showToast(t("lab.embed.error.extract"), "error");
+      setContestants((prev) =>
+        addManualVideo(prev, index, r.verdict, r.startSec, url, r.extraction, TOTAL_CONTESTANTS, emptyDraft),
+      );
+      // 손으로 넣은 칸에는 AI 배지("제안"·"수동 필요")를 남기지 않는다.
+      setSourcingStates((states) => dropSourcingStates(states, [index]));
+      void track("admin_lab_slot_video_add", { status: r.verdict.status, named: Boolean(r.extraction?.confident) });
+      return null;
+    } catch (err) {
+      const code = inspectErrorCode(err);
+      void track("admin_lab_slot_video_add_error", { error_code: code });
+      return inspectErrorMessage(code);
+    }
+  }
+
+  /** 켜진 [영상] — 영상만 빼고 기억한 주소는 남긴다(묻지 않음). */
+  function removeManualSlotVideo(index: number) {
+    setContestants((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = removeManualVideo(next[index]);
+      return next;
+    });
+    setSourcingStates((states) => dropSourcingStates(states, [index]));
   }
 
   function removeSlotImage(index: number) {
@@ -1400,6 +1445,7 @@ export function TournamentCreator(): JSX.Element {
           >
           <ContestantGrid
             image={{ onFile: (i, f) => void uploadToSlot(i, f), onUrl: importUrlToSlot, onRemove: removeSlotImage }}
+            video={{ onAdd: addSlotVideo, onRemove: removeManualSlotVideo }}
             busyImage={busyImage}
             videoMismatch={videoMismatch}
             pairA={pairPick.a}
