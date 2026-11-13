@@ -201,11 +201,16 @@ test("§5-6·7 자동 칸은 [새 영상 찾기]만 · 수동 칸에 [영상 찾
   await expect(page.locator('[data-testid^="slot-image-remove-"]')).toHaveCount(0);
   await expect(page.getByTestId("slot-crown-0")).toHaveAttribute("src", "/brand/wc48-crown-filled.svg");
 
+  // 칸을 화면 가운데로 — 창 아래 고정 띠에 가려진 채 찍히지 않게.
+  await page.getByTestId(`contestant-node-${AUTO_SLOT}`).evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await expect(page.getByTestId(`contestant-refresh-${AUTO_SLOT}`)).toBeInViewport({ ratio: 1 });
   const manual = await page.getByTestId("contestant-node-0").boundingBox();
   const auto = await page.getByTestId(`contestant-node-${AUTO_SLOT}`).boundingBox();
   test.info().annotations.push({ type: "칸 높이(px) 1440×900", description: `수동 칸 ${manual?.height} · 자동 칸 ${auto?.height}` });
   console.log(`[LAB-FIX-3] 칸 높이 — 수동 칸 ${manual?.height}px · 자동 칸 ${auto?.height}px`);
+  await page.getByTestId("contestant-node-0").evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.getByTestId("contestant-node-0").screenshot({ path: test.info().outputPath("6-manual-slot.png") });
+  await page.getByTestId(`contestant-node-${AUTO_SLOT}`).evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.getByTestId(`contestant-node-${AUTO_SLOT}`).screenshot({ path: test.info().outputPath("6-auto-slot.png") });
 });
 
