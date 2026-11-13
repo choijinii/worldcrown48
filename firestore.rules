@@ -107,7 +107,7 @@ service cloud.firestore {
     function isValidDraft(d) {
       return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                                 'description', 'keywords', 'campaignSlug', 'deadlineMs',
-                                'contestants', 'thumbnailPair', 'entryUnit', 'updatedAt'])
+                                'contestants', 'thumbnailPair', 'entryUnit', 'mediaKind', 'updatedAt'])
         && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                             'description', 'keywords', 'campaignSlug', 'deadlineMs',
                             'contestants', 'updatedAt'])
@@ -125,6 +125,8 @@ service cloud.firestore {
         // ENTRY-UNIT-1(원장 D-73): 엔트리 단위. 칸 자체는 선택 — 이 칸을 모르는 옛 화면의
         // 저장도 통과한다(hasAll 에 넣지 않음, thumbnailPair 와 같은 방식).
         && (!('entryUnit' in d) || d.entryUnit == 'individual' || d.entryUnit == 'group')
+        // LAB-FIX-3 추가분(원장 D-90): 대회 종류. 칸 자체는 선택 — 종류 미정 초안·옛 화면의 저장도 통과.
+        && (!('mediaKind' in d) || d.mediaKind == 'video' || d.mediaKind == 'image')
         && d.updatedAt == request.time;
     }
     match /tournamentDrafts/{draftId} {

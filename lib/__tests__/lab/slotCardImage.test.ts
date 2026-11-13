@@ -13,10 +13,10 @@ const noop = () => {};
 const image = { onFile: noop, onUrl: async () => null, onRemove: noop };
 const base: ContestantDraft = { name: "민지", nationality: "KR", affiliation: "NewJeans", imageSearchKeyword: "" };
 const render = (c: ContestantDraft, extra: Record<string, unknown> = {}) =>
-  renderToStaticMarkup(createElement(ContestantEditor, { index: 4, contestant: c, onChange: noop, image, ...extra }));
+  renderToStaticMarkup(createElement(ContestantEditor, { index: 4, contestant: c, onChange: noop, image, mediaKind: "image", ...extra }));
 
 describe("칸 카드 — 그림", () => {
-  it("칩 [파일]·[URL] 이 늘 있다", () => {
+  it("이미지 대회에는 칩 [이미지 파일]·[이미지] 가 있다", () => {
     const html = render(base);
     expect(html).toContain('data-testid="slot-image-file-4"');
     expect(html).toContain('data-testid="slot-image-url-4"');
@@ -34,8 +34,8 @@ describe("칸 카드 — 그림", () => {
     expect(html).toContain('data-testid="slot-meta-4"');
     expect(html).toContain("example.com");
   });
-  it("손으로 넣은 영상 + 그림 → 영상 썸네일 · 그림 배지 없음 · 켜진 [이미지]로 뺄 수 있다", () => {
-    const html = render({ ...base, videoId: "dQw4w9WgXcQ", manualVideo: true, imageUrl: "f", imageThumbUrl: "t" });
+  it("영상 대회에 남은 그림(옛 섞인 초안) → 영상 썸네일 · 그림 배지 없음 · 켜진 [이미지]로 뺄 수 있다(D-90)", () => {
+    const html = render({ ...base, videoId: "dQw4w9WgXcQ", manualVideo: true, imageUrl: "f", imageThumbUrl: "t" }, { mediaKind: "video" });
     expect(html).toContain("ytimg.com");
     expect(html).not.toContain('data-testid="slot-image-badge-4"');
     expect(html).toMatch(/data-testid="slot-image-url-4"[^>]*aria-pressed="true"/);

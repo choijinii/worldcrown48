@@ -13,6 +13,7 @@ import { TOTAL_CONTESTANTS } from "@/lib/types/tournament";
 import { GRID_TEMPLATE_COLUMNS } from "@/lib/lab/gridLayout";
 import type { SourcingStates } from "@/lib/lab/sourcingDraft";
 import type { ReviewFlags } from "@/lib/lab/reviewFlags";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 import { ContestantEditor, slotDomId, type SlotImageHandlers, type SlotVideoHandlers } from "./ContestantEditor";
 
 interface ContestantGridProps {
@@ -41,6 +42,8 @@ interface ContestantGridProps {
   videoMismatch?: ReadonlySet<number>;
   /** LAB-FIX-3 (D-89) — 수동 칸의 [영상] 넣기 · 빼기. */
   video?: SlotVideoHandlers;
+  /** LAB-FIX-3 추가분 (D-90) — 대회 종류(칸 버튼이 따른다). */
+  mediaKind?: MediaKind | null;
 }
 
 /**
@@ -73,6 +76,7 @@ export function ContestantGrid({
   busyImage,
   videoMismatch,
   video,
+  mediaKind = null,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -117,6 +121,7 @@ export function ContestantGrid({
           image={image ? { ...image, busy: busyImage?.has(i) ?? false } : undefined}
           videoMismatch={videoMismatch?.has(i) ?? false}
           video={video}
+          mediaKind={mediaKind}
         />
       ))}
     </div>

@@ -40,28 +40,39 @@ function verdict(status: LinkVerdict["status"] = "pass"): LinkVerdict {
   };
 }
 
-describe("slotMode · slotButtons — 칸 상태 → 보이는 버튼", () => {
+describe("slotMode · slotButtons — 칸 상태 + 대회 종류(D-90) → 보이는 버튼", () => {
   it("자동 칸(자동 길로 영상이 들어온 칸): [새 영상 찾기]만", () => {
     const c = { ...named("하니"), videoId: ID };
     expect(slotMode(c)).toBe("auto");
-    expect(slotButtons(c)).toEqual({ manual: false, video: null, image: null, imageFile: false, refresh: true });
+    expect(slotButtons(c, "video")).toEqual({ manual: false, video: null, image: null, imageFile: false, refresh: true });
   });
 
-  it("수동 칸 — 비어 있음: [영상]·[이미지]·[이미지 파일] 모두 꺼짐, [영상 찾기] 없음", () => {
-    expect(slotMode(named("하니"))).toBe("manual");
-    expect(slotButtons(named("하니"))).toEqual({ manual: true, video: "off", image: "off", imageFile: true, refresh: false });
-    expect(slotButtons(empty()).manual).toBe(true);
+  it("종류 미정: 넣기 버튼 없음(반드시 생성 버튼으로 시작)", () => {
+    expect(slotButtons(named("하니"), null)).toEqual({ manual: true, video: null, image: null, imageFile: false, refresh: false });
   });
 
-  it("수동 칸 — 손으로 영상 넣음: [영상] 켜짐", () => {
-    const c = { ...named("하니"), videoId: ID, manualVideo: true };
-    expect(slotMode(c)).toBe("manual");
-    expect(slotButtons(c)).toMatchObject({ video: "on", image: "off", refresh: false });
+  it("영상 대회 · 빈 수동 칸: [영상]만", () => {
+    expect(slotButtons(named("하니"), "video")).toEqual({ manual: true, video: "off", image: null, imageFile: false, refresh: false });
   });
 
-  it("그림만 있는 칸(어느 길이든): [이미지] 켜짐", () => {
-    const c = { ...named("하니"), imageUrl: "https://x/1.jpg" };
-    expect(slotButtons(c)).toMatchObject({ manual: true, video: "off", image: "on", imageFile: true });
+  it("영상 대회 · 손으로 넣은 영상: [영상] 켜짐", () => {
+    expect(slotButtons({ ...named("하니"), videoId: ID, manualVideo: true }, "video")).toMatchObject({ video: "on", image: null, imageFile: false, refresh: false });
+  });
+
+  it("이미지 대회 · 빈 칸: [이미지]·[이미지 파일]만", () => {
+    expect(slotButtons(named("하니"), "image")).toEqual({ manual: true, video: null, image: "off", imageFile: true, refresh: false });
+  });
+
+  it("이미지 대회 · 그림 칸: [이미지] 켜짐", () => {
+    expect(slotButtons({ ...named("하니"), imageUrl: "https://x/1.jpg" }, "image")).toMatchObject({ video: null, image: "on", imageFile: true });
+  });
+
+  it("영상 대회에 남은 그림(옛 섞인 초안): 빼기 전용 켜진 [이미지]만 · 넣기 버튼은 [영상]", () => {
+    expect(slotButtons({ ...named("하니"), imageUrl: "https://x/1.jpg" }, "video")).toEqual({ manual: true, video: "off", image: "on", imageFile: false, refresh: false });
+  });
+
+  it("이미지 대회에 남은 영상: 빼기 전용 켜진 [영상]만 · [새 영상 찾기] 없음", () => {
+    expect(slotButtons({ ...named("하니"), videoId: ID }, "image")).toEqual({ manual: false, video: "on", image: "off", imageFile: true, refresh: false });
   });
 });
 
@@ -161,6 +172,7 @@ describe("주소 기억 — 초안에는 저장, 발행 문서에는 없음", ()
     contestants,
     thumbnailPair: EMPTY_PICK,
     entryUnit: "individual",
+    mediaKind: "video",
   });
 
   it("저장 → 불러오기 왕복에 3필드가 남는다", () => {

@@ -16,6 +16,7 @@ import { validateKeywords } from "@/lib/lab/keywordsValidation";
 import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 import type { ContestantMedia, EmbedOrientation, EntryImage, EntryImageOrigin } from "@/lib/media/mediaSlot";
 import {
   ENTRY_UNITS,
@@ -50,6 +51,8 @@ export interface TournamentInput {
    * 나중에 읽는 쪽이 "없음 = 개인" 추측을 할 필요가 2026-10-28 이전 문서뿐이 되게.
    */
   entryUnit?: EntryUnit;
+  /** LAB-FIX-3 추가분(원장 D-90) — 대회 종류. 정해졌을 때만 문서에 싣는다(크라운 카드·무대가 쓸 수 있게). */
+  mediaKind?: MediaKind;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -169,6 +172,7 @@ export function buildTournamentDoc(
     entryUnit,
     // Firestore rejects undefined — carry the field only when the host set one.
     ...(slug.isEmpty ? {} : { campaignSlug: slug.value }),
+    ...(input.mediaKind ? { mediaKind: input.mediaKind } : {}),
   };
 }
 

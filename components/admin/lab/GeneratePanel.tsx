@@ -6,6 +6,9 @@
  * 매번 기억해야 했고, 그 순서는 사실 하나뿐이었다. 그래서 순서를 화면이 갖는다:
  * 버튼은 **결과물** 두 개고, 부품은 접어 둔다(결정 1 = B안).
  *
+ * LAB-FIX-3 추가분(원장 D-90) — 처음 누른 생성 버튼이 대회 종류(영상 · 이미지)를 정한다. 정해지면 반대쪽
+ * 버튼은 꺼지고(마우스를 올리면 이유), 직접 손보기 도구도 그 종류만 보인다(kindTools). 종류 미정이면 도구 없음.
+ *
  * R6 — 이 패널은 Tournament를 만들지 않는다. 결과는 전부 슬롯 "제안"이고, 발행은
  * 운영자가 [토너먼트 생성]을 눌러야 일어난다. 그 사실을 리드 문장으로 못 박는다.
  */
@@ -14,10 +17,16 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n/useT";
 import type { Step2Counters } from "@/lib/lab/step2Counters";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 import { lab } from "./theme";
 import { LabIcon } from "./LabIcon";
 
 export type ChainStage = "filling" | "sourcing";
+
+/** 직접 손보기 도구 — 그 종류만(D-90). 미정이면 없음(반드시 생성 버튼으로 시작). */
+export function kindTools(kind: MediaKind | null): { pasteLinks: boolean; fillBlanks: boolean; imageFiles: boolean } {
+  return { pasteLinks: kind === "video", fillBlanks: kind !== null, imageFiles: kind === "image" };
+}
 
 interface GeneratePanelProps {
   counters: Step2Counters;
@@ -39,6 +48,8 @@ interface GeneratePanelProps {
   hasBlanks: boolean;
   /** 발행 중 등 바깥 사정으로 전체를 잠글 때. */
   disabled?: boolean;
+  /** D-90 대회 종류. null = 미정(두 버튼 모두 켜짐). */
+  mediaKind: MediaKind | null;
 }
 
 export function GeneratePanel({
@@ -53,12 +64,18 @@ export function GeneratePanel({
   toolsEnd,
   hasBlanks,
   disabled = false,
+  mediaKind,
 }: GeneratePanelProps): JSX.Element {
   const { t } = useT();
   const [toolsOpen, setToolsOpen] = useState(false);
   const busy = disabled || stage !== null;
+  const tools = kindTools(mediaKind);
+  // 정해진 종류의 반대쪽 버튼은 꺼진다. 마우스를 올리면 이 대회의 종류를 알린다.
+  const videosLocked = mediaKind === "image";
+  const imagesLocked = mediaKind === "video";
+  const lockedTitle = mediaKind === "video" ? t("lab.kind.lockedVideo") : mediaKind === "image" ? t("lab.kind.lockedImage") : undefined;
 
-  const primary = (running: boolean) =>
+  const primary = (running: boolean, locked = false) =>
     ({
       flex: "1 1 260px",
       display: "grid",
@@ -70,8 +87,8 @@ export function GeneratePanel({
       color: lab.gold,
       fontFamily: lab.font,
       textAlign: "left" as const,
-      cursor: busy ? "not-allowed" : "pointer",
-      opacity: busy && !running ? 0.45 : 1,
+      cursor: busy || locked ? "not-allowed" : "pointer",
+      opacity: (busy && !running) || locked ? 0.45 : 1,
     }) as const;
 
   // 버튼 이름 줄 — 서랍과 같은 선 아이콘(LabIcon) + 글자. 진행 중 문구로 바뀌어도 아이콘은 남는다.
@@ -128,9 +145,10 @@ export function GeneratePanel({
         <button
           type="button"
           onClick={onGenerateVideos}
-          disabled={busy}
+          disabled={busy || videosLocked}
+          title={videosLocked ? lockedTitle : undefined}
           data-testid="lab-generate-videos"
-          style={primary(stage !== null)}
+          style={primary(stage !== null && !videosLocked, videosLocked)}
         >
           <span style={labelRow}>
             <LabIcon name="video" />
@@ -143,9 +161,10 @@ export function GeneratePanel({
         <button
           type="button"
           onClick={onGenerateImages}
-          disabled={busy}
+          disabled={busy || imagesLocked}
+          title={imagesLocked ? lockedTitle : undefined}
           data-testid="lab-generate-images"
-          style={primary(false)}
+          style={primary(false, imagesLocked)}
         >
           <span style={labelRow}>
             <LabIcon name="image" />
@@ -157,6 +176,10 @@ export function GeneratePanel({
         </button>
         {primaryEnd ? <div style={{ marginLeft: "auto", alignSelf: "center" }}>{primaryEnd}</div> : null}
       </div>
+      {/* D-90 — 두 버튼 바로 밑 안내 한 줄(작은 글씨). */}
+      <p data-testid="lab-media-kind-note" style={{ margin: "-6px 0 0", fontSize: 11, color: lab.textMuted }}>
+        {t("lab.kind.note")}
+      </p>
 
       <p
         data-testid="lab-step2-counter"
@@ -195,28 +218,32 @@ export function GeneratePanel({
             data-testid="lab-manual-tools"
             style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}
           >
-            <button
-              type="button"
-              onClick={onPasteLinks}
-              disabled={busy}
-              data-testid="lab-open-embed-inspector"
-              style={tool(!busy)}
-            >
-              {t("lab.embed.open")}
-            </button>
-            <button
-              type="button"
-              onClick={onFillBlanks}
-              disabled={busy || !hasBlanks}
-              data-testid="fill-blanks-button"
-              style={tool(!busy && hasBlanks)}
-            >
-              {t("lab.fill.blanks")}
-            </button>
+            {tools.pasteLinks && (
+              <button
+                type="button"
+                onClick={onPasteLinks}
+                disabled={busy}
+                data-testid="lab-open-embed-inspector"
+                style={tool(!busy)}
+              >
+                {t("lab.embed.open")}
+              </button>
+            )}
+            {tools.fillBlanks && (
+              <button
+                type="button"
+                onClick={onFillBlanks}
+                disabled={busy || !hasBlanks}
+                data-testid="fill-blanks-button"
+                style={tool(!busy && hasBlanks)}
+              >
+                {t("lab.fill.blanks")}
+              </button>
+            )}
             <span style={{ fontSize: 12, color: lab.textMuted }}>
               {t("lab.generate.toolsHint")}
             </span>
-            {toolsEnd}
+            {tools.imageFiles && toolsEnd}
           </div>
         )}
       </div>

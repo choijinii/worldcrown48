@@ -25,11 +25,16 @@
  *     누르면 빠진다(묻지 않음). 또 누르면 먼저 넣었던 주소가 채워진 채 열린다(주소 기억 · 초안에만).
  *   · 🔎(검색어 힌트 툴팁) · [그림 지우기] · 수동 칸의 [영상 찾기]는 없앴다. 판정은 lib/lab/manualMedia.
  *   · 이름만 있고 영상·그림이 없는 칸 가운데는 크라운 로고(정본 /brand/wc48-crown-filled.svg).
+ *
+ * LAB-FIX-3 추가분 (원장 D-90) — 칸 버튼은 대회 종류를 따른다: 영상 대회 = [영상]만 · 이미지 대회 =
+ *   [이미지]·[이미지 파일]만 · 종류 미정 = 넣기 버튼 없음. 한 칸에 영상과 그림을 함께 두지 않는다. 옛 섞인
+ *   초안의 반대 종류 미디어는 빼기 전용 켜진 버튼으로만 보인다.
  */
 "use client";
 
 import { useRef, useState } from "react";
 import { slotButtons } from "@/lib/lab/manualMedia";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 import type { Message } from "@/lib/lab/embedMessages";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { slotPreview } from "@/lib/lab/entryImages";
@@ -74,6 +79,8 @@ interface ContestantEditorProps {
   videoMismatch?: boolean;
   /** LAB-FIX-3 (D-89) — 수동 칸의 [영상] 넣기 · 빼기. 없으면 [영상]을 그리지 않는다. */
   video?: SlotVideoHandlers;
+  /** LAB-FIX-3 추가분 (D-90) — 대회 종류. 영상 대회 = [영상] · 이미지 대회 = [이미지]·[이미지 파일] · 미정 = 없음. */
+  mediaKind?: MediaKind | null;
 }
 
 export interface SlotVideoHandlers {
@@ -173,6 +180,7 @@ export function ContestantEditor({
   image,
   videoMismatch = false,
   video,
+  mediaKind = null,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -181,7 +189,7 @@ export function ContestantEditor({
   const [lineValue, setLineValue] = useState("");
   const [lineBusy, setLineBusy] = useState(false);
   const [lineFail, setLineFail] = useState<Message | null>(null);
-  const buttons = slotButtons(contestant);
+  const buttons = slotButtons(contestant, mediaKind);
   const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
   // LAB-EV-1: 영상만 있는 슬롯도 그리드에서 비어 보이면 안 된다 — 유튜브 썸네일을
@@ -266,9 +274,10 @@ export function ContestantEditor({
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       data-pair={pairMark ?? ""}
-      onDragOver={image ? (e) => e.preventDefault() : undefined}
+      onDragOver={image && buttons.imageFile ? (e) => e.preventDefault() : undefined}
       onDrop={
-        image
+        // D-90 — 그림을 끌어 넣는 것은 이미지 대회에서만.
+        image && buttons.imageFile
           ? (e) => {
               // 한 칸에 한 장을 놓으면 그 칸만 — 그리드 전체 끌어놓기로 번지지 않게 멈춘다.
               const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
@@ -584,7 +593,10 @@ export function ContestantEditor({
       )}
 
       {/* LAB-FIX-3 (D-89) — 칸 버튼 한 줄. 자동 칸 = [새 영상 찾기] · 수동 칸 = [영상] · [이미지] · [이미지 파일]. */}
-      {((buttons.refresh && onRefreshVideo) || (buttons.manual && (video || image))) && (
+      {((buttons.refresh && onRefreshVideo) ||
+        (buttons.video && video) ||
+        (buttons.image && image) ||
+        (buttons.imageFile && image)) && (
         <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
           {buttons.refresh && onRefreshVideo && (
             <button
@@ -597,7 +609,7 @@ export function ContestantEditor({
               {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
             </button>
           )}
-          {buttons.manual && video && (
+          {buttons.video && video && (
             <button
               type="button"
               data-testid={`slot-video-${index}`}
@@ -610,8 +622,7 @@ export function ContestantEditor({
               {t("lab.slot.video")}
             </button>
           )}
-          {buttons.manual && image && (
-            <>
+          {buttons.image && image && (
               <button
                 type="button"
                 data-testid={`slot-image-url-${index}`}
@@ -624,6 +635,9 @@ export function ContestantEditor({
               >
                 {t("lab.image.chipUrl")}
               </button>
+          )}
+          {buttons.imageFile && image && (
+            <>
               <button
                 type="button"
                 data-testid={`slot-image-file-${index}`}
@@ -649,7 +663,7 @@ export function ContestantEditor({
           )}
         </div>
       )}
-      {buttons.manual && line && (
+      {line && (buttons.video !== null || buttons.image !== null) && (
         <div style={{ display: "flex", gap: 4, alignItems: "stretch" }}>
           <input
             type="url"

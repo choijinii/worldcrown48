@@ -14,9 +14,9 @@ const noop = () => {};
 const image = { onFile: noop, onUrl: async () => null, onRemove: noop };
 const video = { onAdd: async () => null, onRemove: noop };
 const base: ContestantDraft = { name: "민지", nationality: "KR", affiliation: "NewJeans", imageSearchKeyword: "민지 직캠" };
-const render = (c: ContestantDraft) =>
+const render = (c: ContestantDraft, mediaKind: "video" | "image" | null = c.imageUrl ? "image" : "video") =>
   renderToStaticMarkup(
-    createElement(ContestantEditor, { index: 4, contestant: c, onChange: noop, image, video, onRefreshVideo: noop }),
+    createElement(ContestantEditor, { index: 4, contestant: c, onChange: noop, image, video, onRefreshVideo: noop, mediaKind }),
   );
 
 describe("칸 버튼 — 자동 칸", () => {
@@ -32,24 +32,35 @@ describe("칸 버튼 — 자동 칸", () => {
   });
 });
 
-describe("칸 버튼 — 수동 칸", () => {
-  it("비어 있음: [영상]·[이미지]·[이미지 파일] 꺼짐 · [영상 찾기] 없음", () => {
-    const html = render(base);
+describe("칸 버튼 — 수동 칸 · 대회 종류(D-90)", () => {
+  it("영상 대회 빈 칸: [영상]만 꺼짐 · [이미지]·[이미지 파일]·[영상 찾기] 없음", () => {
+    const html = render(base, "video");
     expect(html).toMatch(/data-testid="slot-video-4"[^>]*aria-pressed="false"/);
-    expect(html).toMatch(/data-testid="slot-image-url-4"[^>]*aria-pressed="false"/);
-    expect(html).toContain('data-testid="slot-image-file-4"');
+    expect(html).not.toContain('data-testid="slot-image-url-4"');
+    expect(html).not.toContain('data-testid="slot-image-file-4"');
     expect(html).not.toContain('data-testid="contestant-refresh-4"');
     expect(html).toContain(">Video<");
+  });
+  it("이미지 대회 빈 칸: [이미지]·[이미지 파일]만 · [영상] 없음", () => {
+    const html = render(base, "image");
+    expect(html).toMatch(/data-testid="slot-image-url-4"[^>]*aria-pressed="false"/);
+    expect(html).toContain('data-testid="slot-image-file-4"');
+    expect(html).not.toContain('data-testid="slot-video-4"');
     expect(html).toContain(">Image<");
     expect(html).toContain(">Image file<");
   });
+  it("종류 미정: 넣기 버튼 없음", () => {
+    const html = render(base, null);
+    for (const id of ["slot-video-4", "slot-image-url-4", "slot-image-file-4", "contestant-refresh-4"]) {
+      expect(html).not.toContain(`data-testid="${id}"`);
+    }
+  });
   it("손으로 넣은 영상: [영상] 켜짐", () => {
-    const html = render({ ...base, videoId: "dQw4w9WgXcQ", manualVideo: true });
+    const html = render({ ...base, videoId: "dQw4w9WgXcQ", manualVideo: true }, "video");
     expect(html).toMatch(/data-testid="slot-video-4"[^>]*aria-pressed="true"/);
-    expect(html).not.toContain('data-testid="contestant-refresh-4"');
   });
   it("그림 칸: [이미지] 켜짐 · [그림 지우기] 없음", () => {
-    const html = render({ ...base, imageUrl: "https://x/f", imageThumbUrl: "https://x/t" });
+    const html = render({ ...base, imageUrl: "https://x/f", imageThumbUrl: "https://x/t" }, "image");
     expect(html).toMatch(/data-testid="slot-image-url-4"[^>]*aria-pressed="true"/);
     expect(html).not.toContain("slot-image-remove-4");
   });

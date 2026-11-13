@@ -81,6 +81,7 @@ import { inspectErrorCode, validateYouTubeLinks } from "@/lib/lab/inspectYouTube
 import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
 import { inspectErrorMessage, verdictMessages, type Message } from "@/lib/lab/embedMessages";
 import { addManualVideo, removeManualVideo, runManualVideoAdd } from "@/lib/lab/manualMedia";
+import { isMediaPublishable, type MediaKind } from "@/lib/lab/mediaKind";
 import { sourcingErrorMessage } from "@/lib/lab/sourcingMessages";
 import type { SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkVerdict } from "@/lib/embed/verdict";
@@ -204,6 +205,8 @@ export function TournamentCreator(): JSX.Element {
   const [description, setDescription] = useState("");
   // ENTRY-UNIT-1 (원장 D-73) — 엔트리 48개가 사람인가 그룹인가. AI 채우기가 따른다.
   const [entryUnit, setEntryUnit] = useState<EntryUnit>(DEFAULT_ENTRY_UNIT);
+  // LAB-FIX-3 추가분(원장 D-90) — 대회 종류. 처음 누른 생성 버튼이 정하고, 바꾸려면 새로 시작한다.
+  const [mediaKind, setMediaKind] = useState<MediaKind | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [campaignSlug, setCampaignSlug] = useState("");
   // Stable reference "now" for this create session (presets + gate use it).
@@ -280,6 +283,7 @@ export function TournamentCreator(): JSX.Element {
     contestants,
     thumbnailPair: pairPick,
     entryUnit,
+    mediaKind,
   };
 
   /**
@@ -395,6 +399,7 @@ export function TournamentCreator(): JSX.Element {
     setContestants(s.contestants);
     setPairPick(s.thumbnailPair);
     setEntryUnit(s.entryUnit);
+    setMediaKind(s.mediaKind);
     setSourcingStates({});
     lastQueuedRef.current = JSON.stringify(s);
   }
@@ -411,6 +416,7 @@ export function TournamentCreator(): JSX.Element {
       contestants: [],
       thumbnailPair: EMPTY_PICK,
       entryUnit: DEFAULT_ENTRY_UNIT,
+      mediaKind: null,
     };
   }
 
@@ -694,11 +700,11 @@ export function TournamentCreator(): JSX.Element {
    * 불일치로 훑는 일이고, 그 판정은 `reviewFlags`가 상태에서 파생한다 — 여기서는
    * 결과를 세어 한 줄로 알려주기만 하면 된다.
    */
-  async function generateImages() {
+  async function generateImages(mode: "all" | "blanks" = "all") {
     if (chainStage) return;
     setChainStage("filling");
     try {
-      const filled = await fillWithAI("all");
+      const filled = await fillWithAI(mode);
       if (!filled) return;
       const drafts = filled.drafts;
       const flags = deriveReviewFlags(
@@ -975,6 +981,8 @@ export function TournamentCreator(): JSX.Element {
 
   /** ① 여러 장 — 파일 이름 자연 정렬 순서로 그림이 없는 칸부터 채운다(넘치면 버린다). */
   async function addImageFiles(list: FileList | File[] | null) {
+    // D-90 — 그림 파일은 이미지 대회에서만 받는다.
+    if (mediaKind !== "image") return;
     const files = naturalSortFiles(Array.from(list ?? []).filter((f) => f.type.startsWith("image/")));
     if (files.length === 0) return;
     const slots = assignToEmptySlots(filledForAssignment(contestantsRef.current, reservedSlotsRef.current), files.length);
@@ -1120,6 +1128,7 @@ export function TournamentCreator(): JSX.Element {
             deadlineMs,
             campaignSlug,
             entryUnit,
+            ...(mediaKind ? { mediaKind } : {}),
           },
           validCategoryIds,
           nowMs,
@@ -1159,6 +1168,7 @@ export function TournamentCreator(): JSX.Element {
       setCategory("");
       setDescription("");
       setEntryUnit(DEFAULT_ENTRY_UNIT);
+      setMediaKind(null);
       setKeywords([]);
       setCampaignSlug("");
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
@@ -1345,6 +1355,8 @@ export function TournamentCreator(): JSX.Element {
                 // IMAGE-1 — 바로 발행하지 않고 마지막 확인창을 연다(체크 3칸).
                 onClick={() => setConfirmOpen(true)}
                 pairReady={isPickComplete(pairPick)}
+                // D-90 — 영상과 그림이 섞여 있으면 발행하지 않는다.
+                mediaReady={isMediaPublishable(mediaKind, contestants)}
               />
             </div>
           </div>
@@ -1360,12 +1372,23 @@ export function TournamentCreator(): JSX.Element {
             counters={counters}
             stage={chainStage}
             progress={sourceProgress}
-            onGenerateVideos={() => void startVideoChain("all")}
-            onGenerateImages={() => void generateImages()}
+            // D-90 — 누르는 순간 대회 종류가 정해진다(반대쪽 버튼은 패널이 끈다).
+            onGenerateVideos={() => {
+              if (mediaKind === "image") return;
+              setMediaKind("video");
+              void startVideoChain("all");
+            }}
+            onGenerateImages={() => {
+              if (mediaKind === "video") return;
+              setMediaKind("image");
+              void generateImages();
+            }}
+            mediaKind={mediaKind}
             onPasteLinks={() => setInspectorOpen(true)}
             // 빈칸도 같은 체인을 탄다 — 채우기로 끝나면 영상도 배지도 없는 칸이
             // 남아 복구가 안 된다(대표 스모크 지적 ②).
-            onFillBlanks={() => void startVideoChain("blanks")}
+            // D-90 — 이미지 대회는 채우기만(영상 검색 없음).
+            onFillBlanks={() => void (mediaKind === "image" ? generateImages("blanks") : startVideoChain("blanks"))}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}
             disabled={publishing}
             primaryEnd={
@@ -1435,7 +1458,7 @@ export function TournamentCreator(): JSX.Element {
           <div
             data-testid="entry-image-dropzone"
             onDragOver={(e) => {
-              if (Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault();
+              if (mediaKind === "image" && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault();
             }}
             onDrop={(e) => {
               if (e.dataTransfer.files.length === 0) return;
@@ -1459,6 +1482,7 @@ export function TournamentCreator(): JSX.Element {
             reviewFlags={reviewFlags}
             onRefreshVideo={(index) => void refreshSlot(index)}
             refreshingIndex={refreshingIndex}
+            mediaKind={mediaKind}
           />
           </div>
           <p style={{ margin: 0, fontSize: 12, color: lab.textMuted }}>

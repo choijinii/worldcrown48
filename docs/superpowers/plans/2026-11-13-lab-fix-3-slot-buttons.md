@@ -17,7 +17,7 @@
 
 ## 코티오가 정한 것(대표 확인용)
 1. **수동 칸 판정** = `!videoId || manualVideo === true`. 그림만 있는 칸(파일 48장 · 이미지 검색 AI · 칸마다 어느 길이든)은 수동 칸 → 켜진 [이미지]로 뺄 수 있다(§5-5).
-2. 수동 칸에서는 [영상]·[이미지]가 각자 켜고 꺼진다(영상과 그림을 함께 둘 수 있다 — D-77 영상 칸의 그림). [새 영상 찾기]는 자동 칸에서만.
+2. ~~수동 칸에서는 [영상]·[이미지]가 각자 켜고 꺼진다(영상과 그림을 함께 둘 수 있다)~~ — **불합격(대표 2026-11-13 16:04): 대표가 정한 적 없는 내용.** 추가분(D-90)이 대회 종류로 대신한다. [새 영상 찾기]는 자동 칸에서만.
 3. 자동 길([동영상 생성]·검수기·[새 영상 찾기])로 영상이 들어오면 `manualVideo` 표시를 지운다 → 그 칸은 자동 칸이 된다. 기억한 주소는 남긴다.
 4. 주소 해석 실패: 유튜브가 아님 · 링크 아님 → 승인 문구 3번. 유튜브인데 영상 id 없음 → 검수기 기존 문구(`lab.embed.reason.noVideoId`).
 5. 검사·추출 콜러블 오류는 검수기와 같은 토스트 문구(`inspectErrorMessage`). 추출만 실패하면 영상은 넣고 이름은 비워 둔다(검수기와 같음).
@@ -86,3 +86,38 @@
 - [ ] 칸 높이 전·후 측정(1440×900, `contestant-node-*` boundingBox) 기록.
 - [ ] 원장 D-89 네 줄 · CLAUDE.md 이력 · `npm run check:docs` · 금지 낱말 검사.
 - [ ] verification-before-completion: 유닛·통합·E2E·tsc·hex·docs 전부 다시 실행 → PR.
+
+---
+
+## 추가분 — 대회 종류(영상 대회 · 이미지 대회) 잠금 (원장 D-90 · 지시서 `PROMPT_ClaudeCode_LAB-FIX-3_추가_대회종류_v1.0_2026-11-13.md`)
+
+**목표:** 대회 하나 = 영상 대회 또는 이미지 대회. 처음 누른 생성 버튼이 종류를 정해 초안에 저장하고, 반대 종류의 버튼·도구·칸 넣기 버튼은 꺼지거나 숨는다. 섞이면 발행 안 됨.
+
+**설계:** 판정은 순수 함수 `lib/lab/mediaKind.ts`. 초안 칸 `mediaKind`(최상위 · firestore.rules 허용 목록에 추가) · 발행 문서 `mediaKind`. 칸 버튼 판정 `slotButtons(c, kind)` 가 종류를 받는다.
+
+### 코티오가 정한 것(보고에 적음)
+1. 반대 종류의 미디어가 이미 있는 칸(옛 섞인 초안)에는 **빼기 전용**으로 켜진 버튼 하나만 보인다(영상 대회의 그림 칸 = 켜진 [이미지] · 이미지 대회의 영상 칸 = 켜진 [영상]). 넣기 버튼은 아니므로 "그 종류의 넣기 버튼만"과 어긋나지 않는다 — 섞인 초안을 발행 가능하게 고칠 길.
+2. 종류 미정 초안에서는 직접 손보기 도구(검수기 · 빈칸만 AI · 이미지 파일 넣기)도 숨는다(반드시 생성 버튼으로 시작). [빈칸만 AI]는 영상 대회 = 기존 영상 체인, 이미지 대회 = 채우기만.
+3. 섞여서 발행이 막힐 때 새 문구는 만들지 않는다(발행 버튼만 꺼짐) — 필요하면 3언어 표로 따로 보고.
+4. "URL 48줄" 넣기는 지금 코드에 없다(찾아도 0건) — 막을 대상 없음.
+
+### Task A: 순수 층 `lib/lab/mediaKind.ts` + 초안·발행 문서 + 규칙
+- `type MediaKind = "video" | "image"` · `inferMediaKind(cs): { kind: MediaKind | null; mixed: boolean }`(영상 있으면 video · 그림만 있으면 image · 둘 다 = video + mixed) · `resolveMediaKind(stored, cs): MediaKind | null`(저장값이 맞으면 그것, 아니면 추론) · `isMediaPublishable(kind, cs): boolean`(영상 대회에 그림 0 · 이미지 대회에 영상 0 · 미정이면 섞임 없음).
+- `DraftEditorState.mediaKind: MediaKind | null` · `toDraftFields` 는 정해졌을 때만 싣는다 · `fromDraftDoc` = resolve · `DRAFT_FIELDS`·firestore.rules `isValidDraft` 에 `mediaKind`('video'|'image') · rules 시험.
+- `TournamentInput.mediaKind?` → 발행 문서 `mediaKind`(있을 때만) · `Tournament` 타입에 선택 칸.
+- 시험 먼저: `lib/__tests__/lab/mediaKind.test.ts` · tournamentDraft · tournamentDoc · rules.
+
+### Task B: 칸 버튼 `slotButtons(c, kind)`
+- 미정 → 넣기 버튼 없음 · video → [영상](수동 칸) · image → [이미지]·[이미지 파일] · 반대 종류 미디어가 있으면 켜진 빼기 버튼만. 자동 칸 [새 영상 찾기]는 그대로.
+- 시험 먼저: manualMedia.test.ts · slotButtons.test.ts 갱신.
+
+### Task C: 화면 — GeneratePanel · TournamentCreator · 발행
+- GeneratePanel `mediaKind` prop: 반대쪽 버튼 꺼짐 + `title`(2a/2b) · 버튼 밑 안내(1) `lab-media-kind-note` · 도구 줄: 검수기 = video 만 · [빈칸만 AI] = 정해졌을 때 · [이미지 파일 넣기]·끌어놓기 = image 만.
+- 생성 버튼을 누르는 순간 `setMediaKind` → 자동 저장. [새로 시작]·초안 열기 때 다시 정함.
+- `PublishButton` `mediaReady` prop.
+- 문구 3줄(`lab.kind.note` · `lab.kind.lockedVideo` · `lab.kind.lockedImage`) — 승인표 그대로 · 시험.
+
+### Task D: E2E
+- 에뮬레이터 `lab-fix3-media-kind.spec.ts`: §5 1·2·3·4·5·6(AI 채우기·견적은 가짜 응답, 견적 창 [취소]). 고치기 전 main 에서 빨강.
+- 기존 시험 정리: 에뮬레이터 `seedDraft` 에 `mediaKind` 인자 — IMAGE-1 그림 시험은 이미지 대회(영상 칸 없음) · 불일치 배지 확인은 영상 대회 초안으로 분리 · lab-fix3 시험은 영상/이미지 초안 각각. 미리보기 b1·thumb1 은 [동영상 생성] → 견적 창 [취소] → 검수기로 영상.
+- 원장 D-90 · CLAUDE.md 이력 · 사전 점검 표 갱신.

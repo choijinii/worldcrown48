@@ -45,6 +45,8 @@ function state(overrides: Partial<DraftEditorState> = {}): DraftEditorState {
     contestants: Array.from({ length: 48 }, (_, i) => fullContestant(i)),
     thumbnailPair: { a: 3, b: 17, aPos: 22, bPos: null, next: "a" },
     entryUnit: "individual",
+    // LAB-FIX-3 추가분(D-90) — 48칸에 영상이 있는 초안 = 영상 대회.
+    mediaKind: "video",
     ...overrides,
   };
 }
@@ -113,6 +115,7 @@ describe("isDraftBlank", () => {
     deadlineMs: 1,
     contestants: [],
     entryUnit: "individual",
+    mediaKind: null,
   };
 
   it("is blank when nothing was typed (step·deadline don't count)", () => {

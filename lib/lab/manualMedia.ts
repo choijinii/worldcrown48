@@ -7,6 +7,9 @@
  * [영상]·[이미지]는 켜고 끄는 버튼이다: 넣으면 켜지고, 켜진 것을 누르면 빠진다(묻지 않음). 마지막으로
  * 넣은 주소는 칸마다 초안에 기억한다(`manualVideoUrl` · `manualImageUrl`) — 발행 문서에는 싣지 않는다.
  *
+ * 대회 종류(원장 D-90): 영상 대회 = [영상]만 · 이미지 대회 = [이미지]·[이미지 파일]만 · 종류 미정 = 넣기 버튼 없음.
+ * 한 칸에 영상과 그림을 함께 두지 않는다. 옛 섞인 초안의 반대 종류 미디어는 빼기 전용 켜진 버튼으로만 보인다.
+ *
  * 영상 넣기는 검수기와 같은 길을 칸 하나에 쓴다: 주소 해석(parseYouTubeLink) → 검사(validateYouTubeLinks,
  * 영상 1개) → 이름이 빈 칸이면 제목 추출(엔트리 단위 전달) → applyVideoAssignments · applyExtractions.
  * 이름이 있는 칸의 이름은 건드리지 않는다(원장 D-88).
@@ -17,6 +20,7 @@ import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { applyVideoAssignments, clearVideo } from "@/lib/lab/videoDraft";
 import { applyExtractions, type ExtractedContestant } from "@/lib/lab/pasteExtract";
 import type { EntryUnit } from "@/lib/types/tournament";
+import type { MediaKind } from "@/lib/lab/mediaKind";
 
 export type SlotMode = "auto" | "manual";
 export type Toggle = "on" | "off";
@@ -37,17 +41,20 @@ export function slotMode(c: ContestantDraft): SlotMode {
   return c.videoId && !c.manualVideo ? "auto" : "manual";
 }
 
-export function slotButtons(c: ContestantDraft): SlotButtons {
-  if (slotMode(c) === "auto") {
-    return { manual: false, video: null, image: null, imageFile: false, refresh: true };
+export function slotButtons(c: ContestantDraft, kind: MediaKind | null): SlotButtons {
+  const manual = slotMode(c) === "manual";
+  // 반대 종류 미디어(옛 섞인 초안)는 빼기 전용 — 켜진 버튼만 보인다.
+  const removeOnlyImage: Toggle | null = c.imageUrl ? "on" : null;
+  const removeOnlyVideo: Toggle | null = c.videoId ? "on" : null;
+  if (kind === "image") {
+    return { manual, video: removeOnlyVideo, image: c.imageUrl ? "on" : "off", imageFile: true, refresh: false };
   }
-  return {
-    manual: true,
-    video: c.videoId ? "on" : "off",
-    image: c.imageUrl ? "on" : "off",
-    imageFile: true,
-    refresh: false,
-  };
+  if (kind === "video") {
+    if (!manual) return { manual, video: null, image: removeOnlyImage, imageFile: false, refresh: true };
+    return { manual, video: c.videoId ? "on" : "off", image: removeOnlyImage, imageFile: false, refresh: false };
+  }
+  // 종류 미정 — 넣기 버튼 없음(반드시 생성 버튼으로 시작).
+  return { manual, video: removeOnlyVideo, image: removeOnlyImage, imageFile: false, refresh: false };
 }
 
 export type ManualVideoParse =

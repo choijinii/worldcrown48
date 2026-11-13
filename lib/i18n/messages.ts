@@ -1500,6 +1500,14 @@ export const MESSAGES = {
   },
   "lab.slot.imagePlaceholder": { ko: "이미지 주소 붙여 넣기", en: "Paste an image link", es: "Pega un enlace de imagen" },
   "lab.slot.submit": { ko: "넣기 (Enter)", en: "Add (Enter)", es: "Añadir (Enter)" },
+  // LAB-FIX-3 추가분 (원장 D-90) — 대회 종류. 대표 승인 2026-11-13 16:13. 시험: labFix3Copy.test.ts
+  "lab.kind.note": {
+    ko: "처음 누른 버튼으로 대회 종류(영상 · 이미지)가 정해집니다. 바꾸려면 초안을 지우고 새로 시작하세요.",
+    en: "The first button you press sets the tournament type (video or image). To change it, delete the draft and start over.",
+    es: "El primer botón que pulses define el tipo de torneo (video o imagen). Para cambiarlo, borra el borrador y empieza de nuevo.",
+  },
+  "lab.kind.lockedVideo": { ko: "이 대회는 영상 대회입니다.", en: "This is a video tournament.", es: "Este es un torneo de video." },
+  "lab.kind.lockedImage": { ko: "이 대회는 이미지 대회입니다.", en: "This is an image tournament.", es: "Este es un torneo de imágenes." },
   "lab.source.refreshing": { ko: "찾는 중…", en: "Searching…", es: "Buscando…" },
   "lab.source.refreshEmpty": {
     ko: "다른 후보를 찾지 못했습니다.",
