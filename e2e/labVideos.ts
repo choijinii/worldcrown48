@@ -82,7 +82,9 @@ export async function lockAsVideoTournament(page: Page): Promise<void> {
   );
   await page.getByTestId("lab-generate-videos").click();
   await expect(page.getByTestId("lab-generate-images")).toBeDisabled();
-  await page.unroute("**/aiFillContestants*");
+  // 체인이 끝날 때까지 기다린다(채우기 → "검색할 칸 없음"). 스텁을 그 전에 거두면 요청이 진짜 AI 채우기로
+  // 나가고, 그동안 "채우는 중"이라 도구 버튼이 꺼져 있다(2026-11-13 CI 실측).
+  await expect(page.getByTestId("lab-generate-videos")).toBeEnabled({ timeout: 15_000 });
 }
 
 /** 검수(validate)·인물 추출(extract) 콜러블 스텁 — 앞의 `count` 개 영상. */

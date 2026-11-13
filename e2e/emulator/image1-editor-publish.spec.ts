@@ -140,7 +140,7 @@ test("① 48장 넣기 → 48 / 48 → 저장 → 새로고침 뒤 남음 → �
   expect(first.media.image.storagePath).toBe(`entry-images/tournaments/${tid}/0.jpg`);
   expect(first.media.image.url).toContain(encodeURIComponent(`entry-images/tournaments/${tid}/0.jpg`));
   expect(first.media.image.origin).toBe("upload");
-  expect([...byOrder.values()].every((c) => c.media.type === "image")).toBe(true);
+  expect(Array.from(byOrder.values()).every((c) => c.media.type === "image")).toBe(true);
   const [tFiles] = await adminApp().storage().bucket().getFiles({ prefix: `entry-images/tournaments/${tid}/` });
   expect(tFiles.length).toBe(96);
   // 초안 그림은 정리된다 · 초안 문서도 같은 배치에서 지워졌다
