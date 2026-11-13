@@ -642,10 +642,17 @@ export const MESSAGES = {
   // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[🖼 이미지 생성] 체인에 흡수됐다.
   // 이제 채우기에서 끝나지 않고 **그 칸들만** 소싱까지 이어간다(대표 스모크 ②).
   // 이름은 하는 일 기준이라 "영상까지"를 붙인다.
+  // 이미지 대회는 이미지를 넣지 않으므로 lab.fill.blanksImage를 쓴다. 이미지 자동 찾기 기능이 들어오면 이름을 다시 대표 승인으로 바꾼다.
   "lab.fill.blanks": {
     ko: "빈칸 채우고 영상까지",
     en: "Fill blanks + find videos",
     es: "Rellenar vacíos + buscar videos",
+  },
+  // LAB-FIX-3b — 대표 승인 2026-11-14 02:08.
+  "lab.fill.blanksImage": {
+    ko: "빈칸 채우기",
+    en: "Fill blanks",
+    es: "Rellenar vacíos",
   },
   "lab.fill.hint": {
     ko: "✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요",
