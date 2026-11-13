@@ -28,6 +28,11 @@ export function kindTools(kind: MediaKind | null): { pasteLinks: boolean; fillBl
   return { pasteLinks: kind === "video", fillBlanks: kind !== null, imageFiles: kind === "image" };
 }
 
+/** LAB-FIX-3b — 빈칸 버튼 이름. 이미지 대회는 이미지를 넣지 않으므로 "영상까지"를 붙이지 않는다. */
+export function fillBlanksLabel(kind: MediaKind | null): "lab.fill.blanks" | "lab.fill.blanksImage" {
+  return kind === "image" ? "lab.fill.blanksImage" : "lab.fill.blanks";
+}
+
 interface GeneratePanelProps {
   counters: Step2Counters;
   /** 지금 도는 체인 단계. null이면 놀고 있다. */
@@ -237,7 +242,7 @@ export function GeneratePanel({
                 data-testid="fill-blanks-button"
                 style={tool(!busy && hasBlanks)}
               >
-                {t("lab.fill.blanks")}
+                {t(fillBlanksLabel(mediaKind))}
               </button>
             )}
             <span style={{ fontSize: 12, color: lab.textMuted }}>

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { GeneratePanel, kindTools } from "@/components/admin/lab/GeneratePanel";
+import { GeneratePanel, fillBlanksLabel, kindTools } from "@/components/admin/lab/GeneratePanel";
 import { PublishButton } from "@/components/admin/lab/PublishButton";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 
@@ -50,6 +50,15 @@ describe("kindTools — 직접 손보기 도구는 그 종류만", () => {
   });
   it("이미지 대회: 빈칸만 AI · 이미지 파일 넣기", () => {
     expect(kindTools("image")).toEqual({ pasteLinks: false, fillBlanks: true, imageFiles: true });
+  });
+});
+
+describe("빈칸 버튼 이름 — 대회 종류를 따른다(LAB-FIX-3b)", () => {
+  it("영상 대회: 지금 이름 그대로(lab.fill.blanks)", () => {
+    expect(fillBlanksLabel("video")).toBe("lab.fill.blanks");
+  });
+  it("이미지 대회: 이미지를 넣지 않으므로 lab.fill.blanksImage", () => {
+    expect(fillBlanksLabel("image")).toBe("lab.fill.blanksImage");
   });
 });
 

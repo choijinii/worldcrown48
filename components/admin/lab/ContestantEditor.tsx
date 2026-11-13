@@ -190,6 +190,7 @@ export function ContestantEditor({
   const [lineBusy, setLineBusy] = useState(false);
   const [lineFail, setLineFail] = useState<Message | null>(null);
   const buttons = slotButtons(contestant, mediaKind);
+  const hasToggles = Boolean((buttons.video && video) || (buttons.image && image) || (buttons.imageFile && image));
   const n = index + 1;
   const isEmpty = contestant.name.trim() === "";
   // LAB-EV-1: 영상만 있는 슬롯도 그리드에서 비어 보이면 안 된다 — 유튜브 썸네일을
@@ -250,6 +251,7 @@ export function ContestantEditor({
   const hint = (contestant.imageSearchKeyword ?? "").trim();
   const duplicate = reviewFlags?.find((f) => f.kind === "duplicate-suspect");
   const mismatch = reviewFlags?.find((f) => f.kind === "name-hint-mismatch");
+  const hasReview = Boolean(duplicate || mismatch || videoMismatch);
   // The ✕ clears the WHOLE card (all fields, incl. the AI keyword hint) back to
   // an empty slot. Shown whenever the card holds anything to clear.
   const hasContent = [
@@ -495,68 +497,184 @@ export function ContestantEditor({
           style={{ ...fieldStyle, textTransform: "uppercase" }}
         />
       </div>
-      {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
-      {(duplicate || mismatch || videoMismatch) && (
-        <div
-          data-testid={`contestant-review-${index}`}
-          style={{ marginTop: 6, display: "grid", gap: 3 }}
-        >
-          {/* IMAGE-1 — 이름↔영상 불일치. 새 배지가 맨 앞(지시서 2-C 12). */}
-          {videoMismatch && (
-            <span
-              data-review-flag="name-video-mismatch"
-              title={t("lab.badge.nameVideoDesc")}
-              style={{ ...badgeStyle(ORANGE), cursor: "help" }}
-            >
-              {t("lab.badge.nameVideo")}
-            </span>
-          )}
-          {duplicate && (
-            <>
-              <span
-                data-review-flag="duplicate-suspect"
-                title={t("lab.review.duplicateTip", {
-                  slots: duplicate.pairedIndexes.map((i) => i + 1).join(", "),
-                })}
-                style={{ ...badgeStyle(TONE_COLOR.warn), cursor: "help" }}
+      {/* LAB-FIX-3b — 칸 줄: 리뷰 표시(왼쪽) + [영상]·[이미지]·[이미지 파일](오른쪽 끝) 한 줄.
+          리뷰 표시가 없어도 줄과 버튼 자리는 같다. 주소 칸은 이 줄 바로 밑(slot-line)에서 열린다 —
+          열고 닫아도 버튼은 움직이지 않는다. */}
+      {(hasReview || hasToggles) && (
+        <>
+          <div
+            data-testid={`slot-row-${index}`}
+            style={{ marginTop: 6, display: "flex", alignItems: "flex-start", gap: 6 }}
+          >
+            <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+              {/* LAB-UX-1 — 검수 배지. 소싱 배지와 공존한다(한 칸에 둘 다 붙을 수 있다). */}
+              {hasReview && (
+                <div
+                  data-testid={`contestant-review-${index}`}
+                  style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 3 }}
+                >
+                  {/* IMAGE-1 — 이름↔영상 불일치. 새 배지가 맨 앞(지시서 2-C 12). */}
+                  {videoMismatch && (
+                    <span
+                      data-review-flag="name-video-mismatch"
+                      title={t("lab.badge.nameVideoDesc")}
+                      style={{ ...badgeStyle(ORANGE), cursor: "help" }}
+                    >
+                      {t("lab.badge.nameVideo")}
+                    </span>
+                  )}
+                  {duplicate && (
+                    <>
+                      <span
+                        data-review-flag="duplicate-suspect"
+                        title={t("lab.review.duplicateTip", {
+                          slots: duplicate.pairedIndexes.map((i) => i + 1).join(", "),
+                        })}
+                        style={{ ...badgeStyle(TONE_COLOR.warn), cursor: "help" }}
+                      >
+                        {t("lab.review.duplicate")} ·{" "}
+                        {duplicate.pairedIndexes.map((i) => i + 1).join(", ")}
+                      </span>
+                      {onGoToSlot && duplicate.pairedIndexes[0] !== undefined && (
+                        <button
+                          type="button"
+                          onClick={() => onGoToSlot(duplicate.pairedIndexes[0])}
+                          data-testid={`contestant-goto-${index}`}
+                          style={{
+                            justifySelf: "start",
+                            padding: "2px 7px",
+                            borderRadius: 999,
+                            border: `1px solid ${lab.border}`,
+                            background: "transparent",
+                            color: lab.textSub,
+                            fontSize: 9,
+                            fontFamily: lab.font,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {t("lab.review.goToSlot", { n: duplicate.pairedIndexes[0] + 1 })}
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {mismatch && (
+                    <span
+                      data-review-flag="name-hint-mismatch"
+                      title={t("lab.review.nameMismatchTip", {
+                        tokens: mismatch.suggestedNameTokens.join(" ") || hint,
+                      })}
+                      style={{ ...badgeStyle(TONE_COLOR.danger), cursor: "help" }}
+                    >
+                      {t("lab.review.nameMismatch")}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {hasToggles && (
+              <div
+                data-testid={`slot-buttons-${index}`}
+                style={{ display: "flex", gap: 4, flexShrink: 0, marginLeft: "auto" }}
               >
-                {t("lab.review.duplicate")} ·{" "}
-                {duplicate.pairedIndexes.map((i) => i + 1).join(", ")}
-              </span>
-              {onGoToSlot && duplicate.pairedIndexes[0] !== undefined && (
+                {buttons.video && video && (
+                  <button
+                    type="button"
+                    data-testid={`slot-video-${index}`}
+                    aria-pressed={buttons.video === "on"}
+                    aria-expanded={line === "video"}
+                    disabled={lineBusy}
+                    onClick={() => toggle("video")}
+                    style={toggleStyle(buttons.video === "on")}
+                  >
+                    {t("lab.slot.video")}
+                  </button>
+                )}
+                {buttons.image && image && (
+                    <button
+                      type="button"
+                      data-testid={`slot-image-url-${index}`}
+                      aria-pressed={buttons.image === "on"}
+                      aria-expanded={line === "image"}
+                      // 리뷰 M-4 — 올리는 중에 빼면 끝난 업로드가 그림을 되살린다.
+                      disabled={image.busy || lineBusy}
+                      onClick={() => toggle("image")}
+                      style={toggleStyle(buttons.image === "on")}
+                    >
+                      {t("lab.image.chipUrl")}
+                    </button>
+                )}
+                {buttons.imageFile && image && (
+                  <>
+                    <button
+                      type="button"
+                      data-testid={`slot-image-file-${index}`}
+                      disabled={image.busy}
+                      onClick={() => fileRef.current?.click()}
+                      style={chipStyle}
+                    >
+                      {t("lab.image.chipFile")}
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      data-testid={`slot-image-file-input-${index}`}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (file) image.onFile(index, file);
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          <div data-testid={`slot-line-${index}`} style={{ display: "flex", flexDirection: "column" }}>
+            {line && (buttons.video !== null || buttons.image !== null) && (
+              <div style={{ display: "flex", gap: 4, alignItems: "stretch" }}>
+                <input
+                  type="url"
+                  value={lineValue}
+                  autoFocus
+                  disabled={lineBusy}
+                  placeholder={t(line === "video" ? "lab.slot.videoPlaceholder" : "lab.slot.imagePlaceholder")}
+                  aria-label={t(line === "video" ? "lab.slot.videoPlaceholder" : "lab.slot.imagePlaceholder")}
+                  data-testid={line === "video" ? `slot-video-input-${index}` : `slot-image-url-input-${index}`}
+                  onChange={(e) => setLineValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void submitLine();
+                    }
+                  }}
+                  style={{ ...fieldStyle, minWidth: 0 }}
+                />
                 <button
                   type="button"
-                  onClick={() => onGoToSlot(duplicate.pairedIndexes[0])}
-                  data-testid={`contestant-goto-${index}`}
-                  style={{
-                    justifySelf: "start",
-                    padding: "2px 7px",
-                    borderRadius: 999,
-                    border: `1px solid ${lab.border}`,
-                    background: "transparent",
-                    color: lab.textSub,
-                    fontSize: 9,
-                    fontFamily: lab.font,
-                    cursor: "pointer",
-                  }}
+                  data-testid={`slot-line-submit-${index}`}
+                  aria-label={t("lab.slot.submit")}
+                  title={t("lab.slot.submit")}
+                  disabled={lineBusy}
+                  onClick={() => void submitLine()}
+                  style={{ ...chipStyle, marginTop: 4, borderRadius: "var(--radius-border)", fontSize: 11, flexShrink: 0 }}
                 >
-                  {t("lab.review.goToSlot", { n: duplicate.pairedIndexes[0] + 1 })}
+                  ↵
                 </button>
-              )}
-            </>
-          )}
-          {mismatch && (
-            <span
-              data-review-flag="name-hint-mismatch"
-              title={t("lab.review.nameMismatchTip", {
-                tokens: mismatch.suggestedNameTokens.join(" ") || hint,
-              })}
-              style={{ ...badgeStyle(TONE_COLOR.danger), cursor: "help" }}
-            >
-              {t("lab.review.nameMismatch")}
-            </span>
-          )}
-        </div>
+              </div>
+            )}
+            {lineFail && line && (
+              <span
+                data-testid={line === "video" ? `slot-video-fail-${index}` : `slot-image-fail-${index}`}
+                role="status"
+                style={{ marginTop: 3, fontSize: 9, color: lab.crimson }}
+              >
+                {t(lineFail.key, lineFail.vars)}
+              </span>
+            )}
+          </div>
+        </>
       )}
 
       {/* LAB-EV-2 — 소싱 결과. "왜 안 됐는지"가 칸 안에 남아야 운영자가 조치한다. */}
@@ -592,117 +710,19 @@ export function ContestantEditor({
         </div>
       )}
 
-      {/* LAB-FIX-3 (D-89) — 칸 버튼 한 줄. 자동 칸 = [새 영상 찾기] · 수동 칸 = [영상] · [이미지] · [이미지 파일]. */}
-      {((buttons.refresh && onRefreshVideo) ||
-        (buttons.video && video) ||
-        (buttons.image && image) ||
-        (buttons.imageFile && image)) && (
+      {/* LAB-FIX-3b — [새 영상 찾기]는 자리를 바꾸지 않는다(소싱 배지 밑 자기 줄). */}
+      {buttons.refresh && onRefreshVideo && (
         <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-          {buttons.refresh && onRefreshVideo && (
-            <button
-              type="button"
-              onClick={() => onRefreshVideo(index)}
-              disabled={refreshing}
-              data-testid={`contestant-refresh-${index}`}
-              style={{ ...chipStyle, cursor: refreshing ? "not-allowed" : "pointer" }}
-            >
-              {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
-            </button>
-          )}
-          {buttons.video && video && (
-            <button
-              type="button"
-              data-testid={`slot-video-${index}`}
-              aria-pressed={buttons.video === "on"}
-              aria-expanded={line === "video"}
-              disabled={lineBusy}
-              onClick={() => toggle("video")}
-              style={toggleStyle(buttons.video === "on")}
-            >
-              {t("lab.slot.video")}
-            </button>
-          )}
-          {buttons.image && image && (
-              <button
-                type="button"
-                data-testid={`slot-image-url-${index}`}
-                aria-pressed={buttons.image === "on"}
-                aria-expanded={line === "image"}
-                // 리뷰 M-4 — 올리는 중에 빼면 끝난 업로드가 그림을 되살린다.
-                disabled={image.busy || lineBusy}
-                onClick={() => toggle("image")}
-                style={toggleStyle(buttons.image === "on")}
-              >
-                {t("lab.image.chipUrl")}
-              </button>
-          )}
-          {buttons.imageFile && image && (
-            <>
-              <button
-                type="button"
-                data-testid={`slot-image-file-${index}`}
-                disabled={image.busy}
-                onClick={() => fileRef.current?.click()}
-                style={chipStyle}
-              >
-                {t("lab.image.chipFile")}
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                hidden
-                data-testid={`slot-image-file-input-${index}`}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (file) image.onFile(index, file);
-                }}
-              />
-            </>
-          )}
-        </div>
-      )}
-      {line && (buttons.video !== null || buttons.image !== null) && (
-        <div style={{ display: "flex", gap: 4, alignItems: "stretch" }}>
-          <input
-            type="url"
-            value={lineValue}
-            autoFocus
-            disabled={lineBusy}
-            placeholder={t(line === "video" ? "lab.slot.videoPlaceholder" : "lab.slot.imagePlaceholder")}
-            aria-label={t(line === "video" ? "lab.slot.videoPlaceholder" : "lab.slot.imagePlaceholder")}
-            data-testid={line === "video" ? `slot-video-input-${index}` : `slot-image-url-input-${index}`}
-            onChange={(e) => setLineValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void submitLine();
-              }
-            }}
-            style={{ ...fieldStyle, minWidth: 0 }}
-          />
           <button
             type="button"
-            data-testid={`slot-line-submit-${index}`}
-            aria-label={t("lab.slot.submit")}
-            title={t("lab.slot.submit")}
-            disabled={lineBusy}
-            onClick={() => void submitLine()}
-            style={{ ...chipStyle, marginTop: 4, borderRadius: "var(--radius-border)", fontSize: 11, flexShrink: 0 }}
+            onClick={() => onRefreshVideo(index)}
+            disabled={refreshing}
+            data-testid={`contestant-refresh-${index}`}
+            style={{ ...chipStyle, cursor: refreshing ? "not-allowed" : "pointer" }}
           >
-            ↵
+            {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
           </button>
         </div>
-      )}
-      {lineFail && line && (
-        <span
-          data-testid={line === "video" ? `slot-video-fail-${index}` : `slot-image-fail-${index}`}
-          role="status"
-          style={{ marginTop: 3, fontSize: 9, color: lab.crimson }}
-        >
-          {t(lineFail.key, lineFail.vars)}
-        </span>
       )}
     </div>
   );
