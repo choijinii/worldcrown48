@@ -10,6 +10,7 @@ import {
   applyImageResults,
   assignImageLines,
   imageRefreshVisible,
+  imageSearchFailureKind,
   imageTargets,
   parseImageLines,
   runImageChunks,
@@ -138,6 +139,45 @@ describe("runImageChunks", () => {
     expect(got).toEqual([0, 1, 2, 3, 4, 5]);
     expect(out.stopped).toBe("error");
     expect(out.remaining).toBe(8);
+  });
+});
+
+describe("imageSearchFailureKind — 문구 15(네트워크) · 16(서버)를 가른다", () => {
+  // 브라우저가 서버에 닿지 못하면 Firebase 부품은 fetch 실패를 status 0 으로 바꿔
+  // FunctionsError("internal", "internal") — 세부 없음 — 으로 던진다. 서버가 보낸 오류는 본문의 문구를 싣는다.
+  const fnErr = (code: string, message: string, details?: unknown) => Object.assign(new Error(message), { code, details });
+
+  it("요청이 서버에 닿지 못함(status 0 · 'internal' 그대로) → network", () => {
+    expect(imageSearchFailureKind(fnErr("functions/internal", "internal"), true)).toBe("network");
+  });
+  it("브라우저가 오프라인이면 무엇이든 network", () => {
+    expect(imageSearchFailureKind(fnErr("functions/internal", "그림을 찾지 못했습니다."), false)).toBe("network");
+    expect(imageSearchFailureKind(new TypeError("Failed to fetch"), false)).toBe("network");
+  });
+  it("우리 함수가 던진 오류(본문 문구가 실림) → server", () => {
+    expect(imageSearchFailureKind(fnErr("functions/internal", "그림을 찾지 못했습니다."), true)).toBe("server");
+    expect(imageSearchFailureKind(fnErr("functions/internal", "INTERNAL"), true)).toBe("server");
+    expect(imageSearchFailureKind(fnErr("functions/resource-exhausted", "요청이 너무 많습니다."), true)).toBe("server");
+    expect(imageSearchFailureKind(fnErr("functions/deadline-exceeded", "deadline-exceeded"), true)).toBe("server");
+    expect(imageSearchFailureKind(fnErr("functions/unavailable", "unavailable"), true)).toBe("server");
+  });
+  it("권한 오류는 따로(기존 문구)", () => {
+    expect(imageSearchFailureKind(fnErr("functions/permission-denied", "x"), true)).toBe("permission");
+    expect(imageSearchFailureKind(fnErr("functions/unauthenticated", "x"), true)).toBe("permission");
+  });
+});
+
+describe("runImageChunks — Brave 오류 칸(search-error)", () => {
+  it("search-error 칸은 못 찾은 칸(notFound)에 넣지 않고 따로 센다 · 찾은 칸은 그대로", async () => {
+    const out = await runImageChunks([0, 1, 2].map((slot) => ({ slot, name: `N${slot}` })), [], {
+      call: async (slots) => ({
+        ok: true,
+        results: slots.map((s): SlotImageResult =>
+          s.slot === 1 ? { slot: 1, ok: false, reason: "search-error" } : s.slot === 2 ? { slot: 2, ok: false, reason: "not-found" } : ok(s.slot),
+        ),
+      }),
+    });
+    expect(out).toMatchObject({ found: 1, notFound: [2], searchErrors: [1], stopped: null });
   });
 });
 

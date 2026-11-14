@@ -55,7 +55,10 @@ export interface SavedImage {
   sourcePage: string;
 }
 
-export type SlotImageResult = ({ slot: number; ok: true } & SavedImage) | { slot: number; ok: false; reason: "not-found" };
+/** not-found = 쓸 그림이 없었다(문구 6) · search-error = Brave 가 오류를 냈다(문구 16 · 못 찾은 것과 다르다). */
+export type SlotImageResult =
+  | ({ slot: number; ok: true } & SavedImage)
+  | { slot: number; ok: false; reason: "not-found" | "search-error" };
 
 /** 성공 칸이 들고 나가는 칸 이름 전부 — 저장 금지 시험이 이 목록을 잠근다. */
 export const RESULT_KEYS = [
@@ -204,7 +207,7 @@ export async function runImageSourcing(
         return;
       }
       if (outcome.kind === "error") {
-        results.push({ slot: target.slot, ok: false, reason: "not-found" });
+        results.push({ slot: target.slot, ok: false, reason: "search-error" });
         continue;
       }
       results.push(await sourceOne(target, outcome.candidates, used, deps));

@@ -113,6 +113,7 @@ import { ImageLinksModal, type ImageLineFailure } from "./ImageLinksModal";
 import {
   applyImageResults,
   assignImageLines,
+  imageSearchFailureKind,
   imageTargets,
   parseImageLines,
   runImageChunks,
@@ -234,7 +235,8 @@ function withNotFound(states: SourcingStates, notFound: ReadonlySet<number>): So
 function markNotFound(prev: ReadonlySet<number>, chunk: readonly SlotImageResult[]): ReadonlySet<number> {
   const next = new Set(prev);
   for (const r of chunk) {
-    if (r.ok) next.delete(r.slot);
+    // "세로 400px 이상인 그림을 찾지 못했어요"는 정말 못 찾은 칸에만 — Brave 오류 칸은 문구 16(알림)으로 알린다.
+    if (r.ok || r.reason !== "not-found") next.delete(r.slot);
     else next.add(r.slot);
   }
   return next;
@@ -801,7 +803,7 @@ export function TournamentCreator(): JSX.Element {
     opts: { replace?: boolean } = {},
   ): Promise<{ summary: ImageChunkSummary; results: SlotImageResult[]; states: SourcingStates }> {
     const results: SlotImageResult[] = [];
-    if (targets.length === 0) return { summary: { found: 0, notFound: [], stopped: null, remaining: 0 }, results, states: {} };
+    if (targets.length === 0) return { summary: { found: 0, notFound: [], searchErrors: [], stopped: null, remaining: 0 }, results, states: {} };
     const draftId = ensureDraftId();
     const held = targets.map((x) => x.slot).filter((slot) => opts.replace || !reservedSlotsRef.current.has(slot));
     const heldSet = new Set(held);
@@ -841,10 +843,12 @@ export function TournamentCreator(): JSX.Element {
       if (summary.stopped === "no-key") showToast(t("lab.image.noKey"), "error");
       else if (summary.stopped === "limit") showToast(t("lab.image.limit"), "info");
       else if (summary.stopped === "error") {
-        const code = inspectErrorCode(summary.error);
-        console.warn("[Lab] autoSourceImages failed:", code, summary.error);
-        if (code === "permission-denied") showToast(t(sourcingErrorMessage(code).key), "error");
-      }
+        // 이미 찾은 칸은 묶음마다 얹었으므로 그대로 남는다 — 알림만 원인대로(대표 승인 15 · 16).
+        const kind = imageSearchFailureKind(summary.error);
+        console.warn("[Lab] autoSourceImages failed:", kind, inspectErrorCode(summary.error));
+        if (kind === "permission") showToast(t(sourcingErrorMessage("permission-denied").key), "error");
+        else showToast(t(kind === "network" ? "lab.image.networkFail" : "lab.image.serverFail"), "error");
+      } else if (summary.searchErrors.length > 0) showToast(t("lab.image.serverFail"), "error");
       return { summary, results, states: { ...foundStates(results), ...notFoundStates(results) } };
     } finally {
       Array.from(heldSet).forEach(release);

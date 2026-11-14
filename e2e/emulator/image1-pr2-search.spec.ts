@@ -71,6 +71,12 @@ test.beforeAll(async () => {
       const q = u.searchParams.get("q") ?? "";
       expect(u.searchParams.get("safesearch")).toBe("strict");
       expect(u.searchParams.get("count")).toBe("20");
+      if (/BraveDown/.test(q)) {
+        // 문구 16 — Brave 가 오류(500). 한도(402/429)와 다르다.
+        res.writeHead(500);
+        res.end("{}");
+        return;
+      }
       if (/LimitHit/.test(q)) {
         res.writeHead(429, { "x-ratelimit-limit": "50, 100", "x-ratelimit-remaining": "10, 0" });
         res.end("{}");
@@ -413,6 +419,56 @@ test("[E2E] 검색 한도(가짜 Brave 429) — 찾은 칸은 남고 문구 14",
   expect(n).toBeLessThan(6);
   expect(/127\.0\.0\.1:9199/.test((await preview(page, 2).getAttribute("style")) ?? "")).toBe(false);
   await page.screenshot({ path: shot("r6-limit.png") });
+});
+
+/** 이름을 앞 12칸만 남긴다(묶음 2개 · 6칸씩) — 실패 알림 시험을 짧게. */
+async function keepFirst12(id: string, rename: Record<number, string> = {}) {
+  const ref = db().collection("tournamentDrafts").doc(id);
+  const cs = (await ref.get()).get("contestants") as { name: string; affiliation: string }[];
+  await ref.update({
+    contestants: cs.map((c, i) => (i >= 12 ? { ...c, name: "", affiliation: "" } : rename[i] ? { ...c, name: rename[i] } : c)),
+  });
+}
+
+test("[E2E] 검색 실패 — 네트워크(요청이 서버에 닿지 못함) · 앞 묶음에서 찾은 칸은 남고 문구 15", async ({ page }) => {
+  const id = await seedDraft("e2eDraftNetFail", "image");
+  await keepFirst12(id);
+  let posts = 0;
+  await page.route(/\/autoSourceImages$/, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    posts++;
+    // 둘째 묶음에서 연결이 끊긴다 — fetch 자체가 실패한다.
+    if (posts === 2) return route.abort("internetdisconnected");
+    return route.continue();
+  });
+  await openLab(page);
+  await openDraft(page);
+  await openTools(page);
+  await page.getByTestId("lab-find-images-only").click();
+  await expect(page.getByText("네트워크가 끊겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("서버에 문제가 생겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.")).toHaveCount(0);
+  expect(posts).toBe(2);
+  // 앞 묶음(0~5칸)은 그대로 · 끊긴 묶음(6~11칸)은 비어 있고 "못 찾았어요"로 적지 않는다.
+  for (let i = 0; i < 6; i++) expect(/127\.0\.0\.1:9199/.test((await preview(page, i).getAttribute("style")) ?? "")).toBe(true);
+  expect(await imageSlots(page)).toBe(6);
+  await expect(page.getByTestId("slot-image-notfound-6")).toHaveCount(0);
+  await expect(nameOf(page, 6)).toHaveValue("엔트리07");
+  await page.screenshot({ path: shot("r7-network-fail.png") });
+});
+
+test("[E2E] 검색 실패 — 서버(가짜 Brave 500) · 다른 칸은 찾고 그 칸은 '못 찾았어요'가 아니라 문구 16", async ({ page }) => {
+  const id = await seedDraft("e2eDraftServerFail", "image");
+  await keepFirst12(id, { 3: "BraveDown" });
+  await openLab(page);
+  await openDraft(page);
+  await openTools(page);
+  await page.getByTestId("lab-find-images-only").click();
+  await expect(page.getByText("서버에 문제가 생겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("네트워크가 끊겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.")).toHaveCount(0);
+  expect(await imageSlots(page)).toBe(11);
+  expect(/127\.0\.0\.1:9199/.test((await preview(page, 3).getAttribute("style")) ?? "")).toBe(false);
+  await expect(page.getByTestId("slot-image-notfound-3")).toHaveCount(0);
+  await page.screenshot({ path: shot("r8-server-fail.png") });
 });
 
 for (const [lang, find, links] of [

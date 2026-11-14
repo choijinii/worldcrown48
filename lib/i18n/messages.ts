@@ -1136,6 +1136,19 @@ export const MESSAGES = {
     en: "Image search limit reached. Please add the rest manually.",
     es: "Se alcanzó el límite de búsqueda de imágenes. Añade el resto manualmente.",
   },
+  // 15·16 — 대표 승인 2026-11-14("검색 실패 알림" 답 · 글자 그대로). 가르는 기준 = lib/lab/imageSourcing.ts imageSearchFailureKind.
+  // 15 화면의 요청이 서버에 닿지 못함(네트워크 오류)
+  "lab.image.networkFail": {
+    ko: "네트워크가 끊겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.",
+    en: "Image search failed because the network was disconnected. Try again, or add the images manually.",
+    es: "La búsqueda de imágenes falló porque se perdió la conexión. Inténtalo de nuevo o añade las imágenes manualmente.",
+  },
+  // 16 서버까지 닿았으나 우리 함수 또는 Brave 가 오류(한도 402/429 는 14번 그대로)
+  "lab.image.serverFail": {
+    ko: "서버에 문제가 생겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.",
+    en: "Image search failed due to a server problem. Try again, or add the images manually.",
+    es: "La búsqueda de imágenes falló por un problema del servidor. Inténtalo de nuevo o añade las imágenes manualmente.",
+  },
   // 11
   "lab.manual.title": { ko: "대회 만들기 — 이렇게 진행하세요", en: "Creating a tournament — step by step", es: "Crear un torneo — paso a paso" },
   // 12

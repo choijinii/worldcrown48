@@ -27,9 +27,12 @@ const TABLE: Row[] = [
   [12, "lab.image.pasteLineFail", "2번째 줄: R", "Line 2: R", "Línea 2: R", V12],
   [13, "lab.image.noKey", "이미지 검색 키가 없어 그림을 넣지 못해요.", "No image search key, so images can't be added.", "No hay clave de búsqueda de imágenes, así que no se pueden añadir imágenes."],
   [14, "lab.image.limit", "이미지 검색 한도입니다. 남은 칸은 수동으로 넣어 주세요.", "Image search limit reached. Please add the rest manually.", "Se alcanzó el límite de búsqueda de imágenes. Añade el resto manualmente."],
+  // 15·16 — 대표 승인 2026-11-14("검색 실패 알림" 답 · 글자 그대로).
+  [15, "lab.image.networkFail", "네트워크가 끊겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.", "Image search failed because the network was disconnected. Try again, or add the images manually.", "La búsqueda de imágenes falló porque se perdió la conexión. Inténtalo de nuevo o añade las imágenes manualmente."],
+  [16, "lab.image.serverFail", "서버에 문제가 생겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.", "Image search failed due to a server problem. Try again, or add the images manually.", "La búsqueda de imágenes falló por un problema del servidor. Inténtalo de nuevo o añade las imágenes manualmente."],
 ];
 
-describe("IMAGE-1 PR 2 문구 14줄 = 승인표(§2-D)", () => {
+describe("IMAGE-1 PR 2 문구 16줄 = 승인표(§2-D)", () => {
   for (const [n, key, ko, en, es, vars] of TABLE) {
     it(`${n}번 ${key}`, () => {
       expect(resolveMessage("ko", key, vars)).toBe(ko);

@@ -175,7 +175,7 @@ describe("runImageSourcing — 후보 고르기", () => {
     expect(urls[1]).toBe("https://i/b2.jpg");
   });
 
-  it("통과한 후보가 없으면 not-found · 검색 실패(error)도 그 칸만 not-found", async () => {
+  it("통과한 후보가 없으면 not-found · Brave 오류(error)는 그 칸만 search-error(문구 16 · 못 찾은 것과 다르다)", async () => {
     const { deps } = fakeDeps({ results: { A: [c("s")], B: "error" }, bytes: { "https://i/s.jpg": "small" } });
     const out = await runImageSourcing(
       { draftId: "d", slots: [{ slot: 4, name: "A" }, { slot: 5, name: "B" }], excludeUrls: [] },
@@ -183,7 +183,7 @@ describe("runImageSourcing — 후보 고르기", () => {
     );
     expect(out.results).toEqual([
       { slot: 4, ok: false, reason: "not-found" },
-      { slot: 5, ok: false, reason: "not-found" },
+      { slot: 5, ok: false, reason: "search-error" },
     ]);
   });
 

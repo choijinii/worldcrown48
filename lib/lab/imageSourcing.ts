@@ -34,7 +34,7 @@ export type SlotImageResult =
       sourceUrl: string;
       sourcePage: string;
     }
-  | { slot: number; ok: false; reason: "not-found" };
+  | { slot: number; ok: false; reason: "not-found" | "search-error" };
 
 export type AutoSourceImagesResponse =
   | { ok: true; results: SlotImageResult[]; code?: "limit" }
@@ -79,6 +79,8 @@ export interface ImageChunkDeps {
 export interface ImageChunkSummary {
   found: number;
   notFound: number[];
+  /** Brave 가 오류를 낸 칸(문구 16) — 못 찾은 칸(notFound · 문구 6)과 따로 센다. */
+  searchErrors: number[];
   stopped: "limit" | "no-key" | "error" | null;
   /** 한도 · 키 없음 · 오류로 처리하지 못한 칸 수. */
   remaining: number;
@@ -96,6 +98,7 @@ export async function runImageChunks(
 ): Promise<ImageChunkSummary> {
   const exclude = [...excludeUrls];
   const notFound: number[] = [];
+  const searchErrors: number[] = [];
   let found = 0;
   let done = 0;
   deps.onProgress?.(0, targets.length);
@@ -105,21 +108,43 @@ export async function runImageChunks(
     try {
       res = await deps.call(slots, [...exclude]);
     } catch (error) {
-      return { found, notFound, stopped: "error", remaining: targets.length - done, error };
+      return { found, notFound, searchErrors, stopped: "error", remaining: targets.length - done, error };
     }
-    if (!res.ok) return { found, notFound, stopped: "no-key", remaining: targets.length - done };
+    if (!res.ok) return { found, notFound, searchErrors, stopped: "no-key", remaining: targets.length - done };
     deps.onChunk?.(res.results);
     for (const r of res.results) {
       if (r.ok) {
         found++;
         exclude.push(r.sourceUrl);
-      } else notFound.push(r.slot);
+      } else if (r.reason === "search-error") searchErrors.push(r.slot);
+      else notFound.push(r.slot);
     }
     done += res.results.length;
     deps.onProgress?.(done, targets.length);
-    if (res.code === "limit") return { found, notFound, stopped: "limit", remaining: targets.length - done };
+    if (res.code === "limit") return { found, notFound, searchErrors, stopped: "limit", remaining: targets.length - done };
   }
-  return { found, notFound, stopped: null, remaining: 0 };
+  return { found, notFound, searchErrors, stopped: null, remaining: 0 };
+}
+
+/**
+ * 이미지 검색 호출이 통째로 실패했을 때 어느 문구를 보일지 (대표 승인 15 · 16).
+ *   network = 화면의 요청이 서버에 닿지 못했다(문구 15). Firebase 부품은 fetch 자체가 실패하면
+ *             status 0 으로 보고 FunctionsError("internal", "internal")을 세부 없이 던진다 — 서버가 보낸
+ *             오류에는 본문의 문구가 실리므로 이 모양과 겹치지 않는다. 브라우저가 오프라인이어도 network.
+ *   server  = 서버까지 닿았으나 우리 함수 또는 Brave 가 오류(문구 16). 한도(402/429)는 오류가 아니라
+ *             결과의 code "limit"(문구 14)으로 온다.
+ *   permission = 운영자 권한 오류(기존 문구).
+ */
+export function imageSearchFailureKind(
+  err: unknown,
+  online: boolean = typeof navigator === "undefined" ? true : navigator.onLine !== false,
+): "network" | "server" | "permission" {
+  const e = (err ?? {}) as { code?: unknown; message?: unknown; details?: unknown };
+  const code = String(e.code ?? "").replace(/^functions\//, "");
+  if (code === "permission-denied" || code === "unauthenticated") return "permission";
+  if (!online) return "network";
+  if (code === "internal" && e.message === "internal" && e.details === undefined) return "network";
+  return "server";
 }
 
 /** 검색 결과 한 칸 → 초안 칸 값(origin search). 출처는 두 주소뿐. */
