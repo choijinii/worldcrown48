@@ -14,6 +14,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb, adminStorage } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
 import { requireAdmin } from "./core/requireAdmin";
+import { DRAFT_DIR_META } from "./core/entryImagePaths";
 import { TOURNAMENT_ADMIN_ERROR_CODES as CODES } from "./core/tournamentAdmin";
 import {
   TournamentAdminError,
@@ -60,7 +61,18 @@ export const manageTournament = onCall(
         return await removeTournament(adminDb, id, {
           nowMs,
           values,
-          storage: { deletePrefix: (prefix) => bucket.deleteFiles({ prefix }) },
+          storage: {
+            deletePrefix: (prefix) => bucket.deleteFiles({ prefix }),
+            // 발행 복사가 대회 그림에 남긴 초안 폴더(finalizeEntryImages) — 파일 하나만 읽는다.
+            draftDirOf: async (prefix) => {
+              const [files] = await bucket.getFiles({ prefix, maxResults: 5 });
+              for (const f of files) {
+                const v = f.metadata?.metadata?.[DRAFT_DIR_META];
+                if (typeof v === "string" && v) return v;
+              }
+              return null;
+            },
+          },
         });
       }
       if (action === "closeEarly") return await closeTournamentEarly(adminDb, id, { nowMs, actorUid, values });

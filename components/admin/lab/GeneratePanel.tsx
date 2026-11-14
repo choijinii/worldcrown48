@@ -24,11 +24,17 @@ import { LabIcon } from "./LabIcon";
 export type ChainStage = "filling" | "sourcing";
 
 /** 직접 손보기 도구 — 그 종류만(D-90). 미정이면 없음(반드시 생성 버튼으로 시작). */
-export function kindTools(kind: MediaKind | null): { pasteLinks: boolean; fillBlanks: boolean; imageFiles: boolean } {
-  return { pasteLinks: kind === "video", fillBlanks: kind !== null, imageFiles: kind === "image" };
+export function kindTools(kind: MediaKind | null): {
+  pasteLinks: boolean;
+  fillBlanks: boolean;
+  imageFiles: boolean;
+  /** IMAGE-1 PR 2 — [이미지만 찾기] · [이미지 주소 한꺼번에 넣기]. */
+  imageSearch: boolean;
+} {
+  return { pasteLinks: kind === "video", fillBlanks: kind !== null, imageFiles: kind === "image", imageSearch: kind === "image" };
 }
 
-/** LAB-FIX-3b — 빈칸 버튼 이름. 이미지 대회는 이미지를 넣지 않으므로 "영상까지"를 붙이지 않는다. */
+/** 빈칸 버튼 이름 — 영상 대회 "빈칸 채우고 영상까지" · 이미지 대회 "빈칸 채우고 이미지까지"(IMAGE-1 PR 2 승인). */
 export function fillBlanksLabel(kind: MediaKind | null): "lab.fill.blanks" | "lab.fill.blanksImage" {
   return kind === "image" ? "lab.fill.blanksImage" : "lab.fill.blanks";
 }
@@ -45,6 +51,9 @@ interface GeneratePanelProps {
   onPasteLinks: () => void;
   /** 접이식 도구 — 빈칸만 AI. */
   onFillBlanks: () => void;
+  /** IMAGE-1 PR 2 — 이미지 대회 도구: [이미지만 찾기] · [이미지 주소 한꺼번에 넣기]. */
+  onFindImages?: () => void;
+  onPasteImageLinks?: () => void;
   /** IMAGE-1 — 두 버튼 줄 오른쪽 끝([만들기 매뉴얼]). */
   primaryEnd?: React.ReactNode;
   /** IMAGE-1 — 도구 줄 끝([이미지 파일 넣기] · 진행 표시). */
@@ -65,6 +74,8 @@ export function GeneratePanel({
   onGenerateImages,
   onPasteLinks,
   onFillBlanks,
+  onFindImages,
+  onPasteImageLinks,
   primaryEnd,
   toolsEnd,
   hasBlanks,
@@ -120,8 +131,11 @@ export function GeneratePanel({
 
   // 진행률이 아직 안 온 첫 순간에도 "영상 찾는 중"은 보여야 한다 — 라벨이
   // 기본값으로 되돌아가면 운영자는 체인이 멈춘 줄 안다.
+  // 이미지 대회의 단계 표시는 [이미지 생성] 쪽에 뜬다 — 꺼진 [동영상 생성]은 이름 그대로.
   const videoLabel =
-    stage === "sourcing"
+    mediaKind === "image"
+      ? t("lab.generate.videos")
+      : stage === "sourcing"
       ? t("lab.generate.sourcing", {
           done: progress?.done ?? 0,
           total: progress?.total ?? 0,
@@ -173,7 +187,16 @@ export function GeneratePanel({
         >
           <span style={labelRow}>
             <LabIcon name="image" />
-            {stage === "filling" ? t("lab.generate.filling") : t("lab.generate.images")}
+            {/* 영상 대회 화면은 바꾸지 않는다 — 꺼진 [이미지 생성]은 전처럼 채우는 중만 따라 보인다. */}
+            {mediaKind === "video"
+              ? stage === "filling"
+                ? t("lab.generate.filling")
+                : t("lab.generate.images")
+              : stage === "sourcing"
+                ? t("lab.generate.imageSourcing", { done: progress?.done ?? 0, total: progress?.total ?? 0 })
+                : stage === "filling"
+                  ? t("lab.generate.filling")
+                  : t("lab.generate.images")}
           </span>
           <span style={{ fontSize: 12, color: lab.textMuted, fontWeight: 400 }}>
             {t("lab.generate.imagesSub")}
@@ -243,6 +266,29 @@ export function GeneratePanel({
                 style={tool(!busy && hasBlanks)}
               >
                 {t(fillBlanksLabel(mediaKind))}
+              </button>
+            )}
+            {tools.imageSearch && onFindImages && (
+              <button
+                type="button"
+                onClick={onFindImages}
+                disabled={busy}
+                title={t("lab.image.findOnlyHint")}
+                data-testid="lab-find-images-only"
+                style={tool(!busy)}
+              >
+                {t("lab.image.findOnly")}
+              </button>
+            )}
+            {tools.imageSearch && onPasteImageLinks && (
+              <button
+                type="button"
+                onClick={onPasteImageLinks}
+                disabled={busy}
+                data-testid="lab-open-image-links"
+                style={tool(!busy)}
+              >
+                {t("lab.image.pasteLinks")}
               </button>
             )}
             <span style={{ fontSize: 12, color: lab.textMuted }}>

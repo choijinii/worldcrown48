@@ -46,10 +46,13 @@ let adminApp: App;
 let db: Firestore;
 let deletedPrefixes: string[] = [];
 const values = { timestamp: (ms: number) => Timestamp.fromMillis(ms), deleteField: () => FieldValue.delete() };
+/** IMAGE-1 PR 2 — 발행 복사가 대회 그림에 남긴 초안 폴더(메타데이터 draftDir). */
+const DRAFT_DIR = `entry-images/drafts/${OPERATOR}/draftA/`;
 const storage = {
   deletePrefix: async (prefix: string) => {
     deletedPrefixes.push(prefix);
   },
+  draftDirOf: async (prefix: string) => (prefix === `entry-images/tournaments/${T}/` ? DRAFT_DIR : null),
 };
 
 async function seedTournament(id: string, extra: Record<string, unknown> = {}) {
@@ -124,7 +127,8 @@ describe("삭제 — 참여 0명 (①)", () => {
     expect((await db.doc(`ranking_cache/${T}`).get()).exists).toBe(false);
     expect((await db.collection(`ranking_cache/${T}/history`).get()).size).toBe(0);
     expect((await db.doc(`ranking_cache/${OTHER}`).get()).exists).toBe(true);
-    expect(deletedPrefixes).toEqual([`crown-cards/${T}/`]);
+    // IMAGE-1 PR 2 — 크라운 카드 + 그 대회 그림 폴더 + 그 대회를 만든 초안 폴더만(다른 대회 폴더 없음).
+    expect(deletedPrefixes).toEqual([`crown-cards/${T}/`, `entry-images/tournaments/${T}/`, DRAFT_DIR]);
   });
 
   it("내린 기사(archived)는 남긴다 — 지우는 것은 초안뿐", async () => {
