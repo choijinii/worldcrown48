@@ -108,7 +108,20 @@ import { mismatchSlots } from "@/lib/lab/nameVideoMismatch";
 import { MakingManualDialog } from "./MakingManualDialog";
 import { PublishConfirmDialog } from "./PublishConfirmDialog";
 import { scrollToSlot } from "./ContestantGrid";
-import type { ImportFailure } from "./ContestantEditor";
+import { FAIL_KEY, type ImportFailure } from "./ContestantEditor";
+import { ImageLinksModal, type ImageLineFailure } from "./ImageLinksModal";
+import {
+  applyImageResults,
+  assignImageLines,
+  imageTargets,
+  parseImageLines,
+  runImageChunks,
+  usedImageUrls,
+  type ImageChunkSummary,
+  type ImageTarget,
+  type SlotImageResult,
+} from "@/lib/lab/imageSourcing";
+import { callAutoSourceImages } from "@/lib/lab/imageSourceCalls";
 import { createDraftAutosaver, type AutosaveStatus } from "@/lib/lab/draftAutosaver";
 import { deleteDraft, listMyDrafts, loadDraft, newDraftId, saveDraft } from "@/lib/lab/draftStore";
 import {
@@ -195,6 +208,45 @@ function toDraft(c: AiSuggestion): ContestantDraft {
   };
 }
 
+/** IMAGE-1 PR 2 — 찾은 칸 = "제안" 배지(영상과 같은 뜻). */
+function foundStates(results: readonly SlotImageResult[]): SourcingStates {
+  const out: SourcingStates = {};
+  for (const r of results) if (r.ok) out[r.slot] = { status: "suggested" };
+  return out;
+}
+
+/** 못 찾은 칸 — 화면 배지는 없고(칸 아래 이유 줄), "손볼 칸"을 셀 때만 쓴다. */
+function notFoundStates(results: readonly SlotImageResult[]): SourcingStates {
+  const out: SourcingStates = {};
+  for (const r of results) if (!r.ok) out[r.slot] = { status: "manual" };
+  return out;
+}
+
+function withNotFound(states: SourcingStates, notFound: ReadonlySet<number>): SourcingStates {
+  if (notFound.size === 0) return states;
+  const out: SourcingStates = { ...states };
+  notFound.forEach((i) => {
+    if (!out[i]) out[i] = { status: "manual" };
+  });
+  return out;
+}
+
+function markNotFound(prev: ReadonlySet<number>, chunk: readonly SlotImageResult[]): ReadonlySet<number> {
+  const next = new Set(prev);
+  for (const r of chunk) {
+    if (r.ok) next.delete(r.slot);
+    else next.add(r.slot);
+  }
+  return next;
+}
+
+function withoutSlots(prev: ReadonlySet<number>, slots: readonly number[]): ReadonlySet<number> {
+  if (!slots.some((i) => prev.has(i))) return prev;
+  const next = new Set(prev);
+  for (const i of slots) next.delete(i);
+  return next;
+}
+
 export function TournamentCreator(): JSX.Element {
   const { t, lang } = useT();
   const uid = useAuthStore((s) => s.user?.uid) ?? "";
@@ -221,6 +273,10 @@ export function TournamentCreator(): JSX.Element {
   const [listRefresh, setListRefresh] = useState(0);
   // LAB-EV-1: 검수기 모달 + 슬롯 미세조정(열린 슬롯 index, 닫힘이면 null).
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  // IMAGE-1 PR 2 — 이미지 검색이 못 찾은 칸(문구 6) · [새 이미지 찾기] 중인 칸 · 주소 여러 줄 창.
+  const [imageNotFound, setImageNotFound] = useState<ReadonlySet<number>>(new Set());
+  const [imageRefreshingIndex, setImageRefreshingIndex] = useState<number | null>(null);
+  const [imageLinksOpen, setImageLinksOpen] = useState(false);
   const [tuningIndex, setTuningIndex] = useState<number | null>(null);
   // IMAGE-1 — 그림 올리는 중인 칸 · 매뉴얼 창 · 발행 확인창.
   const [busyImage, setBusyImage] = useState<ReadonlySet<number>>(() => new Set());
@@ -320,7 +376,7 @@ export function TournamentCreator(): JSX.Element {
 
   const counters = step2Counters(
     contestants,
-    sourcingStates,
+    withNotFound(sourcingStates, imageNotFound),
     reviewFlags,
     TOTAL_CONTESTANTS,
   );
@@ -401,6 +457,7 @@ export function TournamentCreator(): JSX.Element {
     setEntryUnit(s.entryUnit);
     setMediaKind(s.mediaKind);
     setSourcingStates({});
+    setImageNotFound(new Set());
     lastQueuedRef.current = JSON.stringify(s);
   }
 
@@ -604,6 +661,7 @@ export function TournamentCreator(): JSX.Element {
         // LAB-EV-2 — 인물이 통째로 바뀌었다. 옛 소싱 배지를 남기면 "제안"이라
         // 써 있는 칸에 다른 사람이 앉아 있게 된다.
         setSourcingStates({});
+    setImageNotFound(new Set());
       } else {
         // Fill only the empty slots, preserving every named cell (AC#3).
         let k = 0;
@@ -618,6 +676,7 @@ export function TournamentCreator(): JSX.Element {
         setContestants(merged);
         // 새로 채워진 칸만 배지를 떼어낸다 — 손대지 않은 칸의 결과는 유효하다.
         setSourcingStates((states) => dropSourcingStates(states, filledIndexes));
+        setImageNotFound((prev) => withoutSlots(prev, filledIndexes));
       }
       void track("admin_lab_ai_fill_success", {
         category,
@@ -694,11 +753,11 @@ export function TournamentCreator(): JSX.Element {
   }
 
   /**
-   * [🖼 이미지 생성] — 채우기 → 검수 (LAB-UX-1 결정 ①).
+   * [🖼 이미지 생성] — 채우기 → 이미지 찾기(Brave · IMAGE-1 PR 2) → 검수 (원장 D-77 ②).
    *
-   * 검색 콜을 한 번도 쓰지 않는 경로다. "검수"는 채워진 48칸을 중복 의심·이름↔힌트
-   * 불일치로 훑는 일이고, 그 판정은 `reviewFlags`가 상태에서 파생한다 — 여기서는
-   * 결과를 세어 한 줄로 알려주기만 하면 된다.
+   * mode "all" = 48칸 · "blanks" = **이번에 채운 칸만** 그림까지(영상 체인과 같은 규칙).
+   * 찾은 칸은 "제안" 배지 · 못 찾은 칸은 칸 아래 이유(문구 6). 키가 없으면 이름만 남기고 문구 13,
+   * 한도면 찾은 칸은 남기고 문구 14.
    */
   async function generateImages(mode: "all" | "blanks" = "all") {
     if (chainStage) return;
@@ -706,7 +765,10 @@ export function TournamentCreator(): JSX.Element {
     try {
       const filled = await fillWithAI(mode);
       if (!filled) return;
-      const drafts = filled.drafts;
+      const targets = imageTargets(filled.drafts, mode === "blanks" ? filled.filledIndexes : undefined);
+      setChainStage("sourcing");
+      const run = await sourceImages(targets);
+      const drafts = applyImageResults(filled.drafts, run.results);
       const flags = deriveReviewFlags(
         drafts.map((d) => ({
           name: d.name,
@@ -714,12 +776,130 @@ export function TournamentCreator(): JSX.Element {
           imageSearchKeyword: d.imageSearchKeyword,
         })),
       );
-      const c = step2Counters(drafts, {}, flags, TOTAL_CONTESTANTS);
-      showToast(t("lab.generate.imagesDone", { filled: c.filled, todo: c.todo }), "success");
-      void track("admin_lab_chain_images", { filled: c.filled, todo: c.todo });
+      const c = step2Counters(drafts, run.states, flags, TOTAL_CONTESTANTS);
+      if (run.summary.stopped !== "no-key") {
+        showToast(t("lab.generate.imagesDone", { filled: c.filled, found: run.summary.found, todo: c.todo }), "success");
+      }
+      void track("admin_lab_chain_images", {
+        filled: c.filled,
+        todo: c.todo,
+        found: run.summary.found,
+        not_found: run.summary.notFound.length,
+        stopped: run.summary.stopped ?? "none",
+      });
     } finally {
       setChainStage(null);
     }
+  }
+
+  /**
+   * 이미지 검색 공용 — 대상 칸을 잡아 두고(손 넣기와 겹치지 않게) 6칸씩 부른다. 묶음마다 바로 얹어
+   * 중간에 멈춰도 앞 결과가 남는다. 돌려주는 states 는 끝 알림의 "손볼 칸"을 세는 데 쓴다.
+   */
+  async function sourceImages(
+    targets: ImageTarget[],
+    opts: { replace?: boolean } = {},
+  ): Promise<{ summary: ImageChunkSummary; results: SlotImageResult[]; states: SourcingStates }> {
+    const results: SlotImageResult[] = [];
+    if (targets.length === 0) return { summary: { found: 0, notFound: [], stopped: null, remaining: 0 }, results, states: {} };
+    const draftId = ensureDraftId();
+    const held = targets.map((x) => x.slot).filter((slot) => opts.replace || !reservedSlotsRef.current.has(slot));
+    const heldSet = new Set(held);
+    const mine = targets.filter((x) => heldSet.has(x.slot));
+    for (const slot of held) {
+      reservedSlotsRef.current.add(slot);
+      setBusy(slot, true);
+    }
+    const release = (slot: number) => {
+      if (!heldSet.delete(slot)) return;
+      reservedSlotsRef.current.delete(slot);
+      setBusy(slot, false);
+    };
+    try {
+      const summary = await runImageChunks(mine, usedImageUrls(contestantsRef.current, opts.replace ? [] : held), {
+        call: (slots, excludeUrls) => callAutoSourceImages({ draftId, slots, excludeUrls }),
+        onChunk: (chunk) => {
+          for (const r of chunk) release(r.slot);
+          // 기다리는 사이 발행했거나 다른 초안으로 갔으면 이 그림은 버린다(파일도 지운다 · PR 1 리뷰 I-2).
+          if (!uploadStillCurrent(draftId, draftIdRef.current)) {
+            for (const r of chunk) if (r.ok) void deleteEntryImageFiles(r.storagePath);
+            return;
+          }
+          results.push(...chunk);
+          setContestants((prev) =>
+            applyImageResults(
+              Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => prev[i] ?? emptyDraft()),
+              chunk,
+              opts,
+            ),
+          );
+          setSourcingStates((states) => ({ ...dropSourcingStates(states, chunk.map((r) => r.slot)), ...foundStates(chunk) }));
+          setImageNotFound((prev) => markNotFound(prev, chunk));
+        },
+        onProgress: (done, total) => setSourceProgress({ done, total }),
+      });
+      if (summary.stopped === "no-key") showToast(t("lab.image.noKey"), "error");
+      else if (summary.stopped === "limit") showToast(t("lab.image.limit"), "info");
+      else if (summary.stopped === "error") {
+        const code = inspectErrorCode(summary.error);
+        console.warn("[Lab] autoSourceImages failed:", code, summary.error);
+        if (code === "permission-denied") showToast(t(sourcingErrorMessage(code).key), "error");
+      }
+      return { summary, results, states: { ...foundStates(results), ...notFoundStates(results) } };
+    } finally {
+      Array.from(heldSet).forEach(release);
+      setSourceProgress(null);
+    }
+  }
+
+  /** [이미지만 찾기] — 이름은 그대로 두고, 이름이 있고 그림이 없는 칸만 찾는다. */
+  async function findImagesOnly() {
+    if (chainStage || mediaKind !== "image") return;
+    setChainStage("sourcing");
+    try {
+      const run = await sourceImages(imageTargets(contestantsRef.current));
+      void track("admin_lab_find_images", {
+        found: run.summary.found,
+        not_found: run.summary.notFound.length,
+        stopped: run.summary.stopped ?? "none",
+      });
+    } finally {
+      setChainStage(null);
+    }
+  }
+
+  /** [새 이미지 찾기] — 그 칸만 다시 검색(검색 1번). 지금 그림의 주소는 제외 목록에 든다. */
+  async function refreshSlotImage(index: number) {
+    if (imageRefreshingIndex !== null || chainStage) return;
+    const c = contestantsRef.current[index];
+    const name = (c?.name ?? "").trim();
+    if (!c || !name) return;
+    const affiliation = (c.affiliation ?? "").trim();
+    setImageRefreshingIndex(index);
+    try {
+      const run = await sourceImages([affiliation ? { slot: index, name, affiliation } : { slot: index, name }], {
+        replace: true,
+      });
+      void track("admin_lab_image_refresh", { found: run.summary.found, stopped: run.summary.stopped ?? "none" });
+    } finally {
+      setImageRefreshingIndex(null);
+    }
+  }
+
+  /** [이미지 주소 한꺼번에 넣기] — 그림이 없는 칸부터 칸 순서대로 한 줄씩 PR 1 importEntryImage. */
+  async function importImageLines(text: string): Promise<ImageLineFailure[]> {
+    const lines = assignImageLines(
+      contestantsRef.current.map((d, i) => (reservedSlotsRef.current.has(i) ? { ...d, imageUrl: d.imageUrl || "reserved" } : d)),
+      parseImageLines(text),
+      TOTAL_CONTESTANTS,
+    );
+    const failures: ImageLineFailure[] = [];
+    for (const l of lines) {
+      const reason = await importUrlToSlot(l.slot, l.url);
+      if (reason) failures.push({ line: l.line, reasonKey: FAIL_KEY[reason] });
+    }
+    void track("admin_lab_image_lines", { lines: lines.length, failed: failures.length });
+    return failures;
   }
 
   /**
@@ -930,6 +1110,9 @@ export function TournamentCreator(): JSX.Element {
   }
 
   function patchSlot(index: number, patch: (c: ContestantDraft) => ContestantDraft) {
+    // 손으로 그림을 넣거나 뺐으면 "못 찾았어요"도 AI 배지("제안")도 더 이상 참이 아니다.
+    setImageNotFound((prev) => withoutSlots(prev, [index]));
+    setSourcingStates((states) => dropSourcingStates(states, [index]));
     setContestants((prev) => {
       const next = Array.from({ length: TOTAL_CONTESTANTS }, (_, i) => prev[i] ?? emptyDraft());
       next[index] = patch(next[index]);
@@ -1175,6 +1358,7 @@ export function TournamentCreator(): JSX.Element {
       setContestants([]);
       setPairPick(EMPTY_PICK);
       setSourcingStates({});
+    setImageNotFound(new Set());
       setSaveStatus(null);
       lastQueuedRef.current = "";
       setListRefresh((n) => n + 1);
@@ -1387,8 +1571,10 @@ export function TournamentCreator(): JSX.Element {
             onPasteLinks={() => setInspectorOpen(true)}
             // 빈칸도 같은 체인을 탄다 — 채우기로 끝나면 영상도 배지도 없는 칸이
             // 남아 복구가 안 된다(대표 스모크 지적 ②).
-            // D-90 — 이미지 대회는 채우기만(영상 검색 없음).
+            // D-90 — 이미지 대회는 채우고 이미지까지(IMAGE-1 PR 2 · 영상 검색 없음).
             onFillBlanks={() => void (mediaKind === "image" ? generateImages("blanks") : startVideoChain("blanks"))}
+            onFindImages={() => void findImagesOnly()}
+            onPasteImageLinks={() => setImageLinksOpen(true)}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}
             disabled={publishing}
             primaryEnd={
@@ -1483,6 +1669,9 @@ export function TournamentCreator(): JSX.Element {
             onRefreshVideo={(index) => void refreshSlot(index)}
             refreshingIndex={refreshingIndex}
             mediaKind={mediaKind}
+            onRefreshImage={(index) => void refreshSlotImage(index)}
+            imageRefreshingIndex={imageRefreshingIndex}
+            imageNotFound={imageNotFound}
           />
           </div>
           <p style={{ margin: 0, fontSize: 12, color: lab.textMuted }}>
@@ -1520,6 +1709,10 @@ export function TournamentCreator(): JSX.Element {
       {/* 확인창의 [만들기 매뉴얼 다시 보기]는 확인창 위에 겹쳐 연다(체크한 칸이 그대로 남는다). */}
       <MakingManualDialog open={manualOpen} onClose={() => setManualOpen(false)} />
 
+      {/* IMAGE-1 PR 2 — [이미지 주소 한꺼번에 넣기](이미지 대회 전용). */}
+      {imageLinksOpen && mediaKind === "image" && (
+        <ImageLinksModal onClose={() => setImageLinksOpen(false)} onSubmit={importImageLines} />
+      )}
       {/* LAB-EV-1 — 검수기(W4)와 슬롯 미세조정(W5). 둘 다 STEP 2 전용. */}
       <YouTubeInspectorModal
         isOpen={inspectorOpen}

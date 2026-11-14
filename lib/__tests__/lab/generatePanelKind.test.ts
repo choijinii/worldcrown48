@@ -43,13 +43,14 @@ describe("생성 버튼 — 처음 누른 버튼이 종류를 정한다", () => 
 
 describe("kindTools — 직접 손보기 도구는 그 종류만", () => {
   it("미정: 도구 없음", () => {
-    expect(kindTools(null)).toEqual({ pasteLinks: false, fillBlanks: false, imageFiles: false });
+    expect(kindTools(null)).toEqual({ pasteLinks: false, fillBlanks: false, imageFiles: false, imageSearch: false });
   });
   it("영상 대회: 검수기 · 빈칸만 AI", () => {
-    expect(kindTools("video")).toEqual({ pasteLinks: true, fillBlanks: true, imageFiles: false });
+    expect(kindTools("video")).toEqual({ pasteLinks: true, fillBlanks: true, imageFiles: false, imageSearch: false });
   });
   it("이미지 대회: 빈칸만 AI · 이미지 파일 넣기", () => {
-    expect(kindTools("image")).toEqual({ pasteLinks: false, fillBlanks: true, imageFiles: true });
+    // IMAGE-1 PR 2 — 이미지 대회에만 [이미지만 찾기] · [이미지 주소 한꺼번에 넣기].
+    expect(kindTools("image")).toEqual({ pasteLinks: false, fillBlanks: true, imageFiles: true, imageSearch: true });
   });
 });
 

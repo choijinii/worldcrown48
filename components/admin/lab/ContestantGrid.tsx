@@ -44,6 +44,10 @@ interface ContestantGridProps {
   video?: SlotVideoHandlers;
   /** LAB-FIX-3 추가분 (D-90) — 대회 종류(칸 버튼이 따른다). */
   mediaKind?: MediaKind | null;
+  /** IMAGE-1 PR 2 — [새 이미지 찾기] · 지금 다시 찾는 칸 · 못 찾은 칸. */
+  onRefreshImage?: (index: number) => void;
+  imageRefreshingIndex?: number | null;
+  imageNotFound?: ReadonlySet<number>;
 }
 
 /**
@@ -77,6 +81,9 @@ export function ContestantGrid({
   videoMismatch,
   video,
   mediaKind = null,
+  onRefreshImage,
+  imageRefreshingIndex = null,
+  imageNotFound,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -122,6 +129,9 @@ export function ContestantGrid({
           videoMismatch={videoMismatch?.has(i) ?? false}
           video={video}
           mediaKind={mediaKind}
+          onRefreshImage={onRefreshImage}
+          imageRefreshing={imageRefreshingIndex === i}
+          imageNotFound={imageNotFound?.has(i) ?? false}
         />
       ))}
     </div>
