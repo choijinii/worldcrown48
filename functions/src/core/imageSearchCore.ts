@@ -1,12 +1,14 @@
 /**
  * imageSearchCore — 이미지 검색 AI(Brave) 서버 코어 (IMAGE-1 PR 2 · 원장 D-77).
  *
- * 칸마다: 검색어(이름 + 소속) → Brave 이미지 검색 1번(safesearch=strict · count=20) → 위에서부터
+ * 칸마다: 검색어(이름 + 소속 + 그 대회 STEP 1 키워드 앞 KEYWORD_COUNT 개) → Brave 이미지 검색 1번
+ * (safesearch=strict · count=20) → 페이지 제목에 엔트리 이름이 든 결과를 먼저, 그다음 Brave 순서대로 →
  * PR 1 과 같은 관문(내려받기 · 그림 파일 · 10MB · 세로 400px · 1600+600 줄이기)을 지나는 첫 장 → 저장.
  *
  * **Brave 약관(검색 결과 저장 금지).** 이 모듈은 검색 결과 목록을 메모리에서만 쓰고 버린다.
  * 밖으로 나가는 값은 고른 그림의 원본 주소(sourceUrl)와 그 페이지 주소(sourcePage) 두 개뿐이고,
  * 나머지는 우리 Storage 복사본의 주소 · 크기다(RESULT_KEYS). 로그도 칸 번호 · 개수만.
+ * 페이지 제목은 parseBraveImages 안에서 "이름이 들었나"만 보고 버린다 — 글자는 그 함수 밖으로 나가지 않는다.
  *
  * Firestore · Storage · 네트워크를 모른다 — 콜러블(autoSourceImages)이 주입한다(시험 가능).
  */
@@ -21,6 +23,11 @@ export const IMAGE_SEARCH = {
   /** 초당 한도(429)에서 쉬었다 다시 부르는 횟수. */
   THROTTLE_RETRIES: 2,
   THROTTLE_WAIT_MS: 1100,
+  /** 검색어에 붙이는 그 대회 STEP 1 키워드 수(앞에서부터). TEST1 진짜 Brave 비교(2026-11-15): 엉뚱한 그림 N=1 6칸 · N=2 8칸 → 1. */
+  KEYWORD_COUNT: 1,
+  /** 화면이 보내는 키워드 상한 — STEP 1 키워드 규칙(최대 12개 · 각 30자)과 같다. */
+  KEYWORDS_MAX: 12,
+  KEYWORD_MAX_LENGTH: 30,
 } as const;
 
 export interface ImageSlotTarget {
@@ -33,6 +40,8 @@ export interface AutoSourceImagesRequest {
   draftId: string;
   slots: ImageSlotTarget[];
   excludeUrls: string[];
+  /** 그 대회 STEP 1 키워드(차례 그대로). 검색어에는 앞 KEYWORD_COUNT 개만 붙는다. */
+  keywords?: string[];
 }
 
 export interface BraveCandidate {
@@ -40,6 +49,8 @@ export interface BraveCandidate {
   pageUrl: string;
   /** Brave 가 알려 준 세로(없을 수 있음). 내려받기 전에 400 미만을 거르는 데만 쓴다. */
   height?: number;
+  /** 페이지 제목에 엔트리 이름이 들어 있었다(제목 글자는 남기지 않는다). 고르는 차례에만 쓴다. */
+  titleHasName?: true;
 }
 
 export type SearchOutcome = { kind: "ok"; candidates: BraveCandidate[] } | { kind: "limit" } | { kind: "error" };
@@ -82,7 +93,8 @@ export interface Resized {
 }
 
 export interface ImageSourcingDeps {
-  search(query: string): Promise<SearchOutcome>;
+  /** name = 그 칸의 엔트리 이름 — 결과 제목과 견주는 데만 쓴다. */
+  search(query: string, name: string): Promise<SearchOutcome>;
   /** 실패는 ImportError 로 던진다. */
   fetchBytes(url: string): Promise<Buffer>;
   /** 세로 400 미만 · 그림 아님은 ImportError 로 던진다(resizeToJpegs). */
@@ -92,8 +104,23 @@ export interface ImageSourcingDeps {
 
 const ID = /^[A-Za-z0-9]{1,64}$/;
 
-export function buildImageQuery(name: string, affiliation?: string): string {
-  return [name.trim(), (affiliation ?? "").trim()].filter(Boolean).join(" ");
+export function buildImageQuery(name: string, affiliation?: string, keywords: readonly string[] = []): string {
+  const extra = keywords
+    .map((k) => (k ?? "").trim())
+    .filter(Boolean)
+    .slice(0, IMAGE_SEARCH.KEYWORD_COUNT);
+  return [name.trim(), (affiliation ?? "").trim(), ...extra].filter(Boolean).join(" ");
+}
+
+/** 페이지 제목에 엔트리 이름이 들어 있나(대소문자 무시). */
+export function titleHasName(title: unknown, name: string): boolean {
+  const n = name.trim().toLowerCase();
+  return typeof title === "string" && n !== "" && title.toLowerCase().includes(n);
+}
+
+/** 제목에 이름이 든 결과를 앞으로 — 그 안과 나머지는 Brave 순서 그대로. */
+export function preferTitleMatches(candidates: readonly BraveCandidate[]): BraveCandidate[] {
+  return [...candidates.filter((c) => c.titleHasName), ...candidates.filter((c) => !c.titleHasName)];
 }
 
 export function parseAutoSourceImagesRequest(data: unknown): AutoSourceImagesRequest | null {
@@ -117,22 +144,35 @@ export function parseAutoSourceImagesRequest(data: unknown): AutoSourceImagesReq
   const excludeUrls = Array.isArray(d.excludeUrls)
     ? d.excludeUrls.filter((u): u is string => typeof u === "string" && u.length <= 2048).slice(0, 200)
     : [];
-  return { draftId: d.draftId, slots, excludeUrls };
+  const keywords = Array.isArray(d.keywords)
+    ? d.keywords
+        .filter((k): k is string => typeof k === "string")
+        .map((k) => k.trim())
+        .filter(Boolean)
+        .slice(0, IMAGE_SEARCH.KEYWORDS_MAX)
+        .map((k) => k.slice(0, IMAGE_SEARCH.KEYWORD_MAX_LENGTH))
+    : [];
+  return { draftId: d.draftId, slots, excludeUrls, keywords };
 }
 
-/** Brave 이미지 검색 응답 → 후보(그림 주소 · 페이지 주소 · 알려진 세로). 나머지 칸은 읽지 않는다. */
-export function parseBraveImages(json: unknown): BraveCandidate[] {
+/**
+ * Brave 이미지 검색 응답 → 후보(그림 주소 · 페이지 주소 · 알려진 세로 · 제목에 이름이 들었나).
+ * 제목은 여기서 이름과 견주기만 하고 버린다. 나머지 칸은 읽지 않는다.
+ */
+export function parseBraveImages(json: unknown, name = ""): BraveCandidate[] {
   const results = (json as { results?: unknown } | null)?.results;
   if (!Array.isArray(results)) return [];
   const out: BraveCandidate[] = [];
   for (const r of results) {
     if (!r || typeof r !== "object") continue;
-    const x = r as { url?: unknown; properties?: { url?: unknown; height?: unknown } };
+    const x = r as { url?: unknown; title?: unknown; properties?: { url?: unknown; height?: unknown } };
     const imageUrl = x.properties?.url;
     if (typeof imageUrl !== "string" || !imageUrl) continue;
     const pageUrl = typeof x.url === "string" && x.url ? x.url : imageUrl;
     const h = Number(x.properties?.height);
-    out.push(Number.isFinite(h) && h > 0 ? { imageUrl, pageUrl, height: h } : { imageUrl, pageUrl });
+    const cand: BraveCandidate = Number.isFinite(h) && h > 0 ? { imageUrl, pageUrl, height: h } : { imageUrl, pageUrl };
+    if (titleHasName(x.title, name)) cand.titleHasName = true;
+    out.push(cand);
   }
   return out;
 }
@@ -165,7 +205,7 @@ async function sourceOne(
   deps: ImageSourcingDeps,
 ): Promise<SlotImageResult> {
   let tries = 0;
-  for (const cand of candidates) {
+  for (const cand of preferTitleMatches(candidates)) {
     if (tries >= IMAGE_SEARCH.MAX_TRIES_PER_SLOT) break;
     if (used.has(cand.imageUrl)) continue;
     if (cand.height !== undefined && cand.height < ENTRY_IMAGE.MIN_HEIGHT) continue;
@@ -201,7 +241,7 @@ export async function runImageSourcing(
   async function worker() {
     while (!limited && next < req.slots.length) {
       const target = req.slots[next++];
-      const outcome = await deps.search(buildImageQuery(target.name, target.affiliation));
+      const outcome = await deps.search(buildImageQuery(target.name, target.affiliation, req.keywords), target.name);
       if (outcome.kind === "limit") {
         limited = true;
         return;

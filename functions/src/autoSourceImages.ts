@@ -1,7 +1,7 @@
 /**
  * autoSourceImages — 이미지 검색 AI 콜러블 (IMAGE-1 PR 2 · 원장 D-77 ② 길).
  *
- *   { draftId, slots: [{ slot, name, affiliation? }], excludeUrls? }
+ *   { draftId, slots: [{ slot, name, affiliation? }], excludeUrls?, keywords? (그 대회 STEP 1 키워드) }
  *     → { ok: true, results: [{ slot, ok: true, url, thumbUrl, storagePath, width, height, addedAt, sourceUrl, sourcePage }
  *                            | { slot, ok: false, reason: "not-found" }], code?: "limit" }
  *     | { ok: false, code: "no-key" }
@@ -41,8 +41,8 @@ const BRAVE_BASE = (EMULATOR && process.env.BRAVE_API_BASE) || "https://api.sear
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function braveSearch(key: string): (query: string) => Promise<SearchOutcome> {
-  return async (query) => {
+function braveSearch(key: string): (query: string, name: string) => Promise<SearchOutcome> {
+  return async (query, name) => {
     const u = new URL("/res/v1/images/search", BRAVE_BASE);
     u.searchParams.set("q", query);
     u.searchParams.set("count", String(IMAGE_SEARCH.COUNT));
@@ -63,7 +63,7 @@ function braveSearch(key: string): (query: string) => Promise<SearchOutcome> {
       });
       if (decision === "ok") {
         try {
-          return { kind: "ok", candidates: parseBraveImages(await res.json()) };
+          return { kind: "ok", candidates: parseBraveImages(await res.json(), name) };
         } catch {
           return { kind: "error" };
         }

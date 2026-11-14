@@ -10,6 +10,8 @@ export async function callAutoSourceImages(args: {
   draftId: string;
   slots: ImageTarget[];
   excludeUrls: string[];
+  /** 그 대회 STEP 1 키워드 — 서버가 앞 몇 개를 검색어에 붙인다. */
+  keywords: string[];
 }): Promise<AutoSourceImagesResponse> {
   const fn = httpsCallable<typeof args, AutoSourceImagesResponse>(getFunctionsInstance(), "autoSourceImages", {
     timeout: 560_000,

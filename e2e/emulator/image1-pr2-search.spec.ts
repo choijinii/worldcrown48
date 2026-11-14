@@ -41,8 +41,17 @@ const shot = (name: string) => test.info().outputPath(name);
 
 let server: Server;
 let braveCalls = 0;
+/** 가짜 Brave 가 받은 검색어 — 키워드가 붙는지 본다(시험 메모리에만). */
+const braveQueries: string[] = [];
 
 function results(q: string) {
+  if (/TitlePick/.test(q)) {
+    // 제목 우선 — 첫 결과는 이름이 없는 제목, 둘째 결과의 제목에만 이름(대소문자 다름)이 든다.
+    return [
+      { title: "Unrelated pony farm", url: `${BASE}/page/05`, properties: { url: `${BASE}/img/05.jpg`, height: 1200 } },
+      { title: "TITLEPICK ANN official profile", url: `${BASE}/page/06`, properties: { url: `${BASE}/img/06.jpg`, height: 1200 } },
+    ];
+  }
   if (/Nobody/.test(q)) {
     return [
       { url: `${BASE}/page/short`, properties: { url: `${BASE}/img/short-300.jpg` } },
@@ -69,6 +78,7 @@ test.beforeAll(async () => {
         return;
       }
       const q = u.searchParams.get("q") ?? "";
+      braveQueries.push(q);
       expect(u.searchParams.get("safesearch")).toBe("strict");
       expect(u.searchParams.get("count")).toBe("20");
       if (/BraveDown/.test(q)) {
@@ -469,6 +479,31 @@ test("[E2E] 검색 실패 — 서버(가짜 Brave 500) · 다른 칸은 찾고 �
   expect(/127\.0\.0\.1:9199/.test((await preview(page, 3).getAttribute("style")) ?? "")).toBe(false);
   await expect(page.getByTestId("slot-image-notfound-3")).toHaveCount(0);
   await page.screenshot({ path: shot("r8-server-fail.png") });
+});
+
+test("[E2E] 검색 정확도 — 검색어 = 이름 + 소속 + STEP 1 키워드 앞 1개 · 제목에 이름이 든 결과를 먼저 고른다", async ({ page }) => {
+  const id = await seedDraft("e2eDraftTitlePick", "image");
+  await keepFirst12(id, { 0: "TitlePick Ann" });
+  await db().collection("tournamentDrafts").doc(id).update({ keywords: ["beauty creator", "women influencer"] });
+  await openLab(page);
+  await openDraft(page);
+  await openTools(page);
+  const from = braveQueries.length;
+  await page.getByTestId("lab-find-images-only").click();
+  await expect.poll(() => imageSlots(page), { timeout: 60_000 }).toBe(12);
+  const qs = braveQueries.slice(from);
+  expect(qs).toHaveLength(12);
+  expect(qs).toContain("TitlePick Ann 그룹1 beauty creator");
+  expect(qs).toContain("엔트리02 그룹2 beauty creator");
+  expect(qs.some((q) => q.includes("women influencer"))).toBe(false);
+  // Brave 첫 결과(05)가 아니라 제목에 이름이 든 둘째 결과(06)
+  await expect.poll(async () => {
+    const cs = (await db().collection("tournamentDrafts").doc(id).get()).get("contestants") as { imageSource?: { sourceUrl?: string } }[];
+    return cs?.[0]?.imageSource?.sourceUrl;
+  }, { timeout: 30_000 }).toBe(`${BASE}/img/06.jpg`);
+  // 제목 글자는 초안에 실리지 않는다(Brave 약관)
+  const saved = JSON.stringify((await db().collection("tournamentDrafts").doc(id).get()).get("contestants"));
+  expect(saved).not.toMatch(/official profile|pony farm/i);
 });
 
 for (const [lang, find, links] of [

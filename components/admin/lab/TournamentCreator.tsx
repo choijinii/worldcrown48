@@ -819,7 +819,7 @@ export function TournamentCreator(): JSX.Element {
     };
     try {
       const summary = await runImageChunks(mine, usedImageUrls(contestantsRef.current, opts.replace ? [] : held), {
-        call: (slots, excludeUrls) => callAutoSourceImages({ draftId, slots, excludeUrls }),
+        call: (slots, excludeUrls) => callAutoSourceImages({ draftId, slots, excludeUrls, keywords }),
         onChunk: (chunk) => {
           for (const r of chunk) release(r.slot);
           // 기다리는 사이 발행했거나 다른 초안으로 갔으면 이 그림은 버린다(파일도 지운다 · PR 1 리뷰 I-2).

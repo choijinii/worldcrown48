@@ -13,7 +13,9 @@ import {
   buildImageQuery,
   parseAutoSourceImagesRequest,
   parseBraveImages,
+  preferTitleMatches,
   runImageSourcing,
+  titleHasName,
   startImageSourcing,
   type BraveCandidate,
   type ImageSourcingDeps,
@@ -26,6 +28,33 @@ describe("buildImageQuery", () => {
     expect(buildImageQuery("  Pony ", "")).toBe("Pony");
     expect(buildImageQuery("Pony", undefined)).toBe("Pony");
     expect(buildImageQuery("Pony", "  ")).toBe("Pony");
+  });
+  it(`그 대회 STEP 1 키워드 앞 ${IMAGE_SEARCH.KEYWORD_COUNT}개를 뒤에 붙인다(빈 키워드는 건너뜀)`, () => {
+    const kws = ["  ", "beauty creator", "women influencer", "makeup artist"];
+    const want = ["beauty creator", "women influencer"].slice(0, IMAGE_SEARCH.KEYWORD_COUNT);
+    expect(buildImageQuery("Pony", "", kws)).toBe(["Pony", ...want].join(" "));
+    expect(buildImageQuery("Huda Kattan", "Huda Beauty", kws)).toBe(["Huda Kattan", "Huda Beauty", ...want].join(" "));
+    expect(buildImageQuery("Pony", "", [])).toBe("Pony");
+  });
+});
+
+describe("titleHasName · preferTitleMatches — 제목에 이름이 든 결과 먼저", () => {
+  it("대소문자 무시 · 앞뒤 빈칸 무시로 이름이 들어 있는지 본다", () => {
+    expect(titleHasName("PONY's 10 makeup tips", " pony ")).toBe(true);
+    expect(titleHasName("Shetland pony foal", "Pony")).toBe(true);
+    expect(titleHasName("Cute horse", "Pony")).toBe(false);
+    expect(titleHasName(undefined, "Pony")).toBe(false);
+    expect(titleHasName("anything", "  ")).toBe(false);
+  });
+  it("이름이 든 결과를 앞으로 · 그 안과 나머지는 원래 순서 그대로", () => {
+    const cs: BraveCandidate[] = [
+      { imageUrl: "1", pageUrl: "p1" },
+      { imageUrl: "2", pageUrl: "p2", titleHasName: true },
+      { imageUrl: "3", pageUrl: "p3" },
+      { imageUrl: "4", pageUrl: "p4", titleHasName: true },
+    ];
+    expect(preferTitleMatches(cs).map((x) => x.imageUrl)).toEqual(["2", "4", "1", "3"]);
+    expect(preferTitleMatches([{ imageUrl: "a", pageUrl: "p" }]).map((x) => x.imageUrl)).toEqual(["a"]);
   });
 });
 
@@ -41,6 +70,7 @@ describe("parseAutoSourceImagesRequest", () => {
       draftId: "d1",
       slots: [{ slot: 0, name: "A", affiliation: "X" }, { slot: 3, name: "B" }],
       excludeUrls: ["https://a/1.jpg"],
+      keywords: [],
     });
   });
   it("틀린 입력은 null", () => {
@@ -54,9 +84,34 @@ describe("parseAutoSourceImagesRequest", () => {
   it("excludeUrls 가 없으면 빈 목록", () => {
     expect(parseAutoSourceImagesRequest({ draftId: "d", slots: [{ slot: 1, name: "A" }] })?.excludeUrls).toEqual([]);
   });
+  it("keywords(그 대회 STEP 1 키워드) — 글자만 · 최대 12개 · 각 30자 · 없으면 빈 목록", () => {
+    const base = { draftId: "d", slots: [{ slot: 1, name: "A" }] };
+    expect(parseAutoSourceImagesRequest(base)?.keywords).toEqual([]);
+    expect(parseAutoSourceImagesRequest({ ...base, keywords: ["beauty", 3, " ", "x".repeat(40)] })?.keywords).toEqual([
+      "beauty",
+      "x".repeat(30),
+    ]);
+    expect(parseAutoSourceImagesRequest({ ...base, keywords: Array.from({ length: 20 }, (_, i) => `k${i}`) })?.keywords).toHaveLength(12);
+  });
 });
 
 describe("parseBraveImages", () => {
+  it("이름을 주면 제목에 이름이 든 결과에 표시만 남긴다 — 제목 글자는 밖으로 나오지 않는다", () => {
+    const out = parseBraveImages(
+      {
+        results: [
+          { title: "Shetland horse", url: "https://p/1", properties: { url: "https://i/1.jpg" } },
+          { title: "PONY makeup look", url: "https://p/2", properties: { url: "https://i/2.jpg" } },
+        ],
+      },
+      "Pony",
+    );
+    expect(out).toEqual([
+      { imageUrl: "https://i/1.jpg", pageUrl: "https://p/1" },
+      { imageUrl: "https://i/2.jpg", pageUrl: "https://p/2", titleHasName: true },
+    ]);
+    expect(JSON.stringify(out)).not.toMatch(/makeup|Shetland/);
+  });
   it("그림 주소(properties.url) · 페이지 주소(url) · 알려진 세로만 꺼낸다 — 제목 · 썸네일은 버린다", () => {
     const out = parseBraveImages({
       results: [
@@ -100,10 +155,11 @@ function fakeDeps(opts: {
   bytes?: Record<string, "small" | "not-image" | "too-large" | "fetch-failed">;
   searchDelayMs?: number;
 }) {
-  const calls = { search: [] as string[], fetch: [] as string[], saved: [] as number[], inFlight: 0, maxInFlight: 0 };
+  const calls = { search: [] as string[], names: [] as string[], fetch: [] as string[], saved: [] as number[], inFlight: 0, maxInFlight: 0 };
   const deps: ImageSourcingDeps = {
-    async search(q): Promise<SearchOutcome> {
+    async search(q, name): Promise<SearchOutcome> {
       calls.search.push(q);
+      calls.names.push(name);
       calls.inFlight++;
       calls.maxInFlight = Math.max(calls.maxInFlight, calls.inFlight);
       await new Promise((r) => setTimeout(r, opts.searchDelayMs ?? 5));
@@ -196,6 +252,32 @@ describe("runImageSourcing — 후보 고르기", () => {
   });
 });
 
+describe("runImageSourcing — 검색어 · 제목 우선", () => {
+  it("검색어에 키워드를 붙이고, 고를 때는 제목에 이름이 든 결과를 먼저 시험한다", async () => {
+    const q = buildImageQuery("Pony", "", ["beauty creator", "women influencer"]);
+    const { deps, calls } = fakeDeps({
+      results: { [q]: [c("horse"), { ...c("pony-face"), titleHasName: true }, c("other")] },
+    });
+    const out = await runImageSourcing(
+      { draftId: "d", slots: [{ slot: 0, name: "Pony" }], excludeUrls: [], keywords: ["beauty creator", "women influencer"] },
+      deps,
+    );
+    expect(calls.search).toEqual([q]);
+    expect(calls.names).toEqual(["Pony"]);
+    expect(calls.fetch[0]).toBe("https://i/pony-face.jpg");
+    expect(out.results[0]).toMatchObject({ ok: true, sourceUrl: "https://i/pony-face.jpg" });
+  });
+  it("제목에 이름이 든 결과가 모두 실패하면 나머지를 원래 순서대로 시험한다", async () => {
+    const { deps, calls } = fakeDeps({
+      results: { A: [c("x1"), { ...c("t1"), titleHasName: true }, c("x2")] },
+      bytes: { "https://i/t1.jpg": "not-image" },
+    });
+    const out = await runImageSourcing({ draftId: "d", slots: [{ slot: 0, name: "A" }], excludeUrls: [] }, deps);
+    expect(calls.fetch).toEqual(["https://i/t1.jpg", "https://i/x1.jpg"]);
+    expect(out.results[0]).toMatchObject({ ok: true, sourceUrl: "https://i/x1.jpg" });
+  });
+});
+
 describe("runImageSourcing — 한도 · 동시 처리", () => {
   it("한도(limit)를 만나면 그때까지 찾은 칸은 돌려주고 남은 칸은 부르지 않는다", async () => {
     const results: Record<string, BraveCandidate[] | "limit"> = { E0: [c("e0")], E1: [c("e1")], E2: [c("e2")], E3: "limit" };
@@ -223,13 +305,13 @@ describe("runImageSourcing — 한도 · 동시 처리", () => {
 
 describe("저장 금지 — 돌려주는 값(화면이 Firestore 초안에 싣는 값)의 칸", () => {
   it("성공 칸 = 우리 복사본 주소 · 크기 · sourceUrl · sourcePage 뿐 — 제목 · 순위 · 썸네일 · 설명 없음", async () => {
-    const { deps } = fakeDeps({ results: { A: [c("good")] } });
+    const { deps } = fakeDeps({ results: { A: [{ ...c("good"), titleHasName: true }] } });
     const out = await runImageSourcing({ draftId: "d", slots: [{ slot: 0, name: "A" }], excludeUrls: [] }, deps);
     expect(Object.keys(out.results[0]).sort()).toEqual([...RESULT_KEYS].sort());
     expect(RESULT_KEYS).toEqual(
       expect.arrayContaining(["sourceUrl", "sourcePage"]),
     );
-    for (const k of ["title", "thumbnail", "rank", "description", "query", "candidates"]) {
+    for (const k of ["title", "titleHasName", "thumbnail", "rank", "description", "query", "candidates"]) {
       expect(RESULT_KEYS as readonly string[]).not.toContain(k);
     }
   });
