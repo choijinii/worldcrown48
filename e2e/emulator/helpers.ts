@@ -238,3 +238,57 @@ export async function stubYouTubeImages(page: Page): Promise<void> {
     route.fulfill({ contentType: "image/jpeg", body: readFileSync(FIXTURE_48[0]) }),
   );
 }
+
+/** IMAGE-1 PR 3 — 영상 대회의 시험 영상 id(11자). 마지막 칸은 썸네일을 못 받는 영상(가짜 서버가 404). */
+export const videoIdAt = (i: number) => (i === 47 ? "failThumb47" : `vid${String(i).padStart(2, "0")}AAAAAA`);
+
+/**
+ * 발행된 영상 대회(엔트리 48개 전부 유튜브 영상 · 대회 종류 칸 없음 = 옛 대회처럼 영상 대회로 본다).
+ * 유튜브 포스터는 화면에서 stubYouTubeImages 로, 서버 카드 썸네일은 가짜 서버(YT_THUMB_BASE · 9312)로 대신한다.
+ */
+export async function seedVideoTournament(id = "vidT1"): Promise<{ id: string; contestantIds: string[] }> {
+  const contestantIds: string[] = [];
+  const batch = db().batch();
+  for (let i = 0; i < 48; i++) {
+    const cid = `${id}c${i}`;
+    contestantIds.push(cid);
+    batch.set(db().collection("contestants").doc(cid), {
+      tournamentId: id,
+      hostUid: ADMIN_UID,
+      order: i + 1,
+      name: `엔트리${String(i + 1).padStart(2, "0")}`,
+      nationality: "KR",
+      affiliation: "",
+      imageSearchKeyword: "",
+      media: {
+        type: "embed",
+        embed: { videoId: videoIdAt(i), start: 0, end: 15, sourceUrl: `https://www.youtube.com/watch?v=${videoIdAt(i)}` },
+      },
+    });
+  }
+  batch.set(db().collection("tournaments").doc(id), {
+    title: "IMAGE-1 영상 대회",
+    titleI18n: { ko: "IMAGE-1 영상 대회", en: "IMAGE-1 Video Tournament", es: "IMAGE-1 Video Tournament" },
+    description: { ko: "", en: "", es: "" },
+    keywords: ["시험"],
+    category: "KPOP",
+    status: "active",
+    hostUid: ADMIN_UID,
+    tournamentDeadline: admin.firestore.Timestamp.fromMillis(Date.now() + 7 * 86_400_000),
+    currentRound: 1,
+    totalContestants: 48,
+    settings: { aiNews: false, multiLang: false, showRanking: true },
+    featured: true,
+    entryUnit: "individual",
+    thumbnailPair: { a: contestantIds[0], b: contestantIds[1], aPos: 50, bPos: 50 },
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await batch.commit();
+  return { id, contestantIds };
+}
+
+/** 유튜브 재생기(바깥 사이트)는 시험에서 열지 않는다 — 재생기 틀은 빈 문서, 재생기 스크립트는 빈 스크립트로 대신한다. */
+export async function stubYouTubePlayer(page: Page): Promise<void> {
+  await page.route(/youtube(-nocookie)?\.com\/embed/, (route) => route.fulfill({ contentType: "text/html", body: "<html></html>" }));
+  await page.route(/youtube\.com\/(iframe_api|s\/player)/, (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+}
