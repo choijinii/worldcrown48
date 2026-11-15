@@ -113,6 +113,7 @@ import { ImageLinksModal, type ImageLineFailure } from "./ImageLinksModal";
 import {
   applyImageResults,
   assignImageLines,
+  imageRefreshVisible,
   imageSearchFailureKind,
   imageTargets,
   parseImageLines,
@@ -151,6 +152,7 @@ import { DraftMenu } from "./DraftMenu";
 import { SourcingQuotaDialog } from "./SourcingQuotaDialog";
 import { YouTubeInspectorModal } from "./YouTubeInspectorModal";
 import { SlotVideoTuner } from "./SlotVideoTuner";
+import { ImageCheckDialog } from "./ImageCheckDialog";
 import { TitleInput } from "./TitleInput";
 import { CampaignSlugInput } from "./CampaignSlugInput";
 import { CategorySelect } from "./CategorySelect";
@@ -280,6 +282,8 @@ export function TournamentCreator(): JSX.Element {
   const [imageRefreshingIndex, setImageRefreshingIndex] = useState<number | null>(null);
   const [imageLinksOpen, setImageLinksOpen] = useState(false);
   const [tuningIndex, setTuningIndex] = useState<number | null>(null);
+  // IMAGE-1 PR 3 (원장 D-92) — 그림 확인 창이 열린 칸.
+  const [checkingImageIndex, setCheckingImageIndex] = useState<number | null>(null);
   // IMAGE-1 — 그림 올리는 중인 칸 · 매뉴얼 창 · 발행 확인창.
   const [busyImage, setBusyImage] = useState<ReadonlySet<number>>(() => new Set());
   const [manualOpen, setManualOpen] = useState(false);
@@ -1676,6 +1680,7 @@ export function TournamentCreator(): JSX.Element {
             onRefreshImage={(index) => void refreshSlotImage(index)}
             imageRefreshingIndex={imageRefreshingIndex}
             imageNotFound={imageNotFound}
+            onCheckImage={setCheckingImageIndex}
           />
           </div>
           <p style={{ margin: 0, fontSize: 12, color: lab.textMuted }}>
@@ -1725,6 +1730,20 @@ export function TournamentCreator(): JSX.Element {
         entryUnit={entryUnit}
         onApply={applyVideoSlots}
       />
+      {/* IMAGE-1 PR 3 (원장 D-92) — 그림 확인 창. [새 이미지 찾기]는 검색으로 들어온 칸에만(기존 규칙 그대로). */}
+      {checkingImageIndex !== null && contestants[checkingImageIndex]?.imageUrl && (
+        <ImageCheckDialog
+          index={checkingImageIndex}
+          draft={contestants[checkingImageIndex]}
+          onRefresh={
+            imageRefreshVisible(contestants[checkingImageIndex], mediaKind)
+              ? () => void refreshSlotImage(checkingImageIndex)
+              : undefined
+          }
+          refreshing={imageRefreshingIndex === checkingImageIndex}
+          onClose={() => setCheckingImageIndex(null)}
+        />
+      )}
       {tuningIndex !== null && contestants[tuningIndex]?.videoId && (
         <SlotVideoTuner
           index={tuningIndex}
