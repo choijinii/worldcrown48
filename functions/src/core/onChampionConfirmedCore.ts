@@ -61,13 +61,36 @@ export function crownPngInput(args: {
 }
 
 /**
- * IMAGE-1 (원장 D-77) — 공유 카드 사진 자리에 그릴 그림. 그림 엔트리면 그 그림(우리 Storage 대회 경로),
- * 아니면 null(이니셜). 영상 대회의 유튜브 썸네일은 PR 3. 대회 경로가 아닌 값은 믿지 않는다.
+ * IMAGE-1 (원장 D-77) — 공유 카드 사진 자리에 그릴 그림.
+ *   그림 엔트리 → 그 그림(우리 Storage 대회 경로 — 대회 경로가 아닌 값은 믿지 않는다)
+ *   영상 엔트리 → 유튜브 썸네일 주소 두 개(IMAGE-1 PR 3 · 무대 포스터와 같은 순서 — 가로 hq720 · 세로 oar2 → hqdefault)
+ *   내린 엔트리(D-93) · 내려간 영상 · 없음 → null(이니셜)
  */
-export function championPhoto(contestant: { media?: unknown }): { storagePath: string; focusY: number } | null {
-  const image = (contestant.media as { image?: { storagePath?: unknown; focusY?: unknown } } | undefined)?.image;
+export type ChampionPhoto =
+  | { kind: "storage"; storagePath: string; focusY: number }
+  | { kind: "youtube"; urls: string[] };
+
+const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+
+export function championPhoto(contestant: { media?: unknown }, thumbBase = "https://i.ytimg.com"): ChampionPhoto | null {
+  const media = contestant.media as
+    | {
+        image?: { storagePath?: unknown; focusY?: unknown };
+        embed?: { videoId?: unknown; gone?: unknown; orientation?: unknown };
+        takedown?: unknown;
+      }
+    | undefined;
+  if (!media || media.takedown) return null;
+  const image = media.image;
   const path = typeof image?.storagePath === "string" ? image.storagePath : "";
-  if (!/^entry-images\/tournaments\/[A-Za-z0-9]+\/\d{1,2}\.jpg$/.test(path)) return null;
-  const f = typeof image?.focusY === "number" && Number.isFinite(image.focusY) ? image.focusY : 40;
-  return { storagePath: path, focusY: Math.min(100, Math.max(0, f)) };
+  if (/^entry-images\/tournaments\/[A-Za-z0-9]+\/\d{1,2}\.jpg$/.test(path)) {
+    const f = typeof image?.focusY === "number" && Number.isFinite(image.focusY) ? image.focusY : 40;
+    return { kind: "storage", storagePath: path, focusY: Math.min(100, Math.max(0, f)) };
+  }
+  const id = typeof media.embed?.videoId === "string" ? media.embed.videoId : "";
+  if (VIDEO_ID.test(id) && media.embed?.gone !== true) {
+    const primary = media.embed?.orientation === "portrait" ? "oar2.jpg" : "hq720.jpg";
+    return { kind: "youtube", urls: [`${thumbBase}/vi/${id}/${primary}`, `${thumbBase}/vi/${id}/hqdefault.jpg`] };
+  }
+  return null;
 }

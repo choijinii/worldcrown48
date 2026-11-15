@@ -201,5 +201,8 @@ export { registerWaitlist } from "./registerWaitlist";
 // IMAGE-1 PR 1 (원장 D-77) — 엔트리 그림: ④ URL 한 장 · 발행 때 대회 경로로 복사
 export { importEntryImage } from "./importEntryImage";
 export { finalizeEntryImages } from "./finalizeEntryImages";
+// IMAGE-1 PR 3 (원장 D-77 · D-83 · D-93) — 엔트리 내리기(관리자 콜러블) + 그 엔트리 크라운 카드 다시 굽기(트리거).
+export { takeDownEntry } from "./takeDownEntry";
+export { onEntryTakedown } from "./onEntryTakedown";
 // IMAGE-1 PR 2 — ② 이미지 검색 AI(Brave). 비밀 BRAVE_SEARCH_API_KEY.
 export { autoSourceImages } from "./autoSourceImages";

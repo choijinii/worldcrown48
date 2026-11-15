@@ -25,6 +25,7 @@ import { championPhoto, crownPngInput, shouldGenerateCrownCard, type RoundProgre
 import { buildCrownCardRecord, crownCardId } from "./core/crownCardRecord";
 import { crownCardStoragePath } from "./_run/runDocId";
 import { renderCrownPng } from "./core/canvasServer";
+import { fetchFirstThumb, youtubeThumbBase } from "./core/youtubeThumb";
 import {
   CROWN_RENDER_ALERT_TYPE,
   recordRenderFailure,
@@ -93,22 +94,31 @@ export const onChampionConfirmed = onDocumentUpdated(
     // at-least-once trigger does not retry-storm for days. CARD-FIX(2026-10-04):
     // 로그 한 줄만으로는 1주일 넘게 아무도 몰랐다 → 운영자 페이지 알림에도 남긴다.
     // ⚠️ 로그 문구의 "render failed" 는 대표 메일 알림(로그 기반 알림)의 조건이다 — 바꾸지 마라.
-    // IMAGE-1 (원장 D-77) — 그림 엔트리 챔피언은 그 그림을 사진 자리에. HTTP 가 아니라 Storage 에서
-    // 경로로 바로 받는다. 못 받으면 사진 없이(이니셜) 굽는다 — 렌더 실패로 세지 않는다.
-    const photoRef = championPhoto(contestant);
+    // IMAGE-1 (원장 D-77) — 그림 엔트리 챔피언은 그 그림을 사진 자리에(HTTP 가 아니라 Storage 에서 경로로).
+    // IMAGE-1 PR 3 — 영상 대회는 그 엔트리의 유튜브 썸네일(4초 안에 못 받으면 다음 주소 · 다 실패하면 이니셜).
+    // 내린 엔트리(D-93)는 늘 이니셜. 못 받는 것은 렌더 실패로 세지 않는다.
+    const photoRef = championPhoto(contestant, youtubeThumbBase(process.env));
     let photo: Buffer | undefined;
-    if (photoRef) {
+    if (photoRef?.kind === "storage") {
       try {
         [photo] = await adminStorage.bucket().file(photoRef.storagePath).download();
       } catch (err) {
         console.warn(`[onChampionConfirmed] champion photo unavailable for ${cardId} — card without photo:`, err);
       }
+    } else if (photoRef?.kind === "youtube") {
+      photo =
+        (await fetchFirstThumb(photoRef.urls, (url) => fetch(url, { signal: AbortSignal.timeout(4000) }))) ?? undefined;
+      if (!photo) console.warn(`[onChampionConfirmed] youtube thumbnail unavailable for ${cardId} — card without photo`);
     }
 
     let png: Buffer;
     try {
       // 카드 안 이름 = 언어와 상관없이 영어, 없으면 한글 (NAME-I18N-1 · 원장 D-62).
-      png = renderCrownPng(crownPngInput({ tournamentId, tournament, contestant }), photo, photoRef?.focusY);
+      png = renderCrownPng(
+        crownPngInput({ tournamentId, tournament, contestant }),
+        photo,
+        photoRef?.kind === "storage" ? photoRef.focusY : 40,
+      );
     } catch (err) {
       console.error(
         `[onChampionConfirmed] render failed for ${cardId} (canvas unavailable?) — skipping without retry:`,

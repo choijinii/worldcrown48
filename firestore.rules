@@ -74,8 +74,22 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
-      allow update, delete: if request.auth != null
+      // IMAGE-1 PR 3 (원장 D-77 · D-93) — 발행된 엔트리의 그림·영상(media)은 브라우저에서 바꾸지 않는다.
+      // 내리기(media.takedown)는 관리자 함수 takeDownEntry 로만 — 주인이 내린 그림을 되살리거나 표시를 지우는 길을 닫는다.
+      // 이름 3언어(nameI18n) 고치기처럼 media 를 건드리지 않는 수정은 그대로 된다.
+      allow update: if request.auth != null
+                    && resource.data.hostUid == request.auth.uid
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['media']);
+      allow delete: if request.auth != null
                     && resource.data.hostUid == request.auth.uid;
+    }
+
+    // ── entry_takedowns (IMAGE-1 PR 3 · 원장 D-83 · D-93) ───────────
+    // 내리기 기록(날짜 · 사유 · 내린 관리자 · 출처) — 이용약관 5.4 "기록 보관". 엔트리 문서는 누구나 읽으므로
+    // 기록은 여기 따로 둔다. 관리자만 읽고(Lab 내리기 창의 "내림 · 날짜 · 사유"), 쓰기는 함수(admin SDK)만.
+    match /entry_takedowns/{contestantId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
     }
 
     // ── tournamentDrafts (EDITOR-FIX-1) ────────────────────────────
