@@ -36,7 +36,7 @@ const downImage: ContestantMedia = { type: "image", image: IMAGE, takedown: DOWN
 describe("isTakenDown", () => {
   it("표시가 있으면 true · 없으면 false", () => {
     expect(isTakenDown(downVideo)).toBe(true);
-    expect(isTakenDown({ type: "embed", embed: { videoId: VID } })).toBe(false);
+    expect(isTakenDown({ type: "embed", embed: { videoId: VID } } as ContestantMedia)).toBe(false);
     expect(isTakenDown(undefined)).toBe(false);
   });
 });

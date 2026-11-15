@@ -104,7 +104,7 @@ export interface ContestantMedia {
 }
 
 /** IMAGE-1 PR 3 — 내린 엔트리인가(D-93). */
-export function isTakenDown(media: Pick<ContestantMedia, "takedown"> | undefined | null): boolean {
+export function isTakenDown(media: { takedown?: { at: number } } | undefined | null): boolean {
   return Boolean(media?.takedown);
 }
 

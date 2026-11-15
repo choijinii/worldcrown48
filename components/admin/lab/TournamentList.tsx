@@ -47,6 +47,8 @@ import type { LocalizedText } from "@/lib/types/tournament";
 import type { Category } from "@/lib/types/tournament";
 import { lab } from "./theme";
 import { NameLanguagePanel } from "./NameLanguagePanel";
+import { TakedownDialog } from "./TakedownDialog";
+import { takedownCopy, takedownKind } from "@/lib/lab/takedown";
 
 interface Row {
   id: string;
@@ -67,6 +69,8 @@ interface Row {
   tournamentDeadline?: Timestamp;
   /** ARENA-2 PR 3 — 조기 마감한 시각(manageTournament closeEarly). */
   closedEarlyAt?: Timestamp;
+  /** LAB-FIX-3 추가분(D-90) — 대회 종류. 없으면 영상 대회(IMAGE-1 PR 3 내리기 버튼 이름이 따른다). */
+  mediaKind?: "video" | "image";
 }
 
 /** 확인이 필요한 동작 — [다시 보이기]는 되돌릴 수 있어 바로 한다. */
@@ -142,6 +146,8 @@ export function TournamentList({
   const [busyId, setBusyId] = useState<string | null>(null);
   // NAME-I18N-1 PR 2 — 이름 en·es 를 고치는 칸이 열린 대회(한 번에 하나).
   const [namesId, setNamesId] = useState<string | null>(null);
+  // IMAGE-1 PR 3 (원장 D-93) — 내리기 창이 열린 대회(한 번에 하나).
+  const [takedownId, setTakedownId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -325,6 +331,28 @@ export function TournamentList({
                 {namesId === r.id ? t("lab.names.close") : t("lab.names.open")}
               </button>
 
+              {/* IMAGE-1 PR 3 (원장 D-77 · D-93) — 내리기 스위치. 이름은 대회 종류를 따른다(그림 내리기 / 영상 내리기). */}
+              {r.status !== "draft" && (
+                <button
+                  type="button"
+                  onClick={() => setTakedownId(r.id)}
+                  data-testid={`takedown-open-${r.id}`}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "var(--radius-border)",
+                    border: `1px solid ${lab.crimson}`,
+                    background: "transparent",
+                    color: lab.crimson,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t(takedownCopy(takedownKind(r)).button)}
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => toggleFeatured(r.id)}
@@ -410,6 +438,14 @@ export function TournamentList({
                 </>
               )}
               {namesId === r.id ? <NameLanguagePanel tournamentId={r.id} /> : null}
+              {takedownId === r.id ? (
+                <TakedownDialog
+                  tournamentId={r.id}
+                  title={localizedTitle(r, lang)}
+                  kind={takedownKind(r)}
+                  onClose={() => setTakedownId(null)}
+                />
+              ) : null}
             </li>
             );
           })}
