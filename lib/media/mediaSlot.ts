@@ -95,6 +95,17 @@ export interface ContestantMedia {
   embed?: EmbedMedia;
   /** IMAGE-1 — 영상과 함께 있을 수 있다. 보여 줄 때는 영상이 먼저다. */
   image?: EntryImage;
+  /**
+   * IMAGE-1 PR 3 (원장 D-77 · D-93) — 내린 엔트리. 관리자 함수 takeDownEntry 만 쓴다: 영상·그림 정보를 지우고
+   * 이 표시(내린 시각 epoch ms)만 남긴다. 읽는 쪽은 이 표시를 먼저 본다 → 어디서나 이니셜. 되돌리기 없음.
+   * 사유 · 내린 관리자 · 출처 기록은 공개 문서에 두지 않는다(관리자 전용 `entry_takedowns`).
+   */
+  takedown?: { at: number };
+}
+
+/** IMAGE-1 PR 3 — 내린 엔트리인가(D-93). */
+export function isTakenDown(media: Pick<ContestantMedia, "takedown"> | undefined | null): boolean {
+  return Boolean(media?.takedown);
 }
 
 export interface EmbedFacade {
@@ -148,6 +159,7 @@ export function buildEmbedFacade(embed: EmbedMedia): EmbedFacade {
  * (이름 이니셜 등)을 그대로 쓴다.
  */
 export function contestantThumbnail(media: ContestantMedia | undefined): string {
+  if (isTakenDown(media)) return "";
   const videoId = media?.embed?.videoId;
   if (videoId && isValidVideoId(videoId) && !media?.embed?.gone) return buildThumbnailUrl(videoId);
   // IMAGE-1 (D-77) — 영상이 없거나 내려갔으면 그림(600 사본, 없으면 원본).
@@ -167,6 +179,7 @@ export function decideMediaRender(
   media: ContestantMedia | undefined,
   imageUrl: string,
 ): MediaRenderDecision {
+  if (isTakenDown(media)) return { render: "none" };
   if (media?.type === "embed" && isValidVideoId(media.embed?.videoId) && !media.embed?.gone) {
     return { render: "embed", facade: buildEmbedFacade(media.embed!) };
   }

@@ -16,6 +16,9 @@ import type { Lang } from "@/lib/cookieConsent";
 import { localizedName } from "@/lib/contestantName";
 import type { CrownData } from "./formats";
 import { crownCardName } from "./cardName";
+import { isTakenDown } from "@/lib/media/mediaSlot";
+import { isValidVideoId } from "@/lib/embed/youtubeUrl";
+import { posterSources } from "@/lib/media/stageCrop";
 
 /** The slice of roundProgress this loader reads (mirrors C-1's RoundProgressEvent). */
 export interface RoundProgressLike {
@@ -78,12 +81,35 @@ export function toCrownData(champion: Contestant, tournament: Tournament, lang: 
     path: VICTORY_PATH,
     campaign: campaignForTournament(tournament),
     displayName: localizedName(champion, lang),
-    // IMAGE-1 — 그림이 있을 때만 싣는다(옛 모양 그대로).
-    ...(champion.media?.image?.url
-      ? {
-          photoUrl: champion.media.image.url,
-          ...(typeof champion.media.image.focusY === "number" ? { photoFocusY: champion.media.image.focusY } : {}),
-        }
-      : {}),
+    // IMAGE-1 — 사진이 있을 때만 싣는다(옛 모양 그대로).
+    ...photoFields(crownPhotoSources(champion)),
   };
+}
+
+function photoFields(p: ReturnType<typeof crownPhotoSources>): Partial<CrownData> {
+  if (!p) return {};
+  return {
+    photoUrl: p.url,
+    ...(p.fallback ? { photoFallbackUrl: p.fallback } : {}),
+    ...(typeof p.focusY === "number" ? { photoFocusY: p.focusY } : {}),
+  };
+}
+
+/**
+ * 크라운 카드 사진 자리(원장 D-77 결정 ② · IMAGE-1 PR 3): 그림 엔트리 → 그 그림(1600) · 영상 엔트리 →
+ * 유튜브 썸네일(비율이 맞는 원본, 없으면 hqdefault — 무대 포스터와 같은 순서) · 내림 · 내려간 영상 · 없음 → null(이니셜).
+ */
+export function crownPhotoSources(
+  champion: Pick<Contestant, "media">,
+): { url: string; fallback?: string; focusY?: number } | null {
+  const media = champion.media;
+  if (!media || isTakenDown(media)) return null;
+  const image = media.image;
+  if (image?.url) return { url: image.url, ...(typeof image.focusY === "number" ? { focusY: image.focusY } : {}) };
+  const embed = media.embed;
+  if (embed && isValidVideoId(embed.videoId) && !embed.gone) {
+    const [url, fallback] = posterSources(embed.videoId, embed.orientation === "portrait" ? "portrait" : "landscape");
+    return { url, fallback };
+  }
+  return null;
 }

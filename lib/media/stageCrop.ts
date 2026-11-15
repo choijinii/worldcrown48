@@ -6,7 +6,7 @@
  */
 import { isValidVideoId } from "@/lib/embed/youtubeUrl";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
-import type { ContestantMedia, EmbedOrientation } from "@/lib/media/mediaSlot";
+import { isTakenDown, type ContestantMedia, type EmbedOrientation } from "@/lib/media/mediaSlot";
 import { sourceHost } from "@/lib/media/storageUrl";
 
 export type { EmbedOrientation };
@@ -53,6 +53,7 @@ export interface StageMedia {
  * 옛 문서(orientation·focusY·end 없음)는 가로 · 40 · start+15초로 읽는다.
  */
 export function resolveStageMedia(media: ContestantMedia | undefined): StageMedia | null {
+  if (isTakenDown(media)) return null; // IMAGE-1 PR 3 — 내린 엔트리(D-93)
   const embed = media?.embed;
   if (!embed || !isValidVideoId(embed.videoId) || embed.gone) return null;
   const startSec = typeof embed.start === "number" && embed.start > 0 ? Math.floor(embed.start) : 0;
@@ -83,7 +84,7 @@ export interface StageImage {
 }
 
 export function resolveStageImage(media: ContestantMedia | undefined): StageImage | null {
-  if (resolveStageMedia(media)) return null;
+  if (isTakenDown(media) || resolveStageMedia(media)) return null;
   const image = media?.image;
   if (!image?.url) return null;
   return {

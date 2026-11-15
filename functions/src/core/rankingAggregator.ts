@@ -40,11 +40,17 @@ export function contestantMetaOf(id: string, data: Record<string, unknown>): Con
   const str = (v: unknown) => (typeof v === "string" ? v : "");
   const name = str(data.name);
   const media = data.media as
-    | { embed?: { videoId?: unknown; gone?: unknown }; image?: { thumbUrl?: unknown; url?: unknown } }
+    | {
+        embed?: { videoId?: unknown; gone?: unknown };
+        image?: { thumbUrl?: unknown; url?: unknown };
+        takedown?: unknown;
+      }
     | undefined;
-  const videoId = str(media?.embed?.videoId);
+  // IMAGE-1 PR 3 (D-93) — 내린 엔트리는 아바타 재료를 하나도 싣지 않는다(이니셜).
+  const down = Boolean(media?.takedown);
+  const videoId = down ? "" : str(media?.embed?.videoId);
   const videoOk = VIDEO_ID.test(videoId) && media?.embed?.gone !== true;
-  const imageUrl = videoOk ? "" : str(media?.image?.thumbUrl) || str(media?.image?.url);
+  const imageUrl = videoOk || down ? "" : str(media?.image?.thumbUrl) || str(media?.image?.url);
   const base = { id, name, videoId, ...(imageUrl ? { imageUrl } : {}) };
   const raw = data.nameI18n as Record<string, unknown> | undefined;
   if (!raw || typeof raw !== "object") return base;
