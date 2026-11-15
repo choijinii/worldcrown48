@@ -11,6 +11,8 @@ import {
   languageChecks,
   missingPaths,
   staleChecks,
+  takedownDocChecks,
+  termsTakedownChecks,
 } from "./check-docs.lib.mjs";
 
 const DOCS = ["CLAUDE.md", "LANGUAGE.md"];
@@ -46,6 +48,13 @@ report("링크 깨짐 (marketing/ · docs/ · lib/)", broken);
 report("Stale-Doc 대조", [
   ...staleChecks(readFileSync("CLAUDE.md", "utf8"), readFileSync(LEDGER, "utf8")),
   ...languageChecks(readFileSync("LANGUAGE.md", "utf8")),
+  ...takedownDocChecks(readFileSync("CLAUDE.md", "utf8"), readFileSync(LEDGER, "utf8")),
 ]);
+
+// IMAGE-1 PR 3 — 정책 문서는 고치지 않고 대조만 한다(지시서 §3).
+report(
+  "이용약관 5.4 세 언어 (policy@ · 24시간)",
+  termsTakedownChecks(Object.fromEntries(["ko", "en", "es"].map((l) => [l, readFileSync(`content/${l}/terms.md`, "utf8")]))),
+);
 
 process.exit(failed ? 1 : 0);
