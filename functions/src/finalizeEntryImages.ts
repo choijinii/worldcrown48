@@ -16,7 +16,7 @@ import { logger } from "firebase-functions";
 import { ALLOWED_ORIGINS } from "./cors";
 import { requireAdmin } from "./core/requireAdmin";
 import { adminStorage } from "./admin";
-import { draftImageDir, planFinalize } from "./core/entryImageCore";
+import { DRAFT_DIR_META, draftImageDir, planFinalize } from "./core/entryImageCore";
 import { publicStorageUrl } from "./_embed/storageUrl";
 
 export interface FinalizedImage {
@@ -70,7 +70,11 @@ export const finalizeEntryImages = onCall(
           thumbOk = false;
           logger.warn("finalizeEntryImages thumb missing", { from: step.fromThumb, err: String(e) });
         }
-        await bucket.file(step.to).setMetadata({ cacheControl: CACHE }).catch(() => undefined);
+        // IMAGE-1 PR 2 — 대회 [삭제] 때 이 그림이 온 초안 폴더도 지우도록 적어 둔다(manageTournament).
+        await bucket
+          .file(step.to)
+          .setMetadata({ cacheControl: CACHE, metadata: { [DRAFT_DIR_META]: draftImageDir(uid, draftId) } })
+          .catch(() => undefined);
         const url = publicStorageUrl(bucket.name, step.to, version, ORIGIN);
         images[step.slot] = {
           url,

@@ -34,6 +34,7 @@
 
 import { useRef, useState } from "react";
 import { slotButtons } from "@/lib/lab/manualMedia";
+import { imageRefreshVisible } from "@/lib/lab/imageSourcing";
 import type { MediaKind } from "@/lib/lab/mediaKind";
 import type { Message } from "@/lib/lab/embedMessages";
 import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
@@ -81,6 +82,11 @@ interface ContestantEditorProps {
   video?: SlotVideoHandlers;
   /** LAB-FIX-3 추가분 (D-90) — 대회 종류. 영상 대회 = [영상] · 이미지 대회 = [이미지]·[이미지 파일] · 미정 = 없음. */
   mediaKind?: MediaKind | null;
+  /** IMAGE-1 PR 2 — [새 이미지 찾기](검색으로 들어온 그림 칸에만 보인다). */
+  onRefreshImage?: (index: number) => void;
+  imageRefreshing?: boolean;
+  /** IMAGE-1 PR 2 — 이미지 검색이 이 칸에서 세로 400px 이상인 그림을 찾지 못했다(문구 6). */
+  imageNotFound?: boolean;
 }
 
 export interface SlotVideoHandlers {
@@ -102,7 +108,7 @@ export interface SlotImageHandlers {
   busy?: boolean;
 }
 
-const FAIL_KEY: Record<ImportFailure, MessageKey> = {
+export const FAIL_KEY: Record<ImportFailure, MessageKey> = {
   "fetch-failed": "lab.image.fail.fetchFailed",
   "not-image": "lab.image.fail.notImage",
   "too-large": "lab.image.fail.tooLarge",
@@ -181,6 +187,9 @@ export function ContestantEditor({
   videoMismatch = false,
   video,
   mediaKind = null,
+  onRefreshImage,
+  imageRefreshing = false,
+  imageNotFound = false,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -673,6 +682,16 @@ export function ContestantEditor({
                 {t(lineFail.key, lineFail.vars)}
               </span>
             )}
+            {/* IMAGE-1 PR 2 — 이미지 검색이 못 찾은 칸의 이유(실패 이유 줄과 같은 모양). */}
+            {imageNotFound && mediaKind === "image" && (
+              <span
+                data-testid={`slot-image-notfound-${index}`}
+                role="status"
+                style={{ marginTop: 3, fontSize: 9, color: lab.crimson }}
+              >
+                {t("lab.image.notFound")}
+              </span>
+            )}
           </div>
         </>
       )}
@@ -721,6 +740,21 @@ export function ContestantEditor({
             style={{ ...chipStyle, cursor: refreshing ? "not-allowed" : "pointer" }}
           >
             {refreshing ? t("lab.source.refreshing") : t("lab.source.refresh")}
+          </button>
+        </div>
+      )}
+
+      {/* IMAGE-1 PR 2 — [새 이미지 찾기]: [새 영상 찾기]와 같은 자리 · 검색으로 들어온 그림 칸에만(D-89). */}
+      {onRefreshImage && imageRefreshVisible(contestant, mediaKind) && (
+        <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <button
+            type="button"
+            onClick={() => onRefreshImage(index)}
+            disabled={imageRefreshing}
+            data-testid={`contestant-image-refresh-${index}`}
+            style={{ ...chipStyle, cursor: imageRefreshing ? "not-allowed" : "pointer" }}
+          >
+            {imageRefreshing ? t("lab.source.refreshing") : t("lab.image.refresh")}
           </button>
         </div>
       )}

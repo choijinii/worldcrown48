@@ -12,6 +12,7 @@
  *      다시 누르면 이어서 지운다(표시가 남아 그사이 선택도 막힌다).
  */
 import type { Firestore } from "firebase-admin/firestore";
+import { entryImagePrefixesToDelete, tournamentImageDir } from "./entryImagePaths";
 import {
   TOURNAMENT_ADMIN_ERROR_CODES as CODES,
   decideRemoval,
@@ -32,6 +33,11 @@ export class TournamentAdminError extends Error {
 /** 크라운 카드 그림(Storage `crown-cards/{tid}/`)을 지우는 쪽 — 콜러블은 진짜 버킷, 시험은 기록만. */
 export interface CrownCardFiles {
   deletePrefix(prefix: string): Promise<void>;
+  /**
+   * IMAGE-1 PR 2 — 대회 그림 폴더의 파일이 발행 때 남긴 초안 폴더(메타데이터 draftDir). 없으면 null.
+   * 없는 쪽(옛 시험)은 대회 폴더만 지운다.
+   */
+  draftDirOf?(tournamentPrefix: string): Promise<string | null>;
 }
 
 /**
@@ -100,6 +106,9 @@ export async function removeTournament(
 
   await db.recursiveDelete(db.collection("ranking_cache").doc(tournamentId));
   await deps.storage.deletePrefix(`crown-cards/${tournamentId}/`);
+  // IMAGE-1 PR 2 (대표 결정 2026-11-09) — 엔트리 그림 폴더 + 그 대회를 만든 초안의 임시 폴더(남아 있으면).
+  const draftDir = deps.storage.draftDirOf ? await deps.storage.draftDirOf(tournamentImageDir(tournamentId)) : null;
+  for (const prefix of entryImagePrefixesToDelete(tournamentId, draftDir)) await deps.storage.deletePrefix(prefix);
   await tRef.delete();
   return { status: "deleted" };
 }

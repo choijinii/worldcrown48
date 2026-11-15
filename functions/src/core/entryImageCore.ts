@@ -235,3 +235,7 @@ export function planFinalize(
     return { slot, from: storagePath, fromThumb: thumbPathOf(storagePath), to, toThumb: thumbPathOf(to) };
   });
 }
+
+
+// 삭제 경로(캔버스 없이 쓰는 쪽 — tournamentAdminStore 가 루트 시험에서도 읽는다)
+export { DRAFT_DIR_META, tournamentImageDir, entryImagePrefixesToDelete } from "./entryImagePaths";

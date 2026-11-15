@@ -16,6 +16,8 @@ import {
   isBlockedHost,
   parseImportRequest,
   planFinalize,
+  entryImagePrefixesToDelete,
+  DRAFT_DIR_META,
   resizeToJpegs,
 } from "../core/entryImageCore";
 
@@ -254,5 +256,35 @@ describe("planFinalize", () => {
   it("틀린 칸 번호 · 틀린 대회 id → 던진다", () => {
     expect(() => planFinalize("u1", "d1", "t9", [{ slot: 48, storagePath: "entry-images/drafts/u1/d1/0.jpg" }])).toThrow();
     expect(() => planFinalize("u1", "d1", "../t", [{ slot: 0, storagePath: "entry-images/drafts/u1/d1/0.jpg" }])).toThrow();
+  });
+});
+
+describe("삭제 경로 계산 (IMAGE-1 PR 2 · 대표 결정 2026-11-09)", () => {
+  it("그 대회 그림 폴더 + 메타데이터가 가리키는 초안 폴더만", () => {
+    expect(entryImagePrefixesToDelete("t1", "entry-images/drafts/u-1/d9/")).toEqual([
+      "entry-images/tournaments/t1/",
+      "entry-images/drafts/u-1/d9/",
+    ]);
+    expect(entryImagePrefixesToDelete("t1", null)).toEqual(["entry-images/tournaments/t1/"]);
+  });
+  it("초안 폴더 꼴이 아니면(상위 폴더 · 다른 길 · ..) 지우지 않는다", () => {
+    for (const bad of [
+      "entry-images/drafts/",
+      "entry-images/drafts/u1/",
+      "entry-images/drafts/u1/d1",
+      "entry-images/tournaments/t2/",
+      "entry-images/drafts/u1/../d1/",
+      "entry-images/drafts/u1/d1/x/",
+      "",
+    ]) {
+      expect(entryImagePrefixesToDelete("t1", bad), bad).toEqual(["entry-images/tournaments/t1/"]);
+    }
+  });
+  it("대회 id 가 틀리면 아무것도 지우지 않는다", () => {
+    expect(() => entryImagePrefixesToDelete("", null)).toThrow();
+    expect(() => entryImagePrefixesToDelete("a/b", null)).toThrow();
+  });
+  it("발행 복사가 남기는 메타데이터 이름은 draftDir", () => {
+    expect(DRAFT_DIR_META).toBe("draftDir");
   });
 });

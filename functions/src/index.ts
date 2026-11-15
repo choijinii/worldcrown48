@@ -201,3 +201,5 @@ export { registerWaitlist } from "./registerWaitlist";
 // IMAGE-1 PR 1 (원장 D-77) — 엔트리 그림: ④ URL 한 장 · 발행 때 대회 경로로 복사
 export { importEntryImage } from "./importEntryImage";
 export { finalizeEntryImages } from "./finalizeEntryImages";
+// IMAGE-1 PR 2 — ② 이미지 검색 AI(Brave). 비밀 BRAVE_SEARCH_API_KEY.
+export { autoSourceImages } from "./autoSourceImages";

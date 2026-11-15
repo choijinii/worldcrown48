@@ -32,13 +32,8 @@ describe("대회 종류 문구 3줄 = 승인표(추가분 §4)", () => {
   }
 });
 
-// LAB-FIX-3b — 대표 승인 2026-11-14 02:08 · 지시서 §3 그대로.
-describe("이미지 대회 빈칸 버튼 이름 = 승인표(LAB-FIX-3b §3)", () => {
-  it("lab.fill.blanksImage", () => {
-    expect(resolveMessage("ko", "lab.fill.blanksImage")).toBe("빈칸 채우기");
-    expect(resolveMessage("en", "lab.fill.blanksImage")).toBe("Fill blanks");
-    expect(resolveMessage("es", "lab.fill.blanksImage")).toBe("Rellenar vacíos");
-  });
+// LAB-FIX-3b 의 "빈칸 채우기"는 IMAGE-1 PR 2 승인(2026-11-14 16:29)으로 바뀌었다 — image1Pr2Copy.test.ts 가 본다.
+describe("빈칸 버튼 이름(LAB-FIX-3b)", () => {
   it("영상 대회 이름은 그대로", () => {
     expect(resolveMessage("ko", "lab.fill.blanks")).toBe("빈칸 채우고 영상까지");
   });

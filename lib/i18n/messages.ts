@@ -642,17 +642,17 @@ export const MESSAGES = {
   // "✨ AI 48명 전체"는 [🎬 동영상 생성]·[🖼 이미지 생성] 체인에 흡수됐다.
   // 이제 채우기에서 끝나지 않고 **그 칸들만** 소싱까지 이어간다(대표 스모크 ②).
   // 이름은 하는 일 기준이라 "영상까지"를 붙인다.
-  // 이미지 대회는 이미지를 넣지 않으므로 lab.fill.blanksImage를 쓴다. 이미지 자동 찾기 기능이 들어오면 이름을 다시 대표 승인으로 바꾼다.
+  // 이미지 대회는 lab.fill.blanksImage를 쓴다 — IMAGE-1 PR 2에서 이미지 자동 찾기가 들어와 이름을 대표 승인(2026-11-14 16:29)으로 바꿨다.
   "lab.fill.blanks": {
     ko: "빈칸 채우고 영상까지",
     en: "Fill blanks + find videos",
     es: "Rellenar vacíos + buscar videos",
   },
-  // LAB-FIX-3b — 대표 승인 2026-11-14 02:08.
+  // LAB-FIX-3b "빈칸 채우기" → IMAGE-1 PR 2 대표 승인 2026-11-14 16:29(문구 2번 · 이번에 채운 칸만 그림까지 찾는다).
   "lab.fill.blanksImage": {
-    ko: "빈칸 채우기",
-    en: "Fill blanks",
-    es: "Rellenar vacíos",
+    ko: "빈칸 채우고 이미지까지",
+    en: "Fill blanks + find images",
+    es: "Rellenar vacíos + buscar imágenes",
   },
   "lab.fill.hint": {
     ko: "✏️ 칸을 직접 클릭해 입력·수정할 수도 있어요",
@@ -1104,6 +1104,51 @@ export const MESSAGES = {
   "lab.image.fail.tooLarge": { ko: "10MB를 넘어요", en: "Larger than 10 MB", es: "Supera los 10 MB" },
   // 10
   "lab.image.fail.tooSmall": { ko: "세로 400px보다 작아요", en: "Shorter than 400 px", es: "Menos de 400 px de alto" },
+  // IMAGE-1 PR 2 — 대표 승인 2026-11-14 16:29 "승인!"(문구 5~14번 · 글자 그대로).
+  "lab.image.refresh": { ko: "새 이미지 찾기", en: "Find another image", es: "Buscar otra imagen" },
+  "lab.image.notFound": {
+    ko: "세로 400px 이상인 그림을 찾지 못했어요",
+    en: "No image 400 px tall or more was found",
+    es: "No se encontró ninguna imagen de 400 px de alto o más",
+  },
+  "lab.image.findOnly": { ko: "이미지만 찾기", en: "Find images only", es: "Buscar solo imágenes" },
+  "lab.image.findOnlyHint": {
+    ko: "이름은 그대로 두고, 그림이 없는 칸만 찾아요",
+    en: "Keeps the names and searches only slots without an image",
+    es: "Mantiene los nombres y busca solo en las casillas sin imagen",
+  },
+  "lab.image.pasteLinks": { ko: "이미지 주소 한꺼번에 넣기", en: "Paste image links", es: "Pegar enlaces de imagen" },
+  "lab.image.pasteHint": {
+    ko: "한 줄에 주소 하나씩, 칸 순서대로 붙여 넣으세요(최대 48줄). 그림이 없는 칸부터 채워요.",
+    en: "One link per line, in slot order (up to 48). Slots without an image are filled first.",
+    es: "Un enlace por línea, en el orden de las casillas (máx. 48). Primero se rellenan las casillas sin imagen.",
+  },
+  "lab.image.pasteSubmit": { ko: "칸에 넣기", en: "Add to slots", es: "Añadir a las casillas" },
+  // 승인표 ko 는 "{n}번째 줄: {이유}" — 자리표시자 이름만 세 언어를 {reason} 으로 맞췄다(보이는 글자는 같다).
+  "lab.image.pasteLineFail": { ko: "{n}번째 줄: {reason}", en: "Line {n}: {reason}", es: "Línea {n}: {reason}" },
+  "lab.image.noKey": {
+    ko: "이미지 검색 키가 없어 그림을 넣지 못해요.",
+    en: "No image search key, so images can't be added.",
+    es: "No hay clave de búsqueda de imágenes, así que no se pueden añadir imágenes.",
+  },
+  "lab.image.limit": {
+    ko: "이미지 검색 한도입니다. 남은 칸은 수동으로 넣어 주세요.",
+    en: "Image search limit reached. Please add the rest manually.",
+    es: "Se alcanzó el límite de búsqueda de imágenes. Añade el resto manualmente.",
+  },
+  // 15·16 — 대표 승인 2026-11-14("검색 실패 알림" 답 · 글자 그대로). 가르는 기준 = lib/lab/imageSourcing.ts imageSearchFailureKind.
+  // 15 화면의 요청이 서버에 닿지 못함(네트워크 오류)
+  "lab.image.networkFail": {
+    ko: "네트워크가 끊겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.",
+    en: "Image search failed because the network was disconnected. Try again, or add the images manually.",
+    es: "La búsqueda de imágenes falló porque se perdió la conexión. Inténtalo de nuevo o añade las imágenes manualmente.",
+  },
+  // 16 서버까지 닿았으나 우리 함수 또는 Brave 가 오류(한도 402/429 는 14번 그대로)
+  "lab.image.serverFail": {
+    ko: "서버에 문제가 생겨 이미지 검색에 실패했어요. 다시 시도하거나, 그림을 수동으로 넣어 주세요.",
+    en: "Image search failed due to a server problem. Try again, or add the images manually.",
+    es: "La búsqueda de imágenes falló por un problema del servidor. Inténtalo de nuevo o añade las imágenes manualmente.",
+  },
   // 11
   "lab.manual.title": { ko: "대회 만들기 — 이렇게 진행하세요", en: "Creating a tournament — step by step", es: "Crear un torneo — paso a paso" },
   // 12
@@ -1536,10 +1581,17 @@ export const MESSAGES = {
     es: "La IA rellena los 48 → busca un video → los inspecciona",
   },
   "lab.generate.images": { ko: "이미지 생성", en: "Generate images", es: "Generar imágenes" },
+  // IMAGE-1 PR 2 — 대표 승인 2026-11-14 16:29(문구 1번).
   "lab.generate.imagesSub": {
-    ko: "AI가 엔트리 48개를 채우고 → 검수까지 합니다 (영상 검색 없음)",
-    en: "AI fills all 48 → inspects them (no video search)",
-    es: "La IA rellena los 48 → los inspecciona (sin buscar videos)",
+    ko: "AI가 엔트리 48개를 채우고 → 이미지를 찾고 → 검수까지 이어서 합니다",
+    en: "AI fills all 48 → finds images → inspects them",
+    es: "La IA rellena los 48 → busca imágenes → los inspecciona",
+  },
+  // IMAGE-1 PR 2 — 문구 3번(진행 표시).
+  "lab.generate.imageSourcing": {
+    ko: "이미지 찾는 중… {done}/{total}",
+    en: "Finding images… {done}/{total}",
+    es: "Buscando imágenes… {done}/{total}",
   },
   "lab.generate.filling": {
     ko: "✨ 엔트리 48개 채우는 중… (약 15초)",
@@ -1556,10 +1608,11 @@ export const MESSAGES = {
     en: "Filled {filled}/{total} · proposed {suggested} · needs a look {todo}",
     es: "Rellenadas {filled}/{total} · propuestas {suggested} · por revisar {todo}",
   },
+  // IMAGE-1 PR 2 — 문구 4번(끝 알림).
   "lab.generate.imagesDone": {
-    ko: "✓ {filled}칸을 채웠어요 · 손볼 칸 {todo}개",
-    en: "✓ Filled {filled} slots · {todo} need a look",
-    es: "✓ {filled} casillas rellenadas · {todo} por revisar",
+    ko: "✓ {filled}칸을 채우고 그림 {found}장을 넣었어요 · 손볼 칸 {todo}개",
+    en: "✓ Filled {filled} slots and added {found} images · {todo} need a look",
+    es: "✓ {filled} casillas rellenadas y {found} imágenes añadidas · {todo} por revisar",
   },
   "lab.generate.chainStopped": {
     ko: "영상 찾기에서 멈췄어요 — 앞선 결과는 그대로 있고 남은 칸은 {remaining}개입니다.",

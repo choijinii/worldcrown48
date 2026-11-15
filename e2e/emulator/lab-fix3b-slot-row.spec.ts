@@ -5,7 +5,8 @@
  *  ① 영상 대회: 리뷰 표시(이름↔영상 불일치)가 있는 칸과 없는 칸의 [영상] 세로 위치(px)가 같다.
  *     두 칸은 내용이 같게 만든다(둘 다 손으로 넣은 영상 + 제목 한 줄) — 다른 것은 리뷰 표시 하나뿐.
  *  ② 주소 칸을 열기 전 · 연 뒤 · 실패 문구가 뜬 뒤 · 닫은 뒤 [영상] 위치가 같다.
- *  ③ 빈칸 버튼 이름: 영상 대회 = "빈칸 채우고 영상까지" · 이미지 대회 = "빈칸 채우기" / "Fill blanks" / "Rellenar vacíos".
+ *  ③ 빈칸 버튼 이름: 영상 대회 = "빈칸 채우고 영상까지" · 이미지 대회 = IMAGE-1 PR 2 승인(2026-11-14 16:29)
+ *     "빈칸 채우고 이미지까지" / "Fill blanks + find images" / "Rellenar vacíos + buscar imágenes"(LAB-FIX-3b 의 "빈칸 채우기"를 바꿈).
  */
 import { expect, test, type Page } from "@playwright/test";
 import {
@@ -115,7 +116,11 @@ test("① 리뷰 표시가 있는 칸과 없는 칸의 [영상] 높이가 같다
   expect(errors, errors.join("\n")).toHaveLength(0);
 });
 
-for (const [lang, label] of [["ko", "빈칸 채우기"], ["en", "Fill blanks"], ["es", "Rellenar vacíos"]] as const) {
+for (const [lang, label] of [
+  ["ko", "빈칸 채우고 이미지까지"],
+  ["en", "Fill blanks + find images"],
+  ["es", "Rellenar vacíos + buscar imágenes"],
+] as const) {
   test(`③ 이미지 대회 빈칸 버튼 이름 (${lang}) = "${label}" · [이미지] 줄 오른쪽 끝`, async ({ page }) => {
     await seedDraft("e2eDraft1", "image");
     await openDraft(page, lang);

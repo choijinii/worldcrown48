@@ -28,7 +28,7 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -64,10 +64,18 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # 함수 빌드 → next build(에뮬레이터 연결판) → emulators:exec 안에서 Playwright.
-      - name: Emulator E2E (4 paths)
+      # IMAGE-1 PR 2 지시서 §11 — 새 spec 은 파일 경로를 명시해 먼저 돌린다(함수 빌드 · next build 포함).
+      # 진짜 Brave 는 부르지 않는다: 시험 안의 가짜 Brave(127.0.0.1:9311)를 함수가 BRAVE_API_BASE 로 부른다.
+      - name: Emulator E2E — IMAGE-1 PR 2 (e2e/emulator/image1-pr2-search.spec.ts)
         env:
           CI: '1'
+        run: bash scripts/e2e-emulator.sh e2e/emulator/image1-pr2-search.spec.ts
+
+      # 그 다음 에뮬레이터 spec 전부(빌드는 위에서 끝났다).
+      - name: Emulator E2E (all specs)
+        env:
+          CI: '1'
+          SKIP_BUILD: '1'
         run: bash scripts/e2e-emulator.sh
 
       - name: Upload report · video · trace · evidence
