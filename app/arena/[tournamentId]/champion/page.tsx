@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTakedownRefresh } from "@/lib/arena/takedownRefresh";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/useT";
 import { chartHref } from "@/lib/records/chartList";
@@ -69,6 +70,8 @@ export default function ChampionPage(): JSX.Element {
   const tournament = useVoteStore((s) => s.tournament);
   const contestants = useVoteStore((s) => s.contestants);
   const loadTournament = useVoteStore((s) => s.loadTournament);
+  // IMAGE-1 PR 3 (원장 D-77 · D-93) — 판 도중에 엔트리를 내려도 1분 안에 이니셜(대진은 그대로).
+  useTakedownRefresh(tournamentId);
   const run = useVoteStore((s) => s.run);
   const loadError = useVoteStore((s) => s.error);
 

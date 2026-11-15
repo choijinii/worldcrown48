@@ -19,6 +19,7 @@ import type { Canvas2D } from "@/lib/crown/canvas/primitives";
 import { crownFileName } from "@/lib/crown/slug";
 import { buildTweetIntent, canShareFiles, withShareUtm, type ShareCapableNavigator } from "@/lib/crown/shareIntents";
 import styles from "./crown.module.css";
+import { isUsablePhoto } from "@/lib/crown/photoFallback";
 
 let crownImg: HTMLImageElement | null = null;
 
@@ -40,24 +41,32 @@ export function loadCrownImage(): HTMLImageElement | null {
 const photoCache = new Map<string, Promise<HTMLImageElement | null>>();
 const photoReady = new Map<string, HTMLImageElement | null>();
 
-export function loadCrownPhoto(url: string | undefined): Promise<HTMLImageElement | null> {
+function loadOne(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.decoding = "async";
+    // IMAGE-1 PR 3 — 유튜브 회색 자리 그림(120px)도 실패로 본다.
+    im.onload = () => resolve(isUsablePhoto(im.naturalWidth) ? im : null);
+    im.onerror = () => resolve(null);
+    im.src = url;
+  });
+}
+
+/**
+ * IMAGE-1 PR 3 — `fallback`(영상 썸네일 hqdefault)은 첫 주소가 안 뜰 때만 부른다. 결과는 첫 주소 이름으로 기억한다
+ * (그리는 쪽은 `data.photoUrl` 로 찾는다).
+ */
+export function loadCrownPhoto(url: string | undefined, fallback?: string): Promise<HTMLImageElement | null> {
   if (!url || typeof window === "undefined") return Promise.resolve(null);
   let p = photoCache.get(url);
   if (!p) {
-    p = new Promise((resolve) => {
-      const im = new Image();
-      im.crossOrigin = "anonymous";
-      im.decoding = "async";
-      im.onload = () => {
+    p = loadOne(url)
+      .then((im) => im ?? (fallback ? loadOne(fallback) : null))
+      .then((im) => {
         photoReady.set(url, im);
-        resolve(im);
-      };
-      im.onerror = () => {
-        photoReady.set(url, null);
-        resolve(null);
-      };
-      im.src = url;
-    });
+        return im;
+      });
     photoCache.set(url, p);
   }
   return p;
@@ -89,7 +98,7 @@ export function paintCrown(
 
 /** Render `fmt` off-screen and resolve a PNG blob. 그림 엔트리면 그림을 먼저 불러온다. */
 export async function crownBlob(fmt: FormatKey, data: CrownData, img: HTMLImageElement | null): Promise<Blob | null> {
-  await loadCrownPhoto(data.photoUrl);
+  await loadCrownPhoto(data.photoUrl, data.photoFallbackUrl);
   const c = document.createElement("canvas");
   paintCrown(c, fmt, data, img);
   return new Promise((resolve) => {
@@ -175,7 +184,7 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
   // Depend on the rendered fields, not the `data` object identity — toCrownData
   // builds a fresh object every parent render, which would otherwise repaint the
   // canvas on every unrelated re-render (path is not drawn, so it's excluded).
-  const { initial, name, title, url, campaign, photoUrl, photoFocusY } = data;
+  const { initial, name, title, url, campaign, photoUrl, photoFallbackUrl, photoFocusY } = data;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -191,7 +200,7 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
     if (img && !img.complete) img.addEventListener("load", onLoad);
     // IMAGE-1 — 챔피언 그림이 다 불러와지면 이니셜 대신 그림으로 다시 그린다.
     if (photoUrl) {
-      void loadCrownPhoto(photoUrl).then((photo) => {
+      void loadCrownPhoto(photoUrl, photoFallbackUrl).then((photo) => {
         if (alive && photo) onLoad();
       });
     }
@@ -201,7 +210,7 @@ export function CrownCanvasPreview({ fmt, data }: CrownCanvasPreviewProps): JSX.
       if (img) img.removeEventListener("load", onLoad);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- campaign 은 그림에 안 그려진다(옛 그대로)
-  }, [fmt, initial, name, title, url, photoUrl, photoFocusY]);
+  }, [fmt, initial, name, title, url, photoUrl, photoFallbackUrl, photoFocusY]);
 
   return (
     <div className={styles.ccCanvasWrap}>

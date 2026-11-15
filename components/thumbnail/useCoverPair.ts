@@ -45,6 +45,11 @@ const pairKey = (p: ThumbnailPair | undefined) => (p ? `${p.a}|${p.b}|${p.aPos}|
 export function useCoverPair(
   tournamentId: string,
   pair: ThumbnailPair | undefined,
+  /**
+   * IMAGE-1 PR 3 (원장 D-77 · D-93) — 대회 문서의 `mediaTakedownAt`(엔트리를 내린 시각). 값이 바뀌면 엔트리를 다시 읽는다 —
+   * 피치는 대회 목록을 실시간으로 구독하므로 열려 있는 표지도 1분 안에 내린 엔트리를 뺀다(앞 번호로 대체).
+   */
+  revision?: unknown,
 ): CoverSides & { onBroken: (side: "a" | "b") => void } {
   const [docs, setDocs] = useState<CoverContestant[] | null>(null);
   const [full, setFull] = useState(false);
@@ -67,7 +72,7 @@ export function useCoverPair(
       });
     // pair 는 key 로 비교한다(문서가 다시 와도 같은 값이면 다시 읽지 않는다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tournamentId, key]);
+  }, [tournamentId, key, String(revision ?? "")]);
 
   const sides = useMemo(() => coverSides(pair, docs ?? [], broken), [pair, docs, broken]);
   const wantFull = docs !== null && !full && needsFullList(pair, sides);

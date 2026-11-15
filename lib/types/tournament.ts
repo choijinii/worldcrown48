@@ -118,6 +118,11 @@ export interface Tournament {
    * 문서엔 없다(백필 안 함 · 이미 발행된 대회는 바꾸지 않는다).
    */
   mediaKind?: "video" | "image";
+  /**
+   * IMAGE-1 PR 3 (원장 D-93) — 마지막으로 엔트리를 내린 시각(epoch ms). 관리자 함수 takeDownEntry 만 쓴다.
+   * 열린 화면(매치 무대 · 크라운 카드 · 피치 표지)이 이 값이 바뀌면 엔트리를 다시 읽는 신호다.
+   */
+  mediaTakedownAt?: number;
 }
 
 export interface Contestant {
