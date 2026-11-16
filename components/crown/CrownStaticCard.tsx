@@ -8,7 +8,9 @@
  */
 "use client";
 
+import { useEffect, useState } from "react";
 import type { CrownData } from "@/lib/crown/formats";
+import { isUsablePhoto, photoCandidates } from "@/lib/crown/photoFallback";
 import styles from "./crown.module.css";
 
 interface CrownStaticCardProps {
@@ -18,19 +20,30 @@ interface CrownStaticCardProps {
 }
 
 export function CrownStaticCard({ data, loadingLabel }: CrownStaticCardProps): JSX.Element {
+  // IMAGE-1 PR 3 — 영상 썸네일은 첫 주소가 안 뜨면 다음 주소, 다 안 되면 이니셜.
+  const candidates = photoCandidates(data);
+  const [tryIndex, setTryIndex] = useState(0);
+  useEffect(() => setTryIndex(0), [data.photoUrl, data.photoFallbackUrl]);
+  const src = candidates[tryIndex];
+  const next = () => setTryIndex((i) => i + 1);
   return (
     <div className={styles.crownCard}>
       {/* eslint-disable-next-line @next/next/no-img-element — brand SVG, no optimization needed */}
       <img className={styles.crownCardMark} src="/brand/wc48-crown-filled.svg" alt="" />
-      {/* IMAGE-1 (D-77) — 그림 엔트리 챔피언은 그 그림(우리 Storage 복사본). 아니면 이니셜. */}
+      {/* IMAGE-1 (D-77) — 그림 엔트리 챔피언은 그 그림 · 영상 대회는 유튜브 썸네일(PR 3). 아니면 이니셜. */}
       <div className={styles.crownCardPhoto}>
-        {data.photoUrl ? (
+        {src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            key={src}
             className={styles.crownCardPhotoImg}
-            src={data.photoUrl}
+            src={src}
             alt=""
             data-testid="crown-card-photo"
+            onError={next}
+            onLoad={(e) => {
+              if (!isUsablePhoto(e.currentTarget.naturalWidth)) next();
+            }}
             style={{ objectPosition: `50% ${data.photoFocusY ?? 40}%` }}
           />
         ) : (

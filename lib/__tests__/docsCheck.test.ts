@@ -8,6 +8,8 @@ import {
   missingPaths,
   languageChecks,
   staleChecks,
+  takedownDocChecks,
+  termsTakedownChecks,
   withoutChangelogRows,
 } from "../../scripts/check-docs.lib.mjs";
 
@@ -133,5 +135,39 @@ describe("languageChecks — D-86 새 낱말", () => {
   it("없으면 실패", () => {
     expect(languageChecks("## 16. 초안\n## 변경 이력").length).toBeGreaterThan(0);
     expect(languageChecks(GOOD.replace("숨김 |", "감춤 |").replace("숨김 (", "("))).toEqual(["⑦ LANGUAGE.md §17 에 '숨김' 없음"]);
+  });
+});
+
+describe("takedownDocChecks — IMAGE-1 PR 3 (원장 D-91~D-93 · D-83 바뀜 ↔ CLAUDE.md)", () => {
+  const LEDGER_OK = [
+    "## D-83 · 창구",
+    "- **바뀜 ①** — 무대 출처 글자 옆 \"ⓘ 내리기 요청\" 글자는 만들지 않는다",
+    "- **바뀜 ②** — report@ 는 2027-02-26 점검 후",
+    "## D-91 · 그림 검색어",
+    "## D-92 · 그림 확인 창",
+    "## D-93 · 내리기는 대회 종류를 따른다",
+  ].join("\n");
+  const CLAUDE_OK = "14. **이미지 엔트리(D-77)**: 내리기 스위치(D-93 · 영상 대회는 영상·썸네일)\n| **v2.13** | 2026-11-16 |";
+  it("다 있으면 통과", () => {
+    expect(takedownDocChecks(CLAUDE_OK, LEDGER_OK)).toEqual([]);
+  });
+  it("원장에 D-93 이 없으면 · D-83 바뀜이 없으면 · CLAUDE.md #14 에 영상 대회가 없으면 실패", () => {
+    expect(takedownDocChecks(CLAUDE_OK, LEDGER_OK.replace("## D-93", "## D-9x"))).toEqual(["⑧ 원장에 D-93 절이 없음"]);
+    expect(takedownDocChecks(CLAUDE_OK, LEDGER_OK.replace("2027-02-26", "나중에"))[0]).toMatch(/^⑧ 원장 D-83/);
+    expect(takedownDocChecks(CLAUDE_OK.replace("영상 대회", "그림"), LEDGER_OK)[0]).toMatch(/^⑧ CLAUDE.md 대진 흐름 #14/);
+    expect(takedownDocChecks(CLAUDE_OK.replace("v2.13", "v2.12"), LEDGER_OK)[0]).toMatch(/v2\.13/);
+  });
+});
+
+describe("termsTakedownChecks — 이용약관 5.4 가 ko · en · es 세 파일에 · policy@ · 24", () => {
+  const sec = (h: string) => `## 5\n${h}\n요청: policy@worldcrown48.com · 24시간\n### 5.5 다음`;
+  it("셋 다 있으면 통과", () => {
+    expect(termsTakedownChecks({ ko: sec("### 5.4 내리기"), en: sec("### 5.4 Takedown"), es: sec("### 5.4 Retirada") })).toEqual([]);
+  });
+  it("5.4 가 없거나 policy@ · 24 가 빠지면 실패", () => {
+    expect(termsTakedownChecks({ ko: sec("### 5.4 내리기"), en: "## 5\n### 5.5 x", es: sec("### 5.4 R").replace("24", "48") })).toEqual([
+      "⑨ content/en/terms.md 에 5.4절이 없음",
+      "⑨ content/es/terms.md 5.4절에 '24' 없음",
+    ]);
   });
 });

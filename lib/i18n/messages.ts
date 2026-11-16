@@ -1094,6 +1094,44 @@ export const MESSAGES = {
   // 4 [그림 지우기] — LAB-FIX-3(D-89)에서 삭제: 켜진 [이미지]가 그 일을 한다.
   // 5
   "lab.image.badge": { ko: "그림", en: "Image", es: "Imagen" },
+  // ── IMAGE-1 PR 3 (원장 D-77 · D-92 · D-93) — 지시서 2-D 승인표(2026-11-16 00:01 대표 "승인!") 글자 그대로.
+  //    시험: lib/__tests__/i18n/image1Pr3Copy.test.ts · 버튼 [취소] = lab.list.deleteCancel · [닫기] = lab.embed.close
+  // 가. 그림 확인 창 1~5
+  "lab.imageCheck.title": { ko: "슬롯 {n} · 그림 확인", en: "Slot {n} · check the image", es: "Espacio {n} · revisar la imagen" },
+  "lab.imageCheck.hint": { ko: "출처 페이지에서 엔트리가 맞는지 확인하세요.", en: "Check on the source page that this is the right entry.", es: "Comprueba en la página de origen que es la entrada correcta." },
+  "lab.imageCheck.openPage": { ko: "출처 페이지 열기 ↗", en: "Open source page ↗", es: "Abrir página de origen ↗" },
+  "lab.imageCheck.openOriginal": { ko: "원본 그림 열기 ↗", en: "Open original image ↗", es: "Abrir imagen original ↗" },
+  "lab.imageCheck.open": { ko: "그림 확인 창 열기", en: "Open image check", es: "Abrir revisión de imagen" },
+  // 나. 내리기 — 이미지 대회 6~17 (9 · 10 · 11 · 15 는 영상 대회와 공통)
+  "lab.takedown.image.button": { ko: "그림 내리기", en: "Take down images", es: "Retirar imágenes" },
+  "lab.takedown.image.title": { ko: "그림 내리기 · {대회 제목}", en: "Take down images · {title}", es: "Retirar imágenes · {title}" },
+  "lab.takedown.image.note": {
+    ko: "내릴 엔트리를 고르세요. 1분 안에 매치 무대 · 피치 표지 · 차트 · 크라운 카드에서 그림이 사라지고 이름 첫 글자만 남습니다. 되돌릴 수 없어요.",
+    en: "Choose the entry to take down. Within a minute its image disappears from the match stage, the Pitch cover, the chart and Crown Cards, leaving only the initial. This can't be undone.",
+    es: "Elige la entrada que quieres retirar. En un minuto su imagen desaparece del escenario, la portada de The Pitch, el chart y las Crown Cards, y solo queda la inicial. No se puede deshacer.",
+  },
+  "lab.takedown.row": { ko: "내리기", en: "Take down", es: "Retirar" },
+  "lab.takedown.reasonPlaceholder": { ko: "사유 (예: 소속사 요청 · policy@ 11/27 접수)", en: "Reason (e.g. agency request · received at policy@ on Nov 27)", es: "Motivo (p. ej., solicitud de la agencia · recibida en policy@ el 27 nov)" },
+  "lab.takedown.reasonRequired": { ko: "간단하게 사유를 적어 주세요.", en: "Please enter a brief reason.", es: "Escribe un motivo breve." },
+  "lab.takedown.image.confirm": { ko: "‘{이름}’의 그림을 내릴까요? 되돌릴 수 없어요.", en: "Take down the image of “{name}”? This can't be undone.", es: "¿Retirar la imagen de «{name}»? No se puede deshacer." },
+  "lab.takedown.image.run": { ko: "그림 내리기", en: "Take down image", es: "Retirar imagen" },
+  "lab.takedown.image.done": { ko: "✓ ‘{이름}’의 그림을 내렸어요 · 크라운 카드 {n}장을 다시 굽고 있어요", en: "✓ Took down the image of “{name}” · re-rendering {n} Crown Cards", es: "✓ Imagen de «{name}» retirada · regenerando {n} Crown Cards" },
+  "lab.takedown.rowDone": { ko: "내림 · {날짜} · {사유}", en: "Taken down · {date} · {reason}", es: "Retirada · {date} · {reason}" },
+  "lab.takedown.image.fail": { ko: "그림을 내리지 못했어요. 다시 시도해 주세요.", en: "Couldn't take the image down. Please try again.", es: "No se pudo retirar la imagen. Inténtalo de nuevo." },
+  "lab.takedown.image.empty": { ko: "이 대회에는 내릴 그림이 없어요.", en: "This tournament has no images to take down.", es: "Este torneo no tiene imágenes que retirar." },
+  // 나-2. 내리기 — 영상 대회 6영~17영
+  "lab.takedown.video.button": { ko: "영상 내리기", en: "Take down videos", es: "Retirar videos" },
+  "lab.takedown.video.title": { ko: "영상 내리기 · {대회 제목}", en: "Take down videos · {title}", es: "Retirar videos · {title}" },
+  "lab.takedown.video.note": {
+    ko: "내릴 엔트리를 고르세요. 1분 안에 매치 무대의 영상과 피치 표지 · 차트 · 크라운 카드의 썸네일이 사라지고 이름 첫 글자만 남습니다. 되돌릴 수 없어요.",
+    en: "Choose the entry to take down. Within a minute its video disappears from the match stage and its thumbnail from the Pitch cover, the chart and Crown Cards, leaving only the initial. This can't be undone.",
+    es: "Elige la entrada que quieres retirar. En un minuto su video desaparece del escenario y su miniatura de la portada de The Pitch, el chart y las Crown Cards, y solo queda la inicial. No se puede deshacer.",
+  },
+  "lab.takedown.video.confirm": { ko: "‘{이름}’의 영상을 내릴까요? 되돌릴 수 없어요.", en: "Take down the video of “{name}”? This can't be undone.", es: "¿Retirar el video de «{name}»? No se puede deshacer." },
+  "lab.takedown.video.run": { ko: "영상 내리기", en: "Take down video", es: "Retirar video" },
+  "lab.takedown.video.done": { ko: "✓ ‘{이름}’의 영상을 내렸어요 · 크라운 카드 {n}장을 다시 굽고 있어요", en: "✓ Took down the video of “{name}” · re-rendering {n} Crown Cards", es: "✓ Video de «{name}» retirado · regenerando {n} Crown Cards" },
+  "lab.takedown.video.fail": { ko: "영상을 내리지 못했어요. 다시 시도해 주세요.", en: "Couldn't take the video down. Please try again.", es: "No se pudo retirar el video. Inténtalo de nuevo." },
+  "lab.takedown.video.empty": { ko: "이 대회에는 내릴 영상이 없어요.", en: "This tournament has no videos to take down.", es: "Este torneo no tiene videos que retirar." },
   // 6
   "lab.manual.button": { ko: "만들기 매뉴얼", en: "Creation Manual", es: "Manual de creación" },
   // 7
@@ -1761,7 +1799,8 @@ export type MessageKey = keyof typeof MESSAGES;
 
 /** Interpolate `{token}` occurrences from `vars`. Leaves unknown tokens intact. */
 // tsconfig target 이 es5 라 /u 정규식 글자를 못 쓴다 — 생성자로 만든다(브라우저는 전부 지원).
-const PLACEHOLDER = new RegExp("\\{([\\p{L}\\p{N}_]+)\\}", "gu");
+// IMAGE-1 PR 3 — 승인 문구 "{대회 제목}" 처럼 낱말 사이 띄어쓰기 한 칸도 받는다.
+const PLACEHOLDER = new RegExp("\\{([\\p{L}\\p{N}_]+(?: [\\p{L}\\p{N}_]+)*)\\}", "gu");
 
 function interpolate(
   template: string,

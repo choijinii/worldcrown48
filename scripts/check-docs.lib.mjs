@@ -128,3 +128,39 @@ export function languageChecks(language) {
     .filter((w) => !sec.includes(w))
     .map((w) => `⑦ LANGUAGE.md §17 에 '${w}' 없음`);
 }
+
+/**
+ * IMAGE-1 PR 3 — 원장 D-91 · D-92 · D-93 · D-83 바뀜 두 줄 ↔ CLAUDE.md(대진 흐름 #14 · v2.13).
+ * 결정이 원장에만 있고 진입점 문서에 안 실리면 다음 세션이 낡은 규칙을 믿는다(Stale-Doc Guard).
+ */
+export function takedownDocChecks(claude, ledger) {
+  const fails = [];
+  for (const id of ["D-91", "D-92", "D-93"])
+    if (!new RegExp(`^## ${id} `, "m").test(ledger)) fails.push(`⑧ 원장에 ${id} 절이 없음`);
+  const d83 = section(ledger, "## D-83 ");
+  if (!(d83.includes("바뀜") && d83.includes("ⓘ") && d83.includes("2027-02-26")))
+    fails.push("⑧ 원장 D-83 에 '바뀜' 두 줄(ⓘ 안 만듦 · report@ 2027-02-26 점검)이 없음");
+  const row14 = claude.split("\n").find((l) => l.startsWith("14. ")) ?? "";
+  if (!(row14.includes("내리기 스위치") && row14.includes("영상 대회")))
+    fails.push("⑧ CLAUDE.md 대진 흐름 #14 의 내리기 스위치 설명에 '영상 대회'가 없음");
+  if (!claude.includes("v2.13")) fails.push("⑧ CLAUDE.md 개정 이력에 v2.13 이 없음");
+  return fails;
+}
+
+/** 이용약관 5.4(권리자의 내리기 요청)가 세 언어 파일에 모두 있고 창구 policy@ · 24시간이 들어 있는지(D-83). */
+export function termsTakedownChecks(texts) {
+  const fails = [];
+  for (const lang of ["ko", "en", "es"]) {
+    const md = texts[lang] ?? "";
+    const i = md.indexOf("### 5.4");
+    if (i < 0) {
+      fails.push(`⑨ content/${lang}/terms.md 에 5.4절이 없음`);
+      continue;
+    }
+    const j = md.indexOf("\n### ", i + 1);
+    const sec = md.slice(i, j < 0 ? undefined : j);
+    for (const w of ["policy@worldcrown48.com", "24"])
+      if (!sec.includes(w)) fails.push(`⑨ content/${lang}/terms.md 5.4절에 '${w}' 없음`);
+  }
+  return fails;
+}

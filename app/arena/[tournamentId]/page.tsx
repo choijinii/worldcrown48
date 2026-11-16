@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTakedownRefresh } from "@/lib/arena/takedownRefresh";
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
 import { useAuthStore } from "@/lib/authStore";
@@ -101,6 +102,8 @@ export default function ArenaPage(): JSX.Element {
   const loading = useVoteStore((s) => s.loading);
   const error = useVoteStore((s) => s.error);
   const loadTournament = useVoteStore((s) => s.loadTournament);
+  // IMAGE-1 PR 3 (원장 D-77 · D-93) — 판 도중에 엔트리를 내려도 1분 안에 이니셜(대진은 그대로).
+  useTakedownRefresh(tournamentId);
   const addVote = useVoteStore((s) => s.addVote);
   // 회차는 스토어가 단독으로 정한다 — 화면은 읽기만 한다(§9 함정 5).
   const run = useVoteStore((s) => s.run);

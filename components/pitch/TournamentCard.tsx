@@ -38,7 +38,7 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
   const closes = formatCloses(tournament.tournamentDeadline);
   const pill = statusPillVariant(tournament.status);
   const displayTitle = localizedTitle(tournament, lang);
-  const cover = useCoverPair(tournament.id, tournament.thumbnailPair);
+  const cover = useCoverPair(tournament.id, tournament.thumbnailPair, tournament.mediaTakedownAt);
 
   return (
     <Link

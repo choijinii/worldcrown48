@@ -57,9 +57,11 @@ export interface CrownData {
   campaign: string;
   /**
    * IMAGE-1 (원장 D-77) — 그림 엔트리 챔피언의 그림(우리 Storage 공개 주소). 브라우저가 불러와
-   * 사진 자리에 그린다(못 불러오면 이니셜). 영상 대회의 유튜브 썸네일은 PR 3.
+   * 사진 자리에 그린다(못 불러오면 이니셜). IMAGE-1 PR 3 — 영상 대회는 그 엔트리의 유튜브 썸네일.
    */
   photoUrl?: string;
+  /** IMAGE-1 PR 3 — `photoUrl` 을 못 불러오면 이 주소(영상 썸네일 hqdefault). 이것도 못 받으면 이니셜. */
+  photoFallbackUrl?: string;
   /** 사진 세로 자르기 0~100(기본 40). */
   photoFocusY?: number;
   /**

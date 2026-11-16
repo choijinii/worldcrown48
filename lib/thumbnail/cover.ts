@@ -22,6 +22,8 @@ export interface CoverContestant {
     embed?: { videoId?: string; orientation?: EmbedOrientation; gone?: boolean };
     /** IMAGE-1 — 그림 엔트리. 표지는 600 사본으로 그린다. */
     image?: { thumbUrl?: string; url?: string };
+    /** IMAGE-1 PR 3 — 내린 엔트리(D-93). 표지에 쓸 수 없다 → 앞 번호로 대체. */
+    takedown?: { at: number };
   };
 }
 
@@ -49,6 +51,9 @@ export function coverEntry(
 ): { entry: PairEntry; videoId: string; imageUrl?: string } {
   const embed = c.media?.embed;
   const rawVideoId = embed?.videoId ?? "";
+  if (c.media?.takedown) {
+    return { entry: { id: c.id, order: c.order, orientation: "landscape", usable: false }, videoId: "" };
+  }
   const videoOk = isValidVideoId(rawVideoId) && !embed?.gone;
   // IMAGE-1 (D-77) — 영상이 먼저, 없으면 그림(600 사본).
   const imageUrl = videoOk ? "" : c.media?.image?.thumbUrl || c.media?.image?.url || "";

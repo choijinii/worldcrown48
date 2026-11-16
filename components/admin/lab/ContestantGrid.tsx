@@ -37,6 +37,8 @@ interface ContestantGridProps {
   canPick?: (index: number) => boolean;
   /** IMAGE-1 — 칸마다 그림 넣기 · 지우기. `busyImage` 는 올리는 중인 칸 번호. */
   image?: Omit<SlotImageHandlers, "busy">;
+  /** IMAGE-1 PR 3 (D-92) — 그림 확인 창 열기. */
+  onCheckImage?: (index: number) => void;
   busyImage?: ReadonlySet<number>;
   /** IMAGE-1 — 이름↔영상 불일치 칸 번호(0부터). */
   videoMismatch?: ReadonlySet<number>;
@@ -84,6 +86,7 @@ export function ContestantGrid({
   onRefreshImage,
   imageRefreshingIndex = null,
   imageNotFound,
+  onCheckImage,
 }: ContestantGridProps): JSX.Element {
   return (
     <div
@@ -132,6 +135,7 @@ export function ContestantGrid({
           onRefreshImage={onRefreshImage}
           imageRefreshing={imageRefreshingIndex === i}
           imageNotFound={imageNotFound?.has(i) ?? false}
+          onCheckImage={onCheckImage}
         />
       ))}
     </div>

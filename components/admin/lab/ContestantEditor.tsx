@@ -87,6 +87,8 @@ interface ContestantEditorProps {
   imageRefreshing?: boolean;
   /** IMAGE-1 PR 2 — 이미지 검색이 이 칸에서 세로 400px 이상인 그림을 찾지 못했다(문구 6). */
   imageNotFound?: boolean;
+  /** IMAGE-1 PR 3 (원장 D-92) — "그림" 배지 · 출처 도메인 글자를 누르면 그림 확인 창. 없으면 글자로만 그린다. */
+  onCheckImage?: (index: number) => void;
 }
 
 export interface SlotVideoHandlers {
@@ -190,6 +192,7 @@ export function ContestantEditor({
   onRefreshImage,
   imageRefreshing = false,
   imageNotFound = false,
+  onCheckImage,
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -392,24 +395,36 @@ export function ContestantEditor({
               style={{ width: "40%", height: "auto", opacity: 0.35 }}
             />
           ))}
-        {preview.imageOnly && (
-          <span
-            data-testid={`slot-image-badge-${index}`}
-            style={{
-              position: "absolute",
-              right: 4,
-              bottom: 4,
-              padding: "1px 6px",
-              borderRadius: 999,
-              background: "rgba(0,0,31,0.72)",
-              color: lab.turquoise,
-              fontSize: 9,
-              fontWeight: 700,
-            }}
-          >
-            {t("lab.image.badge")}
-          </span>
-        )}
+        {preview.imageOnly && (() => {
+          const badgeStyle: React.CSSProperties = {
+            position: "absolute",
+            right: 4,
+            bottom: 4,
+            padding: "1px 6px",
+            borderRadius: 999,
+            background: "rgba(0,0,31,0.72)",
+            color: lab.turquoise,
+            fontSize: 9,
+            fontWeight: 700,
+          };
+          // IMAGE-1 PR 3 (D-92) — 누르면 그림 확인 창. 배지는 미리보기 칸 안이라 버튼이어야 대표 매치 고르기와 안 섞인다.
+          return onCheckImage ? (
+            <button
+              type="button"
+              data-testid={`slot-image-badge-${index}`}
+              onClick={() => onCheckImage(index)}
+              title={t("lab.imageCheck.open")}
+              aria-label={t("lab.imageCheck.open")}
+              style={{ ...badgeStyle, border: "none", fontFamily: lab.font, cursor: "pointer" }}
+            >
+              {t("lab.image.badge")}
+            </button>
+          ) : (
+            <span data-testid={`slot-image-badge-${index}`} style={badgeStyle}>
+              {t("lab.image.badge")}
+            </span>
+          );
+        })()}
         {image?.busy && (
           <span
             data-testid={`slot-image-busy-${index}`}
@@ -473,21 +488,29 @@ export function ContestantEditor({
           ✎
         </span>
       </div>
-      {metaLine && (
-        <span
-          data-testid={`slot-meta-${index}`}
-          title={metaLine}
-          style={{
-            display: "block",
-            marginTop: 2,
-            fontSize: 9,
-            color: lab.textMuted,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >{metaLine}</span>
-      )}
+      {metaLine && (() => {
+        const metaStyle: React.CSSProperties = {
+          display: "block",
+          marginTop: 2,
+          fontSize: 9,
+          color: lab.textMuted,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        };
+        // IMAGE-1 PR 3 (D-92 · 대표 2026-11-15 23:47) — 그림 칸의 출처 도메인 글자도 그림 확인 창을 연다.
+        return !videoId && onCheckImage ? (
+          <button
+            type="button"
+            data-testid={`slot-meta-${index}`}
+            onClick={() => onCheckImage(index)}
+            title={t("lab.imageCheck.open")}
+            style={{ ...metaStyle, width: "100%", padding: 0, border: "none", background: "transparent", textAlign: "left", textDecoration: "underline", fontFamily: lab.font, cursor: "pointer" }}
+          >{metaLine}</button>
+        ) : (
+          <span data-testid={`slot-meta-${index}`} title={metaLine} style={metaStyle}>{metaLine}</span>
+        );
+      })()}
       <div style={{ display: "flex", gap: 4 }}>
         <input
           value={contestant.affiliation}
