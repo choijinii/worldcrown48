@@ -472,6 +472,21 @@ test("내릴 것이 없는 영상 대회(옛 대회 · 영상 0) — 문구 17�
   await expect(page.getByTestId("takedown-dialog")).toHaveCount(0);
 });
 
+test("내 Tournament 목록 — 버튼이 늘어도 긴 제목은 한 글자씩 쪼개지지 않는다(제목 칸 240px 이상 · 버튼은 아랫줄로)", async ({ page }) => {
+  const { id } = await seedVideoTournament("vidLong");
+  const long = "현재 Kpop 아티스트중에 가장 뛰어난 퍼포먼스를 보여주는 아티스트는 누구?";
+  await db().collection("tournaments").doc(id).update({ title: long, "titleI18n.ko": long });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openLabList(page);
+  const row = page.getByTestId(`tournament-row-${id}`);
+  await expect(row).toContainText(long);
+  const title = row.getByTestId(`tournament-title-${id}`);
+  const box = await title.boundingBox();
+  expect(box?.width ?? 0, "제목 칸 너비").toBeGreaterThanOrEqual(240);
+  await row.scrollIntoViewIfNeeded();
+  await row.screenshot({ path: shot("lab-list-long-title-1440.png") });
+});
+
 // ── ③ 그림 확인 창 ──────────────────────────────────────────────────────────
 
 test("③ 편집기 그림 확인 창 — 배지 · 도메인 글자 · 출처 페이지 · 원본 그림 · 파일 칸 숨김 · [새 이미지 찾기]는 그 칸만", async ({ page }) => {
