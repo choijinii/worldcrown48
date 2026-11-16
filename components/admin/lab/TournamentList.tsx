@@ -263,7 +263,8 @@ export function TournamentList({
                 border: `1px solid ${r.featured ? lab.gold : lab.border}`,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
+              {/* 제목 칸은 260px 기준으로 잡는다 — 버튼이 늘면 제목이 줄지 않고 버튼이 아랫줄로 내려간다(IMAGE-1 PR 3 뒤 실서비스에서 한 글자씩 쪼개짐). */}
+              <div data-testid={`tournament-title-${r.id}`} style={{ flex: "1 1 260px", minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>
                   {localizedTitle(r, lang)}
                   {(r.videoAlert?.failed ?? 0) > 0 && (

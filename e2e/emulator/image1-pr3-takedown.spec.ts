@@ -423,8 +423,11 @@ test("②④ 영상 대회 — 새 카드는 유튜브 썸네일(실패는 이�
   const label = `엔트리${String(n).padStart(2, "0")}`;
   // 그 엔트리가 Champion 인 카드 = 3회차(+ n 이 1이면 1회차) — 끝 알림의 숫자와 같아야 한다
   const expectedCards = n === 1 ? 2 : 1;
+  const labErrors = collectConsoleErrors(lab);
   const t0 = await takeDownInLab(lab, id, n, "영상 내리기", "영상 내리기");
   await expect(lab.getByText(`✓ ‘${label}’의 영상을 내렸어요 · 크라운 카드 ${expectedCards}장을 다시 굽고 있어요`)).toBeVisible({ timeout: 30_000 });
+  // 실서비스 걸어 보기(11-16)에서 나온 오류 — 내리는 동안 창 버튼이 모두 잠기면 focus-trap 이 갈 곳을 잃어 예외를 던졌다.
+  await expectNoConsoleErrors(labErrors);
 
   const timings: Record<string, number> = {};
   const within = async (name: string, check: () => Promise<void>) => {
@@ -470,6 +473,21 @@ test("내릴 것이 없는 영상 대회(옛 대회 · 영상 0) — 문구 17�
   await expect(page.getByTestId("takedown-dialog")).toContainText("영상 내리기 · IMAGE-1 영상 대회");
   await page.getByTestId("takedown-close").click();
   await expect(page.getByTestId("takedown-dialog")).toHaveCount(0);
+});
+
+test("내 Tournament 목록 — 버튼이 늘어도 긴 제목은 한 글자씩 쪼개지지 않는다(제목 칸 240px 이상 · 버튼은 아랫줄로)", async ({ page }) => {
+  const { id } = await seedVideoTournament("vidLong");
+  const long = "현재 Kpop 아티스트중에 가장 뛰어난 퍼포먼스를 보여주는 아티스트는 누구?";
+  await db().collection("tournaments").doc(id).update({ title: long, "titleI18n.ko": long });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openLabList(page);
+  const row = page.getByTestId(`tournament-row-${id}`);
+  await expect(row).toContainText(long);
+  const title = row.getByTestId(`tournament-title-${id}`);
+  const box = await title.boundingBox();
+  expect(box?.width ?? 0, "제목 칸 너비").toBeGreaterThanOrEqual(240);
+  await row.scrollIntoViewIfNeeded();
+  await row.screenshot({ path: shot("lab-list-long-title-1440.png") });
 });
 
 // ── ③ 그림 확인 창 ──────────────────────────────────────────────────────────

@@ -96,8 +96,13 @@ export function TakedownDialog({
         padding: 24,
       }}
     >
-      <FocusTrap focusTrapOptions={{ initialFocus: "#takedown-close", escapeDeactivates: false, allowOutsideClick: true }}>
+      {/* 내리는 동안은 창 안 버튼이 모두 잠긴다 → 갈 곳(fallbackFocus = 창 판)이 없으면 focus-trap 이 예외를 던진다(실서비스 걸어 보기 11-16). */}
+      <FocusTrap
+        focusTrapOptions={{ initialFocus: "#takedown-close", fallbackFocus: "#takedown-panel", escapeDeactivates: false, allowOutsideClick: true }}
+      >
         <div
+          id="takedown-panel"
+          tabIndex={-1}
           style={{
             width: "100%",
             maxWidth: 640,
