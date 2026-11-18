@@ -1,14 +1,17 @@
 /**
  * articleViews — 기사 조회 기록 · 급등 계약 (PITCH-2 PR B · 원장 D-78 후보).
  *
- * 우리 기사 `news/{slug}` 에는 조회 칸 `views` 가 붙는다:
- *   views.total        누적 조회
- *   views.d<YYYYMMDD>  KST 날짜별 조회 — 오늘·어제 두 칸만 남기고 옛 칸은 지운다
+ * 기사마다 조회 칸 문서 `news_views/{slug}` 가 따로 있다(기사 문서와 떨어뜨림 · 대표 결정 2026-11-18):
+ *   total        누적 조회
+ *   d<YYYYMMDD>  KST 날짜별 조회 — 오늘·어제 두 칸만 남기고 옛 칸은 지운다
+ * 기사 문서에 두지 않는 까닭: 기사 목록을 실시간으로 보는 화면이 조회 하나마다 기사를 다시 받아 읽기 요금이 불어난다.
+ * 급등 정렬은 기사 목록에 이 칸을 `views` 로 붙여 넘긴다(PR A 홈 HOT 열).
  *
  * **급등 = 최근 24시간 조회 증가 = KST 오늘 칸 + 어제 칸의 합.** 0건·동점은 최신 발행순.
  * 누적 조회수 순이 아니다(오래된 기사가 늘 위에 남는다).
  *
- * 쓰기는 콜러블 `recordArticleView` 하나(브라우저는 `news` 에 못 쓴다). 읽기·정렬은 홈(PR A).
+ * 쓰기는 콜러블 `recordArticleView` 하나(브라우저는 `news_views` 에 못 쓴다 · 읽기는 누구나). 기사가 지워지면
+ * `onArticleDeleted` 트리거가 조회 칸도 지운다. 읽기·정렬은 홈(PR A).
  *
  * ⚠️ 이 파일은 `functions/src/_news/` 로 복사되므로(copy-news) import 를 가지지 않는다.
  *    날짜는 늘 KST `YYYY-MM-DD` 글자로 받는다 — 시계는 `lib/run/kstReset` 의 `todayKST` 하나.

@@ -1,8 +1,11 @@
 /**
  * articleViewCore — 기사 조회 기록 저장 핵심 (PITCH-2 PR B · 원장 D-78 후보).
  *
- * 우리 기사 `news/{slug}` 에 `views.total` · `views.d<YYYYMMDD>`(KST) 를 1씩 더한다.
+ * 기사 옆 조회 칸 `news_views/{slug}` 에 `total` · `d<YYYYMMDD>`(KST) 를 1씩 더한다(대표 결정 2026-11-18).
+ * 기사 문서 `news/{slug}` 는 건드리지 않는다 — 기사 목록을 실시간으로 보는 화면(피치 뉴스 칸 · /news ·
+ * 관리자 뉴스 데스크)이 조회 하나마다 그 기사를 다시 받아 읽기 요금이 불어나지 않게.
  * 급등(최근 24시간 조회 증가)의 재료다. 계약(날짜 칸 이름 · 지울 칸)은 lib/news/articleViews 한 곳.
+ * 기사가 지워지면 deleteArticleViewsCore 가 조회 칸도 지운다(onArticleDeleted 트리거).
  *
  * **1시간 1번**: 같은 연결(IP) · 같은 기사 · 같은 시간(정각~정각)이면 한 번만 센다. 표지 문서
  * `news_view_marks/{해시}` 를 create(이미 있으면 실패)로 만들어 동시에 와도 한 번만 센다. 표지에는 IP 를
@@ -18,6 +21,8 @@ import type { Firestore } from "firebase-admin/firestore";
 import { bucketsToPrune, viewDayKey, type ArticleViews } from "../_news/articleViews";
 import { todayKST } from "../_run/kstReset";
 
+/** 기사별 조회 칸 — 문서 id = 기사 slug · 칸 = ArticleViews(total · d<YYYYMMDD>). 누구나 읽고 함수만 쓴다. */
+export const VIEWS_COLLECTION = "news_views";
 export const VIEW_MARKS_COLLECTION = "news_view_marks";
 /** gRPC 상태 번호 — 문서가 이미 있음. */
 const ALREADY_EXISTS = 6;
@@ -89,12 +94,13 @@ export async function recordArticleViewCore(
   deps: RecordViewDeps,
 ): Promise<RecordViewResult> {
   const articleRef = db.collection("news").doc(input.slug);
+  const viewsRef = db.collection(VIEWS_COLLECTION).doc(input.slug);
   const markRef = db.collection(VIEW_MARKS_COLLECTION).doc(input.markId);
   const today = todayKST(new Date(input.nowMs));
 
   // 트랜잭션을 쓰지 않는다 — 인기 기사 한 문서에 트랜잭션이 몰리면 다시 시도하다 실패한다(리뷰 3).
   // 중복 막기는 표지 create(이미 있으면 ALREADY_EXISTS)가 맡고, 덧셈은 읽지 않는 increment 라 겹쳐도 맞다.
-  const article = await articleRef.get();
+  const [article, viewsSnap] = await Promise.all([articleRef.get(), viewsRef.get()]);
   if (!article.exists || article.get("status") !== "published") {
     return { counted: false, reason: "not-found" };
   }
@@ -106,12 +112,18 @@ export async function recordArticleViewCore(
   }
 
   const update: Record<string, unknown> = {
-    "views.total": deps.increment(1),
-    [`views.${viewDayKey(today)}`]: deps.increment(1),
+    total: deps.increment(1),
+    [viewDayKey(today)]: deps.increment(1),
   };
-  for (const key of bucketsToPrune(article.get("views") as ArticleViews | undefined, today)) {
-    update[`views.${key}`] = deps.deleteField();
+  for (const key of bucketsToPrune(viewsSnap.data() as ArticleViews | undefined, today)) {
+    update[key] = deps.deleteField();
   }
-  await articleRef.update(update);
+  // 첫 조회면 문서를 만들고, 있으면 칸만 더한다(merge). increment 는 읽지 않고 더하므로 겹쳐도 맞다.
+  await viewsRef.set(update, { merge: true });
   return { counted: true };
+}
+
+/** 기사가 지워졌을 때 그 기사의 조회 칸을 지운다. 칸이 없어도 오류 없이 지나간다. */
+export async function deleteArticleViewsCore(db: Firestore, slug: string): Promise<void> {
+  await db.collection(VIEWS_COLLECTION).doc(slug).delete();
 }

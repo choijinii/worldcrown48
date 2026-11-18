@@ -8,10 +8,11 @@
  *
  * **로그인 없이 부른다** — 기사를 열기만 해서 익명 계정을 만들지 않는다(원장 D-41). 그래서
  * "같은 브라우저 1시간 1번"은 uid 가 아니라 IP 로 센다: registerWaitlist 와 같은 소금(IP_HASH_SALT)으로
- * (IP · 기사 · 시간) 을 해시한 표지 문서를 트랜잭션으로 만든다(articleViewCore). IP 원문은 저장하지 않는다.
+ * (IP · 기사 · 시간) 을 해시한 표지 문서를 create 로 만든다(articleViewCore). IP 원문은 저장하지 않는다.
  * 브라우저 쪽에도 로컬 메모(1시간)가 있어 대부분은 이 함수를 부르지도 않는다.
  *
- * 쓰는 곳은 news/{slug}.views 하나 — 브라우저는 news 에 못 쓴다(firestore.rules 그대로).
+ * 쓰는 곳은 news_views/{slug} 하나 — 기사 문서는 건드리지 않는다(실시간 목록 화면이 다시 받지 않게 ·
+ * 대표 결정 2026-11-18). 브라우저는 news_views 에 못 쓴다(firestore.rules).
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";

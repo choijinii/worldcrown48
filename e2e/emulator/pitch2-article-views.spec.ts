@@ -2,10 +2,11 @@
  * PITCH-2 PR B — 기사 조회 기록 → 급등 순서 (지시서 §11.2 PR B E2E ② · 추가 지시 ① 4절 "1경로" · 에뮬레이터).
  *
  *   발행 기사 2건(새 기사 A · 옛 기사 B) → 급등 순서 A, B(둘 다 0 → 최신 발행순)
- *   → B 지면을 연다 → 콜러블이 views.total 1 · views.d<오늘 KST> 1 을 쓴다
+ *   → B 지면을 연다 → 콜러블이 news_views/B 에 total 1 · d<오늘 KST> 1 을 쓴다(기사 문서는 그대로)
  *   → 급등 정렬(lib/news/articleViews · 홈 HOT 열이 PR A 에서 그대로 쓴다)에서 B 가 A 앞으로
  *   → 다시 열어도(로컬 메모) · 로컬 메모를 지우고 다시 열어도(서버 표지) 1 그대로 — 1시간 1번
  *   → 익명 계정 0개(기사를 열어도 계정을 만들지 않는다 · 원장 D-41) · 콘솔 오류 0
+ *   → 기사 B 를 지우면 news_views/B 도 사라진다(onArticleDeleted 트리거)
  *
  * 홈의 HOT 열 화면은 PR A 의 몫 — 이 시험은 그 열이 쓰는 정렬 함수와 저장된 조회 칸을 본다.
  */
@@ -37,16 +38,21 @@ async function seedArticle(slug: string, title: string, publishedAtMs: number) {
     });
 }
 
+const viewsDoc = (slug: string) => db().collection("news_views").doc(slug);
+
+/** 홈 HOT 열(PR A)과 같은 모양 — 기사 목록에 news_views 칸을 views 로 붙인다. */
 async function articles() {
   const snap = await db().collection("news").get();
-  return snap.docs.map((d) => ({
-    slug: d.id,
-    publishedAtMs: (d.get("publishedAt") as Timestamp).toMillis(),
-    views: d.get("views") as Record<string, number> | undefined,
-  }));
+  return Promise.all(
+    snap.docs.map(async (d) => ({
+      slug: d.id,
+      publishedAtMs: (d.get("publishedAt") as Timestamp).toMillis(),
+      views: (await viewsDoc(d.id).get()).data() as Record<string, number> | undefined,
+    })),
+  );
 }
 const totalOf = async (slug: string) =>
-  ((await db().collection("news").doc(slug).get()).get("views.total") as number | undefined) ?? 0;
+  ((await viewsDoc(slug).get()).get("total") as number | undefined) ?? 0;
 
 test.beforeEach(async () => {
   await resetEmulators();
@@ -72,8 +78,9 @@ test("기사를 열면 조회가 1 오르고 급등 순서가 바뀐다 · 1시�
   await expect(page.getByText("옛 기사 B").first()).toBeVisible();
   await expect.poll(() => totalOf(B), { timeout: 20_000 }).toBe(1);
 
-  const views = (await db().collection("news").doc(B).get()).get("views");
-  expect(views).toEqual({ total: 1, [viewDayKey(today)]: 1 });
+  expect((await viewsDoc(B).get()).data()).toEqual({ total: 1, [viewDayKey(today)]: 1 });
+  // 기사 문서에는 조회 칸이 붙지 않는다 — 실시간 목록 화면이 다시 받지 않게(대표 결정 2026-11-18).
+  expect((await db().collection("news").doc(B).get()).get("views")).toBeUndefined();
   expect(sortTrending(await articles(), today).map((a) => a.slug)).toEqual([B, A]);
 
   // 다시 열기 — 로컬 메모로 부르지 않는다.
@@ -95,4 +102,8 @@ test("기사를 열면 조회가 1 오르고 급등 순서가 바뀐다 · 1시�
   expect(users.users).toHaveLength(0);
 
   await expectNoConsoleErrors(errors);
+
+  // 기사를 지우면 그 조회 칸도 지운다(onArticleDeleted 트리거).
+  await db().collection("news").doc(B).delete();
+  await expect.poll(async () => (await viewsDoc(B).get()).exists, { timeout: 20_000 }).toBe(false);
 });

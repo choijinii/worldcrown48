@@ -185,6 +185,7 @@ export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 
 export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft
 // PITCH-2 PR B — 기사 조회 기록(급등 재료 · D-78 후보). 로그인 없이 부른다(D-41) · 같은 연결 · 같은 기사 1시간 1번.
 export { recordArticleView } from "./recordArticleView";
+export { onArticleDeleted } from "./onArticleDeleted"; // 기사 지우면 news_views/{slug} 도 지움
 
 // LAB-EV-1 유튜브 임베드 검수기 — 어드민 전용(ADR-EV-7), 키는 서버에만(ADR-EV-5).
 export { validateYouTubeLinks } from "./validateYouTubeLinks"; // 링크 일괄 검증 (≤50/콜)
