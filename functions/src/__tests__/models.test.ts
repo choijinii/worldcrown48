@@ -42,3 +42,12 @@ describe("SONNET_THINKING — 명시적 비활성 (RULE R5)", () => {
     expect(src).toContain("thinking: SONNET_THINKING");
   });
 });
+
+describe("LAB-FIX-4 결정 E — 링크 제목 읽기는 Sonnet", () => {
+  it("extractContestants 콜이 SONNET_MODEL 과 thinking 을 함께 넘긴다(HAIKU 없음)", () => {
+    const src = readFileSync(join(process.cwd(), "src", "extractContestants.ts"), "utf8");
+    expect(src).toMatch(/model:\s*SONNET_MODEL/);
+    expect(src).toMatch(/thinking:\s*SONNET_THINKING/);
+    expect(src).not.toMatch(/HAIKU_MODEL/);
+  });
+});

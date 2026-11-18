@@ -19,6 +19,8 @@
  * 컴파일본으로 불러 쓴다(functions/scripts/backfill-name-i18n.mjs) — 프롬프트가 한 곳이다.
  */
 import { nameSoundsAlike } from "./nameSoundsAlike";
+import { briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
+import { parseEntryUnit, type EntryUnit } from "./aiFillCore";
 
 export interface LocalizedName {
   ko: string;
@@ -34,6 +36,10 @@ export interface NameEntry {
 export interface TranslateNamesInput {
   entries: NameEntry[];
   category?: string;
+  /** LAB-FIX-4 — 엔트리 단위. 빠지면 개인(지금과 같음). */
+  entryUnit?: unknown;
+  /** LAB-FIX-4 — "AI에게 알려 줄 내용" 묶음. 비면 옛 지시문 그대로. */
+  aiBrief?: unknown;
 }
 
 export interface TranslateNamesDeps {
@@ -78,6 +84,42 @@ export function buildNamesPrompt(entries: (NameEntry & { i?: number })[], catego
     "- 공식 영어 표기 = 본인·소속사가 실제로 쓰는 로마자 활동명이다 (예: 뉴진스 → NewJeans, 에스파 → aespa, 아이유 → IU).",
     "- 발음 옮겨 적기가 아니다. 대소문자·띄어쓰기·기호까지 공식 표기 그대로 쓴다.",
     '- 공식 표기를 확실히 알면 "sure": true. 모르면 가장 그럴듯한 로마자를 쓰고 "sure": false.',
+    "- 한글을 쓰지 않는다. 번호(i)는 아래 목록의 번호 그대로.",
+    "",
+    ...lines,
+    "",
+    '반환은 JSON 객체 하나: { "names": [ { "i": number, "en": string, "sure": boolean } ] }',
+    "JSON 외 텍스트 금지.",
+  ].join("\n");
+}
+
+/**
+ * 묶음 지시문 (LAB-FIX-4 · 지시서 §3-2 ③). 엔트리가 사람·그룹이 아니면(노래 제목 · 제품 이름 · 배역) "공식
+ * 로마자 활동명"이 아니라 그 대상의 공식 영어 표기를 찾게 엔트리 종류를 넘긴다. 응답 형식은 옛 지시문과 같다.
+ */
+export function buildBriefNamesPrompt(
+  entries: (NameEntry & { i?: number })[],
+  category: string,
+  brief: AiBrief,
+  unit: EntryUnit,
+): string {
+  const lines = entries.map(
+    (e, idx) =>
+      `${e.i ?? idx + 1}. ${e.name}` +
+      (e.affiliation?.trim() ? ` (덧붙이는 정보: ${e.affiliation.trim()})` : ""),
+  );
+  return [
+    "다음은 한 Tournament 의 엔트리 이름 목록이다" + (category ? ` (카테고리 ${category})` : "") + ".",
+    "",
+    ...briefRuleLines(brief, unit),
+    "",
+    "각 이름의 공식 영어 표기를 알려줘.",
+    "",
+    "규칙:",
+    "- 엔트리가 사람·그룹·팀이면 공식 영어 표기 = 본인·소속사가 실제로 쓰는 로마자 활동명이다 (예: 뉴진스 → NewJeans, 아이유 → IU).",
+    "- 엔트리가 작품·노래·제품·배역처럼 사람이 아니면 그 대상의 공식 영어 표기(공식 영어 제목 · 해외 판매 이름 · 영어판 배역 이름)를 쓴다. 공식 영어 표기가 없으면 로마자로 옮겨 적는다.",
+    "- 대소문자·띄어쓰기·기호까지 공식 표기 그대로 쓴다.",
+    '- 공식 표기를 확실히 알면 "sure": true. 모르면 가장 그럴듯한 표기를 쓰고 "sure": false.',
     "- 한글을 쓰지 않는다. 번호(i)는 아래 목록의 번호 그대로.",
     "",
     ...lines,
@@ -136,9 +178,19 @@ export async function translateContestantNamesCore(
   });
   if (ask.length === 0) return { nameI18n, unsure, failed, mismatch };
 
+  // LAB-FIX-4 — 단위 · 묶음을 못 읽으면(모르는 값 · 한도 넘음) 옛 지시문으로 간다. 발행을 막지 않는다
+  // (이 함수는 던지지 않는다 — 머리 주석).
+  const unit: EntryUnit = parseEntryUnit(input.entryUnit) ?? "individual";
+  const brief = parseAiBrief(input.aiBrief) ?? { entry: "", extra: "", rules: "" };
+  const briefPrompt = usesBriefPrompt(brief, unit);
+
   let text = "";
   try {
-    text = await deps.createMessage(buildNamesPrompt(ask, input.category ?? ""));
+    text = await deps.createMessage(
+      briefPrompt
+        ? buildBriefNamesPrompt(ask, input.category ?? "", brief, unit)
+        : buildNamesPrompt(ask, input.category ?? ""),
+    );
   } catch (e) {
     deps.logError?.("translateContestantNames: model call failed — Korean fallback", e);
   }
@@ -153,7 +205,8 @@ export async function translateContestantNamesCore(
       failed.push(i - 1);
       continue;
     }
-    if (!nameSoundsAlike(names[i - 1], got.en)) {
+    // 발음 대조는 사람·그룹 이름에만 — 작품·제품의 공식 영어 제목(사랑비 → Love Rain)은 발음과 다를 수 있다.
+    if (unit !== "other" && !nameSoundsAlike(names[i - 1], got.en)) {
       mismatch.push({ index: i - 1, en: got.en });
       continue;
     }

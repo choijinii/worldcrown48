@@ -91,6 +91,8 @@ export const translateContestantNames = onCall(
           };
         }),
         category,
+        entryUnit: req.data?.entryUnit,
+        aiBrief: req.data?.aiBrief,
       },
       { createMessage, logError: (msg, e) => logger.error(msg, e) },
     );
