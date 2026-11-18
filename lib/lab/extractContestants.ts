@@ -27,13 +27,17 @@ export interface ExtractExtras {
   tournamentDescription?: string;
 }
 
-/** 서버로 보낼 덧붙임 — 묶음이 비면 싣지 않는다(서버는 지금과 같은 지시문). 제목 · 설명은 묶음과 함께만. */
-export function extractRequestExtras(extras: ExtractExtras | undefined): {
+/**
+ * 서버로 보낼 덧붙임 — 묶음 지시문을 쓸 때(묶음이 있거나 단위가 그 외)만 싣는다. 아니면 빈 객체(지금과 같은 요청).
+ * 대회 제목 · 설명은 묶음 지시문에만 쓰이므로 그때만 함께 보낸다.
+ */
+export function extractRequestExtras(extras: ExtractExtras | undefined, entryUnit: EntryUnit): {
   aiBrief?: AiBrief;
   tournamentTitle?: string;
   tournamentDescription?: string;
 } {
   const brief = extras?.aiBrief ? aiBriefForSave(extras.aiBrief) : undefined;
+  if (!brief && entryUnit !== "other") return {};
   return {
     ...(brief ? { aiBrief: brief } : {}),
     ...(extras?.tournamentTitle?.trim() ? { tournamentTitle: extras.tournamentTitle.trim() } : {}),
@@ -57,6 +61,6 @@ export async function extractContestantsFromVideos(
     { items: ExtractItem[]; entryUnit: EntryUnit } & ReturnType<typeof extractRequestExtras>,
     { extractions: ExtractedContestant[] }
   >(getFunctionsInstance(), "extractContestantsFromVideos", { timeout: EXTRACT_TIMEOUT_MS });
-  const res = await callable({ items, entryUnit, ...extractRequestExtras(extras) });
+  const res = await callable({ items, entryUnit, ...extractRequestExtras(extras, entryUnit) });
   return res.data.extractions ?? [];
 }

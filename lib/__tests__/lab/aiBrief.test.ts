@@ -94,3 +94,20 @@ describe("대회 문서 — 묶음 · 그 외", () => {
     expect("aiBrief" in buildTournamentDoc({ ...input, aiBrief: { ...EMPTY_AI_BRIEF } }, ["KPOP"], Date.now())).toBe(false);
   });
 });
+
+describe("링크 제목 읽기 요청의 덧붙임 — 묶음 지시문을 쓸 때만", () => {
+  it("묶음이 비고 개인·팀이면 아무것도 싣지 않는다(지금과 같은 요청)", async () => {
+    const { extractRequestExtras } = await import("@/lib/lab/extractContestants");
+    const extras = { aiBrief: { ...EMPTY_AI_BRIEF }, tournamentTitle: "t", tournamentDescription: "d" };
+    expect(extractRequestExtras(extras, "group")).toEqual({});
+    expect(extractRequestExtras(undefined, "individual")).toEqual({});
+  });
+  it("묶음이 있으면 묶음 · 제목 · 설명 · 그 외는 묶음이 비어도 제목 · 설명", async () => {
+    const { extractRequestExtras } = await import("@/lib/lab/extractContestants");
+    expect(extractRequestExtras({ aiBrief: brief, tournamentTitle: " t ", tournamentDescription: "" }, "group")).toEqual({
+      aiBrief: { entry: brief.entry, extra: "", rules: brief.rules },
+      tournamentTitle: "t",
+    });
+    expect(extractRequestExtras({ aiBrief: { ...EMPTY_AI_BRIEF }, tournamentTitle: "올해의 노래" }, "other")).toEqual({ tournamentTitle: "올해의 노래" });
+  });
+});

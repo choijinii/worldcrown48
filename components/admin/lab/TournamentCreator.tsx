@@ -296,6 +296,8 @@ export function TournamentCreator(): JSX.Element {
   const [confirmOpen, setConfirmOpen] = useState(false);
   // LAB-FIX-4 결정 C — [모두 비우기] 확인 창.
   const [clearAllOpen, setClearAllOpen] = useState(false);
+  // LAB-FIX-4 리뷰 ② — 칸마다 "비운 횟수". [영상] 넣기를 기다리는 사이 ✕ · [모두 비우기]가 눌리면 늦게 온 결과를 버린다.
+  const clearEpochRef = useRef<number[]>(Array.from({ length: TOTAL_CONTESTANTS }, () => 0));
   const imageFilesRef = useRef<HTMLInputElement>(null);
   // 리뷰 I-1 — 올리는 중인 칸(렌더를 기다리지 않는 즉시 값)과 최신 칸 목록.
   const reservedSlotsRef = useRef<Set<number>>(new Set());
@@ -949,13 +951,18 @@ export function TournamentCreator(): JSX.Element {
       TOTAL_CONTESTANTS,
     );
     const failures: ImageLineFailure[] = [];
+    // LAB-FIX-4 리뷰 ③ — 실제로 들어간 그림만 센다(예약된 칸 · 다른 초안으로 넘어간 경우의 null 은 성공이 아니다).
+    const draftAtStart = draftIdRef.current;
+    let added = 0;
     for (const l of lines) {
-      const reason = await importUrlToSlot(l.slot, l.url);
+      const reason = await importUrlToSlot(l.slot, l.url, () => {
+        added += 1;
+      });
       if (reason) failures.push({ line: l.line, reasonKey: FAIL_KEY[reason] });
     }
     void track("admin_lab_image_lines", { lines: lines.length, failed: failures.length });
     // LAB-FIX-4 — 종류 미정에서 그림이 한 칸이라도 들어가면 이미지 대회로 정해진다.
-    if (lines.length > failures.length) setMediaKind((k) => k ?? "image");
+    if (added > 0 && uploadStillCurrent(draftAtStart ?? "", draftIdRef.current)) setMediaKind((k) => k ?? "image");
     return failures;
   }
 
@@ -1237,7 +1244,11 @@ export function TournamentCreator(): JSX.Element {
   }
 
   /** ④ [URL] — 서버가 내려받아 줄여 우리 Storage 에 둔다. 실패하면 이유. */
-  async function importUrlToSlot(index: number, url: string): Promise<ImportFailure | null> {
+  async function importUrlToSlot(
+    index: number,
+    url: string,
+    onAdded?: () => void,
+  ): Promise<ImportFailure | null> {
     if (reservedSlotsRef.current.has(index)) return null;
     const draftId = ensureDraftId();
     reservedSlotsRef.current.add(index);
@@ -1251,6 +1262,7 @@ export function TournamentCreator(): JSX.Element {
       }
       // LAB-FIX-3 (D-89) — 주소 기억: 다시 [이미지]를 누르면 이 주소가 채워진 채 열린다.
       patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r), manualImageUrl: url }));
+      onAdded?.();
       return null;
     } catch (err) {
       console.warn("importEntryImage failed", err);
@@ -1267,6 +1279,7 @@ export function TournamentCreator(): JSX.Element {
    */
   async function addSlotVideo(index: number, url: string): Promise<Message | null> {
     const current = contestantsRef.current[index] ?? emptyDraft();
+    const epoch = clearEpochRef.current[index];
     try {
       const r = await runManualVideoAdd(
         { url, nameEmpty: current.name.trim() === "", entryUnit, extras: extractExtras },
@@ -1276,6 +1289,8 @@ export function TournamentCreator(): JSX.Element {
         return r.reason === "no-video-id" ? { key: "lab.embed.reason.noVideoId" } : { key: "lab.slot.onlyYouTube" };
       }
       if (r.kind === "blocked") return verdictMessages(r.verdict)[0] ?? { key: "lab.embed.status.blocked" };
+      // 기다리는 사이 이 칸을 비웠으면(✕ · 모두 비우기) 결과를 버린다 — 비운 칸이 저절로 다시 차지 않게.
+      if (clearEpochRef.current[index] !== epoch) return null;
       if (r.extractFailed) showToast(t("lab.embed.error.extract"), "error");
       setContestants((prev) =>
         addManualVideo(prev, index, r.verdict, r.startSec, url, r.extraction, TOTAL_CONTESTANTS, emptyDraft),
@@ -1308,8 +1323,10 @@ export function TournamentCreator(): JSX.Element {
    */
   function clearSlotAt(index: number) {
     if (reservedSlotsRef.current.has(index)) return;
+    clearEpochRef.current[index] += 1;
+    // 그림 파일 경로는 지금 칸에서 읽고, 칸 목록은 함수형으로 비운다 — 아직 그려지지 않은 다른 칸의 변경을 덮지 않게(리뷰 ①).
     const r = clearSlot(contestantsRef.current, index, TOTAL_CONTESTANTS, emptyDraft);
-    setContestants(r.drafts);
+    setContestants((prev) => clearSlot(prev, index, TOTAL_CONTESTANTS, emptyDraft).drafts);
     setSourcingStates((states) => dropSourcingStates(states, [index]));
     setImageNotFound((prev) => withoutSlots(prev, [index]));
     if (tuningIndex === index) setTuningIndex(null);
@@ -1325,8 +1342,9 @@ export function TournamentCreator(): JSX.Element {
   function clearEverySlot() {
     setClearAllOpen(false);
     if (reservedSlotsRef.current.size > 0) return;
+    clearEpochRef.current = clearEpochRef.current.map((n) => n + 1);
     const r = clearAllSlots(contestantsRef.current);
-    setContestants(r.drafts);
+    setContestants([]);
     setSourcingStates({});
     setImageNotFound(new Set());
     setPairPick(EMPTY_PICK);
