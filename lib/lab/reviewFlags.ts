@@ -166,12 +166,13 @@ function pairUp(flags: ReviewFlags, group: readonly number[]): void {
  *   ② 검색 힌트가 통째로 같다. 이름이 달라도 같은 사람을 검색하고 있다는 뜻이고,
  *      AI-2 골든의 중복 6쌍이 정확히 이 모양이었다(이름·표기는 달랐다).
  */
-function flagDuplicates(slots: readonly ReviewSlot[], flags: ReviewFlags): void {
+function flagDuplicates(slots: readonly ReviewSlot[], flags: ReviewFlags, nameWithExtra = false): void {
   const byName = new Map<string, number[]>();
   const byHint = new Map<string, number[]>();
 
   slots.forEach((slot, index) => {
-    const nameKey = normalizeNameKey(slot.name);
+    const base = normalizeNameKey(slot.name);
+    const nameKey = base && nameWithExtra ? `${base}\u0000${affiliationKey(slot.affiliation)}` : base;
     if (nameKey) byName.set(nameKey, [...(byName.get(nameKey) ?? []), index]);
     const hintKey = (slot.imageSearchKeyword ?? "").toLocaleLowerCase().replace(/\s+/g, "");
     if (hintKey) byHint.set(hintKey, [...(byHint.get(hintKey) ?? []), index]);
@@ -179,6 +180,11 @@ function flagDuplicates(slots: readonly ReviewSlot[], flags: ReviewFlags): void 
 
   byName.forEach((group) => {
     if (group.length < 2) return;
+    // 그 외 대회는 키에 덧붙임까지 들어 있다 — 같은 무리 = 이름 · 덧붙임이 모두 같다.
+    if (nameWithExtra) {
+      pairUp(flags, group);
+      return;
+    }
     // 소속이 전부 적혀 있고 서로 다 다르면 동명이인 — 배지를 달지 않는다.
     const keys = group.map((i) => affiliationKey(slots[i].affiliation));
     const allKnown = keys.every((k) => k !== "");
@@ -216,11 +222,19 @@ function flagNameHintMismatch(
 }
 
 /** 그리드 한 판 → 칸별 검수 플래그. 입력을 바꾸지 않는다. */
-export function deriveReviewFlags(slots: readonly ReviewSlot[]): ReviewFlags {
+export interface ReviewFlagOptions {
+  /**
+   * LAB-FIX-4 §3-4 — 엔트리 단위가 "그 외"(작품 · 사물 · 배역)면 이름만으로 막지 않고 **이름 + 덧붙이는 정보**가
+   * 둘 다 같을 때만 겹침으로 본다(제목이 같고 가수가 다른 노래). 개인 · 팀은 지금 그대로.
+   */
+  nameWithExtra?: boolean;
+}
+
+export function deriveReviewFlags(slots: readonly ReviewSlot[], opts: ReviewFlagOptions = {}): ReviewFlags {
   const flags: ReviewFlags = {};
   const named = slots.filter((s) => s.name.trim() !== "");
   const teamTokens = inferTeamTokens(named);
-  flagDuplicates(slots, flags);
+  flagDuplicates(slots, flags, opts.nameWithExtra === true);
   flagNameHintMismatch(slots, teamTokens, flags);
   return flags;
 }

@@ -20,6 +20,7 @@ import type { ContestantDraft } from "@/lib/lab/tournamentDoc";
 import { applyVideoAssignments, clearVideo } from "@/lib/lab/videoDraft";
 import { applyExtractions, type ExtractedContestant } from "@/lib/lab/pasteExtract";
 import type { EntryUnit } from "@/lib/types/tournament";
+import type { ExtractExtras } from "@/lib/lab/extractContestants";
 import type { MediaKind } from "@/lib/lab/mediaKind";
 
 export type SlotMode = "auto" | "manual";
@@ -114,6 +115,7 @@ export interface ManualVideoDeps {
   extract: (
     items: { videoId: string; title: string; channelTitle: string }[],
     entryUnit: EntryUnit,
+    extras?: ExtractExtras,
   ) => Promise<ExtractedContestant[]>;
 }
 
@@ -121,7 +123,7 @@ export interface ManualVideoDeps {
  * [영상] 넣기 순서. 검사 콜러블이 던지는 오류는 그대로 올려 보낸다(호출부가 검수기와 같은 문구로 알린다).
  */
 export async function runManualVideoAdd(
-  input: { url: string; nameEmpty: boolean; entryUnit: EntryUnit },
+  input: { url: string; nameEmpty: boolean; entryUnit: EntryUnit; extras?: ExtractExtras },
   deps: ManualVideoDeps,
 ): Promise<ManualVideoResult> {
   const parsed = parseManualVideoUrl(input.url);
@@ -140,6 +142,7 @@ export async function runManualVideoAdd(
       const found = await deps.extract(
         [{ videoId: verdict.videoId, title: verdict.title, channelTitle: verdict.channelTitle }],
         input.entryUnit,
+        input.extras,
       );
       extraction = found.find((e) => e.videoId === verdict.videoId) ?? null;
     } catch {

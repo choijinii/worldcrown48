@@ -118,10 +118,19 @@ service cloud.firestore {
         && isDraftPos(p.aPos) && isDraftPos(p.bPos)
         && (p.next == 'a' || p.next == 'b');
     }
+    // LAB-FIX-4 — 글자 수 한도 40 · 40 · 300(lib/lab/aiBrief.ts AI_BRIEF_LIMITS 와 같다).
+    function isValidAiBrief(b) {
+      return b is map
+        && b.keys().hasOnly(['entry', 'extra', 'rules'])
+        && b.keys().hasAll(['entry', 'extra', 'rules'])
+        && b.entry is string && b.entry.size() <= 40
+        && b.extra is string && b.extra.size() <= 40
+        && b.rules is string && b.rules.size() <= 300;
+    }
     function isValidDraft(d) {
       return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                                 'description', 'keywords', 'campaignSlug', 'deadlineMs',
-                                'contestants', 'thumbnailPair', 'entryUnit', 'mediaKind', 'updatedAt'])
+                                'contestants', 'thumbnailPair', 'entryUnit', 'mediaKind', 'aiBrief', 'updatedAt'])
         && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                             'description', 'keywords', 'campaignSlug', 'deadlineMs',
                             'contestants', 'updatedAt'])
@@ -138,7 +147,10 @@ service cloud.firestore {
         && (!('thumbnailPair' in d) || isValidDraftPair(d.thumbnailPair))
         // ENTRY-UNIT-1(원장 D-73): 엔트리 단위. 칸 자체는 선택 — 이 칸을 모르는 옛 화면의
         // 저장도 통과한다(hasAll 에 넣지 않음, thumbnailPair 와 같은 방식).
-        && (!('entryUnit' in d) || d.entryUnit == 'individual' || d.entryUnit == 'group')
+        // LAB-FIX-4: 세 번째 단위 'other'(그 외 — 작품 · 사물 · 배역).
+        && (!('entryUnit' in d) || d.entryUnit == 'individual' || d.entryUnit == 'group' || d.entryUnit == 'other')
+        // LAB-FIX-4: "AI에게 알려 줄 내용" 세 줄. 칸 자체는 선택 — 세 줄을 비운 초안 · 옛 화면의 저장도 통과.
+        && (!('aiBrief' in d) || isValidAiBrief(d.aiBrief))
         // LAB-FIX-3 추가분(원장 D-90): 대회 종류. 칸 자체는 선택 — 종류 미정 초안·옛 화면의 저장도 통과.
         && (!('mediaKind' in d) || d.mediaKind == 'video' || d.mediaKind == 'image')
         && d.updatedAt == request.time;

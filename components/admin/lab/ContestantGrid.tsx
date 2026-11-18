@@ -50,6 +50,10 @@ interface ContestantGridProps {
   onRefreshImage?: (index: number) => void;
   imageRefreshingIndex?: number | null;
   imageNotFound?: ReadonlySet<number>;
+  /** LAB-FIX-4 결정 B — ✕ = 칸 통째로 비우기. */
+  onClear?: (index: number) => void;
+  /** LAB-FIX-4 §3-3 — 둘째 칸 자리 표시 글자("덧붙이는 정보"). */
+  extraLabel?: string;
 }
 
 /**
@@ -68,6 +72,8 @@ export function scrollToSlot(index: number): void {
 
 export function ContestantGrid({
   contestants,
+  onClear,
+  extraLabel,
   onChange,
   onTune,
   sourcing,
@@ -112,6 +118,8 @@ export function ContestantGrid({
             }
           }
           onChange={onChange}
+          onClear={onClear}
+          extraLabel={extraLabel}
           onTune={onTune}
           sourcing={sourcing?.[i]}
           reviewFlags={reviewFlags?.[i]}

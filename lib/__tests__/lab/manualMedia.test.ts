@@ -172,6 +172,7 @@ describe("주소 기억 — 초안에는 저장, 발행 문서에는 없음", ()
     contestants,
     thumbnailPair: EMPTY_PICK,
     entryUnit: "individual",
+    aiBrief: { entry: "", extra: "", rules: "" },
     mediaKind: "video",
   });
 

@@ -34,6 +34,7 @@
 
 import { useRef, useState } from "react";
 import { slotButtons } from "@/lib/lab/manualMedia";
+import { slotHasAnything } from "@/lib/lab/slotClear";
 import { imageRefreshVisible } from "@/lib/lab/imageSourcing";
 import type { MediaKind } from "@/lib/lab/mediaKind";
 import type { Message } from "@/lib/lab/embedMessages";
@@ -89,6 +90,10 @@ interface ContestantEditorProps {
   imageNotFound?: boolean;
   /** IMAGE-1 PR 3 (원장 D-92) — "그림" 배지 · 출처 도메인 글자를 누르면 그림 확인 창. 없으면 글자로만 그린다. */
   onCheckImage?: (index: number) => void;
+  /** LAB-FIX-4 결정 B — ✕ = 이 칸을 통째로 비우기(영상 · 그림 포함). 없으면 옛 동작(글자 칸만). */
+  onClear?: (index: number) => void;
+  /** LAB-FIX-4 §3-3 — 둘째 칸 자리 표시 글자 = "덧붙이는 정보"에 적은 낱말. 비면 "소속". */
+  extraLabel?: string;
 }
 
 export interface SlotVideoHandlers {
@@ -193,6 +198,8 @@ export function ContestantEditor({
   imageRefreshing = false,
   imageNotFound = false,
   onCheckImage,
+  onClear,
+  extraLabel = "",
 }: ContestantEditorProps): JSX.Element {
   const { t } = useT();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -264,16 +271,15 @@ export function ContestantEditor({
   const duplicate = reviewFlags?.find((f) => f.kind === "duplicate-suspect");
   const mismatch = reviewFlags?.find((f) => f.kind === "name-hint-mismatch");
   const hasReview = Boolean(duplicate || mismatch || videoMismatch);
-  // The ✕ clears the WHOLE card (all fields, incl. the AI keyword hint) back to
-  // an empty slot. Shown whenever the card holds anything to clear.
-  const hasContent = [
-    contestant.name,
-    contestant.nationality,
-    contestant.affiliation,
-    contestant.imageSearchKeyword,
-  ].some((v) => v.trim() !== "");
+  // The ✕ clears the WHOLE card back to an empty slot — LAB-FIX-4 결정 B: 영상 · 그림까지(onClear).
+  // Shown whenever the card holds anything to clear (영상만 · 그림만 있는 칸도).
+  const hasContent = slotHasAnything(contestant);
 
   function clearCard() {
+    if (onClear) {
+      onClear(index);
+      return;
+    }
     onChange(index, {
       name: "",
       nationality: "",
@@ -325,7 +331,7 @@ export function ContestantEditor({
           onClick={clearCard}
           data-testid={`contestant-clear-${index}`}
           aria-label={t("lab.contestant.clearAria", { n })}
-          title={t("lab.contestant.clearAria", { n })}
+          title={t("lab.slot.clearHint")}
           style={{
             position: "absolute",
             top: 4,
@@ -515,7 +521,7 @@ export function ContestantEditor({
         <input
           value={contestant.affiliation}
           onChange={(e) => onChange(index, { affiliation: e.target.value })}
-          placeholder={t("lab.contestant.affiliation")}
+          placeholder={extraLabel.trim() || t("lab.contestant.affiliation")}
           aria-label={t("lab.contestant.affiliationAria", { n })}
           style={fieldStyle}
         />

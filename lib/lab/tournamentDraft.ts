@@ -15,6 +15,7 @@ import { ENTRY_IMAGE_ORIGINS, type EmbedOrientation, type EntryImageOrigin } fro
 import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
 import { DEFAULT_ENTRY_UNIT, ENTRY_UNITS, type EntryUnit } from "@/lib/types/tournament";
 import { resolveMediaKind, type MediaKind } from "@/lib/lab/mediaKind";
+import { aiBriefForSave, isAiBriefEmpty, readAiBrief, type AiBrief } from "@/lib/lab/aiBrief";
 
 export const DRAFTS_COLLECTION = "tournamentDrafts";
 export const DRAFT_SCHEMA_VERSION = 1;
@@ -34,6 +35,7 @@ export const DRAFT_FIELDS = [
   "thumbnailPair",
   "entryUnit",
   "mediaKind",
+  "aiBrief",
   "updatedAt",
 ] as const;
 
@@ -55,6 +57,8 @@ export interface DraftEditorState {
    * 누르지 않음). 옛 초안엔 칸이 없다 — 읽을 때 칸에서 추론한다(lib/lab/mediaKind).
    */
   mediaKind: MediaKind | null;
+  /** LAB-FIX-4 "AI에게 알려 줄 내용" 세 줄. 옛 초안엔 없다 — 읽을 때 빈 묶음. */
+  aiBrief: AiBrief;
 }
 
 /** 목록에 보여 줄 한 줄. */
@@ -88,9 +92,11 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     // ENTRY-UNIT-1: 팀일 때만 싣는다. 개인(기본값)은 칸을 빼고 저장한다 — 읽을 때 빠진 칸 =
     // 개인이므로 뜻은 같고, 규칙이 배포되기 전(firestore.rules 는 main 병합 뒤에만 배포된다)
     // 에도 개인 초안 저장이 막히지 않는다. 팀→개인으로 되돌리면 통째 덮어쓰기라 칸이 사라진다.
-    ...(s.entryUnit === "group" ? { entryUnit: s.entryUnit } : {}),
+    ...(s.entryUnit !== DEFAULT_ENTRY_UNIT ? { entryUnit: s.entryUnit } : {}),
     // D-90: 정해졌을 때만 싣는다(미정 = 칸 없음).
     ...(s.mediaKind ? { mediaKind: s.mediaKind } : {}),
+    // LAB-FIX-4: 세 줄 중 하나라도 글자가 있을 때만 싣는다(비면 칸 없음 = 옛 모양).
+    ...(aiBriefForSave(s.aiBrief) ? { aiBrief: { ...s.aiBrief } } : {}),
   };
 }
 
@@ -182,6 +188,7 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
     thumbnailPair: toPick(d.thumbnailPair),
     entryUnit: toEntryUnit(d.entryUnit),
     mediaKind: resolveMediaKind(d.mediaKind, contestants),
+    aiBrief: readAiBrief(d.aiBrief),
   };
 }
 
@@ -213,6 +220,7 @@ export function isDraftBlank(s: DraftEditorState): boolean {
     s.campaignSlug === "" &&
     // ENTRY-UNIT-1: 단위를 팀으로 바꾼 것도 입력이다(기본값 개인은 세지 않는다).
     s.entryUnit === DEFAULT_ENTRY_UNIT &&
+    isAiBriefEmpty(s.aiBrief) &&
     !s.contestants.some(contestantTouched)
   );
 }

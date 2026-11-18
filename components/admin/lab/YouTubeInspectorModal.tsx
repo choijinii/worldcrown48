@@ -32,7 +32,7 @@ import {
 } from "@/lib/embed/constants";
 import { assignSlots, parseLinkBatch, type SlotAssignment } from "@/lib/embed/parseBatch";
 import type { LinkStatus, LinkVerdict } from "@/lib/embed/verdict";
-import { extractContestantsFromVideos } from "@/lib/lab/extractContestants";
+import { extractContestantsFromVideos, type ExtractExtras } from "@/lib/lab/extractContestants";
 import type { ExtractedContestant } from "@/lib/lab/pasteExtract";
 import type { EntryUnit } from "@/lib/types/tournament";
 import {
@@ -58,6 +58,8 @@ interface YouTubeInspectorModalProps {
   blankIndexes: number[];
   /** 대회의 엔트리 단위(원장 D-73) — 제목에서 인물(개인)을 읽을지 그룹(팀)을 읽을지. */
   entryUnit: EntryUnit;
+  /** LAB-FIX-4 — "AI에게 알려 줄 내용" 묶음과 대회 제목 · 설명. 제목에서 엔트리를 읽는 기준이다. */
+  extras?: ExtractExtras;
   /**
    * 통과·경고분을 그리드에 얹는다. 차단 판정은 여기까지 오지 않는다.
    * `extractions`는 제목에서 읽어낸 인물 — 확신 못 한 항목은 이름이 비어 있다.
@@ -81,6 +83,7 @@ export function YouTubeInspectorModal({
   onClose,
   blankIndexes,
   entryUnit,
+  extras,
   onApply,
 }: YouTubeInspectorModalProps): JSX.Element | null {
   const { t } = useT();
@@ -139,6 +142,7 @@ export function YouTubeInspectorModal({
               channelTitle: v.channelTitle,
             })),
             entryUnit,
+            extras,
           );
         } catch (err) {
           // 검수는 성공했고 **추출만** 실패했다. 여기서 검수 실패 문구를 띄우면

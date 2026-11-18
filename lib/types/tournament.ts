@@ -70,8 +70,9 @@ export interface LocalizedText {
  *   individual = 사람 한 명 · group = 그룹(팀) 하나(멤버 개인은 넣지 않는다)
  * functions/src/core/aiFillCore.ts 의 EntryUnit 과 같은 값이다.
  */
-export type EntryUnit = "individual" | "group";
-export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group"];
+export type EntryUnit = "individual" | "group" | "other";
+/** LAB-FIX-4 — "other" = 그 외(작품 · 사물 · 배역처럼 사람도 팀도 아닌 것). 늘 묶음 지시문으로 간다. */
+export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group", "other"];
 export const DEFAULT_ENTRY_UNIT: EntryUnit = "individual";
 
 export interface Tournament {
@@ -118,6 +119,11 @@ export interface Tournament {
    * 문서엔 없다(백필 안 함 · 이미 발행된 대회는 바꾸지 않는다).
    */
   mediaKind?: "video" | "image";
+  /**
+   * LAB-FIX-4 "AI에게 알려 줄 내용" 묶음(원장 결정 A) — 엔트리는 어떤 것인가 · 덧붙이는 정보 · 고르는 조건.
+   * 선택·additive: 세 줄을 비운 대회와 2026-11-19 이전 문서엔 없다(백필 안 함). 팬 화면은 읽지 않는다.
+   */
+  aiBrief?: { entry: string; extra: string; rules: string };
   /**
    * IMAGE-1 PR 3 (원장 D-93) — 마지막으로 엔트리를 내린 시각(epoch ms). 관리자 함수 takeDownEntry 만 쓴다.
    * 열린 화면(매치 무대 · 크라운 카드 · 피치 표지)이 이 값이 바뀌면 엔트리를 다시 읽는 신호다.

@@ -17,6 +17,7 @@ import { validateDeadline } from "@/lib/lab/deadlineValidation";
 import { validateCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { LOOP_SECONDS } from "@/lib/embed/constants";
 import type { MediaKind } from "@/lib/lab/mediaKind";
+import { aiBriefForSave, type AiBrief } from "@/lib/lab/aiBrief";
 import type { ContestantMedia, EmbedOrientation, EntryImage, EntryImageOrigin } from "@/lib/media/mediaSlot";
 import {
   ENTRY_UNITS,
@@ -53,6 +54,8 @@ export interface TournamentInput {
   entryUnit?: EntryUnit;
   /** LAB-FIX-3 추가분(원장 D-90) — 대회 종류. 정해졌을 때만 문서에 싣는다(크라운 카드·무대가 쓸 수 있게). */
   mediaKind?: MediaKind;
+  /** LAB-FIX-4 "AI에게 알려 줄 내용". 세 줄 중 글자가 있을 때만 문서에 싣는다(팬 화면은 읽지 않는다). */
+  aiBrief?: AiBrief;
 }
 
 /** A Tournament doc minus the Firestore-owned `id` and `createdAt`. */
@@ -173,6 +176,7 @@ export function buildTournamentDoc(
     // Firestore rejects undefined — carry the field only when the host set one.
     ...(slug.isEmpty ? {} : { campaignSlug: slug.value }),
     ...(input.mediaKind ? { mediaKind: input.mediaKind } : {}),
+    ...(input.aiBrief && aiBriefForSave(input.aiBrief) ? { aiBrief: aiBriefForSave(input.aiBrief) } : {}),
   };
 }
 

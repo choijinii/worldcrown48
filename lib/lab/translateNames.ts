@@ -9,7 +9,8 @@
  */
 import { httpsCallable } from "firebase/functions";
 import { getFunctionsInstance } from "@/lib/firebase";
-import type { LocalizedText } from "@/lib/types/tournament";
+import type { EntryUnit, LocalizedText } from "@/lib/types/tournament";
+import { aiBriefForSave, type AiBrief } from "@/lib/lab/aiBrief";
 
 export interface NameEntry {
   name: string;
@@ -42,16 +43,27 @@ export function namesForPublish(
   );
 }
 
+/**
+ * `context` = LAB-FIX-4 엔트리 단위 · "AI에게 알려 줄 내용". 엔트리가 사람 · 그룹이 아니면(노래 제목 · 제품 이름 ·
+ * 배역) 서버가 그 대상의 공식 표기를 찾는다. 묶음이 비고 단위가 개인이면 싣지 않는다(지금과 같은 요청).
+ */
 export async function translateNames(
   entries: NameEntry[],
   category: string,
+  context?: { entryUnit?: EntryUnit; aiBrief?: AiBrief },
 ): Promise<LocalizedText[]> {
   try {
+    const brief = context?.aiBrief ? aiBriefForSave(context.aiBrief) : undefined;
     const callable = httpsCallable<
-      { entries: NameEntry[]; category: string },
+      { entries: NameEntry[]; category: string; entryUnit?: EntryUnit; aiBrief?: AiBrief },
       CallableResult
     >(getFunctionsInstance(), "translateContestantNames");
-    const res = await callable({ entries, category });
+    const res = await callable({
+      entries,
+      category,
+      ...(context?.entryUnit && context.entryUnit !== "individual" ? { entryUnit: context.entryUnit } : {}),
+      ...(brief ? { aiBrief: brief } : {}),
+    });
     return namesForPublish(entries, res.data?.nameI18n);
   } catch {
     // 이름 번역이 실패해도 발행은 성공한다(제목 번역과 같은 규칙 · ADR-B2 §4).
