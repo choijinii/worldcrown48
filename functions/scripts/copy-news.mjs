@@ -20,8 +20,8 @@ const dest = join(here, "..", "src", "_news");
 
 mkdirSync(dest, { recursive: true });
 
-for (const file of ["articleDoc.ts"]) {
+for (const file of ["articleDoc.ts", "articleViews.ts"]) {
   copyFileSync(join(libNews, file), join(dest, file));
 }
 
-console.log("[copy-news] mirrored lib/news/{articleDoc} → functions/src/_news");
+console.log("[copy-news] mirrored lib/news/{articleDoc,articleViews} → functions/src/_news");

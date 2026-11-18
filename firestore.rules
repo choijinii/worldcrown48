@@ -473,6 +473,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── news_view_marks (PITCH-2 PR B 기사 조회 1시간 1번 표지) ──────
+    // 문서 id = 소금 섞은 (IP · 기사 · 시간) 해시, 칸은 지울 시각 expireAt 하나(TTL 2시간).
+    // recordArticleView 콜러블만 admin SDK 로 쓴다. 브라우저가 지우면 조회를 무한히 셀 수 있으므로
+    // 전면 거부. 조회 칸 news/{slug}.views 는 위 news 규칙(쓰기 = 관리자)이 그대로 막는다.
+    match /news_view_marks/{markId} {
+      allow read, write: if false;
+    }
+
     // ── default deny ───────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

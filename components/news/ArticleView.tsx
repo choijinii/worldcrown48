@@ -6,10 +6,12 @@
  */
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/useT";
 import { resolveArticleView } from "@/lib/news/renderArticle";
+import { recordArticleViewOnce } from "@/lib/news/recordArticleView";
 import type { ArticleRecord } from "@/lib/news/articleRecord";
 import type { ArticleBlock } from "@/lib/news/articleDoc";
 import { MediaSlot } from "@/components/media/MediaSlot";
@@ -106,6 +108,10 @@ export function ArticleView({ article }: { article: ArticleRecord }): JSX.Elemen
   const { lang } = useI18n();
   const { t } = useT();
   const view = resolveArticleView(article, lang);
+  // PITCH-2 PR B — 지면을 열면 조회 기록 한 번(급등 재료). 같은 기사 1시간 1번 · 조용히 실패한다.
+  useEffect(() => {
+    void recordArticleViewOnce(article.slug);
+  }, [article.slug]);
   const crumb = TEMPLATE_CRUMB[article.template] ?? "NEWS";
 
   return (
