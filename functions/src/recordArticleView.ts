@@ -21,7 +21,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
 import { createUidRateLimiter } from "./core/uidRateLimit";
-import { recordArticleViewCore, viewMarkId } from "./core/articleViewCore";
+import { clientIpOf, recordArticleViewCore, viewMarkId } from "./core/articleViewCore";
 import { isValidArticleSlug } from "./_news/articleViews";
 
 const IP_HASH_SALT = defineSecret("IP_HASH_SALT");
@@ -41,7 +41,8 @@ export const recordArticleView = onCall(
     const slug = (req.data as { slug?: unknown } | undefined)?.slug;
     if (!isValidArticleSlug(slug)) throw new HttpsError("invalid-argument", "invalid-slug");
 
-    const ip = req.rawRequest?.ip ?? "";
+    // 에뮬레이터는 IP 를 주지 않는다 — 시험에서만 고정 이름(FUNCTIONS_EMULATOR 는 에뮬레이터가 채운다).
+    const ip = clientIpOf(req.rawRequest, process.env.FUNCTIONS_EMULATOR === "true");
     const salt = IP_HASH_SALT.value() ?? "";
     // IP 나 소금이 없으면 "1시간 1번"을 지킬 수 없다 — 세지 않는다(부풀리기보다 덜 세기).
     if (!ip || !salt) return { counted: false };

@@ -29,6 +29,20 @@ export function viewMarkId(salt: string, ip: string, slug: string, nowMs: number
   return createHash("sha256").update(`${salt}\u0000${ip}\u0000${slug}\u0000${hour}`).digest("hex");
 }
 
+/** 에뮬레이터에서만 쓰는 연결 이름 — 에뮬레이터는 함수에 IP 를 넘겨 주지 않는다. */
+export const EMULATOR_CLIENT = "emulator-local";
+
+/**
+ * 요청의 IP. 실서비스는 구글 앞단이 `ip` 를 채운다(hashIp · registerWaitlist 와 같은 값).
+ * 비어 있으면 빈 글자 → 세지 않는다. 받침으로 쓰지 않는 것 둘:
+ *   · 연결 주소(socket) — 앞단 서버 주소라 모든 팬이 한 사람으로 묶인다
+ *   · X-Forwarded-For 머리글 — 팬이 마음대로 적어 보내 "1시간 1번"을 우회할 수 있다
+ * 에뮬레이터(시험)에서만 고정 이름을 쓴다.
+ */
+export function clientIpOf(raw: { ip?: string } | undefined, isEmulator: boolean): string {
+  return raw?.ip || (isEmulator ? EMULATOR_CLIENT : "");
+}
+
 export function viewMarkExpireAtMs(nowMs: number): number {
   return nowMs + VIEW_MARK_TTL_MS;
 }

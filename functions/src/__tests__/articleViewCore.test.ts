@@ -5,7 +5,9 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  EMULATOR_CLIENT,
   VIEW_MARK_TTL_MS,
+  clientIpOf,
   viewMarkExpireAtMs,
   viewMarkId,
 } from "../core/articleViewCore";
@@ -38,5 +40,27 @@ describe("viewMarkExpireAtMs — 표지는 2시간 뒤 자동 삭제(TTL)", () =
   it("2시간", () => {
     expect(VIEW_MARK_TTL_MS).toBe(2 * HOUR);
     expect(viewMarkExpireAtMs(T)).toBe(T + 2 * HOUR);
+  });
+});
+
+describe("clientIpOf — 요청의 IP · 에뮬레이터에서만 고정 이름(연결 주소 · 위조 가능한 머리글은 보지 않는다)", () => {
+  it("ip 가 있으면 ip", () => {
+    expect(clientIpOf({ ip: "1.2.3.4" }, false)).toBe("1.2.3.4");
+    expect(clientIpOf({ ip: "1.2.3.4" }, true)).toBe("1.2.3.4");
+  });
+  it("실서비스에서 ip 가 비면 빈 글자(연결 주소는 앞단 서버라 모든 팬이 하나로 묶인다)", () => {
+    expect(clientIpOf({ ip: "", socket: { remoteAddress: "10.0.0.1" } } as Parameters<typeof clientIpOf>[0], false)).toBe("");
+  });
+  it("에뮬레이터에서 ip 가 비면 고정 이름(에뮬레이터는 IP 를 주지 않는다)", () => {
+    expect(clientIpOf({ ip: "" }, true)).toBe(EMULATOR_CLIENT);
+    expect(clientIpOf(undefined, true)).toBe(EMULATOR_CLIENT);
+  });
+  it("X-Forwarded-For 는 보지 않는다", () => {
+    expect(
+      clientIpOf({ headers: { "x-forwarded-for": "6.6.6.6" } } as unknown as Parameters<typeof clientIpOf>[0], false),
+    ).toBe("");
+  });
+  it("요청이 없으면 빈 글자", () => {
+    expect(clientIpOf(undefined, false)).toBe("");
   });
 });
