@@ -123,7 +123,12 @@ export async function recordArticleViewCore(
   return { counted: true };
 }
 
-/** 기사가 지워졌을 때 그 기사의 조회 칸을 지운다. 칸이 없어도 오류 없이 지나간다. */
+/**
+ * 기사가 지워졌을 때 그 기사의 조회 칸을 지운다. 칸이 없어도 오류 없이 지나간다.
+ * "지워짐" 신호는 늦게 올 수 있다 — 그 사이 같은 주소로 기사가 다시 생겼으면 지우지 않는다
+ * (CI 2026-11-18: 늦은 신호가 새로 센 조회 칸을 지웠다).
+ */
 export async function deleteArticleViewsCore(db: Firestore, slug: string): Promise<void> {
+  if ((await db.collection("news").doc(slug).get()).exists) return;
   await db.collection(VIEWS_COLLECTION).doc(slug).delete();
 }

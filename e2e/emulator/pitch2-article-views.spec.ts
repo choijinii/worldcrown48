@@ -68,6 +68,8 @@ test("기사를 열면 조회가 1 오르고 급등 순서가 바뀐다 · 1시�
   if (toHour < 90_000) await page.waitForTimeout(toHour + 1_000);
 
   const errors = collectConsoleErrors(page);
+  // 앞선 시험들이 만든 계정은 남아 있다(resetEmulators 는 Auth 를 비우지 않는다) — 이 시험 앞뒤 수를 견준다.
+  const usersBefore = (await adminApp().auth().listUsers()).users.length;
   const today = todayKST(new Date());
 
   expect(sortTrending(await articles(), today).map((a) => a.slug)).toEqual([A, B]);
@@ -98,8 +100,7 @@ test("기사를 열면 조회가 1 오르고 급등 순서가 바뀐다 · 1시�
   expect(await totalOf(A)).toBe(0);
 
   // 기사를 열어도 익명 계정을 만들지 않는다(원장 D-41).
-  const users = await adminApp().auth().listUsers();
-  expect(users.users).toHaveLength(0);
+  expect((await adminApp().auth().listUsers()).users).toHaveLength(usersBefore);
 
   await expectNoConsoleErrors(errors);
 

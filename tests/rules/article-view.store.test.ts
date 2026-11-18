@@ -168,6 +168,12 @@ describe("기사가 지워지면 조회 칸도 지운다", () => {
     expect(await viewsOf("20261118-pub002")).toEqual({ total: 2, d20261118: 2 });
   });
 
+  it("늦게 온 '지워짐' 신호 — 같은 주소의 기사가 다시 있으면 조회 칸을 지우지 않는다", async () => {
+    await seedArticle("20261118-pub001", "published", { total: 1, d20261118: 1 });
+    await deleteArticleViewsCore(db, "20261118-pub001");
+    expect(await viewsOf("20261118-pub001")).toEqual({ total: 1, d20261118: 1 });
+  });
+
   it("조회 칸이 없던 기사도 오류 없이 지나간다", async () => {
     await expect(deleteArticleViewsCore(db, "20261118-none01")).resolves.toBeUndefined();
   });
