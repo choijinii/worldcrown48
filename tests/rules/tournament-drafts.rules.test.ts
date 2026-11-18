@@ -274,3 +274,26 @@ describe("tournamentDrafts — 대회 종류(mediaKind)", () => {
     await assertFails(setDoc(ref(), rawDraft("host-1", { mediaKind: 1 })));
   });
 });
+
+describe("tournamentDrafts — LAB-FIX-4 그 외 단위 · AI에게 알려 줄 내용", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts", "d-brief");
+  const brief = { entry: "노래 제목", extra: "가수", rules: "타이틀곡만" };
+
+  it("ALLOWS the other unit, a full brief, and no brief at all (older screens)", async () => {
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { entryUnit: "other", aiBrief: brief })));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", { entryUnit: "group" })));
+    await assertSucceeds(
+      setDoc(ref(), rawDraft("host-1", { aiBrief: { entry: "가".repeat(40), extra: "나".repeat(40), rules: "다".repeat(300) } })),
+    );
+  });
+
+  it("DENIES an over-long line, a missing or unknown key, or a non-map brief", async () => {
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, entry: "가".repeat(41) } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, extra: "나".repeat(41) } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, rules: "다".repeat(301) } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { entry: "a", extra: "b" } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, note: "x" } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: "노래 제목" })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, entry: 3 } })));
+  });
+});

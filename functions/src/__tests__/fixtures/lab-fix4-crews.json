@@ -1,0 +1,348 @@
+{
+  "source": "LAB-FIX-4 지시서 §7 — 대회 ④ 48칸 정답(마티오 영상 확인 2026-11-13~17) · 제목·채널 = youtube oEmbed 2026-11-19",
+  "brief": {
+    "entryUnit": "group",
+    "entry": "영상에서 춤춘 댄스 크루",
+    "extra": "",
+    "rules": "K-pop 곡에 맞춰 춤춘 국내외 댄스 크루. 원곡 가수는 엔트리가 아니다."
+  },
+  "tournamentTitle": "올 한 해 가장 빛난 K-pop 댄스 크루는 누구일까?",
+  "items": [
+    {
+      "videoId": "esz-HscCZaE",
+      "title": "[KPOP IN PUBLIC CHALLENGE] TEMPEST (템페스트) - 'BAD NEWS' Dance Cover by W-UNIT from Vietnam",
+      "channelTitle": "W-Unit",
+      "expectedName": "W-Unit",
+      "expectedCountry": "VN"
+    },
+    {
+      "videoId": "izBNggpEQTI",
+      "title": "[KPOP IN PUBLIC] TWS(투어스) - hey! hey! dance cover by CHOCOMINT HK",
+      "channelTitle": "Chocomint HK 초코민트",
+      "expectedName": "Chocomint HK",
+      "expectedCountry": "HK"
+    },
+    {
+      "videoId": "cWBISLehANQ",
+      "title": "[KPOP IN PUBLIC] CORTIS (코르티스) 'FaSHioN' Dance Cover by HIGHER CREW from FRANCE",
+      "channelTitle": "HIGHER CREW",
+      "expectedName": "HIGHER CREW",
+      "expectedCountry": "FR"
+    },
+    {
+      "videoId": "dhuQGlMDbDw",
+      "title": "[K-POP IN PUBLIC] TWICE (트와이스) - THIS IS FOR Dance Cover by ABK Crew from Australia",
+      "channelTitle": "ABK Crew",
+      "expectedName": "ABK Crew",
+      "expectedCountry": "AU"
+    },
+    {
+      "videoId": "EoBBB3GBHIo",
+      "title": "[KPOP IN PUBLIC] KISS OF LIFE (키스오브라이프) - \"Nobody Knows\" ONE TAKE Cover By Bias Dance from Australia",
+      "channelTitle": "Bias Dance",
+      "expectedName": "Bias Dance",
+      "expectedCountry": "AU"
+    },
+    {
+      "videoId": "ua0OM4aX6Dc",
+      "title": "[KPOP IN PUBLIC] MEOVV - 'Body' Dance cover by DARE Australia",
+      "channelTitle": "DARE Crew • Official",
+      "expectedName": "DARE Crew",
+      "expectedCountry": "AU"
+    },
+    {
+      "videoId": "niJHQh8bPps",
+      "title": "[KPOP IN PUBLIC NYC] CORTIS (코르티스) - REDRED Dance Cover by Not Shy Dance Crew",
+      "channelTitle": "Not Shy Dance Crew",
+      "expectedName": "Not Shy Dance Crew",
+      "expectedCountry": "US"
+    },
+    {
+      "videoId": "Gq2JqPLfW3s",
+      "title": "[VANNER x Koreos] VANNER (배너) - Rollin' Dance Cover 댄스커버 | KPOP AT UCLA",
+      "channelTitle": "Koreos",
+      "expectedName": "Koreos",
+      "expectedCountry": "US"
+    },
+    {
+      "videoId": "jPDU11Tbjb0",
+      "title": "[KPOP IN PUBLIC] JENNIE - 'You and Me (Coachella Ver.)' || Dance Cover by HIRAETH CREW from SPAIN",
+      "channelTitle": "Hiraeth Crew",
+      "expectedName": "Hiraeth Crew",
+      "expectedCountry": "ES"
+    },
+    {
+      "videoId": "J9OuAU0y9ac",
+      "title": "[KPOP IN PUBLIC SPAIN] JAEHYUN (재현)- SMOKE || Dance Cover by OFF WILD",
+      "channelTitle": "Off Wild",
+      "expectedName": "OFF WILD",
+      "expectedCountry": "ES"
+    },
+    {
+      "videoId": "fIVvOkZUOTo",
+      "title": "[KPOP IN PUBLIC GERMANY] BTS(방탄소년단) - DOPE(쩔어) I Dance Cover by HANABI",
+      "channelTitle": "Hanabi Dance Crew",
+      "expectedName": "Hanabi Dance Crew",
+      "expectedCountry": "DE"
+    },
+    {
+      "videoId": "mCTRX_1fdOQ",
+      "title": "[KPOP IN PUBLIC] G-Dragon 'Power' dance cover By MAD.G from Malaysia 🇲🇾",
+      "channelTitle": "Mad.G Official",
+      "expectedName": "Mad.G",
+      "expectedCountry": "MY"
+    },
+    {
+      "videoId": "DIsDNstfJL0",
+      "title": "[KPOP IN PUBLIC] AESPA 에스파 'Next Level' Dance Cover By APRICITY [CANADA]",
+      "channelTitle": "APRICITY Official",
+      "expectedName": "APRICITY",
+      "expectedCountry": "CA"
+    },
+    {
+      "videoId": "77_EZQhcV04",
+      "title": "[KPOP DANCE COVER] CORTIS (코르티스) 'FaSHioN' || Principium || Philippines",
+      "channelTitle": "Principium PH",
+      "expectedName": "Principium PH",
+      "expectedCountry": "PH"
+    },
+    {
+      "videoId": "AH9Xr_tGYRY",
+      "title": "[KPOP IN PUBLIC CHALLENGE] [ONE TAKE] ITZY(있지) \"달라달라(DALLA DALLA)\" Dance Cover by AFTER from México",
+      "channelTitle": "AFTER DANCE CREW",
+      "expectedName": "AFTER Dance Crew",
+      "expectedCountry": "MX"
+    },
+    {
+      "videoId": "_2XH3hKcndI",
+      "title": "[KPOP IN PUBLIC] VVUP (비비업) 'LOCKED ON' Dance Cover by SUGAR X SPICY from INDONESIA",
+      "channelTitle": "SUGAR X SPICY DC",
+      "expectedName": "SUGAR X SPICY",
+      "expectedCountry": "ID"
+    },
+    {
+      "videoId": "scyeRLV9rh4",
+      "title": "[KPOP IN PUBLIC LONDON] NCT DREAM (엔시티 드림) - BOOM dance cover by AZIZA",
+      "channelTitle": "AZIZA",
+      "expectedName": "AZIZA",
+      "expectedCountry": "GB"
+    },
+    {
+      "videoId": "mgHj0LFTk0Q",
+      "title": "[KPOP IN PUBLIC ITALY] XLOV 엑스러브 'I’mma Be' Dance Cover By Reverse Crew",
+      "channelTitle": "Reverse Crew",
+      "expectedName": "Reverse Crew",
+      "expectedCountry": "IT"
+    },
+    {
+      "videoId": "gId2h3y9-7I",
+      "title": "[KPOP IN PUBLIC JAPAN] MEOVV (미야오) - ‘MEOW’ ONE TAKE Dance Cover by MOVENESS",
+      "channelTitle": "Aico - MOVENESS",
+      "expectedName": "MOVENESS",
+      "expectedCountry": "JP"
+    },
+    {
+      "videoId": "pLeVW6jH56Y",
+      "title": "[K-POP IN PUBLIC - BRAZIL] LE SSERAFIM (르세라핌) 'CRAZY' Dance Cover by 5seasons",
+      "channelTitle": "5seasons Dance Team",
+      "expectedName": "5seasons",
+      "expectedCountry": "BR"
+    },
+    {
+      "videoId": "WUpgvruqZho",
+      "title": "[KPOP IN PUBLIC] BABYMONSTER - ‘SHEESH’ Dance Cover by MOVE",
+      "channelTitle": "MOVE",
+      "expectedName": "MOVE",
+      "expectedCountry": "BR"
+    },
+    {
+      "videoId": "aQ9KXN2KCTM",
+      "title": "[KPOP IN PUBLIC|Poland|ONETAKE] B.I X Soulja Boy 'BTBT'(Feat. DeVita) SIDECAM [cover by Cerberus DC]",
+      "channelTitle": "CERBERUS Dance Crew",
+      "expectedName": "Cerberus DC",
+      "expectedCountry": "PL"
+    },
+    {
+      "videoId": "mcSURY9AYss",
+      "title": "[KPOP IN PUBLIC] IVE (아이브) \"ELEVEN\" Dance Cover by uniON from Philippines",
+      "channelTitle": "uniON",
+      "expectedName": "uniON",
+      "expectedCountry": "PH"
+    },
+    {
+      "videoId": "vXpRafOUu0I",
+      "title": "[KPOP IN PUBLIC LONDON] ITZY(있지) - 'Not Shy' Dance Cover by IGNITE DANCE CREW from ENGLAND",
+      "channelTitle": "THE CREW: IGИITE",
+      "expectedName": "IGNITE DANCE CREW",
+      "expectedCountry": "GB"
+    },
+    {
+      "videoId": "xuRZjHXDoeo",
+      "title": "IVE 아이브 'After LIKE' Dance Cover by GDV from Thailand (KPOP IN PUBLIC @ICONSIAM)",
+      "channelTitle": "Gravity Motion",
+      "expectedName": "GDV",
+      "expectedCountry": "TH"
+    },
+    {
+      "videoId": "O1zFMa4pk4E",
+      "title": "JUSTJERK | DANCE VIDEO | @JustJerkCrew",
+      "channelTitle": "저스트 절크",
+      "expectedName": "Just Jerk",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "7aRCg-O4LjY",
+      "title": "IVE - Kitsch 라치카 버전 공개! (Lachica Choreography)",
+      "channelTitle": "라치카 La Chica",
+      "expectedName": "LACHICA",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "HgHz0wMTiGs",
+      "title": "코카앤버터(CocaNButter) - 'Mi Deh Yah' DANCE PRACTICE VIDEO",
+      "channelTitle": "코카앤버터 (CocaNButter)",
+      "expectedName": "CocaNButter",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "NDcwCp7GxTA",
+      "title": "베베(BEBE) - 'XXL' Dance Performance (원곡: YOUNG POSSE)",
+      "channelTitle": "베베 BEBE",
+      "expectedName": "BEBE",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "gIyK7tVuNx4",
+      "title": "AOA - 심쿵해 💟Heart Attack kpop Dance Cover Waveya 웨이브야",
+      "channelTitle": "waveya 2011",
+      "expectedName": "Waveya",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "mR8UEA23_ys",
+      "title": "[KPOP IN PUBLIC] K-POP Demon Hunters HUNTR/X - ‘GOLDEN’ Dance Cover by ONESHOT crew | 커버댄스",
+      "channelTitle": "ONESHOT crew",
+      "expectedName": "ONESHOT crew",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "T0qMIivSzOQ",
+      "title": "1st Round / IDL 2026 Newyork",
+      "channelTitle": "1MILLION Dance Studio",
+      "expectedName": "1MILLION",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "vIbpUJRJ9l8",
+      "title": "HOLYBANG CREW new performance practice",
+      "channelTitle": "홀리뱅 HOLYBANG",
+      "expectedName": "HolyBang",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "wdPec9AtFT8",
+      "title": "Mannequeen / 2026 STREETS CONCERT",
+      "channelTitle": "STREETS DANCE STUDIO",
+      "expectedName": "MANNEQUEEN",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "QfxdhrQCYtA",
+      "title": "2026 Wolf'Lo Concert : Life We Live",
+      "channelTitle": " Wolf'Lo 울플러",
+      "expectedName": "Wolf'Lo",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "MfYp6uOc6gw",
+      "title": "FEELDOG - '5, 6, 7, 8 (with BANKTWOBROTHERS)' Official MV",
+      "channelTitle": "갈락티카 * : GALACTIKA *",
+      "expectedName": "BANKTWOBROTHERS",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "pnMWpo_Bams",
+      "title": "2026 WATERBOMB SOKCHO | SPECIAL GUEST #HOOK  STAGE SKETCH VIDEO_SET 1",
+      "channelTitle": "훅 HOOK official",
+      "expectedName": "HOOK",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "7UOUVnscq5s",
+      "title": "[K-POP IN PUBLIC | LONDON]  BESTie (베스티) - Love Options (연애의 조건)  | DANCE COVER BY ODC | 4K ONE TAKE",
+      "channelTitle": "[O.D.C] Oraceon Dance Crew",
+      "expectedName": "ODC (Oraceon Dance Crew)",
+      "expectedCountry": "GB"
+    },
+    {
+      "videoId": "NCm1zUs2hRU",
+      "title": "[KPOP IN PUBLIC | One Take] A2O LITE - ‘NEON’ 🤍💙| Dance Cover by illuminACE⭐️ in Sydney, Australia🇦🇺",
+      "channelTitle": "illuminACE dance crew",
+      "expectedName": "illuminACE",
+      "expectedCountry": "AU"
+    },
+    {
+      "videoId": "UUw0l4-dQTY",
+      "title": "[K-POP IN PUBLIC | ONE TAKE] TUIDE (튜이드) ‘SUN KISS’ Dance Cover by 1119 SIGMA | MALAYSIA",
+      "channelTitle": "SIGMA (1119)",
+      "expectedName": "1119 SIGMA",
+      "expectedCountry": "MY"
+    },
+    {
+      "videoId": "TtswZLjDnJ0",
+      "title": "[KPOP IN TIMES SQUARE] MEOVV (미야오) - ‘Hit 'Em’ | Full Dance Cover by HUSH BOSTON",
+      "channelTitle": "HUSH CREW",
+      "expectedName": "HUSH CREW",
+      "expectedCountry": "US"
+    },
+    {
+      "videoId": "oKUXizjAJp0",
+      "title": "[K-POP IN PUBLIC | ONE TAKE] RESCENE (리센느) - LOVE ATTACK I Dance Cover by EVENIX from Italy",
+      "channelTitle": "EVENIX",
+      "expectedName": "EVENIX",
+      "expectedCountry": "IT"
+    },
+    {
+      "videoId": "TvN1ZmDn15s",
+      "title": "[KPOP IN PUBLIC LONDON | ONE TAKE] LE SSERAFIM x ILLIT x KATSEYE - ICONIC BY MISTAKE | Dance Cover",
+      "channelTitle": "mionez",
+      "expectedName": "mionez",
+      "expectedCountry": "GB"
+    },
+    {
+      "videoId": "FJvOjNIvUjU",
+      "title": "👮[KPOP IN PUBLIC | TIMES SQUARE | ONE TAKE | DANCE COVER] 404 performs ILLIT ‘You’re Under Arrest’",
+      "channelTitle": "404 DANCE CREW",
+      "expectedName": "404 DANCE CREW",
+      "expectedCountry": "US"
+    },
+    {
+      "videoId": "-7XjfFHHLqI",
+      "title": "[KPOP IN PUBLIC NYC | TIMES SQUARE | ONE TAKE] ILLIT (아일릿) - ‘It’s Me’ Dance Cover by GRL1S",
+      "channelTitle": "GRL1S",
+      "expectedName": "GRL1S",
+      "expectedCountry": "US"
+    },
+    {
+      "videoId": "QkmNDZ6JSxw",
+      "title": "[KPOP IN PUBLIC | ONE TAKE] NewJeans (뉴진스) - Attention | Dance Cover in LONDON",
+      "channelTitle": "iKloud",
+      "expectedName": "iKloud",
+      "expectedCountry": "GB"
+    },
+    {
+      "videoId": "9HcshSM6Zz0",
+      "title": "\"하이엔드크루\" LE SSERAFIM (르세라핌) 'SPAGHETTI' DANCE COVER/댄스커버 [HIGH-END]",
+      "channelTitle": "TNS x HIGH-END DANCE STUDIO",
+      "expectedName": "HIGH-END",
+      "expectedCountry": "KR"
+    },
+    {
+      "videoId": "bTPod-TGU38",
+      "title": "[여기서요?] 에이티즈 ATEEZ - BAD | 커버댄스 Dance Cover @홍대",
+      "channelTitle": "ARTBEAT",
+      "expectedName": "ARTBEAT",
+      "expectedCountry": "KR"
+    }
+  ]
+}

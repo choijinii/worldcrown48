@@ -49,6 +49,7 @@ function editorState(overrides: Partial<DraftEditorState> = {}): DraftEditorStat
     contestants: Array.from({ length: 48 }, (_, i) => contestant(i)),
     thumbnailPair: { a: 4, b: 30, aPos: 15, bPos: null, next: "a" },
     entryUnit: "individual",
+    aiBrief: { entry: "", extra: "", rules: "" },
     // LAB-FIX-3 추가분(D-90) — 영상이 든 바탕 자료 = 영상 대회(저장·복원 왕복에 함께 실린다).
     mediaKind: "video",
     ...overrides,
@@ -101,6 +102,32 @@ describe("저장소 통합 — 저장 → 다시 읽기 → 복원", () => {
     expect((await loadDraft(db, id))?.entryUnit).toBe("group");
     await saveDraft(db, id, "host-1", editorState());
     expect((await loadDraft(db, id))?.entryUnit).toBe("individual");
+  });
+
+  it("LAB-FIX-4: 그 외 단위 · AI에게 알려 줄 내용이 왕복하고, 비우면 칸이 사라져 옛 모양으로 돌아온다", async () => {
+    const db = ownerDb();
+    const id = newDraftId(db);
+    const brief = { entry: "노래 제목", extra: "가수", rules: "타이틀곡만" };
+    await saveDraft(db, id, "host-1", editorState({ entryUnit: "other", aiBrief: brief }));
+    const back = await loadDraft(db, id);
+    expect(back?.entryUnit).toBe("other");
+    expect(back?.aiBrief).toEqual(brief);
+    await saveDraft(db, id, "host-1", editorState());
+    let raw: Record<string, unknown> | undefined;
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      raw = (await getDoc(doc(ctx.firestore(), "tournamentDrafts", id))).data();
+    });
+    expect(raw).toBeDefined();
+    expect("aiBrief" in (raw ?? {})).toBe(false);
+    expect((await loadDraft(db, id))?.aiBrief).toEqual({ entry: "", extra: "", rules: "" });
+  });
+
+  it("LAB-FIX-4: 칸을 모두 비운 초안은 새로고침(다시 읽기) 뒤에도 비어 있다", async () => {
+    const db = ownerDb();
+    const id = newDraftId(db);
+    await saveDraft(db, id, "host-1", editorState());
+    await saveDraft(db, id, "host-1", editorState({ contestants: [] }));
+    expect((await loadDraft(db, id))?.contestants).toEqual([]);
   });
 
   it("lists my drafts newest first with title and saved time", async () => {

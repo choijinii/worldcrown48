@@ -7,7 +7,12 @@
  * 버튼은 **결과물** 두 개고, 부품은 접어 둔다(결정 1 = B안).
  *
  * LAB-FIX-3 추가분(원장 D-90) — 처음 누른 생성 버튼이 대회 종류(영상 · 이미지)를 정한다. 정해지면 반대쪽
- * 버튼은 꺼지고(마우스를 올리면 이유), 직접 손보기 도구도 그 종류만 보인다(kindTools). 종류 미정이면 도구 없음.
+ * 버튼은 꺼지고(마우스를 올리면 이유), 직접 손보기 도구도 그 종류만 보인다(kindTools).
+ *
+ * LAB-FIX-4 결정 D — 종류 미정에서도 [링크 직접 붙여넣기]가 보인다(주소 48개를 이미 가진 운영자가 [동영상 생성]으로
+ * AI 채우기 · 유튜브 검색 한도를 헛되이 쓰지 않게). 링크를 넣으면 그 대회는 영상 대회로 정해진다. 같은 원칙으로
+ * [이미지 주소 한꺼번에 넣기]도 열고, 넣으면 이미지 대회로 정해진다. [이미지만 찾기]는 이름이 있어야 하므로 이미지 대회만.
+ * [모두 비우기](결정 C)는 종류와 상관없이 도구 줄 끝에 있다.
  *
  * R6 — 이 패널은 Tournament를 만들지 않는다. 결과는 전부 슬롯 "제안"이고, 발행은
  * 운영자가 [토너먼트 생성]을 눌러야 일어난다. 그 사실을 리드 문장으로 못 박는다.
@@ -23,15 +28,23 @@ import { LabIcon } from "./LabIcon";
 
 export type ChainStage = "filling" | "sourcing";
 
-/** 직접 손보기 도구 — 그 종류만(D-90). 미정이면 없음(반드시 생성 버튼으로 시작). */
+/** 직접 손보기 도구 — 그 종류만(D-90). 미정이면 넣으면서 종류를 정하는 두 도구만(LAB-FIX-4 결정 D). */
 export function kindTools(kind: MediaKind | null): {
   pasteLinks: boolean;
   fillBlanks: boolean;
   imageFiles: boolean;
-  /** IMAGE-1 PR 2 — [이미지만 찾기] · [이미지 주소 한꺼번에 넣기]. */
+  /** IMAGE-1 PR 2 — [이미지만 찾기](이미지 대회만). */
   imageSearch: boolean;
+  /** IMAGE-1 PR 2 [이미지 주소 한꺼번에 넣기] — 이미지 대회 · 종류 미정(넣으면 이미지 대회 · LAB-FIX-4). */
+  imageLinks: boolean;
 } {
-  return { pasteLinks: kind === "video", fillBlanks: kind !== null, imageFiles: kind === "image", imageSearch: kind === "image" };
+  return {
+    pasteLinks: kind !== "image",
+    fillBlanks: kind !== null,
+    imageFiles: kind === "image",
+    imageSearch: kind === "image",
+    imageLinks: kind !== "video",
+  };
 }
 
 /** 빈칸 버튼 이름 — 영상 대회 "빈칸 채우고 영상까지" · 이미지 대회 "빈칸 채우고 이미지까지"(IMAGE-1 PR 2 승인). */
@@ -60,6 +73,9 @@ interface GeneratePanelProps {
   toolsEnd?: React.ReactNode;
   /** 빈칸이 없으면 [빈칸만 AI]를 잠근다. */
   hasBlanks: boolean;
+  /** LAB-FIX-4 결정 C — [모두 비우기](확인 창은 부모가 연다). 비울 칸이 없으면 잠근다. */
+  onClearAll?: () => void;
+  canClearAll?: boolean;
   /** 발행 중 등 바깥 사정으로 전체를 잠글 때. */
   disabled?: boolean;
   /** D-90 대회 종류. null = 미정(두 버튼 모두 켜짐). */
@@ -79,6 +95,8 @@ export function GeneratePanel({
   primaryEnd,
   toolsEnd,
   hasBlanks,
+  onClearAll,
+  canClearAll = false,
   disabled = false,
   mediaKind,
 }: GeneratePanelProps): JSX.Element {
@@ -280,7 +298,7 @@ export function GeneratePanel({
                 {t("lab.image.findOnly")}
               </button>
             )}
-            {tools.imageSearch && onPasteImageLinks && (
+            {tools.imageLinks && onPasteImageLinks && (
               <button
                 type="button"
                 onClick={onPasteImageLinks}
@@ -295,6 +313,17 @@ export function GeneratePanel({
               {t("lab.generate.toolsHint")}
             </span>
             {tools.imageFiles && toolsEnd}
+            {onClearAll && (
+              <button
+                type="button"
+                onClick={onClearAll}
+                disabled={busy || !canClearAll}
+                data-testid="lab-clear-all"
+                style={{ ...tool(!busy && canClearAll), marginLeft: "auto", borderColor: lab.crimson, color: lab.crimson }}
+              >
+                {t("lab.clearAll.button")}
+              </button>
+            )}
           </div>
         )}
       </div>

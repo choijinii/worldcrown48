@@ -59,7 +59,7 @@ describe("isMediaPublishable — 섞이면 발행 안 됨", () => {
 describe("초안 저장 · 발행 문서", () => {
   const state = (mediaKind: DraftEditorState["mediaKind"], contestants: ContestantDraft[] = []): DraftEditorState => ({
     step: 2, title: "t", category: "KPOP", description: "", keywords: [], campaignSlug: "", deadlineMs: 1,
-    contestants, thumbnailPair: EMPTY_PICK, entryUnit: "individual", mediaKind,
+    contestants, thumbnailPair: EMPTY_PICK, entryUnit: "individual", mediaKind, aiBrief: { entry: "", extra: "", rules: "" },
   });
 
   it("정해진 종류는 저장 → 불러오기 왕복", () => {

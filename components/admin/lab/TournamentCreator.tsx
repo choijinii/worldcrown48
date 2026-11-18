@@ -46,6 +46,7 @@ import { translateNames } from "@/lib/lab/translateNames";
 import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { DEFAULT_ENTRY_UNIT, TOTAL_CONTESTANTS, type EntryUnit } from "@/lib/types/tournament";
+import { EMPTY_AI_BRIEF, aiBriefForSave, readAiBrief, type AiBrief } from "@/lib/lab/aiBrief";
 import {
   applyVideoAssignments,
   clearVideo,
@@ -106,6 +107,8 @@ import {
 import { deleteEntryImageFiles, uploadEntryImageFile } from "@/lib/lab/uploadEntryImage";
 import { mismatchSlots } from "@/lib/lab/nameVideoMismatch";
 import { MakingManualDialog } from "./MakingManualDialog";
+import { ClearAllDialog } from "./ClearAllDialog";
+import { clearAllSlots, clearSlot, slotHasAnything } from "@/lib/lab/slotClear";
 import { PublishConfirmDialog } from "./PublishConfirmDialog";
 import { scrollToSlot } from "./ContestantGrid";
 import { FAIL_KEY, type ImportFailure } from "./ContestantEditor";
@@ -156,7 +159,7 @@ import { ImageCheckDialog } from "./ImageCheckDialog";
 import { TitleInput } from "./TitleInput";
 import { CampaignSlugInput } from "./CampaignSlugInput";
 import { CategorySelect } from "./CategorySelect";
-import { EntryUnitSelect } from "./EntryUnitSelect";
+import { AiBriefPanel } from "./AiBriefPanel";
 import { DescriptionInput } from "./DescriptionInput";
 import { KeywordChips } from "./KeywordChips";
 import { DeadlinePicker } from "./DeadlinePicker";
@@ -263,6 +266,8 @@ export function TournamentCreator(): JSX.Element {
   const [entryUnit, setEntryUnit] = useState<EntryUnit>(DEFAULT_ENTRY_UNIT);
   // LAB-FIX-3 추가분(원장 D-90) — 대회 종류. 처음 누른 생성 버튼이 정하고, 바꾸려면 새로 시작한다.
   const [mediaKind, setMediaKind] = useState<MediaKind | null>(null);
+  // LAB-FIX-4 (원장 결정 A) — "AI에게 알려 줄 내용" 세 줄. 세 AI 일이 맨 위 규칙으로 받는다.
+  const [aiBrief, setAiBrief] = useState<AiBrief>(EMPTY_AI_BRIEF);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [campaignSlug, setCampaignSlug] = useState("");
   // Stable reference "now" for this create session (presets + gate use it).
@@ -273,6 +278,7 @@ export function TournamentCreator(): JSX.Element {
   const [contestants, setContestants] = useState<ContestantDraft[]>([]);
   const [filling, setFilling] = useState(false);
   const [keywordBusy, setKeywordBusy] = useState(false);
+  const [briefBusy, setBriefBusy] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [listRefresh, setListRefresh] = useState(0);
   // LAB-EV-1: 검수기 모달 + 슬롯 미세조정(열린 슬롯 index, 닫힘이면 null).
@@ -288,6 +294,10 @@ export function TournamentCreator(): JSX.Element {
   const [busyImage, setBusyImage] = useState<ReadonlySet<number>>(() => new Set());
   const [manualOpen, setManualOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // LAB-FIX-4 결정 C — [모두 비우기] 확인 창.
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+  // LAB-FIX-4 리뷰 ② — 칸마다 "비운 횟수". [영상] 넣기를 기다리는 사이 ✕ · [모두 비우기]가 눌리면 늦게 온 결과를 버린다.
+  const clearEpochRef = useRef<number[]>(Array.from({ length: TOTAL_CONTESTANTS }, () => 0));
   const imageFilesRef = useRef<HTMLInputElement>(null);
   // 리뷰 I-1 — 올리는 중인 칸(렌더를 기다리지 않는 즉시 값)과 최신 칸 목록.
   const reservedSlotsRef = useRef<Set<number>>(new Set());
@@ -346,6 +356,7 @@ export function TournamentCreator(): JSX.Element {
     thumbnailPair: pairPick,
     entryUnit,
     mediaKind,
+    aiBrief,
   };
 
   /**
@@ -364,8 +375,10 @@ export function TournamentCreator(): JSX.Element {
             imageSearchKeyword: d?.imageSearchKeyword ?? "",
           };
         }),
+        // LAB-FIX-4 §3-4 — 그 외 대회는 이름 + 덧붙이는 정보가 같을 때만 겹침.
+        { nameWithExtra: entryUnit === "other" },
       ),
-    [contestants],
+    [contestants, entryUnit],
   );
   // THUMB-1: 대표 매치로 고를 수 있는 칸 = 영상이 있는 칸(썸네일은 영상 포스터다).
   // 고른 칸의 영상이 빠지면 그 쪽을 비운다 — 게시 전에는 자동 대체가 없다(킥 §4-1).
@@ -462,6 +475,7 @@ export function TournamentCreator(): JSX.Element {
     setPairPick(s.thumbnailPair);
     setEntryUnit(s.entryUnit);
     setMediaKind(s.mediaKind);
+    setAiBrief(s.aiBrief);
     setSourcingStates({});
     setImageNotFound(new Set());
     lastQueuedRef.current = JSON.stringify(s);
@@ -480,6 +494,7 @@ export function TournamentCreator(): JSX.Element {
       thumbnailPair: EMPTY_PICK,
       entryUnit: DEFAULT_ENTRY_UNIT,
       mediaKind: null,
+      aiBrief: EMPTY_AI_BRIEF,
     };
   }
 
@@ -591,6 +606,32 @@ export function TournamentCreator(): JSX.Element {
     }
   }
 
+  /**
+   * LAB-FIX-4 [AI에게 제안 받기] — 제목 · 설명 · 카테고리 → 엔트리 단위 + 세 줄 제안. 칸에 채울 뿐이고
+   * 운영자가 고치거나 그대로 둔다. 실패하면 알림만(직접 쓸 수 있다 — 키워드 제안과 같은 규칙).
+   */
+  async function suggestBrief() {
+    if (briefBusy || !category || !title.trim()) return;
+    setBriefBusy(true);
+    await autosaver.flush();
+    try {
+      const callable = httpsCallable<
+        { title: string; category: string; description: string },
+        { entryUnit: EntryUnit; entry: string; extra: string; rules: string }
+      >(getFunctionsInstance(), "aiSuggestBrief");
+      const res = await callable({ title: title.trim(), category, description: description.trim() });
+      setEntryUnit(res.data.entryUnit);
+      setAiBrief(readAiBrief(res.data));
+      void track("admin_lab_ai_brief_success", { category, entry_unit: res.data.entryUnit });
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? "unknown";
+      void track("admin_lab_ai_brief_error", { category, error_code: code });
+      showToast(t("lab.toast.fillFail"), "error");
+    } finally {
+      setBriefBusy(false);
+    }
+  }
+
   function goToStep2() {
     if (!step1Ready) return;
     void track("admin_lab_step1_submit", {
@@ -639,6 +680,7 @@ export function TournamentCreator(): JSX.Element {
           keywords: string[];
           existing: string[];
           entryUnit: EntryUnit;
+          aiBrief?: AiBrief;
         },
         { contestants: AiSuggestion[] }
       >(getFunctionsInstance(), "aiFillContestants");
@@ -649,6 +691,8 @@ export function TournamentCreator(): JSX.Element {
         keywords,
         existing: existingNames,
         entryUnit,
+        // LAB-FIX-4 — 세 줄이 비면 싣지 않는다(서버는 지금과 같은 지시문).
+        ...(aiBriefForSave(aiBrief) ? { aiBrief: aiBriefForSave(aiBrief) } : {}),
       });
       const incoming = res.data.contestants.map(toDraft);
       // 체인이 다음 단계(소싱)에서 쓸 명단. setContestants는 비동기라 이 함수가
@@ -743,6 +787,10 @@ export function TournamentCreator(): JSX.Element {
       setSourcingStates((states) => ({ ...states, ...applied.states }));
       return applied.drafts;
     });
+    // LAB-FIX-4 결정 D — 종류 미정에서 링크가 한 칸이라도 들어가면 영상 대회로 정해진다([동영상 생성]과 같은 잠금).
+    if (assignments.some((a) => verdicts.some((v) => v.videoId === a.videoId && v.status !== "blocked"))) {
+      setMediaKind((k) => k ?? "video");
+    }
     void track("admin_lab_paste_extract", { named: tally.named, manual: tally.manual });
   }
 
@@ -781,6 +829,7 @@ export function TournamentCreator(): JSX.Element {
           affiliation: d.affiliation,
           imageSearchKeyword: d.imageSearchKeyword,
         })),
+        { nameWithExtra: entryUnit === "other" },
       );
       const c = step2Counters(drafts, run.states, flags, TOTAL_CONTESTANTS);
       if (run.summary.stopped !== "no-key") {
@@ -902,11 +951,18 @@ export function TournamentCreator(): JSX.Element {
       TOTAL_CONTESTANTS,
     );
     const failures: ImageLineFailure[] = [];
+    // LAB-FIX-4 리뷰 ③ — 실제로 들어간 그림만 센다(예약된 칸 · 다른 초안으로 넘어간 경우의 null 은 성공이 아니다).
+    const draftAtStart = draftIdRef.current;
+    let added = 0;
     for (const l of lines) {
-      const reason = await importUrlToSlot(l.slot, l.url);
+      const reason = await importUrlToSlot(l.slot, l.url, () => {
+        added += 1;
+      });
       if (reason) failures.push({ line: l.line, reasonKey: FAIL_KEY[reason] });
     }
     void track("admin_lab_image_lines", { lines: lines.length, failed: failures.length });
+    // LAB-FIX-4 — 종류 미정에서 그림이 한 칸이라도 들어가면 이미지 대회로 정해진다.
+    if (added > 0 && uploadStillCurrent(draftAtStart ?? "", draftIdRef.current)) setMediaKind((k) => k ?? "image");
     return failures;
   }
 
@@ -1188,7 +1244,11 @@ export function TournamentCreator(): JSX.Element {
   }
 
   /** ④ [URL] — 서버가 내려받아 줄여 우리 Storage 에 둔다. 실패하면 이유. */
-  async function importUrlToSlot(index: number, url: string): Promise<ImportFailure | null> {
+  async function importUrlToSlot(
+    index: number,
+    url: string,
+    onAdded?: () => void,
+  ): Promise<ImportFailure | null> {
     if (reservedSlotsRef.current.has(index)) return null;
     const draftId = ensureDraftId();
     reservedSlotsRef.current.add(index);
@@ -1202,6 +1262,7 @@ export function TournamentCreator(): JSX.Element {
       }
       // LAB-FIX-3 (D-89) — 주소 기억: 다시 [이미지]를 누르면 이 주소가 채워진 채 열린다.
       patchSlot(index, (c) => ({ ...clearImageFields(c), ...fieldsFromImport(r), manualImageUrl: url }));
+      onAdded?.();
       return null;
     } catch (err) {
       console.warn("importEntryImage failed", err);
@@ -1218,15 +1279,18 @@ export function TournamentCreator(): JSX.Element {
    */
   async function addSlotVideo(index: number, url: string): Promise<Message | null> {
     const current = contestantsRef.current[index] ?? emptyDraft();
+    const epoch = clearEpochRef.current[index];
     try {
       const r = await runManualVideoAdd(
-        { url, nameEmpty: current.name.trim() === "", entryUnit },
+        { url, nameEmpty: current.name.trim() === "", entryUnit, extras: extractExtras },
         { validate: validateYouTubeLinks, extract: extractContestantsFromVideos },
       );
       if (r.kind === "parse-fail") {
         return r.reason === "no-video-id" ? { key: "lab.embed.reason.noVideoId" } : { key: "lab.slot.onlyYouTube" };
       }
       if (r.kind === "blocked") return verdictMessages(r.verdict)[0] ?? { key: "lab.embed.status.blocked" };
+      // 기다리는 사이 이 칸을 비웠으면(✕ · 모두 비우기) 결과를 버린다 — 비운 칸이 저절로 다시 차지 않게.
+      if (clearEpochRef.current[index] !== epoch) return null;
       if (r.extractFailed) showToast(t("lab.embed.error.extract"), "error");
       setContestants((prev) =>
         addManualVideo(prev, index, r.verdict, r.startSec, url, r.extraction, TOTAL_CONTESTANTS, emptyDraft),
@@ -1253,6 +1317,43 @@ export function TournamentCreator(): JSX.Element {
     setSourcingStates((states) => dropSourcingStates(states, [index]));
   }
 
+  /**
+   * LAB-FIX-4 결정 B — ✕ = 그 칸을 통째로 비운다(이름 · 덧붙이는 정보 · 국가 · 영상 · 그림 · 기억한 주소).
+   * 올려 둔 그림 파일은 IMAGE-1 삭제 규칙대로 지운다. 그림을 올리는 중인 칸은 끝날 때까지 기다린다.
+   */
+  function clearSlotAt(index: number) {
+    if (reservedSlotsRef.current.has(index)) return;
+    clearEpochRef.current[index] += 1;
+    // 그림 파일 경로는 지금 칸에서 읽고, 칸 목록은 함수형으로 비운다 — 아직 그려지지 않은 다른 칸의 변경을 덮지 않게(리뷰 ①).
+    const r = clearSlot(contestantsRef.current, index, TOTAL_CONTESTANTS, emptyDraft);
+    setContestants((prev) => clearSlot(prev, index, TOTAL_CONTESTANTS, emptyDraft).drafts);
+    setSourcingStates((states) => dropSourcingStates(states, [index]));
+    setImageNotFound((prev) => withoutSlots(prev, [index]));
+    if (tuningIndex === index) setTuningIndex(null);
+    if (checkingImageIndex === index) setCheckingImageIndex(null);
+    for (const path of r.storagePaths) void deleteEntryImageFiles(path);
+    void track("admin_lab_slot_clear", { had_video: Boolean(contestantsRef.current[index]?.videoId), had_image: r.storagePaths.length > 0 });
+  }
+
+  /**
+   * LAB-FIX-4 결정 C — [모두 비우기] 확인 창의 [비우기]. 칸 내용만 비운다 — 제목 · 설명 · "AI에게 알려 줄 내용" ·
+   * 대회 종류는 그대로. 비운 상태는 자동 저장이 서버 초안에 남긴다(새로고침 뒤에도 빔).
+   */
+  function clearEverySlot() {
+    setClearAllOpen(false);
+    if (reservedSlotsRef.current.size > 0) return;
+    clearEpochRef.current = clearEpochRef.current.map((n) => n + 1);
+    const r = clearAllSlots(contestantsRef.current);
+    setContestants([]);
+    setSourcingStates({});
+    setImageNotFound(new Set());
+    setPairPick(EMPTY_PICK);
+    setTuningIndex(null);
+    setCheckingImageIndex(null);
+    for (const path of r.storagePaths) void deleteEntryImageFiles(path);
+    void track("admin_lab_clear_all", { images: r.storagePaths.length });
+  }
+
   function removeSlotImage(index: number) {
     const path = contestants[index]?.imageStoragePath;
     patchSlot(index, clearImageFields);
@@ -1260,6 +1361,8 @@ export function TournamentCreator(): JSX.Element {
   }
 
   contestantsRef.current = contestants;
+  // LAB-FIX-4 — 링크 제목 읽기(검수기 · 칸마다 [영상])가 받는 묶음 · 대회 제목 · 설명.
+  const extractExtras = { aiBrief, tournamentTitle: title, tournamentDescription: description };
   const imagesFilled = contestants.filter(slotHasImage).length;
   const mismatchList = useMemo(() => mismatchSlots(contestants), [contestants]);
   const videoMismatch = useMemo(() => new Set(mismatchList), [mismatchList]);
@@ -1303,6 +1406,7 @@ export function TournamentCreator(): JSX.Element {
         translateNames(
           contestants.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "" })),
           category,
+          { entryUnit, aiBrief },
         ),
       ]);
 
@@ -1320,6 +1424,7 @@ export function TournamentCreator(): JSX.Element {
             campaignSlug,
             entryUnit,
             ...(mediaKind ? { mediaKind } : {}),
+            ...(aiBriefForSave(aiBrief) ? { aiBrief: aiBriefForSave(aiBrief) } : {}),
           },
           validCategoryIds,
           nowMs,
@@ -1360,6 +1465,7 @@ export function TournamentCreator(): JSX.Element {
       setDescription("");
       setEntryUnit(DEFAULT_ENTRY_UNIT);
       setMediaKind(null);
+      setAiBrief(EMPTY_AI_BRIEF);
       setKeywords([]);
       setCampaignSlug("");
       setDeadlineMs(presetDeadlineMs(Date.now(), DEFAULT_DEADLINE_DAYS));
@@ -1458,14 +1564,24 @@ export function TournamentCreator(): JSX.Element {
             onChange={setCategory}
             categories={categories}
           />
-          <EntryUnitSelect value={entryUnit} onChange={setEntryUnit} />
           <DescriptionInput value={description} onChange={setDescription} />
-          <KeywordChips
-            value={keywords}
-            onChange={setKeywords}
-            onAiGenerate={generateKeywords}
-            aiBusy={keywordBusy}
-          />
+          {/* LAB-FIX-4 — AI 에게 주는 것은 한 묶음(엔트리 단위 · 세 줄 · 키워드). 팬에게 보이는 칸은 묶음 밖. */}
+          <AiBriefPanel
+            entryUnit={entryUnit}
+            onEntryUnitChange={setEntryUnit}
+            brief={aiBrief}
+            onBriefChange={setAiBrief}
+            onSuggest={() => void suggestBrief()}
+            suggestBusy={briefBusy}
+            canSuggest={Boolean(title.trim() && category)}
+          >
+            <KeywordChips
+              value={keywords}
+              onChange={setKeywords}
+              onAiGenerate={generateKeywords}
+              aiBusy={keywordBusy}
+            />
+          </AiBriefPanel>
           <DeadlinePicker value={deadlineMs} onChange={setDeadlineMs} nowMs={nowMs} />
           <button
             type="button"
@@ -1584,6 +1700,8 @@ export function TournamentCreator(): JSX.Element {
             onFindImages={() => void findImagesOnly()}
             onPasteImageLinks={() => setImageLinksOpen(true)}
             hasBlanks={counters.filled < TOTAL_CONTESTANTS}
+            onClearAll={() => setClearAllOpen(true)}
+            canClearAll={contestants.some(slotHasAnything) && busyImage.size === 0}
             disabled={publishing}
             primaryEnd={
               <button
@@ -1671,6 +1789,8 @@ export function TournamentCreator(): JSX.Element {
             canPick={slotUsable}
             contestants={contestants}
             onChange={updateContestant}
+            onClear={clearSlotAt}
+            extraLabel={aiBrief.extra}
             onTune={setTuningIndex}
             sourcing={sourcingStates}
             reviewFlags={reviewFlags}
@@ -1717,9 +1837,10 @@ export function TournamentCreator(): JSX.Element {
       />
       {/* 확인창의 [만들기 매뉴얼 다시 보기]는 확인창 위에 겹쳐 연다(체크한 칸이 그대로 남는다). */}
       <MakingManualDialog open={manualOpen} onClose={() => setManualOpen(false)} />
+      {clearAllOpen && <ClearAllDialog onCancel={() => setClearAllOpen(false)} onConfirm={clearEverySlot} />}
 
       {/* IMAGE-1 PR 2 — [이미지 주소 한꺼번에 넣기](이미지 대회 전용). */}
-      {imageLinksOpen && mediaKind === "image" && (
+      {imageLinksOpen && mediaKind !== "video" && (
         <ImageLinksModal onClose={() => setImageLinksOpen(false)} onSubmit={importImageLines} />
       )}
       {/* LAB-EV-1 — 검수기(W4)와 슬롯 미세조정(W5). 둘 다 STEP 2 전용. */}
@@ -1728,6 +1849,7 @@ export function TournamentCreator(): JSX.Element {
         onClose={() => setInspectorOpen(false)}
         blankIndexes={blankSlotIndexes(contestants, TOTAL_CONTESTANTS)}
         entryUnit={entryUnit}
+        extras={extractExtras}
         onApply={applyVideoSlots}
       />
       {/* IMAGE-1 PR 3 (원장 D-92) — 그림 확인 창. [새 이미지 찾기]는 검색으로 들어온 칸에만(기존 규칙 그대로). */}

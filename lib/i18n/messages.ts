@@ -569,6 +569,48 @@ export const MESSAGES = {
   "lab.entryUnit.individual": { ko: "개인", en: "Individual", es: "Individual" },
   "lab.entryUnit.group": { ko: "팀", en: "Group", es: "Grupo" },
 
+  // ── LAB-FIX-4 (지시서 §5 · 대표 승인 2026-11-19 00:09) — "AI에게 알려 줄 내용" 묶음 · 칸 비우기 ──
+  // 한 덩어리로 모아 둔다(같은 파일을 고치는 PITCH-2 와 겹침을 줄인다). 15번(붙여넣기 창 안내)만 제자리 lab.embed.subtitle.
+  "lab.brief.title": { ko: "AI에게 알려 줄 내용", en: "What to tell the AI", es: "Qué decirle a la IA" },
+  "lab.brief.lead": {
+    ko: "AI로 엔트리를 생성할 때 이 내용을 규칙으로 씁니다.",
+    en: "The AI uses this as rules when generating entries.",
+    es: "La IA usa esto como reglas al generar las entradas.",
+  },
+  "lab.entryUnit.other": { ko: "그 외 (작품 · 사물 · 배역)", en: "Other (work · item · character)", es: "Otro (obra · objeto · personaje)" },
+  "lab.brief.entryLabel": { ko: "엔트리는 어떤 것인가?", en: "What kind of thing is an entry?", es: "¿Qué tipo de cosa es una entrada?" },
+  "lab.brief.entryPlaceholder": {
+    ko: "예: 춤춘 댄스 크루 · 노래 제목 · 드라마 배역",
+    en: "e.g. the dance crew performing · song title · drama character",
+    es: "p. ej.: el crew que baila · título de la canción · personaje del drama",
+  },
+  "lab.brief.extraLabel": { ko: "덧붙이는 정보", en: "Extra info", es: "Dato adicional" },
+  "lab.brief.extraPlaceholder": {
+    ko: "예: 가수 · 드라마 제목 (비워도 됩니다)",
+    en: "e.g. artist · drama title (optional)",
+    es: "p. ej.: artista · título del drama (opcional)",
+  },
+  "lab.brief.rulesLabel": { ko: "고르는 조건", en: "Selection rules", es: "Criterios de selección" },
+  "lab.brief.rulesPlaceholder": {
+    ko: "예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외",
+    en: "e.g. only teams that posted videos in 2026 · no kids' teams",
+    es: "p. ej.: solo equipos que publicaron videos en 2026 · sin equipos infantiles",
+  },
+  "lab.brief.suggest": { ko: "AI에게 제안 받기", en: "Get AI suggestions", es: "Pedir sugerencias a la IA" },
+  "lab.slot.clearHint": {
+    ko: "이 칸 비우기 (영상 · 이미지 포함)",
+    en: "Clear this slot (including video · image)",
+    es: "Vaciar esta casilla (incluye video · imagen)",
+  },
+  "lab.clearAll.button": { ko: "모두 비우기", en: "Clear all", es: "Vaciar todo" },
+  "lab.clearAll.body": {
+    ko: "엔트리 칸을 모두 비웁니다. 이름 · 영상 · 이미지가 지워지고 되돌릴 수 없습니다.",
+    en: "This clears every entry slot. Names, videos and images are removed and can't be restored.",
+    es: "Se vaciarán todas las casillas. Los nombres, videos e imágenes se eliminan y no se pueden recuperar.",
+  },
+  "lab.clearAll.confirm": { ko: "비우기", en: "Clear", es: "Vaciar" },
+  "lab.clearAll.cancel": { ko: "취소", en: "Cancel", es: "Cancelar" },
+
   "lab.category.label": { ko: "카테고리", en: "Category", es: "Categoría" },
   "lab.category.placeholder": { ko: "카테고리 선택", en: "Select a category", es: "Selecciona una categoría" },
   "lab.category.loadError": {
@@ -886,10 +928,11 @@ export const MESSAGES = {
   },
   // ③ — 이제 "어디에 들어가는지"와 "이름까지 채운다"가 문구에 있어야 한다.
   // 예전 문구는 슬롯 01부터 덮어쓴다는 사실을 숨기고 있었다.
+  // LAB-FIX-4 §5 15번 — 제목에서 읽는 기준이 "AI에게 알려 줄 내용"이 됐다(대표 승인 2026-11-19).
   "lab.embed.subtitle": {
-    ko: "줄당 링크 1개. 빈칸에만 순서대로 들어가고, 제목에서 이름·소속을 읽어 함께 채웁니다.",
-    en: "One link per line. They fill empty slots only, and the name and affiliation are read from the title.",
-    es: "Un enlace por línea. Solo rellenan casillas vacías; el nombre y el grupo se leen del título.",
+    ko: "줄당 링크 1개. 빈칸에만 순서대로 들어가고, \"AI에게 알려 줄 내용\"에 맞춰 제목에서 엔트리를 읽어 함께 채웁니다.",
+    en: "One link per line. Links go into empty slots in order, and entries are read from the titles following \"What to tell the AI\".",
+    es: "Un enlace por línea. Se colocan en orden solo en las casillas vacías, y las entradas se leen de los títulos según \"Qué decirle a la IA\".",
   },
   "lab.embed.blanksLeft": {
     ko: "빈칸 {n}개",

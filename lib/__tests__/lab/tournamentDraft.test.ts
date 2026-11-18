@@ -45,6 +45,7 @@ function state(overrides: Partial<DraftEditorState> = {}): DraftEditorState {
     contestants: Array.from({ length: 48 }, (_, i) => fullContestant(i)),
     thumbnailPair: { a: 3, b: 17, aPos: 22, bPos: null, next: "a" },
     entryUnit: "individual",
+    aiBrief: { entry: "", extra: "", rules: "" },
     // LAB-FIX-3 추가분(D-90) — 48칸에 영상이 있는 초안 = 영상 대회.
     mediaKind: "video",
     ...overrides,
@@ -68,7 +69,8 @@ describe("toDraftFields → fromDraftDoc", () => {
 
   it("writes only the known fields plus the schema version", () => {
     // ENTRY-UNIT-1: 엔트리 단위 칸은 팀일 때만 실린다 — 모든 칸이 보이게 팀 상태로 본다.
-    const fields = toDraftFields(state({ entryUnit: "group" }));
+    // LAB-FIX-4: 묶음도 글자가 있을 때만 실린다.
+    const fields = toDraftFields(state({ entryUnit: "group", aiBrief: { entry: "춤춘 크루", extra: "", rules: "" } }));
     expect(Object.keys(fields).sort()).toEqual(
       [...DRAFT_FIELDS].filter((k) => k !== "hostUid" && k !== "updatedAt").sort(),
     );
@@ -115,6 +117,7 @@ describe("isDraftBlank", () => {
     deadlineMs: 1,
     contestants: [],
     entryUnit: "individual",
+    aiBrief: { entry: "", extra: "", rules: "" },
     mediaKind: null,
   };
 

@@ -6,7 +6,9 @@
  * 두지 않는다 — 2026-10-27 대표 실측에서 "…무대를 연출한 팀" 제목이 멤버 48명으로
  * 채워졌다. 대회 문서·서버 초안에 함께 저장된다.
  *
- * 라디오 묶음으로 둔다(드롭다운이 아니라): 선택지가 둘뿐이고, 지금 무엇이 골라져
+ * LAB-FIX-4: 세 번째 선택 "그 외"(작품 · 사물 · 배역)를 더했고, "AI에게 알려 줄 내용" 묶음 안에 놓인다.
+ *
+ * 라디오 묶음으로 둔다(드롭다운이 아니라): 선택지가 셋뿐이고, 지금 무엇이 골라져
  * 있는지 펼치지 않고 바로 보여야 한다.
  */
 "use client";
@@ -20,9 +22,11 @@ interface EntryUnitSelectProps {
   onChange: (next: EntryUnit) => void;
 }
 
-const OPTION_KEY: Record<EntryUnit, "lab.entryUnit.individual" | "lab.entryUnit.group"> = {
+const OPTION_KEY: Record<EntryUnit, "lab.entryUnit.individual" | "lab.entryUnit.group" | "lab.entryUnit.other"> = {
   individual: "lab.entryUnit.individual",
   group: "lab.entryUnit.group",
+  // LAB-FIX-4 — 그 외(작품 · 사물 · 배역). 사람도 팀도 아닌 대회.
+  other: "lab.entryUnit.other",
 };
 
 export function EntryUnitSelect({ value, onChange }: EntryUnitSelectProps): JSX.Element {
@@ -41,6 +45,7 @@ export function EntryUnitSelect({ value, onChange }: EntryUnitSelectProps): JSX.
         {t("lab.entryUnit.label")}
       </span>
       <div style={{ display: "flex", gap: 8 }}>
+        {/* "그 외 (작품 · 사물 · 배역)"은 길다 — 좁으면 두 줄로 내린다(칸이 넘치지 않게). */}
         {ENTRY_UNITS.map((unit) => {
           const selected = unit === value;
           return (
@@ -60,8 +65,10 @@ export function EntryUnitSelect({ value, onChange }: EntryUnitSelectProps): JSX.
                 color: selected ? lab.gold : lab.textSub,
                 fontWeight: selected ? 800 : 600,
                 fontSize: 15,
+                lineHeight: 1.3,
                 fontFamily: lab.font,
                 cursor: "pointer",
+                minWidth: 0,
               }}
             >
               {t(OPTION_KEY[unit])}

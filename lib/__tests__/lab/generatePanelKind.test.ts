@@ -42,15 +42,15 @@ describe("생성 버튼 — 처음 누른 버튼이 종류를 정한다", () => 
 });
 
 describe("kindTools — 직접 손보기 도구는 그 종류만", () => {
-  it("미정: 도구 없음", () => {
-    expect(kindTools(null)).toEqual({ pasteLinks: false, fillBlanks: false, imageFiles: false, imageSearch: false });
+  it("미정: [링크 직접 붙여넣기] · [이미지 주소 한꺼번에 넣기]만 — 넣으면 종류가 정해진다(LAB-FIX-4 결정 D)", () => {
+    expect(kindTools(null)).toEqual({ pasteLinks: true, fillBlanks: false, imageFiles: false, imageSearch: false, imageLinks: true });
   });
   it("영상 대회: 검수기 · 빈칸만 AI", () => {
-    expect(kindTools("video")).toEqual({ pasteLinks: true, fillBlanks: true, imageFiles: false, imageSearch: false });
+    expect(kindTools("video")).toEqual({ pasteLinks: true, fillBlanks: true, imageFiles: false, imageSearch: false, imageLinks: false });
   });
   it("이미지 대회: 빈칸만 AI · 이미지 파일 넣기", () => {
     // IMAGE-1 PR 2 — 이미지 대회에만 [이미지만 찾기] · [이미지 주소 한꺼번에 넣기].
-    expect(kindTools("image")).toEqual({ pasteLinks: false, fillBlanks: true, imageFiles: true, imageSearch: true });
+    expect(kindTools("image")).toEqual({ pasteLinks: false, fillBlanks: true, imageFiles: true, imageSearch: true, imageLinks: true });
   });
 });
 

@@ -24,6 +24,7 @@ import {
   type ContestantNotice,
   type DiscardedContestant,
 } from "./parseContestants";
+import { briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 
 /** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
 export type Category = string;
@@ -57,6 +58,8 @@ export interface AiFillInput {
    * 빠지면 개인이다 — 이 칸을 모르는 옛 화면의 요청은 지금과 똑같이 돈다.
    */
   entryUnit?: unknown;
+  /** LAB-FIX-4 — "AI에게 알려 줄 내용" 묶음 {entry, extra, rules}. 빠지면 빈 묶음(지금과 같음). */
+  aiBrief?: unknown;
 }
 
 export interface AiFillDeps {
@@ -85,11 +88,12 @@ function toStringArray(v: unknown): string[] {
  * 엔트리 단위 (ENTRY-UNIT-1 · 원장 D-73). 대회 하나의 엔트리 48개가 무엇을 세는가.
  *   individual = 사람 한 명(지금까지의 유일한 경로)
  *   group      = 그룹(팀) 하나 — 멤버 개인은 넣지 않는다
+ *   other      = 사람도 팀도 아닌 것 하나(작품 · 사물 · 배역 — LAB-FIX-4). 늘 묶음 지시문으로 간다
  * lib/types/tournament.ts 의 EntryUnit 과 같은 값이다(functions 는 lib 를 import 하지 않는다).
  */
-export type EntryUnit = "individual" | "group";
+export type EntryUnit = "individual" | "group" | "other";
 
-export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group"];
+export const ENTRY_UNITS: readonly EntryUnit[] = ["individual", "group", "other"];
 
 export interface BuildPromptOptions {
   title: string;
@@ -102,6 +106,8 @@ export interface BuildPromptOptions {
   count: number;
   /** 엔트리 단위. 빠지면 개인 — 개인 경로 프롬프트는 한 글자도 바뀌지 않는다. */
   entryUnit?: EntryUnit;
+  /** LAB-FIX-4 묶음. 비었고 단위가 개인·팀이면 옛 지시문 그대로(글자 하나 다르지 않음). */
+  aiBrief?: AiBrief;
 }
 
 /**
@@ -128,9 +134,68 @@ const OVER_REQUEST_MAX = 5;
  * 함수로 따로 쓴다(개인 경로에 if 를 끼워 넣으면 개인 문장이 흔들린다).
  */
 export function buildPrompt(opts: BuildPromptOptions): string {
-  return opts.entryUnit === "group"
+  const unit = opts.entryUnit ?? "individual";
+  if (usesBriefPrompt(opts.aiBrief ?? { entry: "", extra: "", rules: "" }, unit)) {
+    return buildBriefFillPrompt(opts);
+  }
+  return unit === "group"
     ? buildGroupPrompt(opts)
     : buildIndividualPrompt(opts);
+}
+
+/**
+ * 묶음 지시문 (LAB-FIX-4 · 원장 결정 A). 묶음이 있거나 단위가 "그 외"일 때. 운영자가 정한 세 줄을
+ * **맨 위 규칙**으로 두고, 나머지는 팀 지시문의 안전 규칙(실존만 · 지어내지 않기 · 중복 금지 · 검색어 계약)을
+ * 대상에 맞춰 옮겼다. 수는 "개"로 센다(원장 D-31). 개인·팀 지시문은 손대지 않는다.
+ */
+function buildBriefFillPrompt(opts: BuildPromptOptions): string {
+  const { title, category, description, keywords, existing, count } = opts;
+  const unit = opts.entryUnit ?? "individual";
+  const brief = opts.aiBrief ?? { entry: "", extra: "", rules: "" };
+  const askMin = count + OVER_REQUEST_MIN;
+  const askMax = count + OVER_REQUEST_MAX;
+  const lines = [
+    `다음 Tournament 제목과 카테고리에 맞는 엔트리를 ${askMin}~${askMax}개 추천해줘.`,
+    "",
+    ...briefRuleLines(brief, unit),
+    "",
+    `제목: "${title}"`,
+    `카테고리: ${category}`,
+  ];
+  if (description && description.trim()) {
+    lines.push(`설명: ${description.trim()}`);
+  }
+  if (keywords && keywords.length > 0) {
+    lines.push(`키워드 힌트: ${keywords.join(", ")}`);
+  }
+  if (existing && existing.length > 0) {
+    lines.push(
+      `이미 엔트리 ${existing.length}개가 채워져 있어. 아래와 겹치지 않는 새 엔트리만 추천해줘 (제외 목록): ${existing.join(", ")}`,
+    );
+  }
+  lines.push(
+    "",
+    "각 엔트리를 JSON 배열로 반환:",
+    `[{ "name": string, "nationality": string, "affiliation": string, "imageSearchKeyword": string }]`,
+    "",
+    "규칙:",
+    `- ${askMin}~${askMax}개 (서버가 앞에서부터 ${count}개만 채택하니 확실한 것부터 순서대로)`,
+    "- 각 항목은 위에서 정한 **엔트리 하나**다. 엔트리가 아닌 것(엔트리에 딸린 사람 · 소속 · 원작자 등)을 name 에 적지 않는다",
+    "- 실존하는 것만. 가상·합성 엔트리를 지어내지 말 것",
+    "- 같은 엔트리를 두 번 넣지 말 것",
+    "- name = 엔트리의 이름. 사람·팀이면 **한글 이름**(영어 이름은 발행 때 따로 붙는다), 한국 작품·제품이면 한글 공식 이름. 한글 표기가 없는 것만 공식 표기 그대로",
+    "- affiliation = 위의 덧붙이는 정보. 모르면 빈 문자열",
+    "- nationality = **ISO 3166-1 alpha-2 국가 코드 두 글자 대문자** (예: KR · JP · US). 확실할 때만, 아니면 빈 문자열",
+    "- 카테고리에 실제로 속한 엔트리면 국적을 가리지 말 것. 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",
+    "- 사람이 엔트리면 미성년자는 넣지 않는다. 학교폭력·범죄 등 중대한 사회적 물의로 논란이 된 엔트리는 넣지 않는다",
+    "",
+    "imageSearchKeyword 규칙:",
+    "- 이 칸은 검색창에 그대로 붙여 넣을 검색어다. 메모장이 아니다",
+    "- 형식: 엔트리의 영문(또는 공식) 이름 + 덧붙이는 정보의 영문 이름. 2~4단어로 끝낸다",
+    "- 메모·설명·의문·확인 요청·괄호 주석·물음표를 절대 넣지 말 것. \"X 아님 Y 확인\" 같은 문자열은 검색어가 아니다",
+    "- 이 칸에 쓸 검색어를 확신할 수 없으면 그 엔트리를 목록에서 빼라. 요청 개수보다 여유 있게 요청했으니 빠져도 된다",
+  );
+  return lines.join("\n");
 }
 
 function buildIndividualPrompt(opts: BuildPromptOptions): string {
@@ -316,7 +381,11 @@ export async function aiFillCore(
 
   const entryUnit = parseEntryUnit(input.entryUnit);
   if (!entryUnit) {
-    throw new AiFillError("invalid-argument", "entryUnit은 individual 또는 group이어야 합니다.");
+    throw new AiFillError("invalid-argument", "entryUnit은 individual · group · other 중 하나여야 합니다.");
+  }
+  const aiBrief = parseAiBrief(input.aiBrief);
+  if (!aiBrief) {
+    throw new AiFillError("invalid-argument", "AI에게 알려 줄 내용이 글자 수 한도를 넘었습니다.");
   }
 
   const description =
@@ -334,7 +403,7 @@ export async function aiFillCore(
   let text: string;
   try {
     text = await deps.createMessage(
-      buildPrompt({ title, category, description, keywords, existing, count, entryUnit }),
+      buildPrompt({ title, category, description, keywords, existing, count, entryUnit, aiBrief }),
     );
   } catch (e) {
     // DP-1 fix: capture the original error instead of swallowing it.

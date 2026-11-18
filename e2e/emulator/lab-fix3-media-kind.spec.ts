@@ -93,7 +93,8 @@ test("§5-1·2·6·3 새 초안 → [동영상 생성]이 영상 대회로 잠�
     await expect(page.getByTestId(id)).toHaveCount(0);
   }
   await page.getByTestId("lab-manual-tools-toggle").click();
-  await expect(page.getByTestId("lab-open-embed-inspector")).toHaveCount(0);
+  // LAB-FIX-4 결정 D — 종류 미정에서도 [링크 직접 붙여넣기]는 보인다(넣으면 영상 대회). 이미지 파일 넣기는 이미지 대회만.
+  await expect(page.getByTestId("lab-open-embed-inspector")).toBeVisible();
   await expect(page.getByTestId("lab-add-image-files")).toHaveCount(0);
   await page.screenshot({ path: test.info().outputPath("k1-undecided.png") });
 

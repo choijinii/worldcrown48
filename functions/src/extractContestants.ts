@@ -2,9 +2,10 @@
  * extractContestantsFromVideos — callable (LAB-UX-1 마무리 ③).
  *
  * 붙여넣은 링크의 제목·채널명 → 인물(이름·소속·국가). 검수기가 이미 받아 둔
- * 문자열만 넘기므로 **YouTube API를 한 콜도 더 쓰지 않는다** — 비용은 Haiku 1콜뿐.
+ * 문자열만 넘기므로 **YouTube API를 한 콜도 더 쓰지 않는다** — 비용은 Sonnet 1콜뿐(LAB-FIX-4 결정 E · 전엔 Haiku).
  *
- *   request.data:  { items: [{ videoId, title, channelTitle }], entryUnit?: "individual" | "group" }  (≤48 · 단위 빠지면 개인)
+ *   request.data:  { items: [{ videoId, title, channelTitle }], entryUnit?: "individual" | "group" | "other",
+ *                    aiBrief?: { entry, extra, rules }, tournamentTitle?, tournamentDescription? }  (≤48 · 단위 빠지면 개인)
  *   returns:       { extractions: [{ videoId, name, affiliation, nationality, confident }] }
  *
  * 검증·프롬프트·파싱은 단위 테스트된 core에 있다. 여기는 배선만:
@@ -24,7 +25,7 @@ import {
   MAX_EXTRACT_ITEMS,
   type ExtractedContestant,
 } from "./core/extractContestantsCore";
-import { HAIKU_MODEL } from "./core/models";
+import { SONNET_MODEL, SONNET_THINKING } from "./core/models";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
@@ -54,7 +55,8 @@ export const extractContestantsFromVideos = onCall(
   {
     secrets: [ANTHROPIC_API_KEY, "ADMIN_UID"],
     cors: ALLOWED_ORIGINS,
-    timeoutSeconds: 60,
+    // Sonnet 이 48줄을 읽는 데 Haiku 보다 오래 걸린다 — 여유를 둔다(브라우저 쪽 기다림도 같이 늘렸다).
+    timeoutSeconds: 120,
   },
   async (req): Promise<{ extractions: ExtractedContestant[] }> => {
     requireAdmin(req.auth?.uid, process.env.ADMIN_UID);
@@ -81,13 +83,16 @@ export const extractContestantsFromVideos = onCall(
     const anthropic = new Anthropic({ apiKey });
     const createMessage = async (prompt: string): Promise<string> => {
       const resp = await anthropic.messages.create({
-        model: HAIKU_MODEL,
+        // LAB-FIX-4 결정 E — 대회의 뜻에 맞춰 제목을 해석해야 한다(원곡 가수와 춤춘 팀 가르기).
+        // Sonnet 5 는 thinking 을 생략하면 adaptive 가 켜진다 — 명시적으로 끈다(models.ts).
+        model: SONNET_MODEL,
         max_tokens: EXTRACT_MAX_TOKENS,
+        thinking: SONNET_THINKING,
         messages: [{ role: "user", content: prompt }],
       });
       // 비용 실측용 — 프롬프트 전문은 남기지 않는다. 토큰 수만.
       logger.info("extractContestantsFromVideos usage", {
-        model: HAIKU_MODEL,
+        model: SONNET_MODEL,
         inputTokens: resp.usage?.input_tokens,
         outputTokens: resp.usage?.output_tokens,
         stopReason: resp.stop_reason,
@@ -98,7 +103,14 @@ export const extractContestantsFromVideos = onCall(
 
     try {
       const extractions = await extractContestantsCore(
-        { uid, items: req.data?.items, entryUnit: req.data?.entryUnit },
+        {
+          uid,
+          items: req.data?.items,
+          entryUnit: req.data?.entryUnit,
+          aiBrief: req.data?.aiBrief,
+          tournamentTitle: req.data?.tournamentTitle,
+          tournamentDescription: req.data?.tournamentDescription,
+        },
         {
           createMessage,
           logInfo: (msg) => logger.info(msg),

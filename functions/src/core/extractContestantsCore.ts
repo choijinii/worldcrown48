@@ -35,6 +35,7 @@
  * 나온 결과라서(aiFillCore 의 개인/팀 분리와 같은 원칙). 시험이 개인 지시문의 sha256 을 잠근다.
  */
 import { parseEntryUnit, type EntryUnit } from "./aiFillCore";
+import { briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 
 /** 추출 대상 1건 — 검수기가 이미 받아 둔 값만 넘긴다(추가 API 0콜). */
 export interface ExtractItem {
@@ -172,6 +173,69 @@ export function buildTeamExtractPrompt(items: readonly ExtractItem[]): string {
   ].join("\n");
 }
 
+export interface BriefExtractContext {
+  brief: AiBrief;
+  entryUnit: EntryUnit;
+  /** 대회 제목 · 설명 — AI 가 "이 대회가 무엇을 뽑는가"를 알게 한다(지시서 §3-2 ①). */
+  tournamentTitle: string;
+  tournamentDescription: string;
+}
+
+/**
+ * 묶음 지시문 (LAB-FIX-4 · 원장 결정 A · E). 2026-11-18 대표 실측: 커버 영상 제목
+ * `TEMPEST (템페스트) - 'BAD NEWS' Dance Cover by W-UNIT from Vietnam` 에서 팀 지시문이 원곡 그룹
+ * "템페스트 · KR"을 골랐다(맞는 값 W-Unit · VN). 팀 지시문은 아이돌 영상을 전제로 "적힌 이름이 속한 그룹"을
+ * 시키고, AI 는 대회가 무엇을 뽑는지 받지 못했다. 그래서 대회 제목 · 설명과 운영자의 세 줄을 맨 위 규칙으로
+ * 준다. 자제 규칙("모르면 비워라 · 지어내지 마라")과 출력 형식은 옛 지시문과 같다 — 같은 파서가 읽는다.
+ */
+export function buildBriefExtractPrompt(
+  items: readonly ExtractItem[],
+  ctx: BriefExtractContext,
+): string {
+  const rows = items
+    .map(
+      (it, i) =>
+        `${i + 1}. id="${it.videoId}" | 제목="${it.title}" | 채널="${it.channelTitle}"`,
+    )
+    .join("\n");
+  const head = [
+    "아래는 유튜브 영상의 제목과 채널명이다. 각 줄에서 **이 대회의 엔트리에 해당하는 것**을 읽어라.",
+    "",
+    `대회 제목: "${ctx.tournamentTitle}"`,
+  ];
+  if (ctx.tournamentDescription) head.push(`대회 설명: ${ctx.tournamentDescription}`);
+
+  return [
+    ...head,
+    "",
+    ...briefRuleLines(ctx.brief, ctx.entryUnit),
+    "",
+    "규칙:",
+    "- 제목·채널에서 위 규칙의 엔트리에 해당하는 것을 찾아 name 에 적는다",
+    "- 한 제목에 이름이 여럿 나오면 어느 것이 엔트리인지 위 규칙으로 가른다. 커버·리액션·리뷰 영상에서는 원곡 가수 · 리뷰 대상 · 영상을 올린 사람 중 누가 엔트리인지 따진다. **엔트리가 아닌 이름**(예: 커버 영상의 원곡 가수, 리뷰 채널 이름)은 name 에 적지 마라",
+    "- 영상을 올린 사람(채널)은 위 규칙이 그 사람을 엔트리로 정할 때만 엔트리다",
+    "- 제목·채널에 적힌 것만 근거로 삼는다. 바깥 지식으로 보충하지 마라",
+    "- 엔트리를 **확신할 수 없으면 name을 빈 문자열로 두고 confident를 false로** 한다. 빈칸은 정상이고, 사람이 나중에 채운다",
+    "- 절대로 그럴듯한 이름을 지어내지 마라. 틀린 이름 하나가 빈칸 하나보다 훨씬 나쁘다",
+    "",
+    "- name 은 **제목·채널에 적힌 표기를 그대로** 쓴다. 로마자로 옮기거나 번역하지 마라",
+    "- 한글 표기와 로마자 표기가 둘 다 있으면 **한글 표기**를 쓴다. 한글 표기가 없는 이름(해외 크루 · 해외 작품 등)은 적힌 공식 표기 그대로",
+    "- affiliation: 위 규칙의 덧붙이는 정보. 제목·채널에 드러나지 않으면 빈 문자열",
+    "- nationality: ISO 3166-1 alpha-2 두 글자 대문자. 제목에 `from Vietnam` · `from FRANCE` 같은 나라 문구가 있으면 그 나라로 정한다. 그런 문구가 없으면 엔트리의 나라가 제목·채널에서 확실할 때만 적고, 아니면 비운다. 원곡 가수의 나라를 엔트리의 나라로 적지 마라",
+    "- confident: 엔트리를 확신하면 true, 비웠거나 애매하면 false",
+    "",
+    "- 목록에 있는 id만 쓴다. 새 id를 만들지 마라",
+    "- 줄 수와 결과 수를 같게 한다",
+    "- 설명·머리말 없이 JSON 한 줄만 출력한다",
+    "",
+    "출력 형식:",
+    '{"extractions":[{"id":"<id>","name":"","affiliation":"","nationality":"","confident":false}]}',
+    "",
+    "목록:",
+    rows,
+  ].join("\n");
+}
+
 /**
  * 모델 응답 → 항목별 결과.
  *
@@ -230,6 +294,11 @@ export interface ExtractInput {
   items: unknown;
   /** 엔트리 단위(D-73). 빠지면 개인 — 옛 화면 호환(aiFillCore 와 같은 읽기 함수). */
   entryUnit?: unknown;
+  /** LAB-FIX-4 — "AI에게 알려 줄 내용" 묶음. 빠지면 빈 묶음(옛 지시문). */
+  aiBrief?: unknown;
+  /** LAB-FIX-4 — 대회 제목 · 설명(묶음 지시문에만 실린다). */
+  tournamentTitle?: unknown;
+  tournamentDescription?: unknown;
 }
 
 export async function extractContestantsCore(
@@ -241,7 +310,11 @@ export async function extractContestantsCore(
   }
   const entryUnit: EntryUnit | null = parseEntryUnit(input.entryUnit);
   if (!entryUnit) {
-    throw new ExtractError("invalid-argument", "entryUnit은 individual 또는 group이어야 합니다.");
+    throw new ExtractError("invalid-argument", "entryUnit은 individual · group · other 중 하나여야 합니다.");
+  }
+  const brief = parseAiBrief(input.aiBrief);
+  if (!brief) {
+    throw new ExtractError("invalid-argument", "AI에게 알려 줄 내용이 글자 수 한도를 넘었습니다.");
   }
   if (!Array.isArray(input.items) || input.items.length === 0) {
     throw new ExtractError("invalid-argument", "추출할 영상이 없습니다.");
@@ -271,7 +344,16 @@ export async function extractContestantsCore(
   let text: string;
   try {
     text = await deps.createMessage(
-      entryUnit === "group" ? buildTeamExtractPrompt(items) : buildExtractPrompt(items),
+      usesBriefPrompt(brief, entryUnit)
+        ? buildBriefExtractPrompt(items, {
+            brief,
+            entryUnit,
+            tournamentTitle: toStr(input.tournamentTitle).slice(0, 200),
+            tournamentDescription: toStr(input.tournamentDescription).slice(0, 2000),
+          })
+        : entryUnit === "group"
+          ? buildTeamExtractPrompt(items)
+          : buildExtractPrompt(items),
     );
   } catch (e) {
     deps.logError?.("extractContestantsCore createMessage failed", e);

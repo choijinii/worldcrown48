@@ -155,6 +155,8 @@ export { aiFillContestants } from "./aiFillContestants";
 
 // B-2 The Lab — AI keyword suggestion (STEP 1 ✨ button, Haiku).
 export { aiSuggestKeywords } from "./aiSuggestKeywords";
+// LAB-FIX-4 — STEP 1 [AI에게 제안 받기]: "AI에게 알려 줄 내용" 제안(Haiku).
+export { aiSuggestBrief } from "./aiSuggestBrief";
 
 // B-2 The Lab — publish-time title/description translation (Haiku, 1회).
 export { translateTournamentMeta } from "./translateTournamentMeta";

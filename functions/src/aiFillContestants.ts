@@ -116,6 +116,7 @@ export const aiFillContestants = onCall(
           keywords: req.data?.keywords,
           existing: req.data?.existing,
           entryUnit: req.data?.entryUnit,
+          aiBrief: req.data?.aiBrief,
         },
         {
           createMessage,
