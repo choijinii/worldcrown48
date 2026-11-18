@@ -10,7 +10,7 @@
 |---|---|---|
 | 순수 계약(한 곳) | `lib/news/articleViews.ts` (import 없음 → `copy-news` 로 functions 에 복사) | 날짜 칸 이름 `d<YYYYMMDD>` · 어제 날짜 · 급등 점수(오늘+어제) · 지울 옛 날짜 칸 · 급등 정렬(0·동점 → 최신 발행순) · 기사 주소 이름 검사 |
 | 서버 핵심 | `functions/src/core/articleViewCore.ts` | 1시간 표지 id(소금+IP+기사+시 단위 해시) · 트랜잭션: 발행된 기사만 · 표지가 있으면 안 셈 · 없으면 표지 만들고 `views.total`+1 · `views.d<오늘>`+1 · 옛 날짜 칸 지움 |
-| 콜러블 | `functions/src/recordArticleView.ts` | 로그인 없이 부름(익명 계정 안 만듦 · D-41) · `IP_HASH_SALT` · 인스턴스 메모리 분당 한도(홍수 막기) |
+| 콜러블 | `functions/src/recordArticleView.ts` | 로그인 없이 부름(익명 계정 안 만듦 · D-41) · `IP_HASH_SALT` · 인스턴스 메모리 분당 한도(홍수 막기) · IP 는 구글 앞단이 채운 `ip` 하나만 본다(비면 세지 않음 — 연결 주소 · X-Forwarded-For 는 받침으로 쓰지 않는다). 에뮬레이터는 IP 를 주지 않아 시험에서만 고정 이름 |
 | 브라우저 | `lib/news/recordArticleView.ts` + `components/news/ArticleView.tsx` | 기사 지면을 열면 한 번 부름 · 같은 기사 1시간 로컬 메모(localStorage, 실패해도 무시) · 오류는 삼킨다(콘솔 오류 0) |
 | 규칙 | `firestore.rules` | `news_view_marks` 브라우저 읽기·쓰기 전부 거부 · `news` 규칙은 그대로(브라우저는 조회 칸을 못 씀) |
 | 지우기 | `firestore.indexes.json` | `news_view_marks.expireAt` TTL(자동 삭제) — 표지는 2시간 뒤 사라진다 |
