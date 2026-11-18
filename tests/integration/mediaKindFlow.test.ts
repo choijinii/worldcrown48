@@ -15,7 +15,7 @@ import { EMPTY_PICK } from "@/lib/thumbnail/pick";
 const slot = (i: number): ContestantDraft => ({ name: `e${i}`, nationality: "", affiliation: "", imageSearchKeyword: "" });
 const editor = (mediaKind: DraftEditorState["mediaKind"]): DraftEditorState => ({
   step: 2, title: "t", category: "KPOP", description: "", keywords: ["k"], campaignSlug: "", deadlineMs: 1,
-  contestants: Array.from({ length: 48 }, (_, i) => slot(i)), thumbnailPair: EMPTY_PICK, entryUnit: "individual", mediaKind,
+  contestants: Array.from({ length: 48 }, (_, i) => slot(i)), thumbnailPair: EMPTY_PICK, entryUnit: "individual", mediaKind, aiBrief: { entry: "", extra: "", rules: "" },
 });
 const disabled = (html: string, id: string) =>
   /disabled/.test(html.match(new RegExp(`<button[^>]*data-testid="${id}"[^>]*>`))?.[0] ?? "");
