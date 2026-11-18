@@ -5,7 +5,7 @@
  * 급등(최근 24시간 조회 증가)의 재료다. 계약(날짜 칸 이름 · 지울 칸)은 lib/news/articleViews 한 곳.
  *
  * **1시간 1번**: 같은 연결(IP) · 같은 기사 · 같은 시간(정각~정각)이면 한 번만 센다. 표지 문서
- * `news_view_marks/{해시}` 를 트랜잭션 안에서 만들어 동시에 와도 한 번만 센다. 표지에는 IP 를
+ * `news_view_marks/{해시}` 를 create(이미 있으면 실패)로 만들어 동시에 와도 한 번만 센다. 표지에는 IP 를
  * 남기지 않는다(id 가 소금 섞은 해시 · 칸은 지울 시각 expireAt 하나) — Firestore TTL 이 2시간 뒤 지운다.
  *
  * 발행된 기사만 센다(초안 · 내린 기사 · 없는 기사는 문서를 건드리지 않는다).
@@ -19,6 +19,8 @@ import { bucketsToPrune, viewDayKey, type ArticleViews } from "../_news/articleV
 import { todayKST } from "../_run/kstReset";
 
 export const VIEW_MARKS_COLLECTION = "news_view_marks";
+/** gRPC 상태 번호 — 문서가 이미 있음. */
+const ALREADY_EXISTS = 6;
 const HOUR_MS = 3_600_000;
 /** 표지 수명 — 한 시간 창이 끝난 뒤 넉넉히 1시간 더. */
 export const VIEW_MARK_TTL_MS = 2 * HOUR_MS;
@@ -32,15 +34,39 @@ export function viewMarkId(salt: string, ip: string, slug: string, nowMs: number
 /** 에뮬레이터에서만 쓰는 연결 이름 — 에뮬레이터는 함수에 IP 를 넘겨 주지 않는다. */
 export const EMULATOR_CLIENT = "emulator-local";
 
+/** IPv6 는 앞 64비트(한 가정 · 한 기기가 받는 덩어리)로 묶는다 — 주소를 계속 바꿔 "1시간 1번"을 피하지 못하게. */
+function normalizeIp(ip: string): string {
+  const v4 = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
+  if (v4) return v4[1];
+  if (!ip.includes(":")) return ip;
+  const [head, tail] = ip.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail !== undefined && tail !== "" ? tail.split(":") : [];
+  const groups = tail === undefined ? left : [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right];
+  const first4 = groups.slice(0, 4).map((g) => (Number.parseInt(g || "0", 16) || 0).toString(16));
+  return `${first4.join(":")}::/64`;
+}
+
 /**
- * 요청의 IP. 실서비스는 구글 앞단이 `ip` 를 채운다(hashIp · registerWaitlist 와 같은 값).
- * 비어 있으면 빈 글자 → 세지 않는다. 받침으로 쓰지 않는 것 둘:
- *   · 연결 주소(socket) — 앞단 서버 주소라 모든 팬이 한 사람으로 묶인다
- *   · X-Forwarded-For 머리글 — 팬이 마음대로 적어 보내 "1시간 1번"을 우회할 수 있다
- * 에뮬레이터(시험)에서만 고정 이름을 쓴다.
+ * 요청한 팬의 IP — X-Forwarded-For 머리글의 **맨 오른쪽** 값.
+ *
+ * 함수 틀(functions-framework)은 `trust proxy` 를 켜 두어 `req.ip` 가 머리글의 **맨 왼쪽** 값이 된다.
+ * 구글 앞단은 머리글을 갈아 끼우지 않고 진짜 주소를 **뒤에 덧붙이므로** 맨 왼쪽은 팬이 적어 보낸 값이다
+ * (리뷰 2026-11-18 — functions-framework 5.0.5 build/src/server.js 89줄 확인). 그래서 `req.ip` 는 보지 않는다.
+ * 콜러블은 cloudfunctions.net · run.app 주소로 바로 부르므로(앞에 다른 프록시 없음) 맨 오른쪽 = 구글 앞단이 본 주소.
+ * ⚠ 이 가정은 배포 뒤 가짜 머리글을 넣어 실측한다(PR 설명 배포 확인 표).
+ *
+ * 머리글이 없으면 빈 글자 → 세지 않는다. 에뮬레이터는 머리글도 IP 도 주지 않아 시험에서만 고정 이름.
  */
-export function clientIpOf(raw: { ip?: string } | undefined, isEmulator: boolean): string {
-  return raw?.ip || (isEmulator ? EMULATOR_CLIENT : "");
+export function clientIpOf(
+  raw: { ip?: string; headers?: Record<string, string | string[] | undefined> } | undefined,
+  isEmulator: boolean,
+): string {
+  const header = raw?.headers?.["x-forwarded-for"];
+  const joined = Array.isArray(header) ? header.join(",") : header ?? "";
+  const last = joined.split(",").map((x) => x.trim()).filter(Boolean).pop() ?? "";
+  if (last) return normalizeIp(last);
+  return isEmulator ? EMULATOR_CLIENT : "";
 }
 
 export function viewMarkExpireAtMs(nowMs: number): number {
@@ -66,22 +92,26 @@ export async function recordArticleViewCore(
   const markRef = db.collection(VIEW_MARKS_COLLECTION).doc(input.markId);
   const today = todayKST(new Date(input.nowMs));
 
-  return db.runTransaction(async (tx) => {
-    const [article, mark] = await Promise.all([tx.get(articleRef), tx.get(markRef)]);
-    if (!article.exists || article.get("status") !== "published") {
-      return { counted: false, reason: "not-found" } as const;
-    }
-    if (mark.exists) return { counted: false, reason: "duplicate" } as const;
+  // 트랜잭션을 쓰지 않는다 — 인기 기사 한 문서에 트랜잭션이 몰리면 다시 시도하다 실패한다(리뷰 3).
+  // 중복 막기는 표지 create(이미 있으면 ALREADY_EXISTS)가 맡고, 덧셈은 읽지 않는 increment 라 겹쳐도 맞다.
+  const article = await articleRef.get();
+  if (!article.exists || article.get("status") !== "published") {
+    return { counted: false, reason: "not-found" };
+  }
+  try {
+    await markRef.create({ expireAt: deps.timestamp(viewMarkExpireAtMs(input.nowMs)) });
+  } catch (err) {
+    if ((err as { code?: unknown })?.code === ALREADY_EXISTS) return { counted: false, reason: "duplicate" };
+    throw err;
+  }
 
-    const update: Record<string, unknown> = {
-      "views.total": deps.increment(1),
-      [`views.${viewDayKey(today)}`]: deps.increment(1),
-    };
-    for (const key of bucketsToPrune(article.get("views") as ArticleViews | undefined, today)) {
-      update[`views.${key}`] = deps.deleteField();
-    }
-    tx.create(markRef, { expireAt: deps.timestamp(viewMarkExpireAtMs(input.nowMs)) });
-    tx.update(articleRef, update);
-    return { counted: true } as const;
-  });
+  const update: Record<string, unknown> = {
+    "views.total": deps.increment(1),
+    [`views.${viewDayKey(today)}`]: deps.increment(1),
+  };
+  for (const key of bucketsToPrune(article.get("views") as ArticleViews | undefined, today)) {
+    update[`views.${key}`] = deps.deleteField();
+  }
+  await articleRef.update(update);
+  return { counted: true };
 }

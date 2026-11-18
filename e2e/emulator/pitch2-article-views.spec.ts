@@ -11,7 +11,7 @@
  */
 import { Timestamp } from "firebase-admin/firestore";
 import { expect, test } from "@playwright/test";
-import { adminApp, collectConsoleErrors, db, dismissConsent, expectNoConsoleErrors, resetEmulators } from "./helpers";
+import { adminApp, collectConsoleErrors, db, expectNoConsoleErrors, resetEmulators } from "./helpers";
 import { sortTrending, viewDayKey } from "../../lib/news/articleViews";
 import { todayKST } from "../../lib/run/kstReset";
 
@@ -56,17 +56,19 @@ test.beforeEach(async () => {
 });
 
 test("기사를 열면 조회가 1 오르고 급등 순서가 바뀐다 · 1시간 1번 · 익명 계정 0", async ({ page }) => {
-  // 서버 표지는 정각~정각 한 시간 창이다. 창 끝 20초 안이면 다음 창으로 넘어간 뒤 시작한다(시험이 정각을 걸치지 않게).
+  // 서버 표지는 정각~정각 한 시간 창이다. 창 끝 90초 안이면 다음 창으로 넘어간 뒤 시작한다
+  // (이 시험은 길어야 40초 남짓 — 정각을 걸치면 세 번째 열기가 새 표지로 2를 센다).
   const toHour = 3_600_000 - (Date.now() % 3_600_000);
-  if (toHour < 20_000) await page.waitForTimeout(toHour + 1_000);
+  if (toHour < 90_000) await page.waitForTimeout(toHour + 1_000);
 
   const errors = collectConsoleErrors(page);
   const today = todayKST(new Date());
 
   expect(sortTrending(await articles(), today).map((a) => a.slug)).toEqual([A, B]);
 
+  // 동의 바는 누르지 않는다 — 동의 저장은 익명 계정을 만드는 자리(원장 D-41 ①)라, 누르면 아래 "익명 계정 0"이
+  // 기사 열기와 상관없이 흔들린다. 바가 떠 있어도 기사 글자와 조회 기록에는 영향이 없다.
   await page.goto(`/news/${B}?lang=ko`);
-  await dismissConsent(page);
   await expect(page.getByText("옛 기사 B").first()).toBeVisible();
   await expect.poll(() => totalOf(B), { timeout: 20_000 }).toBe(1);
 

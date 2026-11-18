@@ -122,6 +122,15 @@ describe("1시간 1번", () => {
   });
 });
 
+describe("인기 기사에 몰려도", () => {
+  it("서로 다른 연결 10개가 동시에 오면 10을 정확히 센다(트랜잭션 다툼 없음)", async () => {
+    await seedArticle("20261118-pub001", "published");
+    const rs = await Promise.all(Array.from({ length: 10 }, (_, i) => record("20261118-pub001", `10.0.0.${i}`)));
+    expect(rs.every((r) => r.counted)).toBe(true);
+    expect(await viewsOf("20261118-pub001")).toEqual({ total: 10, d20261118: 10 });
+  });
+});
+
 describe("발행되지 않은 기사는 세지 않는다", () => {
   it.each(["draft", "archived"])("%s → not-found · 조회 칸 없음 · 표지 없음", async (status) => {
     await seedArticle("20261118-x00001", status);

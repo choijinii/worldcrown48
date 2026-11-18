@@ -43,24 +43,37 @@ describe("viewMarkExpireAtMs — 표지는 2시간 뒤 자동 삭제(TTL)", () =
   });
 });
 
-describe("clientIpOf — 요청의 IP · 에뮬레이터에서만 고정 이름(연결 주소 · 위조 가능한 머리글은 보지 않는다)", () => {
-  it("ip 가 있으면 ip", () => {
-    expect(clientIpOf({ ip: "1.2.3.4" }, false)).toBe("1.2.3.4");
-    expect(clientIpOf({ ip: "1.2.3.4" }, true)).toBe("1.2.3.4");
+type Raw = Parameters<typeof clientIpOf>[0];
+const req = (xff?: string, ip?: string): Raw => ({ ip, headers: xff === undefined ? {} : { "x-forwarded-for": xff } });
+
+describe("clientIpOf — 구글 앞단이 덧붙인 맨 오른쪽 주소(팬이 적어 보낸 왼쪽 값은 보지 않는다)", () => {
+  it("머리글이 주소 하나면 그 주소", () => {
+    expect(clientIpOf(req("1.2.3.4"), false)).toBe("1.2.3.4");
   });
-  it("실서비스에서 ip 가 비면 빈 글자(연결 주소는 앞단 서버라 모든 팬이 하나로 묶인다)", () => {
-    expect(clientIpOf({ ip: "", socket: { remoteAddress: "10.0.0.1" } } as Parameters<typeof clientIpOf>[0], false)).toBe("");
+  it("팬이 가짜 값을 앞에 적어 보내도 맨 오른쪽(진짜) 주소", () => {
+    expect(clientIpOf(req("6.6.6.6, 7.7.7.7, 1.2.3.4"), false)).toBe("1.2.3.4");
+    expect(clientIpOf(req("9.9.9.9,1.2.3.4"), false)).toBe(clientIpOf(req("8.8.8.8,1.2.3.4"), false));
   });
-  it("에뮬레이터에서 ip 가 비면 고정 이름(에뮬레이터는 IP 를 주지 않는다)", () => {
-    expect(clientIpOf({ ip: "" }, true)).toBe(EMULATOR_CLIENT);
-    expect(clientIpOf(undefined, true)).toBe(EMULATOR_CLIENT);
+  it("req.ip(머리글 맨 왼쪽 = 위조 가능)는 보지 않는다", () => {
+    expect(clientIpOf(req(undefined, "6.6.6.6"), false)).toBe("");
   });
-  it("X-Forwarded-For 는 보지 않는다", () => {
-    expect(
-      clientIpOf({ headers: { "x-forwarded-for": "6.6.6.6" } } as unknown as Parameters<typeof clientIpOf>[0], false),
-    ).toBe("");
+  it("머리글이 배열로 와도 마지막 값", () => {
+    expect(clientIpOf({ headers: { "x-forwarded-for": ["6.6.6.6", "1.2.3.4"] } } as Raw, false)).toBe("1.2.3.4");
   });
-  it("요청이 없으면 빈 글자", () => {
+  it("IPv6 는 앞 64비트로 묶는다(주소를 계속 바꾸는 우회 막기)", () => {
+    expect(clientIpOf(req("2001:db8:1:2:aaaa:bbbb:cccc:dddd"), false)).toBe("2001:db8:1:2::/64");
+    expect(clientIpOf(req("2001:db8:1:2::1"), false)).toBe("2001:db8:1:2::/64");
+    expect(clientIpOf(req("2001:db8::5"), false)).toBe("2001:db8:0:0::/64");
+  });
+  it("IPv4 를 담은 IPv6(::ffff:) 는 IPv4 로", () => {
+    expect(clientIpOf(req("::ffff:1.2.3.4"), false)).toBe("1.2.3.4");
+  });
+  it("실서비스에서 머리글이 없으면 빈 글자(세지 않는다)", () => {
+    expect(clientIpOf(req(), false)).toBe("");
     expect(clientIpOf(undefined, false)).toBe("");
+  });
+  it("에뮬레이터는 머리글이 없어 고정 이름", () => {
+    expect(clientIpOf(req(), true)).toBe(EMULATOR_CLIENT);
+    expect(clientIpOf(undefined, true)).toBe(EMULATOR_CLIENT);
   });
 });
