@@ -79,3 +79,22 @@ describe("같은 이름 판정 — 로마자 대소문자 · 띄어쓰기 차이
     expect(normalizeNameKey(a)).toBe(normalizeNameKey(b));
   });
 });
+
+describe("splitMixedScriptName — 한 이름에 한글 · 로마자 함께(서버 그물 · LAB-FIX-5 실 AI 크루 2번)", () => {
+  it("로마자 + 한글 → 국적 KR 이면 한글 쪽, 아니면(빈 국적 포함) 로마자 쪽(결정 F)", async () => {
+    const { splitMixedScriptName } = await import("../core/extractContestantsCore");
+    expect(splitMixedScriptName("Chocomint HK 초코민트", "")).toBe("Chocomint HK");
+    expect(splitMixedScriptName("Chocomint HK 초코민트", "HK")).toBe("Chocomint HK");
+    expect(splitMixedScriptName("Wolf'Lo 울플러", "KR")).toBe("울플러");
+    expect(splitMixedScriptName("라치카 La Chica", "KR")).toBe("라치카");
+    expect(splitMixedScriptName("라치카 La Chica", "")).toBe("La Chica");
+  });
+  it("한 가지 표기뿐이거나 섞인 모양이 두 덩이로 갈리지 않으면 그대로", async () => {
+    const { splitMixedScriptName } = await import("../core/extractContestantsCore");
+    expect(splitMixedScriptName("W-Unit", "VN")).toBe("W-Unit");
+    expect(splitMixedScriptName("홀리뱅", "KR")).toBe("홀리뱅");
+    expect(splitMixedScriptName("SUGAR X SPICY DC", "ID")).toBe("SUGAR X SPICY DC");
+    expect(splitMixedScriptName("BTS 방탄 SUGA 슈가", "KR")).toBe("BTS 방탄 SUGA 슈가");
+    expect(splitMixedScriptName("", "KR")).toBe("");
+  });
+});

@@ -29,7 +29,7 @@ const BRIEF = {
 };
 const KNOWN_MALE = [
   "James Charles", "제임스 찰스", "Jeffree Star", "제프리 스타", "레오제이", "Leo J", "LeoJ", "Manny MUA", "Manny Gutierrez",
-  "Patrick Starrr", "Bretman Rock", "Wayne Goss", "Gabriel Zamora", "Mario Dedivanovic", "Patrick Ta", "Nikita Dragun",
+  "Patrick Starrr", "Bretman Rock", "Wayne Goss", "Gabriel Zamora", "Mario Dedivanovic", "Patrick Ta",
 ].map((n) => normalizeNameKey(n));
 const HANGUL = /[가-힣]/;
 

@@ -101,13 +101,14 @@ export function buildRulesCheckPrompt(opts: {
     "- 실제로 있는지 확인되지 않는 이름",
     "",
     "규칙:",
-    "- 칸을 지우거나 다른 이름을 제안하지 마라. 표시와 사유만",
+    "- 명단의 **모든 줄**을 하나씩 판정한다. 고르는 조건에 성별 · 연도 · 국적 같은 속성이 있으면 줄마다 그 속성을 따로 확인한다 — 널리 알려진 이름이라도 건너뛰지 마라",
+    "- 칸을 지우거나 다른 이름을 제안하지 마라. 판정과 사유만",
     `- reason = 왜 표시했는지 한 줄(60자 안). **${LANG_NAME[lang]}**로 쓴다`,
     "- 번호(i)는 아래 명단의 번호 그대로. 명단에 없는 번호를 만들지 마라",
-    "- 표시할 칸이 없으면 빈 목록",
+    "- ok = 조건에 맞고 의심도 없으면 true, 표시할 칸이면 false. false 인 줄에만 reason 을 쓴다",
     "- 설명 · 머리말 없이 JSON 한 줄만 출력한다",
     "",
-    '출력 형식: {"flags":[{"i":<번호>,"reason":"<사유>"}]}',
+    '출력 형식(명단의 줄마다 하나): {"rows":[{"i":<번호>,"ok":true},{"i":<번호>,"ok":false,"reason":"<사유>"}]}',
     "",
     "명단:",
     ...rows,
@@ -123,7 +124,11 @@ export function parseRulesCheckReply(text: string, validSlots: ReadonlySet<numbe
   try {
     const m = (text ?? "").match(/\{[\s\S]*\}/);
     if (!m) return null;
-    rows = (JSON.parse(m[0]) as { flags?: unknown })?.flags;
+    const parsed = JSON.parse(m[0]) as { flags?: unknown; rows?: unknown };
+    // 줄마다 판정(rows) — ok 가 true 가 아닌 줄만 표시한다. 옛 모양(flags = 걸린 칸만)도 읽는다.
+    rows = Array.isArray(parsed?.rows)
+      ? (parsed.rows as unknown[]).filter((r) => r && typeof r === "object" && (r as { ok?: unknown }).ok !== true)
+      : parsed?.flags;
   } catch {
     return null;
   }

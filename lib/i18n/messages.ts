@@ -1731,6 +1731,18 @@ export const MESSAGES = {
     en: "Looks like the same person as slot {slots}. Keep one, then clear the other with ✕ or fix its name.",
     es: "Parece la misma persona que la casilla {slots}. Conserva una y vacía la otra con ✕ o corrige el nombre.",
   },
+  // LAB-FIX-5 §5 — 채운 뒤 "고르는 조건" 다시 검사(대표 승인 2026-11-19 18:55 · 지시서 표 그대로)
+  "lab.rules.flag": { ko: "조건 확인 필요", en: "Check against rules", es: "Revisar criterios" },
+  "lab.rules.checking": {
+    ko: "고르는 조건과 맞는지 확인하는 중…",
+    en: "Checking entries against the selection rules…",
+    es: "Comprobando las entradas con los criterios…",
+  },
+  "lab.rules.summary": {
+    ko: "조건을 확인할 칸 {n}개를 표시했습니다.",
+    en: "Marked {n} slots to check against the rules.",
+    es: "Se marcaron {n} casillas para revisar.",
+  },
   "lab.review.goToSlot": { ko: "{n}번 보기", en: "Go to {n}", es: "Ir a {n}" },
   "lab.review.nameMismatch": {
     ko: "이름↔검색어 불일치",

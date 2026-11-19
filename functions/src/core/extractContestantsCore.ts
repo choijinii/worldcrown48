@@ -275,6 +275,30 @@ export function preferChannelFullName(name: string, channel: string): string {
 }
 
 /**
+ * 서버 그물 (LAB-FIX-5 실 AI · 댄스 크루 2번 "Chocomint HK 초코민트"). 지시문이 "한 이름 안에 한글과 로마자를 함께 쓰지 마라"고
+ * 해도 회차마다 흔들린다 — 이름이 **한글 덩이 하나 + 로마자 덩이 하나**로 정확히 갈릴 때만 하나를 고른다. 결정 F 대로 국적이 KR 이면
+ * 한글 쪽, 아니면(국적을 모를 때 포함) 원래 표기인 로마자 쪽. 덩이가 셋 이상이거나 한 가지 표기뿐이면 그대로 둔다.
+ */
+export function splitMixedScriptName(name: string, nationality: string): string {
+  const n = toStr(name);
+  if (!n) return n;
+  const runs: { kind: "ko" | "latin"; words: string[] }[] = [];
+  for (const w of n.split(/\s+/)) {
+    const ko = /[가-힣]/.test(w);
+    const latin = /[A-Za-z]/.test(w);
+    if (ko && latin) return n; // 한 낱말 안에 둘 다 — 가르지 않는다
+    const kind = ko ? "ko" : latin ? "latin" : runs[runs.length - 1]?.kind;
+    if (!kind) return n;
+    const last = runs[runs.length - 1];
+    if (last && last.kind === kind) last.words.push(w);
+    else runs.push({ kind, words: [w] });
+  }
+  if (runs.length !== 2) return n;
+  const want = toStr(nationality).toUpperCase() === "KR" ? "ko" : "latin";
+  return runs.find((r) => r.kind === want)!.words.join(" ");
+}
+
+/**
  * 서버 그물 (LAB-FIX-5 §3-5). 제목에 원곡 표시가 **글자로 적혀 있고**(`원곡: X` · `Original: X` · `original song by X`)
  * 소속 칸이 그 X 와 같으면 소속을 비운다. 엔트리가 사람 · 팀인 세 줄 지시문에서만 쓴다 — 노래 · 작품 대회(그 외)는
  * 가수가 덧붙이는 정보일 수 있다. 원곡 표시가 없는 제목은 건드리지 않는다(제목 앞 이름은 그 사람의 소속일 수 있다 — aespa 카리나 직캠).
@@ -420,7 +444,11 @@ export async function extractContestantsCore(
   const out =
     usesBriefPrompt(brief, entryUnit) && entryUnit !== "other"
       ? parsed.map((x, i) => {
-          const y = { ...x, affiliation: dropOriginalArtistExtra(items[i].title, x.affiliation) };
+          const y = {
+            ...x,
+            name: splitMixedScriptName(x.name, x.nationality),
+            affiliation: dropOriginalArtistExtra(items[i].title, x.affiliation),
+          };
           return y.confident ? { ...y, name: preferChannelFullName(y.name, items[i].channelTitle) } : y;
         })
       : parsed;

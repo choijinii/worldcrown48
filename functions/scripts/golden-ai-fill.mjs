@@ -58,7 +58,7 @@ import {
 } from "../lib/core/parseContestants.js";
 import { SONNET_MODEL, HAIKU_MODEL, SONNET_THINKING } from "../lib/core/models.js";
 
-const RUNS = 3;
+const RUNS = Number(process.env.GOLDEN_RUNS) > 0 ? Number(process.env.GOLDEN_RUNS) : 3; // GOLDEN_RUNS=1 — 묶음마다 1회(LAB-FIX-5 §7)
 const MAX_TOKENS = 8192; // aiFillContestants.ts의 AI_MAX_TOKENS와 같은 값
 const NAME_SAMPLE = 10; // 실존 여부 눈검사용 — 각 조건 1회차에서 뽑는 이름 수
 

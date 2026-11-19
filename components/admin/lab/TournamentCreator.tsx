@@ -314,6 +314,8 @@ export function TournamentCreator(): JSX.Element {
   // LAB-FIX-5 §3-2 — 채운 뒤 "고르는 조건" 다시 검사가 표시한 칸(그때의 이름과 함께 · 초안에 저장).
   const [ruleFlags, setRuleFlags] = useState<RuleFlag[]>([]);
   const [rulesChecking, setRulesChecking] = useState(false);
+  // 이번 화면에서 검사가 끝났는지 — 요약 글("칸 {n}개를 표시했습니다")은 검사 뒤 · 표시가 남아 있을 때 보인다.
+  const [rulesChecked, setRulesChecked] = useState(false);
   // THUMB-1 대표 매치 — 그리드 칸 번호(0~47) 두 개 + 위치 값. 둘 다 골라야 게시된다.
   const [pairPick, setPairPick] = useState<PairPick>(EMPTY_PICK);
   const [refreshingIndex, setRefreshingIndex] = useState<number | null>(null);
@@ -495,6 +497,7 @@ export function TournamentCreator(): JSX.Element {
     setSourcingStates(s.sourcing ?? {});
     setImageNotFound(new Set(s.imageNotFound ?? []));
     setRuleFlags(s.ruleFlags ?? []);
+    setRulesChecked(false);
     lastQueuedRef.current = JSON.stringify(s);
   }
 
@@ -757,6 +760,7 @@ export function TournamentCreator(): JSX.Element {
       // 기다리게 하지 않는다 — 검사는 칸을 지우지 않고 표시만 하므로 찾기와 나란히 돌아도 된다.
       if (shouldCheckRules(aiBrief)) void runRulesCheck(applied);
       else setRuleFlags([]);
+      setRulesChecked(false);
       return { drafts: applied, filledIndexes: touched };
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
@@ -785,6 +789,7 @@ export function TournamentCreator(): JSX.Element {
       >(getFunctionsInstance(), "checkEntryRules");
       const res = await callable({ title: title.trim(), category, entryUnit, aiBrief, entries, lang });
       setRuleFlags(ruleFlagsFromReply(res.data.flags ?? [], drafts));
+      setRulesChecked(true);
       void track("admin_lab_rules_check", { category, entry_unit: entryUnit, flagged: res.data.flags?.length ?? 0 });
     } catch (err) {
       void track("admin_lab_rules_check_error", { category, error_code: (err as { code?: string }).code ?? "unknown" });
@@ -1394,6 +1399,7 @@ export function TournamentCreator(): JSX.Element {
     setSourcingStates({});
     setImageNotFound(new Set());
     setRuleFlags([]);
+      setRulesChecked(false);
     setPairPick(EMPTY_PICK);
     setTuningIndex(null);
     setCheckingImageIndex(null);
@@ -1521,6 +1527,7 @@ export function TournamentCreator(): JSX.Element {
       setSourcingStates({});
       setImageNotFound(new Set());
       setRuleFlags([]);
+      setRulesChecked(false);
       setSaveStatus(null);
       lastQueuedRef.current = "";
       setListRefresh((n) => n + 1);
@@ -1844,7 +1851,6 @@ export function TournamentCreator(): JSX.Element {
             sourcing={sourcingStates}
             reviewFlags={reviewFlags}
             ruleFlags={activeRules}
-            data-rules-checking={rulesChecking ? "true" : undefined}
             onRefreshVideo={(index) => void refreshSlot(index)}
             refreshingIndex={refreshingIndex}
             mediaKind={mediaKind}
@@ -1854,6 +1860,18 @@ export function TournamentCreator(): JSX.Element {
             onCheckImage={setCheckingImageIndex}
           />
           </div>
+          {(rulesChecking || rulesChecked || Object.keys(activeRules).length > 0) && (
+            <p
+              role="status"
+              data-testid="lab-rules-status"
+              data-state={rulesChecking ? "checking" : "done"}
+              style={{ margin: 0, fontSize: 12, color: rulesChecking ? lab.textSub : lab.text }}
+            >
+              {rulesChecking
+                ? t("lab.rules.checking")
+                : t("lab.rules.summary", { n: Object.keys(activeRules).length })}
+            </p>
+          )}
           <p style={{ margin: 0, fontSize: 12, color: lab.textMuted }}>
             {t("lab.fill.hint")}
           </p>

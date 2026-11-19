@@ -46,6 +46,12 @@ describe("buildRulesCheckPrompt", () => {
     expect(p).toContain("의심되면 표시");
     expect(p).toContain("본명 · 활동명 · 채널명");
   });
+  it("모든 줄에 판정을 적게 한다(걸린 칸만 적게 하면 유명한 이름을 건너뛴다 — 실 AI 1회차 Jeffree Star · 레오제이 놓침)", () => {
+    expect(p).toContain('"rows"');
+    expect(p).toContain('"ok"');
+    expect(p).toContain("모든 줄");
+    expect(p).toContain("널리 알려진 이름이라도 건너뛰지");
+  });
   it.each([
     ["ko", "한국어"],
     ["en", "English"],
@@ -78,6 +84,27 @@ describe("parseRulesCheckReply — 없는 칸 번호는 버린다", () => {
     const r = parseRulesCheckReply(JSON.stringify({ flags: [{ i: 1 }, { i: 8, reason: "가".repeat(200) }] }), slots);
     expect(r[0]).toEqual({ slot: 0, reason: "" });
     expect(r[1].reason).toHaveLength(120);
+  });
+  it("줄마다 판정(rows) — ok 가 true 가 아닌 줄만 표시 · 없는 칸 번호는 버림", () => {
+    const r = parseRulesCheckReply(
+      JSON.stringify({
+        rows: [
+          { i: 1, ok: true },
+          { i: 2, ok: false, reason: "남성으로 알려짐" },
+          { i: 4, ok: false, reason: "3번과 같은 사람" },
+          { i: 8, ok: true, reason: "" },
+          { i: 99, ok: false, reason: "x" },
+        ],
+      }),
+      slots,
+    );
+    expect(r).toEqual([
+      { slot: 1, reason: "남성으로 알려짐" },
+      { slot: 3, reason: "3번과 같은 사람" },
+    ]);
+  });
+  it("줄마다 판정 — 모두 맞으면 빈 목록", () => {
+    expect(parseRulesCheckReply('{"rows":[{"i":1,"ok":true}]}', slots)).toEqual([]);
   });
   it("표시할 칸이 없으면 빈 목록", () => {
     expect(parseRulesCheckReply('{"flags":[]}', slots)).toEqual([]);
