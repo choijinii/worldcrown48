@@ -16,6 +16,11 @@ rules_version = '2';
 //     read  — public (무대 · 표지 · 차트 · 카드)
 //     write — denied; only finalizeEntryImages (admin SDK) copies here
 //
+//   /pitch/promo/{file}   (PITCH-2 PR A · 추가 지시 ② — 히어로 홍보 장)
+//     read  — public (홈은 로그인 전에 본다 · 우리가 만든 영상 파일 + 정지 그림)
+//     write — 관리자(token.admin == true) + 익명 아님 + video/mp4 또는 image/* 만. 올리는 화면은 없다.
+//             삭제는 관리자 + 익명 아님만 본다(삭제 요청엔 request.resource 가 없다).
+//
 // Everything else is denied by default (whitelist only).
 // ════════════════════════════════════════════════════════════════════
 service firebase.storage {
@@ -40,6 +45,18 @@ service firebase.storage {
     match /entry-images/tournaments/{tournamentId}/{file} {
       allow read: if true;
       allow write: if false;
+    }
+    function isAdminWriter() {
+      return request.auth != null
+        && request.auth.token.admin == true
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    match /pitch/promo/{file} {
+      allow read: if true;
+      allow create, update: if isAdminWriter()
+                            && (request.resource.contentType == 'video/mp4'
+                                || request.resource.contentType.matches('image/.*'));
+      allow delete: if isAdminWriter();
     }
     match /{allPaths=**} {
       allow read, write: if false;

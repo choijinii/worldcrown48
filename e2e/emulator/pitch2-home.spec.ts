@@ -3,24 +3,32 @@
  * ⑪(쿠키 없는 창 → /launch)은 커튼 판(e2e/curtain-1.spec.ts)에 한 줄로 있다.
  *
  * 시드 = K-POP 8 · CREATOR 1(그림 대회 imgT1 포함) + 숨김 1 + 마감 1 ·
- * 차트 캐시(10판 이상) · 공개 기사 4 + 조회 칸 · config/pitch 홍보 영상 id.
+ * 차트 캐시(10판 이상) · 공개 기사 4 + 조회 칸 · config/pitch 홍보 장(Storage `pitch/promo/` 의 시험 영상 mp4 +
+ * 정지 그림 — 추가 지시 ②). 시험 영상 = e2e/fixtures/pitch-promo/promo.mp4(2초 · 9KB · 브라우저 녹화로 만든 VP9 mp4 —
+ * Playwright 크로미움은 H.264 를 못 튼다).
  * 시드에 `e2e: true` 를 달지 않는다 — 이 판의 빌드는 배포 환경이 production 으로 읽혀 공개 목록이 시험 대회를 뺀다
  * (D-66 그대로 동작). 에뮬레이터(demo-wc48)는 따로 떨어진 시험 전용 DB 라 실서비스에 닿지 않는다(다른 에뮬레이터 시험과 같음).
  */
 import { Timestamp } from "firebase-admin/firestore";
 import { expect, test, type Page } from "@playwright/test";
 import {
+  adminApp,
   collectConsoleErrors,
   db,
   expectNoConsoleErrors,
   expectNoForbiddenWords,
   resetEmulators,
   seedImageTournament,
+  storageUrl,
   stubYouTubeImages,
 } from "./helpers";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { LAUNCH_AT_MS } from "../../lib/launch/launchAt";
 
 const DAY = 86_400_000;
+const PROMO_VIDEO = "pitch/promo/launch.mp4";
+const PROMO_POSTER = "pitch/promo/launch.jpg";
 const KPOP = ["kp1", "kp2", "kp3", "kp4", "kp5", "kp6", "kp7"];
 
 async function seedTournament(id: string, o: { category?: string; status?: string; deadlineMs?: number; createdMs: number; title?: string }) {
@@ -86,7 +94,12 @@ test.beforeEach(async ({ page }) => {
   await seedCache("imgT1", 30, ["엔트리01", "엔트리02", "엔트리03", "엔트리04", "엔트리05"], now - 2 * 3_600_000);
   await seedCache("kp5", 20, ["가", "나", "다"], now - 3_600_000);
   await seedCache("endedT", 15, ["마감1", "마감2", "마감3"], now - DAY);
-  await db().collection("config").doc("pitch").set({ promoVideoId: "PROMOvid001" });
+  // 최신 발행 = kp7(판 수 0) — 히어로 둘째 장이 되고, 뒤 3장(판 수 많은 순)에는 다시 나오지 않는다.
+  await db().collection("tournaments").doc("kp7").update({ createdAt: Timestamp.fromMillis(now - 60_000) });
+  const bucket = adminApp().storage().bucket();
+  await bucket.file(PROMO_VIDEO).save(readFileSync(path.join(__dirname, "../fixtures/pitch-promo/promo.mp4")), { contentType: "video/mp4", resumable: false });
+  await bucket.file(PROMO_POSTER).save(readFileSync(path.join(__dirname, "../fixtures/entry-images/01.jpg")), { contentType: "image/jpeg", resumable: false });
+  await db().collection("config").doc("pitch").set({ promoVideoUrl: storageUrl(PROMO_VIDEO), promoPosterUrl: storageUrl(PROMO_POSTER) });
   await seedArticle("20261119-new001", "새 기사 하나", now - 60_000, "imgT1");
   await seedArticle("20261119-new002", "크리에이터 기사", now - 120_000, "cr1");
   await seedArticle("20261118-old001", "어제 기사", now - DAY, null);
@@ -105,14 +118,25 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   const errors = collectConsoleErrors(page);
   await page.goto("/?lang=ko");
 
-  // 히어로 = 홍보 1 + 판 수 많은 순 4(imgT1 30 · kp5 20 · 그다음 최신 발행순 cr1 · kp1)
-  await expect.poll(() => heroSlideIds(page), { timeout: 30_000 }).toEqual(["pitch-hero-promo", "imgT1", "kp5", "cr1", "kp1"]);
+  // 히어로 = 홍보 1 → 최신 1(kp7 · 판 수 0) → 판 수 많은 순 3(imgT1 30 · kp5 20 · 그다음 최신 발행순 cr1) — kp7 은 뒤 3장에 없다
+  await expect.poll(() => heroSlideIds(page), { timeout: 30_000 }).toEqual(["pitch-hero-promo", "kp7", "imgT1", "kp5", "cr1"]);
   // ⑧ 이미지 대회 — 히어로 장과 카드에 그림 표지(600 사본)
   await expect(page.getByTestId("hero-cover-imgT1").getByTestId("vsthumb-a-img")).toHaveAttribute("src", /imgT1%2F0_600\.jpg/, { timeout: 30_000 });
   await expect(page.getByTestId("tcard-cover-imgT1").getByTestId("vsthumb-a-img")).toHaveAttribute("src", /imgT1%2F0_600\.jpg/);
-  // 홍보 장 — 런칭 전에는 /launch
-  await expect(page.getByTestId("pitch-hero-promo")).toHaveAttribute("href", "/launch");
-  await expect(page.getByTestId("pitch-hero-promo")).toContainText("48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다");
+  // 홍보 장 — 장 전체 = 같은 탭 /arena · 제목 · 참가하기 · WORLDCROWN48 · FILM
+  const promo = page.getByTestId("pitch-hero-promo");
+  await expect(promo).toHaveAttribute("href", "/arena");
+  await expect(promo).not.toHaveAttribute("target", /.+/);
+  await expect(promo).toContainText("48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다");
+  await expect(promo).toContainText("WORLDCROWN48 · FILM");
+  await expect(promo).toContainText("참가하기");
+  // 히어로 안에 youtube 주소 0 · 페이지에 /launch 링크 0(배너 ① 의 사전등록 안내만 예외)
+  expect(await page.getByTestId("pitch-hero").evaluate((el) => (el.innerHTML.match(/youtu/gi) ?? []).length)).toBe(0);
+  expect(await page.locator("a[href^='/launch']").evaluateAll((els) => els.filter((e) => !e.closest("[data-banner-slot='pitch-between']")).length)).toBe(0);
+  // 시안 영어 글자(3언어 공통) — 오른쪽 칸 머리 · 큰 차트 그림 위
+  await expect(page.getByTestId("pitch-hero-side").getByText("CROWN SCORE", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("pitch-hero-side").getByText("NEWSROOM", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("pitch-chart-main").getByText("CROWN SCORE", { exact: true })).toBeVisible();
 
   // ⑩ 숨김 · 마감 대회는 히어로 · Trending 에 없다(마감 대회는 CHARTS 에는 있을 수 있다)
   for (const id of ["hiddenT", "endedT"]) {
@@ -219,8 +243,8 @@ test("⑤ 배너 ① 런칭 뒤(시각 모킹) — 사전등록 안내가 기본
   const slot = page.locator("[data-banner-slot='pitch-between']");
   await expect(slot).toBeVisible({ timeout: 30_000 });
   await expect(slot.locator("a[href='/launch']")).toHaveCount(0);
-  await expect(page.getByTestId("pitch-hero-promo")).toHaveAttribute("href", /youtube\.com\/watch\?v=PROMOvid001/);
-  await expect(page.getByTestId("pitch-hero-promo")).toHaveAttribute("target", "_blank");
+  // 홍보 장은 런칭 전후 같다 — 같은 탭 /arena
+  await expect(page.getByTestId("pitch-hero-promo")).toHaveAttribute("href", "/arena");
 });
 
 test("⑦ 3언어 — 열 머리글은 영어 그대로 · 콘솔 오류 0", async ({ page }) => {
@@ -250,4 +274,95 @@ test("⑨ 대표 매치 엔트리를 내리면 표지가 앞 번호 엔트리로
     await expect(a).not.toHaveAttribute("src", /imgT1%2F0_600\.jpg/, { timeout: 60_000 });
     await expect(a).toHaveAttribute("src", /imgT1%2F\d+_600\.jpg/);
   }
+});
+
+test("⑫ 홍보 장 — 1440 음소거 · 자동 · 반복 영상 · 누르면 /arena · 390 은 영상 없이 정지 그림 (추가 지시 ②)", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  await page.goto("/?lang=ko");
+  const promo = page.getByTestId("pitch-hero-promo");
+  const video = page.getByTestId("pitch-hero-promo-video");
+  await expect(video).toHaveCount(1, { timeout: 30_000 });
+  await expect(promo).toHaveAttribute("data-promo-mode", "video");
+  await expect(video).toHaveAttribute("src", /pitch%2Fpromo%2Flaunch\.mp4/);
+  await expect(video).toHaveAttribute("loop", "");
+  await expect(video).toHaveAttribute("playsinline", "");
+  await expect(video).not.toHaveAttribute("controls", /.*/);
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => ({ muted: v.muted, paused: v.paused, moved: v.currentTime > 0, loop: v.loop })), { timeout: 20_000 })
+    .toEqual({ muted: true, paused: false, moved: true, loop: true });
+  // 다른 장으로 넘어가면 멈춘다
+  await page.getByTestId("pitch-hero").hover();
+  await page.getByTestId("pitch-hero-next").click();
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  await page.getByTestId("pitch-hero-prev").click();
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+  await page.screenshot({ path: "test-results-emulator/pitch2-promo-1440.png" });
+  await promo.click();
+  await expect(page).toHaveURL(/\/arena$/);
+  await expectNoConsoleErrors(errors);
+});
+
+test("⑫ 홍보 장 — 390 은 영상을 불러오지 않고 정지 그림만", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = collectConsoleErrors(page);
+  await page.goto("/?lang=ko");
+  const promo = page.getByTestId("pitch-hero-promo");
+  await expect(page.getByTestId("pitch-hero-promo-poster")).toHaveAttribute("src", /pitch%2Fpromo%2Flaunch\.jpg/, { timeout: 30_000 });
+  await expect(promo).toHaveAttribute("data-promo-mode", "still");
+  await expect(page.locator("video")).toHaveCount(0);
+  await page.waitForTimeout(1500);
+  await expect(page.locator("video")).toHaveCount(0);
+  await expectNoConsoleErrors(errors);
+});
+
+test("⑫ 홍보 장 — 움직임 줄이기 설정이면 영상 없이 정지 그림", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/?lang=ko");
+  await expect(page.getByTestId("pitch-hero-promo-poster")).toBeVisible({ timeout: 30_000 });
+  await page.waitForTimeout(1000);
+  await expect(page.locator("video")).toHaveCount(0);
+});
+
+test("⑬ 이어서 하기 알약 — 메뉴바 안 언어 토글 바로 앞 · 옛 자리 없음 · 화면마다 메뉴바 높이·언어 토글 자리 그대로", async ({ page, context }) => {
+  const errors = collectConsoleErrors(page);
+  const pages = ["/?lang=ko", "/arena?lang=ko", "/arena/kp1?lang=ko", "/arena/imgT1/ranking?lang=ko", "/arena/imgT1/champion?lang=ko", "/news/20261119-new001?lang=ko", "/policies/privacy?lang=ko"];
+  const measure = () =>
+    page.evaluate(() => {
+      const r = (s: string) => document.querySelector(s)?.getBoundingClientRect() ?? null;
+      const bar = r(".wc-nav-bar");
+      const lang = r("[data-testid='lang-toggle']");
+      return { barH: bar ? Math.round(bar.height) : null, langX: lang ? Math.round(lang.left) : null, langY: lang ? Math.round(lang.top) : null };
+    });
+  const before: Record<string, unknown> = {};
+  for (const u of pages) {
+    await page.goto(u);
+    await expect(page.locator(".wc-nav-bar")).toBeVisible({ timeout: 30_000 });
+    await page.waitForTimeout(300);
+    before[u] = await measure();
+  }
+  // 메모 = 다른 대회(kp2) — 위 어느 화면에서도 알약이 보인다
+  await context.addInitScript(() => localStorage.setItem("wc48:continue:v1", JSON.stringify({ tournamentId: "kp2", at: Date.now() })));
+  for (const u of pages) {
+    await page.goto(u);
+    const pill = page.getByTestId("continue-pill");
+    await expect(pill).toBeVisible({ timeout: 30_000 });
+    // 메뉴바 안 · 언어 토글 바로 앞(다음 형제)
+    expect(await pill.evaluate((el) => Boolean(el.closest("header.wc-nav .wc-nav-actions")))).toBe(true);
+    expect(
+      await pill.evaluate((el) => {
+        const wrap = el.closest(".wc-pill-wrap");
+        return wrap?.nextElementSibling?.getAttribute("data-testid") === "lang-toggle" ? "ok" : "no";
+      }),
+    ).toBe("ok");
+    await expect(page.locator(".wc-pill-layer")).toHaveCount(0);
+    expect(await measure(), u).toEqual(before[u]);
+    const pb = await pill.boundingBox();
+    const lb = await page.getByTestId("lang-toggle").boundingBox();
+    expect(pb!.x + pb!.width).toBeLessThanOrEqual(lb!.x);
+  }
+  // 홈 제목 줄에는 GLOBAL FAN ARENA 만
+  await page.goto("/?lang=ko");
+  await expect(page.locator(".title-row")).toHaveText("GLOBAL FAN ARENA");
+  await page.screenshot({ path: "test-results-emulator/pitch2-pill-1440.png", clip: { x: 0, y: 0, width: 1440, height: 120 } });
+  await expectNoConsoleErrors(errors);
 });

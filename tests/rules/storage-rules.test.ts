@@ -162,3 +162,47 @@ describe("entry-images/tournaments — 서버 함수만 쓴다", () => {
     await assertSucceeds(getBytes(ref(testEnv.unauthenticatedContext().storage(), TOUR_IMG)));
   });
 });
+
+// ─── PITCH-2 PR A · 추가 지시 ② — 히어로 홍보 장(우리가 만든 영상 파일 + 정지 그림) ──────────
+// pitch/promo/: 읽기 공개(홈은 로그인 전에 본다) · 쓰기 = 관리자만(코티오가 올린다 · 올리는 화면 없음)
+const PROMO_VIDEO = "pitch/promo/launch.mp4";
+const PROMO_POSTER = "pitch/promo/launch.jpg";
+const mp4 = { contentType: "video/mp4" };
+
+describe("pitch/promo — 읽기 공개 · 쓰기 관리자만", () => {
+  it("ALLOWS anyone (signed out) to read the promo video and poster", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await uploadBytes(ref(c.storage(), PROMO_VIDEO), JPG, mp4);
+      await uploadBytes(ref(c.storage(), PROMO_POSTER), JPG, jpeg);
+    });
+    const anon = testEnv.unauthenticatedContext().storage();
+    await assertSucceeds(getBytes(ref(anon, PROMO_VIDEO)));
+    await assertSucceeds(getBytes(ref(anon, PROMO_POSTER)));
+  });
+  it("ALLOWS an admin to upload an mp4 and a poster image", async () => {
+    await assertSucceeds(uploadBytes(ref(adminGoogle(), PROMO_VIDEO), JPG, mp4));
+    await assertSucceeds(uploadBytes(ref(adminGoogle(), PROMO_POSTER), JPG, jpeg));
+  });
+  it("DENIES signed-out, a signed-in fan, and an anonymous account with an admin flag", async () => {
+    await assertFails(uploadBytes(ref(testEnv.unauthenticatedContext().storage(), PROMO_VIDEO), JPG, mp4));
+    await assertFails(uploadBytes(ref(google("fan"), PROMO_VIDEO), JPG, mp4));
+    const anon = testEnv
+      .authenticatedContext("host-1", { admin: true, firebase: { sign_in_provider: "anonymous" } })
+      .storage();
+    await assertFails(uploadBytes(ref(anon, PROMO_VIDEO), JPG, mp4));
+  });
+  it("DENIES a fan deleting a promo file; ALLOWS an admin", async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+      await uploadBytes(ref(c.storage(), PROMO_VIDEO), JPG, mp4);
+    });
+    await assertFails(deleteObject(ref(google("fan"), PROMO_VIDEO)));
+    await assertSucceeds(deleteObject(ref(adminGoogle(), PROMO_VIDEO)));
+  });
+  it("DENIES non-video/image content types even for an admin", async () => {
+    await assertFails(uploadBytes(ref(adminGoogle(), "pitch/promo/x.html"), JPG, { contentType: "text/html" }));
+  });
+  it("DENIES other pitch/ folders (whitelist stays closed)", async () => {
+    await assertFails(uploadBytes(ref(adminGoogle(), "pitch/other/launch.mp4"), JPG, mp4));
+    await assertFails(getBytes(ref(testEnv.unauthenticatedContext().storage(), "pitch/other/launch.mp4")));
+  });
+});

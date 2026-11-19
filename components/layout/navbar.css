@@ -550,28 +550,19 @@ header.wc-nav {
   }
 }
 
-/* ── 선택 이어가기 알약 (D-18 · 정본 1: 메뉴 아래 14px · 오른쪽 끝 · 높이 30 · 13px/700 · 모서리 999) ── */
-/* 데스크톱 — 메뉴바(64) 바로 아래에 겹쳐 놓는다(정본 1: 무대 위 오른쪽). 본문 자리를 차지하지 않는다. */
-.wc-pill-layer {
-  position: absolute;
-  top: calc(var(--nav-top) + var(--nav-bar-h));
-  left: 0;
-  right: 0;
-  z-index: 40;
-  pointer-events: none;
+/* ── 선택 이어가기 알약 (D-18 · 자리 = 메뉴바 안 · 언어 토글 바로 앞 — PITCH-2 추가 지시 ② 2절 · 대표 2026-11-19) ── */
+/* 색(청록) · 문구 · 누르면 하는 일 · 보이는 조건은 그대로. 설명 한 줄은 알약 아래에 겹쳐 뜬다(본문 자리를 차지하지 않는다). */
+.wc-pill-wrap {
+  display: flex;
+  align-items: center;
+  flex: none;
 }
 .wc-pill-inner {
   position: relative;
-  /* 메뉴바와 같이 창 가득 — 오른쪽 끝 = 메뉴바 안쪽 오른쪽 끝(테두리 1 + 안쪽 여백) */
-  padding: 28px calc(var(--nav-side) + 1px + var(--nav-pad-r)) 0;
-  box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: center;
 }
 .wc-pill {
-  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -591,9 +582,13 @@ header.wc-nav {
 .wc-pill:hover {
   background: color-mix(in srgb, var(--color-turquoise) 85%, var(--color-white));
 }
-/* 데스크톱 — 마우스 올림 · 키보드 초점 때만 설명이 뜬다(대표 결정 10/11). */
 .wc-pill-note {
   display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 45;
+  width: max-content;
   max-width: 280px;
   padding: 8px 12px;
   box-sizing: border-box;
@@ -605,51 +600,19 @@ header.wc-nav {
   font-size: 12px; /* 크기 토큰 없음(보고) — 앱에서 가장 작은 본문 크기 */
   line-height: 1.45;
   text-align: right;
+  white-space: normal;
 }
-/* 알약 묶음 전체(알약 + 설명)에 마우스가 있는 동안 유지 — 설명 위로 옮겨 가도 사라지지 않게(WCAG 1.4.13). */
 .wc-pill-inner:hover .wc-pill-note,
 .wc-pill:focus-visible + .wc-pill-note {
   display: block;
 }
-.wc-pill-note {
-  pointer-events: auto;
-}
-
-/* 휴대폰 세로 — 알약 바로 아래 작은 글씨로 늘 보인다(정본 외 추가 · 대표 눈검사 전). */
 @media (max-width: 860px) {
-  /* 휴대폰 — 설명 두 줄이 본문을 가리지 않게 본문 흐름에 넣는다. 매치 무대는 화면 높이에 맞춰
-     그려지므로(정본 6) 거기서만 메뉴바(48) 아래에 겹쳐 둔다. */
-  .wc-pill-layer {
-    position: static;
-  }
-  body:has([data-arena-root]) .wc-pill-layer {
-    position: absolute;
-    top: calc(var(--nav-top) + var(--nav-bar-h));
-  }
-  .wc-pill-inner {
-    padding: 10px calc(var(--nav-side) + 1px + var(--nav-pad-r)) 0;
-    gap: 4px;
-  }
   .wc-pill {
     height: 32px;
     padding: 0 14px 0 12px;
     font-size: 13px;
   }
-  .wc-pill-note,
-  .wc-pill-inner:hover .wc-pill-note,
-  .wc-pill:focus-visible + .wc-pill-note {
-    display: block;
+  .wc-pill-note {
     max-width: 240px;
-    padding: 0;
-    background: none;
-    border: 0;
-    box-shadow: none;
-    color: var(--color-text-sub); /* 보조 글자색 */
   }
-}
-
-/* CURTAIN-1 — 런칭 전 커튼 중 /launch 는 메뉴바 · 서랍 · 알약을 숨긴다(메뉴 한 번이면 홈으로 가므로).
-   표시는 app/launch/layout.tsx 가 서버에서 단다(관리자 쿠키가 있으면 달지 않는다). */
-body:has([data-curtain-root]) .wc-nav {
-  display: none;
 }

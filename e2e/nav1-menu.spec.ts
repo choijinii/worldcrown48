@@ -260,7 +260,7 @@ test.describe("데스크톱 1280", () => {
     expect(errors).toEqual([]);
   });
 
-  test("알약 — 메모가 있으면 메뉴 아래 오른쪽 · 마우스 올림 때 설명 · 그 대회 매치 화면에서는 숨김", async ({ page, baseURL }) => {
+  test("알약 — 메모가 있으면 메뉴바 안 언어 토글 바로 앞 · 마우스 올림 때 설명 · 그 대회 매치 화면에서는 숨김", async ({ page, baseURL }) => {
     await prime(page, baseURL, "nav1-e2e-tid");
     await page.goto("/records?lang=en");
     const pill = page.getByTestId("continue-pill");
@@ -275,12 +275,16 @@ test.describe("데스크톱 1280", () => {
     await expect(note).toBeVisible();
     await expect(note).toHaveText("You can continue only on this device. You can't continue on another device.");
 
-    // 알약 오른쪽 끝 = 메뉴바 안쪽 오른쪽 끝(아바타와 세로 정렬)
+    // 자리 = 메뉴바 안 · 언어 토글 바로 앞(PITCH-2 추가 지시 ② 2절 · 대표 2026-11-19) — 옛 자리(메뉴 아래) 없음
+    expect(await pill.evaluate((el) => Boolean(el.closest("header.wc-nav .wc-nav-actions")))).toBe(true);
+    expect(
+      await pill.evaluate((el) => el.closest(".wc-pill-wrap")?.nextElementSibling?.getAttribute("data-testid")),
+    ).toBe("lang-toggle");
+    await expect(page.locator(".wc-pill-layer")).toHaveCount(0);
     const pillBox = await pill.boundingBox();
-    const actions = await page.locator(".wc-nav-actions").boundingBox();
-    expect(Math.round((pillBox?.x ?? 0) + (pillBox?.width ?? 0))).toBe(
-      Math.round((actions?.x ?? 0) + (actions?.width ?? 0)),
-    );
+    const bar = await page.locator(".wc-nav-bar").boundingBox();
+    expect(pillBox!.y).toBeGreaterThanOrEqual(bar!.y);
+    expect(pillBox!.y + pillBox!.height).toBeLessThanOrEqual(bar!.y + bar!.height);
 
     await page.goto("/arena/nav1-e2e-tid?lang=en");
     await expect(page.getByTestId("continue-pill")).toHaveCount(0);
@@ -328,7 +332,9 @@ test.describe("휴대폰 세로 390", () => {
       .toBe(true);
   });
 
-  test("알약 아래 설명이 늘 보인다(정본 외 추가) · 390×844 캡처", async ({ page, baseURL }, info) => {
+  // 390 에서 알약이 메뉴바 한 줄에 들어가지 않는다 — 들어가는 모양 두 가지를 대표가 고른다(PITCH-2 추가 지시 ② 2절).
+  // 고른 뒤 이 시험을 그 모양으로 다시 쓴다. 그때까지 멈춤.
+  test.fixme("알약 아래 설명이 늘 보인다(정본 외 추가) · 390×844 캡처", async ({ page, baseURL }, info) => {
     await prime(page, baseURL, "nav1-e2e-tid");
     await page.goto("/records?lang=ko");
     const note = page.getByTestId("continue-pill-note");

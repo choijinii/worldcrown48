@@ -12,13 +12,13 @@
 | 판 수 · 차트 | `ranking_cache/{id}` (대회마다 1문서) | 한 번 읽기 |
 | 기사 | `news` published (기존 `subscribePublishedArticles` 대신 한 번 읽기) | 한 번 읽기 |
 | 조회 칸 | `news_views/{slug}` (발행 기사마다) | 한 번 읽기 |
-| 홍보 장 | `config/pitch.promoVideoId` (새 규칙: 읽기 누구나 · 쓰기 관리자) | 한 번 읽기 · 비면 4장 |
+| 홍보 장 | `config/pitch.promoVideoUrl` · `promoPosterUrl` — 우리가 만든 영상 파일(Storage `pitch/promo/` 의 mp4) + 정지 그림 (읽기 누구나 · 쓰기 관리자 · 추가 지시 ②) | 한 번 읽기 · 둘 다 비면 4장 |
 | 외신 | `lib/pitch/worldPress.ts` `loadWorldPress(cat)` → 언제나 `[]` | 추가 지시 ① |
 
 ## 순수 규칙 (RED 먼저 · `lib/__tests__/pitch.*.test.ts`)
 
 1. `openTournaments(list, now, env)` — 공개(D-66 · 숨김 제외) + 마감 전(조기 마감 포함) · `splitChartTournaments` 재사용
-2. `heroSlides({promoVideoId, open, runsTotalById})` — 홍보 장 1(있으면) + 판 수 많은 순 4(캐시 없음 = 0 → 최신 발행순 뒤) · 4개 미만이면 있는 만큼
+2. `heroSlides({promo, open, runsTotalById})` — 홍보 장 1(영상 또는 정지 그림이 있으면) + 최신 대회 1 + 판 수 많은 순 3(최신 대회 빼고 · 캐시 없음 = 0 → 최신 발행순 뒤) · 모자라면 있는 만큼 (추가 지시 ② 6절) · `promoAssetUrl` = 우리 버킷 `pitch/promo/` 아래 주소만
 3. `paginate(list, page, 6)` · `readPitchParams(search)` / `pitchHref({cat, page})` — `?cat=` `?page=` (범위 밖 page → 1 또는 마지막)
 4. `articleCategory(article, tournamentsById)` — 연결 대회의 카테고리 · 없으면 null(전체 탭에만)
 5. `newsColumns(articles, viewsBySlug, cat, todayKst)` — LATEST 최신 3 · HOT 급등 3(`sortTrending` · 0/동점 최신순)
@@ -41,3 +41,10 @@
 
 ## 하지 않는 것
 지시서 3절 그대로(매치 무대 · 아레나 홈 · 크라운 카드 · 메뉴바 · 내리기 · 그림 확인 창 · 편집기 · 커튼 · `lib/thumbnail` 규칙 · 대회 문서 새 칸 · 표에 없는 문구 · 새 색).
+
+## 추가 지시 ② 반영 (2026-11-19)
+- 홍보 장 = 우리가 만든 영상 파일 `<video muted autoplay loop playsinline>` · 조작 단추 없음 · 휴대폰(≤480)과 움직임 줄이기 = 정지 그림만 · 첫 장이 보일 때만 재생 · 장 전체 = 같은 탭 `/arena` · 유튜브 연결 없음.
+- 히어로 5장 = 홍보 1 + 최신 대회 1 + 참여 많은 대회 3(최신 대회 중복 없음).
+- storage.rules `pitch/promo/{file}` — 읽기 공개 · 쓰기 관리자(익명 아님) · video/mp4 · image/*.
+- 시안 영어 글자 되살림: 오른쪽 칸 머리 CROWN SCORE · NEWSROOM · 큰 차트 그림 위 CROWN SCORE · 빈 차트 안내 위 CROWN SCORE · 홍보 장 WORLDCROWN48 · FILM.
+- "이어서 하기" 알약 = 메뉴바 안 · 언어 토글 바로 앞(모든 화면 공용). 390 폭은 한 줄에 들어가지 않아 대표 결정 대기(모양 두 가지 캡처).

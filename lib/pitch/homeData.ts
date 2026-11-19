@@ -4,7 +4,8 @@
  * 대회 목록은 실시간 구독(lib/pitch/pitchStore — 내린 엔트리가 1분 안에 표지에서 빠지게 · D-93)이고,
  * 나머지는 여기서 **한 번** 읽는다(실시간 아님 — 기사·조회 칸이 바뀔 때마다 홈 전체가 다시 받지 않게):
  *
- *   · 카테고리(탭) · `config/pitch.promoVideoId`(히어로 홍보 장)
+ *   · 카테고리(탭) · `config/pitch.promoVideoUrl` · `promoPosterUrl`(히어로 홍보 장 — 우리가 만든 영상 파일과
+ *     정지 그림 · 우리 버킷 `pitch/promo/` 아래 주소만 받는다 · 추가 지시 ②)
  *   · 대회마다 `ranking_cache/{id}` — 완주 판 수(히어로 정렬) · 발표 시각 · 1·2·3…위 이름과 그림
  *   · 공개 기사(최신 ARTICLE_LIMIT 건) · 기사마다 `news_views/{slug}`(조회 칸 · PR B)
  *
@@ -19,7 +20,7 @@ import { validateCategoryDoc, type CategoryDoc } from "@/lib/taxonomy/category";
 import type { ArticleViews } from "@/lib/news/articleViews";
 import type { LocalizedBlocks, LocalizedText } from "@/lib/news/articleDoc";
 import type { NamedLike } from "@/lib/contestantName";
-import type { HomeArticle, HomeChartCache } from "./home";
+import { promoAssetUrl, type HeroPromo, type HomeArticle, type HomeChartCache } from "./home";
 
 const ARTICLE_LIMIT = 60;
 /** 차트 한 줄에 싣는 등수(CHARTS 큰 차트 1~5위). */
@@ -29,7 +30,7 @@ export type HomeCache = HomeChartCache;
 
 export interface PitchHomeData {
   categories: CategoryDoc[];
-  promoVideoId: string;
+  promo: HeroPromo;
   articles: HomeArticle[];
   viewsBySlug: Record<string, ArticleViews>;
 }
@@ -97,12 +98,21 @@ export async function loadPitchHome(): Promise<PitchHomeData> {
   const [categories, promo, articles] = await Promise.all([
     readCategories(db).catch(() => [] as CategoryDoc[]),
     getDoc(doc(db, "config", "pitch"))
-      .then((s) => (s.exists() ? s.get("promoVideoId") : ""))
-      .catch(() => ""),
+      .then((s) => (s.exists() ? (s.data() as Record<string, unknown>) : {}))
+      .catch(() => ({}) as Record<string, unknown>),
     readArticles(db).catch(() => [] as HomeArticle[]),
   ]);
   const viewsBySlug = await readViews(db, articles.map((a) => a.slug));
-  return { categories, promoVideoId: typeof promo === "string" ? promo.trim() : "", articles, viewsBySlug };
+  const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "";
+  return {
+    categories,
+    promo: {
+      videoUrl: promoAssetUrl(promo.promoVideoUrl, bucket, "video"),
+      posterUrl: promoAssetUrl(promo.promoPosterUrl, bucket, "image"),
+    },
+    articles,
+    viewsBySlug,
+  };
 }
 
 /** 대회마다 차트 캐시 한 문서. 없거나 못 읽으면 그 대회는 판 수 0 · 차트 없음. */

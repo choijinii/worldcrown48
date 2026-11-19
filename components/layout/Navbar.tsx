@@ -139,6 +139,8 @@ export function Navbar(): JSX.Element {
           <span className="wc-nav-spacer" />
 
           <div className="wc-nav-actions">
+            {/* 알약 = 메뉴바 안 · 언어 토글 바로 앞(PITCH-2 추가 지시 ② 2절 · 대표 2026-11-19) */}
+            <ContinuePill pathname={pathname} />
             <LanguageToggle />
             {loading ? (
               <span className="wc-nav-skeleton" aria-hidden="true" />
@@ -158,8 +160,6 @@ export function Navbar(): JSX.Element {
           labPublic={LAB_PUBLIC}
         />
       </header>
-      {/* 알약은 메뉴바 밖 — 메뉴바(sticky)와 함께 붙어 다니지 않고, 휴대폰에서는 본문 흐름에 들어간다. */}
-      <ContinuePill pathname={pathname} />
     </>
   );
 }

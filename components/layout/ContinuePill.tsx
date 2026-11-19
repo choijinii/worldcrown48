@@ -3,8 +3,9 @@
 /**
  * ContinuePill — "선택 이어가기" 알약 (NAV-1 E · 원장 D-18 · 정본 1 · 2 · 6 · 7).
  *
- * 메뉴 층 바로 아래, 오른쪽 끝(아바타와 세로 정렬). 끝내지 않은 대결이 없으면 알약도 자리도 없다.
- * 그 대회의 매치 화면 안에서는 숨긴다.
+ * 자리 = 메뉴바 안, 언어 토글 바로 앞(PITCH-2 추가 지시 ② 2절 · 대표 2026-11-19 — 옛 자리 "메뉴 층 바로 아래
+ * 오른쪽 끝"은 없앴다). 끝내지 않은 대결이 없으면 알약도 자리도 없다. 그 대회의 매치 화면 안에서는 숨긴다.
+ * 메뉴바 안이라 무대(가로 집중 모드 · 라운드 전환)가 메뉴를 숨기면 알약도 같이 숨는다.
  *
  * 판정 = 이 브라우저의 메모(lib/run/continueMemo) — **Firestore 읽기 0**(R7). 원장 D-18 의
  * "새 저장소 없음"은 대표 결정(2026-10-11)으로 "서버 저장소 없음 · 브라우저 메모만"이 됐다.
@@ -46,8 +47,7 @@ export function ContinuePill({ pathname }: { pathname: string }): JSX.Element | 
   if (!href) return null;
 
   return (
-    // `wc-nav` — 무대(가로 집중 모드 · 라운드 전환)가 메뉴를 숨길 때 알약도 같이 숨는다.
-    <div className="wc-nav wc-pill-layer">
+    <div className="wc-pill-wrap">
       <div className="wc-pill-inner">
         <Link href={href} className="wc-pill" aria-describedby={noteId} data-testid="continue-pill">
           <svg

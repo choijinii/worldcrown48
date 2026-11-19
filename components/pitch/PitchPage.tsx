@@ -43,7 +43,7 @@ import "./pitch.css";
 
 type HomeTournament = Tournament & { deadlineMs: number | null; createdAtMs: number | null };
 
-const EMPTY: PitchHomeData = { categories: [], promoVideoId: "", articles: [], viewsBySlug: {} };
+const EMPTY: PitchHomeData = { categories: [], promo: { videoUrl: null, posterUrl: null }, articles: [], viewsBySlug: {} };
 
 export default function PitchPage() {
   const bannerVariant = usePageBannerVariant();
@@ -112,8 +112,8 @@ export default function PitchPage() {
     [caches],
   );
   const slides = useMemo(
-    () => heroSlides({ promoVideoId: home.promoVideoId, open, runsTotalById }),
-    [home.promoVideoId, open, runsTotalById],
+    () => heroSlides({ promo: home.promo, open, runsTotalById }),
+    [home.promo, open, runsTotalById],
   );
   const trending = trendingPage(open, catT, page);
   const categoryOf = useMemo(() => {
@@ -150,7 +150,7 @@ export default function PitchPage() {
         </div>
 
         <div className="hero-row">
-          <HeroCarousel slides={slides} chipOf={chipOf} prelaunch={prelaunch} />
+          <HeroCarousel slides={slides} chipOf={chipOf} />
           <HeroSide chart={sideChart} news={sideNews} />
         </div>
 

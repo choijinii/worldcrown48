@@ -159,27 +159,13 @@
   height: 100%;
   object-fit: cover;
 }
-.pitch .hero-play {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-gold) 92%, transparent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 11;
-}
-.pitch .hero-play-tri {
-  width: 0;
-  height: 0;
-  border-left: 24px solid var(--color-royal);
-  border-top: 14px solid transparent;
-  border-bottom: 14px solid transparent;
-  margin-left: 6px;
+.pitch .hero-promo { background: var(--color-bg-void); text-decoration: none; }
+.pitch .hero-promo-video { z-index: 1; pointer-events: none; }
+.pitch .hero-film {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--color-gold);
 }
 .pitch .hero-arrow {
   position: absolute;
@@ -704,6 +690,19 @@
   color: inherit;
   text-decoration: none;
 }
+.pitch .chart-main-col { flex: none; display: flex; flex-direction: column; gap: 10px; }
+/* 시안 "CROWN SCORE" — 큰 차트 그림 위 · 빈 차트 안내 위(3언어 공통 영어 · 추가 지시 ② 3절) */
+.pitch .chart-kicker {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-ink);
+}
+.pitch .chart-kicker-dim { height: auto; font-size: 10px; font-weight: 400; color: var(--color-text-muted-light); }
 .pitch .chart-main-img { width: 200px; height: 200px; }
 .pitch .chart-main-img .rank-badge { left: 10px; top: 10px; height: 24px; font-size: 12px; }
 .pitch .chart-main-text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -784,13 +783,14 @@
   /* 휴대폰 70% — 224×44 → 157×31 */
   .pitch .hero-cta { width: 157px; height: 31px; font-size: 11px; }
   .pitch .hero-ken img { animation: none; }
-  .pitch .hero-play { width: 50px; height: 50px; }
+  .pitch .hero-film { font-size: 9px; }
   .pitch .tioz-band { height: 56px; }
   .pitch .tioz-word { font-size: 22px; }
   .pitch .create-band { min-height: 104px; padding: 0 16px; }
   .pitch .create-crown { width: 28px; height: 28px; }
   .pitch .create-title { font-size: 20px; }
   .pitch .chart-main { border-right: 0; border-bottom: 1px solid var(--color-border-light); flex-wrap: wrap; }
+  .pitch .chart-main-col { width: 100%; }
   .pitch .chart-main-img { width: 100%; height: auto; aspect-ratio: 1 / 1; }
   /* 휴대폰 CHARTS = 2×2 대신 1열 4줄 가로 카드(그림 80) — 1절 9행 */
   .pitch .chart-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }

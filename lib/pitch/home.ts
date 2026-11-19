@@ -3,8 +3,9 @@
  *
  *   · 진행 중 공개 대회 = `isPublicTournament`(시험 대회 D-66 · 숨김 D-86 제외) + 마감 시각 전(조기 마감 포함)
  *     — `splitChartTournaments` 의 active 를 다시 최신 발행순으로 놓는다(Trending 최신순).
- *   · 히어로 = 홍보 장 1(`config/pitch.promoVideoId` · 비면 건너뜀) + 완주 판 수 많은 순 4
- *     (`ranking_cache.runsTotal` · 캐시 없음 = 0 → 최신 발행순 뒤). 판 수는 정렬에만 쓴다(화면에 안 씀).
+ *   · 히어로 = 홍보 장 1(우리가 만든 영상 파일 · `config/pitch.promoVideoUrl`/`promoPosterUrl` · 둘 다 비면 건너뜀)
+ *     + 최신 대회 1 + 완주 판 수 많은 순 3(`ranking_cache.runsTotal` · 캐시 없음 = 0 → 최신 발행순 뒤 ·
+ *     최신 대회 중복 없음 · 추가 지시 ② 6절). 판 수는 정렬에만 쓴다(화면에 안 씀).
  *   · NEWS ROOM = LATEST 최신 3 · HOT 급등 3(`sortTrending` — D-78 후보) · 탭 = 연결 대회의 카테고리.
  *     WORLD PRESS 는 `lib/pitch/worldPress.ts` 하나로만 읽는다.
  *   · 오른쪽 칸 뉴스 3줄 = 누적 조회(`news_views.total`) 많은 순 · 0·동점 최신순.
@@ -37,20 +38,77 @@ export function openTournaments<T extends WithCreated>(list: readonly T[], nowMs
   return splitChartTournaments([...list], nowMs, env).active.sort((a, b) => newestFirst(a, b) || a.id.localeCompare(b.id));
 }
 
-export type HeroSlide<T> = { kind: "promo"; videoId: string } | { kind: "tournament"; tournament: T };
+/** 홍보 장 — 우리가 만든 영상 파일 + 정지 그림(`config/pitch.promoVideoUrl` · `promoPosterUrl` · 추가 지시 ②). */
+export interface HeroPromo {
+  videoUrl: string | null;
+  posterUrl: string | null;
+}
 
+export type HeroSlide<T> = { kind: "promo"; videoUrl: string | null; posterUrl: string | null } | { kind: "tournament"; tournament: T };
+
+/** 홍보 장 파일이 있어야 하는 폴더 — storage.rules 도 이 폴더만 공개 읽기 · 관리자 쓰기. */
+export const PROMO_STORAGE_DIR = "pitch/promo/";
+const PROMO_EXT: Record<"video" | "image", RegExp> = {
+  video: /\.mp4$/i,
+  image: /\.(jpe?g|png|webp)$/i,
+};
+const EMULATOR_HOSTS = new Set(["127.0.0.1:9199", "localhost:9199"]);
+
+/**
+ * 홍보 장 주소 검사 — 우리 버킷의 `pitch/promo/` 아래 공개 주소만 돌려주고 나머지는 null.
+ * 받는 모양: `https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{경로}` ·
+ * `https://storage.googleapis.com/{bucket}/{경로}` · 에뮬레이터(`http://127.0.0.1:9199/v0/b/…` — 시험용).
+ */
+export function promoAssetUrl(raw: unknown, bucket: string, kind: "video" | "image"): string | null {
+  if (typeof raw !== "string" || !raw.trim() || !bucket) return null;
+  let u: URL;
+  try {
+    u = new URL(raw.trim());
+  } catch {
+    return null;
+  }
+  const emulator = u.protocol === "http:" && EMULATOR_HOSTS.has(u.host);
+  let path: string | null = null;
+  if ((u.protocol === "https:" && u.host === "firebasestorage.googleapis.com") || emulator) {
+    const m = /^\/v0\/b\/([^/]+)\/o\/([^/]+)$/.exec(u.pathname);
+    if (m && m[1] === bucket) {
+      try {
+        path = decodeURIComponent(m[2]);
+      } catch {
+        return null;
+      }
+    }
+  } else if (u.protocol === "https:" && u.host === "storage.googleapis.com") {
+    const prefix = `/${bucket}/`;
+    if (u.pathname.startsWith(prefix)) path = u.pathname.slice(prefix.length);
+  }
+  if (!path || !path.startsWith(PROMO_STORAGE_DIR)) return null;
+  const rest = path.slice(PROMO_STORAGE_DIR.length);
+  if (!rest || rest.split("/").some((seg) => seg === "" || seg === "." || seg === "..")) return null;
+  if (!PROMO_EXT[kind].test(rest)) return null;
+  return u.toString();
+}
+
+/**
+ * 히어로 5장 = 홍보 1 → 최신 대회 1 → 참여 많은 대회 3 (추가 지시 ② 6절 · D-81 바뀜 후보).
+ * 최신 = 가장 최근 발행(`createdAt`) · 참여 많은 = 완주 판 수(캐시 없음 = 0 · 같으면 최신 발행순) ·
+ * 최신으로 뽑힌 대회는 뒤 3장에서 뺀다. 홍보 영상 · 정지 그림이 둘 다 없으면 첫 장을 건너뛴다.
+ */
 export function heroSlides<T extends WithCreated>(input: {
-  promoVideoId: string | null | undefined;
+  promo: HeroPromo;
   open: readonly T[];
   runsTotalById: Readonly<Record<string, number | undefined>>;
 }): HeroSlide<T>[] {
   const runs = (t: T) => input.runsTotalById[t.id] ?? 0;
-  const top = [...input.open]
+  const byNewest = [...input.open].sort((a, b) => newestFirst(a, b) || a.id.localeCompare(b.id));
+  const latest = byNewest[0];
+  const popular = byNewest
+    .slice(1)
     .sort((a, b) => runs(b) - runs(a) || newestFirst(a, b) || a.id.localeCompare(b.id))
-    .slice(0, HERO_TOURNAMENT_COUNT)
-    .map((tournament) => ({ kind: "tournament" as const, tournament }));
-  const promo = input.promoVideoId?.trim();
-  return promo ? [{ kind: "promo", videoId: promo }, ...top] : top;
+    .slice(0, HERO_TOURNAMENT_COUNT - 1);
+  const tours = (latest ? [latest, ...popular] : []).map((tournament) => ({ kind: "tournament" as const, tournament }));
+  const { videoUrl, posterUrl } = input.promo;
+  return videoUrl || posterUrl ? [{ kind: "promo", videoUrl, posterUrl }, ...tours] : tours;
 }
 
 export function trendingPage<T extends { category?: string }>(open: readonly T[], cat: string | null, page: number) {

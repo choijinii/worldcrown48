@@ -9,12 +9,14 @@ import {
   chartRows,
   heroNews,
   heroSlides,
+  promoAssetUrl,
   newsColumns,
   openTournaments,
   pitchHref,
   readPitchParams,
   trendingPage,
   type ChartPickRow,
+  type HeroSlide,
   type HomeArticle,
 } from "@/lib/pitch/home";
 
@@ -52,22 +54,94 @@ describe("openTournaments — 공개 + 마감 전 · 최신 발행순", () => {
   });
 });
 
-describe("heroSlides — 홍보 장 1 + 참여 많은 순 4", () => {
-  const open = [t("a", { createdAtMs: 5 }), t("b", { createdAtMs: 4 }), t("c", { createdAtMs: 3 }), t("d", { createdAtMs: 2 }), t("e", { createdAtMs: 1 })];
-  it("완주 판 수 많은 순 · 캐시 없음 = 0 → 최신 발행순으로 뒤", () => {
-    const s = heroSlides({ promoVideoId: "PROMO123456", open, runsTotalById: { c: 50, e: 20, b: 20 } });
-    expect(s[0]).toEqual({ kind: "promo", videoId: "PROMO123456" });
-    expect(s.slice(1).map((x) => (x.kind === "tournament" ? x.tournament.id : "?"))).toEqual(["c", "b", "e", "a"]);
+const BUCKET = "worldcrown48.firebasestorage.app";
+const fsUrl = (path: string, origin = "https://firebasestorage.googleapis.com", bucket = BUCKET) =>
+  `${origin}/v0/b/${bucket}/o/${encodeURIComponent(path)}?alt=media`;
+const VIDEO = fsUrl("pitch/promo/launch.mp4");
+const POSTER = fsUrl("pitch/promo/launch.jpg");
+const ids = (s: HeroSlide<{ id: string }>[]) => s.map((x) => (x.kind === "promo" ? "PROMO" : x.tournament.id));
+
+describe("promoAssetUrl — 우리 Storage `pitch/promo/` 아래 공개 주소만 받는다", () => {
+  it("영상은 mp4 · 그림은 jpg/png/webp", () => {
+    expect(promoAssetUrl(VIDEO, BUCKET, "video")).toBe(VIDEO);
+    expect(promoAssetUrl(POSTER, BUCKET, "image")).toBe(POSTER);
+    expect(promoAssetUrl(fsUrl("pitch/promo/a.webp"), BUCKET, "image")).not.toBeNull();
+    expect(promoAssetUrl(POSTER, BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(VIDEO, BUCKET, "image")).toBeNull();
+  });
+  it("storage.googleapis.com 모양도 받는다", () => {
+    const u = `https://storage.googleapis.com/${BUCKET}/pitch/promo/launch.mp4`;
+    expect(promoAssetUrl(u, BUCKET, "video")).toBe(u);
+  });
+  it("다른 폴더 · 다른 버킷 · 유튜브 · 남의 주소 · http · 빈 값 · 경로 거슬러 오르기는 버린다", () => {
+    expect(promoAssetUrl(fsUrl("entry-images/x/launch.mp4"), BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(fsUrl("pitch/promo-old/launch.mp4"), BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(fsUrl("pitch/promo/../../crown-cards/a.mp4"), BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(fsUrl("pitch/promo/launch.mp4", undefined, "other-bucket"), BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl("https://www.youtube.com/watch?v=PROMO123456", BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl("https://evil.example.com/pitch/promo/launch.mp4", BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(VIDEO.replace("https:", "http:"), BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl("", BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(undefined, BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(42, BUCKET, "video")).toBeNull();
+    expect(promoAssetUrl(VIDEO, "", "video")).toBeNull();
+  });
+  it("에뮬레이터 주소(127.0.0.1 · localhost :9199)는 받는다 — 시험용", () => {
+    const u = fsUrl("pitch/promo/launch.mp4", "http://127.0.0.1:9199", "demo-wc48.appspot.com");
+    expect(promoAssetUrl(u, "demo-wc48.appspot.com", "video")).toBe(u);
+    expect(promoAssetUrl(u.replace(":9199", ":8080"), "demo-wc48.appspot.com", "video")).toBeNull();
+  });
+});
+
+describe("heroSlides — 홍보 영상 1 + 최신 대회 1 + 참여 많은 대회 3 (추가 지시 ② 6절)", () => {
+  // createdAtMs 가 클수록 최근 발행. a 가 가장 최근.
+  const open = [
+    t("a", { createdAtMs: 6 }),
+    t("b", { createdAtMs: 5 }),
+    t("c", { createdAtMs: 4 }),
+    t("d", { createdAtMs: 3 }),
+    t("e", { createdAtMs: 2 }),
+    t("f", { createdAtMs: 1 }),
+  ];
+  const promo = { videoUrl: VIDEO, posterUrl: POSTER };
+  it("순서 = 홍보 → 최신 1 → 판 수 많은 순 3(캐시 없음 = 0 · 같으면 최신 발행순)", () => {
+    const s = heroSlides({ promo, open, runsTotalById: { c: 50, e: 20, b: 20 } });
+    expect(s[0]).toEqual({ kind: "promo", videoUrl: VIDEO, posterUrl: POSTER });
+    expect(ids(s)).toEqual(["PROMO", "a", "c", "b", "e"]);
     expect(s).toHaveLength(1 + HERO_TOURNAMENT_COUNT);
+    expect(HERO_TOURNAMENT_COUNT).toBe(4);
   });
-  it("홍보 영상 id 가 비면 그 장은 건너뛴다(4장)", () => {
-    const s = heroSlides({ promoVideoId: "", open, runsTotalById: {} });
-    expect(s.every((x) => x.kind === "tournament")).toBe(true);
-    expect(s).toHaveLength(4);
+  it("최신 대회는 참여 많은 3장에서 빠지고 다음 순위로 채운다(두 번 안 나옴)", () => {
+    const s = heroSlides({ promo, open, runsTotalById: { a: 999, b: 10, c: 9, d: 8 } });
+    expect(ids(s)).toEqual(["PROMO", "a", "b", "c", "d"]);
+    expect(new Set(ids(s)).size).toBe(s.length);
   });
-  it("대회가 4개 미만이면 있는 만큼 · 0개면 홍보 장만", () => {
-    expect(heroSlides({ promoVideoId: "PROMO123456", open: open.slice(0, 2), runsTotalById: {} })).toHaveLength(3);
-    expect(heroSlides({ promoVideoId: "PROMO123456", open: [], runsTotalById: {} })).toEqual([{ kind: "promo", videoId: "PROMO123456" }]);
+  it("들어오는 순서와 상관없이 가장 최근 발행이 둘째 장", () => {
+    const s = heroSlides({ promo, open: [...open].reverse(), runsTotalById: { f: 5 } });
+    expect(ids(s)[1]).toBe("a");
+    expect(ids(s)[2]).toBe("f");
+  });
+  it("그림만 있으면 정지 그림 장 · 영상만 있어도 장은 있다", () => {
+    expect(heroSlides({ promo: { videoUrl: null, posterUrl: POSTER }, open: [], runsTotalById: {} })).toEqual([
+      { kind: "promo", videoUrl: null, posterUrl: POSTER },
+    ]);
+    expect(heroSlides({ promo: { videoUrl: VIDEO, posterUrl: null }, open: [], runsTotalById: {} })).toHaveLength(1);
+  });
+  it("영상 · 그림 둘 다 없으면 첫 장을 건너뛰어 최신 1 + 참여 많은 3 = 4장", () => {
+    const s = heroSlides({ promo: { videoUrl: null, posterUrl: null }, open, runsTotalById: {} });
+    expect(ids(s)).toEqual(["a", "b", "c", "d"]);
+  });
+  it("대회 0~5개일 때 장 수", () => {
+    for (const n of [0, 1, 2, 3, 4, 5]) {
+      expect(heroSlides({ promo, open: open.slice(0, n), runsTotalById: {} })).toHaveLength(1 + Math.min(n, 4));
+      expect(heroSlides({ promo: { videoUrl: null, posterUrl: null }, open: open.slice(0, n), runsTotalById: {} })).toHaveLength(Math.min(n, 4));
+    }
+    expect(ids(heroSlides({ promo, open: open.slice(0, 1), runsTotalById: {} }))).toEqual(["PROMO", "a"]);
+  });
+  it("마감 지난 대회 · 숨김 대회는 openTournaments 에서 빠져 히어로에 안 온다", () => {
+    const list = [t("live", { createdAtMs: 1 }), t("ended", { deadlineMs: NOW - 1, createdAtMs: 9 }), t("hidden", { status: "hidden", createdAtMs: 8 })];
+    const s = heroSlides({ promo, open: openTournaments(list, NOW, "production"), runsTotalById: { ended: 99, hidden: 99 } });
+    expect(ids(s)).toEqual(["PROMO", "live"]);
   });
 });
 

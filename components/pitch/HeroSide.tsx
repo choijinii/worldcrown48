@@ -4,8 +4,8 @@
  * 히어로 오른쪽 칸 — 차트 1줄 크게(1위 그림 132 + 대회 제목 + 1·2·3위 + 발표 시각 알약) + 뉴스 3줄(많이 본 순 ·
  * 그림 72 + 제목 2줄) (PITCH-2 1절 2′행). 태블릿 · 휴대폰은 히어로 아래로 내려간다(pitch.css).
  *
- * 칸 머리 글자는 승인된 영어 구역 이름(CHARTS · NEWS ROOM)을 쓴다 — 시안의 "CROWN SCORE" · "NEWSROOM" 은
- * 6절 표에 없는 글자라 쓰지 않는다(PR 설명 질문 목록). 수치는 쓰지 않는다(등수 · 이름만 · 대진 흐름 #8).
+ * 칸 머리 글자 = 시안 그대로 "CROWN SCORE" · "NEWSROOM"(3언어 공통 영어 · 추가 지시 ② 3절).
+ * 수치는 쓰지 않는다(등수 · 이름만 · 대진 흐름 #8).
  */
 import Link from "next/link";
 import type { ChartPickRow, HomeArticle } from "@/lib/pitch/home";
@@ -20,7 +20,7 @@ export function HeroSide({ chart, news }: { chart: ChartPickRow | null; news: Ho
   const { t, lang } = useT();
   return (
     <aside className="hero-side" data-testid="pitch-hero-side">
-      <div className="side-head">CHARTS</div>
+      <div className="side-head">CROWN SCORE</div>
       {chart ? (
         <Link href={chartHref(chart.id)} className="side-chart" data-testid="pitch-side-chart">
           <ChartAvatar entry={chart.top[0]} rank={1} className="side-chart-img" />
@@ -43,7 +43,7 @@ export function HeroSide({ chart, news }: { chart: ChartPickRow | null; news: Ho
           <span>{t("pitch.home.charts.empty")}</span>
         </div>
       )}
-      <div className="side-head side-head-news">NEWS ROOM</div>
+      <div className="side-head side-head-news">NEWSROOM</div>
       {news.length ? (
         <ul className="side-news">
           {news.map((a) => (

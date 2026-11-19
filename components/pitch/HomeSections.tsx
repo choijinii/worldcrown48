@@ -191,7 +191,10 @@ export function ChartsSection(props: {
       {main ? (
         <div className="charts-box">
           <Link href={chartHref(main.id)} className="chart-main" data-testid="pitch-chart-main">
-            <ChartAvatar entry={main.top[0]} rank={1} className="chart-main-img" />
+            <span className="chart-main-col">
+              <span className="chart-kicker">CROWN SCORE</span>
+              <ChartAvatar entry={main.top[0]} rank={1} className="chart-main-img" />
+            </span>
             <span className="chart-main-text">
               <ChartUpdated generatedAtMs={main.generatedAtMs} className="chart-pill" />
               <span className="chart-main-title">{localizedTitle(main, lang)}</span>
@@ -227,6 +230,7 @@ export function ChartsSection(props: {
         </div>
       ) : (
         <div className="sec-empty sec-empty-sm" data-testid="pitch-charts-empty">
+          <span className="chart-kicker chart-kicker-dim">CROWN SCORE</span>
           <span className="sec-empty-title">{t("pitch.home.charts.empty")}</span>
         </div>
       )}
