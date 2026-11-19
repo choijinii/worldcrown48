@@ -8,7 +8,9 @@
  * live in lib/pitch/trending.ts and are unit-tested.
  *
  * Query (handoff §5, 대표 decision 2026-06-29 — published → active):
- *   where status == 'active'  orderBy createdAt desc  limit 12
+ *   where status == 'active'  orderBy createdAt desc
+ * PITCH-2 PR A — 개수 제한(12)을 뺐다: Trending 이 6장/쪽으로 모든 진행 중 대회를 넘겨 보고, 히어로 · CHARTS 가
+ * 마감 대회까지 고른다(같은 색인 · 새 색인 없음).
  * Only `active` Tournaments surface on The Pitch; drafts live in the Host's Lab.
  * OPS-FIX-1 (원장 D-66): 받아 온 뒤 `isPublicTournament` 로 한 번 더 거른다 — 실서비스에서
  * E2E 시험 대회(`e2e: true`)·시드 대회가 피치에 뜨지 않게. 쿼리 조건이 아니라 새 색인이 없다.
@@ -18,7 +20,6 @@
 import { create } from "zustand";
 import {
   collection,
-  limit,
   onSnapshot,
   orderBy,
   query,
@@ -28,7 +29,6 @@ import { getDb } from "@/lib/firebase";
 import { currentDeployEnv } from "@/lib/deployEnv";
 import { isPublicTournament } from "@/lib/seo/sitemapEntries";
 import type { Tournament } from "@/lib/types/tournament";
-import { TRENDING_LIMIT } from "./trending";
 
 interface PitchState {
   tournaments: Tournament[];
@@ -55,7 +55,6 @@ export const usePitchStore = create<PitchState>((set) => ({
         collection(db, "tournaments"),
         where("status", "==", "active"),
         orderBy("createdAt", "desc"),
-        limit(TRENDING_LIMIT),
       );
       return onSnapshot(
         q,

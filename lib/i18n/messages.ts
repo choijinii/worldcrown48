@@ -117,58 +117,41 @@ export const MESSAGES = {
   },
 
   // ── The Pitch (Domain 1, /) ─────────────────────────────────────
-  // "Voting/Votación" 은 D-03 금지어다 — Arena 로 바꾼다(§5 승인표 A3).
-  "pitch.hero.kicker": {
-    ko: "트렌딩 · The Pitch · Global Fan Arena",
-    en: "Trending · The Pitch · Global Fan Arena",
-    es: "Tendencia · The Pitch · Arena Global de Fans",
+  // PITCH-2 PR A — 글자 히어로(pitch.hero.*) · LabEntryCard(pitch.lab.*) · 견본 뉴스(pitch.news.*) ·
+  // 옛 Trending 머리(pitch.trending.*) 키는 지웠다(지시서 6절 "지우는 사전 키").
+  // ── PITCH-2 홈 화면 문구 — 지시서 v1.1a 6절 표(대표 승인 2026-11-17 13:37 "전부 승인") 글자 그대로 ──
+  // 영어 그대로 두는 구역 머리(GLOBAL FAN ARENA · Trending Tournaments · NEWS ROOM · CHARTS · Create Tournament ·
+  // COMING SOON · LATEST · HOT · WORLD PRESS · NO ARTICLES · © 2026 WorldCrown48)는 3언어 공통이라 사전에 두지 않는다.
+  "pitch.home.promo.title": {
+    ko: "48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다",
+    en: "48 Contestants, one Crown — your picks set the stage",
+    es: "48 Contestants, una Crown — tus elecciones marcan el escenario",
   },
-  "pitch.hero.l1": { ko: "왕관의 주인은", en: "Who wears the", es: "¿Quién lleva la" },
-  // en MUST stay exactly "Ultimate Crown?" (route-swap/CDN grep target, §9 trap 4).
-  "pitch.hero.l2": { ko: "Ultimate Crown?", en: "Ultimate Crown?" },
-  // 2026-09-07 대표 승인: "예측도, 배당도 없이 —" 삭제(도박·투기 연상 — 서비스 정체성
-  // 금지 항목) + 뒷부분 교체. 금지어 정정: "당신의 한 표가" → "당신의 선택이"
-  // ("표"는 낱말 자체가 금지 — LANGUAGE.md §7). 앞부분은 3언어 그대로 둔다.
-  "pitch.hero.sub": {
-    ko: "48 Contestants. Five Rounds. Match를 거치며 하나의 Crown만 남을 때까지 전진합니다. 오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다.",
-    en: "48 Contestants. Five Rounds. You advance Match by Match until one Crown remains. Pure fan choice. Your pick crowns the Champion.",
-    es: "48 Contestants. Cinco Rounds. Avanzas Match a Match hasta que queda una sola Crown. Solo la elección de los fans. Tu elección corona al Champion.",
+  "pitch.home.charts.empty": {
+    ko: "첫 대회가 열리면 차트가 시작됩니다",
+    en: "Charts begin when the first Tournament opens",
+    es: "Los charts empiezan cuando se abra el primer Tournament",
   },
-  // D-23 (2026-09-23 대표) — 'Vote Now' 계열 낱말 폐기. 월크48은 투표가 아니다(D-03).
-  "pitch.hero.cta.start": {
-    ko: "참가하기",
-    en: "Pick Now",
-    es: "Elige ahora",
+  "pitch.home.news.empty.title": { ko: "아직 올라온 기사가 없어요", en: "No articles yet", es: "Aún no hay artículos" },
+  "pitch.home.news.empty.body": {
+    ko: "첫 기사가 올라오면 여기에서 바로 보여 드릴게요",
+    en: "The first story will show up right here",
+    es: "El primer artículo aparecerá aquí mismo",
   },
-  "pitch.hero.cta.explore": { ko: "둘러보기", en: "Explore", es: "Explorar" },
-  "pitch.trending.kicker": {
-    ko: "트렌딩 · Trending",
-    en: "Trending",
-    es: "Tendencia",
+  "pitch.home.trending.empty.title": {
+    ko: "곧 첫 대회가 열립니다",
+    en: "The first Tournament opens soon",
+    es: "El primer Tournament se abre pronto",
   },
-  "pitch.trending.title": {
-    ko: "Trending Tournaments",
-    en: "Trending Tournaments",
+  "pitch.home.trending.empty.body": {
+    ko: "새 대회가 올라오면 이 자리에 가장 먼저 보여 드릴게요. 뉴스룸과 차트를 먼저 둘러보세요.",
+    en: "New Tournaments will appear here first. Explore the Newsroom and Charts in the meantime.",
+    es: "Los nuevos Tournaments aparecerán aquí primero. Mientras tanto, explora el Newsroom y los Charts.",
   },
-  "pitch.trending.count.one": {
-    ko: "{count} Tournament · 진행 중",
-    en: "{count} Tournament · Live",
-    es: "{count} Tournament · En vivo",
-  },
-  "pitch.trending.count.other": {
-    ko: "{count} Tournaments · 진행 중",
-    en: "{count} Tournaments · Live",
-    es: "{count} Tournaments · En vivo",
-  },
-  "pitch.trending.empty.title": {
-    ko: "현재 진행 중인 Tournament가 없습니다",
-    en: "No Tournaments are open right now",
-    es: "No hay Tournaments abiertos ahora mismo",
-  },
-  "pitch.trending.empty.sub": {
-    ko: "곧 새로운 Tournament가 열립니다 · check back soon",
-    en: "Check back soon — new Tournaments open regularly.",
-    es: "Vuelve pronto — abrimos nuevos Tournaments a menudo.",
+  "pitch.home.create.line": {
+    ko: "당신의 48개 엔트리로 무대를 꾸밀 날이 옵니다",
+    en: "The day you set the stage with your own 48 Contestants is coming",
+    es: "Se acerca el día en que montarás el escenario con tus propios 48 Contestants",
   },
   "pitch.card.featured": { ko: "FEATURED", en: "FEATURED" },
   // THUMB-1 PR 2 — 카드 몸통의 참가 버튼(합격 시안). 글자 = 참가하기 / Pick Now / Elige ahora(D-23).
@@ -178,44 +161,6 @@ export const MESSAGES = {
     en: "48 Contestants",
   },
   "pitch.card.closes": { ko: "마감 {date}", en: "Closes {date}", es: "Cierra {date}" },
-  "pitch.lab.title": { ko: "Create Tournament", en: "Create Tournament" },
-  "pitch.lab.roleTag": { ko: "TOURNAMENT HOST", en: "TOURNAMENT HOST" },
-  "pitch.lab.sub.locked": {
-    ko: "The Lab은 Tournament Host 전용입니다. 호스팅은 정식 오픈 후 열립니다.",
-    en: "The Lab is reserved for Tournament Hosts. Hosting opens after launch.",
-    es: "The Lab es solo para Tournament Hosts. La creación se habilita tras el lanzamiento.",
-  },
-  "pitch.lab.sub.active": {
-    ko: "당신은 Tournament Host입니다 — The Lab을 열어 Tournament를 만들고 Deadline을 설정한 뒤 공개하세요.",
-    en: "You are a Tournament Host — open The Lab to create a Tournament, set its Deadline, and publish.",
-    es: "Eres un Tournament Host — abre The Lab para crear un Tournament, fijar su Deadline y publicarlo.",
-  },
-  "pitch.lab.cta.locked": { ko: "Coming Soon", en: "Coming Soon" },
-  "pitch.lab.cta.active": { ko: "Open The Lab", en: "Open The Lab" },
-  "pitch.lab.tip": {
-    ko: "Coming Soon · Tournament 호스팅은 정식 오픈 후 열립니다",
-    en: "Coming Soon · Tournament hosting opens after launch",
-    es: "Coming Soon · La creación de Tournaments se abre tras el lanzamiento",
-  },
-  "pitch.news.kicker": { ko: "뉴스룸 · Newsroom", en: "Newsroom", es: "Sala de prensa" },
-  "pitch.news.title": { ko: "Around the Pitch", en: "Around the Pitch" },
-  "pitch.news.count": { ko: "Powered by GNews", en: "Powered by GNews" },
-  "pitch.news.empty.title": {
-    ko: "곧 다채로운 뉴스가 도착합니다",
-    en: "Fresh news is on the way",
-    es: "Pronto llegan nuevas noticias",
-  },
-  "pitch.news.empty.sub": {
-    ko: "곧 새로운 소식이 도착합니다 · check back soon",
-    en: "Fresh news is on the way — check back soon.",
-    es: "Nuevas noticias en camino — vuelve pronto.",
-  },
-  "pitch.news.seeMore": {
-    ko: "더 보기 · See more in the Arena Newsroom",
-    en: "See more in the Arena Newsroom",
-    es: "Ver más en el Arena Newsroom",
-  },
-  "pitch.news.hoursAgo": { ko: "{count}시간 전", en: "{count}h ago", es: "hace {count} h" },
 
   // ── Champion (Domain 3, /arena/{tid}/champion) ──────────────────
   // HF-3.1 W3 — shown once when a returning guest lands on a CONFLICT card (an

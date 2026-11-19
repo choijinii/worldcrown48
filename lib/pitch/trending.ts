@@ -16,18 +16,12 @@
 
 import type { TournamentStatus } from "@/lib/types/tournament";
 
-/** Handoff §5 query limit: `where status == 'active' orderBy createdAt desc limit 12`. */
-export const TRENDING_LIMIT = 12;
 
 const closesFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Seoul",
   month: "short",
   day: "numeric",
 });
-
-export function isFeedEmpty(tournaments: readonly unknown[]): boolean {
-  return tournaments.length === 0;
-}
 
 /**
  * Format a deadline as short "MMM D" (wireframe "Closes Jun 20"); "" if unset.

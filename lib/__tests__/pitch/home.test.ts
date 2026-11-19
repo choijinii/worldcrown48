@@ -6,6 +6,7 @@ import {
   HERO_TOURNAMENT_COUNT,
   TRENDING_PAGE_SIZE,
   chartPicks,
+  chartRows,
   heroNews,
   heroSlides,
   newsColumns,
@@ -163,5 +164,15 @@ describe("CHARTS · 오른쪽 칸 차트", () => {
     expect(p.main?.id).toBe("r2");
     expect(p.latest).toEqual([]);
     expect(chartPicks([], null)).toEqual({ main: null, latest: [], newest: null });
+  });
+});
+
+describe("chartRows — 공개 대회(진행 중 + 마감) × 차트 캐시", () => {
+  it("캐시가 있는 공개 대회만 · 마감 대회도 포함 · 숨김 · 시험 대회(실서비스)는 뺀다", () => {
+    const tours = [t("open"), t("ended", { deadlineMs: NOW - 1 }), t("hidden", { status: "hidden" }), t("e2e", { e2e: true }), t("nocache")];
+    const cache = { runsTotal: 12, generatedAtMs: 5, top: [{ name: "A", avatar: "" }] };
+    const rows = chartRows(tours, { open: cache, ended: cache, hidden: cache, e2e: cache }, NOW, "production");
+    expect(rows.map((r) => r.id).sort()).toEqual(["ended", "open"]);
+    expect(rows[0]).toMatchObject({ runsTotal: 12, generatedAtMs: 5, category: "KPOP" });
   });
 });

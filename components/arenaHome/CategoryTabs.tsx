@@ -6,6 +6,9 @@
  * 탭 = 전체 + 공개(live) 카테고리(order 순). 탭 글자는 Record Room 칩과 같이 영어 대문자.
  * 탭은 진짜 링크(`/arena?cat=kpop`)라 새 탭으로 열거나 공유할 수 있고, 그냥 누르면 주소만
  * 바꾼다(서버를 다시 부르지 않음). 검색 칸은 **마감 대회 게시판만** 거른다(D-63 · 킥 §2-2).
+ *
+ * PITCH-2 — 홈(Trending · NEWS ROOM · CHARTS)도 이 부품을 쓴다: `hrefFor` 로 홈 주소를, `testIdPrefix` 로
+ * 구역마다 다른 시험 이름을 넘기고, `onQuery` 를 주지 않으면 검색 칸이 없다. 아레나 홈 동작은 그대로.
  */
 import type { MouseEvent } from "react";
 import { useT } from "@/lib/i18n/useT";
@@ -22,15 +25,23 @@ export function CategoryTabs({
   selected,
   tParam,
   onChoose,
-  query,
+  query = "",
   onQuery,
+  hrefFor,
+  testIdPrefix = "arena-tab",
+  navTestId = "arena-tabs",
 }: {
   categories: CategoryDoc[];
   selected: string | null;
-  tParam: string | null;
+  tParam?: string | null;
   onChoose: (id: string | null) => void;
-  query: string;
-  onQuery: (q: string) => void;
+  query?: string;
+  /** 없으면 검색 칸을 그리지 않는다(홈). */
+  onQuery?: (q: string) => void;
+  /** 탭 링크 주소 — 없으면 아레나 홈 주소. */
+  hrefFor?: (id: string | null) => string;
+  testIdPrefix?: string;
+  navTestId?: string;
 }): JSX.Element {
   const { t } = useT();
   const tabs: { id: string | null; label: string }[] = [
@@ -39,14 +50,14 @@ export function CategoryTabs({
   ];
   return (
     <div className={styles.tabsRow}>
-      <nav className={styles.tabs} aria-label={t("arenaHome.tabs.label")} data-testid="arena-tabs">
+      <nav className={styles.tabs} aria-label={t("arenaHome.tabs.label")} data-testid={navTestId}>
         {tabs.map((tab) => (
           <a
             key={tab.id ?? "all"}
-            href={arenaHomeHref({ t: tParam, cat: tab.id })}
+            href={hrefFor ? hrefFor(tab.id) : arenaHomeHref({ t: tParam ?? null, cat: tab.id })}
             className={styles.tab}
             aria-current={tab.id === selected ? "true" : undefined}
-            data-testid={`arena-tab-${tab.id ? tab.id.toLowerCase() : "all"}`}
+            data-testid={`${testIdPrefix}-${tab.id ? tab.id.toLowerCase() : "all"}`}
             onClick={(e) => {
               if (!plainClick(e)) return;
               e.preventDefault();
@@ -57,6 +68,7 @@ export function CategoryTabs({
           </a>
         ))}
       </nav>
+      {onQuery && (
       <label className={styles.search}>
         <svg
           className={styles.searchIcon}
@@ -88,6 +100,7 @@ export function CategoryTabs({
           </button>
         )}
       </label>
+      )}
     </div>
   );
 }

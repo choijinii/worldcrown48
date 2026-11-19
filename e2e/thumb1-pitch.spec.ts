@@ -125,7 +125,7 @@ test.describe("THUMB-1 — The Pitch", () => {
     await page.goto("/?lang=en");
     const pitch = page.locator("main.pitch");
     await expect(pitch).toHaveAttribute("data-theme", "light");
-    await expect(pitch).toHaveCSS("background-color", "rgb(242, 242, 245)"); // --color-bg-light
+    await expect(pitch).toHaveCSS("background-color", "rgb(255, 255, 255)"); // --color-surface-light (PITCH-2 시안 v2 흰 바탕)
 
     const card = page.locator(".pitch .tcard").first();
     await expect(card).toBeVisible();

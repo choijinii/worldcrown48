@@ -143,3 +143,35 @@ export function chartPicks(
   const latest = inCat.filter((r) => r !== main).sort(recent).slice(0, LATEST_CHARTS);
   return { main, latest, newest };
 }
+
+/** 차트 캐시에서 홈이 쓰는 것 — 판 수 · 발표 시각 · 1·2·3…위(이름 + 그림). */
+export interface HomeChartCache {
+  runsTotal: number;
+  generatedAtMs: number | null;
+  top: (NamedLike & { avatar: string })[];
+}
+
+/** 공개 대회(진행 중 + 마감) 중 차트 캐시가 있는 것 → CHARTS 줄. 점수를 보이는지(10판)는 chartPicks 가 거른다. */
+export function chartRows<T extends ChartTournament>(
+  tournaments: readonly T[],
+  caches: Readonly<Record<string, HomeChartCache | undefined>>,
+  nowMs: number,
+  env: DeployEnv,
+): ChartPickRow[] {
+  const { active, ended } = splitChartTournaments([...tournaments], nowMs, env);
+  const out: ChartPickRow[] = [];
+  for (const t of [...active, ...ended]) {
+    const c = caches[t.id];
+    if (!c || c.top.length === 0) continue;
+    out.push({
+      id: t.id,
+      title: t.title,
+      titleI18n: t.titleI18n ?? null,
+      category: t.category,
+      runsTotal: c.runsTotal,
+      generatedAtMs: c.generatedAtMs ?? 0,
+      top: c.top,
+    });
+  }
+  return out;
+}

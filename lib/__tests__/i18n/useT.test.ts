@@ -3,33 +3,25 @@ import { resolveMessage } from "@/lib/i18n/messages";
 
 describe("resolveMessage", () => {
   it("returns the value for the active lang", () => {
-    expect(resolveMessage("en", "pitch.hero.l2")).toBe("Ultimate Crown?");
+    expect(resolveMessage("en", "pitch.card.featured")).toBe("FEATURED");
     // D-23 (2026-09-23 대표): "투표 시작" → "참가하기". 낱말 규칙 D-03.
-    expect(resolveMessage("ko", "pitch.hero.cta.start")).toBe("참가하기");
+    expect(resolveMessage("ko", "pitch.card.cta")).toBe("참가하기");
   });
 
   it("falls back to en when es is absent (never blank, never the key)", () => {
-    // pitch.hero.l2 intentionally has no es override → en value.
-    const es = resolveMessage("es", "pitch.hero.l2");
-    expect(es).toBe("Ultimate Crown?");
+    // pitch.card.featured intentionally has no es override → en value.
+    const es = resolveMessage("es", "pitch.card.featured");
+    expect(es).toBe("FEATURED");
     expect(es).not.toBe("");
-    expect(es).not.toContain("pitch.hero");
+    expect(es).not.toContain("pitch.card");
   });
 
   it("uses the es value when present", () => {
-    expect(resolveMessage("es", "pitch.hero.cta.start")).toBe("Elige ahora");
+    expect(resolveMessage("es", "pitch.card.cta")).toBe("Elige ahora");
   });
 
-  it("interpolates {vars} (plural key)", () => {
-    expect(
-      resolveMessage("en", "pitch.trending.count.other", { count: 3 }),
-    ).toBe("3 Tournaments · Live");
-  });
-
-  it("singular key is grammatically correct at count 1", () => {
-    expect(
-      resolveMessage("en", "pitch.trending.count.one", { count: 1 }),
-    ).toBe("1 Tournament · Live");
+  it("interpolates {vars}", () => {
+    expect(resolveMessage("en", "arenaHome.page.n", { n: 3 })).toBe("Page 3");
   });
 
   it("preserves non-translatable proper nouns in every lang", () => {

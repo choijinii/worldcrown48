@@ -54,13 +54,17 @@ test.afterEach(() => {
 });
 
 test.describe("A-1 The Pitch", () => {
-  test("AC-1: / renders the 5 modules", async ({ page }) => {
+  test("AC-1: / renders the PITCH-2 sections (hero · Trending · Create · NEWS ROOM · CHARTS)", async ({ page }) => {
     await page.goto("/?lang=en");
     await expect(page.locator('[aria-label="Primary navigation"]')).toBeVisible();
-    await expect(page.getByText("Who wears the")).toBeVisible();
+    await expect(page.getByText("GLOBAL FAN ARENA")).toBeVisible();
+    await expect(page.getByTestId("pitch-hero")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Trending Tournaments" })).toBeVisible();
-    await expect(page.locator('[aria-label="Create Tournament"]')).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Around the Pitch" })).toBeVisible();
+    await expect(page.getByTestId("pitch-create-band")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "NEWS ROOM" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "CHARTS" })).toBeVisible();
+    // 견본 뉴스 삭제(PITCH-2 PR A 1)
+    await expect(page.getByText(/Reuters|ESPN|GNews/)).toHaveCount(0);
   });
 
   test("AC-2: /launch renders the A-0 archive", async ({ page }) => {
@@ -94,7 +98,7 @@ test.describe("A-1 The Pitch", () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/?lang=en");
       await expect(page.getByRole("heading", { name: "Trending Tournaments" })).toBeVisible();
-      await expect(page.locator(".pitch .feed-wrap")).toBeVisible();
+      await expect(page.getByTestId("pitch-trending")).toBeVisible();
     }
   });
 

@@ -43,10 +43,12 @@ test("header toggle exposes KO / EN / ES", async ({ page }) => {
   await expect(toggle.getByTestId("lang-option-es")).toBeVisible();
 });
 
-test("picking ES flips hero copy and rewrites ?lang=es", async ({ page }) => {
+// PITCH-2 PR A — 글자 히어로가 사라졌다. 언어마다 바뀌는 홈 글자 = Trending 탭 "전체 / All / Todos"(arenaHome.tabs.all).
+const allTab = (page: import("@playwright/test").Page) => page.getByTestId("pitch-trending-tab-all");
+
+test("picking ES flips home copy and rewrites ?lang=es", async ({ page }) => {
   await page.goto("/?lang=en");
-  // en boot: hero L1 is the English key value.
-  await expect(page.getByText("Who wears the")).toBeVisible();
+  await expect(allTab(page)).toHaveText("All");
 
   const toggle = page.getByTestId("lang-toggle");
   await toggle.getByRole("combobox").click();
@@ -54,11 +56,9 @@ test("picking ES flips hero copy and rewrites ?lang=es", async ({ page }) => {
 
   await expect(page).toHaveURL(/[?&]lang=es/);
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  // Spanish hero L1 ("¿Quién lleva la"); L2 stays the proper-noun "Ultimate Crown?".
-  await expect(page.getByText("¿Quién lleva la")).toBeVisible();
-  await expect(page.getByText("Ultimate Crown?")).toBeVisible();
+  await expect(allTab(page)).toHaveText("Todos");
   // No raw key leaked.
-  await expect(page.getByText(/pitch\.hero\./)).toHaveCount(0);
+  await expect(page.getByText(/pitch\.home\./)).toHaveCount(0);
 });
 
 test("?lang=es boots Spanish directly", async ({ page }) => {
@@ -66,14 +66,14 @@ test("?lang=es boots Spanish directly", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   // D-23 (2026-09-23 대표): "Empezar a votar" → "Elige ahora". 메뉴바 CTA와 같은 낱말이라
   // 이 자리에 둘이 함께 보이므로 first() 로 좁힌다.
-  await expect(page.getByText("Elige ahora").first()).toBeVisible(); // pitch.hero.cta.start es
+  await expect(allTab(page)).toHaveText("Todos"); // arenaHome.tabs.all es
 });
 
 test("ko → en → es cycle keeps copy consistent (no blank / raw key)", async ({ page }) => {
   await page.goto("/?lang=ko");
-  await expect(page.getByText("왕관의 주인은")).toBeVisible(); // pitch.hero.l1 ko
+  await expect(allTab(page)).toHaveText("전체"); // arenaHome.tabs.all ko
   const toggle = page.getByTestId("lang-toggle");
   await toggle.getByRole("combobox").click();
   await toggle.getByTestId("lang-option-en").click();
-  await expect(page.getByText("Who wears the")).toBeVisible();
+  await expect(allTab(page)).toHaveText("All");
 });
