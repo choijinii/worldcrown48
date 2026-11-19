@@ -1424,6 +1424,13 @@ export const MESSAGES = {
     en: "Finish a tournament to earn your Crown Card — share it with friends",
     es: "Termina un torneo y consigue tu Crown Card — compártela con tus amigos",
   },
+  // PITCH-2 지시서 6절 8번(대표 승인 2026-11-17 · 대표가 고친 글) — 홈 배너 ③(pitch-charts-below) 기본 공지.
+  // "어디서든" 확인: 선택은 계정별로 서버(votes)에 남아 로그인하면 다른 기기에서도 멈춘 매치부터 이어진다(lib/arena/voteStore).
+  "banner.pitch.chartsBelow.title": {
+    ko: "멈춘 선택을 이어서 하려면 로그인하셔야 합니다. — 어디서든 멈춘 매치부터 다시",
+    en: "Sign in to continue the picks you paused. — From any device, right at the Match you paused",
+    es: "Inicia sesión para continuar las elecciones que dejaste en pausa. — Desde cualquier dispositivo, justo en el Match que pausaste",
+  },
   // THUMB-1 PR 2 (원장 D-59) — 런칭 전 피치 배너 자리(pitch-between)의 기본 공지. 누르면 /launch.
   // 런칭 시각(lib/launch/launchAt)이 지나면 위 기본 공지로 자동으로 돌아간다. 날짜·숫자 금지.
   // 글자 = 이미 승인된 사전등록 배너 문구(마티오 M1 · X 안내 글과 같음 — 코티오 승인 2026-10-19).
