@@ -78,7 +78,7 @@ test.beforeEach(async ({ page }) => {
   }
   await seedImageTournament("imgT1"); // KPOP · 그림 대회 · 대표 매치 = 엔트리 1 · 2
   await db().collection("tournaments").doc("imgT1").update({ createdAt: Timestamp.fromMillis(now - 10 * 60_000) });
-  for (const [i, id] of KPOP.entries()) await seedTournament(id, { createdMs: now - (i + 1) * 3_600_000 });
+  for (let i = 0; i < KPOP.length; i++) await seedTournament(KPOP[i], { createdMs: now - (i + 1) * 3_600_000 });
   await seedTournament("cr1", { category: "CREATOR", createdMs: now - 30 * 60_000 });
   await seedTournament("hiddenT", { status: "hidden", createdMs: now, title: "숨김 시험 대회" });
   await seedTournament("endedT", { deadlineMs: now - 60_000, createdMs: now - 20 * DAY, title: "마감 시험 대회" });

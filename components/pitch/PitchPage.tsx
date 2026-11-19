@@ -146,7 +146,7 @@ export default function PitchPage() {
     <main className="pitch" data-theme="light">
       <div className="pitch-inner">
         <div className="title-row">
-          <span className="kicker">GLOBAL FAN ARENA</span>
+          <h1 className="kicker">GLOBAL FAN ARENA</h1>
         </div>
 
         <div className="hero-row">

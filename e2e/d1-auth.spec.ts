@@ -168,7 +168,9 @@ test.describe("D-1.1 Fix — 4 critical flows", () => {
       .click();
 
     await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
-    await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible({
+    // PITCH-2 — 홈 배너 ③(pitch-charts-below) 기본 공지도 "Sign in to continue…" 로그인 버튼이다.
+    // 메뉴바의 로그인 버튼은 문서 순서상 맨 앞이다.
+    await expect(page.getByRole("button", { name: /sign in/i }).first()).toBeVisible({
       timeout: 5000,
     });
     await expect(
