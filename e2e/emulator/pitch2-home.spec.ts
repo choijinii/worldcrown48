@@ -165,7 +165,7 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   // ⑤ 배너 ② · ③ 기본 공지(① 은 런칭 전 사전등록 안내)
   await expect(page.locator("[data-banner-slot='pitch-between']")).toContainText("사전등록에 참가하세요!");
   await expect(page.locator("[data-banner-slot='pitch-news-below']")).toContainText("대회를 마치면 크라운 카드가 생겨요");
-  await expect(page.locator("[data-banner-slot='pitch-charts-below']")).toContainText("멈춘 선택을 이어서 하려면 로그인하셔야 합니다.");
+  await expect(page.locator("[data-banner-slot='pitch-charts-below']")).toContainText("멈춘 선택을 이어서 하려면 로그인하셔야 합니다. — 매치 안 어디서든 멈춘 매치부터 다시");
 
   // ⑥ 공용 바닥 띠 — 누르는 항목 5개 + © 줄
   await expect(page.getByTestId("footer-band").locator("> *")).toHaveCount(5);

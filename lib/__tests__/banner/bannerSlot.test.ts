@@ -205,12 +205,18 @@ describe("PITCH-2 — pitch-news-below · pitch-charts-below", () => {
     expect(key("pitch-news-below")).toBe("banner.default.member.title");
     expect(key("pitch-charts-below")).toBe("banner.pitch.chartsBelow.title");
   });
-  it("③ 글은 대표 승인 3언어 그대로(6절 8번)", () => {
+  it("③ 글은 대표 승인 3언어 그대로(6절 8번 · 대표 고친 글 2026-11-19)", () => {
     expect(MESSAGES["banner.pitch.chartsBelow.title"]).toEqual({
-      ko: "멈춘 선택을 이어서 하려면 로그인하셔야 합니다. — 어디서든 멈춘 매치부터 다시",
-      en: "Sign in to continue the picks you paused. — From any device, right at the Match you paused",
-      es: "Inicia sesión para continuar las elecciones que dejaste en pausa. — Desde cualquier dispositivo, justo en el Match que pausaste",
+      ko: "멈춘 선택을 이어서 하려면 로그인하셔야 합니다. — 매치 안 어디서든 멈춘 매치부터 다시",
+      en: "Sign in to continue the picks you paused. — Wherever you stopped in the Match, pick up right there",
+      es: "Inicia sesión para continuar las elecciones que dejaste en pausa. — Estés donde estés en el Match, retoma justo ahí",
     });
+  });
+  it("③ 의 \"어디서든\"은 기기 이야기가 아니다 — 영어 · 스페인어에 기기 낱말 없음(6절 8번 주석)", () => {
+    const t = MESSAGES["banner.pitch.chartsBelow.title"];
+    expect(t.en).not.toMatch(/device/i);
+    expect(t.es).not.toMatch(/dispositivo/i);
+    expect(t.ko).not.toMatch(/기기/);
   });
 });
 
