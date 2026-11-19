@@ -30,6 +30,7 @@ export function CategoryTabs({
   hrefFor,
   testIdPrefix = "arena-tab",
   navTestId = "arena-tabs",
+  pill = false,
 }: {
   categories: CategoryDoc[];
   selected: string | null;
@@ -42,6 +43,8 @@ export function CategoryTabs({
   hrefFor?: (id: string | null) => string;
   testIdPrefix?: string;
   navTestId?: string;
+  /** 홈(PITCH-2 시안 P-1) — 둥근 알약 · 고른 탭 진한 남색. 모양은 pitch.css `.home-tabs`. 아레나 홈은 그대로. */
+  pill?: boolean;
 }): JSX.Element {
   const { t } = useT();
   const tabs: { id: string | null; label: string }[] = [
@@ -50,7 +53,7 @@ export function CategoryTabs({
   ];
   return (
     <div className={styles.tabsRow}>
-      <nav className={styles.tabs} aria-label={t("arenaHome.tabs.label")} data-testid={navTestId}>
+      <nav className={pill ? `${styles.tabs} home-tabs` : styles.tabs} aria-label={t("arenaHome.tabs.label")} data-testid={navTestId}>
         {tabs.map((tab) => (
           <a
             key={tab.id ?? "all"}

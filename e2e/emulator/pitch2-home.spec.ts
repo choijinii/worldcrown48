@@ -129,12 +129,13 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   await expect(promo).not.toHaveAttribute("target", /.+/);
   await expect(promo).toHaveAttribute("aria-label", "WorldCrown48");
   expect((await promo.innerText()).trim()).toBe("WORLDCROWN48 · FILM");
-  // 대회 장 — 제목만 · 버튼 없음 · 장 전체 = 대기실
+  // 대회 장 — 카테고리 칩 + 제목 · 버튼 없음 · 장 전체 = 대기실(대표 2026-11-19 시안 P-1 대조 — 빼는 것은 버튼뿐)
   const kp7 = page.getByTestId("pitch-hero-slide-kp7");
   await expect(kp7).toHaveAttribute("href", "/arena?t=kp7");
-  // 표지(VS 그림) 위에 얹힌 글자 칸 = 제목 하나
-  await expect(kp7.locator(".hero-cap > *")).toHaveCount(1);
-  expect((await kp7.locator(".hero-cap").innerText()).trim()).toBe((await kp7.locator(".hero-title").innerText()).trim());
+  // 표지(VS 그림) 위에 얹힌 글자 칸 = 칩 + 제목 둘
+  await expect(kp7.locator(".hero-cap > *")).toHaveCount(2);
+  await expect(page.getByTestId("pitch-hero-chip-kp7")).toHaveText("K-POP");
+  await expect(page.getByTestId("pitch-hero-chip-cr1")).toHaveText("CREATOR");
   await expect(kp7).toHaveAttribute("aria-label", (await kp7.locator(".hero-title").innerText()).trim());
   // 장 안에는 버튼 · 겹친 링크가 없다(화살표 · 점은 장 밖)
   await expect(page.getByTestId("pitch-hero").locator(".hero-track").locator("button, a a, .hero-cta")).toHaveCount(0);
@@ -446,5 +447,59 @@ test.describe("⑭ 390 터치", () => {
     await expect(page).toHaveURL(/\/\?lang=ko$/);
     await page.touchscreen.tap(b.x + b.width * 0.5, y);
     await expect(page).toHaveURL(/\/arena$/);
+  });
+});
+
+// ── 시안 P-1 대조(대표 2026-11-19) — 탭 알약 · 390 제목과 점 · 오른쪽 뉴스 위 정렬 ──
+test("⑮ 홈 탭 = 둥근 알약 · 고른 탭 진한 남색 · 오른쪽 뉴스 1건은 위에 붙는다", async ({ page }) => {
+  // 기사 1건만 남긴다
+  for (const slug of ["20261119-new002", "20261118-old001", "20261110-old002"]) await db().collection("news").doc(slug).delete();
+  await page.goto("/?lang=ko");
+  const tabs = page.getByTestId("pitch-trending-tabs");
+  await expect(tabs).toBeVisible({ timeout: 30_000 });
+  const all = page.getByTestId("pitch-trending-tab-all");
+  const kpop = page.getByTestId("pitch-trending-tab-kpop");
+  await expect(all).toHaveCSS("border-radius", "999px");
+  await expect(all).toHaveCSS("height", "32px");
+  await expect(all).toHaveCSS("background-color", "rgb(14, 9, 68)"); // --color-text-light
+  await expect(all).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(kpop).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  // 뉴스 1건 — NEWSROOM 머리 바로 아래(가운데로 내려가지 않음)
+  const item = page.getByTestId("pitch-side-news-item");
+  await expect(item).toHaveCount(1, { timeout: 30_000 });
+  const head = (await page.getByTestId("pitch-hero-side").locator(".side-head-news").boundingBox())!;
+  const first = (await item.boundingBox())!;
+  expect(first.y - (head.y + head.height)).toBeLessThan(24);
+  await page.screenshot({ path: "test-results-emulator/pitch2-tabs-news1-1440.png", clip: { x: 0, y: 0, width: 1440, height: 1100 } });
+});
+
+test("⑮ 아레나 홈 탭 모양은 그대로(네모 · 고른 탭 금색)", async ({ page }) => {
+  await page.goto("/arena?lang=ko");
+  const tab = page.getByTestId("arena-tab-all");
+  await expect(tab).toBeVisible({ timeout: 30_000 });
+  await expect(tab).not.toHaveCSS("border-radius", "999px");
+  await expect(tab).toHaveCSS("background-color", "rgb(252, 208, 6)");
+});
+
+test.describe("⑮ 390 제목 둘째 줄과 점", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test("긴 제목 두 줄도 아래 점과 겹치지 않는다", async ({ page }) => {
+    await db().collection("tournaments").doc("kp7").update({
+      title: "아주 긴 제목 — 2026년 가장 다시 보고 싶은 무대를 고르는 시험 대회 제목 줄바꿈 확인",
+      "titleI18n.ko": "아주 긴 제목 — 2026년 가장 다시 보고 싶은 무대를 고르는 시험 대회 제목 줄바꿈 확인",
+    });
+    await page.goto("/?lang=ko");
+    const hero = page.getByTestId("pitch-hero");
+    await expect.poll(() => heroSlideIds(page), { timeout: 30_000 }).toHaveLength(5);
+    await page.getByTestId("pitch-hero-dots").locator(".hero-dot").nth(1).click();
+    await expect(hero).toHaveAttribute("data-slide", "1");
+    await page.waitForTimeout(800);
+    const title = (await page.getByTestId("pitch-hero-slide-kp7").locator(".hero-title").boundingBox())!;
+    const dots = (await page.getByTestId("pitch-hero-dots").boundingBox())!;
+    expect(title.height).toBeGreaterThan(20); // 두 줄
+    const overlapX = title.x + title.width > dots.x && dots.x + dots.width > title.x;
+    const overlapY = title.y + title.height > dots.y && dots.y + dots.height > title.y;
+    expect(overlapX && overlapY).toBe(false);
+    await hero.screenshot({ path: "test-results-emulator/pitch2-hero-390-long-title.png" });
   });
 });

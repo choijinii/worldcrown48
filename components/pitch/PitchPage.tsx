@@ -17,6 +17,7 @@ import { currentDeployEnv } from "@/lib/deployEnv";
 import { toMs } from "@/lib/news/articleRecord";
 import { todayKST } from "@/lib/run/kstReset";
 import { isBeforeLaunch } from "@/lib/launch/launchAt";
+import { categoryChip } from "@/lib/records/chartList";
 import { usePitchStore } from "@/lib/pitch/pitchStore";
 import {
   chartPicks,
@@ -127,6 +128,7 @@ export default function PitchPage() {
   const charts = chartPicks(rows, catC);
   const sideChart = chartPicks(rows, null).newest;
   const prelaunch = isBeforeLaunch(now);
+  const chipOf = useCallback((c: string | undefined) => categoryChip(c, home.categories), [home.categories]);
 
   const trendingHref = useCallback(
     (cat: string | null, p = 1) => pitchHref({ cat, page: p, lang: urlLang }),
@@ -148,7 +150,7 @@ export default function PitchPage() {
         </div>
 
         <div className="hero-row">
-          <HeroCarousel slides={slides} />
+          <HeroCarousel slides={slides} chipOf={chipOf} />
           <HeroSide chart={sideChart} news={sideNews} />
         </div>
 

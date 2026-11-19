@@ -13,7 +13,7 @@
  *
  * 장 위의 글자와 버튼(추가 지시 ② 7절 · 대표 2026-11-19 12:16 — 1절 · 6절보다 앞선다):
  *   첫 장 = 영상 + 작은 "WORLDCROWN48 · FILM" 글자 하나 · 제목도 버튼도 없다.
- *   대회 장 = 대회 제목만 · 참가하기 버튼 없음. 장 전체가 링크 하나(`heroSlideHref`) — 키보드 Tab → Enter 로 열린다.
+ *   대회 장 = 카테고리 칩 + 대회 제목 · 참가하기 버튼 없음(대표 2026-11-19 시안 P-1 대조 — 빼는 것은 버튼뿐). 장 전체가 링크 하나(`heroSlideHref`) — 키보드 Tab → Enter 로 열린다.
  *   화살표 · 점은 링크 밖에서 따로 눌린다. 휴대폰은 옆으로 밀면 장 넘기기, 가만히 누르면 이동(`heroSwipe`) —
  *   미는 중에 떼면 이동하지 않는다. 누를 수 있다는 표시 = 손가락 모양 + 장이 살짝 밝아짐(pitch.css · 새 색 없음).
  */
@@ -28,7 +28,7 @@ import { useCoverPair } from "@/components/thumbnail/useCoverPair";
 
 export const HERO_INTERVAL_MS = 10_000;
 
-function TournamentSlide({ t: tour, active }: { t: Tournament; active: boolean }) {
+function TournamentSlide({ t: tour, chip, active }: { t: Tournament; chip: string | null; active: boolean }) {
   const { lang } = useT();
   const cover = useCoverPair(tour.id, tour.thumbnailPair, tour.mediaTakedownAt);
   const title = localizedTitle(tour, lang);
@@ -47,6 +47,11 @@ function TournamentSlide({ t: tour, active }: { t: Tournament; active: boolean }
         <VSThumb a={cover.a} b={cover.b} onBroken={cover.onBroken} testId={`hero-cover-${tour.id}`} />
       </span>
       <span className="hero-cap">
+        {chip && (
+          <span className="hero-chip" data-testid={`pitch-hero-chip-${tour.id}`}>
+            {chip}
+          </span>
+        )}
         <span className="hero-title">{title}</span>
       </span>
     </Link>
@@ -144,7 +149,13 @@ function PromoSlide({ videoUrl, posterUrl, active }: { videoUrl: string | null; 
   );
 }
 
-export function HeroCarousel({ slides }: { slides: HeroSlide<Tournament>[] }): JSX.Element {
+export function HeroCarousel({
+  slides,
+  chipOf,
+}: {
+  slides: HeroSlide<Tournament>[];
+  chipOf: (category: string | undefined) => string | null;
+}): JSX.Element {
   const { t } = useT();
   const [index, setIndex] = useState(0);
   const [hover, setHover] = useState(false);
@@ -205,7 +216,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide<Tournament>[] }): J
           s.kind === "promo" ? (
             <PromoSlide key="promo" videoUrl={s.videoUrl} posterUrl={s.posterUrl} active={i === cur} />
           ) : (
-            <TournamentSlide key={s.tournament.id} t={s.tournament} active={i === cur} />
+            <TournamentSlide key={s.tournament.id} t={s.tournament} chip={chipOf(s.tournament.category)} active={i === cur} />
           ),
         )}
       </div>

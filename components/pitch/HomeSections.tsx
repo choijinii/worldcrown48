@@ -44,6 +44,7 @@ function SectionHead({
         hrefFor={hrefFor}
         testIdPrefix={`${testId}-tab`}
         navTestId={`${testId}-tabs`}
+        pill
       />
     </div>
   );

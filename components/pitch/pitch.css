@@ -118,6 +118,21 @@
   z-index: 12;
 }
 .pitch .hero-cap { pointer-events: none; }
+/* 아래 오른쪽 점(최대 5개 · 20 + 72px)과 제목 둘째 줄이 겹치지 않게 오른쪽을 비운다. */
+.pitch .hero-box:has(.hero-dots) .hero-cap { padding-right: 112px; }
+/* 대회 장 카테고리 칩 — 시안 P-1 kit.css .tcard__cat 그대로(대표 2026-11-19 · 빼는 것은 참가하기 버튼뿐). */
+.pitch .hero-chip {
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--color-black) 40%, transparent);
+  border: 1px solid var(--color-border-gold);
+  border-radius: 2px;
+  color: var(--color-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  line-height: 1.4;
+}
 /* 첫 장은 "WORLDCROWN48 · FILM" 글자 하나뿐(7절) — 자리 · 크기 · 아래 깔림은 시안 그대로. */
 .pitch .hero-title {
   font-size: 26px;
@@ -322,8 +337,10 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: space-evenly;
+  /* 1~2건이면 위에서부터 채운다(대표 2026-11-19). 3건 이상은 칸 높이에 고르게(시안 P-1). */
+  justify-content: flex-start;
 }
+.pitch .side-news:has(> li:nth-child(3)) { justify-content: space-evenly; }
 .pitch .side-news li + li .side-news-item { border-top: 1px solid var(--color-border-light); }
 .pitch .side-news-item {
   display: flex;
@@ -430,6 +447,25 @@
   border-top: 0;
   display: flex;
   grid-template-columns: none;
+}
+/* 홈 탭 = 시안 P-1 둥근 알약(32px · 13px · 고른 탭 진한 남색 + 흰 글자). 아레나 홈 탭은 그대로. */
+.pitch .home-tabs { gap: 6px; }
+.pitch .home-tabs > a {
+  height: 32px;
+  min-width: 0;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 999px;
+  background: var(--color-surface-light);
+  color: var(--color-text-sub-light);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pitch .home-tabs > a:hover { border-color: var(--color-text-light); color: var(--color-text-light); background: var(--color-surface-light); }
+.pitch .home-tabs > a[aria-current="true"] {
+  background: var(--color-text-light);
+  border-color: var(--color-text-light);
+  color: var(--color-surface-light);
 }
 .pitch .sec-empty {
   margin-top: 20px;
@@ -765,6 +801,8 @@
 @container (max-width: 599px) {
   .pitch .pitch-inner { --sec-gap: 40px; --h2: 22px; --tcard-title-size: 15px; }
   .pitch .hero-cap { padding: 34px 10px 10px; gap: 6px; }
+  .pitch .hero-box:has(.hero-dots) .hero-cap { padding-right: 100px; }
+  .pitch .hero-chip { font-size: 9px; padding: 3px 8px; }
   .pitch .hero-title { font-size: 11px; }
   .pitch .hero-ken img { animation: none; }
   .pitch .hero-film { font-size: 9px; }
