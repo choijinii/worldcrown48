@@ -16,7 +16,7 @@
  */
 import type { DeployEnv } from "@/lib/deployEnv";
 import { splitChartTournaments, type ChartTournament } from "@/lib/records/chartList";
-import { categoryFromParam, categoryParam, filterByCategory, paginate } from "@/lib/arenaHome/arenaHome";
+import { arenaHomeHref, categoryFromParam, categoryParam, filterByCategory, paginate } from "@/lib/arenaHome/arenaHome";
 import { sortTrending, type ArticleViews } from "@/lib/news/articleViews";
 import { MIN_RUNS_FOR_CHART } from "@/lib/ranking/rankState";
 import type { LocalizedText } from "@/lib/news/articleDoc";
@@ -109,6 +109,32 @@ export function heroSlides<T extends WithCreated>(input: {
   const tours = (latest ? [latest, ...popular] : []).map((tournament) => ({ kind: "tournament" as const, tournament }));
   const { videoUrl, posterUrl } = input.promo;
   return videoUrl || posterUrl ? [{ kind: "promo", videoUrl, posterUrl }, ...tours] : tours;
+}
+
+/**
+ * 히어로 장 하나 = 링크 하나(추가 지시 ② 7절 · 대표 2026-11-19 12:16) — 버튼 없이 장 전체를 누른다.
+ * 첫 장(홍보 영상) = 같은 탭 `/arena` · 대회 장 = 그 대회 대기실 `/arena?t=`(옛 참가하기 버튼이 가던 곳 · D-71).
+ */
+export function heroSlideHref(slide: HeroSlide<{ id: string }>): string {
+  return slide.kind === "promo" ? "/arena" : arenaHomeHref({ t: slide.tournament.id });
+}
+
+/** 이만큼(px) 안에서 움직이고 떼면 "가만히 누름" = 장으로 이동. 넘으면 누름이 아니다. */
+export const HERO_TAP_SLOP_PX = 10;
+/** 옆으로 이만큼(px) 이상 밀면 장을 넘긴다. */
+export const HERO_SWIPE_MIN_PX = 40;
+
+/**
+ * 휴대폰 밀기 판정(7절) — 누른 자리에서 뗀 자리까지의 거리(dx · dy)로
+ * step(+1 다음 장 · -1 앞 장 · 0 그대로)과 cancelTap(이번 누름으로 이동하지 않음)을 정한다.
+ * 미는 중에 떼면 넘길 만큼 안 밀었어도 이동하지 않는다 · 세로로 더 많이 움직였으면(화면 내리기) 넘기지 않는다.
+ */
+export function heroSwipe(dx: number, dy: number): { step: -1 | 0 | 1; cancelTap: boolean } {
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+  const cancelTap = ax > HERO_TAP_SLOP_PX || ay > HERO_TAP_SLOP_PX;
+  if (ax < HERO_SWIPE_MIN_PX || ax <= ay) return { step: 0, cancelTap };
+  return { step: dx < 0 ? 1 : -1, cancelTap: true };
 }
 
 export function trendingPage<T extends { category?: string }>(open: readonly T[], cat: string | null, page: number) {

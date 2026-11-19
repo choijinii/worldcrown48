@@ -5,11 +5,6 @@ import { describe, expect, it } from "vitest";
 import { MESSAGES } from "@/lib/i18n/messages";
 
 const TABLE: Record<string, [string, string, string]> = {
-  "pitch.home.promo.title": [
-    "48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다",
-    "48 Contestants, one Crown — your picks set the stage",
-    "48 Contestants, una Crown — tus elecciones marcan el escenario",
-  ],
   "pitch.home.charts.empty": [
     "첫 대회가 열리면 차트가 시작됩니다",
     "Charts begin when the first Tournament opens",
@@ -37,5 +32,12 @@ const TABLE: Record<string, [string, string, string]> = {
 describe("6절 승인 문구", () => {
   it.each(Object.entries(TABLE))("%s", (key, [ko, en, es]) => {
     expect(MESSAGES[key as keyof typeof MESSAGES]).toEqual({ ko, en, es });
+  });
+});
+
+// 추가 지시 ② 7절(대표 2026-11-19 12:16) — 첫 장에는 제목을 얹지 않는다 · 6절 1번 문구는 쓰지 않게 됨(사전 키를 두지 않는다).
+describe("7절 — 첫 장 제목 문구 없음", () => {
+  it("pitch.home.promo.title 키가 사전에 없다", () => {
+    expect(Object.prototype.hasOwnProperty.call(MESSAGES, "pitch.home.promo.title")).toBe(false);
   });
 });

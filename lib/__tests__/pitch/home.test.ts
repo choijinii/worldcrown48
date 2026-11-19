@@ -250,3 +250,32 @@ describe("chartRows — 공개 대회(진행 중 + 마감) × 차트 캐시", ()
     expect(rows[0]).toMatchObject({ runsTotal: 12, generatedAtMs: 5, category: "KPOP" });
   });
 });
+
+// 추가 지시 ② 7절(대표 2026-11-19 12:16) — 히어로 장 전체가 하나의 링크 · 휴대폰 밀기 = 장 넘기기.
+import { HERO_SWIPE_MIN_PX, HERO_TAP_SLOP_PX, heroSlideHref, heroSwipe } from "@/lib/pitch/home";
+
+describe("heroSlideHref — 장 링크 주소(7절)", () => {
+  it("첫 장(홍보 영상) = 같은 탭 /arena", () => {
+    expect(heroSlideHref({ kind: "promo", videoUrl: "v", posterUrl: null })).toBe("/arena");
+  });
+  it("대회 장 = 대기실 /arena?t= (참가하기 버튼이 가던 곳 · D-71)", () => {
+    expect(heroSlideHref({ kind: "tournament", tournament: { id: "kp 7" } })).toBe("/arena?t=kp%207");
+  });
+});
+
+describe("heroSwipe — 미는 동작은 장 넘기기, 가만히 누르면 이동(7절)", () => {
+  it("가만히 누름(움직임이 허용 범위 안) = 이동 · 넘기지 않음", () => {
+    expect(heroSwipe(0, 0)).toEqual({ step: 0, cancelTap: false });
+    expect(heroSwipe(HERO_TAP_SLOP_PX, 3)).toEqual({ step: 0, cancelTap: false });
+  });
+  it("왼쪽으로 밀면 다음 장 · 오른쪽으로 밀면 앞 장 · 둘 다 이동 안 함", () => {
+    expect(heroSwipe(-HERO_SWIPE_MIN_PX, 0)).toEqual({ step: 1, cancelTap: true });
+    expect(heroSwipe(HERO_SWIPE_MIN_PX + 20, 5)).toEqual({ step: -1, cancelTap: true });
+  });
+  it("미는 중에 짧게 떼면(넘길 만큼 안 밀었어도) 이동하지 않는다", () => {
+    expect(heroSwipe(HERO_TAP_SLOP_PX + 1, 0)).toEqual({ step: 0, cancelTap: true });
+  });
+  it("세로로 더 많이 움직이면(화면 내리기) 넘기지 않는다", () => {
+    expect(heroSwipe(-HERO_SWIPE_MIN_PX, HERO_SWIPE_MIN_PX * 2)).toEqual({ step: 0, cancelTap: true });
+  });
+});

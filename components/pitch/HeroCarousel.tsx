@@ -10,41 +10,46 @@
  * 앞 번호 엔트리로 바뀐다(`mediaTakedownAt` 을 넘긴다 · D-35 · D-93).
  * 홍보 장 = 월크48이 직접 만든 영상 파일(우리 Storage `pitch/promo/` · 유튜브 아님)이 소리 없이 자동 반복 ·
  * 조작 단추 없음 · 휴대폰(480 이하)과 움직임 줄이기에서는 정지 그림만 · 장 전체 = 같은 탭 `/arena`(추가 지시 ② 1절).
+ *
+ * 장 위의 글자와 버튼(추가 지시 ② 7절 · 대표 2026-11-19 12:16 — 1절 · 6절보다 앞선다):
+ *   첫 장 = 영상 + 작은 "WORLDCROWN48 · FILM" 글자 하나 · 제목도 버튼도 없다.
+ *   대회 장 = 대회 제목만 · 참가하기 버튼 없음. 장 전체가 링크 하나(`heroSlideHref`) — 키보드 Tab → Enter 로 열린다.
+ *   화살표 · 점은 링크 밖에서 따로 눌린다. 휴대폰은 옆으로 밀면 장 넘기기, 가만히 누르면 이동(`heroSwipe`) —
+ *   미는 중에 떼면 이동하지 않는다. 누를 수 있다는 표시 = 손가락 모양 + 장이 살짝 밝아짐(pitch.css · 새 색 없음).
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
-import type { HeroSlide } from "@/lib/pitch/home";
+import { heroSlideHref, heroSwipe, type HeroSlide } from "@/lib/pitch/home";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
-import { arenaHomeHref } from "@/lib/arenaHome/arenaHome";
 import { VSThumb } from "@/components/thumbnail/VSThumb";
 import { useCoverPair } from "@/components/thumbnail/useCoverPair";
 
 export const HERO_INTERVAL_MS = 10_000;
 
-function TournamentSlide({ t: tour, chip, active }: { t: Tournament; chip: string | null; active: boolean }) {
-  const { t, lang } = useT();
+function TournamentSlide({ t: tour, active }: { t: Tournament; active: boolean }) {
+  const { lang } = useT();
   const cover = useCoverPair(tour.id, tour.thumbnailPair, tour.mediaTakedownAt);
   const title = localizedTitle(tour, lang);
   return (
-    <div className="hero-slide" data-cover-a={cover.aId ?? ""} data-cover-b={cover.bId ?? ""} data-testid={`pitch-hero-slide-${tour.id}`}>
-      <div className="hero-ken">
+    <Link
+      href={heroSlideHref({ kind: "tournament", tournament: tour })}
+      className="hero-slide"
+      aria-label={title}
+      tabIndex={active ? 0 : -1}
+      draggable={false}
+      data-cover-a={cover.aId ?? ""}
+      data-cover-b={cover.bId ?? ""}
+      data-testid={`pitch-hero-slide-${tour.id}`}
+    >
+      <span className="hero-ken">
         <VSThumb a={cover.a} b={cover.b} onBroken={cover.onBroken} testId={`hero-cover-${tour.id}`} />
-      </div>
-      <div className="hero-cap">
-        {chip && <span className="hero-chip">{chip}</span>}
+      </span>
+      <span className="hero-cap">
         <span className="hero-title">{title}</span>
-        <Link
-          href={arenaHomeHref({ t: tour.id })}
-          className="hero-cta"
-          tabIndex={active ? 0 : -1}
-          data-testid={`pitch-hero-cta-${tour.id}`}
-        >
-          {t("pitch.card.cta")}
-        </Link>
-      </div>
-    </div>
+      </span>
+    </Link>
   );
 }
 
@@ -65,8 +70,6 @@ function usePromoVideoAllowed(): boolean {
 }
 
 function PromoSlide({ videoUrl, posterUrl, active }: { videoUrl: string | null; posterUrl: string | null; active: boolean }) {
-  const { t } = useT();
-  const title = t("pitch.home.promo.title");
   const allowed = usePromoVideoAllowed();
   const [failed, setFailed] = useState(false);
   const [inView, setInView] = useState(false);
@@ -97,16 +100,17 @@ function PromoSlide({ videoUrl, posterUrl, active }: { videoUrl: string | null; 
   return (
     <Link
       ref={boxRef}
-      href="/arena"
+      href={heroSlideHref({ kind: "promo", videoUrl, posterUrl })}
       className="hero-slide hero-promo"
-      aria-label={title}
+      aria-label="WorldCrown48"
+      draggable={false}
       tabIndex={active ? 0 : -1}
       data-testid="pitch-hero-promo"
       data-promo-mode={showVideo ? "video" : "still"}
     >
       {posterUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="hero-poster" src={posterUrl} alt="" data-testid="pitch-hero-promo-poster" />
+        <img className="hero-poster" src={posterUrl} alt="" draggable={false} data-testid="pitch-hero-promo-poster" />
       )}
       {showVideo && (
         <video
@@ -135,25 +139,45 @@ function PromoSlide({ videoUrl, posterUrl, active }: { videoUrl: string | null; 
       )}
       <span className="hero-cap hero-cap-promo">
         <span className="hero-film">WORLDCROWN48 · FILM</span>
-        <span className="hero-title">{title}</span>
-        <span className="hero-cta">{t("pitch.card.cta")}</span>
       </span>
     </Link>
   );
 }
 
-export function HeroCarousel({
-  slides,
-  chipOf,
-}: {
-  slides: HeroSlide<Tournament>[];
-  chipOf: (category: string | undefined) => string | null;
-}): JSX.Element {
+export function HeroCarousel({ slides }: { slides: HeroSlide<Tournament>[] }): JSX.Element {
   const { t } = useT();
   const [index, setIndex] = useState(0);
   const [hover, setHover] = useState(false);
   const count = slides.length;
   const cur = count ? index % count : 0;
+  // 밀기(7절) — 누른 자리 · 이번 누름을 이동으로 치지 않을지.
+  const press = useRef<{ x: number; y: number } | null>(null);
+  const cancelTap = useRef(false);
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    cancelTap.current = false;
+    // 화살표 · 점은 밀기 판정에서 뺀다(따로 눌린다).
+    if (e.button !== 0 || (e.target as Element).closest(".hero-arrow, .hero-dots")) {
+      press.current = null;
+      return;
+    }
+    press.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
+    const p = press.current;
+    press.current = null;
+    if (!p) return;
+    const r = heroSwipe(e.clientX - p.x, e.clientY - p.y);
+    cancelTap.current = r.cancelTap;
+    if (r.step && count > 1) setIndex((cur + r.step + count) % count);
+  };
+  // 밀다가 뗀 누름은 장 링크를 열지 않는다.
+  const onClickCapture = (e: MouseEvent<HTMLDivElement>) => {
+    if (!cancelTap.current) return;
+    cancelTap.current = false;
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   useEffect(() => {
     if (hover || count < 2) return;
@@ -169,13 +193,19 @@ export function HeroCarousel({
       data-hover={hover ? "true" : "false"}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => {
+        press.current = null;
+      }}
+      onClickCapture={onClickCapture}
     >
       <div className="hero-track" style={{ transform: `translateX(-${cur * 100}%)` }}>
         {slides.map((s, i) =>
           s.kind === "promo" ? (
             <PromoSlide key="promo" videoUrl={s.videoUrl} posterUrl={s.posterUrl} active={i === cur} />
           ) : (
-            <TournamentSlide key={s.tournament.id} t={s.tournament} chip={chipOf(s.tournament.category)} active={i === cur} />
+            <TournamentSlide key={s.tournament.id} t={s.tournament} active={i === cur} />
           ),
         )}
       </div>

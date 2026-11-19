@@ -117,14 +117,8 @@
   background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-bg-void) 82%, transparent) 70%);
   z-index: 12;
 }
-.pitch .hero-cap-promo { pointer-events: none; }
-.pitch .hero-chip {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--color-gold);
-}
+.pitch .hero-cap { pointer-events: none; }
+/* 첫 장은 "WORLDCROWN48 · FILM" 글자 하나뿐(7절) — 자리 · 크기 · 아래 깔림은 시안 그대로. */
 .pitch .hero-title {
   font-size: 26px;
   font-weight: 700;
@@ -137,21 +131,14 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.pitch .hero-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 224px;
-  height: 44px;
-  margin-top: 2px;
-  border-radius: var(--radius-border);
-  background: var(--color-gold);
-  color: var(--color-royal);
-  font-size: 16px;
-  font-weight: 800;
-  text-decoration: none;
-}
-.pitch .hero-cta:hover { background: var(--color-gold-hover); }
+/* 장 전체가 링크(7절) — 누를 수 있다는 표시는 글자 없이: 손가락 모양 + 장이 살짝 밝아짐(새 색 없음). */
+.pitch .hero-box { touch-action: pan-y; }
+.pitch .hero-slide { cursor: pointer; -webkit-user-drag: none; user-select: none; }
+.pitch .hero-slide .hero-ken,
+.pitch .hero-slide .hero-poster { transition: filter 200ms ease; }
+.pitch .hero-slide:hover .hero-ken,
+.pitch .hero-slide:hover .hero-poster { filter: brightness(1.08); }
+.pitch .hero-slide:focus-visible { outline: 2px solid var(--color-gold); outline-offset: -2px; }
 .pitch .hero-poster {
   position: absolute;
   inset: 0;
@@ -779,9 +766,6 @@
   .pitch .pitch-inner { --sec-gap: 40px; --h2: 22px; --tcard-title-size: 15px; }
   .pitch .hero-cap { padding: 34px 10px 10px; gap: 6px; }
   .pitch .hero-title { font-size: 11px; }
-  .pitch .hero-chip { font-size: 9px; }
-  /* 휴대폰 70% — 224×44 → 157×31 */
-  .pitch .hero-cta { width: 157px; height: 31px; font-size: 11px; }
   .pitch .hero-ken img { animation: none; }
   .pitch .hero-film { font-size: 9px; }
   .pitch .tioz-band { height: 56px; }

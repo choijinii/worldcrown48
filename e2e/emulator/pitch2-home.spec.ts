@@ -123,13 +123,22 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   // ⑧ 이미지 대회 — 히어로 장과 카드에 그림 표지(600 사본)
   await expect(page.getByTestId("hero-cover-imgT1").getByTestId("vsthumb-a-img")).toHaveAttribute("src", /imgT1%2F0_600\.jpg/, { timeout: 30_000 });
   await expect(page.getByTestId("tcard-cover-imgT1").getByTestId("vsthumb-a-img")).toHaveAttribute("src", /imgT1%2F0_600\.jpg/);
-  // 홍보 장 — 장 전체 = 같은 탭 /arena · 제목 · 참가하기 · WORLDCROWN48 · FILM
+  // 홍보 장 — 장 전체 = 같은 탭 /arena · 얹힌 글자는 "WORLDCROWN48 · FILM" 하나뿐(추가 지시 ② 7절)
   const promo = page.getByTestId("pitch-hero-promo");
   await expect(promo).toHaveAttribute("href", "/arena");
   await expect(promo).not.toHaveAttribute("target", /.+/);
-  await expect(promo).toContainText("48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다");
-  await expect(promo).toContainText("WORLDCROWN48 · FILM");
-  await expect(promo).toContainText("참가하기");
+  await expect(promo).toHaveAttribute("aria-label", "WorldCrown48");
+  expect((await promo.innerText()).trim()).toBe("WORLDCROWN48 · FILM");
+  // 대회 장 — 제목만 · 버튼 없음 · 장 전체 = 대기실
+  const kp7 = page.getByTestId("pitch-hero-slide-kp7");
+  await expect(kp7).toHaveAttribute("href", "/arena?t=kp7");
+  // 표지(VS 그림) 위에 얹힌 글자 칸 = 제목 하나
+  await expect(kp7.locator(".hero-cap > *")).toHaveCount(1);
+  expect((await kp7.locator(".hero-cap").innerText()).trim()).toBe((await kp7.locator(".hero-title").innerText()).trim());
+  await expect(kp7).toHaveAttribute("aria-label", (await kp7.locator(".hero-title").innerText()).trim());
+  // 장 안에는 버튼 · 겹친 링크가 없다(화살표 · 점은 장 밖)
+  await expect(page.getByTestId("pitch-hero").locator(".hero-track").locator("button, a a, .hero-cta")).toHaveCount(0);
+  await expect(page.getByTestId("pitch-hero").getByText("참가하기")).toHaveCount(0);
   // 히어로 안에 youtube 주소 0 · 페이지에 /launch 링크 0(배너 ① 의 사전등록 안내만 예외)
   expect(await page.getByTestId("pitch-hero").evaluate((el) => (el.innerHTML.match(/youtu/gi) ?? []).length)).toBe(0);
   expect(await page.locator("a[href^='/launch']").evaluateAll((els) => els.filter((e) => !e.closest("[data-banner-slot='pitch-between']")).length)).toBe(0);
@@ -365,4 +374,77 @@ test("⑬ 이어서 하기 알약 — 메뉴바 안 언어 토글 바로 앞 · 
   await expect(page.locator(".title-row")).toHaveText("GLOBAL FAN ARENA");
   await page.screenshot({ path: "test-results-emulator/pitch2-pill-1440.png", clip: { x: 0, y: 0, width: 1440, height: 120 } });
   await expectNoConsoleErrors(errors);
+});
+
+// ── 추가 지시 ② 7절(대표 2026-11-19 12:16) — 장 전체가 링크 · 화살표와 점은 따로 · 휴대폰 밀기 = 넘기기 ──
+test("⑭ 대회 장을 누르면 대기실 · 화살표와 점은 장만 넘기고 이동하지 않음 · 손가락 모양 · Tab → Enter", async ({ page }) => {
+  const errors = collectConsoleErrors(page);
+  await page.clock.install();
+  await page.goto("/?lang=ko");
+  const hero = page.getByTestId("pitch-hero");
+  await expect.poll(() => heroSlideIds(page), { timeout: 30_000 }).toHaveLength(5);
+  await hero.hover();
+  await page.getByTestId("pitch-hero-next").click();
+  await expect(hero).toHaveAttribute("data-slide", "1");
+  await page.getByTestId("pitch-hero-dots").locator(".hero-dot").nth(3).click();
+  await expect(hero).toHaveAttribute("data-slide", "3");
+  await page.getByTestId("pitch-hero-prev").click();
+  await expect(hero).toHaveAttribute("data-slide", "2");
+  await expect(page).toHaveURL(/\/\?lang=ko$/);
+  const slide = page.getByTestId("pitch-hero-slide-imgT1");
+  await expect(slide).toHaveCSS("cursor", "pointer");
+  await page.screenshot({ path: "test-results-emulator/pitch2-hero-tournament-1440.png" });
+  await page.clock.runFor(700); // 넘김 600ms 가 끝난 뒤
+  await page.waitForTimeout(700);
+  const box = (await hero.boundingBox())!;
+  await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.4);
+  await expect(page).toHaveURL(/\/arena\?t=imgT1$/);
+
+  // 키보드 — Tab 으로 첫 장 링크에 닿고 Enter 로 열린다
+  await page.goto("/?lang=ko");
+  const promo = page.getByTestId("pitch-hero-promo");
+  await expect(promo).toBeVisible({ timeout: 30_000 });
+  let reached = false;
+  for (let i = 0; i < 40 && !reached; i++) {
+    await page.keyboard.press("Tab");
+    reached = await promo.evaluate((el) => el === document.activeElement);
+  }
+  expect(reached).toBe(true);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/arena$/);
+  await expectNoConsoleErrors(errors);
+});
+
+test.describe("⑭ 390 터치", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  const swipe = async (page: Page, fromX: number, toX: number, y: number) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: fromX, y }] });
+    const steps = 6;
+    for (let i = 1; i <= steps; i++) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: fromX + ((toX - fromX) * i) / steps, y }] });
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await cdp.detach();
+  };
+
+  test("옆으로 밀면 장 넘기기(이동 없음) · 조금 밀다 떼도 이동 없음 · 가만히 누르면 이동", async ({ page }) => {
+    await page.goto("/?lang=ko");
+    const hero = page.getByTestId("pitch-hero");
+    await expect.poll(() => heroSlideIds(page), { timeout: 30_000 }).toHaveLength(5);
+    const b = (await hero.boundingBox())!;
+    const y = b.y + b.height / 2;
+    await swipe(page, b.x + b.width * 0.8, b.x + b.width * 0.2, y);
+    await expect(hero).toHaveAttribute("data-slide", "1");
+    await swipe(page, b.x + b.width * 0.2, b.x + b.width * 0.8, y);
+    await expect(hero).toHaveAttribute("data-slide", "0");
+    // 넘길 만큼 안 밀고 뗌 — 장도 그대로 · 이동도 없음
+    await swipe(page, b.x + b.width * 0.5, b.x + b.width * 0.5 - 22, y);
+    await page.waitForTimeout(800);
+    await expect(hero).toHaveAttribute("data-slide", "0");
+    await expect(page).toHaveURL(/\/\?lang=ko$/);
+    await page.touchscreen.tap(b.x + b.width * 0.5, y);
+    await expect(page).toHaveURL(/\/arena$/);
+  });
 });

@@ -122,11 +122,7 @@ export const MESSAGES = {
   // ── PITCH-2 홈 화면 문구 — 지시서 v1.1a 6절 표(대표 승인 2026-11-17 13:37 "전부 승인") 글자 그대로 ──
   // 영어 그대로 두는 구역 머리(GLOBAL FAN ARENA · Trending Tournaments · NEWS ROOM · CHARTS · Create Tournament ·
   // COMING SOON · LATEST · HOT · WORLD PRESS · NO ARTICLES · © 2026 WorldCrown48)는 3언어 공통이라 사전에 두지 않는다.
-  "pitch.home.promo.title": {
-    ko: "48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다",
-    en: "48 Contestants, one Crown — your picks set the stage",
-    es: "48 Contestants, una Crown — tus elecciones marcan el escenario",
-  },
+  // 6절 1번(첫 장 제목)은 추가 지시 ② 7절(대표 2026-11-19 12:16)로 쓰지 않게 됨 — 키를 두지 않는다.
   "pitch.home.charts.empty": {
     ko: "첫 대회가 열리면 차트가 시작됩니다",
     en: "Charts begin when the first Tournament opens",
