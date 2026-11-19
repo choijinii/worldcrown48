@@ -230,6 +230,8 @@ export function buildBriefExtractPrompt(
     NAME_SCRIPT_RULE,
     "- 한글 표기만 있는 외국 엔트리는 적힌 그대로 두고 로마자로 옮기지 마라(제목에 없는 문자열을 만들지 않는다). 사람 · 팀이 아닌 엔트리(노래 · 작품)는 제목에 적힌 공식 표기 그대로",
     "- affiliation: 위 규칙의 덧붙이는 정보 — 제목·채널에 드러나면 적는다(예: 엔트리가 노래 제목이고 덧붙이는 정보가 가수면 제목에 적힌 그 노래의 가수). 드러나지 않으면 빈 문자열",
+    // LAB-FIX-5 §3-5 — B줄 사전 점검: 29번 베베 칸 소속에 원곡 가수 "YOUNG POSSE". 서버 그물(dropOriginalArtistExtra)도 함께.
+    "- 엔트리가 사람 · 팀일 때: 커버 · 리액션 · 리뷰 영상의 원곡 가수 · 원작자는 affiliation 에도 적지 않는다. 원곡 가수는 그 엔트리의 소속이 아니다. 소속을 알 수 없으면 빈 문자열",
     "- nationality: ISO 3166-1 alpha-2 두 글자 대문자. 제목에 `from Vietnam` · `from FRANCE` 같은 나라 문구가 있으면 그 나라로 정한다. 그런 문구가 없으면 엔트리의 나라가 제목·채널에서 확실할 때만 적고, 아니면 비운다. 원곡 가수의 나라를 엔트리의 나라로 적지 마라",
     "- confident: 제목·채널에서 엔트리 이름을 찾았으면 true, 찾지 못해 비웠으면 false. 고르는 조건에 맞는지 애매하다는 것은 false 로 할 이유가 아니다",
     "",
@@ -270,6 +272,23 @@ export function preferChannelFullName(name: string, channel: string): string {
   const ok = tail.every((t) => ENTITY_SUFFIX.has(t.toLowerCase()) || /^[A-Z]{2}$/.test(t));
   if (!ok) return n;
   return [clean.slice(0, n.length), ...tail].join(" ");
+}
+
+/**
+ * 서버 그물 (LAB-FIX-5 §3-5). 제목에 원곡 표시가 **글자로 적혀 있고**(`원곡: X` · `Original: X` · `original song by X`)
+ * 소속 칸이 그 X 와 같으면 소속을 비운다. 엔트리가 사람 · 팀인 세 줄 지시문에서만 쓴다 — 노래 · 작품 대회(그 외)는
+ * 가수가 덧붙이는 정보일 수 있다. 원곡 표시가 없는 제목은 건드리지 않는다(제목 앞 이름은 그 사람의 소속일 수 있다 — aespa 카리나 직캠).
+ */
+const ORIGINAL_MARK_RE = /(?:원곡|original(?:\s+(?:song|artist))?(?:\s+by)?)\s*[:：]?\s*([^)\]|\n]+)/gi;
+export function dropOriginalArtistExtra(title: string, extra: string): string {
+  const e = toStr(extra);
+  if (!e) return e;
+  const key = (v: string) => v.toLowerCase().replace(/[\s._\-'’()]/g, "");
+  const ek = key(e);
+  for (const m of toStr(title).matchAll(ORIGINAL_MARK_RE)) {
+    if (key(m[1] ?? "") === ek) return "";
+  }
+  return e;
 }
 
 /**
@@ -400,7 +419,10 @@ export async function extractContestantsCore(
   // LAB-FIX-4b 서버 그물 — 묶음 지시문 · 사람/팀 단위에서만(노래 · 작품 대회와 옛 지시문은 그대로).
   const out =
     usesBriefPrompt(brief, entryUnit) && entryUnit !== "other"
-      ? parsed.map((x, i) => (x.confident ? { ...x, name: preferChannelFullName(x.name, items[i].channelTitle) } : x))
+      ? parsed.map((x, i) => {
+          const y = { ...x, affiliation: dropOriginalArtistExtra(items[i].title, x.affiliation) };
+          return y.confident ? { ...y, name: preferChannelFullName(y.name, items[i].channelTitle) } : y;
+        })
       : parsed;
   const named = out.filter((x) => x.confident).length;
   deps.logInfo?.(
