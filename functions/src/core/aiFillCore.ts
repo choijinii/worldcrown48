@@ -24,7 +24,7 @@ import {
   type ContestantNotice,
   type DiscardedContestant,
 } from "./parseContestants";
-import { briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
+import { NAME_SCRIPT_RULE, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 
 /** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
 export type Category = string;
@@ -183,7 +183,9 @@ function buildBriefFillPrompt(opts: BuildPromptOptions): string {
     "- 각 항목은 위에서 정한 **엔트리 하나**다. 엔트리가 아닌 것(엔트리에 딸린 사람 · 소속 · 원작자 등)을 name 에 적지 않는다",
     "- 실존하는 것만. 가상·합성 엔트리를 지어내지 말 것",
     "- 같은 엔트리를 두 번 넣지 말 것",
-    "- name = 엔트리의 이름. 사람·팀이면 **한글 이름**(영어 이름은 발행 때 따로 붙는다), 한국 작품·제품이면 한글 공식 이름. 한글 표기가 없는 것만 공식 표기 그대로",
+    // LAB-FIX-5 결정 F — 옛 줄 "사람·팀이면 한글 이름"이 외국 인물까지 한글로 옮겨 적게 했다(TEST2: 니키 뒤 투아 · 록산느 퍼시픽).
+    "- name = 엔트리의 이름. 한국 작품·제품이면 한글 공식 이름, 외국 작품·제품이면 원래 공식 표기",
+    NAME_SCRIPT_RULE,
     "- affiliation = 위의 덧붙이는 정보. 모르면 빈 문자열",
     "- nationality = **ISO 3166-1 alpha-2 국가 코드 두 글자 대문자** (예: KR · JP · US). 확실할 때만, 아니면 빈 문자열",
     "- 카테고리에 실제로 속한 엔트리면 국적을 가리지 말 것. 국적 다양성은 카테고리 자체가 글로벌일 때만 고려한다",

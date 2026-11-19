@@ -108,3 +108,45 @@ describe("aiSuggestKeywordsCore", () => {
     ).rejects.toMatchObject({ reason: "unparseable" });
   });
 });
+
+// LAB-FIX-5 §3-7 — 키워드는 AI 힌트이자 뉴스 재료다. 금지 낱말(LANGUAGE.md)은 지시문으로 막고 서버에서 한 번 더 거른다.
+import { buildKeywordPrompt, hasForbiddenKeywordWord } from "../core/aiSuggestKeywordsCore";
+
+describe("LAB-FIX-5 §3-7 — 키워드 금지 낱말", () => {
+  it("지시문에 금지 낱말을 쓰지 말라는 줄이 있다(영어 · 한국어 · 스페인어 짝)", () => {
+    const p = buildKeywordPrompt("최고의 무대", "KPOP", "");
+    for (const w of ["voting", "vote", "world cup", "contestant", "candidate", "투표", "월드컵", "참가자", "후보", "votación", "concursante", "candidato"]) {
+      expect(p).toContain(w);
+    }
+  });
+  it.each([
+    "ideal type voting",
+    "world cup competition",
+    "Worldcup",
+    "Vote",
+    "contestants",
+    "K-pop candidate",
+    "이상형 월드컵",
+    "인기 투표",
+    "참가자 명단",
+    "후보자",
+    "votación fans",
+    "Copa Mundial",
+    "concursantes",
+    "candidata",
+  ])("%s → 금지", (k) => {
+    expect(hasForbiddenKeywordWord(k)).toBe(true);
+  });
+  it.each(["kpop", "stage performance", "dance cover", "beauty creator", "뷰티 크리에이터", "Devote fanbase"])("%s → 통과", (k) => {
+    expect(hasForbiddenKeywordWord(k)).toBe(false);
+  });
+  it("모델이 금지 낱말을 내도 결과에서 빠진다", async () => {
+    const deps = { createMessage: vi.fn(async () => JSON.stringify(["beauty", "ideal type voting", "world cup competition", "makeup", "skincare", "tutorial", "glam", "creator"])) };
+    const out = await aiSuggestKeywordsCore(validInput, deps);
+    expect(out).toEqual(["beauty", "makeup", "skincare", "tutorial", "glam", "creator"]);
+  });
+  it("남는 키워드가 없으면 unparseable", async () => {
+    const deps = { createMessage: vi.fn(async () => JSON.stringify(["vote", "world cup"])) };
+    await expect(aiSuggestKeywordsCore(validInput, deps)).rejects.toMatchObject({ reason: "unparseable" });
+  });
+});
