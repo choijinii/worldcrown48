@@ -34,8 +34,8 @@ interface PageCase {
   banner: boolean;
 }
 const PAGES: PageCase[] = [
-  // .pitch-inner 최대 1320 — 여백이 그 안에 있다
-  { name: "피치", path: "/", expectedLeft: (vw) => centered(1320)(vw) + GUTTER, banner: true },
+  // .pitch-inner 내용 최대 1320 + 여백 20 은 그 밖(PITCH-2 시안 P-1 대조 · 대표 2026-11-19 — 아레나 홈과 같은 셈)
+  { name: "피치", path: "/", expectedLeft: (vw) => Math.max(GUTTER, centered(1320)(vw)), banner: true },
   // .page 여백 바깥 · .inner 최대 1320
   { name: "아레나 홈", path: "/arena", expectedLeft: (vw) => Math.max(GUTTER, centered(1320)(vw)), banner: true },
   // .page 여백 바깥 · .inner 최대 970
