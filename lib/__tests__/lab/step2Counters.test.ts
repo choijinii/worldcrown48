@@ -74,3 +74,12 @@ describe("step2Counters", () => {
     expect(c.todo).toBe(0);
   });
 });
+
+// LAB-FIX-5 §3-2 — 조건 검사가 표시한 칸도 "손볼 칸"이다.
+describe("LAB-FIX-5 — 조건 검사 표시도 손볼 칸", () => {
+  it("표시된 칸을 센다 · 다른 손볼 이유와 겹치면 한 번", () => {
+    const drafts = [{ name: "a" }, { name: "b" }, { name: "c" }];
+    const c = step2Counters(drafts, { 1: { status: "manual" } }, {}, 3, { 1: { name: "b", reason: "" }, 2: { name: "c", reason: "x" } });
+    expect(c.todo).toBe(2);
+  });
+});

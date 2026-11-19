@@ -48,6 +48,13 @@ import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { DEFAULT_ENTRY_UNIT, TOTAL_CONTESTANTS, type EntryUnit } from "@/lib/types/tournament";
 import { EMPTY_AI_BRIEF, aiBriefForSave, readAiBrief, type AiBrief } from "@/lib/lab/aiBrief";
 import {
+  activeRuleFlags,
+  ruleFlagsFromReply,
+  rulesCheckEntries,
+  shouldCheckRules,
+  type RuleFlag,
+} from "@/lib/lab/slotMarks";
+import {
   applyVideoAssignments,
   clearVideo,
   reframeDraft,
@@ -304,6 +311,9 @@ export function TournamentCreator(): JSX.Element {
   const contestantsRef = useRef<ContestantDraft[]>([]);
   // LAB-EV-2: 슬롯별 소싱 배지(제안·수동 필요·실존 의심). 화면 전용 — 발행되지 않는다.
   const [sourcingStates, setSourcingStates] = useState<SourcingStates>({});
+  // LAB-FIX-5 §3-2 — 채운 뒤 "고르는 조건" 다시 검사가 표시한 칸(그때의 이름과 함께 · 초안에 저장).
+  const [ruleFlags, setRuleFlags] = useState<RuleFlag[]>([]);
+  const [rulesChecking, setRulesChecking] = useState(false);
   // THUMB-1 대표 매치 — 그리드 칸 번호(0~47) 두 개 + 위치 값. 둘 다 골라야 게시된다.
   const [pairPick, setPairPick] = useState<PairPick>(EMPTY_PICK);
   const [refreshingIndex, setRefreshingIndex] = useState<number | null>(null);
@@ -357,6 +367,10 @@ export function TournamentCreator(): JSX.Element {
     entryUnit,
     mediaKind,
     aiBrief,
+    // LAB-FIX-5 §3-2 · §3-8 — 새로고침해도 표시와 "제안 · 손볼 칸" 숫자가 남는다.
+    ruleFlags,
+    sourcing: sourcingStates,
+    imageNotFound: Array.from(imageNotFound).sort((a, b) => a - b),
   };
 
   /**
@@ -393,11 +407,13 @@ export function TournamentCreator(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- slotUsable 은 contestants 만 본다
   }, [contestants]);
 
+  const activeRules = useMemo(() => activeRuleFlags(ruleFlags, contestants), [ruleFlags, contestants]);
   const counters = step2Counters(
     contestants,
     withNotFound(sourcingStates, imageNotFound),
     reviewFlags,
     TOTAL_CONTESTANTS,
+    activeRules,
   );
 
   // TX-0: categories are DATA — fetch the `categories` collection once (module
@@ -476,8 +492,9 @@ export function TournamentCreator(): JSX.Element {
     setEntryUnit(s.entryUnit);
     setMediaKind(s.mediaKind);
     setAiBrief(s.aiBrief);
-    setSourcingStates({});
-    setImageNotFound(new Set());
+    setSourcingStates(s.sourcing ?? {});
+    setImageNotFound(new Set(s.imageNotFound ?? []));
+    setRuleFlags(s.ruleFlags ?? []);
     lastQueuedRef.current = JSON.stringify(s);
   }
 
@@ -736,6 +753,10 @@ export function TournamentCreator(): JSX.Element {
         duration_ms: Date.now() - started,
         contestant_count: incoming.length,
       });
+      // LAB-FIX-5 §3-2 — 고르는 조건이 있을 때만 채운 명단을 조건과 다시 대조한다. 체인(영상 · 이미지 찾기)을
+      // 기다리게 하지 않는다 — 검사는 칸을 지우지 않고 표시만 하므로 찾기와 나란히 돌아도 된다.
+      if (shouldCheckRules(aiBrief)) void runRulesCheck(applied);
+      else setRuleFlags([]);
       return { drafts: applied, filledIndexes: touched };
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
@@ -744,6 +765,31 @@ export function TournamentCreator(): JSX.Element {
       return null;
     } finally {
       setFilling(false);
+    }
+  }
+
+  /**
+   * LAB-FIX-5 §3-2 — 채운 명단을 "고르는 조건"과 다시 대조(checkEntryRules · 두 번째 AI 호출).
+   * 걸린 칸은 지우지 않고 표시 + 사유 한 줄(화면 언어). 실패하면 표시 없이 지나간다(채운 칸은 그대로).
+   * 응답이 오는 사이 운영자가 이름을 고친 칸은 표시하지 않는다(ruleFlagsFromReply 가 그때의 이름을 남기고,
+   * activeRuleFlags 가 지금 이름과 견준다).
+   */
+  async function runRulesCheck(drafts: readonly ContestantDraft[]) {
+    const entries = rulesCheckEntries(drafts);
+    if (entries.length === 0) return;
+    setRulesChecking(true);
+    try {
+      const callable = httpsCallable<
+        { title: string; category: string; entryUnit: EntryUnit; aiBrief: AiBrief; entries: typeof entries; lang: string },
+        { flags: { slot: number; reason: string }[] }
+      >(getFunctionsInstance(), "checkEntryRules");
+      const res = await callable({ title: title.trim(), category, entryUnit, aiBrief, entries, lang });
+      setRuleFlags(ruleFlagsFromReply(res.data.flags ?? [], drafts));
+      void track("admin_lab_rules_check", { category, entry_unit: entryUnit, flagged: res.data.flags?.length ?? 0 });
+    } catch (err) {
+      void track("admin_lab_rules_check_error", { category, error_code: (err as { code?: string }).code ?? "unknown" });
+    } finally {
+      setRulesChecking(false);
     }
   }
 
@@ -1347,6 +1393,7 @@ export function TournamentCreator(): JSX.Element {
     setContestants([]);
     setSourcingStates({});
     setImageNotFound(new Set());
+    setRuleFlags([]);
     setPairPick(EMPTY_PICK);
     setTuningIndex(null);
     setCheckingImageIndex(null);
@@ -1472,7 +1519,8 @@ export function TournamentCreator(): JSX.Element {
       setContestants([]);
       setPairPick(EMPTY_PICK);
       setSourcingStates({});
-    setImageNotFound(new Set());
+      setImageNotFound(new Set());
+      setRuleFlags([]);
       setSaveStatus(null);
       lastQueuedRef.current = "";
       setListRefresh((n) => n + 1);
@@ -1769,6 +1817,7 @@ export function TournamentCreator(): JSX.Element {
           )}
           <div
             data-testid="entry-image-dropzone"
+            data-rules-checking={rulesChecking ? "true" : undefined}
             onDragOver={(e) => {
               if (mediaKind === "image" && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault();
             }}
@@ -1794,6 +1843,8 @@ export function TournamentCreator(): JSX.Element {
             onTune={setTuningIndex}
             sourcing={sourcingStates}
             reviewFlags={reviewFlags}
+            ruleFlags={activeRules}
+            data-rules-checking={rulesChecking ? "true" : undefined}
             onRefreshVideo={(index) => void refreshSlot(index)}
             refreshingIndex={refreshingIndex}
             mediaKind={mediaKind}

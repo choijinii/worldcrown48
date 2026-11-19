@@ -65,6 +65,11 @@ interface ContestantEditorProps {
   sourcing?: SlotSourcingState;
   /** LAB-UX-1: 검수 배지(중복 의심·이름↔힌트 불일치). 상태에서 파생된다. */
   reviewFlags?: SlotReviewFlag[];
+  /**
+   * LAB-FIX-5 §3-2 — 조건 검사가 표시한 칸(사유 = AI 한 줄 · 화면 언어). 화면 글자(5절 "조건 확인 필요")는
+   * 대표 승인 뒤에 붙인다 — 지금은 칸의 data 속성만(시험 · 다음 단계가 읽는다).
+   */
+  ruleFlag?: { reason: string };
   /** 중복 의심 배지의 [N번 보기] — 상대 칸으로 데려간다. */
   onGoToSlot?: (index: number) => void;
   /** LAB-EV-2: 이 슬롯만 캐시 우회 재검색. 소싱을 돌린 적 있을 때만 넘어온다. */
@@ -185,6 +190,7 @@ export function ContestantEditor({
   onTune,
   sourcing,
   reviewFlags,
+  ruleFlag,
   onGoToSlot,
   onRefreshVideo,
   refreshing = false,
@@ -294,6 +300,8 @@ export function ContestantEditor({
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       data-pair={pairMark ?? ""}
+      data-rule-flag={ruleFlag ? "true" : undefined}
+      data-rule-reason={ruleFlag ? ruleFlag.reason : undefined}
       onDragOver={image && buttons.imageFile ? (e) => e.preventDefault() : undefined}
       onDrop={
         // D-90 — 그림을 끌어 넣는 것은 이미지 대회에서만.

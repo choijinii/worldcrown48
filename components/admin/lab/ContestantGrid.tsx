@@ -25,6 +25,8 @@ interface ContestantGridProps {
   sourcing?: SourcingStates;
   /** LAB-UX-1 — index → 검수 배지(중복 의심·이름↔힌트 불일치). 상태에서 파생된다. */
   reviewFlags?: ReviewFlags;
+  /** LAB-FIX-5 §3-2 — index → 조건 검사 표시(지금 이름 그대로인 칸만). */
+  ruleFlags?: Readonly<Record<number, { reason: string }>>;
   /** LAB-EV-2 — 슬롯 1개 캐시 우회 재검색. */
   onRefreshVideo?: (index: number) => void;
   /** 지금 재검색 중인 슬롯 index (없으면 null). */
@@ -78,6 +80,7 @@ export function ContestantGrid({
   onTune,
   sourcing,
   reviewFlags,
+  ruleFlags,
   onRefreshVideo,
   refreshingIndex = null,
   pairA = null,
@@ -123,6 +126,7 @@ export function ContestantGrid({
           onTune={onTune}
           sourcing={sourcing?.[i]}
           reviewFlags={reviewFlags?.[i]}
+          ruleFlag={ruleFlags?.[i]}
           onGoToSlot={scrollToSlot}
           // [새 영상 찾기]는 자동 칸에서만 보인다(LAB-FIX-3 · D-89 — 칸이 판정한다). 이름이 있어야 찾는다.
           // (옛 주석) 이름이 있으면 언제나 [영상 찾기]를 준다. 예전에는 소싱 배지가 있는
