@@ -92,6 +92,8 @@ describe("buildBriefExtractPrompt — 링크 제목 읽기(새 지시문)", () =
     expect(top).toBeGreaterThan(-1);
     expect(top).toBeLessThan(p.indexOf("지어내지 마라"));
     expect(p).toContain("고르는 조건: K-pop 곡에 맞춰 춤춘 국내외 댄스 크루. 원곡 가수는 엔트리가 아니다.");
+    // 링크 제목 읽기는 영상이 이미 골라진 뒤 — 조건은 누가 엔트리인지 가리는 데만(LAB-FIX-4b).
+    expect(p).toContain("누가 엔트리인지 가리는 데만");
   });
   it("대회 제목을 함께 넘긴다", () => {
     expect(p).toContain(fixture.tournamentTitle);
@@ -232,5 +234,38 @@ describe("이름 3언어 — 엔트리 종류를 넘긴다", () => {
     expect((createMessage.mock.calls[0] as unknown as [string])[0]).toBe(
       buildNamesPrompt([{ i: 1, name: "카리나", affiliation: "aespa" }], "KPOP"),
     );
+  });
+});
+
+describe("preferChannelFullName — 제목의 줄인 이름 → 채널의 전체 이름(서버 그물 · LAB-FIX-4b)", () => {
+  it("이름이 채널 이름의 앞부분이고 뒤가 크루 · 팀 말이면 채널 이름", async () => {
+    const { preferChannelFullName } = await import("../core/extractContestantsCore");
+    expect(preferChannelFullName("HANABI", "Hanabi Dance Crew")).toBe("Hanabi Dance Crew");
+    expect(preferChannelFullName("AFTER", "AFTER DANCE CREW")).toBe("AFTER DANCE CREW");
+    expect(preferChannelFullName("DARE", "DARE Crew • Official")).toBe("DARE Crew");
+    expect(preferChannelFullName("Principium", "Principium PH")).toBe("Principium PH");
+    expect(preferChannelFullName("404", "404 DANCE CREW")).toBe("404 DANCE CREW");
+    expect(preferChannelFullName("SUGAR X SPICY", "SUGAR X SPICY DC")).toBe("SUGAR X SPICY DC");
+  });
+  it("꾸밈말만 붙은 채널 · 방송사 · 소속사 · 다른 이름 · 한글 병기는 바꾸지 않는다", async () => {
+    const { preferChannelFullName } = await import("../core/extractContestantsCore");
+    expect(preferChannelFullName("Mad.G", "Mad.G Official")).toBe("Mad.G");
+    expect(preferChannelFullName("TWICE", "TWICE JAPAN OFFICIAL YouTube Channel")).toBe("TWICE");
+    expect(preferChannelFullName("IVE", "IVE Entertainment")).toBe("IVE");
+    expect(preferChannelFullName("HUSH BOSTON", "HUSH CREW")).toBe("HUSH BOSTON");
+    expect(preferChannelFullName("Chocomint HK", "Chocomint HK 초코민트")).toBe("Chocomint HK");
+    expect(preferChannelFullName("라치카", "라치카 La Chica")).toBe("라치카");
+    expect(preferChannelFullName("MOVENESS", "Aico - MOVENESS")).toBe("MOVENESS");
+    expect(preferChannelFullName("NOVA", "NOVAK Dance Crew")).toBe("NOVA");
+    expect(preferChannelFullName("", "Hanabi Dance Crew")).toBe("");
+  });
+  it("코어는 묶음 지시문 · 사람/팀 단위에서만 적용한다(노래 대회 · 옛 지시문은 그대로)", async () => {
+    const reply = '{"extractions":[{"id":"fIVvOkZUOTo","name":"HANABI","affiliation":"","nationality":"DE","confident":true}]}';
+    const item = [{ videoId: "fIVvOkZUOTo", title: "… Dance Cover by HANABI", channelTitle: "Hanabi Dance Crew" }];
+    const run = (entryUnit: string, aiBrief?: unknown) =>
+      extractContestantsCore({ uid: "u", items: item, entryUnit, aiBrief }, { createMessage: async () => reply });
+    expect((await run("group", crewBrief))[0].name).toBe("Hanabi Dance Crew");
+    expect((await run("group"))[0].name).toBe("HANABI");
+    expect((await run("other", { entry: "노래 제목", extra: "가수", rules: "" }))[0].name).toBe("HANABI");
   });
 });

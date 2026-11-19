@@ -20,7 +20,10 @@
       "title": "[KPOP IN PUBLIC] TWS(투어스) - hey! hey! dance cover by CHOCOMINT HK",
       "channelTitle": "Chocomint HK 초코민트",
       "expectedName": "Chocomint HK",
-      "expectedCountry": "HK"
+      "expectedCountry": "HK",
+      "acceptedNames": [
+        "초코민트"
+      ]
     },
     {
       "videoId": "cWBISLehANQ",
@@ -188,28 +191,41 @@
       "title": "JUSTJERK | DANCE VIDEO | @JustJerkCrew",
       "channelTitle": "저스트 절크",
       "expectedName": "Just Jerk",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "저스트 절크",
+        "저스트절크"
+      ]
     },
     {
       "videoId": "7aRCg-O4LjY",
       "title": "IVE - Kitsch 라치카 버전 공개! (Lachica Choreography)",
       "channelTitle": "라치카 La Chica",
       "expectedName": "LACHICA",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "라치카"
+      ]
     },
     {
       "videoId": "HgHz0wMTiGs",
       "title": "코카앤버터(CocaNButter) - 'Mi Deh Yah' DANCE PRACTICE VIDEO",
       "channelTitle": "코카앤버터 (CocaNButter)",
       "expectedName": "CocaNButter",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "코카앤버터"
+      ]
     },
     {
       "videoId": "NDcwCp7GxTA",
       "title": "베베(BEBE) - 'XXL' Dance Performance (원곡: YOUNG POSSE)",
       "channelTitle": "베베 BEBE",
       "expectedName": "BEBE",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "베베"
+      ]
     },
     {
       "videoId": "gIyK7tVuNx4",
@@ -237,7 +253,10 @@
       "title": "HOLYBANG CREW new performance practice",
       "channelTitle": "홀리뱅 HOLYBANG",
       "expectedName": "HolyBang",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "홀리뱅"
+      ]
     },
     {
       "videoId": "wdPec9AtFT8",
@@ -251,7 +270,10 @@
       "title": "2026 Wolf'Lo Concert : Life We Live",
       "channelTitle": " Wolf'Lo 울플러",
       "expectedName": "Wolf'Lo",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "울플러"
+      ]
     },
     {
       "videoId": "MfYp6uOc6gw",
@@ -265,14 +287,21 @@
       "title": "2026 WATERBOMB SOKCHO | SPECIAL GUEST #HOOK  STAGE SKETCH VIDEO_SET 1",
       "channelTitle": "훅 HOOK official",
       "expectedName": "HOOK",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "훅"
+      ]
     },
     {
       "videoId": "7UOUVnscq5s",
       "title": "[K-POP IN PUBLIC | LONDON]  BESTie (베스티) - Love Options (연애의 조건)  | DANCE COVER BY ODC | 4K ONE TAKE",
       "channelTitle": "[O.D.C] Oraceon Dance Crew",
       "expectedName": "ODC (Oraceon Dance Crew)",
-      "expectedCountry": "GB"
+      "expectedCountry": "GB",
+      "acceptedNames": [
+        "ODC",
+        "Oraceon Dance Crew"
+      ]
     },
     {
       "videoId": "NCm1zUs2hRU",
@@ -286,7 +315,10 @@
       "title": "[K-POP IN PUBLIC | ONE TAKE] TUIDE (튜이드) ‘SUN KISS’ Dance Cover by 1119 SIGMA | MALAYSIA",
       "channelTitle": "SIGMA (1119)",
       "expectedName": "1119 SIGMA",
-      "expectedCountry": "MY"
+      "expectedCountry": "MY",
+      "acceptedNames": [
+        "SIGMA (1119)"
+      ]
     },
     {
       "videoId": "TtswZLjDnJ0",
@@ -335,7 +367,11 @@
       "title": "\"하이엔드크루\" LE SSERAFIM (르세라핌) 'SPAGHETTI' DANCE COVER/댄스커버 [HIGH-END]",
       "channelTitle": "TNS x HIGH-END DANCE STUDIO",
       "expectedName": "HIGH-END",
-      "expectedCountry": "KR"
+      "expectedCountry": "KR",
+      "acceptedNames": [
+        "하이엔드크루",
+        "하이엔드"
+      ]
     },
     {
       "videoId": "bTPod-TGU38",
@@ -344,5 +380,6 @@
       "expectedName": "ARTBEAT",
       "expectedCountry": "KR"
     }
-  ]
+  ],
+  "grading": "이름 = expectedName 또는 acceptedNames 와 대소문자·띄어쓰기·기호 차이를 빼고 같으면 맞음. acceptedNames = 제목·채널에 적힌 한글 표기(원장 D-61 · 지시서 §3-2) · 정답의 괄호 안 이름 · 정답 표의 '올린 채널'에 적힌 공식 이름(2026-11-19 코티오 · 보고에 엄격 채점 숫자도 함께)."
 }
