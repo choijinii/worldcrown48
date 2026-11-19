@@ -332,17 +332,43 @@ test.describe("휴대폰 세로 390", () => {
       .toBe(true);
   });
 
-  // 390 에서 알약이 메뉴바 한 줄에 들어가지 않는다 — 들어가는 모양 두 가지를 대표가 고른다(PITCH-2 추가 지시 ② 2절).
-  // 고른 뒤 이 시험을 그 모양으로 다시 쓴다. 그때까지 멈춤.
-  test.fixme("알약 아래 설명이 늘 보인다(정본 외 추가) · 390×844 캡처", async ({ page, baseURL }, info) => {
-    await prime(page, baseURL, "nav1-e2e-tid");
+  // 대표 결정 B(2026-11-19 · PITCH-2 추가 지시 ② 2절): 휴대폰에서 알약이 떠 있으면 워드마크 글자를 숨기고 왕관만 —
+  // 알약 · 언어 · 로그인이 메뉴바 한 줄에 들어간다. 알약이 없으면 워드마크는 그대로.
+  for (const lang of ["ko", "en", "es"] as const) {
+    test(`알약 390 — 메뉴바 한 줄 · 워드마크 숨김 · 로그인 글자 안 잘림 (${lang})`, async ({ page, baseURL }, info) => {
+      await prime(page, baseURL, "nav1-e2e-tid");
+      await page.goto(`/records?lang=${lang}`);
+      const pill = page.getByTestId("continue-pill");
+      await expect(pill).toBeVisible();
+      await expect(page.locator(".wc-nav-bar [data-testid='brand-word']")).toBeHidden();
+      const fit = await page.evaluate(() => {
+        const r = (el: Element | null) => el!.getBoundingClientRect();
+        const bar = r(document.querySelector(".wc-nav-bar"));
+        const logo = r(document.querySelector(".wc-nav-logo"));
+        const p = r(document.querySelector("[data-testid='continue-pill']"));
+        const lang = r(document.querySelector("header.wc-nav [data-testid='lang-toggle']"));
+        const last = document.querySelector("header.wc-nav .wc-nav-actions")!.lastElementChild as HTMLElement;
+        const btn = (last.matches("button, a") ? last : last.querySelector("button, a")) as HTMLElement;
+        const s = r(btn);
+        return {
+          ordered: logo.right <= p.left && p.right <= lang.left && lang.right <= s.left && s.right <= bar.right,
+          oneRow: [p, lang, s].every((b) => b.top >= bar.top && b.bottom <= bar.bottom),
+          clipped: btn.scrollWidth > btn.clientWidth + 1,
+          overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          barH: Math.round(bar.height),
+        };
+      });
+      expect(fit).toEqual({ ordered: true, oneRow: true, clipped: false, overflowX: 0, barH: 42 });
+      await page.screenshot({ path: info.outputPath(`nav1-pill-390-${lang}.png`), clip: { x: 0, y: 0, width: 390, height: 60 } });
+      await info.attach(`nav1-pill-390-${lang}`, { path: info.outputPath(`nav1-pill-390-${lang}.png`), contentType: "image/png" });
+    });
+  }
+
+  test("알약 390 — 알약이 없으면 워드마크 그대로", async ({ page, baseURL }) => {
+    await prime(page, baseURL);
     await page.goto("/records?lang=ko");
-    const note = page.getByTestId("continue-pill-note");
-    await expect(note).toBeVisible();
-    await expect(note).toHaveText("같은 기기에서만 이어갈 수 있습니다. 다른 기기에서는 이어서 진행할 수 없습니다.");
-    await expect(note).toHaveCSS("text-align", "right");
-    await page.screenshot({ path: info.outputPath("nav1-pill-390x844-ko.png") });
-    await info.attach("nav1-pill-390x844-ko", { path: info.outputPath("nav1-pill-390x844-ko.png"), contentType: "image/png" });
+    await expect(page.getByTestId("records-page")).toBeVisible();
+    await expect(page.locator(".wc-nav-bar [data-testid='brand-word']")).toBeVisible();
   });
 
   test("/records 배너 320×100", async ({ page, baseURL }) => {

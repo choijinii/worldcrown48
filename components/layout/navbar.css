@@ -616,3 +616,10 @@ header.wc-nav {
     max-width: 240px;
   }
 }
+/* 휴대폰(≤480) — 알약이 떠 있는 동안만 메뉴바의 워드마크 글자를 숨기고 왕관만 둔다(대표 결정 B · 2026-11-19).
+   알약 · 언어 · 로그인 입구가 한 줄에 들어가게 — 374 이하에서 쓰던 방식(왕관만)과 같다. 로고 링크 이름은 aria-label. */
+@media (max-width: 480px) {
+  .wc-nav-bar:has(.wc-pill-wrap) .wc-brand-word {
+    display: none;
+  }
+}
