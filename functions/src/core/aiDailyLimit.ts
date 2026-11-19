@@ -47,7 +47,9 @@ export type AiCallKind =
   /** LAB-UX-1 ③ — 붙여넣은 링크의 제목에서 인물 추출. Haiku 1콜(YouTube API 0콜). */
   | "extractContestantsFromVideos"
   /** LAB-FIX-4 — [AI에게 제안 받기]: 제목 · 설명 · 카테고리 → "AI에게 알려 줄 내용" 제안. Haiku 1콜. */
-  | "aiSuggestBrief";
+  | "aiSuggestBrief"
+  /** LAB-FIX-5 §3-2 — 채운 뒤 "고르는 조건" 다시 검사. Sonnet 1콜 · 고르는 조건이 있는 대회에서만. */
+  | "checkEntryRules";
 
 /**
  * 종류별 기본 상한 (LAB-EV-2 §5 B "예 20/일").

@@ -297,3 +297,25 @@ describe("tournamentDrafts — LAB-FIX-4 그 외 단위 · AI에게 알려 줄 �
     await assertFails(setDoc(ref(), rawDraft("host-1", { aiBrief: { ...brief, entry: 3 } })));
   });
 });
+
+describe("tournamentDrafts — LAB-FIX-5 칸 표시(조건 검사 · 찾기 상태 · 이미지 못 찾은 칸)", () => {
+  const ref = () => doc(ownerDb(), "tournamentDrafts", "d-marks");
+  const marks = {
+    ruleFlags: [{ slot: 1, name: "James Charles", reason: "남성으로 알려진 크리에이터" }],
+    sourcing: { "0": { status: "suggested" }, "5": { status: "manual", reason: "no-results" } },
+    imageNotFound: [5, 7],
+  };
+  it("ALLOWS the three fields, and drafts without them (older screens)", async () => {
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", marks)));
+    await assertSucceeds(setDoc(ref(), rawDraft("host-1", {})));
+  });
+  it("DENIES wrong types or more than 48 entries", async () => {
+    await assertFails(setDoc(ref(), rawDraft("host-1", { ruleFlags: "x" })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { sourcing: [1] })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { imageNotFound: { a: 1 } })));
+    await assertFails(setDoc(ref(), rawDraft("host-1", { imageNotFound: Array.from({ length: 49 }, (_, i) => i) })));
+    await assertFails(
+      setDoc(ref(), rawDraft("host-1", { ruleFlags: Array.from({ length: 49 }, (_, i) => ({ slot: i, name: "a", reason: "" })) })),
+    );
+  });
+});

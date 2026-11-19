@@ -70,7 +70,16 @@ describe("toDraftFields → fromDraftDoc", () => {
   it("writes only the known fields plus the schema version", () => {
     // ENTRY-UNIT-1: 엔트리 단위 칸은 팀일 때만 실린다 — 모든 칸이 보이게 팀 상태로 본다.
     // LAB-FIX-4: 묶음도 글자가 있을 때만 실린다.
-    const fields = toDraftFields(state({ entryUnit: "group", aiBrief: { entry: "춤춘 크루", extra: "", rules: "" } }));
+    // LAB-FIX-5: 칸 표시 셋도 있을 때만 실린다.
+    const fields = toDraftFields(
+      state({
+        entryUnit: "group",
+        aiBrief: { entry: "춤춘 크루", extra: "", rules: "" },
+        ruleFlags: [{ slot: 0, name: "a", reason: "r" }],
+        sourcing: { 0: { status: "suggested" } },
+        imageNotFound: [1],
+      }),
+    );
     expect(Object.keys(fields).sort()).toEqual(
       [...DRAFT_FIELDS].filter((k) => k !== "hostUid" && k !== "updatedAt").sort(),
     );
