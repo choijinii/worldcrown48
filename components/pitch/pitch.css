@@ -23,7 +23,8 @@
   --sec-gap: 56px;
   --h2: 32px;
   --tcard-title-size: 17px;
-  max-width: 1320px;
+  /* 내용 폭 최대 1320(시안 P-1 · 1440 = 60 + 1320 + 60) — 좌우 여백 20(D-84)은 그 밖에 더한다. */
+  max-width: calc(1320px + 2 * var(--page-gutter));
   margin: 0 auto;
   padding: 0 var(--page-gutter) var(--space-16);
   display: flex;

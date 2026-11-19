@@ -61,8 +61,8 @@ test.describe("A-1 The Pitch", () => {
     await expect(page.getByTestId("pitch-hero")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Trending Tournaments" })).toBeVisible();
     await expect(page.getByTestId("pitch-create-band")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "NEWS ROOM" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "CHARTS" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "News Room", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Charts", exact: true })).toBeVisible();
     // 견본 뉴스 삭제(PITCH-2 PR A 1)
     await expect(page.getByText(/Reuters|ESPN|GNews/)).toHaveCount(0);
   });

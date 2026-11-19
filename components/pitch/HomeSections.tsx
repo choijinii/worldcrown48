@@ -155,7 +155,7 @@ export function NewsRoomSection(props: {
   ];
   return (
     <section className="sec" data-testid="pitch-newsroom">
-      <SectionHead title="NEWS ROOM" testId="pitch-news" {...props} />
+      <SectionHead title="News Room" testId="pitch-news" {...props} />
       {props.latest.length === 0 && props.press.length === 0 ? (
         <NoArticles testId="pitch-news-empty" />
       ) : (
@@ -188,7 +188,7 @@ export function ChartsSection(props: {
   const { main } = props;
   return (
     <section className="sec" data-testid="pitch-charts">
-      <SectionHead title="CHARTS" testId="pitch-charts" {...props} />
+      <SectionHead title="Charts" testId="pitch-charts" {...props} />
       {main ? (
         <div className="charts-box">
           <Link href={chartHref(main.id)} className="chart-main" data-testid="pitch-chart-main">

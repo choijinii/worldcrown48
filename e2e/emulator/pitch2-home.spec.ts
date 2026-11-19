@@ -503,3 +503,35 @@ test.describe("⑮ 390 제목 둘째 줄과 점", () => {
     await hero.screenshot({ path: "test-results-emulator/pitch2-hero-390-long-title.png" });
   });
 });
+
+// ── 시안 P-1 대조 2차(대표 2026-11-19) — 구역 제목 · 내용 폭 1320 · 바닥 띠 © 줄 ──
+test("⑯ 구역 제목 News Room · Charts(머리글 · 작은 표시는 대문자) · 1440 내용 폭 1320 · 바닥 띠 © 줄", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?lang=ko");
+  await expect(page.getByTestId("pitch-hero-side")).toBeVisible({ timeout: 30_000 });
+  const titles = await page.locator(".sec-title").allInnerTexts();
+  expect(titles).toEqual(["Trending Tournaments", "News Room", "Charts"]);
+  await expect(page.getByTestId("pitch-news-col-press-empty")).toBeVisible();
+  for (const head of ["LATEST", "HOT", "WORLD PRESS"]) await expect(page.getByText(head, { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId("pitch-hero-side").getByText("NEWSROOM", { exact: true })).toBeVisible();
+  // 내용 폭 = 1320(히어로 줄 왼쪽 끝 ~ 오른쪽 칸 오른쪽 끝) · 좌우 60
+  const hero = (await page.getByTestId("pitch-hero").boundingBox())!;
+  const side = (await page.getByTestId("pitch-hero-side").boundingBox())!;
+  expect(Math.round(hero.x)).toBe(60);
+  expect(Math.round(side.x + side.width - hero.x)).toBe(1320);
+  // 390 은 좌우 20 그대로
+  await page.setViewportSize({ width: 390, height: 844 });
+  const hero390 = (await page.getByTestId("pitch-hero").boundingBox())!;
+  expect(Math.round(hero390.x)).toBe(20);
+  expect(Math.round(hero390.width)).toBe(350);
+  // 바닥 띠 — © 줄이 보이는 자리에 있다
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const copy = page.getByTestId("footer-copyright");
+  await copy.scrollIntoViewIfNeeded();
+  await expect(copy).toBeVisible();
+  await expect(copy).toHaveText("© 2026 WorldCrown48");
+  const band = (await page.getByTestId("footer-band").boundingBox())!;
+  const c = (await copy.boundingBox())!;
+  expect(c.y).toBeGreaterThanOrEqual(band.y + band.height - 1);
+  await page.screenshot({ path: "test-results-emulator/pitch2-footer-1440.png", clip: { x: 0, y: Math.max(0, c.y - 260), width: 1440, height: 320 } });
+});
