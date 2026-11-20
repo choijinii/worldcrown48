@@ -188,6 +188,13 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   await expectNoForbiddenWords(page);
   await page.screenshot({ path: "test-results-emulator/pitch2-home-1440.png", fullPage: true });
 
+  // 홈 카드에는 "48 Contestants · 마감" 줄이 없다 — 표지 바로 아래 참가하기(편집기 미리보기에만 남는다 · 대표 2026-11-21).
+  const firstCard = page.getByTestId("pitch-trending").locator("a.tcard").first();
+  await expect(page.getByTestId("pitch-trending").locator("a.tcard").getByText(/Contestants|마감/)).toHaveCount(0);
+  const coverBox = await firstCard.locator(".tcard-cover").boundingBox();
+  const enterBox = await firstCard.locator(".tcard-enter").boundingBox();
+  expect(enterBox!.y - (coverBox!.y + coverBox!.height), "표지 아래 → 참가하기 사이(px)").toBeLessThanOrEqual(8);
+
   // ① K-POP 탭 → 카드 → 대기실
   await page.getByTestId("pitch-trending-tab-kpop").click();
   await expect(page).toHaveURL(/\?cat=kpop/);

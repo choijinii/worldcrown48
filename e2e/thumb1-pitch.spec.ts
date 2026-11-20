@@ -135,6 +135,8 @@ test.describe("THUMB-1 — The Pitch", () => {
     await expect(cover.getByText("VS", { exact: true })).toBeVisible();
     await expect(cover.locator("[data-testid$='-title']")).toHaveCSS("font-size", "17px");
     await expect(card.locator(".tcard-enter")).toHaveText("Pick Now");
+    // 홈 카드에는 "48 Contestants · 마감" 줄이 없다(편집기 미리보기에만 — 대표 2026-11-21).
+    await expect(page.locator(".pitch .tcard").getByText(/Contestants|Closes/)).toHaveCount(0);
     // 커버 위 금지: 라운드 라벨 · LIVE · 수치
     await expect(page.getByText(/ROUND OF|^LIVE$|\d+%/)).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);

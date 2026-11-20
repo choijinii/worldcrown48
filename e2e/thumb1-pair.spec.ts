@@ -102,6 +102,11 @@ test.describe("THUMB-1 — 대표 매치 고르기", () => {
     await expect(page.getByTestId("contestant-node-1")).toHaveAttribute("data-pair", "b");
     await expect(page.getByTestId("pair-slot-a-name")).toHaveText("E2E Video C");
 
+    // 편집기 미리보기에는 "48 Contestants · 마감" 줄이 있다(피치 홈 카드에는 없다 — 대표 2026-11-21).
+    await expect(page.getByTestId("pair-preview-meta")).toBeVisible();
+    await expect(page.getByTestId("pair-preview-meta")).toContainText("48 Contestants");
+    await expect(page.getByTestId("pair-preview-meta")).toContainText(/마감 \S/);
+
     // ⑤ 막대 → 미리보기의 A 그림이 좌우로만 움직인다.
     const previewA = page.getByTestId("pair-preview-thumb").getByTestId("vsthumb-a-img");
     await expect(previewA).toHaveCSS("object-position", "50% 50%");

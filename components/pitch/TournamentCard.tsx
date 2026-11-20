@@ -11,16 +11,18 @@
  * 앞 번호 엔트리로 바꾼다. 커버는 테마와 무관하게 매치 무대 색(다크)이다.
  *
  * Hard constraints (handoff §5 / AC-4 / AC-6): NO Vote Count, NO Vote Rate(%),
- * NO LIVE badge, NO Round info anywhere on the card. The meta line is built
- * inline from `pitch.card.contestants` + `pitch.card.closes` (formatCloses
- * supplies the date) — "48 Contestants · Closes {date}" only. The status pill
+ * NO LIVE badge, NO Round info anywhere on the card.
+ *
+ * PITCH-2(대표 2026-11-21 · 시안 P-1): 홈 카드에는 "48 Contestants · 마감" 줄이 없다 — 표지 바로 아래
+ * 참가하기 버튼. 그 줄은 편집기의 대표 매치 미리보기(`components/admin/lab/PairPanel.tsx`)에만 남는다
+ * (운영자가 마감 시각을 확인하는 자리 · 그 미리보기는 이 부품이 아니라 자기 줄을 직접 그린다). The status pill
  * text is the tournament's own status; on The Pitch the feed is active-only,
  * so this renders the gold ACTIVE pill.
  */
 
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
-import { formatCloses, statusPillVariant } from "@/lib/pitch/trending";
+import { statusPillVariant } from "@/lib/pitch/trending";
 import { track } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
 import { localizedTitle } from "@/lib/tournamentTitle";
@@ -35,7 +37,6 @@ export interface TournamentCardProps {
 
 export function TournamentCard({ tournament, position }: TournamentCardProps) {
   const { t, lang } = useT();
-  const closes = formatCloses(tournament.tournamentDeadline);
   const pill = statusPillVariant(tournament.status);
   const displayTitle = localizedTitle(tournament, lang);
   const cover = useCoverPair(tournament.id, tournament.thumbnailPair, tournament.mediaTakedownAt);
@@ -73,15 +74,6 @@ export function TournamentCard({ tournament, position }: TournamentCardProps) {
         </div>
       </div>
       <div className="tcard-body">
-        <div className="tcard-meta">
-          <span>{t("pitch.card.contestants")}</span>
-          {closes && (
-            <span>
-              <span className="sep">·&nbsp;</span>
-              {t("pitch.card.closes", { date: closes })}
-            </span>
-          )}
-        </div>
         <div className="tcard-foot">
           <span className="tcard-enter">
             {t("pitch.card.cta")}

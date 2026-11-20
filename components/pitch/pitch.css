@@ -569,17 +569,8 @@
 .pitch .status-active .led { background: var(--color-gold); }
 .pitch .status-muted { color: var(--color-powder); border: 1px solid var(--color-border); }
 .pitch .status-muted .led { background: var(--color-powder); }
-.pitch .tcard-body { padding: 9px 0 0; }
-.pitch .tcard-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 16px 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-text-sub-light);
-}
-.pitch .tcard-meta .sep { color: var(--color-text-muted-light); }
+/* 시안 P-1: 표지와 참가하기 사이 6px · "48 Contestants · 마감" 줄은 홈 카드에 없다(편집기 미리보기에만) */
+.pitch .tcard-body { padding: 6px 0 0; }
 .pitch .tcard-foot { display: flex; }
 .pitch .tcard-enter {
   flex: 1;
