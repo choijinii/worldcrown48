@@ -5,6 +5,8 @@ import "./globals.css";
 // ARENA-1 (원장 D-20) — 아레나 무대 층 토큰. 클로드 디자인 내보내기 사본, 손편집 금지.
 import "./arena_stage_tokens.css";
 import { I18nProvider } from "@/lib/i18n";
+import { TranslateGuard } from "@/components/i18n/TranslateGuard";
+import { TranslateRemount } from "@/components/i18n/TranslateRemount";
 import { CookieBanner } from "@/components/policy/CookieBanner";
 import { ConsentModal } from "@/components/policy/ConsentModal";
 import { CookieConsentProvider } from "@/components/policy/CookieConsentProvider";
@@ -81,6 +83,8 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* 크롬 번역이 글자를 바꿔 끼워도 화면이 멈추지 않게(번역은 그대로 둔다 · 2026-11-20 대표 승인 B 방법). */}
+        <TranslateGuard />
         <I18nProvider>
           <CookieConsentProvider>
             {/* PRE-REG-1 — 처음 들어온 경로(UTM). 그리지 않는다 · 7일 기억은 분석 동의 뒤(원장 D-53). */}
@@ -88,14 +92,17 @@ export default function RootLayout({
             <AuthProvider>
               {/* CURTAIN-1 — 관리자면 런칭 전 커튼 통과 쿠키를 심는다. 그리지 않는다. */}
               <CurtainPreviewCookie />
-              <Navbar />
-              {children}
-              <FooterPolicyRow />
-              {/* Banner + modal are themed locally — they overlay any page. */}
-              <div data-theme="light">
-                <CookieBanner />
-                <ConsentModal />
-              </div>
+              {/* 번역이 켜진 채 언어를 바꾸면 이 안을 새로 그린다 — 옛 언어 글자가 남지 않게(평소에는 그대로). */}
+              <TranslateRemount>
+                <Navbar />
+                {children}
+                <FooterPolicyRow />
+                {/* Banner + modal are themed locally — they overlay any page. */}
+                <div data-theme="light">
+                  <CookieBanner />
+                  <ConsentModal />
+                </div>
+              </TranslateRemount>
               <Toaster />
               {/* Dev-only nav aid — renders null unless Cmd/Ctrl+Shift+D is on. */}
               <DevNavFab />
