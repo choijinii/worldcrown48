@@ -171,6 +171,10 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   await expect(page.getByTestId("pitch-chart-main")).toHaveAttribute("href", "/arena/imgT1/ranking");
   await expect(page.getByTestId("pitch-chart-grid").locator("a[href='/arena/endedT/ranking']")).toHaveCount(1);
   await expect(page.getByText(/\b\d{3}\b점|Crown Score \d/)).toHaveCount(0); // 수치 없음
+  // 작은 차트 2개 → 2×2 의 남는 두 칸은 흰색(회색 바탕이 비치지 않는다 · 대표 2026-11-21)
+  await expect(page.getByTestId("pitch-chart-small")).toHaveCount(2);
+  await expect(page.getByTestId("pitch-chart-grid")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await page.locator(".pitch .charts-box").screenshot({ path: "test-results-emulator/pitch2-charts-two-1440.png" });
 
   // ⑤ 배너 ② · ③ 기본 공지(① 은 런칭 전 사전등록 안내)
   await expect(page.locator("[data-banner-slot='pitch-between']")).toContainText("사전등록에 참가하세요!");
@@ -204,6 +208,35 @@ test("① 홈 → K-POP 탭 → 카드 → /arena?t= · ⑧ 그림 표지 · ⑩
   await card.click();
   await expect(page).toHaveURL(/\/arena\?t=/);
   await expectNoConsoleErrors(errors);
+});
+
+test("⑰ CHARTS — 오른쪽 작은 차트 0개면 큰 차트가 가로 전체 · 빈 회색 칸 없음 (대표 2026-11-21)", async ({ page }) => {
+  // 작은 차트 3개 → 2×2 의 남는 한 칸이 흰색이다(회색 바탕이 비치지 않는다).
+  await seedCache("kp1", 12, ["하나", "둘", "셋"], Date.now() - 5 * 60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?lang=ko");
+  await expect(page.getByTestId("pitch-chart-small")).toHaveCount(3, { timeout: 30_000 });
+  await expect(page.getByTestId("pitch-chart-grid")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await page.getByTestId("pitch-chart-grid").scrollIntoViewIfNeeded();
+  await page.locator(".pitch .charts-box").screenshot({ path: "test-results-emulator/pitch2-charts-three-1440.png" });
+  await db().collection("ranking_cache").doc("kp1").delete();
+
+  // 큰 차트(imgT1)만 남기고 나머지 차트를 지운다.
+  await db().collection("ranking_cache").doc("kp5").delete();
+  await db().collection("ranking_cache").doc("endedT").delete();
+  for (const w of [1440, 390]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.goto("/?lang=ko");
+    const main = page.getByTestId("pitch-chart-main");
+    await expect(main).toHaveAttribute("href", "/arena/imgT1/ranking", { timeout: 30_000 });
+    await expect(page.getByTestId("pitch-chart-grid")).toHaveCount(0);
+    const box = await page.locator(".pitch .charts-box").boundingBox();
+    const mb = await main.boundingBox();
+    expect(Math.abs(mb!.width - (box!.width - 2)), `${w}: 큰 차트 폭 = 상자 폭`).toBeLessThanOrEqual(1);
+    await expect(main).toHaveCSS("border-right-width", "0px");
+    await main.scrollIntoViewIfNeeded();
+    await page.locator(".pitch .charts-box").screenshot({ path: `test-results-emulator/pitch2-charts-solo-${w}.png` });
+  }
 });
 
 test("② Trending 2쪽 넘김 — 6장/쪽 · 주소 ?page=2", async ({ page }) => {

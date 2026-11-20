@@ -191,7 +191,12 @@ export function ChartsSection(props: {
       <SectionHead title="Charts" testId="pitch-charts" {...props} />
       {main ? (
         <div className="charts-box">
-          <Link href={chartHref(main.id)} className="chart-main" data-testid="pitch-chart-main">
+          {/* 오른쪽 작은 차트가 0개면 큰 차트가 가로 전체(빈 회색 칸을 남기지 않는다 · 대표 2026-11-21) */}
+          <Link
+            href={chartHref(main.id)}
+            className={props.latest.length > 0 ? "chart-main" : "chart-main chart-main-solo"}
+            data-testid="pitch-chart-main"
+          >
             <span className="chart-main-col">
               <span className="chart-kicker">CROWN SCORE</span>
               <ChartAvatar entry={main.top[0]} rank={1} className="chart-main-img" />
@@ -210,6 +215,7 @@ export function ChartsSection(props: {
               </span>
             </span>
           </Link>
+          {props.latest.length > 0 && (
           <div className="chart-grid" data-testid="pitch-chart-grid">
             {props.latest.map((r) => (
               <Link key={r.id} href={chartHref(r.id)} className="chart-small" data-testid="pitch-chart-small">
@@ -228,6 +234,7 @@ export function ChartsSection(props: {
               </Link>
             ))}
           </div>
+          )}
         </div>
       ) : (
         <div className="sec-empty sec-empty-sm" data-testid="pitch-charts-empty">
