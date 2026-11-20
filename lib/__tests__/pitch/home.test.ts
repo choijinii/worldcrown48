@@ -69,6 +69,13 @@ describe("promoAssetUrl — 우리 Storage `pitch/promo/` 아래 공개 주소�
     expect(promoAssetUrl(POSTER, BUCKET, "video")).toBeNull();
     expect(promoAssetUrl(VIDEO, BUCKET, "image")).toBeNull();
   });
+  it("실제로 올린 확정본 주소(다운로드 토큰 포함 · 추가 지시 ③ 2026-11-21)를 그대로 받는다", () => {
+    const tok = "&token=00000000-0000-4000-8000-000000000000";
+    const v = fsUrl("pitch/promo/WC48_pitch_hero_10s_2026-11-21.mp4") + tok;
+    const w = fsUrl("pitch/promo/WC48_pitch_hero_poster_2026-11-21.webp") + tok;
+    expect(promoAssetUrl(v, BUCKET, "video")).toBe(v);
+    expect(promoAssetUrl(w, BUCKET, "image")).toBe(w);
+  });
   it("storage.googleapis.com 모양도 받는다", () => {
     const u = `https://storage.googleapis.com/${BUCKET}/pitch/promo/launch.mp4`;
     expect(promoAssetUrl(u, BUCKET, "video")).toBe(u);
