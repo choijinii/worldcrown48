@@ -1,0 +1,26 @@
+name: Prod check — article delete removes views (PITCH-2 PR B)
+
+# 실서비스 1회 확인(수동 실행 전용). 시험 기사를 만들고 조회 1회 → 지우기 → news_views 도 사라지는지 보고,
+# 끝나면 시험 기사 · 조회 칸이 남지 않았는지 확인한다. 열쇠는 저장소 비밀 FIREBASE_ADMIN_SDK_KEY.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run check
+        env:
+          FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+        run: node scripts/ops/prod-check-article-delete.mjs

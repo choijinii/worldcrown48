@@ -72,8 +72,11 @@ const UNIT_DEFAULT_EXTRA: Record<EntryUnit, string> = {
   other: "따로 정하지 않았다 — 빈 문자열로 둔다",
 };
 
-/** 맨 위 규칙 줄 — 세 지시문이 같은 문장을 받는다. */
-export function briefRuleLines(b: AiBrief, unit: EntryUnit): string[] {
+/**
+ * 맨 위 규칙 줄 — 세 지시문이 같은 문장을 받는다. `rulesUse: "identify"`(링크 제목 읽기)는 영상이 이미 골라진 뒤라
+ * 고르는 조건을 "누가 엔트리인지 가리는 데만" 쓰게 적는다(LAB-FIX-4b 실 AI — 조건을 이유로 자체 공연 영상 5칸을 비웠다).
+ */
+export function briefRuleLines(b: AiBrief, unit: EntryUnit, opts: { rulesUse?: "select" | "identify" } = {}): string[] {
   const lines = [
     "이 대회의 규칙(운영자가 정함 — 아래의 다른 모든 규칙보다 먼저 따른다):",
     `- 이 대회의 엔트리는 ${b.entry || UNIT_DEFAULT_ENTRY[unit]}이다. 엔트리 하나 = 칸 하나의 이름(name)`,
@@ -81,6 +84,12 @@ export function briefRuleLines(b: AiBrief, unit: EntryUnit): string[] {
       ? `- 덧붙이는 정보(affiliation)는 ${b.extra}이다`
       : `- 덧붙이는 정보(affiliation): ${UNIT_DEFAULT_EXTRA[unit]}`,
   ];
-  if (b.rules) lines.push(`- 고르는 조건: ${b.rules}`);
+  if (b.rules) {
+    lines.push(
+      opts.rulesUse === "identify"
+        ? `- 고르는 조건: ${b.rules} — 이 조건은 한 영상에 이름이 여럿 나올 때 **누가 엔트리인지 가리는 데만** 쓴다. 영상은 운영자가 이미 골랐으므로, 조건에 맞지 않아 보인다는 이유로 엔트리를 비우지 않는다`
+        : `- 고르는 조건: ${b.rules}`,
+    );
+  }
   return lines;
 }

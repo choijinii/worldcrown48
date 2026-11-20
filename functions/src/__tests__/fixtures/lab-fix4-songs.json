@@ -1,0 +1,489 @@
+{
+  "source": "LAB-FIX-4b 다른 묶음 확인 — 노래 대회(엔트리 = 노래 제목 · 덧붙이는 정보 = 가수). 제목·채널 = youtube oEmbed 2026-11-19 · 정답 = 제목에 적힌 노래·가수(코티오). 가사 영상 1개(남의 채널) 포함.",
+  "brief": {
+    "entryUnit": "other",
+    "entry": "노래 제목",
+    "extra": "가수",
+    "rules": "2015년 이후 발매한 K-POP 노래"
+  },
+  "tournamentTitle": "역대 최고의 K-POP 노래는?",
+  "detectOriginalFromTitle": false,
+  "grading": "이름 = expectedName 또는 acceptedNames(제목에 함께 적힌 한글·로마자 표기) · 가수(originalArtist)가 이름 칸에 들어가면 '원곡 가수' 실수로 센다 · 국가는 채점하지 않는다(정답 비움).",
+  "items": [
+    {
+      "videoId": "9bZkp7q19f0",
+      "title": "PSY - GANGNAM STYLE(강남스타일) M/V",
+      "channelTitle": "officialpsy",
+      "expectedName": "GANGNAM STYLE",
+      "acceptedNames": [
+        "강남스타일"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "PSY",
+      "acceptedExtras": [
+        "싸이"
+      ],
+      "originalArtist": "PSY"
+    },
+    {
+      "videoId": "gdZLi9oWNZg",
+      "title": "BTS (방탄소년단) 'Dynamite' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Dynamite",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "WMweEpGlu_U",
+      "title": "BTS (방탄소년단) 'Butter' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Butter",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "IHNzOHi8sJs",
+      "title": "BLACKPINK - ‘뚜두뚜두 (DDU-DU DDU-DU)’ M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "DDU-DU DDU-DU",
+      "acceptedNames": [
+        "뚜두뚜두"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "2S24-y0Ij3Y",
+      "title": "BLACKPINK - 'Kill This Love' M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "Kill This Love",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "ioNng23DkIM",
+      "title": "BLACKPINK - 'How You Like That' M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "How You Like That",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "7C2z4GqqS5E",
+      "title": "BTS (방탄소년단) 'FAKE LOVE' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "FAKE LOVE",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "MBdVXkSdhwU",
+      "title": "BTS (방탄소년단) 'DNA' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "DNA",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "XsX3ATc3FbA",
+      "title": "BTS (방탄소년단) '작은 것들을 위한 시 (Boy With Luv) (feat. Halsey)' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Boy With Luv",
+      "acceptedNames": [
+        "작은 것들을 위한 시",
+        "작은 것들을 위한 시 (Boy With Luv)"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단",
+        "BTS (feat. Halsey)"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "gQlMMD8auMs",
+      "title": "BLACKPINK - ‘Pink Venom’ M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "Pink Venom",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "POe9SOEKotk",
+      "title": "BLACKPINK - ‘Shut Down’ M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "Shut Down",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "0-q1KafFCLU",
+      "title": "[MV] IU(아이유) _ Celebrity",
+      "channelTitle": "1theK (원더케이)",
+      "expectedName": "Celebrity",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "IU",
+      "acceptedExtras": [
+        "아이유"
+      ],
+      "originalArtist": "IU"
+    },
+    {
+      "videoId": "d9IxdwEFk1c",
+      "title": "[MV] IU(아이유) _ Palette(팔레트) (Feat. G-DRAGON)",
+      "channelTitle": "1theK (원더케이)",
+      "expectedName": "Palette",
+      "acceptedNames": [
+        "팔레트"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "IU",
+      "acceptedExtras": [
+        "아이유",
+        "IU (Feat. G-DRAGON)",
+        "아이유 (Feat. G-DRAGON)"
+      ],
+      "originalArtist": "IU"
+    },
+    {
+      "videoId": "v7bnOxV4jAc",
+      "title": "[MV] IU(아이유)_LILAC(라일락)",
+      "channelTitle": "1theK (원더케이)",
+      "expectedName": "LILAC",
+      "acceptedNames": [
+        "라일락"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "IU",
+      "acceptedExtras": [
+        "아이유"
+      ],
+      "originalArtist": "IU"
+    },
+    {
+      "videoId": "ePpPVE-GGJw",
+      "title": "TWICE \"TT\" M/V",
+      "channelTitle": "JYP Entertainment",
+      "expectedName": "TT",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "TWICE",
+      "acceptedExtras": [
+        "트와이스"
+      ],
+      "originalArtist": "TWICE"
+    },
+    {
+      "videoId": "i0p1bmr0EmE",
+      "title": "TWICE \"What is Love?\" M/V",
+      "channelTitle": "JYP Entertainment",
+      "expectedName": "What is Love?",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "TWICE",
+      "acceptedExtras": [
+        "트와이스"
+      ],
+      "originalArtist": "TWICE"
+    },
+    {
+      "videoId": "kRT174IdxuM",
+      "title": "TWICE 「Fanfare」Music Video",
+      "channelTitle": "TWICE JAPAN OFFICIAL YouTube Channel",
+      "expectedName": "Fanfare",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "TWICE",
+      "acceptedExtras": [
+        "트와이스"
+      ],
+      "originalArtist": "TWICE"
+    },
+    {
+      "videoId": "11cta61wi0g",
+      "title": "NewJeans (뉴진스) 'Hype Boy' Official MV (Performance ver.1)",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Hype Boy",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "NewJeans",
+      "acceptedExtras": [
+        "뉴진스"
+      ],
+      "originalArtist": "NewJeans"
+    },
+    {
+      "videoId": "ArmDp-zijuc",
+      "title": "NewJeans (뉴진스) 'Super Shy' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Super Shy",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "NewJeans",
+      "acceptedExtras": [
+        "뉴진스"
+      ],
+      "originalArtist": "NewJeans"
+    },
+    {
+      "videoId": "4TWR90KJl84",
+      "title": "aespa 에스파 'Next Level' MV",
+      "channelTitle": "SMTOWN",
+      "expectedName": "Next Level",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "aespa",
+      "acceptedExtras": [
+        "에스파"
+      ],
+      "originalArtist": "aespa"
+    },
+    {
+      "videoId": "WPdWvnAAurg",
+      "title": "aespa 에스파 'Savage' MV",
+      "channelTitle": "SMTOWN",
+      "expectedName": "Savage",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "aespa",
+      "acceptedExtras": [
+        "에스파"
+      ],
+      "originalArtist": "aespa"
+    },
+    {
+      "videoId": "Y8JFxS1HlDo",
+      "title": "IVE 아이브 'LOVE DIVE' MV",
+      "channelTitle": "STARSHIP",
+      "expectedName": "LOVE DIVE",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "IVE",
+      "acceptedExtras": [
+        "아이브"
+      ],
+      "originalArtist": "IVE"
+    },
+    {
+      "videoId": "F0B7HDiY-10",
+      "title": "IVE 아이브 'After LIKE' MV",
+      "channelTitle": "STARSHIP",
+      "expectedName": "After LIKE",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "IVE",
+      "acceptedExtras": [
+        "아이브"
+      ],
+      "originalArtist": "IVE"
+    },
+    {
+      "videoId": "6ZUIwj3FgUY",
+      "title": "IVE 아이브 'I AM' MV",
+      "channelTitle": "STARSHIP",
+      "expectedName": "I AM",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "IVE",
+      "acceptedExtras": [
+        "아이브"
+      ],
+      "originalArtist": "IVE"
+    },
+    {
+      "videoId": "pSUydWEqKwE",
+      "title": "NewJeans (뉴진스) 'Ditto' Official MV (side A)",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Ditto",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "NewJeans",
+      "acceptedExtras": [
+        "뉴진스"
+      ],
+      "originalArtist": "NewJeans"
+    },
+    {
+      "videoId": "Hbb5GPxXF1w",
+      "title": "ITZY “SNEAKERS” M/V @ITZY",
+      "channelTitle": "JYP Entertainment",
+      "expectedName": "SNEAKERS",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "ITZY",
+      "acceptedExtras": [
+        "있지"
+      ],
+      "originalArtist": "ITZY"
+    },
+    {
+      "videoId": "CM4CkVFmTds",
+      "title": "TWICE \"I CAN'T STOP ME\" M/V",
+      "channelTitle": "JYP Entertainment",
+      "expectedName": "I CAN'T STOP ME",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "TWICE",
+      "acceptedExtras": [
+        "트와이스"
+      ],
+      "originalArtist": "TWICE"
+    },
+    {
+      "videoId": "js1CtxSY38I",
+      "title": "NewJeans (뉴진스) 'Attention' Official MV",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "Attention",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "NewJeans",
+      "acceptedExtras": [
+        "뉴진스"
+      ],
+      "originalArtist": "NewJeans"
+    },
+    {
+      "videoId": "ZeerrnuLi5E",
+      "title": "aespa 에스파 'Black Mamba' MV",
+      "channelTitle": "SMTOWN",
+      "expectedName": "Black Mamba",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "aespa",
+      "acceptedExtras": [
+        "에스파"
+      ],
+      "originalArtist": "aespa"
+    },
+    {
+      "videoId": "UBURTj20HXI",
+      "title": "LE SSERAFIM (르세라핌) 'UNFORGIVEN (feat. Nile Rodgers)' OFFICIAL M/V",
+      "channelTitle": "HYBE LABELS",
+      "expectedName": "UNFORGIVEN",
+      "acceptedNames": [
+        "UNFORGIVEN (feat. Nile Rodgers)"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "LE SSERAFIM",
+      "acceptedExtras": [
+        "르세라핌",
+        "LE SSERAFIM (feat. Nile Rodgers)"
+      ],
+      "originalArtist": "LE SSERAFIM"
+    },
+    {
+      "videoId": "1CTced9CMMk",
+      "title": "BIGBANG - LOSER M/V",
+      "channelTitle": "BIGBANG",
+      "expectedName": "LOSER",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BIGBANG",
+      "acceptedExtras": [
+        "빅뱅"
+      ],
+      "originalArtist": "BIGBANG"
+    },
+    {
+      "videoId": "awkkyBH2zEo",
+      "title": "LISA - 'LALISA' M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "LALISA",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "LISA",
+      "acceptedExtras": [
+        "리사"
+      ],
+      "originalArtist": "LISA"
+    },
+    {
+      "videoId": "KhZ5DCd7m6s",
+      "title": "BTS Dynamite Lyrics (Color Coded Lyrics)",
+      "channelTitle": "Jaeguchi",
+      "expectedName": "Dynamite",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BTS",
+      "acceptedExtras": [
+        "방탄소년단"
+      ],
+      "originalArtist": "BTS"
+    },
+    {
+      "videoId": "FzVR_fymZw4",
+      "title": "BLACKPINK - 'STAY' M/V",
+      "channelTitle": "BLACKPINK",
+      "expectedName": "STAY",
+      "acceptedNames": [],
+      "expectedCountry": "",
+      "expectedExtra": "BLACKPINK",
+      "acceptedExtras": [
+        "블랙핑크"
+      ],
+      "originalArtist": "BLACKPINK"
+    },
+    {
+      "videoId": "Fc-fa6cAe2c",
+      "title": "KAI 카이 '음 (Mmmh)' MV",
+      "channelTitle": "SMTOWN",
+      "expectedName": "Mmmh",
+      "acceptedNames": [
+        "음",
+        "음 (Mmmh)"
+      ],
+      "expectedCountry": "",
+      "expectedExtra": "KAI",
+      "acceptedExtras": [
+        "카이"
+      ],
+      "originalArtist": "KAI"
+    }
+  ]
+}

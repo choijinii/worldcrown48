@@ -208,21 +208,28 @@ export function buildBriefExtractPrompt(
   return [
     ...head,
     "",
-    ...briefRuleLines(ctx.brief, ctx.entryUnit),
+    ...briefRuleLines(ctx.brief, ctx.entryUnit, { rulesUse: "identify" }),
     "",
     "규칙:",
-    "- 제목·채널에서 위 규칙의 엔트리에 해당하는 것을 찾아 name 에 적는다",
-    "- 한 제목에 이름이 여럿 나오면 어느 것이 엔트리인지 위 규칙으로 가른다. 커버·리액션·리뷰 영상에서는 원곡 가수 · 리뷰 대상 · 영상을 올린 사람 중 누가 엔트리인지 따진다. **엔트리가 아닌 이름**(예: 커버 영상의 원곡 가수, 리뷰 채널 이름)은 name 에 적지 마라",
+    "- 먼저 위 규칙의 **엔트리가 어떤 종류인지** 본다. 엔트리가 노래 · 작품 · 제품 · 배역처럼 사람이나 팀이 아니면, 사람 · 팀 · 채널 이름은 name 이 될 수 없다 — 그 사람(예: 노래의 가수)은 덧붙이는 정보(affiliation)일 수 있다",
+    "- 제목·채널에서 위 규칙의 엔트리에 해당하는 것을 찾아 name 에 적는다 (예: 엔트리가 노래 제목이면 제목의 따옴표 안 곡명)",
+    "- 한 제목에 이름이 여럿 나오면 어느 것이 엔트리인지 위 규칙으로 가른다. 커버·리액션·리뷰 영상에서는 원곡 가수 · 리뷰 대상 · 영상을 올린 사람 중 누가 엔트리인지 따진다. **엔트리가 아닌 이름**(예: 엔트리가 춤춘 팀일 때 커버 영상의 원곡 가수, 리뷰 채널 이름)은 name 에 적지 마라",
     "- 영상을 올린 사람(채널)은 위 규칙이 그 사람을 엔트리로 정할 때만 엔트리다",
+    // LAB-FIX-4b — 아래 세 줄은 엔트리가 사람 · 팀일 때만. 노래 대회에 그대로 쓰면 가수를 엔트리로 고른다(다른 묶음 확인 6회차).
+    "- 엔트리가 사람 · 팀일 때만: 제목에서 찾은 엔트리 이름과 채널 이름이 같은 엔트리를 가리키면(채널 이름이 그 이름으로 시작하거나 그 이름을 담고 있으면) **채널 이름**(꾸밈말 `Official` · `• Official` · `Dance Studio` · `official` 과 기호를 뺀 것)을 name 으로 쓴다. 채널 쪽이 더 완전한 이름이기 때문이다 (예: 제목 `… Dance Cover by NOVA`, 채널 `NOVA Dance Crew • Official` → NOVA Dance Crew). 채널이 다른 이름이면 제목의 이름을 쓴다",
+    "- 엔트리가 사람 · 팀일 때만: 제목에 엔트리 이름이 없거나 어느 것이 엔트리인지 가를 수 없을 때, 채널이 위 규칙의 엔트리에 해당하면(엔트리가 스스로 올린 영상) 채널 이름을 엔트리로 쓴다. 채널이 엔트리가 아니면(방송사 · 소속사 · 리뷰 채널 등) 쓰지 않는다",
+    "- 엔트리가 사람 · 팀일 때만: 제목에 사람·팀 이름이 하나뿐이고 위 규칙이 그 이름을 엔트리가 아니라고 하지 않으면(예: 제목 `2026 NOVA Concert`), 그 이름이 엔트리다",
+    "- 한 이름 안에 한글 표기와 로마자 표기를 함께 쓰지 않는다(예: `노바 NOVA` ×). 둘 다 있으면 한글 표기 하나만",
+    "- 이 영상들은 운영자가 이미 골라 붙여 넣은 것이다. 고르는 조건은 **누가 엔트리인지 가리는 데만** 쓰고, 조건에 맞지 않아 보인다는 이유로 name 을 비우지 마라",
     "- 제목·채널에 적힌 것만 근거로 삼는다. 바깥 지식으로 보충하지 마라",
     "- 엔트리를 **확신할 수 없으면 name을 빈 문자열로 두고 confident를 false로** 한다. 빈칸은 정상이고, 사람이 나중에 채운다",
     "- 절대로 그럴듯한 이름을 지어내지 마라. 틀린 이름 하나가 빈칸 하나보다 훨씬 나쁘다",
     "",
     "- name 은 **제목·채널에 적힌 표기를 그대로** 쓴다. 로마자로 옮기거나 번역하지 마라",
     "- 한글 표기와 로마자 표기가 둘 다 있으면 **한글 표기**를 쓴다. 한글 표기가 없는 이름(해외 크루 · 해외 작품 등)은 적힌 공식 표기 그대로",
-    "- affiliation: 위 규칙의 덧붙이는 정보. 제목·채널에 드러나지 않으면 빈 문자열",
+    "- affiliation: 위 규칙의 덧붙이는 정보 — 제목·채널에 드러나면 적는다(예: 엔트리가 노래 제목이고 덧붙이는 정보가 가수면 제목에 적힌 그 노래의 가수). 드러나지 않으면 빈 문자열",
     "- nationality: ISO 3166-1 alpha-2 두 글자 대문자. 제목에 `from Vietnam` · `from FRANCE` 같은 나라 문구가 있으면 그 나라로 정한다. 그런 문구가 없으면 엔트리의 나라가 제목·채널에서 확실할 때만 적고, 아니면 비운다. 원곡 가수의 나라를 엔트리의 나라로 적지 마라",
-    "- confident: 엔트리를 확신하면 true, 비웠거나 애매하면 false",
+    "- confident: 제목·채널에서 엔트리 이름을 찾았으면 true, 찾지 못해 비웠으면 false. 고르는 조건에 맞는지 애매하다는 것은 false 로 할 이유가 아니다",
     "",
     "- 목록에 있는 id만 쓴다. 새 id를 만들지 마라",
     "- 줄 수와 결과 수를 같게 한다",
@@ -234,6 +241,33 @@ export function buildBriefExtractPrompt(
     "목록:",
     rows,
   ].join("\n");
+}
+
+/** 채널 이름 뒤에 붙어도 "같은 엔트리의 더 완전한 이름"으로 보는 낱말 — 크루 · 팀을 나타내는 말만(허용 목록). */
+const ENTITY_SUFFIX = new Set(["crew", "dance", "team", "dc", "squad", "company", "collective", "unit", "group"]);
+/** 채널 꾸밈말 — 이름이 아니다. */
+const CHANNEL_DECORATION = new Set(["official", "offical", "공식"]);
+
+/**
+ * 서버 그물 (LAB-FIX-4b). 제목에 적힌 줄인 이름(HANABI)을 채널의 전체 이름(Hanabi Dance Crew)으로 바꾼다.
+ * 지시문으로도 시켰지만 실 AI 회차마다 지켰다 안 지켰다 했다(3·5회차 지킴 · 1·2·8회차 안 지킴) — 규칙은 코드가 지킨다.
+ *
+ * 바꾸는 때는 좁다: 이름이 채널 이름의 **앞부분**(낱말 경계)이고, 채널 쪽 나머지가 크루 · 팀 말(ENTITY_SUFFIX) 또는
+ * 두 글자 대문자 지역 표시(PH)뿐일 때. 꾸밈말(Official)만 남거나 · 방송사 · 소속사 · 채널(YouTube Channel ·
+ * Entertainment) 같은 말이 섞이거나 · 한글 병기면 그대로 둔다. 대소문자는 채널의 것을 쓴다.
+ */
+export function preferChannelFullName(name: string, channel: string): string {
+  const n = toStr(name);
+  if (!n) return n;
+  const clean = toStr(channel).replace(/[•|·]/g, " ").replace(/\s+/g, " ").trim();
+  if (!clean.toLowerCase().startsWith(n.toLowerCase())) return n;
+  const rest = clean.slice(n.length);
+  if (rest !== "" && !/^\s/.test(rest)) return n; // 낱말 경계가 아니다(NOVA → NOVAK)
+  const tail = rest.trim().split(" ").filter((t) => t && !CHANNEL_DECORATION.has(t.toLowerCase()));
+  if (tail.length === 0 || tail.length > 3) return n;
+  const ok = tail.every((t) => ENTITY_SUFFIX.has(t.toLowerCase()) || /^[A-Z]{2}$/.test(t));
+  if (!ok) return n;
+  return [clean.slice(0, n.length), ...tail].join(" ");
 }
 
 /**
@@ -360,7 +394,12 @@ export async function extractContestantsCore(
     throw new ExtractError("ai-failed", "AI 호출에 실패했습니다.");
   }
 
-  const out = parseExtractions(text, items);
+  const parsed = parseExtractions(text, items);
+  // LAB-FIX-4b 서버 그물 — 묶음 지시문 · 사람/팀 단위에서만(노래 · 작품 대회와 옛 지시문은 그대로).
+  const out =
+    usesBriefPrompt(brief, entryUnit) && entryUnit !== "other"
+      ? parsed.map((x, i) => (x.confident ? { ...x, name: preferChannelFullName(x.name, items[i].channelTitle) } : x))
+      : parsed;
   const named = out.filter((x) => x.confident).length;
   deps.logInfo?.(
     `extractContestants(${entryUnit}): ${items.length}건 중 이름 확정 ${named}건 · 수동 필요 ${items.length - named}건`,
