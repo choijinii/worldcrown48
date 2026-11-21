@@ -238,3 +238,16 @@ describe("발행 배치 — 성공하면 초안 삭제, 실패하면 유지", ()
     });
   });
 });
+
+describe("LAB-FIX-5 — 칸 표시가 저장 · 불러오기로 왕복한다(새로고침 뒤에도 남는다)", () => {
+  it("조건 검사 표시 · 찾기 상태 · 이미지 못 찾은 칸", async () => {
+    const db = ownerDb();
+    const id = newDraftId(db);
+    const ruleFlags = [{ slot: 0, name: "James Charles", reason: "남성으로 알려진 크리에이터" }];
+    await saveDraft(db, id, "host-1", editorState({ ruleFlags, sourcing: { 0: { status: "suggested" }, 2: { status: "manual" } }, imageNotFound: [2] }));
+    const back = await loadDraft(db, id);
+    expect(back?.ruleFlags).toEqual(ruleFlags);
+    expect(back?.sourcing).toEqual({ 0: { status: "suggested" }, 2: { status: "manual" } });
+    expect(back?.imageNotFound).toEqual([2]);
+  });
+});

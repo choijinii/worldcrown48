@@ -44,6 +44,31 @@ export interface SuggestKeywordsDeps {
   logError?: (message: string, err: unknown) => void;
 }
 
+/**
+ * LAB-FIX-5 §3-7 — 키워드 금지 낱말(LANGUAGE.md · CLAUDE.md 필수 용어). 키워드는 AI 힌트이자 뉴스 재료라
+ * "ideal type voting" · "world cup competition" 같은 말이 들어가면 뉴스 · 검색 · 다음 AI 지시문으로 번진다
+ * (TEST1 실측 2026-11-19). 지시문으로 막고(아래 줄) 서버에서 한 번 더 거른다(hasForbiddenKeywordWord).
+ */
+export const FORBIDDEN_KEYWORD_WORDS_LINE =
+  "- 다음 낱말과 그 변형은 쓰지 말 것: voting · vote · world cup · contestant · candidate · 투표 · 월드컵 · 참가자 · 후보 · votación · voto · copa mundial · concursante · candidato";
+
+const FORBIDDEN_KEYWORD_RES: readonly RegExp[] = [
+  /\bvot(e|es|ed|er|ers|ing)\b/i,
+  /\bworld[\s-]*cups?\b/i,
+  /\bcontestants?\b/i,
+  /\bcandidates?\b/i,
+  /투표|월드컵|참가자|후보/,
+  /\bvotaci[oó]n(es)?\b|\bvotar\b|\bvotos?\b/i,
+  /\bcopa\s+(mundial|del\s+mundo)\b/i,
+  /\bconcursantes?\b/i,
+  /\bcandidat[oa]s?\b/i,
+];
+
+/** 키워드 하나에 금지 낱말이 들어 있나(대소문자 무시 · 낱말 경계 — devote 는 통과). */
+export function hasForbiddenKeywordWord(keyword: string): boolean {
+  return FORBIDDEN_KEYWORD_RES.some((re) => re.test(keyword));
+}
+
 export function buildKeywordPrompt(
   title: string,
   category: Category,
@@ -67,6 +92,7 @@ export function buildKeywordPrompt(
     "- 태그·해시태그(#) 형식 금지 — 순수 키워드만",
     "- 카테고리·주제에 실제로 관련된 검색어",
     "- 한국적 요소에 치우치지 말 것 (글로벌 MZ)",
+    FORBIDDEN_KEYWORD_WORDS_LINE,
   );
   return lines.join("\n");
 }
@@ -93,7 +119,7 @@ function parseKeywords(text: string): string[] {
   const seen = new Set<string>();
   for (const raw of parsed) {
     const s = typeof raw === "string" ? raw.trim() : "";
-    if (!s) continue;
+    if (!s || hasForbiddenKeywordWord(s)) continue;
     const key = s.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);

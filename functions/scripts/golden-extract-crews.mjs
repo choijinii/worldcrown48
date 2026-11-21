@@ -83,27 +83,32 @@ const rows = fixture.items.map((it, i) => {
   const orig = it.originalArtist ?? (fixture.detectOriginalFromTitle === false ? "" : originalArtist(it.title));
   const isOriginal = got.name !== "" && orig !== "" && norm(got.name) === norm(orig) && !accepted.includes(nameKey(orig));
   const countryWrong = got.nationality !== "" && it.expectedCountry !== "" && got.nationality !== it.expectedCountry;
+  // LAB-FIX-5 §3-5 — 사람 · 팀 엔트리의 소속 칸에 원곡 가수(제목 첫 이름 · "원곡: X" · 묶음 파일 값)가 들어가면 센다.
+  const marked = [...(it.title.matchAll(/(?:원곡|original(?:\s+(?:song|artist))?(?:\s+by)?)\s*[:：]?\s*([^)\]|]+)/gi))].map((m) => m[1].trim());
+  const originalsAll = [orig, ...marked].filter((o) => o && !accepted.includes(nameKey(o)));
+  const extraIsOriginal = fixture.brief.entryUnit !== "other" && got.affiliation !== "" && originalsAll.some((o) => norm(o) === norm(got.affiliation));
   const extraOk = it.expectedExtra === undefined ? null : [it.expectedExtra, ...(it.acceptedExtras ?? [])].map(norm).includes(norm(got.affiliation));
-  return { n: i + 1, strictOk, videoId: it.videoId, expected: it.expectedName, got: got.name, gotExtra: got.affiliation, extraOk, nameOk, expectedCountry: it.expectedCountry, gotCountry: got.nationality, countryWrong, original: orig, isOriginal, confident: got.confident };
+  return { n: i + 1, strictOk, videoId: it.videoId, expected: it.expectedName, got: got.name, gotExtra: got.affiliation, extraOk, nameOk, expectedCountry: it.expectedCountry, gotCountry: got.nationality, countryWrong, original: orig, isOriginal, extraIsOriginal, confident: got.confident };
 });
 const named = rows.filter((r) => r.nameOk).length;
 const strictNamed = rows.filter((r) => r.strictOk).length;
 const originals = rows.filter((r) => r.isOriginal).length;
 const wrongCountries = rows.filter((r) => r.countryWrong).length;
 const blanks = rows.filter((r) => r.got === "").length;
+const extraOriginals = rows.filter((r) => r.extraIsOriginal).length;
 
 for (const r of rows) {
   console.log(
-    `${String(r.n).padStart(2)} ${r.nameOk ? "○" : "×"} ${r.countryWrong ? "국가×" : "     "} 기대=${r.expected}/${r.expectedCountry}  받음=${r.got || "(빈칸)"}/${r.gotCountry || "-"}${r.extraOk === null ? "" : ` [덧붙임 ${r.gotExtra || "-"} ${r.extraOk ? "○" : "×"}]`}${r.isOriginal ? "  ← 원곡 가수" : ""}`,
+    `${String(r.n).padStart(2)} ${r.nameOk ? "○" : "×"} ${r.countryWrong ? "국가×" : "     "} 기대=${r.expected}/${r.expectedCountry}  받음=${r.got || "(빈칸)"}/${r.gotCountry || "-"}${r.extraOk === null ? "" : ` [덧붙임 ${r.gotExtra || "-"} ${r.extraOk ? "○" : "×"}]`}${r.isOriginal ? "  ← 원곡 가수" : ""}${r.extraIsOriginal ? "  ← 소속 칸 원곡 가수" : ""}`,
   );
 }
 // 합격선 = 지시서 §7(48줄 기준 44). 다른 묶음은 같은 비율(44/48)로 본다.
 const need = Math.ceil((44 / 48) * rows.length);
-const pass = named >= need && originals === 0 && wrongCountries === 0;
+const pass = named >= need && originals === 0 && wrongCountries === 0 && extraOriginals === 0;
 const extras = rows.filter((r) => r.extraOk !== null);
 if (extras.length) console.log(`덧붙이는 정보 맞음 ${extras.filter((r) => r.extraOk).length}/${extras.length}`);
 console.log(`\n(글자 그대로 정답과 같은 칸 ${strictNamed})`);
-console.log(`이름 맞음 ${named}/${rows.length}(기준 ${need}) · 빈칸 ${blanks} · 원곡 가수 ${originals} · 틀린 국가 ${wrongCountries} · ${ms}ms · 토큰 ${JSON.stringify(usage)}`);
+console.log(`이름 맞음 ${named}/${rows.length}(기준 ${need}) · 빈칸 ${blanks} · 원곡 가수 ${originals} · 소속 칸 원곡 가수 ${extraOriginals} · 틀린 국가 ${wrongCountries} · ${ms}ms · 토큰 ${JSON.stringify(usage)}`);
 console.log(pass ? "합격선 통과" : "합격선 미달");
-if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify({ model: SONNET_MODEL, ms, usage, named, strictNamed, blanks, originals, wrongCountries, pass, rows }, null, 2));
+if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify({ model: SONNET_MODEL, ms, usage, named, strictNamed, blanks, originals, extraOriginals, wrongCountries, pass, rows }, null, 2));
 process.exit(pass ? 0 : 1);

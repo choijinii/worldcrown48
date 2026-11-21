@@ -16,6 +16,8 @@ import { EMPTY_PICK, type PairPick } from "@/lib/thumbnail/pick";
 import { DEFAULT_ENTRY_UNIT, ENTRY_UNITS, type EntryUnit } from "@/lib/types/tournament";
 import { resolveMediaKind, type MediaKind } from "@/lib/lab/mediaKind";
 import { aiBriefForSave, isAiBriefEmpty, readAiBrief, type AiBrief } from "@/lib/lab/aiBrief";
+import { readImageNotFound, readRuleFlags, readSourcingStates, sourcingForSave, type RuleFlag } from "@/lib/lab/slotMarks";
+import type { SourcingStates } from "@/lib/lab/sourcingDraft";
 
 export const DRAFTS_COLLECTION = "tournamentDrafts";
 export const DRAFT_SCHEMA_VERSION = 1;
@@ -36,6 +38,10 @@ export const DRAFT_FIELDS = [
   "entryUnit",
   "mediaKind",
   "aiBrief",
+  // LAB-FIX-5 §3-2 · §3-8 — 칸 표시(조건 검사 · 찾기 상태 · 이미지 못 찾은 칸). 비면 칸을 만들지 않는다.
+  "ruleFlags",
+  "sourcing",
+  "imageNotFound",
   "updatedAt",
 ] as const;
 
@@ -59,6 +65,12 @@ export interface DraftEditorState {
   mediaKind: MediaKind | null;
   /** LAB-FIX-4 "AI에게 알려 줄 내용" 세 줄. 옛 초안엔 없다 — 읽을 때 빈 묶음. */
   aiBrief: AiBrief;
+  /** LAB-FIX-5 §3-2 — 조건 검사 표시(그때의 이름과 함께 · lib/lab/slotMarks). */
+  ruleFlags?: RuleFlag[];
+  /** LAB-FIX-5 §3-8 — 영상 · 이미지 찾기 상태. 새로고침해도 "제안 · 손볼 칸" 숫자가 남는다. */
+  sourcing?: SourcingStates;
+  /** LAB-FIX-5 §3-8 — 이미지를 못 찾은 칸(0부터). */
+  imageNotFound?: number[];
 }
 
 /** 목록에 보여 줄 한 줄. */
@@ -97,6 +109,9 @@ export function toDraftFields(s: DraftEditorState): Record<string, unknown> {
     ...(s.mediaKind ? { mediaKind: s.mediaKind } : {}),
     // LAB-FIX-4: 세 줄 중 하나라도 글자가 있을 때만 싣는다(비면 칸 없음 = 옛 모양).
     ...(aiBriefForSave(s.aiBrief) ? { aiBrief: { ...s.aiBrief } } : {}),
+    ...(s.ruleFlags?.length ? { ruleFlags: s.ruleFlags.map((f) => ({ slot: f.slot, name: f.name, reason: f.reason })) } : {}),
+    ...(s.sourcing && Object.keys(s.sourcing).length ? { sourcing: sourcingForSave(s.sourcing) } : {}),
+    ...(s.imageNotFound?.length ? { imageNotFound: [...s.imageNotFound] } : {}),
   };
 }
 
@@ -189,6 +204,19 @@ export function fromDraftDoc(data: unknown): DraftEditorState | null {
     entryUnit: toEntryUnit(d.entryUnit),
     mediaKind: resolveMediaKind(d.mediaKind, contestants),
     aiBrief: readAiBrief(d.aiBrief),
+    // 칸 표시 셋은 있을 때만 싣는다 — 옛 초안을 불러온 상태가 예전과 같은 모양이다(빈 값 = 없음).
+    ...slotMarksFromDoc(d),
+  };
+}
+
+function slotMarksFromDoc(d: Record<string, unknown>): Pick<DraftEditorState, "ruleFlags" | "sourcing" | "imageNotFound"> {
+  const ruleFlags = readRuleFlags(d.ruleFlags);
+  const sourcing = readSourcingStates(d.sourcing);
+  const imageNotFound = readImageNotFound(d.imageNotFound);
+  return {
+    ...(ruleFlags.length ? { ruleFlags } : {}),
+    ...(Object.keys(sourcing).length ? { sourcing } : {}),
+    ...(imageNotFound.length ? { imageNotFound } : {}),
   };
 }
 

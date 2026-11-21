@@ -10,7 +10,7 @@
  */
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { EntryUnit } from "@/lib/types/tournament";
 import { AI_BRIEF_LIMITS, type AiBrief } from "@/lib/lab/aiBrief";
 import { useT } from "@/lib/i18n/useT";
@@ -130,13 +130,20 @@ export function AiBriefPanel({
               style={{ ...fieldStyle, resize: "vertical" }}
             />
           ) : (
-            <input
+            // LAB-FIX-5 §3-4 — 한 줄 칸이지만 예시 글이 칸보다 길면(ES "p. ej.: el crew que baila …" 8px 넘침) 두 줄로 늘어난다.
+            // 승인된 문구는 바꾸지 않고 칸 쪽을 고친다: 글자 수만큼 높이가 자라는 textarea(field-sizing: content) ·
+            // 줄바꿈 글자는 받지 않는다(Enter 막기 · 붙여 넣은 줄바꿈은 띄어쓰기로).
+            <textarea
               value={brief[field]}
               maxLength={AI_BRIEF_LIMITS[field]}
-              onChange={(e) => onBriefChange({ ...brief, [field]: e.target.value })}
+              onChange={(e) => onBriefChange({ ...brief, [field]: e.target.value.replace(/[\r\n]+/g, " ") })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
               placeholder={t(placeholder)}
+              rows={1}
               data-testid={`lab-brief-${field}`}
-              style={fieldStyle}
+              style={{ ...fieldStyle, resize: "none", overflow: "hidden", fieldSizing: "content" } as CSSProperties}
             />
           )}
         </label>

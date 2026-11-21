@@ -19,7 +19,7 @@
  * 컴파일본으로 불러 쓴다(functions/scripts/backfill-name-i18n.mjs) — 프롬프트가 한 곳이다.
  */
 import { nameSoundsAlike } from "./nameSoundsAlike";
-import { briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
+import { NAME_SCRIPT_RULE, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 import { parseEntryUnit, type EntryUnit } from "./aiFillCore";
 
 export interface LocalizedName {
@@ -119,6 +119,8 @@ export function buildBriefNamesPrompt(
     "- 엔트리가 사람·그룹·팀이면 공식 영어 표기 = 본인·소속사가 실제로 쓰는 로마자 활동명이다 (예: 뉴진스 → NewJeans, 아이유 → IU).",
     "- 엔트리가 작품·노래·제품·배역처럼 사람이 아니면 그 대상의 공식 영어 표기(공식 영어 제목 · 해외 판매 이름 · 영어판 배역 이름)를 쓴다. 공식 영어 표기가 없으면 로마자로 옮겨 적는다.",
     "- 대소문자·띄어쓰기·기호까지 공식 표기 그대로 쓴다.",
+    // LAB-FIX-5 결정 F — 외국 인물 · 팀은 ko 칸도 원래 표기다(이미 로마자인 이름은 이 지시문에 오지 않고 그대로 쓰인다).
+    NAME_SCRIPT_RULE,
     '- 공식 표기를 확실히 알면 "sure": true. 모르면 가장 그럴듯한 표기를 쓰고 "sure": false.',
     "- 한글을 쓰지 않는다. 번호(i)는 아래 목록의 번호 그대로.",
     "",

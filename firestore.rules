@@ -130,7 +130,8 @@ service cloud.firestore {
     function isValidDraft(d) {
       return d.keys().hasOnly(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                                 'description', 'keywords', 'campaignSlug', 'deadlineMs',
-                                'contestants', 'thumbnailPair', 'entryUnit', 'mediaKind', 'aiBrief', 'updatedAt'])
+                                'contestants', 'thumbnailPair', 'entryUnit', 'mediaKind', 'aiBrief',
+                                'ruleFlags', 'sourcing', 'imageNotFound', 'updatedAt'])
         && d.keys().hasAll(['hostUid', 'schemaVersion', 'step', 'title', 'category',
                             'description', 'keywords', 'campaignSlug', 'deadlineMs',
                             'contestants', 'updatedAt'])
@@ -153,6 +154,11 @@ service cloud.firestore {
         && (!('aiBrief' in d) || isValidAiBrief(d.aiBrief))
         // LAB-FIX-3 추가분(원장 D-90): 대회 종류. 칸 자체는 선택 — 종류 미정 초안·옛 화면의 저장도 통과.
         && (!('mediaKind' in d) || d.mediaKind == 'video' || d.mediaKind == 'image')
+        // LAB-FIX-5 §3-2 · §3-8: 칸 표시 셋. 칸 자체는 선택 — 옛 화면의 저장도 통과. 모양은 화면이 읽을 때 거른다
+        // (lib/lab/slotMarks — 규칙은 목록을 훑지 못한다). 크기만 막는다(칸 48개).
+        && (!('ruleFlags' in d) || (d.ruleFlags is list && d.ruleFlags.size() <= 48))
+        && (!('sourcing' in d) || (d.sourcing is map && d.sourcing.size() <= 48))
+        && (!('imageNotFound' in d) || (d.imageNotFound is list && d.imageNotFound.size() <= 48))
         && d.updatedAt == request.time;
     }
     match /tournamentDrafts/{draftId} {

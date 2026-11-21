@@ -107,8 +107,9 @@ describe("buildBriefExtractPrompt — 링크 제목 읽기(새 지시문)", () =
     expect(p).toContain("확신할 수 없으면");
     expect(p).toContain("지어내지 마라");
   });
-  it("한글 이름 정본(D-61) — 한글 표기가 없으면 공식 표기 그대로", () => {
-    expect(p).toContain("한글 표기가 없는");
+  // LAB-FIX-5 결정 F(D-61 일부 바뀜) — 한글은 한국 인물 · 팀에만, 외국은 원래 공식 표기.
+  it("이름 표기 = 결정 F(한국은 한글 · 외국은 원래 공식 표기)", () => {
+    expect(p).toContain("원래 공식 표기");
   });
   it("48줄 모두 싣는다", () => {
     for (const it of crewItems) expect(p).toContain(`id="${it.videoId}"`);

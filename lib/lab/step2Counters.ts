@@ -26,6 +26,8 @@ export function step2Counters(
   states: SourcingStates,
   flags: ReviewFlags,
   total: number,
+  /** LAB-FIX-5 §3-2 — 조건 검사가 표시한 칸(지금 이름 그대로인 것만 · slotMarks.activeRuleFlags). */
+  ruleFlags: Readonly<Record<number, unknown>> = {},
 ): Step2Counters {
   let filled = 0;
   let suggested = 0;
@@ -43,6 +45,7 @@ export function step2Counters(
     if (state?.status === "suggested") suggested += 1;
     else if (state) todo.add(i);
     if (flags[i]?.length) todo.add(i);
+    if (named && ruleFlags[i]) todo.add(i);
   }
 
   return { filled, total, suggested, todo: todo.size };

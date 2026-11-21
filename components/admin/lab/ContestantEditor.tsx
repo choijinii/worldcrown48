@@ -65,6 +65,11 @@ interface ContestantEditorProps {
   sourcing?: SlotSourcingState;
   /** LAB-UX-1: 검수 배지(중복 의심·이름↔힌트 불일치). 상태에서 파생된다. */
   reviewFlags?: SlotReviewFlag[];
+  /**
+   * LAB-FIX-5 §3-2 — 조건 검사가 표시한 칸(사유 = AI 한 줄 · 화면 언어). 칸에 "조건 확인 필요" 배지와
+   * 사유 한 줄을 보인다(5절 승인 문구). 지우지 않는다 — 판단은 운영자.
+   */
+  ruleFlag?: { reason: string };
   /** 중복 의심 배지의 [N번 보기] — 상대 칸으로 데려간다. */
   onGoToSlot?: (index: number) => void;
   /** LAB-EV-2: 이 슬롯만 캐시 우회 재검색. 소싱을 돌린 적 있을 때만 넘어온다. */
@@ -185,6 +190,7 @@ export function ContestantEditor({
   onTune,
   sourcing,
   reviewFlags,
+  ruleFlag,
   onGoToSlot,
   onRefreshVideo,
   refreshing = false,
@@ -294,6 +300,8 @@ export function ContestantEditor({
       data-testid={`contestant-node-${index}`}
       data-empty={isEmpty}
       data-pair={pairMark ?? ""}
+      data-rule-flag={ruleFlag ? "true" : undefined}
+      data-rule-reason={ruleFlag ? ruleFlag.reason : undefined}
       onDragOver={image && buttons.imageFile ? (e) => e.preventDefault() : undefined}
       onDrop={
         // D-90 — 그림을 끌어 넣는 것은 이미지 대회에서만.
@@ -535,6 +543,30 @@ export function ContestantEditor({
           style={{ ...fieldStyle, textTransform: "uppercase" }}
         />
       </div>
+      {/* LAB-FIX-5 §3-2 — 조건 검사 표시: 칸 폭 전체를 쓰는 줄(배지 + 사유 한 줄). 지우지 않는다 — 판단은 운영자. */}
+      {ruleFlag && (
+        <div
+          data-testid={`contestant-rule-${index}`}
+          style={{ marginTop: 6, display: "grid", gap: 3, justifyItems: "start" }}
+        >
+          <span
+            data-review-flag="rule-check"
+            data-testid={`contestant-rule-badge-${index}`}
+            title={ruleFlag.reason}
+            style={{ ...badgeStyle(TONE_COLOR.danger), whiteSpace: "nowrap", cursor: "help" }}
+          >
+            {t("lab.rules.flag")}
+          </span>
+          {ruleFlag.reason && (
+            <span
+              data-testid={`contestant-rule-reason-${index}`}
+              style={{ fontSize: 10, lineHeight: 1.35, color: lab.textSub, overflowWrap: "anywhere" }}
+            >
+              {ruleFlag.reason}
+            </span>
+          )}
+        </div>
+      )}
       {/* LAB-FIX-3b — 칸 줄: 리뷰 표시(왼쪽) + [영상]·[이미지]·[이미지 파일](오른쪽 끝) 한 줄.
           리뷰 표시가 없어도 줄과 버튼 자리는 같다. 주소 칸은 이 줄 바로 밑(slot-line)에서 열린다 —
           열고 닫아도 버튼은 움직이지 않는다. */}
