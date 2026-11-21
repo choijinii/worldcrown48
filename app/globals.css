@@ -963,6 +963,16 @@ input { font: inherit; }
   line-height: 1.5;
   letter-spacing: 0.02em;
 }
+.policy-footer-row + .policy-footer-copy {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-4);
+  background: var(--color-bg-void);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-sub);
+}
 .policy-footer-row a,
 .policy-footer-row button {
   color: var(--color-text-sub);

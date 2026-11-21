@@ -1,7 +1,8 @@
 /**
  * FooterPolicyRow — 모든 화면 맨 아래의 공용 바닥 띠 (YT-FIX-1 PR A-1 · 구글 정책 III.A.2a).
  *
- *   개인정보처리방침(맨 앞) · 이용약관 · 콘텐츠 신고(mailto) · 쿠키 설정(동의 바 다시 열기)
+ *   개인정보처리방침(맨 앞) · 이용약관 · 커뮤니티 가이드 · 콘텐츠 신고(mailto) · 쿠키 설정(동의 바 다시 열기)
+ *   + 그 아래 "© 2026 WorldCrown48" 줄 (PITCH-2 · 대표 11/05 · D-80 후보 — 공용 띠라 모든 화면에 같이 바뀐다)
  *
  * 콘텐츠 신고 = policy@ — 법적 문제 창구는 하나(원장 D-83 · LEGAL-CS-1). 옛 신고 전용 주소는 Cloudflare 전달로
  * 살아 있지만 화면·문서에는 쓰지 않는다.
@@ -26,15 +27,23 @@ export function FooterPolicyRow(): JSX.Element {
   const { t, lang } = useT();
 
   return (
-    <div className="policy-footer-row" data-testid="footer-band">
-      <a href={policyLinkHref("/policies/privacy", lang)} data-testid="footer-privacy-link">
-        {t("footer.privacy")}
-      </a>
-      <a href={policyLinkHref("/policies/terms", lang)}>{t("nav.sub.terms")}</a>
-      <a href="mailto:policy@worldcrown48.com">{t("footer.report")}</a>
-      <button type="button" onClick={reopen}>
-        {t("footer.cookies")}
-      </button>
-    </div>
+    <>
+      <div className="policy-footer-row" data-testid="footer-band">
+        <a href={policyLinkHref("/policies/privacy", lang)} data-testid="footer-privacy-link">
+          {t("footer.privacy")}
+        </a>
+        <a href={policyLinkHref("/policies/terms", lang)}>{t("nav.sub.terms")}</a>
+        <a href={policyLinkHref("/policies/community", lang)} data-testid="footer-community-link">
+          {t("nav.sub.community")}
+        </a>
+        <a href="mailto:policy@worldcrown48.com">{t("footer.report")}</a>
+        <button type="button" onClick={reopen}>
+          {t("footer.cookies")}
+        </button>
+      </div>
+      <p className="policy-footer-copy" data-testid="footer-copyright">
+        © 2026 WorldCrown48
+      </p>
+    </>
   );
 }

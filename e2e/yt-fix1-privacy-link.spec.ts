@@ -103,7 +103,7 @@ test.describe("매치 무대 · 차트", () => {
       await link.scrollIntoViewIfNeeded();
       await expect(link).toBeVisible();
 
-      // 공용 바닥 띠 — 네 항목이 모두 보이고 같은 글꼴·크기·색이다.
+      // 공용 바닥 띠 — 다섯 항목(PITCH-2 · 커뮤니티 가이드 더함)이 모두 보이고 같은 글꼴·크기·색이다.
       const band = page.getByTestId("footer-band");
       const looks = await band.locator("> *").evaluateAll((els) =>
         els.map((e) => {
@@ -111,7 +111,7 @@ test.describe("매치 무대 · 차트", () => {
           return `${c.fontFamily}|${c.fontSize}|${c.color}|${c.textDecorationLine}`;
         }),
       );
-      expect(looks).toHaveLength(4);
+      expect(looks).toHaveLength(5);
       expect(new Set(looks).size).toBe(1);
 
       // 띠는 첫 화면 아래 — 플레이어 · 이름 띠 · 배너와 겹침 0.

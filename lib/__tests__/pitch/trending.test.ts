@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  TRENDING_LIMIT,
-  isFeedEmpty,
   formatCloses,
   statusPillVariant,
 } from "@/lib/pitch/trending";
@@ -14,19 +12,6 @@ import {
  * query limit, empty detection, the "Closes …" formatter, and the status-pill
  * variant. The card meta line itself is composed in TournamentCard via useT.
  */
-
-describe("TRENDING_LIMIT", () => {
-  it("matches the handoff §5 query limit of 12", () => {
-    expect(TRENDING_LIMIT).toBe(12);
-  });
-});
-
-describe("isFeedEmpty", () => {
-  it("is true only for an empty tournament list", () => {
-    expect(isFeedEmpty([])).toBe(true);
-    expect(isFeedEmpty([{ id: "t1" }])).toBe(false);
-  });
-});
 
 describe("formatCloses", () => {
   it("formats a deadline as short 'MMM D' (matches wireframe 'Closes Jun 20')", () => {

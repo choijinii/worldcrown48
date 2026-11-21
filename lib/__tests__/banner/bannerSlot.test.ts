@@ -168,10 +168,55 @@ describe("자리 이름 목록 (D-21)", () => {
 
   it("다른 자리의 기본 공지는 그대로(launch-below 만 바뀐다)", () => {
     // pitch-between 의 런칭 전 기본 공지는 D-59 시험이 따로 본다.
-    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below" && n !== "pitch-between" && !(n in ARENA_AD_BOX_NOTICES))) {
+    for (const slot of BANNER_SLOT_NAMES.filter((n) => n !== "launch-below" && !n.startsWith("pitch-") && !(n in ARENA_AD_BOX_NOTICES))) {
       expect(resolveBanner([], slot, NOW, "guest")).toEqual({ source: "default", notice: defaultNotice("guest") });
       expect(resolveBanner([], slot, NOW, "member")).toEqual({ source: "default", notice: defaultNotice("member") });
     }
+  });
+});
+
+// PITCH-2 PR A · 지시서 8절(D-82 후보) — 홈 배너 ② · ③ 새 자리와 기본 공지.
+describe("PITCH-2 — pitch-news-below · pitch-charts-below", () => {
+  it("두 자리가 자리 목록에 있다", () => {
+    expect(BANNER_SLOT_NAMES).toContain("pitch-news-below");
+    expect(BANNER_SLOT_NAMES).toContain("pitch-charts-below");
+  });
+  it("② NEWS ROOM 아래 = 이미 승인된 member 공지 글(비로그인·로그인 같음 · 누르지 않는 글자)", () => {
+    for (const audience of ["guest", "member"] as const) {
+      expect(resolveBanner([], "pitch-news-below", NOW, audience)).toEqual({
+        source: "default",
+        notice: { titleKey: "banner.default.member.title", action: "text" },
+      });
+    }
+  });
+  it("③ CHARTS 아래 = 6절 8번 글 · 비로그인은 로그인 창 · 로그인은 글자만", () => {
+    expect(resolveBanner([], "pitch-charts-below", NOW, "guest")).toEqual({
+      source: "default",
+      notice: { titleKey: "banner.pitch.chartsBelow.title", action: "signIn" },
+    });
+    expect(resolveBanner([], "pitch-charts-below", NOW, "member")).toEqual({
+      source: "default",
+      notice: { titleKey: "banner.pitch.chartsBelow.title", action: "text" },
+    });
+  });
+  it("런칭 전 사전등록 안내는 ① pitch-between 만 — ② · ③ 은 런칭 전에도 자기 공지", () => {
+    const BEFORE = LAUNCH_AT_MS - 60_000;
+    const key = (slot: string) => (resolveBanner([], slot, BEFORE, "guest") as { notice?: { titleKey: string } }).notice?.titleKey;
+    expect(key("pitch-news-below")).toBe("banner.default.member.title");
+    expect(key("pitch-charts-below")).toBe("banner.pitch.chartsBelow.title");
+  });
+  it("③ 글은 대표 승인 3언어 그대로(6절 8번 · 대표 고친 글 2026-11-19)", () => {
+    expect(MESSAGES["banner.pitch.chartsBelow.title"]).toEqual({
+      ko: "멈춘 선택을 이어서 하려면 로그인하셔야 합니다. — 매치 안 어디서든 멈춘 매치부터 다시",
+      en: "Sign in to continue the picks you paused. — Wherever you stopped in the Match, pick up right there",
+      es: "Inicia sesión para continuar las elecciones que dejaste en pausa. — Estés donde estés en el Match, retoma justo ahí",
+    });
+  });
+  it("③ 의 \"어디서든\"은 기기 이야기가 아니다 — 영어 · 스페인어에 기기 낱말 없음(6절 8번 주석)", () => {
+    const t = MESSAGES["banner.pitch.chartsBelow.title"];
+    expect(t.en).not.toMatch(/device/i);
+    expect(t.es).not.toMatch(/dispositivo/i);
+    expect(t.ko).not.toMatch(/기기/);
   });
 });
 

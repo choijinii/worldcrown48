@@ -5,7 +5,7 @@
  * verified here against the Vercel Preview:
  *   ② public: /news 목록 · /news/[slug] (내려간/미발행 slug → 404 아닌 안내) ·
  *      기사 지면 AI-Report 존재
- *   ③ NewsRail: The Pitch(/)에 노출
+ *   ③ 홈(/) 오른쪽 칸 뉴스 3줄 — ND-1 임시 NewsRail 은 PITCH-2 PR A 에서 이 칸으로 흡수하고 지웠다
  *   + 한/영 토글 · 320px 모바일 스모크
  *
  * The admin publish flow (① 초안 생성→편집→발행→내리기) requires the operator
@@ -63,9 +63,10 @@ test.describe("ND-1 News Desk — public", () => {
     await expect(page.getByTestId("lang-toggle")).toBeVisible();
   });
 
-  test("NewsRail is mounted on The Pitch (/)", async ({ page }) => {
+  test("The Pitch (/) hero side column carries the news rows (NewsRail absorbed · PITCH-2)", async ({ page }) => {
     await page.goto("/?lang=en");
-    await expect(page.getByTestId("news-rail")).toBeVisible();
+    await expect(page.getByTestId("pitch-hero-side")).toBeVisible();
+    await expect(page.getByTestId("news-rail")).toHaveCount(0);
   });
 
   test("mobile 320px: /news does not overflow horizontally", async ({ page }) => {

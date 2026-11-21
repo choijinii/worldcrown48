@@ -213,39 +213,10 @@ describe("RUN-1 §8 문구표 (2026-09-07 대표 승인 최종본)", () => {
   }
 });
 
-describe("히어로 문구 정정 (2026-09-07 승인)", () => {
-  it("'예측도, 배당도 없이' 구절이 3언어 모두에서 사라졌다", () => {
-    // 예측·배당은 도박·투기를 연상시킨다(대표) — 서비스 정체성 금지 항목이다.
-    const sub = MESSAGES["pitch.hero.sub"];
-    expect(sub.ko).not.toContain("예측");
-    expect(sub.ko).not.toContain("배당");
-    expect(sub.en).not.toContain("No predictions");
-    expect(sub.en).not.toContain("odds");
-    expect(sub.es).not.toContain("predicciones");
-    expect(sub.es).not.toContain("apuestas");
-  });
-
-  it("뒷부분이 승인본으로 교체됐다", () => {
-    expect(MESSAGES["pitch.hero.sub"].ko).toContain(
-      "오직 팬의 선택. 당신의 선택이 왕관의 주인을 만듭니다.",
-    );
-    expect(MESSAGES["pitch.hero.sub"].en).toContain(
-      "Pure fan choice. Your pick crowns the Champion.",
-    );
-    expect(MESSAGES["pitch.hero.sub"].es).toContain(
-      "Solo la elección de los fans. Tu elección corona al Champion.",
-    );
-  });
-
-  it("앞부분은 3언어 그대로 남는다", () => {
-    expect(MESSAGES["pitch.hero.sub"].ko).toContain("48 Contestants. Five Rounds.");
-    expect(MESSAGES["pitch.hero.sub"].en).toContain("48 Contestants. Five Rounds.");
-    expect(MESSAGES["pitch.hero.sub"].es).toContain("48 Contestants. Cinco Rounds.");
-  });
-
-  it("금지어 '표'가 팬 노출 문구에 없다 (LANGUAGE.md §7)", () => {
-    // "당신의 한 표가 Champion을 만듭니다" 가 이 정정의 직접 대상이었다.
-    expect(MESSAGES["pitch.hero.sub"].ko).not.toContain("표");
+describe("PITCH-2 — 글자 히어로 · LabEntryCard · 견본 뉴스 · 홈 바닥 문구 키 삭제", () => {
+  it("pitch.hero.* · pitch.lab.* · pitch.news.* · pitch.trending.* 키가 남지 않는다", () => {
+    const left = Object.keys(MESSAGES).filter((k) => /^pitch\.(hero|lab|news|trending|foot)\./.test(k));
+    expect(left).toEqual([]);
   });
 });
 

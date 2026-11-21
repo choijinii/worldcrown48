@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:ital,wght@1,400;1,700;1,900&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/arena_stage_tokens.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/ui_kits/web/kit.css">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/styles.css">
+  <script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+  <script src="image-slot.js"></script>
+  <style>
+    body { margin:0; background:#FFFFFF; }
+    a { color:#D99400; text-decoration:none; } a:hover { color:#E8A000; }
+  </style>
+</helmet>
+<div data-theme="light" style="position:relative;width:100%;min-height:100%;background:#FFFFFF;color:#0B0831;font-family:Inter,Pretendard,'Apple SD Gothic Neo',sans-serif;display:flex;flex-direction:column;overflow:hidden">
+
+  <!-- GNB · 정본 Menubar · 청록 알약 문구만 "이어서 하기" -->
+  <sc-if value="{{ isD }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;height:58px;flex:none">
+      <x-import component="Menubar" from="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/components/GNB/GNB.jsx" continue-label="이어서 하기" sign-in-label="로그인" current="The Pitch" lang="KO" crown-src="assets/wc48-crown-filled.svg" hint-size="100%,58px"></x-import>
+    </div>
+  </sc-if>
+  <sc-if value="{{ notD }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;height:42px;flex:none">
+      <x-import component="Menubar" from="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/components/GNB/GNB.jsx" variant="mobile" continue-label="이어서 하기" sign-in-label="로그인" current="The Pitch" lang="KO" crown-src="assets/wc48-crown-filled.svg" hint-size="100%,42px"></x-import>
+    </div>
+  </sc-if>
+
+  <div style="width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 clamp(16px, calc((100% - 1320px) / 2), 60px); box-sizing: border-box; display: flex; flex-direction: column; border-width: 0px; border-style: solid; border-color: #000000">
+
+    <!-- 1) 제목 줄 · 오른쪽 끝은 메뉴바의 청록 알약 자리 -->
+    <div style="display:flex;align-items:center;height:{{ titleRowH }};margin-top:{{ titleRowTop }}">
+      <span style="font-size:{{ kickerPx }};font-weight:800;letter-spacing:.2em;color:#0B0831">GLOBAL FAN ARENA</span>
+    </div>
+
+    <!-- 2) 히어로 -->
+    <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:16px;align-items:stretch">
+      <div style="flex:924 1 640px;min-width:0;position:relative;aspect-ratio:16/9;align-self:flex-start;overflow:hidden;border-radius:2px;background:#07070D" onMouseEnter="{{ heroEnter }}" onMouseLeave="{{ heroLeave }}" onTouchStart="{{ heroEnter }}" onTouchEnd="{{ heroLeave }}">
+        <div style="display:flex;width:100%;height:100%;transform:translateX({{ trackX }});transition:transform 600ms cubic-bezier(.2,.8,.2,1)">
+          <sc-for list="{{ slides }}" as="s" hint-placeholder-count="2">
+            <div style="position:relative;flex:none;width:100%;height:100%;overflow:hidden">
+              <sc-if value="{{ s.isPromo }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;background:#0B1020;display:flex;align-items:center;justify-content:center">
+                  <image-slot id="pitch-promo-poster" src="{{ ph.promo }}" credit="{{ ph.promoCr }}" credit-href="{{ ph.promoHr }}" fit="cover" shape="rect" placeholder="홍보 영상 포스터 · 16:9" style="position:absolute;inset:0;display:block;width:100%;height:100%"></image-slot>
+                  <div style="position: absolute; inset: 0; background: var(--arena-cell-shade); pointer-events: none; left: -37px; top: 8px"></div>
+                  <span style="position:relative;width:72px;height:72px;border-radius:999px;background:rgba(252,208,6,.92);display:flex;align-items:center;justify-content:center;cursor:pointer"><span style="width:0;height:0;border-left:24px solid #241754;border-top:14px solid transparent;border-bottom:14px solid transparent;margin-left:6px"></span></span>
+                  <div style="position:absolute;left:0;right:0;bottom:0;padding:{{ heroPad }};display:flex;flex-direction:column;gap:8px;pointer-events:none">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:#FCD006">WORLDCROWN48 · FILM</span>
+                    <span style="font-size:{{ heroTitlePx }};font-weight:700;line-height:1.25;letter-spacing:-.02em;color:#F2F2F5">48개의 엔트리, 하나의 Crown — 당신의 선택이 무대를 정합니다</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ s.isVs }}" hint-placeholder-val="{{ true }}">
+                <dc-import name="VSThumb" slot-id="{{ s.slotId }}" name-a="{{ s.a }}" name-b="{{ s.b }}" src-a="{{ s.srcA }}" src-b="{{ s.srcB }}" cr-a="{{ s.crA }}" cr-b="{{ s.crB }}" hr-a="{{ s.hrA }}" hr-b="{{ s.hrB }}" ken="{{ s.ken }}" show-title="{{ false }}" hint-size="100%,100%"></dc-import>
+                <div style="position:absolute;left:0;right:0;bottom:0;padding:{{ heroPad }};background:linear-gradient(180deg, rgba(11,16,32,0), rgba(11,16,32,.82) 70%);display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+                  <span class="tcard__cat" style="border-radius:2px;color:#FCD006">{{ s.cat }}</span>
+                  <span style="font-size:{{ heroTitlePx }};font-weight:700;line-height:1.25;letter-spacing:-.02em;color:#F2F2F5;max-width:640px;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ s.title }}</span>
+                  <button class="btn" style="border-radius: 2px; box-shadow: none; margin-top: 2px; width: {{ heroBtnW }}; height: {{ heroBtnH }}; min-height: 0; padding: 0; font-size: {{ heroBtnPx }}">참가하기</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <!-- 화살표 · 마우스 올리면 -->
+        <span onClick="{{ prev }}" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:rgba(11,16,32,.6);border:1px solid rgba(255,255,255,.22);color:#F2F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ arrowOp }};transition:opacity 200ms ease;z-index:5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span>
+        <span onClick="{{ next }}" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:rgba(11,16,32,.6);border:1px solid rgba(255,255,255,.22);color:#F2F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{ arrowOp }};transition:opacity 200ms ease;z-index:5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span>
+        <!-- 점 -->
+        <div style="position:absolute;right:20px;bottom:18px;display:flex;gap:8px;z-index:5">
+          <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5">
+            <span onClick="{{ d.go }}" style="width:8px;height:8px;border-radius:999px;background:{{ d.bg }};cursor:pointer;transition:background 200ms ease"></span>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- 오른쪽 · 차트 1줄 크게 + 뉴스 3~4줄 -->
+      <div style="flex:372 1 300px;min-width:0;position:relative">
+        <div style="position:{{ rcPos }};inset:0;display:flex;flex-direction:column;border:1px solid #E3E8EE;border-radius:2px;background:#FFFFFF;overflow:hidden">
+          <div style="display:flex;align-items:center;padding:14px 16px 0">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em;color:#D99400">CROWN SCORE</span>
+          </div>
+          <sc-if value="{{ hasTours }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:14px;padding:10px 16px 12px;align-items:flex-start">
+              <div style="position:relative;width:132px;height:132px;flex:none;background:#241754;overflow:hidden;border-radius:2px">
+                <image-slot id="pitch-hero-chart-1" src="{{ topTour.photo }}" credit="{{ topTour.cr }}" credit-href="{{ topTour.hr }}" fit="cover" shape="rect" placeholder="1위 엔트리" style="display:block;width:100%;height:100%"></image-slot>
+                <span style="position:absolute;left:8px;top:8px;height:22px;padding:0 8px;border-radius:2px;background:#FCD006;color:#241754;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center">1</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;height:132px;overflow:hidden">
+                <span style="font-size:16px;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:#0B0831;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ topTour.title }}</span>
+                <span style="margin-top:5px;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#0B0831">{{ chartTop.n1 }}</span>
+                <div style="display:flex;flex-direction:column;gap:1px;font-size:12px;line-height:1.35;color:#3A4570">
+                  <span><span style="font-family:'JetBrains Mono',monospace;color:#A3AEC4;margin-right:8px">2</span>{{ chartTop.n2 }}</span>
+                  <span><span style="font-family:'JetBrains Mono',monospace;color:#A3AEC4;margin-right:8px">3</span>{{ chartTop.n3 }}</span>
+                </div>
+                <span style="margin-top:auto;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;line-height:1;color:#3A4570">발표 · {{ chartAt }}</span>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noTours }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:28px 16px;text-align:center"><img src="assets/wc48-crown-outline.svg" alt="" style="width:28px;height:28px;opacity:.5"><span style="font-size:13px;color:#3A4570">첫 대회가 열리면 차트가 시작됩니다</span></div>
+          </sc-if>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 2px;border-top:1px solid #E3E8EE"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em;color:#D99400">NEWSROOM</span></div>
+          <sc-if value="{{ hasNews }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;padding:0 16px 4px;flex:1;min-height:0;justify-content:space-evenly">
+              <sc-for list="{{ heroNews }}" as="n" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px;align-items:center;padding:7px 0;border-top:1px solid #E3E8EE;cursor:pointer">
+                  <div style="width:72px;height:72px;flex:none;border-radius:2px;overflow:hidden;background:#241754"><image-slot id="{{ n.slot }}" src="{{ n.photo }}" credit="{{ n.cr }}" credit-href="{{ n.hr }}" fit="cover" shape="rect" placeholder="" style="display:block;width:100%;height:100%"></image-slot></div>
+                  <div style="display:flex;flex-direction:column;justify-content:space-between;height:72px;min-width:0;flex:1">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.16em;line-height:1;color:#D99400">{{ n.cat }}</span>
+                    <span style="font-size:13px;font-weight:600;line-height:1.35;color:#0B0831;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;line-height:1;color:#A3AEC4">{{ n.date }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noNews }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;margin:0 16px 16px;border:1px dashed #E3E8EE;border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4">NO ARTICLES</span><span style="font-size:13px;color:#3A4570">아직 올라온 기사가 없어요</span></div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3) TIOZ.AI 띠 -->
+    <sc-if value="{{ showTioz }}" hint-placeholder-val="{{ true }}">
+      <a href="https://tioz.ai" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:18px;height:{{ tiozH }};margin-top:24px;border:1px solid #E3E8EE;border-radius:2px;background:#F2F2F5;color:#0B0831;text-decoration:none">
+        <span style="font-size:{{ tiozPx }};font-weight:900;letter-spacing:.22em;line-height:1;color:#0B0831">TIOZ.AI</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:#3A4570">OPEN ↗</span>
+      </a>
+    </sc-if>
+
+    <!-- 4) Trending Tournaments -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: {{ secGap }}; padding-bottom: 14px; border-bottom: 1px solid #484B67; position: relative; border-color: var(--arena-drawer-arrow); border-width: 1px">
+      <span style="font-size:{{ h2Px }};font-weight:800;letter-spacing:-.02em;line-height:1.1;color:#0B0831">Trending Tournaments</span>
+      <div style="display:flex;gap:6px">
+        <sc-for list="{{ tabsT }}" as="tb" hint-placeholder-count="3">
+          <span onClick="{{ tb.go }}" style="height:32px;padding:0 14px;border-radius:999px;display:flex;align-items:center;font-size:13px;font-weight:700;cursor:pointer;border:1px solid {{ tb.bd }};background:{{ tb.bg }};color:{{ tb.fg }}">{{ tb.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ hasTours }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-top:20px">
+        <sc-for list="{{ pageCards }}" as="c" hint-placeholder-count="6">
+          <article class="tcard" style="border-radius:2px;box-shadow:none;background:#FFFFFF;border-color:#E3E8EE;cursor:pointer">
+            <div class="tcard__cover" style="height:auto">
+              <dc-import name="VSThumb" slot-id="{{ c.slotId }}" name-a="{{ c.a }}" name-b="{{ c.b }}" src-a="{{ c.srcA }}" src-b="{{ c.srcB }}" cr-a="{{ c.crA }}" cr-b="{{ c.crB }}" hr-a="{{ c.hrA }}" hr-b="{{ c.hrB }}" title="{{ c.title }}" title-size="16" hint-size="100%,180px"></dc-import>
+              <div class="tcard__chips"><span class="tcard__cat" style="border-radius:2px;color:#FCD006">{{ c.cat }}</span><span class="pill is-gold"><span class="dot"></span>active</span></div>
+            </div>
+            <div class="tcard__body" style="gap:0;padding:5px 0 0">
+              <button class="tcard__enter" style="border-radius:0;border:0;width:100%;box-shadow:none;flex:none;background:#FCD006;color:#241754;border-color:#FCD006;font-size:15px;font-weight:800;height:44px">참가하기</button>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasPages }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:20px">
+          <span onClick="{{ pagePrev }}" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3A4570">‹</span>
+          <sc-for list="{{ pages }}" as="pg" hint-placeholder-count="2">
+            <span onClick="{{ pg.go }}" style="min-width:36px;height:36px;padding:0 10px;color:{{ pg.fg }};border-bottom:2px solid {{ pg.bd }};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer">{{ pg.n }}</span>
+          </sc-for>
+          <span onClick="{{ pageNext }}" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3A4570">›</span>
+        </div>
+      </sc-if>
+    </sc-if>
+    <sc-if value="{{ noTours }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:20px;border:1px dashed #E3E8EE;border-radius:2px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+        <img src="assets/wc48-crown-outline.svg" alt="" style="width:36px;height:36px;opacity:.5">
+        <span style="font-size:17px;font-weight:700;color:#0B0831">곧 첫 대회가 열립니다</span>
+        <span style="font-size:13px;color:#3A4570;max-width:360px;line-height:1.5">새 대회가 올라오면 이 자리에 가장 먼저 보여 드릴게요. 뉴스룸과 차트를 먼저 둘러보세요.</span>
+      </div>
+    </sc-if>
+
+    <!-- 5) 배너 ① -->
+    <div style="display:flex;justify-content:center;margin-top:{{ secGap }}">
+      <div style="width:min(100%,{{ bannerW }});height:{{ bannerH }};box-sizing:border-box;border:1px solid #E3E8EE;background:#F2F2F5;border-radius:2px;display:flex;align-items:center;gap:14px;padding:0 20px">
+        <img src="assets/wc48-crown-filled.svg" alt="" style="width:24px;height:24px;flex:none">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+          <span style="font-size:14px;font-weight:800;color:#0B0831;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ banner1Title }}</span>
+          <span style="font-size:12px;color:#3A4570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ banner1Body }}</span>
+        </div>
+        <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4;flex:none">{{ bannerTag }}</span>
+      </div>
+    </div>
+
+    <!-- 6) Create Tournament 띠 -->
+    <div style="position:relative;margin-top:{{ secGap }};min-height:{{ createH }};border-radius:2px;overflow:hidden;background:#080823;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 {{ createPad }};color:#F2F2F5;box-sizing:border-box">
+      <div style="position:absolute;inset:0;opacity:.5"><image-slot id="pitch-create-promo" src="{{ ph.create }}" credit="{{ ph.createCr }}" credit-href="{{ ph.createHr }}" fit="cover" shape="rect" placeholder="대회 만들기 홍보 그림" style="display:block;width:100%;height:100%"></image-slot></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(90deg, rgba(8,8,35,.92), rgba(8,8,35,.55));pointer-events:none"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:14px;min-width:0">
+        <img src="assets/wc48-crown-filled.svg" alt="" style="width:{{ createCrown }};height:{{ createCrown }};flex:none">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <span style="font-size:{{ createPx }};font-weight:800;letter-spacing:-.02em;line-height:1.1">Create Tournament</span>
+          <span style="font-size:12px;color:#B1B5C4">당신의 48개 엔트리로 무대를 꾸밀 날이 옵니다</span>
+        </div>
+      </div>
+      <span style="position:relative;flex:none;height:32px;padding:0 14px;border-radius:999px;border:1px solid rgba(252,208,6,.5);color:#FCD006;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.18em;display:flex;align-items:center">COMING SOON</span>
+    </div>
+
+    <!-- 7) NEWS ROOM -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: {{ secGap }}; padding-bottom: 14px; border-bottom: 1px solid #484B67; border-color: var(--arena-drawer-arrow)">
+      <span style="font-size:{{ h2Px }};font-weight:800;letter-spacing:-.02em;line-height:1.1;color:#0B0831">News Room</span>
+      <div style="display:flex;gap:6px">
+        <sc-for list="{{ tabsN }}" as="tb" hint-placeholder-count="3">
+          <span onClick="{{ tb.go }}" style="height:32px;padding:0 14px;border-radius:999px;display:flex;align-items:center;font-size:13px;font-weight:700;cursor:pointer;border:1px solid {{ tb.bd }};background:{{ tb.bg }};color:{{ tb.fg }}">{{ tb.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ hasNews }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-top:20px">
+        <sc-for list="{{ newsCols }}" as="col" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <div style="display:flex;align-items:baseline;padding-bottom:10px;border-bottom:1px solid #0B0831"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.18em;color:#0B0831">{{ col.label }}</span></div>
+            <sc-for list="{{ col.items }}" as="n" hint-placeholder-count="3">
+              <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #E3E8EE;cursor:pointer">
+                <div style="width:96px;height:96px;flex:none;border-radius:2px;overflow:hidden;background:#241754"><image-slot id="{{ n.slot }}" src="{{ n.photo }}" credit="{{ n.cr }}" credit-href="{{ n.hr }}" fit="cover" shape="rect" placeholder="" style="display:block;width:100%;height:100%"></image-slot></div>
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;height:96px">
+                  <sc-if value="{{ n.hasPress }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;color:#D99400">{{ n.press }}</span></sc-if>
+                  <span style="font-size:14px;font-weight:700;line-height:1.35;color:#0B0831;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ n.title }}</span>
+                  <span style="font-size:12px;line-height:1.4;color:#3A4570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.sum }}</span>
+                  <span style="margin-top:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;line-height:1;color:#A3AEC4">{{ n.date }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noNews }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:20px;border:1px dashed #E3E8EE;border-radius:2px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4">NO ARTICLES</span>
+        <span style="font-size:17px;font-weight:700;color:#0B0831">아직 올라온 기사가 없어요</span>
+        <span style="font-size:13px;color:#3A4570">첫 기사가 올라오면 여기에서 바로 보여 드릴게요</span>
+      </div>
+    </sc-if>
+
+    <!-- 8) 배너 ② -->
+    <div style="display:flex;justify-content:center;margin-top:{{ secGap }}">
+      <div style="width:min(100%,{{ bannerW }});height:{{ bannerH }};box-sizing:border-box;border:1px solid #E3E8EE;background:#F2F2F5;border-radius:2px;display:flex;align-items:center;gap:14px;padding:0 20px">
+        <img src="assets/wc48-crown-filled.svg" alt="" style="width:24px;height:24px;flex:none">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+          <span style="font-size:14px;font-weight:800;color:#0B0831;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">공지 · 대회를 마치면 크라운 카드가 생겨요</span>
+          <span style="font-size:12px;color:#3A4570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">친구에게 공유해 보세요</span>
+        </div>
+        <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4;flex:none">{{ bannerTag }}</span>
+      </div>
+    </div>
+
+    <!-- 9) CHARTS -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: {{ secGap }}; padding-bottom: 14px; border-bottom: 1px solid #484B67; border-color: var(--arena-drawer-arrow)">
+      <span style="font-size:{{ h2Px }};font-weight:800;letter-spacing:-.02em;line-height:1.1;color:#0B0831">Charts</span>
+      <div style="display:flex;gap:6px">
+        <sc-for list="{{ tabsC }}" as="tb" hint-placeholder-count="3">
+          <span onClick="{{ tb.go }}" style="height:32px;padding:0 14px;border-radius:999px;display:flex;align-items:center;font-size:13px;font-weight:700;cursor:pointer;border:1px solid {{ tb.bd }};background:{{ tb.bg }};color:{{ tb.fg }}">{{ tb.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ hasTours }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-wrap:wrap;gap:0;margin-top:20px;align-items:stretch;border:1px solid #E3E8EE;border-radius:2px;overflow:hidden">
+        <div style="flex:1 1 {{ chMainBasis }};min-width:0;border:0;border-right:{{ chMainBR }};border-bottom:{{ chMainBB }};border-radius:2px;background:#FFFFFF;padding:18px 20px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box">
+          <div style="display:flex;gap:18px;flex-wrap:{{ chartWrap }};flex:1;min-height:0">
+            <div style="display:flex;flex-direction:column;gap:10px;flex:none;width:{{ chartColW }};min-height:0">
+            <div style="height:24px;display:flex;align-items:center;flex:none"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em;color:#D99400">CROWN SCORE</span></div>
+            <div style="position:relative;flex:none;width:{{ chartImgW }};height:{{ chartImgH }};aspect-ratio:1/1;background:#241754;overflow:hidden;border-radius:2px">
+              <image-slot id="pitch-chart-main-1" src="{{ topTour.photo }}" credit="{{ topTour.cr }}" credit-href="{{ topTour.hr }}" fit="cover" shape="rect" placeholder="1위 엔트리 큰 그림" style="display:block;width:100%;height:100%"></image-slot>
+              <span style="position:absolute;left:10px;top:10px;height:24px;padding:0 9px;border-radius:2px;background:#FCD006;color:#241754;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;display:flex;align-items:center">1</span>
+            </div>
+            </div>
+            <div style="flex:1 1 200px;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;overflow:hidden">
+              <span class="pill" style="flex:none;background:#F2F2F5;border-color:#F2F2F5;color:#3A4570;text-transform:none;letter-spacing:.06em">발표 · {{ chartAt }}</span>
+              <span style="flex:none;font-size:17px;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:#0B0831;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ topTour.title }}</span>
+              <span style="flex:none;margin-top:6px;font-size:{{ chartNamePx }};font-weight:800;letter-spacing:-.02em;line-height:1.15;color:#0B0831">{{ chartTop.n1 }}</span>
+              <div style="flex:none;display:flex;flex-direction:column;margin-top:auto;align-self:stretch">
+                <sc-for list="{{ chartRows }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:12px;flex:none;padding:4px 0 0;margin-top:3px;border-top:1px solid #E3E8EE;line-height:1.2"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#A3AEC4;width:16px">{{ r.n }}</span><span style="font-size:14px;font-weight:600;color:#0B0831">{{ r.name }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1 1 {{ chGridBasis }};min-width:0;display:grid;grid-template-columns:{{ lcCols }};grid-auto-rows:{{ lcRows }};gap:1px;background:#E3E8EE">
+          <sc-for list="{{ latestCharts }}" as="lc" hint-placeholder-count="4">
+            <div style="display:flex;gap:14px;align-items:stretch;background:#FFFFFF;padding:12px;cursor:pointer;min-width:0">
+              <div style="position:relative;width:{{ lcImg }};height:{{ lcImgH }};aspect-ratio:1/1;flex:none;border-radius:0;background:#241754;overflow:hidden;border-radius:2px"><image-slot id="{{ lc.slot }}" src="{{ lc.photo }}" credit="{{ lc.cr }}" credit-href="{{ lc.hr }}" fit="cover" shape="rect" placeholder="" style="display:block;width:100%;height:100%"></image-slot></div>
+              <div style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;padding:2px 4px 0 0">
+                <span style="font-size:12px;font-weight:700;line-height:1.35;color:#0B0831;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ lc.title }}</span>
+                <div style="display:flex;flex-direction:column;gap:1px;margin-top:auto">
+                  <span style="font-size:12px;font-weight:700;color:#0B0831"><span style="font-family:'JetBrains Mono',monospace;color:#D99400;margin-right:8px">1</span>{{ lc.n1 }}</span>
+                  <span style="font-size:11px;color:#3A4570"><span style="font-family:'JetBrains Mono',monospace;color:#A3AEC4;margin-right:8px">2</span>{{ lc.n2 }}</span>
+                  <span style="font-size:11px;color:#3A4570"><span style="font-family:'JetBrains Mono',monospace;color:#A3AEC4;margin-right:8px">3</span>{{ lc.n3 }}</span>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noTours }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:20px;border:1px dashed #E3E8EE;border-radius:2px;padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4">CROWN SCORE</span>
+        <span style="font-size:15px;font-weight:700;color:#0B0831">첫 대회가 열리면 차트가 시작됩니다</span>
+      </div>
+    </sc-if>
+
+    <!-- 10) 배너 ③ -->
+    <div style="display:flex;justify-content:center;margin-top:{{ secGap }}">
+      <div style="width:min(100%,{{ bannerW }});height:{{ bannerH }};box-sizing:border-box;border:1px solid #E3E8EE;background:#F2F2F5;border-radius:2px;display:flex;align-items:center;gap:14px;padding:0 20px">
+        <img src="assets/wc48-crown-filled.svg" alt="" style="width:24px;height:24px;flex:none">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+          <span style="font-size:14px;font-weight:800;color:#0B0831;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">공지 · 로그인하면 선택을 이어서 할 수 있어요</span>
+          <span style="font-size:12px;color:#3A4570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">어디서든 멈춘 매치부터 다시</span>
+        </div>
+        <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#A3AEC4;flex:none">{{ bannerTag }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 11) 공용 바닥 띠 · v5 다크 -->
+  <div style="margin-top:{{ secGap }};padding:28px 16px;background:linear-gradient(90deg, #0F0F1D, #171740);border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#B1B5C4">
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 20px">
+      <a href="#" style="color:#F2F2F5">개인정보처리방침</a>
+      <a href="#" style="color:#B1B5C4">이용약관</a>
+      <a href="#" style="color:#B1B5C4">커뮤니티 가이드</a>
+      <a href="#" style="color:#B1B5C4">쿠키 정책</a>
+    </div>
+    <span style="color:#8E90A6">© 2026 WorldCrown48</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;width&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:1440,&quot;options&quot;:[1440,768,390],&quot;tsType&quot;:&quot;number&quot;},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ko&quot;,&quot;options&quot;:[&quot;ko&quot;,&quot;en&quot;,&quot;es&quot;],&quot;tsType&quot;:&quot;'ko'|'en'|'es'&quot;},&quot;tab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;전체&quot;,&quot;options&quot;:[&quot;전체&quot;,&quot;K-POP&quot;,&quot;CREATOR&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;page&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;},&quot;heroSlide&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;},&quot;freeze&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;noTournaments&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;noNews&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;prelaunch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;hideTioz&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;상태&quot;}}">
+const TOURS = [
+  { id: 1, title: "현재 활동하는 K-pop 여자 아이돌 중 최고의 퍼포먼스 무대는?", cat: "K-POP", pop: 9, at: 5, a: "aespa", b: "NewJeans", ranks: ["aespa", "NewJeans", "IVE", "LE SSERAFIM", "ILLIT"] },
+  { id: 2, title: "2026년 가장 다시 보고 싶은 K-pop 보이그룹 무대는?", cat: "K-POP", pop: 8, at: 6, a: "SEVENTEEN", b: "Stray Kids", ranks: ["SEVENTEEN", "Stray Kids", "ATEEZ", "TXT", "ENHYPEN"] },
+  { id: 3, title: "올해 가장 많이 돌려본 크리에이터 영상은?", cat: "CREATOR", pop: 7, at: 8, a: "Creator 07", b: "Creator 12", ranks: ["Creator 07", "Creator 12", "Creator 03", "Creator 21", "Creator 09"] },
+  { id: 4, title: "한 곡만 남긴다면 — 4세대 타이틀곡 최고의 무대는?", cat: "K-POP", pop: 6, at: 3, a: "IVE", b: "LE SSERAFIM", ranks: ["IVE", "LE SSERAFIM", "NMIXX", "STAYC", "ITZY"] },
+  { id: 5, title: "손에서 놓을 수 없는 숏폼 — 크리에이터 챌린지 베스트", cat: "CREATOR", pop: 5, at: 7, a: "Creator 02", b: "Creator 18", ranks: ["Creator 02", "Creator 18", "Creator 05", "Creator 11", "Creator 14"] },
+  { id: 6, title: "걸그룹 데뷔 무대 중 가장 강렬했던 첫인상은?", cat: "K-POP", pop: 4, at: 4, a: "BABYMONSTER", b: "ILLIT", ranks: ["BABYMONSTER", "ILLIT", "KISS OF LIFE", "tripleS", "fromis_9"] },
+  { id: 7, title: "보컬로 전율 — 라이브 무대 최고의 순간", cat: "K-POP", pop: 3, at: 2, a: "Red Velvet", b: "TWICE", ranks: ["Red Velvet", "TWICE", "BLACKPINK", "(G)I-DLE", "aespa"] },
+  { id: 8, title: "구독 버튼을 누르게 한 크리에이터 첫 영상은?", cat: "CREATOR", pop: 2, at: 1, a: "Creator 04", b: "Creator 16", ranks: ["Creator 04", "Creator 16", "Creator 08", "Creator 01", "Creator 19"] }
+];
+const NEWS = {
+  latest: [
+    { title: "이번 주 무대 — 팬들의 마음이 가장 오래 머문 순간들", sum: "진행 중인 대회에서 다시 보기가 많았던 무대를 모았습니다", cat: "K-POP", views: 9 },
+    { title: "크리에이터 챌린지, 숏폼 하나로 무대를 바꾼 사람들", sum: "손에서 놓을 수 없는 영상의 공통점", cat: "CREATOR", views: 6 },
+    { title: "데뷔 무대의 첫인상 — 팬들이 꼽은 결정적 장면", sum: "첫 무대가 남긴 감정을 따라가 봤습니다", cat: "K-POP", views: 7 }
+  ],
+  hot: [
+    { title: "하루 만에 분위기가 바뀐 무대, 무엇이 달랐나", sum: "팬들의 선택이 빠르게 모인 매치를 돌아봅니다", cat: "K-POP", views: 10 },
+    { title: "라이브 보컬 대회, 전율의 순간은 여기서 나왔다", sum: "다시 보기 기록이 말해 주는 것", cat: "K-POP", views: 8 },
+    { title: "구독을 부른 첫 영상 — 크리에이터 대회의 숨은 주인공", sum: "첫인상이 끝까지 가는 이유", cat: "CREATOR", views: 5 }
+  ],
+  press: [
+    { title: "K-pop fans are turning stages into a global arena", sum: "How a bracket format became a fan ritual", cat: "K-POP", views: 4, press: "BILLBOARD" },
+    { title: "The quiet power of a two-screen choice", sum: "Why the simplest format keeps winning", cat: "CREATOR", views: 3, press: "NME" },
+    { title: "Inside the crown: fandom, ritual and the pick", sum: "A season of choices, seen from the stands", cat: "K-POP", views: 2, press: "ROLLING STONE" }
+  ]
+};
+const CATS = ["전체", "K-POP", "CREATOR"];
+const COL = { ko: ["LATEST", "HOT", "WORLD PRESS"], en: ["LATEST", "HOT", "WORLD PRESS"], es: ["ÚLTIMAS", "TENDENCIA", "PRENSA MUNDIAL"] };
+const PH = [["ClLz9LgtcGQ","Rafael Garcin","nimbus_vulpis"],["FIabpZvQJ68","Iago Yoshimi Seo","iagoseo"],["gB_AQ6Yc6-w","Varun Praveen","varun_ihus"],["e6nWchqLSDQ","Galih Jelih","nixiesh"],["hjRdNrqV7Hc","Batuhan Doğan","batudogaa"],["Fsg_Y7qrxPE","Karsten Winegeart","karsten116"],["mGUmPLH_c5k","Nicolás Flor","nicolasflor"],["ubwn8GI9-2o","Marcel Strauß","martzzl"],["bo8XlhXNrE8","Howen","oweni"],["0AhdUvf4tVA","Nicolás Flor","nicolasflor"],["i4_jmRc7E6w","Robert Arnar","robertarnar"]].map(([id, n, u]) => ({ src: "https://unsplash.com/photos/" + id + "/download?w=1200", credit: "Photo by " + n + " on Unsplash", href: "https://unsplash.com/@" + u }));
+const ph = i => PH[((i % PH.length) + PH.length) % PH.length];
+TOURS.forEach((t, i) => { const A = ph(i * 2), B = ph(i * 2 + 1); t.srcA = A.src; t.crA = A.credit; t.hrA = A.href; t.srcB = B.src; t.crB = B.credit; t.hrB = B.href; t.photo = A.src; t.cr = A.credit; t.hr = A.href; });
+[].concat(NEWS.latest, NEWS.hot, NEWS.press).forEach((n, i) => { n.date = "2026.11." + String(4 - (i % 4)).padStart(2, "0"); const q = ph(i + 3); n.photo = q.src; n.cr = q.credit; n.hr = q.href; });
+class Component extends DCLogic {
+  state = { slide: 0, hover: false, tabT: null, tabN: null, tabC: null, page: null };
+  componentDidMount() { this.timer = setInterval(() => { if (!this.state.hover && !this.props.freeze) this.setState(s => ({ slide: (s.slide + 1) % this.slideCount() })); }, 10000); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  slideCount() { return this.lastCount || 1; }
+  renderVals() {
+    const p = this.props, w = Number(p.width) || 1440;
+    const lang = COL[p.lang] ? p.lang : "ko";
+    const isD = w >= 1024, isM = w < 600, notD = !isD;
+    const noTours = !!p.noTournaments, noNews = !!p.noNews, prelaunch = !!p.prelaunch;
+    const tabT = this.state.tabT || p.tab || "전체", tabN = this.state.tabN || p.tab || "전체", tabC = this.state.tabC || p.tab || "전체";
+    const tours = noTours ? [] : TOURS;
+    const byPop = tours.slice().sort((a, b) => b.pop - a.pop);
+    const fixedSlide = p.heroSlide != null ? Number(p.heroSlide) : null;
+    const slides = [{ isPromo: true, isVs: false }].concat(byPop.slice(0, 4).map(t => ({ isPromo: false, isVs: true, slotId: "hero-" + t.id, a: t.a, b: t.b, srcA: t.srcA, srcB: t.srcB, crA: t.crA, crB: t.crB, hrA: t.hrA, hrB: t.hrB, cat: t.cat, title: t.title, ken: !isM })));
+    this.lastCount = slides.length;
+    const cur = fixedSlide != null ? Math.min(fixedSlide, slides.length - 1) : this.state.slide % slides.length;
+    const go = i => () => this.setState({ slide: i });
+    const dots = slides.map((s, i) => ({ go: go(i), bg: i === cur ? "#FCD006" : "rgba(242,242,245,.4)" }));
+    const tabs = (sel, key) => CATS.map(c => ({ label: c, go: () => this.setState({ [key]: c, page: key === "tabT" ? 1 : this.state.page }), bg: sel === c ? "#0B0831" : "#FFFFFF", fg: sel === c ? "#FFFFFF" : "#3A4570", bd: sel === c ? "#0B0831" : "#E3E8EE" }));
+    const listT = tours.filter(t => tabT === "전체" || t.cat === tabT).sort((a, b) => b.at - a.at);
+    const perPg = listT.length < 6 ? 3 : 6;
+    const pageN = Math.max(1, Math.ceil(listT.length / perPg));
+    const page = Math.min(this.state.page || Number(p.page) || 1, pageN);
+    const pageCards = listT.slice((page - 1) * perPg, page * perPg).map(t => ({ slotId: "card-" + t.id, a: t.a, b: t.b, srcA: t.srcA, srcB: t.srcB, crA: t.crA, crB: t.crB, hrA: t.hrA, hrB: t.hrB, cat: t.cat, title: t.title }));
+    const pages = Array.from({ length: pageN }, (_, i) => ({ n: i + 1, go: () => this.setState({ page: i + 1 }), fg: page === i + 1 ? "#0B0831" : "#A3AEC4", bd: page === i + 1 ? "#0B0831" : "transparent" }));
+    const filtN = l => l.filter(n => tabN === "전체" || n.cat === tabN);
+    const newsCols = noNews ? [] : [
+      { label: COL[lang][0], items: filtN(NEWS.latest).map((n, i) => Object.assign({ slot: "news-l-" + i, hasPress: false }, n)) },
+      { label: COL[lang][1], items: filtN(NEWS.hot).map((n, i) => Object.assign({ slot: "news-h-" + i, hasPress: false }, n)) },
+      { label: COL[lang][2], items: filtN(NEWS.press).map((n, i) => Object.assign({ slot: "news-p-" + i, hasPress: true }, n)) }
+    ];
+    const heroNews = noNews ? [] : [].concat(NEWS.latest, NEWS.hot, NEWS.press).sort((a, b) => b.views - a.views).slice(0, 3).map((n, i) => Object.assign({ slot: "news-hero-" + i }, n));
+    const chartList = tours.filter(t => tabC === "전체" || t.cat === tabC).sort((a, b) => b.pop - a.pop);
+    const topTour = chartList[0] || byPop[0] || { title: "", photo: "", cr: "", hr: "", ranks: ["", "", "", "", ""] };
+    const latestCharts = chartList.filter(t => t !== topTour).sort((a, b) => b.at - a.at).slice(0, 4).map(t => ({ slot: "chart-s-" + t.id, title: t.title, n1: t.ranks[0], n2: t.ranks[1], n3: t.ranks[2], photo: t.srcB, cr: t.crB, hr: t.hrB }));
+    return {
+      isD, notD, isM, rcPos: isD ? "absolute" : "relative", noTours, hasTours: !noTours, noNews, hasNews: !noNews, showTioz: !prelaunch && !p.hideTioz,
+      titleRowH: isD ? "40px" : "32px", titleRowTop: isD ? "18px" : "4px", kickerPx: isD ? "15px" : "13px",
+      heroPad: isM ? "34px 10px 10px" : "80px 28px 28px", heroTitlePx: isM ? "11px" : isD ? "26px" : "20px", heroBtnW: isM ? "157px" : "224px", heroBtnH: isM ? "25px" : "35px", heroBtnPx: isM ? "11px" : "",
+      tiozH: isM ? "56px" : "72px", tiozPx: isM ? "22px" : "32px", secGap: isM ? "40px" : "56px", h2Px: isM ? "22px" : "32px",
+      bannerW: isM ? "320px" : "970px", bannerH: isM ? "100px" : "90px", bannerTag: isM ? "AD · 320 × 100" : "AD · 970 × 90",
+      createH: isM ? "104px" : "140px", createPad: isM ? "16px" : "32px", createCrown: isM ? "28px" : "40px", createPx: isM ? "20px" : "28px",
+      chartImgW: isD ? "auto" : isM ? "100%" : "200px", chartImgH: isD ? "calc(100% - 34px)" : "auto", chartColW: isM ? "100%" : "auto", chartWrap: isM ? "wrap" : "nowrap", lcCols: isM ? "minmax(0,1fr)" : "repeat(2,minmax(0,1fr))", lcRows: isM ? "auto" : "1fr", lcImg: isM ? "80px" : "auto", lcImgH: isM ? "80px" : "100%", chMainBasis: isD ? "320px" : "100%", chGridBasis: isD ? "400px" : "100%", chMainBR: isD ? "1px solid #E3E8EE" : "0", chMainBB: isD ? "0" : "1px solid #E3E8EE", chartNamePx: "24px",
+      banner1Title: prelaunch ? "사전등록 안내 · 곧 첫 대회가 열립니다" : "공지 · 48개 엔트리, 하나의 Crown", banner1Body: prelaunch ? "지금 등록하면 첫 매치 소식을 가장 먼저 받아요" : "매치마다 당신의 선택이 다음 무대를 정합니다",
+      slides, dots, trackX: "-" + (cur * 100) + "%", arrowOp: this.state.hover ? 1 : 0,
+      heroEnter: () => this.setState({ hover: true }), heroLeave: () => this.setState({ hover: false }),
+      prev: () => this.setState({ slide: (cur - 1 + slides.length) % slides.length }), next: () => this.setState({ slide: (cur + 1) % slides.length }),
+      tabsT: tabs(tabT, "tabT"), tabsN: tabs(tabN, "tabN"), tabsC: tabs(tabC, "tabC"),
+      pageCards, pages, hasPages: pageN > 1, pagePrev: () => this.setState({ page: Math.max(1, page - 1) }), pageNext: () => this.setState({ page: Math.min(pageN, page + 1) }),
+      newsCols, heroNews, chartAt: "11.04 09:00", ph: { promo: ph(10).src, promoCr: ph(10).credit, promoHr: ph(10).href, create: ph(2).src, createCr: ph(2).credit, createHr: ph(2).href }, topTour, chartTop: { n1: topTour.ranks[0], n2: topTour.ranks[1], n3: topTour.ranks[2] },
+      chartRows: topTour.ranks.slice(1).map((n, i) => ({ n: i + 2, name: n })), latestCharts
+    };
+  }
+}
+</script>
+</body>
+</html>

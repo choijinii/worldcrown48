@@ -153,7 +153,7 @@ test("① 매치 무대 — 번역 흉내를 켠 채 판을 끝까지 · 중간�
       await fan.waitForTimeout(300);
       if (transitions > 40) {
         const dump = await fan.evaluate(() =>
-          [...document.querySelectorAll('[data-testid="round-transition"]')].map((el) => ({
+          Array.from(document.querySelectorAll('[data-testid="round-transition"]')).map((el) => ({
             parent: el.parentElement?.outerHTML.slice(0, 200),
             style: getComputedStyle(el).opacity + "/" + getComputedStyle(el).display,
             rect: JSON.stringify(el.getBoundingClientRect()),

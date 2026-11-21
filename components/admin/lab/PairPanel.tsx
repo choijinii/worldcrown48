@@ -282,7 +282,9 @@ export function PairPanel({ contestants, pick, onPosChange, title, deadlineMs }:
               </span>
             </div>
           </div>
+          {/* "48 Contestants · 마감" 줄은 여기(편집기 미리보기)에만 — 운영자가 마감 시각을 확인하는 자리. 피치 홈 카드에는 없다(대표 2026-11-21). */}
           <div
+            data-testid="pair-preview-meta"
             style={{
               padding: "15px 22px 14px",
               fontFamily: "var(--font-mono)",

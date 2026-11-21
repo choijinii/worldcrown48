@@ -46,7 +46,11 @@ export async function seedCategories(): Promise<void> {
 export function collectConsoleErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on("console", (m) => {
-    if (m.type() === "error") errors.push(m.text());
+    // Next.js 링크 미리 받기(prefetch)가 시험의 page.goto 로 끊기면 "Failed to fetch RSC payload … Falling back to browser
+    // navigation" 이 콘솔 오류로 찍힌다 — 화면은 그냥 주소로 이동해 사용자에게 보이는 결함이 없다. 실서비스 판 시험
+    // (pitch · arena2-home · thumb1-pitch · nd1 · a1-i18n · hf3)과 같은 예외이고 이 문구에만 좁힌다
+    // (PITCH-2 ⑭ 가 3번 중 2번 이 한 줄로 실패 — 2026-11-19 반복 실행으로 확인).
+    if (m.type() === "error" && !/Failed to fetch RSC payload/i.test(m.text())) errors.push(m.text());
   });
   page.on("pageerror", (e) => errors.push(String(e)));
   return errors;

@@ -69,6 +69,7 @@ test.describe("커튼 켜짐 — 관리자 쿠키", () => {
     await page.goto(`${ON}/?lang=ko`);
     expect(new URL(page.url()).pathname).toBe("/");
     await expect(page.locator("main.pitch")).toBeVisible();
+    await expect(page.getByTestId("pitch-hero")).toBeVisible(); // PITCH-2 §11.2 ⑪ — 관리자 쿠키 창에서 새 홈(쿠키 없는 창 → /launch 는 위 ①)
     await shot(page, "curtain-on-preview-cookie-pitch-1440");
   });
 

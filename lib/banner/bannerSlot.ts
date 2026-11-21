@@ -38,6 +38,10 @@ export const BANNER_SLOT_NAMES = [
   "arena-side-closed",
   /** ARENA-2 PR 2 — 추천 대회 오른쪽 "추천 대회 뉴스" 칸 안(300×250 · D-69). */
   "arena-side-recommend",
+  /** PITCH-2 — 홈 배너 ② NEWS ROOM 아래(970×90 · 728×90 · 320×100 · D-74 · D-82 후보). */
+  "pitch-news-below",
+  /** PITCH-2 — 홈 배너 ③ CHARTS 아래(970×90 · 728×90 · 320×100 · D-74 · D-82 후보). */
+  "pitch-charts-below",
 ] as const;
 
 export type BannerSlotName = (typeof BANNER_SLOT_NAMES)[number];
@@ -125,6 +129,14 @@ export const ARENA_AD_BOX_NOTICES = {
 export function defaultNotice(audience: BannerAudience, slot?: string): DefaultNotice {
   // 사전등록 페이지 맨 아래는 사전등록 참가 안내 글자 하나 — 로그인 유도를 하지 않는다(원장 D-60).
   if (slot === "launch-below") return { titleKey: "banner.launch.title", action: "text" };
+  // PITCH-2 지시서 8절 — 홈 배너 ② = 이미 승인된 member 공지 글(누구에게나 같은 글자) ·
+  // ③ = 6절 8번(대표 승인 11/17) — 비로그인은 눌러 로그인, 로그인한 팬에게는 글자만.
+  if (slot === "pitch-news-below") return { titleKey: "banner.default.member.title", action: "text" };
+  if (slot === "pitch-charts-below") {
+    return audience === "member"
+      ? { titleKey: "banner.pitch.chartsBelow.title", action: "text" }
+      : { titleKey: "banner.pitch.chartsBelow.title", action: "signIn" };
+  }
   if (slot && slot in ARENA_AD_BOX_NOTICES) return ARENA_AD_BOX_NOTICES[slot as keyof typeof ARENA_AD_BOX_NOTICES];
   return audience === "member"
     ? { titleKey: "banner.default.member.title", action: "link", href: "/account" }

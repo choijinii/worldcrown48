@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Playfair+Display:ital,wght@1,400;1,700;1,900&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/colors_and_type.css">
+  <script src="_ds/worldcrown48-design-system-ea92b82a-a241-44e7-89f6-ae6f0746d6fb/_ds_bundle.js"></script>
+  <style>
+    body { margin:0; background:#00001F; }
+    a { color:#FCD006; text-decoration:none; } a:hover { color:#E3BB05; }
+  </style>
+</helmet>
+<section style="padding: 48px; display: flex; flex-direction: column; gap: 56px; background: #00001F; color: #F2F2F5; font-family: var(--font-sans); width: 1539px; height: 25356px">
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 960px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:#FCD006">WORLDCROWN48 · THE PITCH 홈 · 첫 시안 · 2026-11-04</span>
+    <span style="font-size:14px;line-height:1.6;color:#B1B5C4">손 스케치 배치 그대로 · 화이트([data-theme="light"]) · 메뉴바 정본(청록 알약 "이어서 하기") · VS 썸네일 · 배너 970×90 / 320×100 · 포스터 칸은 그림을 끌어다 놓으면 채워집니다. 히어로는 10초마다 넘어가고 마우스를 올리면 멈춥니다(아트보드 P-1만 움직임, 나머지는 고정).</span>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em"><a href="#p1">P-1 기본</a><a href="#p2">P-2 K-POP</a><a href="#p3">P-3 2페이지</a><a href="#p4">P-4 대회 0개</a><a href="#p5">P-5 뉴스 없음</a><a href="#p6">P-6 런칭 전</a><a href="#p7">P-7 태블릿</a><a href="#p8">P-8 휴대폰</a></div>
+  </div>
+
+  <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start">
+    <div id="p1" style="display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-1</span><span style="font-size:13px;font-weight:600">데스크톱 1440 · 기본(전체 탭) · 히어로 자동 넘김</span></div>
+      <div data-screen-label="P-1" style="width:1440px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+    <div id="p2" style="display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 24px">
+      <div style="display: flex; align-items: baseline; gap: 12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-2</span><span style="font-size:13px;font-weight:600">데스크톱 · K-POP 탭 · 히어로 2장째</span></div>
+      <div data-screen-label="P-2" style="width: 1440px; border: 1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" tab="K-POP" hero-slide="{{ 1 }}" freeze="{{ true }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start">
+    <div id="p3" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-3</span><span style="font-size:13px;font-weight:600">데스크톱 · 대회 2페이지째</span></div>
+      <div data-screen-label="P-3" style="width:1440px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" page="{{ 2 }}" hero-slide="{{ 2 }}" freeze="{{ true }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+    <div id="p4" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-4</span><span style="font-size:13px;font-weight:600">데스크톱 · 진행 중 대회 0개 · 히어로는 홍보 영상 1장</span></div>
+      <div data-screen-label="P-4" style="width:1440px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" no-tournaments="{{ true }}" freeze="{{ true }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start">
+    <div id="p5" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-5</span><span style="font-size:13px;font-weight:600">데스크톱 · 뉴스 없음</span></div>
+      <div data-screen-label="P-5" style="width:1440px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" no-news="{{ true }}" hero-slide="{{ 3 }}" freeze="{{ true }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+    <div id="p6" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-6</span><span style="font-size:13px;font-weight:600">데스크톱 · 런칭 전 · 배너 ① 사전등록 · TIOZ.AI 띠 없음</span></div>
+      <div data-screen-label="P-6" style="width:1440px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 1440 }}" prelaunch="{{ true }}" hero-slide="{{ 0 }}" freeze="{{ true }}" hint-size="1440px,2400px"></dc-import></div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start">
+    <div id="p7" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-7</span><span style="font-size:13px;font-weight:600">태블릿 768 · 차트·뉴스가 히어로 아래로 · 카드 2열</span></div>
+      <div data-screen-label="P-7" style="width:768px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 768 }}" hero-slide="{{ 1 }}" freeze="{{ true }}" hint-size="768px,2800px"></dc-import></div>
+    </div>
+    <div id="p8" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:24px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;padding:3px 8px;background:#FCD006;color:#241754;border-radius:5px;font-weight:700">P-8</span><span style="font-size:13px;font-weight:600">휴대폰 390 · 카드 1열 · 배너 320×100 · 움직임 줄임</span></div>
+      <div data-screen-label="P-8" style="width:390px;border:1px solid rgba(255,255,255,.08)"><dc-import name="PitchPage" width="{{ 390 }}" hero-slide="{{ 1 }}" freeze="{{ true }}" hint-size="390px,3600px"></dc-import></div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>
