@@ -57,14 +57,24 @@ const result = {};
 // ── 개인 ──
 const IND = { title: "글로벌 K-POP 보컬 킹", category: "KPOP", description: "전 세계에서 활동 중인 K-POP 보컬리스트" };
 const indCalls = [];
-const ind = await aiFillCore(
-  { uid: "golden", ...IND, entryUnit: "individual", aiBrief: { entry: "", extra: "", rules: "" } },
-  { createMessage: caller(SONNET_MODEL, 8192, indCalls, "명단 채우기(개인)") },
-);
+// SKIP_IND=1 — 개인 묶음을 이미 1회 돌렸으면 다시 부르지 않는다(대표 승인 = 묶음마다 1회).
+let ind = [];
+let indError = null;
+if (process.env.SKIP_IND !== "1") {
+  try {
+    ind = await aiFillCore(
+      { uid: "golden", ...IND, entryUnit: "individual", aiBrief: { entry: "", extra: "", rules: "" } },
+      { createMessage: caller(SONNET_MODEL, 8192, indCalls, "명단 채우기(개인)") },
+    );
+  } catch (e) {
+    indError = `${e.reason ?? ""} ${e.message}`;
+  }
+}
 const lockedInd = sha(buildPrompt({ ...IND, keywords: [], existing: [], count: 48 }));
 result.individual = {
+  error: indError,
   count: ind.length,
-  samePrompt: indCalls[0].promptSha === lockedInd,
+  samePrompt: indCalls[0] ? indCalls[0].promptSha === lockedInd : null,
   company: ind.filter((c) => COMPANY.test(c.affiliation ?? "")).map((c) => `${c.name} / ${c.affiliation}`),
   filledAffiliation: ind.filter((c) => (c.affiliation ?? "") !== "").length,
   rows: ind.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "", nationality: c.nationality ?? "" })),
@@ -96,7 +106,10 @@ await translateTournamentMetaCore(
   { createMessage: caller(HAIKU_MODEL, 1024, calls, "제목 · 설명 3언어") },
 );
 await translateContestantNamesCore(
-  { entries: ind.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "" })), category: "KPOP", entryUnit: "individual" },
+  // 개인 명단이 없으면(실패 · 건너뜀) 팀 명단 48개로 잰다 — 이름 3언어의 비용은 엔트리 48개 기준.
+  ind.length
+    ? { entries: ind.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "" })), category: "KPOP", entryUnit: "individual" }
+    : { entries: grp.map((c) => ({ name: c.name, affiliation: "" })), category: "KPOP", entryUnit: "group" },
   { createMessage: caller(HAIKU_MODEL, 4096, calls, "이름 3언어") },
 );
 
