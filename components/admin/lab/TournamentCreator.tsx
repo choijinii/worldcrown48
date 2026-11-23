@@ -786,7 +786,8 @@ export function TournamentCreator(): JSX.Element {
       const callable = httpsCallable<
         { title: string; category: string; entryUnit: EntryUnit; aiBrief: AiBrief; entries: typeof entries; lang: string },
         { flags: { slot: number; reason: string }[] }
-      >(getFunctionsInstance(), "checkEntryRules");
+        // 3-3 웹 검색이 붙어 길어진다(함수 180초) — 기본 70초에서 끊지 않게.
+      >(getFunctionsInstance(), "checkEntryRules", { timeout: 190_000 });
       const res = await callable({ title: title.trim(), category, entryUnit, aiBrief, entries, lang });
       setRuleFlags(ruleFlagsFromReply(res.data.flags ?? [], drafts));
       setRulesChecked(true);

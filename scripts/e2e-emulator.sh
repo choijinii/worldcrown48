@@ -33,9 +33,11 @@ SECRETS
 # (Anthropic SDK 는 ANTHROPIC_BASE_URL 을 읽는다). 지시서 §11.3 — 바깥 사이트를 부르지 않는다.
 # IMAGE-1 PR 2 — 이미지 검색은 진짜 Brave 대신 시험이 띄우는 가짜 서버(고정 포트 9311)를 부른다.
 # 함수는 에뮬레이터에서만 BRAVE_API_BASE 를 읽는다(실서비스는 늘 api.search.brave.com).
+# LAB-FIX-5 3-3 — AI 주소는 9313: 아무도 듣지 않으면 지금처럼 닫힌 주소(연결 거부)이고, 조건 확인 웹 검색 시험
+#   (lab-websearch.spec)만 그 자리에 가짜 AI 를 띄운다.
 # IMAGE-1 PR 3 — 영상 대회 크라운 카드의 유튜브 썸네일도 시험이 띄우는 가짜 서버(9312) · 에뮬레이터에서만 YT_THUMB_BASE.
 cat > functions/.env.local <<ENVS
-ANTHROPIC_BASE_URL=http://127.0.0.1:9
+ANTHROPIC_BASE_URL=http://127.0.0.1:9313
 BRAVE_API_BASE=http://127.0.0.1:9311
 YT_THUMB_BASE=http://127.0.0.1:9312
 ENVS
