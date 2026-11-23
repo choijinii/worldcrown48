@@ -38,7 +38,8 @@ const out = await extractContestantsCore(
     uid: "golden",
     items: fixture.items.map(({ videoId, title, channelTitle }) => ({ videoId, title, channelTitle })),
     entryUnit: fixture.brief.entryUnit,
-    aiBrief: { entry: fixture.brief.entry, extra: fixture.brief.extra, rules: fixture.brief.rules },
+    // LAB-FIX-6 — GOLDEN_EXTRA=목록 키(artist · blank …) 로 덧붙이는 정보를 바꿔 돌린다(화면이 보내는 값과 같다).
+    aiBrief: { entry: fixture.brief.entry, extra: process.env.GOLDEN_EXTRA ?? fixture.brief.extra, rules: fixture.brief.rules },
     tournamentTitle: fixture.tournamentTitle,
     tournamentDescription: "",
   },
@@ -96,6 +97,8 @@ const originals = rows.filter((r) => r.isOriginal).length;
 const wrongCountries = rows.filter((r) => r.countryWrong).length;
 const blanks = rows.filter((r) => r.got === "").length;
 const extraOriginals = rows.filter((r) => r.extraIsOriginal).length;
+// LAB-FIX-6 §7 — 덧붙이는 정보 = 비워 두기면 소속 칸 빈칸이 48/48 이어야 한다.
+const extraBlank = rows.filter((r) => (r.gotExtra ?? "") === "").length;
 
 for (const r of rows) {
   console.log(
@@ -107,8 +110,8 @@ const need = Math.ceil((44 / 48) * rows.length);
 const pass = named >= need && originals === 0 && wrongCountries === 0 && extraOriginals === 0;
 const extras = rows.filter((r) => r.extraOk !== null);
 if (extras.length) console.log(`덧붙이는 정보 맞음 ${extras.filter((r) => r.extraOk).length}/${extras.length}`);
-console.log(`\n(글자 그대로 정답과 같은 칸 ${strictNamed})`);
+console.log(`\n(글자 그대로 정답과 같은 칸 ${strictNamed}) · 소속 칸 빈칸 ${extraBlank}/${rows.length}`);
 console.log(`이름 맞음 ${named}/${rows.length}(기준 ${need}) · 빈칸 ${blanks} · 원곡 가수 ${originals} · 소속 칸 원곡 가수 ${extraOriginals} · 틀린 국가 ${wrongCountries} · ${ms}ms · 토큰 ${JSON.stringify(usage)}`);
 console.log(pass ? "합격선 통과" : "합격선 미달");
-if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify({ model: SONNET_MODEL, ms, usage, named, strictNamed, blanks, originals, extraOriginals, wrongCountries, pass, rows }, null, 2));
+if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify({ model: SONNET_MODEL, ms, usage, extraBlank, extra: process.env.GOLDEN_EXTRA ?? fixture.brief.extra, named, strictNamed, blanks, originals, extraOriginals, wrongCountries, pass, rows }, null, 2));
 process.exit(pass ? 0 : 1);

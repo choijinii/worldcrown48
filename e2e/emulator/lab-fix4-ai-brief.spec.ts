@@ -78,10 +78,13 @@ async function fillStep1(page: Page, brief: { entry?: string; extra?: string; ru
   await page.getByLabel("카테고리").selectOption("KPOP");
   await page.getByTestId(`lab-entry-unit-${unit}`).click();
   if (brief.entry) await page.getByTestId("lab-brief-entry").fill(brief.entry);
-  if (brief.extra) await page.getByTestId("lab-brief-extra").fill(brief.extra);
+  // LAB-FIX-6 3-4 — 덧붙이는 정보는 목록(키)에서 고른다.
+  if (brief.extra) await page.getByTestId("lab-brief-extra").selectOption(brief.extra);
   if (brief.rules) await page.getByTestId("lab-brief-rules").fill(brief.rules);
   await page.getByLabel("키워드 추가").fill("댄스");
   await page.getByLabel("키워드 추가").press("Enter");
+  // LAB-FIX-6 3-2 — 설명은 필수.
+  await page.getByTestId("lab-description").fill("K-pop 곡에 맞춰 춤춘 댄스 크루");
 }
 
 async function reopenDraft(page: Page) {
@@ -198,7 +201,7 @@ test("④ 덧붙이는 정보 = 칸의 자리 표시 글자 · ⑤ [AI에게 제
     suggestCalls += 1;
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ result: { entryUnit: "other", entry: "노래 제목", extra: "가수", rules: "2026년에 발매한 곡만" } }),
+      body: JSON.stringify({ result: { entryUnit: "other", entry: "노래 제목", extra: "artist", rules: "2026년에 발매한 곡만" } }),
     });
   });
   await openLab(page);
@@ -215,7 +218,7 @@ test("④ 덧붙이는 정보 = 칸의 자리 표시 글자 · ⑤ [AI에게 제
   // ⑤ 제안 → 세 줄과 단위가 채워진다(확정은 운영자 — 고칠 수 있다)
   await page.getByTestId("lab-brief-suggest").click();
   await expect(page.getByTestId("lab-brief-entry")).toHaveValue("노래 제목");
-  await expect(page.getByTestId("lab-brief-extra")).toHaveValue("가수");
+  await expect(page.getByTestId("lab-brief-extra")).toHaveValue("artist"); // LAB-FIX-6 — 목록 값(화면 글자 "가수")
   await expect(page.getByTestId("lab-brief-rules")).toHaveValue("2026년에 발매한 곡만");
   await expect(page.getByTestId("lab-entry-unit-other")).toHaveAttribute("aria-checked", "true");
   expect(suggestCalls).toBe(1);
@@ -229,17 +232,18 @@ test("④ 덧붙이는 정보 = 칸의 자리 표시 글자 · ⑤ [AI에게 제
   // ④ STEP 2 — 둘째 칸 자리 표시 글자 = "가수"
   await page.getByLabel("키워드 추가").fill("노래");
   await page.getByLabel("키워드 추가").press("Enter");
+  await page.getByTestId("lab-description").fill("올해의 노래");
   await page.getByTestId("lab-next-button").click();
   await expect(page.getByTestId("contestant-grid")).toBeVisible();
   await expect(page.getByTestId("contestant-node-0").locator('input[placeholder="가수"]')).toHaveCount(1);
   // 묶음 · 그 외 단위가 초안에 저장된다
-  await expect.poll(async () => (await draftDoc())?.aiBrief, { timeout: 20_000 }).toEqual({ entry: "노래 제목", extra: "가수", rules: "2026년에 발매한 곡만" });
+  await expect.poll(async () => (await draftDoc())?.aiBrief, { timeout: 20_000 }).toEqual({ entry: "노래 제목", extra: "artist", rules: "2026년에 발매한 곡만" });
   expect((await draftDoc())?.entryUnit).toBe("other");
   await page.screenshot({ path: test.info().outputPath("4-extra-placeholder.png") });
 
   // 덧붙이는 정보를 비우면 다시 "소속"
   await page.getByRole("button", { name: /STEP 1|이전|뒤로/ }).first().click();
-  await page.getByTestId("lab-brief-extra").fill("");
+  await page.getByTestId("lab-brief-extra").selectOption("blank"); // LAB-FIX-6 — 그 외의 기본값 = 비워 두기
   await page.getByTestId("lab-next-button").click();
   await expect(page.getByTestId("contestant-node-0").locator('input[placeholder="소속"]')).toHaveCount(1);
   expect(errors, errors.join("\n")).toHaveLength(0);

@@ -526,12 +526,22 @@ export const MESSAGES = {
     es: "p. ej.: el crew que baila · título de la canción · personaje del drama",
   },
   "lab.brief.extraLabel": { ko: "덧붙이는 정보", en: "Extra info", es: "Dato adicional" },
-  "lab.brief.extraPlaceholder": {
-    ko: "예: 가수 · 드라마 제목 (비워도 됩니다)",
-    en: "e.g. artist · drama title (optional)",
-    es: "p. ej.: artista · título del drama (opcional)",
+  // LAB-FIX-6 3-4 (지시서 §5 · 대표 승인 2026-11-22 16:51) — "덧붙이는 정보"는 목록 7개에서 고른다(자유 글 칸 · 예시 글 삭제).
+  "lab.brief.extra.team": { ko: "소속 (팀)", en: "Affiliation (team)", es: "Afiliación (equipo)" },
+  "lab.brief.extra.artist": { ko: "가수", en: "Artist", es: "Artista" },
+  "lab.brief.extra.actor": { ko: "배우", en: "Actor", es: "Actor/Actriz" },
+  "lab.brief.extra.work": { ko: "작품 제목", en: "Title of the work", es: "Título de la obra" },
+  "lab.brief.extra.maker": { ko: "회사", en: "Maker", es: "Fabricante" },
+  "lab.brief.extra.channel": { ko: "채널", en: "Channel", es: "Canal" },
+  "lab.brief.extra.blank": { ko: "비워 두기", en: "Leave blank", es: "Dejar vacío" },
+  // LAB-FIX-6 3-3 (지시서 §5 2 · 3 · 4 · 대표 승인 2026-11-22) — 옛 "고르는 조건". 저장 필드 rules 는 그대로.
+  "lab.brief.rulesLabel": { ko: "엔트리 조건", en: "Entry rules", es: "Criterios de entrada" },
+  "lab.brief.optional": { ko: "선택", en: "Optional", es: "Opcional" },
+  "lab.brief.rulesHint": {
+    ko: "AI가 명단을 채운 뒤 조건에 맞는지 한 번 더 확인합니다.",
+    en: "The AI checks the entries against these rules once more after filling.",
+    es: "La IA vuelve a comprobar las entradas con estos criterios después de completarlas.",
   },
-  "lab.brief.rulesLabel": { ko: "고르는 조건", en: "Selection rules", es: "Criterios de selección" },
   "lab.brief.rulesPlaceholder": {
     ko: "예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외",
     en: "e.g. only teams that posted videos in 2026 · no kids' teams",
@@ -575,7 +585,13 @@ export const MESSAGES = {
   },
 
   "lab.description.label": { ko: "설명", en: "Description", es: "Descripción" },
-  "lab.description.optional": { ko: "선택", en: "optional", es: "opcional" },
+  // LAB-FIX-6 3-2 — 설명은 필수(§5 1 · 대표 승인 2026-11-22). 빈칸 이유 글(missing)은 §5 표 밖 — 대표 확인 대기.
+  "lab.description.required": { ko: "필수", en: "Required", es: "Obligatorio" },
+  "lab.description.missing": {
+    ko: "설명을 적어 주세요.",
+    en: "Please write a description.",
+    es: "Escribe una descripción.",
+  },
   "lab.description.placeholder": {
     ko: "어떤 참가자들의 Tournament인가요? (예: 2020년 이후 데뷔한 글로벌 4세대 K-POP 아이돌)",
     en: "Who competes in this Tournament? (e.g. global 4th-gen K-POP idols who debuted after 2020)",

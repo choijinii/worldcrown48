@@ -8,6 +8,8 @@
  * 비어 있으면 초안 · 대회 문서에 칸을 싣지 않는다 — 세 줄을 비운 대회는 지금과 똑같이 움직이고, 규칙이 배포되기 전에도
  * 옛 모양으로 저장된다(entryUnit · mediaKind 와 같은 방식).
  */
+import { isExtraOption, matchLegacyExtra } from "@/lib/lab/extraInfo";
+
 export interface AiBrief {
   entry: string;
   extra: string;
@@ -21,13 +23,22 @@ export const EMPTY_AI_BRIEF: AiBrief = Object.freeze({ entry: "", extra: "", rul
 
 const take = (v: unknown, max: number): string => (typeof v === "string" ? v.slice(0, max) : "");
 
+/**
+ * LAB-FIX-6 3-4 — 덧붙이는 정보는 목록 키. 옛 초안의 자유 글이 목록 이름과 같으면 그 키로, 아니면 글 그대로
+ * (백필 없음 · 운영자가 다음에 고르면 목록 값이 된다).
+ */
+function readExtra(v: string): string {
+  if (isExtraOption(v)) return v;
+  return matchLegacyExtra(v) ?? v;
+}
+
 /** 문서 → 묶음. 빠지거나 모양이 다르면 빈 묶음, 넘치는 글은 자른다(옛 문서 · 손댄 문서도 편집기를 깨지 않게). */
 export function readAiBrief(v: unknown): AiBrief {
   if (!v || typeof v !== "object") return { ...EMPTY_AI_BRIEF };
   const o = v as Record<string, unknown>;
   return {
     entry: take(o.entry, AI_BRIEF_LIMITS.entry),
-    extra: take(o.extra, AI_BRIEF_LIMITS.extra),
+    extra: readExtra(take(o.extra, AI_BRIEF_LIMITS.extra)),
     rules: take(o.rules, AI_BRIEF_LIMITS.rules),
   };
 }

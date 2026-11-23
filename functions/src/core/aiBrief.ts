@@ -3,7 +3,7 @@
  *
  * 대회마다 AI에게 주는 정보를 한 묶음으로 모은다. 엔트리 단위(개인 · 팀 · 그 외)와 세 줄:
  *   entry = 엔트리는 어떤 것인가 — 칸의 이름 자리에 들어갈 대상(예: 춤춘 댄스 크루 · 노래 제목 · 드라마 배역)
- *   extra = 덧붙이는 정보 — 칸의 affiliation 자리에 들어갈 것(예: 가수 · 드라마 제목 · 비움)
+ *   extra = 덧붙이는 정보 — 칸의 affiliation 자리에 들어갈 것. LAB-FIX-6 부터 목록 키 7개 중 하나(아래 EXTRA_OPTIONS)
  *   rules = 고르는 조건 — 누구를 넣고 뺄지 자유 글(예: 2026년에 영상을 올린 크루, 어린이 팀 제외)
  *
  * 세 AI 일(링크 제목 읽기 · 명단 채우기 · 이름 3언어)은 묶음이 있거나 단위가 "그 외"면 **새 지시문
@@ -49,9 +49,56 @@ export function isAiBriefEmpty(b: AiBrief): boolean {
   return b.entry.trim() === "" && b.extra.trim() === "" && b.rules.trim() === "";
 }
 
-/** 새 지시문을 쓰는 때 — 묶음에 글자가 있거나, 단위가 사람도 팀도 아닌 "그 외". */
+/**
+ * LAB-FIX-6 3-4(결정 H 다 · 대표 2026-11-22 16:51) — "덧붙이는 정보" 목록. 화면(lib/lab/extraInfo.ts)과 같은 키 7개.
+ * 키는 AI 에게 그대로 보내지 않고 아래 **뜻 문장**으로 바꾼다. 빈 글 = 엔트리 단위의 기본값
+ * (개인 = team · 팀 · 그 외 = blank). 목록 밖 글(옛 초안의 자유 글)은 지금처럼 그대로 싣는다(백필 없음).
+ */
+export const EXTRA_OPTIONS = ["team", "artist", "actor", "work", "maker", "channel", "blank"] as const;
+export type ExtraOption = (typeof EXTRA_OPTIONS)[number];
+
+export const EXTRA_MEANING: Record<ExtraOption, string> = {
+  team: "개인 엔트리가 속한 팀 · 그룹 이름. 소속사(회사)는 적지 않는다. 영문 공식 표기가 있으면 그것. 속한 팀이 없거나 모르면 빈 문자열",
+  artist: "그 노래를 부른 가수(사람 · 그룹) 이름. 피처링은 적지 않는다. 모르면 빈 문자열",
+  actor: "그 배역을 연기한 배우 이름. 모르면 빈 문자열",
+  work: "그 인물 · 배역이 나오는 작품(드라마 · 영화 · 애니 · 웹툰 등)의 제목. 모르면 빈 문자열",
+  maker: "그 제품 · 서비스를 만든 회사(브랜드) 이름. 모르면 빈 문자열",
+  channel: "그 크리에이터의 대표 채널 이름. 모르면 빈 문자열",
+  blank: "적지 않는다 — 언제나 빈 문자열로 둔다",
+};
+
+export function isExtraOption(v: unknown): v is ExtraOption {
+  return typeof v === "string" && (EXTRA_OPTIONS as readonly string[]).includes(v);
+}
+
+export function defaultExtraFor(unit: EntryUnit): ExtraOption {
+  return unit === "individual" ? "team" : "blank";
+}
+
+/** 빈 글이면 단위의 기본값 키, 아니면 적힌 값(키 또는 옛 자유 글). */
+function effectiveExtra(b: AiBrief, unit: EntryUnit): string {
+  return b.extra.trim() === "" ? defaultExtraFor(unit) : b.extra.trim();
+}
+
+/** "비워 두기" — AI 가 무엇을 적든 서버가 둘째 줄(affiliation)을 비운다(잠긴 팀 지시문은 소속사를 채운다). */
+export function extraIsBlank(b: AiBrief, unit: EntryUnit): boolean {
+  return effectiveExtra(b, unit) === "blank";
+}
+
+/** 비워 두기면 모든 칸의 affiliation 을 빈 글로. 다른 값은 그대로 돌려준다. */
+export function applyExtraBlank<T extends { affiliation?: string }>(rows: T[], b: AiBrief, unit: EntryUnit): T[] {
+  return extraIsBlank(b, unit) ? rows.map((r) => ({ ...r, affiliation: "" })) : rows;
+}
+
+/**
+ * 새 지시문을 쓰는 때 — 묶음에 글자가 있거나, 단위가 사람도 팀도 아닌 "그 외".
+ * LAB-FIX-6: 덧붙이는 정보가 그 단위의 기본값(개인 = team · 팀 = blank)이면 글자가 없는 것과 같다 —
+ * 세 줄이 빈 개인 · 팀 대회는 잠긴 옛 지시문 그대로(지시서 §7).
+ */
 export function usesBriefPrompt(b: AiBrief, unit: EntryUnit): boolean {
-  return unit === "other" || !isAiBriefEmpty(b);
+  if (unit === "other") return true;
+  const extra = b.extra.trim() === defaultExtraFor(unit) ? "" : b.extra;
+  return !isAiBriefEmpty({ ...b, extra });
 }
 
 /** 단위만 고르고 "엔트리는 어떤 것인가"를 비웠을 때 쓰는 말. */
@@ -59,17 +106,6 @@ const UNIT_DEFAULT_ENTRY: Record<EntryUnit, string> = {
   individual: "사람 한 명",
   group: "팀(그룹) 하나",
   other: "사람도 팀도 아닌 대상 하나(작품 · 사물 · 배역 등)",
-};
-
-/**
- * 덧붙이는 정보를 비웠을 때의 뜻(코티오 판단 · PR 설명에 적음): 개인 · 팀은 지금 지시문의 소속 규칙을
- * 그대로 두고(개인 = 소속 그룹 · 팀 = 소속사), "그 외"는 비운다 — 무엇을 적을지 정해 주지 않았으니
- * 지어내지 않는다.
- */
-const UNIT_DEFAULT_EXTRA: Record<EntryUnit, string> = {
-  individual: "그 사람의 소속(그룹 · 팀 · 소속사 · 채널). 영문 공식 표기가 있으면 그것. 모르면 빈 문자열",
-  group: "그 팀의 소속사 또는 채널. 영문 공식 표기가 있으면 그것. 모르면 빈 문자열",
-  other: "따로 정하지 않았다 — 빈 문자열로 둔다",
 };
 
 /**
@@ -89,9 +125,7 @@ export function briefRuleLines(b: AiBrief, unit: EntryUnit, opts: { rulesUse?: "
   const lines = [
     "이 대회의 규칙(운영자가 정함 — 아래의 다른 모든 규칙보다 먼저 따른다):",
     `- 이 대회의 엔트리는 ${b.entry || UNIT_DEFAULT_ENTRY[unit]}이다. 엔트리 하나 = 칸 하나의 이름(name)`,
-    b.extra
-      ? `- 덧붙이는 정보(affiliation)는 ${b.extra}이다`
-      : `- 덧붙이는 정보(affiliation): ${UNIT_DEFAULT_EXTRA[unit]}`,
+    extraRuleLine(b, unit),
   ];
   if (b.rules) {
     lines.push(
@@ -101,4 +135,14 @@ export function briefRuleLines(b: AiBrief, unit: EntryUnit, opts: { rulesUse?: "
     );
   }
   return lines;
+}
+
+/**
+ * 덧붙이는 정보 줄. 목록 키(빈 글 = 단위의 기본값)는 뜻 문장으로, 옛 자유 글은 지금 문장 그대로.
+ * (LAB-FIX-4 의 "비웠을 때의 뜻"은 개인 = 소속 그룹 · 소속사 · 채널, 팀 = 소속사였다 — LAB-FIX-6 에서 단위의 기본값
+ * 소속 (팀) · 비워 두기의 뜻으로 바뀌었다. 세 줄이 모두 빈 개인 · 팀 대회는 이 줄을 쓰지 않는다 — 옛 지시문.)
+ */
+function extraRuleLine(b: AiBrief, unit: EntryUnit): string {
+  const v = effectiveExtra(b, unit);
+  return isExtraOption(v) ? `- 덧붙이는 정보(affiliation): ${EXTRA_MEANING[v]}` : `- 덧붙이는 정보(affiliation)는 ${v}이다`;
 }

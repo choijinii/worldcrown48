@@ -5,7 +5,7 @@
  * 고치거나 그대로 둔다 — 자동으로 확정하지 않는다(화면이 칸에 채울 뿐, 저장은 운영자의 편집과 같다).
  * aiSuggestKeywordsCore 와 같은 모양(주입식 createMessage · 값싼 검사 먼저)이라 네트워크 없이 시험이 돈다.
  */
-import { AI_BRIEF_LIMITS } from "./aiBrief";
+import { AI_BRIEF_LIMITS, isExtraOption } from "./aiBrief";
 import { ENTRY_UNITS, type EntryUnit } from "./aiFillCore";
 
 const TITLE_MAX = 50;
@@ -53,14 +53,16 @@ export function buildSuggestBriefPrompt(title: string, category: string, descrip
     "채울 칸:",
     '- entryUnit: 엔트리 하나가 무엇인가. 사람 한 명이면 "individual", 그룹·팀 하나면 "group", 사람도 팀도 아닌 것(노래 · 작품 · 제품 · 배역)이면 "other"',
     `- entry: 엔트리는 어떤 것인가 — 칸의 이름 자리에 들어갈 대상 (예: 춤춘 댄스 크루 · 노래 제목 · 드라마 배역). ${AI_BRIEF_LIMITS.entry}자 이내`,
-    `- extra: 덧붙이는 정보 — 이름 옆 둘째 칸에 들어갈 것 (예: 가수 · 드라마 제목). 필요 없으면 빈 문자열. ${AI_BRIEF_LIMITS.extra}자 이내`,
-    `- rules: 고르는 조건 — 어떤 엔트리를 넣고 뺄지 (예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외). 제목·설명에서 읽히는 것만. ${AI_BRIEF_LIMITS.rules}자 이내`,
+    // LAB-FIX-6 3-4 — 덧붙이는 정보는 목록 7개 중 하나(결정 I · 대표 2026-11-22 16:51). 목록 밖 값은 parse 가 버린다.
+    "- extra: 덧붙이는 정보 — 이름 옆 둘째 칸에 무엇을 적을지. 아래 영문 키 중 **하나만** 적는다:",
+    '  "team"(개인 엔트리가 속한 팀 · 그룹 — 소속사는 아님) · "artist"(노래를 부른 가수) · "actor"(배역을 연기한 배우) · "work"(인물 · 배역이 나오는 작품 제목) · "maker"(제품 · 서비스를 만든 회사) · "channel"(크리에이터의 채널) · "blank"(적을 것이 없음)',
+    `- rules: 엔트리 조건 — 어떤 엔트리를 넣고 뺄지 (예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외). 제목·설명에서 읽히는 것만. ${AI_BRIEF_LIMITS.rules}자 이내`,
     "",
     "- 제목·설명에 없는 조건을 지어내지 마라. 모르면 빈 문자열",
     "- 한국어로 쓴다",
     "- 설명·머리말 없이 JSON 한 줄만 출력한다",
     "",
-    '출력 형식: {"entryUnit":"individual","entry":"","extra":"","rules":""}',
+    '출력 형식: {"entryUnit":"individual","entry":"","extra":"team","rules":""}',
   );
   return lines.join("\n");
 }
@@ -83,7 +85,8 @@ export function parseSuggestedBrief(raw: string): SuggestedBrief {
   return {
     entryUnit: unit,
     entry: clip(o.entry, AI_BRIEF_LIMITS.entry),
-    extra: clip(o.extra, AI_BRIEF_LIMITS.extra),
+    // 목록 밖 값(자유 글 · 다른 모양)은 버린다 — 빈 글 = 단위의 기본값(화면이 정한다).
+    extra: isExtraOption(clip(o.extra, AI_BRIEF_LIMITS.extra)) ? clip(o.extra, AI_BRIEF_LIMITS.extra) : "",
     rules: clip(o.rules, AI_BRIEF_LIMITS.rules),
   };
 }

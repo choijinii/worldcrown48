@@ -66,6 +66,8 @@ async function fillStep1(page: Page, title: string) {
   await page.getByLabel("카테고리").selectOption("KPOP");
   await page.getByLabel("키워드 추가").fill("종류");
   await page.getByLabel("키워드 추가").press("Enter");
+  // LAB-FIX-6 3-2 — 설명은 필수(비면 [다음 →] 꺼짐).
+  await page.getByTestId("lab-description").fill("대회 종류 시험");
   await page.getByTestId("lab-next-button").click();
   await expect(page.getByTestId("contestant-grid")).toBeVisible();
 }

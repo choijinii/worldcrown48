@@ -32,3 +32,11 @@ export function isStep1Ready(s: Step1State): boolean {
     validateDeadline(s.deadlineMs, s.nowMs).isValid
   );
 }
+
+/**
+ * LAB-FIX-6 3-2(결정 H 가) — [다음 →]은 설명까지 있어야 켜진다. 설명은 AI 가 명단을 채울 때 이미 읽는 글이라
+ * 꼭 적게 한다. 발행 문은 isStep1Ready 그대로 — 설명이 빈 옛 초안은 STEP 1을 다시 열 때만 막힌다.
+ */
+export function isStep1NextReady(s: Step1State & { description: string }): boolean {
+  return isStep1Ready(s) && s.description.trim() !== "";
+}

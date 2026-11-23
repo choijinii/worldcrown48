@@ -7,6 +7,8 @@
  *
  *   ① 검색 결과가 AI 에게 전달된다 → AI 가 근거로 쓴 사유가 칸에 보인다 · 검색 글은 Firestore 어디에도 없다
  *   ② Brave 가 실패(500)해도 조건 확인은 끝난다(근거 없이 AI 기억만 · 지시문에 "검색:" 없음)
+ *   ③ LAB-FIX-6 3-1 — ENTRY_WEB_SEARCH=off 로 띄우면 Brave 를 한 번도 부르지 않고 조건 확인만 돈다
+ *      (`ENTRY_WEB_SEARCH=off bash scripts/e2e-emulator.sh lab-websearch` 일 때만 돈다 · ①② 는 그때 건너뛴다)
  */
 import { createServer, type Server } from "node:http";
 import * as admin from "firebase-admin";
@@ -20,6 +22,8 @@ const names = Array.from({ length: 48 }, (_, i) => (i === 0 ? "Lisa Eldridge" : 
 const RULES = "2026년에 활동한 여성만. 한 사람은 한 번만 넣는다.";
 /** 가짜 검색 결과에만 들어 있는 글 — 저장되면 안 된다. */
 const MARK = "WEBMARK";
+/** 함수 에뮬레이터를 웹 검색 "끔"으로 띄웠는가(scripts/e2e-emulator.sh 가 같은 값을 functions/.env.local 에 넣는다). */
+const WEB_OFF = (process.env.ENTRY_WEB_SEARCH ?? "").trim().toLowerCase() === "off";
 
 let brave: Server;
 let ai: Server;
@@ -139,6 +143,7 @@ async function dumpFirestore(): Promise<string> {
 }
 
 test("① 검색 결과가 AI 에게 전달되고 · 그 사유가 칸에 보이고 · 검색 글은 저장되지 않는다", async ({ page }) => {
+  test.skip(WEB_OFF, "웹 검색 끔으로 띄운 판");
   test.setTimeout(240_000);
   await seedRulesDraft("lfWeb1");
   const errors = collectConsoleErrors(page);
@@ -168,6 +173,7 @@ test("① 검색 결과가 AI 에게 전달되고 · 그 사유가 칸에 보이
 });
 
 test("② Brave 가 실패(500)해도 조건 확인은 끝난다 — 근거 없이 AI 기억만", async ({ page }) => {
+  test.skip(WEB_OFF, "웹 검색 끔으로 띄운 판");
   test.setTimeout(240_000);
   braveDown = true;
   await seedRulesDraft("lfWeb2");
@@ -177,6 +183,20 @@ test("② Brave 가 실패(500)해도 조건 확인은 끝난다 — 근거 없�
   await expect(page.getByTestId(`contestant-rule-reason-${FLAGGED}`)).toHaveText("기억으로 판단", { timeout: 120_000 });
   await expect(page.getByTestId("lab-rules-status")).toHaveText("조건을 확인할 칸 1개를 표시했습니다.");
   expect(braveQueries.length).toBeGreaterThanOrEqual(48);
+  expect(aiPrompts).toHaveLength(1);
+  expect(aiPrompts[0]).not.toContain("검색:");
+});
+
+test("③ 웹 검색 끔(ENTRY_WEB_SEARCH=off) — Brave 0번 · 조건 확인은 끝난다", async ({ page }) => {
+  test.skip(!WEB_OFF, "웹 검색 끔으로 띄운 판에서만");
+  test.setTimeout(240_000);
+  await seedRulesDraft("lfWeb3");
+  await stubFill(page);
+  await openAndGenerate(page);
+
+  await expect(page.getByTestId(`contestant-rule-reason-${FLAGGED}`)).toHaveText("기억으로 판단", { timeout: 120_000 });
+  await expect(page.getByTestId("lab-rules-status")).toHaveText("조건을 확인할 칸 1개를 표시했습니다.");
+  expect(braveQueries).toHaveLength(0);
   expect(aiPrompts).toHaveLength(1);
   expect(aiPrompts[0]).not.toContain("검색:");
 });

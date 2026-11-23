@@ -111,3 +111,21 @@ export async function gatherWebEvidence(
   await Promise.all(Array.from({ length: Math.min(WEB_SEARCH.CONCURRENCY, entries.length) }, worker));
   return { evidence, searched, failed, limited };
 }
+
+/**
+ * LAB-FIX-6 3-1(결정 G · 대표 2026-11-23 09:07) — 웹 검색 확인을 켜고 끄는 **한 곳**. 지금은 운영자 편집기만 쓰므로 켬.
+ * 유저 편집기에 열 때(MVP 1.5) 끌 수 있게 환경 값 `ENTRY_WEB_SEARCH=off` 하나로 끈다
+ * (functions/.env.worldcrown48 에 한 줄 + checkEntryRules 재배포). 그 밖의 값 · 빈 값 = 켬.
+ */
+export function entryWebSearchEnabled(env: Readonly<Record<string, string | undefined>>): boolean {
+  return (env.ENTRY_WEB_SEARCH ?? "").trim().toLowerCase() !== "off";
+}
+
+/** 켜져 있고 Brave 키가 있을 때만 검색 함수를 만든다 — 꺼져 있으면 만들지도 부르지도 않는다. */
+export function pickWebSearch(
+  enabled: boolean,
+  key: string,
+  make: (key: string) => (query: string) => Promise<WebSearchOutcome>,
+): ((query: string) => Promise<WebSearchOutcome>) | undefined {
+  return enabled && key ? make(key) : undefined;
+}

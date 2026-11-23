@@ -224,3 +224,32 @@ describe("3-3 웹 검색 근거 — 조건 확인 AI 에게 칸마다 검색 결
     expect((createMessage.mock.calls[0] as unknown as [string])[0]).not.toContain("검색:");
   });
 });
+
+// LAB-FIX-6 3-1(결정 G) — 웹 검색을 켜고 끄는 곳은 환경 값 ENTRY_WEB_SEARCH 하나. 지금 = 켬.
+describe("웹 검색 켜고 끄기 — ENTRY_WEB_SEARCH", () => {
+  it("빈 값 · 다른 값 = 켬 · off(대소문자 · 공백 무시) = 끔", async () => {
+    const { entryWebSearchEnabled } = await import("../core/entryWebSearch");
+    expect(entryWebSearchEnabled({})).toBe(true);
+    expect(entryWebSearchEnabled({ ENTRY_WEB_SEARCH: "on" })).toBe(true);
+    expect(entryWebSearchEnabled({ ENTRY_WEB_SEARCH: " OFF " })).toBe(false);
+  });
+  it("끔이면 검색 함수를 만들지 않고 — 조건 검사는 검색 없이(지시문에 '검색:' 없음) 끝난다", async () => {
+    const { pickWebSearch } = await import("../core/entryWebSearch");
+    const search = vi.fn(async () => ({ kind: "ok" as const, snippets: [] }));
+    const make = vi.fn(() => search);
+    const webSearch = pickWebSearch(false, "brave-key", make);
+    expect(webSearch).toBeUndefined();
+    const createMessage = vi.fn(async () => '{"rows":[]}');
+    await checkEntryRulesCore(input(), { createMessage, webSearch });
+    expect(make).not.toHaveBeenCalled();
+    expect(search).not.toHaveBeenCalled();
+    expect((createMessage.mock.calls[0] as unknown as [string])[0]).not.toContain("검색:");
+  });
+  it("켬 + 키 = 칸마다 검색 · 키가 없으면 켬이어도 검색 없음", async () => {
+    const { pickWebSearch } = await import("../core/entryWebSearch");
+    const search = vi.fn(async () => ({ kind: "ok" as const, snippets: [] }));
+    await checkEntryRulesCore(input(), { createMessage: async () => '{"rows":[]}', webSearch: pickWebSearch(true, "k", () => search) });
+    expect(search).toHaveBeenCalledTimes(entries.length);
+    expect(pickWebSearch(true, "", () => search)).toBeUndefined();
+  });
+});
