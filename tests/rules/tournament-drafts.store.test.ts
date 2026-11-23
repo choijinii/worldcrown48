@@ -107,11 +107,17 @@ describe("저장소 통합 — 저장 → 다시 읽기 → 복원", () => {
   it("LAB-FIX-4: 그 외 단위 · AI에게 알려 줄 내용이 왕복하고, 비우면 칸이 사라져 옛 모양으로 돌아온다", async () => {
     const db = ownerDb();
     const id = newDraftId(db);
-    const brief = { entry: "노래 제목", extra: "가수", rules: "타이틀곡만" };
+    // LAB-FIX-6 3-4 — 덧붙이는 정보는 목록 키로 저장된다(artist = 가수).
+    const brief = { entry: "노래 제목", extra: "artist", rules: "타이틀곡만" };
     await saveDraft(db, id, "host-1", editorState({ entryUnit: "other", aiBrief: brief }));
     const back = await loadDraft(db, id);
     expect(back?.entryUnit).toBe("other");
     expect(back?.aiBrief).toEqual(brief);
+    // 옛 초안의 자유 글 — 목록 이름과 같으면 키로, 다르면 글 그대로 읽힌다(백필 없음).
+    await saveDraft(db, id, "host-1", editorState({ entryUnit: "other", aiBrief: { ...brief, extra: "가수" } }));
+    expect((await loadDraft(db, id))?.aiBrief.extra).toBe("artist");
+    await saveDraft(db, id, "host-1", editorState({ entryUnit: "other", aiBrief: { ...brief, extra: "배우와 드라마 제목" } }));
+    expect((await loadDraft(db, id))?.aiBrief.extra).toBe("배우와 드라마 제목");
     await saveDraft(db, id, "host-1", editorState());
     let raw: Record<string, unknown> | undefined;
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
