@@ -1,6 +1,6 @@
 /**
  * LAB-FIX-6 — 화면 문구(지시서 §5 · 대표 승인 2026-11-22)가 글자까지 같다 · 금지 낱말 없음 · 세 언어 모두 있다.
- * 설명 빈칸 이유 글(lab.description.missing)은 §5 표 밖이라 대표 확인 대기 — 세 언어가 있는지만 본다.
+ * 설명 빈칸 이유 글(lab.description.missing)과 엔트리 조건 설명(rulesHint)은 추가 지시 1(대표 승인 2026-11-24) 글자.
  */
 import { describe, expect, it } from "vitest";
 import { MESSAGES, resolveMessage, type MessageKey } from "@/lib/i18n/messages";
@@ -12,10 +12,12 @@ const TABLE: [string, MessageKey, string, string, string][] = [
   [
     "4",
     "lab.brief.rulesHint",
-    "AI가 명단을 채운 뒤 조건에 맞는지 한 번 더 확인합니다.",
-    "The AI checks the entries against these rules once more after filling.",
-    "La IA vuelve a comprobar las entradas con estos criterios después de completarlas.",
+    // 추가 지시 1(대표 승인 2026-11-24)
+    "조건을 넣으면 조건에 맞는지 AI가 한 번 더 확인합니다.",
+    "If you add conditions, AI checks once more that entries match them.",
+    "Si añades condiciones, la IA comprueba una vez más que las entradas las cumplen.",
   ],
+  ["M", "lab.description.missing", "설명을 적어 주세요.", "Please write a description.", "Escribe una descripción."],
   ["L1", "lab.brief.extra.team", "소속 (팀)", "Affiliation (team)", "Afiliación (equipo)"],
   ["L2", "lab.brief.extra.artist", "가수", "Artist", "Artista"],
   ["L3", "lab.brief.extra.actor", "배우", "Actor", "Actor/Actriz"],

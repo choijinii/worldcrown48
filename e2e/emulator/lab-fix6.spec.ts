@@ -4,7 +4,8 @@
  *   ① 설명이 비면 [다음 →]이 꺼지고 이유 글이 보인다 · 적으면 켜진다
  *   ② 엔트리 단위(개인 · 팀 · 그 외)에 따라 "덧붙이는 정보" 기본값이 바뀐다 · 목록 7개
  *   ③ "가수"를 고르면 STEP 2 엔트리 칸 둘째 줄 자리 글자가 "가수"
- *   ④ "엔트리 조건" 이름 · 크림슨 "선택" · 설명 한 줄이 KO · EN · ES 로 보인다(1440 캡처 — 대표 눈검사)
+ *   ④ "엔트리 조건" 이름 · 금색 "선택"(= "필수"와 같은 색) · 설명 한 줄이 KO · EN · ES 로 보인다(1440 캡처 — 대표 눈검사)
+ *   추가 지시 1(2026-11-24): "선택" 금색 · 설명 빈칸 안내 글은 "필수" 바로 옆 · 엔트리 조건 설명 새 문장
  *   ⑤ 새로고침 뒤에도 고른 값이 남는다
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -13,7 +14,7 @@ import { collectConsoleErrors, db, dismissConsent, expectNoConsoleErrors, resetE
 const TITLE = "LAB-FIX-6 시험 대회";
 /** 대표 눈검사용 캡처(PR 에 붙인다) — outputDir 는 실행마다 지워지므로 outputs 아래에 둔다. */
 const SHOTS = "outputs/lab-fix6-evidence";
-const CRIMSON = "rgb(215, 6, 58)"; // --color-crimson #D7063A
+const GOLD = "rgb(252, 208, 6)"; // lab.gold #FCD006 — "필수"와 같은 토큰(추가 지시 1)
 
 test.use({ viewport: { width: 1440, height: 1100 } });
 
@@ -49,7 +50,15 @@ test("① 설명 빈칸이면 [다음 →] 꺼짐 · 이유 글 · ② 단위별
   await expect(page.getByTestId("lab-field-tag-required")).toHaveText("· 필수");
   await expect(next).toBeDisabled();
   await expect(page.getByTestId("lab-description-missing")).toBeVisible();
-  await page.getByTestId("lab-description").locator("..").screenshot({ path: `${SHOTS}/description-missing-ko.png` });
+  // 추가 지시 1 — 안내 글은 "필수" 바로 옆(같은 줄 · 입력 칸보다 위)
+  const tagBox = (await page.getByTestId("lab-field-tag-required").boundingBox())!;
+  const missBox = (await page.getByTestId("lab-description-missing").boundingBox())!;
+  const areaBox = (await page.getByTestId("lab-description").boundingBox())!;
+  expect(Math.abs(missBox.y - tagBox.y)).toBeLessThan(6);
+  expect(missBox.x).toBeGreaterThan(tagBox.x + tagBox.width - 1);
+  expect(missBox.x - (tagBox.x + tagBox.width)).toBeLessThan(20);
+  expect(missBox.y + missBox.height).toBeLessThanOrEqual(areaBox.y);
+  await page.getByTestId("lab-description").locator("..").screenshot({ path: `${SHOTS}/add1-after-description-missing-ko.png` });
   await page.getByTestId("lab-description").fill("   ");
   await expect(next).toBeDisabled();
   await page.getByTestId("lab-description").fill("2026년에 사랑받은 노래");
@@ -101,11 +110,11 @@ test("① 설명 빈칸이면 [다음 →] 꺼짐 · 이유 글 · ② 단위별
 });
 
 const COPY = {
-  ko: { label: "엔트리 조건", optional: "· 선택", hint: "AI가 명단을 채운 뒤 조건에 맞는지 한 번 더 확인합니다.", required: "· 필수", first: "소속 (팀)", last: "비워 두기" },
+  ko: { label: "엔트리 조건", optional: "· 선택", hint: "조건을 넣으면 조건에 맞는지 AI가 한 번 더 확인합니다.", required: "· 필수", first: "소속 (팀)", last: "비워 두기" },
   en: {
     label: "Entry rules",
     optional: "· Optional",
-    hint: "The AI checks the entries against these rules once more after filling.",
+    hint: "If you add conditions, AI checks once more that entries match them.",
     required: "· Required",
     first: "Affiliation (team)",
     last: "Leave blank",
@@ -113,7 +122,7 @@ const COPY = {
   es: {
     label: "Criterios de entrada",
     optional: "· Opcional",
-    hint: "La IA vuelve a comprobar las entradas con estos criterios después de completarlas.",
+    hint: "Si añades condiciones, la IA comprueba una vez más que las entradas las cumplen.",
     required: "· Obligatorio",
     first: "Afiliación (equipo)",
     last: "Dejar vacío",
@@ -121,7 +130,7 @@ const COPY = {
 } as const;
 
 for (const lang of ["ko", "en", "es"] as const) {
-  test(`④ 엔트리 조건 · 크림슨 선택 · 설명 한 줄 · 목록 — ${lang} (1440 캡처)`, async ({ page }) => {
+  test(`④ 엔트리 조건 · 금색 선택 · 설명 한 줄 · 목록 — ${lang} (1440 캡처)`, async ({ page }) => {
     const errors = collectConsoleErrors(page);
     await openLab(page, lang);
     const c = COPY[lang];
@@ -129,11 +138,12 @@ for (const lang of ["ko", "en", "es"] as const) {
     await expect(brief).toContainText(c.label);
     const rulesTag = brief.getByTestId("lab-field-tag-optional");
     await expect(rulesTag).toHaveText(c.optional);
-    await expect(rulesTag).toHaveCSS("color", CRIMSON);
-    // 같은 화면의 다른 "선택"(캠페인 이름표)도 같은 크림슨
+    await expect(rulesTag).toHaveCSS("color", GOLD);
+    // 같은 화면의 다른 "선택"(캠페인 이름표)도 같은 금색 · "필수"와 같은 색
     const tags = page.getByTestId("lab-field-tag-optional");
     await expect(tags).toHaveCount(2);
-    await expect(tags.nth(0)).toHaveCSS("color", CRIMSON);
+    await expect(tags.nth(0)).toHaveCSS("color", GOLD);
+    await expect(page.getByTestId("lab-field-tag-required")).toHaveCSS("color", GOLD);
     await expect(page.getByTestId("lab-brief-rules-hint")).toHaveText(c.hint);
     await expect(page.getByTestId("lab-field-tag-required")).toHaveText(c.required);
     await expect(extra(page).locator("option").first()).toHaveText(c.first);
@@ -146,7 +156,7 @@ for (const lang of ["ko", "en", "es"] as const) {
     const reject = page.getByRole("button", { name: /Reject non-essential/ });
     if (await reject.isVisible()) await reject.click();
     await expect(reject).toBeHidden();
-    await page.screenshot({ path: `${SHOTS}/step1-after-${lang}-1440.png`, fullPage: true });
+    await page.screenshot({ path: `${SHOTS}/add1-after-${lang}-1440.png`, fullPage: true });
     await expectNoConsoleErrors(errors);
   });
 }

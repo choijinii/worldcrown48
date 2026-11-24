@@ -1,8 +1,8 @@
 /**
  * DescriptionInput — "참가 대상" blurb (STEP 1 ③, B-2).
  *
- * LAB-FIX-6 3-2(결정 H 가) — **필수**. 비면 [다음 →]이 꺼지고(isStep1NextReady) 칸 아래에 이유 글이 보인다
- * (Deadline 칸과 같은 방식 · 크림슨). 옛 주석: Optional (never gates 다음). Entered in ONE language; translated to ko/en/es
+ * LAB-FIX-6 3-2(결정 H 가) — **필수**. 비면 [다음 →]이 꺼지고(isStep1NextReady) 이유 글이 보인다(크림슨).
+ * 추가 지시 1(대표 2026-11-24): 이유 글 자리 = 칸 제목의 "필수" 바로 옆(전에는 칸 아래). 옛 주석: Optional (never gates 다음). Entered in ONE language; translated to ko/en/es
  * at publish (translateTournamentMeta) and stored as description{ko,en,es}. The
  * text also feeds the ✨AI keyword + AI-fill prompts as an extra hint.
  */
@@ -37,6 +37,11 @@ export function DescriptionInput({
         }}
       >
         {t("lab.description.label")} <FieldTag kind="required">{t("lab.description.required")}</FieldTag>
+        {missing && (
+          <span data-testid="lab-description-missing" style={{ marginLeft: 8, fontWeight: 400, color: lab.crimson }}>
+            {t("lab.description.missing")}
+          </span>
+        )}
       </span>
       <textarea
         value={value}
@@ -60,11 +65,6 @@ export function DescriptionInput({
           resize: "vertical",
         }}
       />
-      {missing && (
-        <span data-testid="lab-description-missing" style={{ display: "block", marginTop: 6, fontSize: 12, color: lab.crimson }}>
-          {t("lab.description.missing")}
-        </span>
-      )}
     </label>
   );
 }

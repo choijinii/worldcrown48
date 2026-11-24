@@ -538,9 +538,9 @@ export const MESSAGES = {
   "lab.brief.rulesLabel": { ko: "엔트리 조건", en: "Entry rules", es: "Criterios de entrada" },
   "lab.brief.optional": { ko: "선택", en: "Optional", es: "Opcional" },
   "lab.brief.rulesHint": {
-    ko: "AI가 명단을 채운 뒤 조건에 맞는지 한 번 더 확인합니다.",
-    en: "The AI checks the entries against these rules once more after filling.",
-    es: "La IA vuelve a comprobar las entradas con estos criterios después de completarlas.",
+    ko: "조건을 넣으면 조건에 맞는지 AI가 한 번 더 확인합니다.",
+    en: "If you add conditions, AI checks once more that entries match them.",
+    es: "Si añades condiciones, la IA comprueba una vez más que las entradas las cumplen.",
   },
   "lab.brief.rulesPlaceholder": {
     ko: "예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외",
