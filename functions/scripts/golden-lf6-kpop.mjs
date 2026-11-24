@@ -81,25 +81,29 @@ result.individual = {
 };
 calls.push(...indCalls);
 
+// ONLY_IND=1 — 개인 묶음만 다시 돌린다(팀 · 비용 호출 없음 — 대표 승인 = 개인 묶음 1회).
+const onlyInd = process.env.ONLY_IND === "1";
 // ── 팀 ──
 const GRP = { title: "K-POP 4세대 걸그룹 최강자", category: "KPOP", description: "", keywords: ["kpop", "girlgroup"] };
 const grpCalls = [];
-const grp = await aiFillCore(
+const grp = onlyInd ? [] : await aiFillCore(
   { uid: "golden", ...GRP, entryUnit: "group" },
   { createMessage: caller(SONNET_MODEL, 8192, grpCalls, "명단 채우기(팀)") },
 );
 const lockedGrp = sha(buildPrompt({ ...GRP, existing: [], count: 48, entryUnit: "group" }));
-result.group = {
+result.group = onlyInd ? null : {
   count: grp.length,
-  samePrompt: grpCalls[0].promptSha === lockedGrp,
+  samePrompt: grpCalls[0]?.promptSha === lockedGrp,
   blankAffiliation: grp.filter((c) => (c.affiliation ?? "") === "").length,
   rows: grp.map((c) => ({ name: c.name, affiliation: c.affiliation ?? "", nationality: c.nationality ?? "" })),
 };
 calls.push(...grpCalls);
 
 // ── 3-6 비용: 개인 대회 하나의 나머지 AI 일(1번씩) ──
+let sug = null;
+if (!onlyInd) {
 await aiSuggestKeywordsCore({ uid: "golden", ...IND }, { createMessage: caller(HAIKU_MODEL, 512, calls, "키워드") });
-const sug = await aiSuggestBriefCore({ uid: "golden", ...IND }, { createMessage: caller(HAIKU_MODEL, 512, calls, "AI에게 제안 받기") });
+sug = await aiSuggestBriefCore({ uid: "golden", ...IND }, { createMessage: caller(HAIKU_MODEL, 512, calls, "AI에게 제안 받기") });
 result.suggest = sug;
 await translateTournamentMetaCore(
   { uid: "golden", title: IND.title, description: IND.description, sourceLang: "ko" },
@@ -112,11 +116,12 @@ await translateContestantNamesCore(
     : { entries: grp.map((c) => ({ name: c.name, affiliation: "" })), category: "KPOP", entryUnit: "group" },
   { createMessage: caller(HAIKU_MODEL, 4096, calls, "이름 3언어") },
 );
+}
 
 result.calls = calls.map(({ promptSha, ...c }) => c);
 result.totalUsd = calls.reduce((a, c) => a + c.usd, 0);
 console.log(`개인: ${result.individual.count}개 · 지시문 같음 ${result.individual.samePrompt} · 소속 칸 회사 이름 ${result.individual.company.length} ${JSON.stringify(result.individual.company)} · 소속 적힘 ${result.individual.filledAffiliation}`);
-console.log(`팀: ${result.group.count}개 · 지시문 같음 ${result.group.samePrompt} · 소속 칸 빈칸 ${result.group.blankAffiliation}/${result.group.count}`);
+if (result.group) console.log(`팀: ${result.group.count}개 · 지시문 같음 ${result.group.samePrompt} · 소속 칸 빈칸 ${result.group.blankAffiliation}/${result.group.count}`);
 console.log(`제안: ${JSON.stringify(sug)}`);
 for (const c of result.calls) console.log(`${c.label} · ${c.model} · 입력 ${c.input} · 출력 ${c.output} · $${c.usd.toFixed(4)} · ${c.ms}ms`);
 console.log(`합계 $${result.totalUsd.toFixed(4)}`);
