@@ -375,11 +375,11 @@ describe("rankingAccumStore · runRecount (에뮬레이터)", () => {
     await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
     await requestRecount(db, tid, "admin", serverTime);
     expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(true);
-    await tick();
+    // 시계 차이 여유(5초)보다 앞선 요청이어야 지운다 → 시작 시각을 10초 뒤로 흉내
     const res = await runRecount(
       db,
       tid,
-      { asOfMs: 10 * HOUR, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now() },
+      { asOfMs: 10 * HOUR, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now() + 10_000 },
       zeroReads(),
     );
     expect(res.done).toBe(true);
@@ -431,11 +431,106 @@ describe("rankingAccumStore · runRecount (에뮬레이터)", () => {
     const base = { asOfMs: E, final: false, nowMs: () => Date.now(), pageSize: 50 };
     expect((await runRecount(db, tid, { ...base, deadlineAtMs: 0 }, zeroReads())).done).toBe(false);
 
-    const go = { ...base, deadlineAtMs: Number.POSITIVE_INFINITY };
+    // 도우미 두 실행 흉내(resumeOnly) — 하나가 임대를 잡고, 다른 하나는 임대에 막히거나
+    // (먼저 끝나 job 이 사라졌으면) 새로 세기 시작하지 않고 물러난다
+    const go = { ...base, deadlineAtMs: Number.POSITIVE_INFINITY, resumeOnly: true };
     const [a, b] = await Promise.all([runRecount(db, tid, go, zeroReads()), runRecount(db, tid, go, zeroReads())]);
     expect([a.done, b.done].filter(Boolean)).toHaveLength(1);
     const stored = await readAccum(db, tid);
     expect(accumEquals(stored!.accum, fullAccum(all, E))).toBe(true);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("recount-paging-carry-100: 100건씩(46 의 배수 아님) — 페이지 끝 사람 버리고 이어 읽기 경로 = 한 번에 센 값", async () => {
+    const tid = "carry100T";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    const E = corpusEnd(all);
+    const reads = zeroReads();
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: E, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), pageSize: 100 },
+      reads,
+    );
+    expect(res.done).toBe(true);
+    if (!res.done) return;
+    expect(accumEquals(res.accum.accum, fullAccum(all, E))).toBe(true);
+    // 버린 사람을 다음 페이지가 다시 읽으므로 기록 수보다 많이 읽는다(이어 읽기 경로가 실제로 돌았다)
+    expect(reads.recount).toBeGreaterThan(all.length);
+  });
+
+  it("request-within-skew-kept: 시작 직전(시계 차이 5초 안)에 들어온 요청은 남긴다", async () => {
+    const tid = "skewT";
+    await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await requestRecount(db, tid, "admin", serverTime);
+    await tick();
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: 10 * HOUR, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now() },
+      zeroReads(),
+    );
+    expect(res.done).toBe(true);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(true);
+  });
+
+  it("resume-only-no-job: 도우미(resumeOnly)는 job 이 없으면 기록을 읽지 않고 아무것도 쓰지 않는다", async () => {
+    const tid = "resumeOnlyT";
+    await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    const prior: AccumDoc = { tournamentId: tid, cursorMs: 20 * HOUR, accum: emptyAccum(), updatedAtMs: 1 };
+    await db.collection(ACCUM).doc(tid).set(prior);
+    const reads = zeroReads();
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: 10 * HOUR, final: true, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), resumeOnly: true },
+      reads,
+    );
+    expect(res.done).toBe(false);
+    expect(reads).toEqual(zeroReads());
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+    expect(await readAccum(db, tid)).toEqual(prior);
+  });
+
+  it("lease-blocks-then-expires: 다른 실행의 임대 중엔 읽지도 쓰지도 않고, 임대가 끝나면 이어 센다", async () => {
+    const tid = "leaseT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    const E = corpusEnd(all);
+    const base = { asOfMs: E, final: false, pageSize: 100 };
+    expect((await runRecount(db, tid, { ...base, deadlineAtMs: 0, nowMs: () => Date.now() }, zeroReads())).done).toBe(false);
+    const saved = (await db.collection(JOBS).doc(tid).get()).data()!;
+    expect(saved.leaseUntilMs).toBe(0);
+    expect(saved.leaseHolder).toBeNull();
+
+    // 다른 실행이 임대 중
+    const leaseUntilMs = Date.now() + 60_000;
+    await db.collection(JOBS).doc(tid).update({ leaseUntilMs, leaseHolder: "other-runner" });
+    const before = (await db.collection(JOBS).doc(tid).get()).data();
+    const reads = zeroReads();
+    const blocked = await runRecount(
+      db,
+      tid,
+      { ...base, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), resumeOnly: true },
+      reads,
+    );
+    expect(blocked.done).toBe(false);
+    expect(reads).toEqual(zeroReads());
+    expect((await db.collection(JOBS).doc(tid).get()).data()).toEqual(before);
+    expect((await db.collection(ACCUM).doc(tid).get()).exists).toBe(false);
+
+    // 임대가 끝난 뒤(시계를 2분 뒤로) — 이어 세어 끝낸다
+    const later = () => Date.now() + 120_000;
+    const resumed = await runRecount(
+      db,
+      tid,
+      { ...base, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: later, resumeOnly: true },
+      zeroReads(),
+    );
+    expect(resumed.done).toBe(true);
+    if (!resumed.done) return;
+    expect(accumEquals(resumed.accum.accum, fullAccum(all, E))).toBe(true);
     expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
   });
 });

@@ -10,7 +10,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { adminDb } from "./admin";
-import { JOBS, RECOUNT_BUDGET_MS, runRecount, type ReadCounts, type RecountJob } from "./core/rankingAccumStore";
+import { HELPER_BUDGET_MS, JOBS, runRecount, type ReadCounts, type RecountJob } from "./core/rankingAccumStore";
 
 export const continueRankingRecount = onSchedule(
   { schedule: "every 5 minutes", region: "asia-northeast3", timeoutSeconds: 540, memory: "512MiB" },
@@ -18,18 +18,20 @@ export const continueRankingRecount = onSchedule(
     const jobs = await adminDb.collection(JOBS).get();
     if (jobs.empty) return;
 
-    // 예산은 실행 전체에 하나 — job 여러 개가 각자 400초를 쓰면 540초 시간 초과에 걸린다.
-    const deadlineAtMs = Date.now() + RECOUNT_BUDGET_MS;
+    // 예산은 실행 전체에 하나(240초 · 5분 간격보다 짧게 — 길면 매번 다음 실행과 겹쳐 임대에 막힌다).
+    const deadlineAtMs = Date.now() + HELPER_BUDGET_MS;
     for (const doc of jobs.docs) {
       if (Date.now() >= deadlineAtMs) break; // 남은 job 은 다음 5분 실행이 잇는다
       const job = doc.data() as RecountJob;
       const reads: ReadCounts = { created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0 };
       try {
-        // asOf · final 은 job 문서의 값을 runRecount 가 그대로 쓴다(이어 세기).
+        // asOf · final 은 job 문서의 값을 runRecount 가 그대로 쓴다(이어 세기). resumeOnly — 목록을
+        // 읽은 뒤 다른 실행이 job 을 끝냈으면 새로 세기 시작하지 않는다(새 다시 세기는 발표 흐름 몫).
+        // 다른 실행이 임대 중이면 runRecount 가 읽지 않고 {done:false}.
         const res = await runRecount(
           adminDb,
           job.tournamentId,
-          { asOfMs: job.asOfMs, final: job.final, deadlineAtMs, nowMs: () => Date.now() },
+          { asOfMs: job.asOfMs, final: job.final, deadlineAtMs, nowMs: () => Date.now(), resumeOnly: true },
           reads,
         );
         logger.info("continueRankingRecount", {

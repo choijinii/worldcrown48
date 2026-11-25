@@ -22,6 +22,7 @@
  * `userId` 순으로 `RECOUNT_PAGE` 건씩 처음부터 다시 센다. 한 실행 예산(`RECOUNT_BUDGET_MS`)에
  * 닿으면 진행 상태를 `ranking_recount_jobs/{tid}` 에 두고, 5분 도우미 크론이 이어 센다.
  */
+import { randomUUID } from "node:crypto";
 import { FieldValue, type DocumentData, type Firestore, type WriteBatch } from "firebase-admin/firestore";
 import {
   RUN_VOTES,
@@ -194,9 +195,21 @@ export async function applyIncrement(
 // ─────────────────────────────────────────────────────────────────────────────
 // 처음부터 다시 세기 · 이어 세기 · 요청
 
-/** 한 페이지 기록 수 · 한 실행 예산(함수 시간 초과 540초 안에 쓰기까지 마칠 여유를 남긴다). */
+/**
+ * 한 페이지 기록 수 · 발표 크론 한 실행 예산(함수 시간 초과 540초 안에 쓰기까지 마칠 여유를 남긴다) ·
+ * 도우미 크론 예산(5분 간격보다 짧게 — 길면 매번 다음 실행과 겹친다) · 임대 여유(마지막 페이지 ·
+ * 쓰기가 예산을 넘겨도 다른 실행이 끼어들지 않게).
+ */
 export const RECOUNT_PAGE = 5_000,
-  RECOUNT_BUDGET_MS = 400_000;
+  RECOUNT_BUDGET_MS = 400_000,
+  HELPER_BUDGET_MS = 240_000,
+  LEASE_SLACK_MS = 60_000;
+
+/**
+ * 서버 시각(요청)과 함수 시계(시작 시각)는 서로 다른 시계다. 요청은 시작보다 이만큼 앞서야
+ * 지운다 — 경계 근처 요청은 남겨 한 번 더 세는 쪽으로 틀린다(교정을 잃는 쪽으로는 틀리지 않는다).
+ */
+export const REQUEST_CLOCK_SKEW_MS = 5_000;
 
 /** `ranking_recount_jobs/{tid}` — 예산에 닿아 멈춘 다시 세기의 진행 상태. */
 export interface RecountJob {
@@ -213,6 +226,13 @@ export interface RecountJob {
    * 기준이라, 이어 센 시각으로 바꾸면 중간에 들어온 요청까지 지워 버린다.
    */
   startedAtMs: number;
+  /**
+   * 임대 — 이 시각까지는 `leaseHolder` 실행만 이어 센다. 발표 크론(540초)과 도우미 크론(5분)이
+   * 같은 job 을 함께 이어 세면 진 쪽이 읽은 것을 모두 버린다(비용 두 배). 저장 · 끝낼 때 비운다.
+   * 칸이 없는 job 은 임대 없음으로 본다.
+   */
+  leaseUntilMs?: number;
+  leaseHolder?: string | null;
 }
 
 export type RecountReason = "user-delete" | "relink-conflict" | "admin";
@@ -270,6 +290,15 @@ function tallyUsers(votes: AccumVote[], asOfMs: number): RankingAccum {
  * 시작 시각)로 이어 센다 — 넘겨받은 `asOfMs` · `final` 은 새로 시작할 때만 쓴다(이어 세는데 asOf
  * 를 바꾸면 앞 페이지와 뒤 페이지가 다른 구간을 센다).
  *
+ * `resumeOnly`(도우미 크론): job 이 없으면 기록을 읽지 않고 `{done:false}`. 도우미가 job 목록을
+ * 읽은 뒤 다른 실행이 그 job 을 끝내 지웠을 수 있다 — 그때 옛 asOf 로 새로 세기 시작하면 전량을
+ * 한 번 더 읽고 cursor 를 뒤로 돌린다. 새 다시 세기는 발표 흐름만 시작한다.
+ *
+ * 이어 세기 전에 트랜잭션으로 임대를 잡는다. 다른 실행의 임대가 살아 있으면 읽지도 쓰지도 않고
+ * `{done:false}`. 쓰기 직전에는 job 이 읽을 때 그대로인지(임대 주인 포함) 한 번 더 본다 — 임대가
+ * 끝나 다른 실행이 넘겨받았다면 늦은 실행은 아무것도 쓰지 않는다(옛 asOf 로 누적을 덮어 cursor 가
+ * 뒤로 가는 것을 막는다).
+ *
  * asOf 이후에 옮겨진 기록(createdAt < asOf ≤ relinkedAt)은 셀 수 있게 된 시각이 asOf 뒤라
  * 여기서 빠지고, 다음 증분의 relinkedAt 쿼리가 asOf 부터 읽어 한 번 센다 — 따로 다룰 코드가 없다.
  *
@@ -279,30 +308,52 @@ function tallyUsers(votes: AccumVote[], asOfMs: number): RankingAccum {
 export async function runRecount(
   db: Firestore,
   tid: string,
-  opts: { asOfMs: number; final: boolean; deadlineAtMs: number; nowMs: () => number; pageSize?: number },
+  opts: {
+    asOfMs: number;
+    final: boolean;
+    deadlineAtMs: number;
+    nowMs: () => number;
+    pageSize?: number;
+    resumeOnly?: boolean;
+  },
   reads: ReadCounts,
 ): Promise<{ done: true; accum: AccumDoc } | { done: false }> {
   const pageSize = opts.pageSize ?? RECOUNT_PAGE;
   const jobRef = db.collection(JOBS).doc(tid);
-  const jobSnap = await jobRef.get();
-  const job: RecountJob = jobSnap.exists
-    ? (jobSnap.data() as RecountJob)
-    : {
-        tournamentId: tid,
-        asOfMs: opts.asOfMs,
-        lastUserId: null,
-        partial: emptyAccum(),
-        final: opts.final,
-        startedAtMs: opts.nowMs(),
-      };
-  // 도우미 크론은 5분마다 돌고 예산은 400초라 두 실행이 같은 job 을 함께 이어 셀 수 있다.
-  // 쓰기 직전에 job 이 읽을 때 그대로인지 본다 — 다른 실행이 먼저 끝내 누적을 쓴 뒤 늦은 실행이
-  // 옛 asOf 로 누적을 덮으면 cursor 가 뒤로 가 그 사이 증분을 두 번 센다.
-  const loaded = jobSnap.exists ? { lastUserId: job.lastUserId, startedAtMs: job.startedAtMs } : null;
+  const me = randomUUID();
+
+  // ① job 읽기 + 임대 잡기(트랜잭션 하나)
+  const claimed = await db.runTransaction(async (tx): Promise<RecountJob | "skip" | null> => {
+    const snap = await tx.get(jobRef);
+    if (!snap.exists) return opts.resumeOnly ? "skip" : null;
+    const j = snap.data() as RecountJob;
+    const now = opts.nowMs();
+    if ((j.leaseUntilMs ?? 0) > now && j.leaseHolder && j.leaseHolder !== me) return "skip";
+    const leaseUntilMs = Math.min(opts.deadlineAtMs, now + RECOUNT_BUDGET_MS) + LEASE_SLACK_MS;
+    tx.update(jobRef, { leaseUntilMs, leaseHolder: me });
+    return { ...j, leaseUntilMs, leaseHolder: me };
+  });
+  if (claimed === "skip") return { done: false };
+
+  const job: RecountJob = claimed ?? {
+    tournamentId: tid,
+    asOfMs: opts.asOfMs,
+    lastUserId: null,
+    partial: emptyAccum(),
+    final: opts.final,
+    startedAtMs: opts.nowMs(),
+  };
+  const loaded = claimed ? { lastUserId: job.lastUserId, startedAtMs: job.startedAtMs } : null;
   const stillOurs = (snap: { exists: boolean; data: () => DocumentData | undefined }): boolean => {
     if (!loaded) return !snap.exists;
     const d = snap.data();
-    return snap.exists && !!d && d.lastUserId === loaded.lastUserId && d.startedAtMs === loaded.startedAtMs;
+    return (
+      snap.exists &&
+      !!d &&
+      d.leaseHolder === me &&
+      d.lastUserId === loaded.lastUserId &&
+      d.startedAtMs === loaded.startedAtMs
+    );
   };
 
   for (;;) {
@@ -334,15 +385,16 @@ export async function runRecount(
 
     if (finished) break;
     if (opts.nowMs() >= opts.deadlineAtMs) {
+      // 진행 저장 + 임대 비우기 — 다음 실행(도우미 · 발표)이 바로 이어 받는다.
       await db.runTransaction(async (tx) => {
-        if (stillOurs(await tx.get(jobRef))) tx.set(jobRef, job);
+        if (stillOurs(await tx.get(jobRef))) tx.set(jobRef, { ...job, leaseUntilMs: 0, leaseHolder: null });
       });
       return { done: false };
     }
   }
 
-  // 끝: 누적 · job 삭제 · 요청 정리를 트랜잭션 하나로. 요청은 다시 세기 시작 전에 들어온 것만 지운다 —
-  // 시작 뒤에 들어온 요청은 이미 읽은 페이지에 반영되지 않았을 수 있다(다음 발표가 또 다시 센다).
+  // 끝: 누적 · job 삭제(임대도 함께 사라진다) · 요청 정리를 트랜잭션 하나로. 요청은 다시 세기 시작
+  // 전에 들어온 것만 지운다 — 시작 뒤에 들어온 요청은 이미 읽은 페이지에 반영되지 않았을 수 있다.
   const accum: AccumDoc = {
     tournamentId: tid,
     cursorMs: job.asOfMs,
@@ -353,13 +405,14 @@ export async function runRecount(
   const won = await db.runTransaction(async (tx) => {
     const cur = await tx.get(jobRef);
     const req = await tx.get(reqRef);
-    if (!stillOurs(cur)) return false; // 다른 실행이 이미 이어 셌다 — 아무것도 쓰지 않는다
+    if (!stillOurs(cur)) return false; // 다른 실행이 넘겨받았다 — 아무것도 쓰지 않는다
     tx.set(db.collection(ACCUM).doc(tid), accum);
     tx.delete(jobRef);
     if (req.exists) {
       const at = toMs(req.data()!.requestedAt);
-      // 시각을 못 읽는 요청은 남긴다 — 지우면 요청을 잃고, 남기면 한 번 더 셀 뿐이다.
-      if (at !== null && at <= job.startedAtMs) tx.delete(reqRef);
+      // 시각을 못 읽는 요청 · 시작 직전(시계 차이 안)의 요청은 남긴다 — 지우면 교정을 잃고,
+      // 남기면 한 번 더 셀 뿐이다.
+      if (at !== null && at <= job.startedAtMs - REQUEST_CLOCK_SKEW_MS) tx.delete(reqRef);
     }
     return true;
   });
