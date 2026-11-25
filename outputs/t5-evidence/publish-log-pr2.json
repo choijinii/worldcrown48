@@ -11,11 +11,11 @@
       "shadow": 0,
       "count": 0
     },
-    "ms": 110,
-    "rssMb": 231,
+    "ms": 126,
+    "rssMb": 245,
     "shadow": "skipped",
     "cacheWritten": true,
-    "endMs": 1795576380000,
+    "endMs": 1795577040000,
     "readsFixed": 49
   },
   "second": {
@@ -29,11 +29,11 @@
       "shadow": 690,
       "count": 1
     },
-    "ms": 111,
-    "rssMb": 273,
+    "ms": 125,
+    "rssMb": 269,
     "shadow": "match",
     "cacheWritten": true,
-    "endMs": 1795619580000,
+    "endMs": 1795620240000,
     "readsFixed": 50
   }
 }

@@ -161,6 +161,49 @@ async function legacyRankings() {
   };
 }
 
+interface ShownRow {
+  rank: number;
+  name: string;
+  crownScore: number;
+}
+
+/**
+ * 차트 줄마다 화면에 보이는 숫자는 순위 · Crown Score · 이름 속 숫자(아바타 글자 포함)뿐이어야 한다.
+ * 그 밖의 숫자가 하나라도 있으면 실패 — 선택 수(voteCount)가 어떤 모양으로 새어도 잡힌다.
+ * 덧붙여 옛 선택 수 값(`voteCounts`, 줄 순서대로)이 그 줄에 없고, 합계(`totalVotes`)가 화면 어디에도 없는지 본다.
+ * 빈 단언이 되지 않게: 허용 숫자와 겹치지 않는 선택 수가 적어도 하나는 실제로 검사돼야 한다.
+ */
+async function expectNoCountNumbers(
+  page: import("@playwright/test").Page,
+  shown: ShownRow[],
+  voteCounts: number[],
+  totalVotes: number,
+): Promise<void> {
+  const rows = page.getByTestId("rank-row");
+  const n = await rows.count();
+  expect(n).toBeGreaterThan(0);
+  let checked = 0;
+  for (let i = 0; i < n; i++) {
+    // 글자 마디(text node)마다 따로 숫자를 뽑는다 — innerText 는 이웃 칸을 붙여 "24"+"188"을 "24188"로 읽을 수 있다.
+    const pieces = await rows.nth(i).evaluate((el) => {
+      const out: string[] = [];
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) out.push(node.textContent ?? "");
+      return out;
+    });
+    const tokens = pieces.flatMap((p) => p.match(/\d+/g) ?? []).map(Number);
+    const allowed = new Set<number>([shown[i].rank, shown[i].crownScore, ...(shown[i].name.match(/\d+/g) ?? []).map(Number)]);
+    expect(tokens.filter((t) => !allowed.has(t)), `줄 ${i + 1} 에 허용 밖 숫자`).toEqual([]);
+    if (!allowed.has(voteCounts[i])) {
+      expect(tokens).not.toContain(voteCounts[i]);
+      checked += 1;
+    }
+  }
+  expect(checked, "검사된 선택 수가 0이면 빈 단언").toBeGreaterThan(0);
+  const body = await page.locator("body").innerText();
+  expect(body).not.toMatch(new RegExp(`(^|\\D)${totalVotes}(\\D|$)`));
+}
+
 test.beforeEach(async () => {
   await resetEmulators();
   await seedCategories();
@@ -261,7 +304,8 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
   // ── 차트 화면 ───────────────────────────────────────────────────────────
   await stubYouTubeImages(page);
   const errors = collectConsoleErrors(page);
-  const totalVotes = String(legacy.update.totalVotes);
+  const shown: ShownRow[] = (cache.rankings as ShownRow[]).map((r) => ({ rank: r.rank, name: r.name, crownScore: r.crownScore }));
+  const legacyVoteCounts = legacy.update.rankings.map((r) => r.voteCount);
   for (const width of [1440, 390] as const) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto(`/arena/${TID}/ranking?lang=ko`);
@@ -278,12 +322,29 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
     await expect(page.locator("text=/^\\d+표$/")).toHaveCount(0);
     await expect(page.locator("text=/Total Votes/i")).toHaveCount(0);
     await expect(page.locator("text=/Vote Rate/i")).toHaveCount(0);
+    await expectNoCountNumbers(page, shown, legacyVoteCounts, legacy.update.totalVotes);
     const body = (await page.locator("body").innerText()).toLowerCase();
-    expect(body).not.toMatch(new RegExp(`(^|\\D)${totalVotes}(\\D|$)`));
     expect(body).not.toContain("votecount");
     await expect(page.getByTestId("anomaly-badge")).toHaveCount(0);
     await expectNoForbiddenWords(page);
     await page.screenshot({ path: join(EVIDENCE, `t5-chart-pr2-${width}.png`) });
   }
+
+  // ── 카나리: 배포 직후 남아 있는 옛 캐시 모양 ───────────────────────────────
+  // 배포 뒤 첫 발표 전까지 실서비스 캐시에는 옛 문서(행 voteCount · rate · 문서 totalVotes)가 남는다.
+  // 그 값을 화면이 읽을 수 있는 자리에 실제로 넣어 두고, 그래도 숫자가 새지 않는지 본다(원칙 #8).
+  await db().collection("ranking_cache").doc(TID).update({
+    rankings: legacy.update.rankings,
+    totalVotes: legacy.update.totalVotes,
+  });
+  const planted = (await db().collection("ranking_cache").doc(TID).get()).data()!;
+  expect(planted.totalVotes).toBe(legacy.update.totalVotes);
+  expect((planted.rankings as { voteCount: number }[]).map((r) => r.voteCount)).toEqual(legacyVoteCounts);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/arena/${TID}/ranking?lang=ko`);
+  await expect(page.getByTestId("ranking-view")).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
+  await expect(page.getByTestId("rank-row")).toHaveCount(ids.length);
+  await expectNoCountNumbers(page, shown, legacyVoteCounts, legacy.update.totalVotes);
+  await expect(page.getByTestId("rank-rate")).toHaveCount(0);
   await expectNoConsoleErrors(errors);
 });
