@@ -62,6 +62,11 @@ jobs:
         env:
           npm_config_build_from_source: 'true'
 
+      # 규칙 시험 일부(store 시험)가 functions 의 복사본(_news · _run …)을 읽는다 — 함수 빌드가 그것을 만든다.
+      - name: Build functions (복사본 + tsc)
+        run: npm run build
+        working-directory: functions
+
       - name: Unit · integration (통과증 · 커튼 · middleware · 화면 상태)
         run: npx vitest run lib/__tests__/launch/ lib/__tests__/beta/
 
