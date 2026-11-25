@@ -16,8 +16,8 @@ import { stubManageTournament } from "./labManage";
 import * as admin from "firebase-admin";
 import { e2eMark } from "./e2eMark";
 
-/** lib/launch/launchAt 의 LAUNCH_AT_MS 와 같은 값(2026-11-26 00:00 KST) — e2e 는 앱 모듈을 직접 읽지 않는다. */
-const LAUNCH_AT_MS = Date.parse("2026-11-26T00:00:00+09:00");
+/** lib/launch/launchAt 의 LAUNCH_AT_MS 와 같은 값(2026-12-10 00:00 KST) — e2e 는 앱 모듈을 직접 읽지 않는다. */
+const LAUNCH_AT_MS = Date.parse("2026-12-10T00:00:00+09:00");
 const TITLE = "THUMB-1 E2E Pitch";
 const VID = { a: "9bZkp7q19f0", b: "dQw4w9WgXcQ", c: "kJQP7kiw5Fk" } as const;
 
