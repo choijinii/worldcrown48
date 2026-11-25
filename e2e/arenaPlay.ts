@@ -8,59 +8,68 @@ import { expect, type Page } from "@playwright/test";
 const PICK_GAP_MS = 1600; // onVote 분당 40 — 사람처럼 천천히
 export const ALL_ROUNDS = ["ROUND OF 24", "ROUND OF 12", "ROUND OF 6", "THE FINAL"];
 
-/** 판 하나를 끝까지 고른다. 이 판에서 본 라운드 전환 안내의 다음 라운드 이름을 순서대로 돌려준다. */
+/** 라운드의 마지막 선택 번호 → 그 뒤에 떠야 하는 안내 (24 + 12 + 6 + 3 + 결승 1 = 46). */
+const ROUND_END: Record<number, string> = { 24: "ROUND OF 24", 36: "ROUND OF 12", 42: "ROUND OF 6", 45: "THE FINAL" };
+const TOTAL_PICKS = 46;
+
+/** 떠 있는 라운드 전환 안내의 다음 라운드 이름을 읽고 닫는다(닫힐 때까지 기다림). */
+async function readAndClose(page: Page): Promise<string> {
+  const next = (await page.getByTestId("round-next").innerText()).trim();
+  const advance = page.getByTestId("round-advance");
+  if (await advance.isVisible()) await advance.click().catch(() => undefined);
+  else await page.getByTestId("round-transition").click({ force: true, timeout: 2000 }).catch(() => undefined);
+  await expect(page.getByTestId("round-transition")).toHaveCount(0, { timeout: 10_000 });
+  return next;
+}
+
+/**
+ * 판 하나를 끝까지 고른다. 이 판에서 본 라운드 전환 안내의 다음 라운드 이름을 순서대로 돌려준다.
+ *
+ * 라운드 마지막 선택 뒤에는 **안내가 뜰 때까지 다음 매치를 고르지 않는다.** 실서비스 함수(advanceRound)는 진행 문서를
+ * 몇 초 늦게 쓸 수 있다 — 그 사이 다음 매치를 고르면 클릭이 안내가 2초 뒤 저절로 닫히길 기다렸다 눌려서, 안내를
+ * 한 번도 못 본 것처럼 세어진다(2026-11-25 미리보기 CI 실측: 1판째 안내 0번 · 선택 47번).
+ */
 export async function playRun(
   page: Page,
   run: number,
   opts: { shot?: (name: string) => string; stopAfterFirstTransition?: boolean } = {},
 ): Promise<string[]> {
   const seen: string[] = [];
-  let picks = 0;
   let lastPick = 0;
-  for (let guard = 0; guard < 200; guard++) {
-    if (await page.getByTestId("crown-modal").isVisible()) break;
-    const transition = page.getByTestId("round-transition");
-    if (await transition.isVisible()) {
-      const next = (await page.getByTestId("round-next").innerText()).trim();
-      if (seen[seen.length - 1] !== next) {
-        seen.push(next);
-        console.log(`[arenaPlay] ${run}판째 · 선택 ${picks}번 뒤 안내 ${next}`);
-        if (next === "ROUND OF 24" && opts.shot) await page.screenshot({ path: opts.shot(`run${run}-round24.png`) });
-        if (opts.stopAfterFirstTransition) return seen;
-      }
-      const advance = page.getByTestId("round-advance");
-      if (await advance.isVisible()) await advance.click().catch(() => undefined);
-      else await transition.click({ force: true, timeout: 2000 }).catch(() => undefined);
-      await page.waitForTimeout(250);
-      continue;
-    }
+  const transition = page.getByTestId("round-transition");
+  for (let pick = 1; pick <= TOTAL_PICKS; pick++) {
     const left = page.getByTestId("vote-left");
-    if (!(await left.isVisible())) {
-      await page.waitForTimeout(250);
-      continue;
-    }
+    await expect(left).toBeVisible({ timeout: 30_000 });
+    // 예정에 없던 안내가 떠 있으면 기록하고 닫는다(같은 판에서 다시 뜨는 결함도 이렇게 드러난다).
+    if (await transition.isVisible()) seen.push(await readAndClose(page));
     const sides = (await page.getByTestId("vote-mid").count()) > 0 ? 3 : 2;
     const before = (await left.innerText()).trim();
     const wait = lastPick + PICK_GAP_MS - Date.now();
     if (wait > 0) await page.waitForTimeout(wait);
     lastPick = Date.now();
     await page.getByTestId(sides === 3 ? "vote-mid" : "vote-left").click();
-    picks++;
+
+    if (pick === TOTAL_PICKS) break;
+    const expected = ROUND_END[pick];
+    if (expected) {
+      // 라운드 마지막 선택 — 안내가 반드시 떠야 한다.
+      await expect(transition, `${run}판째 ${pick}번째 선택 뒤 ${expected} 안내가 뜨지 않음`).toBeVisible({ timeout: 60_000 });
+      if (expected === "ROUND OF 24" && opts.shot) await page.screenshot({ path: opts.shot(`run${run}-round24.png`) });
+      const next = await readAndClose(page);
+      seen.push(next);
+      console.log(`[arenaPlay] ${run}판째 · 선택 ${pick}번 뒤 안내 ${next}`);
+      if (opts.stopAfterFirstTransition) return seen;
+      continue;
+    }
     await expect
-      .poll(
-        async () => {
-          if (await page.getByTestId("crown-modal").isVisible()) return "done";
-          if (await page.getByTestId("round-transition").isVisible()) return "transition";
-          const now = (await page.getByTestId("vote-left").innerText().catch(() => "")).trim();
-          return now && now !== before ? "next" : "wait";
-        },
-        { timeout: 30_000, message: `${run}판째 ${picks}번째 선택 뒤 화면이 넘어가지 않음` },
-      )
-      .not.toBe("wait");
+      .poll(async () => (await left.innerText().catch(() => "")).trim(), {
+        timeout: 30_000,
+        message: `${run}판째 ${pick}번째 선택 뒤 다음 매치로 넘어가지 않음`,
+      })
+      .not.toBe(before);
   }
-  console.log(`[arenaPlay] ${run}판째 끝 · 선택 ${picks}번 · 안내 ${JSON.stringify(seen)}`);
-  expect(picks, `${run}판째 선택 수`).toBe(46); // 24 + 12 + 6 + 3 + 결승 1
-  await expect(page.getByTestId("crown-modal")).toBeVisible();
+  await expect(page.getByTestId("crown-modal")).toBeVisible({ timeout: 60_000 });
+  console.log(`[arenaPlay] ${run}판째 끝 · 안내 ${JSON.stringify(seen)}`);
   return seen;
 }
 
