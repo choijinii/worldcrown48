@@ -7,7 +7,17 @@
  * 메일은 로그에 남기지 않는다.
  */
 import { createHmac } from "node:crypto";
-import { HttpsError } from "firebase-functions/v2/https";
+
+/**
+ * 콜러블 오류 코드를 실은 오류. firebase-functions 에 기대지 않는다 — 화면 쪽 시험(root vitest · tsc)이
+ * 이 파일을 직접 읽어 통과증 형식을 맞대어 보는데, 그쪽에는 functions 의 패키지가 없다. 콜러블이 HttpsError 로 바꾼다.
+ */
+export class BetaPassError extends Error {
+  constructor(public readonly code: "unauthenticated" | "permission-denied" | "internal", message: string) {
+    super(message);
+    this.name = "BetaPassError";
+  }
+}
 
 export const BETA_PASS_TTL_MS = 14 * 86_400_000;
 /** lib/launch/launchAt.ts LAUNCH_AT_MS 와 같은 값(root 시험이 둘을 맞대어 본다). */
@@ -47,13 +57,13 @@ export function issueBetaPass(input: {
 }): { token: string; expMs: number } {
   const { auth } = input;
   if (!auth || auth.token.firebase?.sign_in_provider === "anonymous") {
-    throw new HttpsError("unauthenticated", "sign-in-required");
+    throw new BetaPassError("unauthenticated", "sign-in-required");
   }
   const email = (auth.token.email ?? "").trim().toLowerCase();
   if (!email || auth.token.email_verified !== true || !normalizeList(input.allowlist).has(email)) {
-    throw new HttpsError("permission-denied", "not-on-list");
+    throw new BetaPassError("permission-denied", "not-on-list");
   }
-  if (!input.secret) throw new HttpsError("internal", "not-configured");
+  if (!input.secret) throw new BetaPassError("internal", "not-configured");
   const expMs = betaPassExpiryMs(input.nowMs, input.launchAtMs);
   const mac = createHmac("sha256", input.secret).update(`${auth.uid}.${expMs}`).digest("base64url");
   return { token: `${auth.uid}.${expMs}.${mac}`, expMs };

@@ -4,8 +4,7 @@
  */
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { HttpsError } from "firebase-functions/v2/https";
-import { BETA_PASS_TTL_MS, issueBetaPass, launchAtFromEnv, DEFAULT_LAUNCH_AT_MS, type BetaAuth } from "../core/betaPassCore";
+import { BETA_PASS_TTL_MS, BetaPassError, issueBetaPass, launchAtFromEnv, DEFAULT_LAUNCH_AT_MS, type BetaAuth } from "../core/betaPassCore";
 
 const SECRET = "s3cret-for-tests";
 const NOW = Date.parse("2026-11-27T00:00:00+09:00");
@@ -20,7 +19,7 @@ function codeOf(fn: () => unknown): string {
   try {
     fn();
   } catch (e) {
-    if (e instanceof HttpsError) return e.code;
+    if (e instanceof BetaPassError) return e.code;
     throw e;
   }
   return "(did-not-throw)";

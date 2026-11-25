@@ -11,11 +11,11 @@
  * 이 함수만 관리 SDK 로 읽는다. 런칭 시각은 환경 변수 LAUNCH_AT(없으면 코드 기본값) — 지난 값이면
  * 지금+14일(betaPassCore). 메일은 로그에 남기지 않는다.
  */
-import { onCall } from "firebase-functions/v2/https";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { adminDb } from "./admin";
 import { ALLOWED_ORIGINS } from "./cors";
-import { issueBetaPass, launchAtFromEnv, type BetaAuth } from "./core/betaPassCore";
+import { BetaPassError, issueBetaPass, launchAtFromEnv, type BetaAuth } from "./core/betaPassCore";
 
 const BETA_PASS_SECRET = defineSecret("BETA_PASS_SECRET");
 
@@ -30,12 +30,17 @@ export const betaPass = onCall(
   async (req): Promise<{ token: string; expMs: number }> => {
     const auth = req.auth as BetaAuth | undefined;
     const snap = auth ? await adminDb.doc("config/betaAllowlist").get() : null;
-    return issueBetaPass({
-      auth,
-      allowlist: snap?.get("emails"),
-      secret: BETA_PASS_SECRET.value() ?? "",
-      nowMs: Date.now(),
-      launchAtMs: launchAtFromEnv(process.env.LAUNCH_AT),
-    });
+    try {
+      return issueBetaPass({
+        auth,
+        allowlist: snap?.get("emails"),
+        secret: BETA_PASS_SECRET.value() ?? "",
+        nowMs: Date.now(),
+        launchAtMs: launchAtFromEnv(process.env.LAUNCH_AT),
+      });
+    } catch (err) {
+      if (err instanceof BetaPassError) throw new HttpsError(err.code, err.message);
+      throw err;
+    }
   },
 );
