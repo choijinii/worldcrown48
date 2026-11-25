@@ -11,6 +11,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { adminDb } from "./admin";
 import { HELPER_BUDGET_MS, JOBS, runRecount, type ReadCounts, type RecountJob } from "./core/rankingAccumStore";
+import { writeCacheFromAccum } from "./core/rankingCacheWrite";
 
 export const continueRankingRecount = onSchedule(
   { schedule: "every 5 minutes", region: "asia-northeast3", timeoutSeconds: 540, memory: "512MiB" },
@@ -40,7 +41,12 @@ export const continueRankingRecount = onSchedule(
           final: job.final,
           recountReads: reads.recount,
         });
-        // TODO(Task 4): res.done && job.final 이면 writeCacheFromAccum 으로 최종 차트를 쓴다.
+        // 마지막 확정이 발표 실행 안에 못 끝났다 → 다음 발표는 오지 않는다(창 밖). 여기서 최종 차트를 쓴다.
+        // final 은 runRecount 가 돌려준 job 의 값(목록을 읽은 뒤 바뀌었을 수 있는 doc.data() 가 아니라).
+        if (res.done && res.final) {
+          await writeCacheFromAccum(adminDb, job.tournamentId, res.accum.accum, Date.now());
+          logger.info("continueRankingRecount final cache", { tournamentId: job.tournamentId });
+        }
       } catch (err) {
         // 한 대회가 실패해도 나머지 job 은 잇는다 — job 문서가 남아 다음 실행이 다시 시도한다.
         logger.error("continueRankingRecount failed", { tournamentId: job.tournamentId, err: String(err) });

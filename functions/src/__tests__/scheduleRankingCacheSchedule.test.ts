@@ -18,6 +18,10 @@ const SOURCE = readFileSync(
   join(__dirname, "..", "scheduleRankingCache.ts"),
   "utf8",
 );
+const CACHE_WRITE_SOURCE = readFileSync(
+  join(__dirname, "..", "core", "rankingCacheWrite.ts"),
+  "utf8",
+);
 
 describe("scheduleRankingCache 스케줄 (AC 14)", () => {
   it("크론식이 KST 09:00·21:00 고정이다", () => {
@@ -47,6 +51,14 @@ describe("scheduleRankingCache 스케줄 (AC 14)", () => {
   it("HISTORY_KEEP 이 2다 — 하루 2회 발표에서 '24시간 전'이 되는 세대 수", () => {
     // 60분 주기 시절의 24는 12일 전을 가리키게 된다. T-3(#1 +200% over 24h)의 기준선이
     // 사실과 맞으려면 발표 2회 전이어야 한다.
-    expect(SOURCE).toMatch(/const HISTORY_KEEP = 2;/);
+    // T5: 캐시 쓰기 몸통이 core/rankingCacheWrite.ts 로 옮겨 갔다(값 · 뜻 그대로).
+    expect(CACHE_WRITE_SOURCE).toMatch(/const HISTORY_KEEP = 2;/);
+  });
+
+  it("T5: 크론 몸통은 대회마다 publishTournament 하나 · 실패는 그 대회에서 멈춘다", () => {
+    expect(SOURCE).toContain("publishTournament(");
+    expect(SOURCE).toMatch(/catch \(err\)/);
+    // 옛 전량 읽기(votes 를 대회마다 통째로)는 크론에 남지 않는다
+    expect(SOURCE).not.toContain('collection("votes")');
   });
 });
