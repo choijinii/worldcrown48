@@ -35,6 +35,7 @@ import { expect, test, type Browser, type BrowserContext, type Page } from "@pla
 import * as admin from "firebase-admin";
 import { round1OrderedIds } from "@/lib/arena/matches";
 import { e2eMark } from "./e2eMark";
+import { playAgain, playRun } from "./arenaPlay";
 
 const TID_A = "hf3-guest-e2e-a";
 const TID_B = "hf3-guest-e2e-b";
@@ -532,5 +533,42 @@ test.describe("HF-3 Guest Run", () => {
         await deleteUserQuietly(anonUid);
       }
     }
+  });
+  test.describe("RUN-FIX-1", () => {
+  // 한 번에 2분 가까이 걸린다 — 실패를 되풀이하면 워크플로 25분을 넘겨 오류 기록 없이 끊긴다(2026-11-25 CI 실측).
+  test.describe.configure({ retries: 0 });
+  test("RUN-FIX-1: 게스트 1판 완주 → [다시 참여] → 2판째 48강 마지막 매치 뒤 ROUND OF 24 안내가 뜬다", async ({ browser }) => {
+    // 새로고침 없이 판을 넘겨야 결함이 드러난다(1판째에 닫은 안내 번호가 남아 2판째 안내를 막았다 · 2026-11-25).
+    test.setTimeout(360_000);
+    const context = await anonContext(browser);
+    const page = await anonPage(context);
+    let anonUid = "";
+    try {
+      await page.goto(`/arena/${TID_A}?lang=ko`);
+      anonUid = await anonUidFrom(page);
+      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 30_000 });
+      const run1 = await playRun(page, 1);
+      expect(run1).toContain("THE FINAL");
+      await playAgain(page, 2);
+      const run2 = await playRun(page, 2, {
+        stopAfterFirstTransition: true,
+        shot: (name) => `playwright-report/runfix-guest-${name}`,
+      });
+      // playRun 이 안내를 본 뒤 닫아 두므로 여기서는 본 이름만 확인한다.
+      expect(run2[0]).toBe("ROUND OF 24");
+    } finally {
+      if (!anonUid) anonUid = await anonUidFrom(page).catch(() => "");
+      await context.close();
+      if (anonUid) {
+        await deleteVoterState(anonUid, TID_A);
+        for (let r = 2; r <= 3; r++) {
+          for (const coll of ["roundProgress", "bracket_seeds", "crown_cards"]) {
+            await db().doc(`${coll}/${anonUid}_${TID_A}_r${r}`).delete().catch(() => {});
+          }
+        }
+        await deleteUserQuietly(anonUid);
+      }
+    }
+  });
   });
 });

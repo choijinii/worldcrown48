@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { runDocId } from "@/lib/run/runDocId";
+import { eventForRun } from "@/lib/arena/roundTransitionGate";
 
 export interface RoundProgressEvent {
   fromRound?: number;
@@ -28,27 +29,35 @@ export function useRoundTransition(
   tournamentId: string | undefined,
   runIndex: number | undefined,
 ): RoundProgressEvent | null {
-  const [event, setEvent] = useState<RoundProgressEvent | null>(null);
+  // RUN-FIX-1 — 이벤트를 "어느 판 문서에서 왔는지"(key)와 함께 저장하고 지금 판의 것만 돌려준다.
+  // [다시 참여] 직후 2판째 문서의 첫 스냅숏이 오기 전까지 1판째 완주 이벤트가 새지 않게 한다.
+  const [stored, setStored] = useState<{ key: string | null; event: RoundProgressEvent | null }>({
+    key: null,
+    event: null,
+  });
+  const currentKey =
+    userId && tournamentId && runIndex ? runDocId(userId, tournamentId, runIndex) : null;
 
   useEffect(() => {
     // 회차를 모르는 동안(로드 전)에는 구독하지 않는다 — 1회차로 넘겨짚으면 2판째를 돌던
     // 팬이 1판째 완주 이벤트를 받아 화면이 곧바로 완주로 튄다.
     if (!userId || !tournamentId || !runIndex) return;
-    const ref = doc(getDb(), "roundProgress", runDocId(userId, tournamentId, runIndex));
+    const key = runDocId(userId, tournamentId, runIndex);
+    const ref = doc(getDb(), "roundProgress", key);
     const unsub = onSnapshot(
       ref,
       (snap) =>
-        setEvent(snap.exists() ? (snap.data() as RoundProgressEvent) : null),
+        setStored({ key, event: snap.exists() ? (snap.data() as RoundProgressEvent) : null }),
       (err) => {
         // HF-1.6: never swallow silently — a permission-denied here (e.g. a
         // rule that rejects the not-yet-existing doc) terminates the listener,
         // so the round-transition overlay never fires and THE FINAL hangs.
         console.error("[useRoundTransition] onSnapshot error", err);
-        setEvent(null);
+        setStored({ key, event: null });
       },
     );
     return unsub;
   }, [userId, tournamentId, runIndex]);
 
-  return event;
+  return eventForRun(stored, currentKey);
 }
