@@ -24,6 +24,7 @@ export async function playRun(
       const next = (await page.getByTestId("round-next").innerText()).trim();
       if (seen[seen.length - 1] !== next) {
         seen.push(next);
+        console.log(`[arenaPlay] ${run}판째 · 선택 ${picks}번 뒤 안내 ${next}`);
         if (next === "ROUND OF 24" && opts.shot) await page.screenshot({ path: opts.shot(`run${run}-round24.png`) });
         if (opts.stopAfterFirstTransition) return seen;
       }
@@ -57,6 +58,7 @@ export async function playRun(
       )
       .not.toBe("wait");
   }
+  console.log(`[arenaPlay] ${run}판째 끝 · 선택 ${picks}번 · 안내 ${JSON.stringify(seen)}`);
   expect(picks, `${run}판째 선택 수`).toBe(46); // 24 + 12 + 6 + 3 + 결승 1
   await expect(page.getByTestId("crown-modal")).toBeVisible();
   return seen;
@@ -84,6 +86,7 @@ export async function playAgain(page: Page, nextRun: number): Promise<void> {
       { capture: true, once: true },
     );
   });
+  console.log(`[arenaPlay] [다시 참여] → ${nextRun}판째`);
   await btn.click();
   await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 30_000 });
   const frames = await page.evaluate(() => (window as unknown as { __crownAfterClick?: boolean[] }).__crownAfterClick);

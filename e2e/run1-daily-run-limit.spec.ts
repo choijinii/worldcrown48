@@ -202,6 +202,8 @@ test.describe("RUN-1 일일 판 한도 — 5판 소진 후 [다시 참여] 차�
 const TID_RUNFIX = "run1-runfix-e2e-tournament";
 
 test.describe("RUN-FIX-1 — 로그인 팬 2판째 라운드 전환 안내", () => {
+  // 한 번에 2분 가까이 걸린다 — 실패를 되풀이하면 워크플로 25분을 넘겨 오류 기록 없이 끊긴다(2026-11-25 CI 실측).
+  test.describe.configure({ retries: 0 });
   const uid = process.env.TEST_UID;
   test.skip(!process.env.PREVIEW_URL || !uid, "PREVIEW_URL / TEST_UID not set");
 

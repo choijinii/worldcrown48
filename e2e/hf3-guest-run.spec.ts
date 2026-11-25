@@ -534,6 +534,9 @@ test.describe("HF-3 Guest Run", () => {
       }
     }
   });
+  test.describe("RUN-FIX-1", () => {
+  // 한 번에 2분 가까이 걸린다 — 실패를 되풀이하면 워크플로 25분을 넘겨 오류 기록 없이 끊긴다(2026-11-25 CI 실측).
+  test.describe.configure({ retries: 0 });
   test("RUN-FIX-1: 게스트 1판 완주 → [다시 참여] → 2판째 48강 마지막 매치 뒤 ROUND OF 24 안내가 뜬다", async ({ browser }) => {
     // 새로고침 없이 판을 넘겨야 결함이 드러난다(1판째에 닫은 안내 번호가 남아 2판째 안내를 막았다 · 2026-11-25).
     test.setTimeout(360_000);
@@ -566,5 +569,6 @@ test.describe("HF-3 Guest Run", () => {
         await deleteUserQuietly(anonUid);
       }
     }
+  });
   });
 });
