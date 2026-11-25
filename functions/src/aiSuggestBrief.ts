@@ -6,7 +6,7 @@
  * → 비밀 → Haiku(짧은 출력 · 값싼 층).
  *
  *   request.data:  { title: string, category: string, description?: string }
- *   returns:       { entryUnit, entry, extra, rules }
+ *   returns:       { entryUnit, entry, extra, rules } — rules 는 항상 빈 글(LAB-FIX-7)
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";

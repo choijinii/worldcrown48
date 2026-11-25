@@ -8,7 +8,8 @@
  * 비어 있으면 초안 · 대회 문서에 칸을 싣지 않는다 — 세 줄을 비운 대회는 지금과 똑같이 움직이고, 규칙이 배포되기 전에도
  * 옛 모양으로 저장된다(entryUnit · mediaKind 와 같은 방식).
  */
-import { isExtraOption, matchLegacyExtra } from "@/lib/lab/extraInfo";
+import { extraForUnit, isExtraOption, matchLegacyExtra } from "@/lib/lab/extraInfo";
+import type { EntryUnit } from "@/lib/types/tournament";
 
 export interface AiBrief {
   entry: string;
@@ -51,4 +52,14 @@ export function isAiBriefEmpty(b: AiBrief): boolean {
 export function aiBriefForSave(b: AiBrief): AiBrief | undefined {
   const t = { entry: b.entry.trim(), extra: b.extra.trim(), rules: b.rules.trim() };
   return isAiBriefEmpty(t) ? undefined : t;
+}
+
+/**
+ * LAB-FIX-7(대표 2026-11-25) — [AI에게 제안 받기] 결과를 편집기 묶음에 넣는다. 엔트리 · 덧붙이는 정보만 바꾸고
+ * "엔트리 조건"(rules)은 운영자가 적어 둔 글 그대로 둔다(비었으면 빈 채로). 옛 서버가 rules 를 보내도 쓰지 않는다 —
+ * 조건 칸에 글이 생기면 명단을 채운 뒤 조건 다시 검사 + 웹 검색이 돌아 비용이 든다.
+ */
+export function applySuggestedBrief(prev: AiBrief, reply: unknown, unit: EntryUnit): AiBrief {
+  const s = readAiBrief(reply);
+  return { entry: s.entry, extra: extraForUnit(s.extra, unit), rules: prev.rules };
 }

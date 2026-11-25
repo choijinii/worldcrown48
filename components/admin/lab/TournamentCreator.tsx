@@ -47,7 +47,7 @@ import { translateNames } from "@/lib/lab/translateNames";
 import { loadCategories } from "@/lib/taxonomy/loadCategories";
 import { categoryIds, type CategoryDoc } from "@/lib/taxonomy/category";
 import { DEFAULT_ENTRY_UNIT, TOTAL_CONTESTANTS, type EntryUnit } from "@/lib/types/tournament";
-import { EMPTY_AI_BRIEF, aiBriefForSave, readAiBrief, type AiBrief } from "@/lib/lab/aiBrief";
+import { EMPTY_AI_BRIEF, aiBriefForSave, applySuggestedBrief, type AiBrief } from "@/lib/lab/aiBrief";
 import {
   activeRuleFlags,
   ruleFlagsFromReply,
@@ -659,8 +659,8 @@ export function TournamentCreator(): JSX.Element {
       >(getFunctionsInstance(), "aiSuggestBrief");
       const res = await callable({ title: title.trim(), category, description: description.trim() });
       setEntryUnit(res.data.entryUnit);
-      const suggested = readAiBrief(res.data);
-      setAiBrief({ ...suggested, extra: extraForUnit(suggested.extra, res.data.entryUnit) });
+      // LAB-FIX-7 — 엔트리 조건 칸은 건드리지 않는다(운영자가 손으로만 적는다).
+      setAiBrief((prev) => applySuggestedBrief(prev, res.data, res.data.entryUnit));
       void track("admin_lab_ai_brief_success", { category, entry_unit: res.data.entryUnit });
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";

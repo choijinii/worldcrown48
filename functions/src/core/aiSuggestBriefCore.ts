@@ -1,7 +1,9 @@
 /**
  * aiSuggestBriefCore — [AI에게 제안 받기] (LAB-FIX-4 · 원장 결정 A · 지시서 §3-1).
  *
- * 대회 제목 · 설명 · 카테고리를 읽어 엔트리 단위와 "AI에게 알려 줄 내용" 세 줄을 **제안**한다. 운영자가
+ * 대회 제목 · 설명 · 카테고리를 읽어 엔트리 단위와 "AI에게 알려 줄 내용" 두 줄(엔트리 · 덧붙이는 정보)을 **제안**한다.
+ * LAB-FIX-7(대표 2026-11-25) — "엔트리 조건"(rules)은 제안하지 않는다. 조건 칸에 글이 있으면 명단을 채운 뒤
+ * 조건 다시 검사 + 웹 검색이 돌아 비용이 드는데, 운영자가 매번 비우기를 잊기 쉬웠다. 조건은 운영자가 손으로만 적는다. 운영자가
  * 고치거나 그대로 둔다 — 자동으로 확정하지 않는다(화면이 칸에 채울 뿐, 저장은 운영자의 편집과 같다).
  * aiSuggestKeywordsCore 와 같은 모양(주입식 createMessage · 값싼 검사 먼저)이라 네트워크 없이 시험이 돈다.
  */
@@ -26,7 +28,8 @@ export interface SuggestedBrief {
   entryUnit: EntryUnit;
   entry: string;
   extra: string;
-  rules: string;
+  /** LAB-FIX-7 — 항상 빈 글(응답 모양은 그대로 둔다 · 화면도 이 값을 쓰지 않는다). */
+  rules: "";
 }
 
 export interface SuggestBriefInput {
@@ -56,13 +59,12 @@ export function buildSuggestBriefPrompt(title: string, category: string, descrip
     // LAB-FIX-6 3-4 — 덧붙이는 정보는 목록 7개 중 하나(결정 I · 대표 2026-11-22 16:51). 목록 밖 값은 parse 가 버린다.
     "- extra: 덧붙이는 정보 — 이름 옆 둘째 칸에 무엇을 적을지. 아래 영문 키 중 **하나만** 적는다:",
     '  "team"(개인 엔트리가 속한 팀 · 그룹 — 소속사는 아님) · "artist"(노래를 부른 가수) · "actor"(배역을 연기한 배우) · "work"(인물 · 배역이 나오는 작품 제목) · "maker"(제품 · 서비스를 만든 회사) · "channel"(크리에이터의 채널) · "blank"(적을 것이 없음)',
-    `- rules: 엔트리 조건 — 어떤 엔트리를 넣고 뺄지 (예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외). 제목·설명에서 읽히는 것만. ${AI_BRIEF_LIMITS.rules}자 이내`,
     "",
-    "- 제목·설명에 없는 조건을 지어내지 마라. 모르면 빈 문자열",
+    "- 제목·설명에 없는 내용을 지어내지 마라. 모르면 빈 문자열",
     "- 한국어로 쓴다",
     "- 설명·머리말 없이 JSON 한 줄만 출력한다",
     "",
-    '출력 형식: {"entryUnit":"individual","entry":"","extra":"team","rules":""}',
+    '출력 형식: {"entryUnit":"individual","entry":"","extra":"team"}',
   );
   return lines.join("\n");
 }
@@ -87,7 +89,8 @@ export function parseSuggestedBrief(raw: string): SuggestedBrief {
     entry: clip(o.entry, AI_BRIEF_LIMITS.entry),
     // 목록 밖 값(자유 글 · 다른 모양)은 버린다 — 빈 글 = 단위의 기본값(화면이 정한다).
     extra: isExtraOption(clip(o.extra, AI_BRIEF_LIMITS.extra)) ? clip(o.extra, AI_BRIEF_LIMITS.extra) : "",
-    rules: clip(o.rules, AI_BRIEF_LIMITS.rules),
+    // LAB-FIX-7 — 옛 모델 답에 rules 가 섞여 와도 버린다.
+    rules: "",
   };
 }
 
