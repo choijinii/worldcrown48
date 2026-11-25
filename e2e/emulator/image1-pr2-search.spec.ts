@@ -374,10 +374,10 @@ test("[E2E] [이미지 생성] → 47칸 그림 · 끝 알림 · [새 이미지 
   const row = (i: number, score: number) => ({
     rank: i + 1, contestantId: ids[i], name: aiNames[i], videoId: null,
     imageUrl: `http://127.0.0.1:9199/v0/b/${BUCKET}/o/${encodeURIComponent(`entry-images/tournaments/${tid}/${i}_600.jpg`)}?alt=media`,
-    voteCount: 10 - i, rate: 50, crownScore: score, placementRate: 0.5, winRate: 0.5, shareRate: 0.5,
+    crownScore: score, placementRate: 0.5, winRate: 0.5, shareRate: 0.5,
   });
   await db().collection("ranking_cache").doc(tid).set({
-    tournamentId: tid, rankings: [row(0, 800), row(1, 600)], totalVotes: 19, generationSequence: 0, runsTotal: 20,
+    tournamentId: tid, rankings: [row(0, 800), row(1, 600)], generationSequence: 0, runsTotal: 20,
     generatedAt: admin.firestore.Timestamp.now(), previousGeneratedAt: null,
   });
   await page.goto(`/arena/${tid}/ranking?lang=ko`);

@@ -215,8 +215,6 @@ test("② 차트 — 번역 흉내 · 언어 ko → en → es · 멈추지 않�
     name: NAME.ko(i + 1),
     videoId: null,
     imageUrl: null,
-    voteCount: 10 - i,
-    rate: 50,
     crownScore: score,
     placementRate: 0.5,
     winRate: 0.5,
@@ -225,7 +223,6 @@ test("② 차트 — 번역 흉내 · 언어 ko → en → es · 멈추지 않�
   await db().collection("ranking_cache").doc(id).set({
     tournamentId: id,
     rankings: [row(0, 800), row(1, 600), row(2, 400)],
-    totalVotes: 19,
     generationSequence: 0,
     runsTotal: 20,
     generatedAt: admin.firestore.Timestamp.now(),

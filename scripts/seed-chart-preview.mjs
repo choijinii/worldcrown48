@@ -43,9 +43,7 @@ function entry(rank, id, name, crownScore, placementRate, winRate, shareRate) {
     contestantId: id,
     name,
     videoId: null,
-    // 내부 전용 — 화면은 절대 그리지 않는다(원칙 #8). 경보(T-1·T-2)만 읽는다.
-    voteCount: 1234,
-    rate: 25,
+    // 공개 캐시에는 선택 수(voteCount) · 옛 rate 가 없다(T5 PR 2) — 경보 기준선은 서버 전용 자리.
     crownScore,
     placementRate,
     winRate,
@@ -126,7 +124,6 @@ async function main() {
   await db.doc(`ranking_cache/${TOURNAMENT_ID}`).set({
     tournamentId: TOURNAMENT_ID,
     rankings: RANKINGS,
-    totalVotes: 6170,
     // 10판 기준(정본 §5)을 넘긴 값 — 이 값이 10 미만이면 기다림 안내가 나온다.
     runsTotal: 120,
     generationSequence: 1,

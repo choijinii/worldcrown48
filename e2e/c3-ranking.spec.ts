@@ -38,9 +38,6 @@ const UPDATED = {
   es: /^Actualizado: (hoy|ayer) \d{2}:\d{2} KST$/,
 } as const;
 
-// A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
-const SECRET_VOTE_COUNT = 7777;
-
 let consoleErrors: string[] = [];
 
 function loadServiceAccount(): admin.ServiceAccount | null {
@@ -71,8 +68,7 @@ function entry(
     contestantId,
     name,
     videoId: null,
-    voteCount: SECRET_VOTE_COUNT, // internal only — must not render
-    rate: 25, // 이상 징후(T-1·T-2) 판정용으로만 남는 값 — 화면에 안 나온다
+    // 공개 캐시에는 선택 수(voteCount) · 옛 rate · totalVotes 가 없다(T5 PR 2).
     crownScore,
     // 세 비율은 캐시에만 실린다 (화면에 나열하지 않는다 · 대표 2026-09-24).
     placementRate: 0.5,
@@ -119,7 +115,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_LOADED}`), {
     tournamentId: TID_LOADED,
     rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -132,7 +127,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_MANY}`), {
     tournamentId: TID_MANY,
     rankings: manyRankings,
-    totalVotes: SECRET_VOTE_COUNT * 14,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -143,7 +137,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_OPEN}`), {
     tournamentId: TID_OPEN,
     rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -153,7 +146,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_FEW}`), {
     tournamentId: TID_FEW,
     rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
     runsTotal: MIN_RUNS - 1,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -212,7 +204,6 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await expect(page.locator("text=/Total Votes/i")).toHaveCount(0);
     await expect(page.locator("text=/Vote Rate/i")).toHaveCount(0);
     const body = (await page.locator("body").innerText()).toLowerCase();
-    expect(body).not.toContain(String(SECRET_VOTE_COUNT)); // 7777 never leaks
     expect(body).not.toContain("votecount");
 
     // ── W-2 anomaly-removal regression guard ────────────────────────

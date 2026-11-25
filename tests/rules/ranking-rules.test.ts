@@ -29,9 +29,9 @@ function cache() {
   return {
     tournamentId: "t1",
     rankings: [
-      { rank: 1, contestantId: "c1", name: "P1", imageUrl: null, voteCount: 9, rate: 60 },
+      { rank: 1, contestantId: "c1", name: "P1", imageUrl: null, crownScore: 600 },
     ],
-    totalVotes: 15,
+    runsTotal: 15,
     generationSequence: 0,
   };
 }

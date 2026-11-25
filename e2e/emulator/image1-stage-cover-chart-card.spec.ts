@@ -79,8 +79,6 @@ test("④ 피치 VS 표지 · 차트 아바타 · 크라운 카드(서버 PNG + 
     name: `엔트리${String(i + 1).padStart(2, "0")}`,
     videoId: null,
     imageUrl: `http://127.0.0.1:9199/v0/b/demo-wc48.appspot.com/o/${encodeURIComponent(`entry-images/tournaments/${id}/${i}_600.jpg`)}?alt=media`,
-    voteCount: 10 - i,
-    rate: 50,
     crownScore: score,
     placementRate: 0.5,
     winRate: 0.5,
@@ -89,7 +87,6 @@ test("④ 피치 VS 표지 · 차트 아바타 · 크라운 카드(서버 PNG + 
   await db().collection("ranking_cache").doc(id).set({
     tournamentId: id,
     rankings: [row(0, 800), row(1, 600)],
-    totalVotes: 19,
     generationSequence: 0,
     runsTotal: 20,
     generatedAt: admin.firestore.Timestamp.now(),
