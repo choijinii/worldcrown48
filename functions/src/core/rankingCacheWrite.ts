@@ -20,6 +20,7 @@ import { buildTallies, contestantMetaOf } from "./rankingAggregator";
 import { buildRankingUpdate } from "./scheduleRankingCacheCore";
 import { accumToRankingInputs, type RankingAccum } from "./incrementalTally";
 import { toPublicEntry } from "../_ranking/publicEntry";
+import { ARCHIVE, toArchiveDoc } from "./rankingArchive";
 import type { AnomalyTag, RankingCache, RankingSnapshot } from "../_ranking/rankingTypes";
 
 /**
@@ -200,6 +201,15 @@ export async function writeCacheFromAccum(
     previousGeneratedAt: (prevData?.generatedAt as RankingCache["previousGeneratedAt"] | undefined) ?? null,
   };
   await cacheRef.set(newCache);
+
+  // 차트 사진 영구 보관 — 발표마다 한 문서. 공개 캐시 행(= 선택 수 · 비율 없음)에서 만들고, 기준선 행
+  // (영상 · 그림 주소가 남아 있다)은 쓰지 않는다. 같은 번호는 덮어쓴다. 지우는 코드는 없다.
+  await db
+    .collection(ARCHIVE)
+    .doc(tid)
+    .collection("gens")
+    .doc(String(generationSequence))
+    .set(toArchiveDoc(newCache, nowMs));
 
   // admin_alerts — create new, or refresh the open persistent one (dedup).
   for (const action of update.alertActions) {

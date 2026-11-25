@@ -1447,3 +1447,28 @@ describe("공개 캐시 · 서버 전용 경보 기준선 (T5 PR 2 · 에뮬레�
     expect(await privateHistorySeqs(tid)).toEqual([6]);
   });
 });
+
+describe("차트 사진 영구 보관 (T5 PR 2 · 에뮬레이터)", () => {
+  it("two-publishes-two-archives: 발표 2번 → gens 문서 2개 · 행에 영상 · 그림 · 선택 수 · 비율 없음", async () => {
+    const tid = "archiveT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs + 12 * HOUR, { toTimestamp });
+    const gens = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gens.docs.map((d) => d.id).sort()).toEqual(["0", "1"]);
+    const cache = await cacheOf(tid);
+    const g1 = gens.docs.find((d) => d.id === "1")!.data();
+    expect(g1.tournamentId).toBe(tid);
+    expect(g1.seq).toBe(1);
+    expect(g1.runsTotal).toBe(cache!.runsTotal);
+    expect(g1.generatedAtMs).toBe(nowMs + 12 * HOUR);
+    expect(g1.rows.length).toBe(cache!.rankings.length);
+    for (const row of g1.rows as Record<string, unknown>[]) {
+      for (const k of ["videoId", "imageUrl", "voteCount", "rate"]) expect(Object.keys(row)).not.toContain(k);
+      expect(typeof row.crownScore).toBe("number");
+    }
+  });
+});

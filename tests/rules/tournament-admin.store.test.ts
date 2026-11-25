@@ -284,3 +284,17 @@ describe("규칙 — 브라우저에서 대회를 바로 지울 수 없다", () 
     await assertFails(deleteDoc(clientDoc(owner, `tournaments/${T}`)));
   });
 });
+
+describe("차트 사진 영구 보관 — 대회 삭제와 무관 (T5 PR 2)", () => {
+  it("archive-survives-tournament-delete: removeTournament 뒤에도 ranking_archive/{tid}/gens 가 남는다", async () => {
+    await seedTournament(T);
+    await seedRecords(T);
+    const row = { tournamentId: T, runsTotal: 0, rows: [] };
+    await db.doc(`ranking_archive/${T}/gens/0`).set({ ...row, seq: 0, generatedAtMs: 1 });
+    await db.doc(`ranking_archive/${T}/gens/1`).set({ ...row, seq: 1, generatedAtMs: 2 });
+    await removeTournament(db, T, { storage, values, nowMs: now() });
+    expect((await db.doc(`tournaments/${T}`).get()).exists).toBe(false);
+    const gens = await db.collection(`ranking_archive/${T}/gens`).get();
+    expect(gens.docs.map((d) => d.id).sort()).toEqual(["0", "1"]);
+  });
+});
