@@ -45,6 +45,7 @@ import {
 } from "../../functions/src/core/incrementalTally";
 import { buildTallies, contestantMetaOf, tallyVotes } from "../../functions/src/core/rankingAggregator";
 import { buildRankingUpdate } from "../../functions/src/core/scheduleRankingCacheCore";
+import { writeCacheFromAccum } from "../../functions/src/core/rankingCacheWrite";
 import { tallyRuns, type RunVote } from "../../lib/ranking/tallyRuns";
 import { toPublicEntry } from "../../lib/ranking/publicEntry";
 import { toRateOrdered } from "../../functions/src/core/scheduleRankingCacheCore";
@@ -1470,5 +1471,41 @@ describe("차트 사진 영구 보관 (T5 PR 2 · 에뮬레이터)", () => {
       for (const k of ["videoId", "imageUrl", "voteCount", "rate"]) expect(Object.keys(row)).not.toContain(k);
       expect(typeof row.crownScore).toBe("number");
     }
+  });
+
+  it("archive-fail-before-cache: 사진 쓰기가 한 번 실패하면 공개 캐시 세대는 오르지 않고, 다음 실행이 같은 번호로 사진과 캐시를 쓴다", async () => {
+    const tid = "archiveFailT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    expect((await cacheOf(tid))!.generationSequence).toBe(0);
+    const accum = (await readAccum(db, tid))!.accum;
+
+    const boom = async () => {
+      throw new Error("archive write failed (시험)");
+    };
+    await expect(
+      writeCacheFromAccum(db, tid, accum, nowMs + 12 * HOUR, { toTimestamp, writeArchive: boom }),
+    ).rejects.toThrow(/archive write failed/);
+    // 캐시는 그대로 seq 0 — 사진이 캐시보다 먼저라서 실패가 세대를 올리지 않는다.
+    const after = await cacheOf(tid);
+    expect(after!.generationSequence).toBe(0);
+    const gensAfterFail = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gensAfterFail.docs.map((d) => d.id).sort()).toEqual(["0"]);
+
+    await writeCacheFromAccum(db, tid, accum, nowMs + 13 * HOUR, { toTimestamp });
+    const cache = await cacheOf(tid);
+    expect(cache!.generationSequence).toBe(1);
+    const gens = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gens.docs.map((d) => d.id).sort()).toEqual(["0", "1"]);
+    const g1 = gens.docs.find((d) => d.id === "1")!.data();
+    expect(g1.seq).toBe(1);
+    expect(g1.generatedAtMs).toBe(nowMs + 13 * HOUR);
+    expect(g1.runsTotal).toBe(cache!.runsTotal);
+    expect(g1.rows.map((r: { contestantId: string }) => r.contestantId)).toEqual(
+      cache!.rankings.map((r: { contestantId: string }) => r.contestantId),
+    );
   });
 });

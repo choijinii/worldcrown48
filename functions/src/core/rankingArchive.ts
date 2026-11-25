@@ -8,6 +8,14 @@
  * 행은 공개 차트 행에서 **정해 둔 키만** 옮긴다. 영상 · 그림 주소(videoId · imageUrl)는 싣지 않는다 —
  * 내리기 스위치(D-93)로 화면에서 내린 미디어가 영구 보관본에 남으면 안 된다. 선택 수 · 비율도 싣지 않는다.
  *
+ * 쓰는 순서(`rankingCacheWrite.writeCacheFromAccum`): 서버 전용 기준선 → 이 사진 → 공개 캐시. 사진 쓰기가
+ * 실패하면 캐시 세대 번호가 오르지 않아 다음 실행이 같은 번호로 다시 쓴다(빈 번호 없음).
+ *
+ * ⚠️ **공개 캐시 문서 `ranking_cache/{tid}` 를 지우면 안 된다.** 세대 번호(seq)는 그 문서의
+ * `generationSequence` + 1 로 정해진다. 문서가 없어지면 seq 가 0 부터 다시 시작하고, 이미 있는
+ * `gens/0`, `gens/1` … 이 새 값으로 **조용히 덮여** 영구 보관본이 사라진다. 지금 실서비스 코드에는
+ * 대회가 살아 있는 채 공개 캐시를 지우는 길이 없다(시드 · e2e 스크립트만 지운다). 새로 만들지 말 것.
+ *
  * 이 파일은 타입만 가져온다(firebase-functions 를 끌어오지 않는다).
  */
 import type { PublicRankingEntry } from "../_ranking/publicEntry";

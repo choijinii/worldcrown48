@@ -20,7 +20,7 @@ import { buildTallies, contestantMetaOf } from "./rankingAggregator";
 import { buildRankingUpdate } from "./scheduleRankingCacheCore";
 import { accumToRankingInputs, type RankingAccum } from "./incrementalTally";
 import { toPublicEntry } from "../_ranking/publicEntry";
-import { ARCHIVE, toArchiveDoc } from "./rankingArchive";
+import { ARCHIVE, toArchiveDoc, type ArchiveDoc } from "./rankingArchive";
 import type { AnomalyTag, RankingCache, RankingSnapshot } from "../_ranking/rankingTypes";
 
 /**
@@ -56,6 +56,11 @@ const ACCUM_COLLECTION = "ranking_accum";
 export type ToTimestamp = (ms: number) => unknown;
 export const defaultToTimestamp: ToTimestamp = (ms) => Timestamp.fromMillis(ms);
 
+/** 차트 사진 한 장 쓰기 — 시험이 실패를 흉내 내려고 바꿔 끼운다. */
+export type WriteArchive = (db: Firestore, tid: string, seq: number, doc: ArchiveDoc) => Promise<unknown>;
+export const defaultWriteArchive: WriteArchive = (db, tid, seq, doc) =>
+  db.collection(ARCHIVE).doc(tid).collection("gens").doc(String(seq)).set(doc);
+
 /** Narrow a stored baseline doc to the timestamp-free shape the cores use. */
 function toSnapshot(data: DocumentData): RankingSnapshot {
   return {
@@ -87,7 +92,7 @@ export async function writeCacheFromAccum(
   tid: string,
   accum: RankingAccum,
   nowMs: number,
-  opts: { toTimestamp?: ToTimestamp } = {},
+  opts: { toTimestamp?: ToTimestamp; writeArchive?: WriteArchive } = {},
 ): Promise<{ readsFixed: number }> {
   const now = (opts.toTimestamp ?? defaultToTimestamp)(nowMs);
   const cacheRef = db.collection("ranking_cache").doc(tid);
@@ -200,16 +205,15 @@ export async function writeCacheFromAccum(
     generatedAt: now as RankingCache["generatedAt"],
     previousGeneratedAt: (prevData?.generatedAt as RankingCache["previousGeneratedAt"] | undefined) ?? null,
   };
-  await cacheRef.set(newCache);
 
   // 차트 사진 영구 보관 — 발표마다 한 문서. 공개 캐시 행(= 선택 수 · 비율 없음)에서 만들고, 기준선 행
-  // (영상 · 그림 주소가 남아 있다)은 쓰지 않는다. 같은 번호는 덮어쓴다. 지우는 코드는 없다.
-  await db
-    .collection(ARCHIVE)
-    .doc(tid)
-    .collection("gens")
-    .doc(String(generationSequence))
-    .set(toArchiveDoc(newCache, nowMs));
+  // (영상 · 그림 주소가 남아 있다)은 쓰지 않는다. 지우는 코드는 없다.
+  // 기준선 다음 · 공개 캐시 **앞**에 쓴다(최종 검토 I-1): 사진 쓰기가 실패하면 캐시 세대 번호가 오르지
+  // 않으므로 다음 실행이 같은 번호로 사진(과 기준선)을 다시 쓴다 — 같은 번호 덮어쓰기라 빈 번호가 생기지
+  // 않는다. 캐시 뒤에 쓰면 실패한 세대의 사진이 영원히 빠지고, 다음 실행은 번호를 하나 더 올린다.
+  await (opts.writeArchive ?? defaultWriteArchive)(db, tid, generationSequence, toArchiveDoc(newCache, nowMs));
+
+  await cacheRef.set(newCache);
 
   // admin_alerts — create new, or refresh the open persistent one (dedup).
   for (const action of update.alertActions) {
