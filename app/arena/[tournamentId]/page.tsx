@@ -55,6 +55,7 @@ import { FinalStage } from "@/components/arena/FinalStage";
 import { RoundTransition } from "@/components/arena/RoundTransition";
 import {
   NO_DISMISSED_ROUND,
+  completedRunKey,
   dismissRound,
   shouldShowRoundTransition,
   type DismissedRound,
@@ -243,18 +244,21 @@ export default function ArenaPage(): JSX.Element {
   // (진입 시 판정이 `continue` → canPlayAgain false). 즉 이 PR의 주 기능이 새로고침
   // 전까지 죽어 있다.
   //
-  // championId 로 가드해 판마다 한 번만 다시 읽는다.
+  // 판 + championId 로 가드해 판마다 한 번만 다시 읽는다. RUN-FIX-2 — championId 만으로 가드하면 같은 Champion이
+  // 두 판 연속 나왔을 때 2판째 완주 뒤 다시 읽지 않아 [다시 참여]가 "(1/5)"로 꺼진 채 남았다.
   const runRefreshedForRef = useRef<string | null>(null);
   useEffect(() => {
     if (!uid || !progress?.complete || !progress.championId) return;
-    if (runRefreshedForRef.current === progress.championId) return;
-    runRefreshedForRef.current = progress.championId;
+    const key = completedRunKey(runIndex, progress.championId);
+    if (runRefreshedForRef.current === key) return;
+    runRefreshedForRef.current = key;
     void loadTournament(tournamentId, uid, isGuest);
   }, [
     uid,
     tournamentId,
     isGuest,
     loadTournament,
+    runIndex,
     progress?.complete,
     progress?.championId,
   ]);

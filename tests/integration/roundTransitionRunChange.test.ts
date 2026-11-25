@@ -15,6 +15,7 @@ import type { RoundProgressEvent } from "@/lib/arena/useRoundTransition";
 import { runDocId } from "@/lib/run/runDocId";
 import {
   NO_DISMISSED_ROUND,
+  completedRunKey,
   dismissRound,
   eventForRun,
   shouldShowRoundTransition,
@@ -101,5 +102,28 @@ describe("판이 바뀌어도 라운드 전환 화면이 다시 그려진다 (�
     expect(eventForRun(stored, currentKey())).toBeNull();
     snapshot({ fromRound: 1, toRound: 2 });
     expect(render()).toContain('data-testid="round-transition"');
+  });
+});
+
+describe("RUN-FIX-2 — 완주 뒤 판 숫자 다시 읽기는 판마다 (같은 Champion 연속)", () => {
+  it("1·2·3판이 모두 같은 Champion이어도 판마다 한 번씩 다시 읽는다", () => {
+    // 페이지의 가드와 같은 규칙: 지금 판 완주 이벤트의 열쇠가 지난번과 다르면 다시 읽는다.
+    let lastKey: string | null = null;
+    let refreshes = 0;
+    const onComplete = () => {
+      const ev = eventForRun(stored, currentKey());
+      if (!ev?.complete || !ev.championId) return;
+      const key = completedRunKey(runIndex(), ev.championId);
+      if (lastKey === key) return;
+      lastKey = key;
+      refreshes++;
+    };
+    for (let run = 1; run <= 3; run++) {
+      playWholeRun(); // 늘 Champion c1 로 끝난다
+      onComplete();
+      onComplete(); // 같은 판에서 다시 그려져도 한 번만
+      if (run < 3) playAgain();
+    }
+    expect(refreshes).toBe(3);
   });
 });

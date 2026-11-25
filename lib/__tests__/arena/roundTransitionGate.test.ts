@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 import {
   NO_DISMISSED_ROUND,
+  completedRunKey,
   dismissRound,
   eventForRun,
   shouldShowRoundTransition,
@@ -50,5 +51,13 @@ describe("eventForRun — 다른 판의 진행 문서 이벤트는 돌려주지 
     // [다시 참여] 직후 — 2판째 문서를 아직 못 받은 한 렌더 동안 1판째 완주 이벤트가 새지 않는다.
     expect(eventForRun(stored, "u_t_r2")).toBeNull();
     expect(eventForRun(stored, null)).toBeNull();
+  });
+});
+
+describe("completedRunKey — 완주 뒤 판 숫자 다시 읽기는 판마다 한 번 (RUN-FIX-2)", () => {
+  it("같은 Champion이라도 판이 다르면 다른 열쇠다", () => {
+    expect(completedRunKey(1, "c1")).not.toBe(completedRunKey(2, "c1"));
+    expect(completedRunKey(2, "c1")).toBe(completedRunKey(2, "c1"));
+    expect(completedRunKey(2, "c1")).not.toBe(completedRunKey(2, "c2"));
   });
 });
