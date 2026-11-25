@@ -28,7 +28,8 @@ export function betaPassExpiryMs(nowMs: number, launchAtMs: number): number {
 
 function base64url(bytes: ArrayBuffer): string {
   let bin = "";
-  for (const b of new Uint8Array(bytes)) bin += String.fromCharCode(b);
+  const arr = new Uint8Array(bytes);
+  for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
