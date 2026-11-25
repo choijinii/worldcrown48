@@ -45,6 +45,8 @@ import {
 import { buildTallies, contestantMetaOf, tallyVotes } from "../../functions/src/core/rankingAggregator";
 import { buildRankingUpdate } from "../../functions/src/core/scheduleRankingCacheCore";
 import { tallyRuns, type RunVote } from "../../lib/ranking/tallyRuns";
+import { relinkGuestVotes } from "../../functions/src/linkSessionVote";
+import { deleteUserVotes } from "../../functions/src/onUserDelete";
 
 const PROJECT_ID = "wc48-rules-ranking-accum";
 process.env.FIRESTORE_EMULATOR_HOST ??= "127.0.0.1:8080";
@@ -941,6 +943,180 @@ describe("rankingAccumStore · 누적 쓰기 경쟁 (에뮬레이터)", () => {
     expect(res.done).toBe(true);
     if (!res.done) return;
     expect(res.final).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task 5 — 전환(relinkGuestVotes) · 계정 삭제(deleteUserVotes)
+//
+// cron 밖에서 votes 를 바꾸는 두 곳. 전환은 게스트였던 기록에만 relinkedAt 을 찍어 "셀 수 있게 된
+// 시각"을 옮기고, 지우는 쪽(계정 삭제 · 충돌로 버리는 옛 기록)은 다시 세기 요청을 남긴다.
+
+/** 시각 표지를 정해진 값으로 — 루트 firebase-admin 의 Timestamp(functions 쪽 것은 이 db 가 못 쓴다). */
+const fixedTime = (ms: number) => () => Timestamp.fromMillis(ms);
+
+async function votesOf(userId: string) {
+  const snap = await db.collection("votes").where("userId", "==", userId).get();
+  return snap.docs.map((d) => d.data());
+}
+
+async function accumOf(tid: string) {
+  return (await readAccum(db, tid))!.accum;
+}
+
+describe("전환 · 계정 삭제 (에뮬레이터)", () => {
+  it("relink-guest-full-run: 발표 뒤 옮긴 게스트 완주 판은 다음 발표에서 runsTotal +1 한 번 · 그다음 발표 그대로", async () => {
+    const tid = "relinkFullT";
+    await seedContestants(tid);
+    await seedVotes(tid, makeRun({ userId: "u1", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: HOUR, stepMs: MIN }));
+
+    const N1 = 5 * HOUR + LAG;
+    await publishTournament(db, tid, FAR_DEADLINE, N1, { toTimestamp });
+    expect((await accumOf(tid)).runsTotal).toBe(1); // 게스트 판은 빠진다
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(RUN_VOTES);
+
+    const res = await relinkGuestVotes(db, "anonA", "googleB", new Set(), { serverTime: fixedTime(6 * HOUR) });
+    expect(res).toEqual({ linked: RUN_VOTES, legacyDeletedTids: [] });
+    const moved = await votesOf("googleB");
+    expect(moved).toHaveLength(RUN_VOTES);
+    for (const v of moved) {
+      expect(v.isGuest).toBe(false);
+      expect(v.relinkedAt.toMillis()).toBe(6 * HOUR);
+    }
+
+    const log2 = await publishTournament(db, tid, FAR_DEADLINE, 10 * HOUR + LAG, { toTimestamp });
+    expect(log2.mode).toBe("increment");
+    expect(log2.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(2 * RUN_VOTES);
+
+    const log3 = await publishTournament(db, tid, FAR_DEADLINE, 20 * HOUR + LAG, { toTimestamp });
+    expect(log3.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(2 * RUN_VOTES);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("relink-legacy-no-stamp: isGuest 칸 없는 옛 기록 · isGuest:false 기록은 relinkedAt 없음 · 두 번 안 셈", async () => {
+    const tid = "relinkLegacyT";
+    await seedContestants(tid);
+    // 이미 센 판 둘 — 옛 기록(isGuest · runIndex 칸 없음)과 isGuest:false 기록
+    await seedVotes(tid, makeRun({ userId: "anonA", guest: "missing", startMs: 1_000, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 2, guest: false, startMs: HOUR, stepMs: MIN }));
+
+    await publishTournament(db, tid, FAR_DEADLINE, 5 * HOUR + LAG, { toTimestamp });
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+
+    const res = await relinkGuestVotes(db, "anonA", "googleB", new Set(), { serverTime: fixedTime(6 * HOUR) });
+    expect(res.linked).toBe(2 * RUN_VOTES);
+    const moved = await votesOf("googleB");
+    expect(moved).toHaveLength(2 * RUN_VOTES);
+    for (const v of moved) {
+      // 다시 찍으면 그 판의 max(countableAt) 이 뒤 구간으로 가 한 번 더 세어진다
+      expect(v.relinkedAt).toBeUndefined();
+      expect(v.isGuest).toBe(false);
+      expect(typeof v.runIndex).toBe("number"); // 옛 기록은 runIndex 1 을 채운다(기존 동작)
+    }
+
+    const log = await publishTournament(db, tid, FAR_DEADLINE, 10 * HOUR + LAG, { toTimestamp });
+    expect(log.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(2 * RUN_VOTES);
+  });
+
+  it("relink-split-pages: 10건씩 옮기다 사이에 발표가 끼어도 판은 마지막 조각 구간에서 1번", async () => {
+    const tid = "relinkSplitT";
+    await seedContestants(tid);
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN }));
+    await publishTournament(db, tid, FAR_DEADLINE, 5 * HOUR + LAG, { toTimestamp });
+    expect((await accumOf(tid)).runsTotal).toBe(0);
+
+    // 조각(페이지)마다 시각 표지 하나 — 조각 p 는 6h + p 시간. 46건 / 10 = 5 조각(6h … 10h).
+    // 8h30m 의 발표는 조각 0~2(30건)가 옮겨진 뒤, 조각 3~4 가 옮겨지기 전에 돈 발표와 같다
+    // (옮기기 전 조각은 게스트라 어차피 세지 않는다).
+    let page = 0;
+    const res = await relinkGuestVotes(db, "anonA", "googleB", new Set(), {
+      pageSize: 10,
+      serverTime: () => Timestamp.fromMillis(6 * HOUR + page++ * HOUR),
+    });
+    expect(res.linked).toBe(RUN_VOTES);
+    expect(page).toBe(5);
+    const stamps = new Set((await votesOf("googleB")).map((v) => v.relinkedAt.toMillis()));
+    expect(stamps.size).toBe(5);
+
+    const mid = await publishTournament(db, tid, FAR_DEADLINE, 8 * HOUR + 30 * MIN + LAG, { toTimestamp });
+    expect(mid.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(0); // 판의 마지막 조각이 아직 뒤 구간
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(30);
+
+    const after = await publishTournament(db, tid, FAR_DEADLINE, 12 * HOUR + LAG, { toTimestamp });
+    expect(after.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(1);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(RUN_VOTES);
+
+    await publishTournament(db, tid, FAR_DEADLINE, 24 * HOUR + LAG, { toTimestamp });
+    expect((await accumOf(tid)).runsTotal).toBe(1);
+  });
+
+  it("user-delete-requests-recount: 지우는 batch 에 대회마다 요청 → 다음 발표 mode recount · 지운 판 빠짐", async () => {
+    const tid = "userDelT";
+    const tid2 = "userDelT2";
+    await seedContestants(tid);
+    await seedVotes(tid, makeRun({ userId: "u1", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "u7", runIndex: 1, startMs: HOUR, stepMs: MIN }));
+    await seedVotes(tid2, makeRun({ userId: "u7", runIndex: 1, startMs: HOUR, stepMs: MIN, take: 5 }));
+    const N1 = 5 * HOUR + LAG;
+    await publishTournament(db, tid, FAR_DEADLINE, N1, { toTimestamp });
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+
+    const deleted = await deleteUserVotes(db, "u7", { pageSize: 10, serverTime });
+    expect(deleted).toBe(RUN_VOTES + 5);
+    expect(await votesOf("u7")).toHaveLength(0);
+    for (const t of [tid, tid2]) {
+      const req = await db.collection(REQUESTS).doc(t).get();
+      expect(req.exists).toBe(true);
+      expect(req.data()!.reason).toBe("user-delete");
+    }
+    await tick();
+
+    const log = await publishTournament(db, tid, FAR_DEADLINE, N1 + 12 * HOUR, {
+      toTimestamp,
+      clock: () => Date.now() + 10_000,
+    });
+    expect(log.mode).toBe("recount");
+    expect((await accumOf(tid)).runsTotal).toBe(1);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(RUN_VOTES);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(false);
+    expect(await mismatchAlerts(tid)).toHaveLength(0);
+  });
+
+  it("relink-conflict-legacy-request: 충돌로 지운 기록 중 옛 기록이 있던 대회만 다시 세기 요청", async () => {
+    const legacyT = "conflictLegacyT"; // 충돌 · 옛 기록(isGuest 칸 없음) 섞임 → 요청
+    const guestT = "conflictGuestT"; // 충돌 · 게스트 기록뿐 → 센 적 없으니 요청 없음
+    const okT = "noConflictT"; // 충돌 아님 → 옮김
+    await seedVotes(legacyT, makeRun({ userId: "anonA", guest: "missing", startMs: 1_000, stepMs: MIN, take: 3 }));
+    await seedVotes(legacyT, makeRun({ userId: "anonA", runIndex: 2, guest: true, startMs: HOUR, stepMs: MIN, take: 3 }));
+    await seedVotes(guestT, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN, take: 4 }));
+    await seedVotes(okT, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN, take: 5 }));
+
+    const res = await relinkGuestVotes(db, "anonA", "googleB", new Set([legacyT, guestT]), {
+      pageSize: 4,
+      serverTime: fixedTime(6 * HOUR),
+    });
+    expect(res.linked).toBe(5);
+    expect(res.legacyDeletedTids).toEqual([legacyT]);
+    expect(await votesOf("anonA")).toHaveLength(0);
+    const moved = await votesOf("googleB");
+    expect(moved).toHaveLength(5);
+    expect(moved.every((v) => v.tournamentId === okT)).toBe(true);
+
+    const req = await db.collection(REQUESTS).doc(legacyT).get();
+    expect(req.exists).toBe(true);
+    expect(req.data()!.reason).toBe("relink-conflict");
+    expect(req.data()!.requestedAt.toMillis()).toBe(6 * HOUR);
+    expect((await db.collection(REQUESTS).doc(guestT).get()).exists).toBe(false);
+    expect((await db.collection(REQUESTS).doc(okT).get()).exists).toBe(false);
   });
 });
 

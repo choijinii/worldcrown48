@@ -33,8 +33,9 @@
  * one device. We'll thread sessionId through when C-1 lands.
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "./admin";
+import { requestRecount, type ServerTime } from "./core/rankingAccumStore";
 import { ALLOWED_ORIGINS } from "./cors";
 import {
   distinctTournamentIds,
@@ -236,6 +237,87 @@ async function mergeTournamentRuns(
   }
 }
 
+/**
+ * PASS 2 몸통 — 충돌 아닌 대회의 기록은 로그인 계정으로 옮기고, 충돌 대회의 기록은 지운다.
+ * 에뮬레이터 시험이 이 몸통을 직접 부르려고 함수 밖으로 꺼냈다(동작은 꺼내기 전과 같다).
+ *
+ * T5 증분 집계가 기대하는 두 가지(설계보고 §2 (가′)):
+ *
+ *   · `relinkedAt` 은 **지금 `isGuest === true` 인 기록에만** 찍는다. 게스트 기록은 그동안 세지
+ *     않았으므로 옮긴 시각이 처음으로 셀 수 있게 된 시각이다. 이미 센 기록(칸 없는 옛 기록 ·
+ *     `isGuest: false`)에 찍으면 그 판의 max(countableAt) 이 뒤 구간으로 옮겨가 판이 한 번 더 세어진다.
+ *   · 충돌로 지우는 기록 중 `isGuest !== true`(옛 기록)는 이미 차트에 들어가 있다 — 증분은 지운 것을
+ *     뺄 수 없으므로, 그 대회마다 루프가 끝난 뒤 다시 세기를 요청한다. 게스트 기록뿐이면 센 적이
+ *     없으니 요청하지 않는다.
+ *
+ * 시각 표지는 조각(batch)마다 하나를 만들어 그 조각의 기록에 같이 쓴다. `opts.serverTime` 은
+ * 시험이 루트 firebase-admin 의 값을 넘기려고 연다(functions 쪽 FieldValue 는 그 db 가 못 쓴다).
+ */
+export async function relinkGuestVotes(
+  db: Firestore,
+  anonUid: string,
+  googleUid: string,
+  conflictTids: Set<string>,
+  opts: { pageSize?: number; serverTime?: ServerTime } = {},
+): Promise<{ linked: number; legacyDeletedTids: string[] }> {
+  const pageSize = opts.pageSize ?? BATCH_LIMIT;
+  const serverTime = opts.serverTime ?? (() => FieldValue.serverTimestamp());
+  let linked = 0;
+  const legacyDeleted = new Set<string>();
+  let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+  for (;;) {
+    let q = db
+      .collection("votes")
+      .where("userId", "==", anonUid)
+      .orderBy("__name__")
+      .limit(pageSize);
+    if (cursor) q = q.startAfter(cursor);
+    const snap = await q.get();
+    if (snap.empty) break;
+    const batch = db.batch();
+    const relinkedAt = serverTime();
+    let reparentedInPage = 0;
+    snap.docs.forEach((d) => {
+      const data = d.data() as { tournamentId?: string; runIndex?: unknown; isGuest?: unknown };
+      const tid = data.tournamentId;
+      if (tid && conflictTids.has(tid)) {
+        batch.delete(d.ref); // conflict → discard the guest vote
+        // 칸 없는 옛 기록 · isGuest:false 는 이미 세어졌다 → 다시 세야 빠진다
+        if (data.isGuest !== true) legacyDeleted.add(tid);
+      } else {
+        // 회차 도입 전의 게스트 표에는 runIndex 필드가 없다. 필드가 없으면 회차
+        // 필터(`where runIndex == 1`)에 안 걸려 로그인 직후 그 판의 진행이
+        // 통째로 사라진다. 이미 이 문서를 쓰고 있으므로 여기서 채운다 —
+        // 일괄 변환 스크립트가 아니라(§5 DON'T 3) 이관 중의 한 필드다.
+        const hasRunIndex = typeof data.runIndex === "number";
+        batch.update(d.ref, {
+          userId: googleUid,
+          // v2.1 (§16 5): 로그인 계정으로 옮겨온 선택은 더 이상 게스트의 것이 아니다.
+          // "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수다 — 이 줄이
+          // 없으면 이관된 선택이 PR 3의 필터에 계속 걸려 랭킹에서 빠진다.
+          isGuest: false,
+          // 회차 필드가 없는 문서는 회차 도입 전의 1회차다(§3.0 B안). "게스트는 1판"이
+          // 아니라 "옛 문서가 곧 1회차 문서"라는 사실이다.
+          ...(hasRunIndex ? {} : { runIndex: 1 }),
+          // T5: 게스트였던 기록만 — 이 시각에 처음 셀 수 있게 된다(위 주석).
+          ...(data.isGuest === true ? { relinkedAt } : {}),
+        });
+        reparentedInPage += 1;
+      }
+    });
+    await batch.commit();
+    linked += reparentedInPage;
+    cursor = snap.docs[snap.docs.length - 1];
+    if (snap.size < pageSize) break;
+  }
+  const legacyDeletedTids = Array.from(legacyDeleted);
+  // 지우기가 다 끝난 뒤 요청한다 — 요청 뒤에 지운 기록이 다시 세기에 섞이지 않게.
+  for (const tid of legacyDeletedTids) {
+    await requestRecount(db, tid, "relink-conflict", serverTime);
+  }
+  return { linked, legacyDeletedTids };
+}
+
 export const linkSessionVote = onCall<LinkSessionVoteRequest>(
   {
     timeoutSeconds: TIMEOUT_SECONDS,
@@ -312,50 +394,7 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
 
     // PASS 2 (writes): re-parent non-conflict votes, DELETE conflict votes.
     // `linked` counts only re-parented rows — deleted conflict votes are excluded.
-    let linked = 0;
-    {
-      let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
-      for (;;) {
-        let q = adminDb
-          .collection("votes")
-          .where("userId", "==", anonUid)
-          .orderBy("__name__")
-          .limit(BATCH_LIMIT);
-        if (cursor) q = q.startAfter(cursor);
-        const snap = await q.get();
-        if (snap.empty) break;
-        const batch = adminDb.batch();
-        let reparentedInPage = 0;
-        snap.docs.forEach((d) => {
-          const tid = (d.data() as { tournamentId?: string }).tournamentId;
-          if (tid && conflictTids.has(tid)) {
-            batch.delete(d.ref); // conflict → discard the guest vote
-          } else {
-            // 회차 도입 전의 게스트 표에는 runIndex 필드가 없다. 필드가 없으면 회차
-            // 필터(`where runIndex == 1`)에 안 걸려 로그인 직후 그 판의 진행이
-            // 통째로 사라진다. 이미 이 문서를 쓰고 있으므로 여기서 채운다 —
-            // 일괄 변환 스크립트가 아니라(§5 DON'T 3) 이관 중의 한 필드다.
-            const hasRunIndex =
-              typeof (d.data() as { runIndex?: unknown }).runIndex === "number";
-            batch.update(d.ref, {
-              userId: googleUid,
-              // v2.1 (§16 5): 로그인 계정으로 옮겨온 선택은 더 이상 게스트의 것이 아니다.
-              // "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수다 — 이 줄이
-              // 없으면 이관된 선택이 PR 3의 필터에 계속 걸려 랭킹에서 빠진다.
-              isGuest: false,
-              // 회차 필드가 없는 문서는 회차 도입 전의 1회차다(§3.0 B안). "게스트는 1판"이
-              // 아니라 "옛 문서가 곧 1회차 문서"라는 사실이다.
-              ...(hasRunIndex ? {} : { runIndex: 1 }),
-            });
-            reparentedInPage += 1;
-          }
-        });
-        await batch.commit();
-        linked += reparentedInPage;
-        cursor = snap.docs[snap.docs.length - 1];
-        if (snap.size < BATCH_LIMIT) break;
-      }
-    }
+    const { linked } = await relinkGuestVotes(adminDb, anonUid, googleUid, conflictTids);
 
     // §8 Edge #1 — carry the per-Voter bracket seed (ADR-0007) from the anon
     // uid to the new uid. The bracket depends only on the seed VALUE, so copying
