@@ -40,8 +40,19 @@ const OUTPUT_SPEC = [
 ].join("\n");
 
 /**
+ * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2) — 지침 6의 숫자 규칙. 글자 그대로
+ * 잠금 시험(newsNumberLock.test.ts)이 지킨다. 옛 "절대 득표수(Vote Count)는 … 비율·순위·
+ * 참여 팬 수(Fan Count)만 쓴다." 줄을 바꿨다.
+ */
+export const NUMBER_RULE_LINES = [
+  "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 1등 비율 · 선택 비율 · 참여 팬 수 · 대회 전체 참여 횟수.",
+  "   1등 비율과 선택 비율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
+  "   선택 수 · 득표수 · 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위점수율은 쓰지 않는다. 참여 횟수는 '판'이 아니라 '참여'로 쓴다.",
+] as const;
+
+/**
  * §5.5 지침 7항 — 4종 프롬프트 전부에 박제되는 단일 진실. 마커 문구(사용설명 금지 /
- * 훅 필수 / 비주얼 병행 / 정서적 클로저 / 축제의 언어 / Vote Count / 킥 비트 / 표시 용어)는
+ * 훅 필수 / 비주얼 병행 / 정서적 클로저 / 축제의 언어 / 허용 목록 / 킥 비트 / 표시 용어)는
  * AC 9 존재검증의 계약 표면이므로 변경 시 newsPrompts.test.ts 동시 갱신.
  *
  * 지침 6 표시 용어 층 (2026-08-06 대표 확정, LANGUAGE.md §1): 코드·DB의 `Voter`는 불변이고
@@ -72,7 +83,7 @@ export const NEWS_STYLE_GUIDE = [
   '   한글 음차 금지: "토너먼트"·"컨테스턴트"·"매치"·"월드크라운"으로 바꿔 쓰지 않는다.',
   '   단, 참여자를 부르는 지칭만은 표시 용어를 쓴다 — "팬"(ko) / "fan(s)"(en·es).',
   '   지칭에 한해 "Voter"라고 쓰지 않는다 — 위 고유명사 목록과 혼동하지 말 것.',
-  "   절대 득표수(Vote Count)는 어떤 기사에도 쓰지 않는다 — 비율·순위·참여 팬 수(Fan Count)만 쓴다.",
+  ...NUMBER_RULE_LINES,
   "7. 킥 비트 1개 필수 — 클로저 직전에 예상을 비트는 반전, 앞 문장을 되받는 복기(콜백), 또는",
   "   데이터가 말해주는 의외의 강조 중 하나를 넣는다. 평탄하게 클로저로 직행하지 않는다.",
 ].join("\n");
@@ -86,23 +97,35 @@ function englishNameNote(name: string, nameEn?: string): string {
   return nameEn && nameEn !== name ? ` (공식 영어 이름: ${nameEn})` : "";
 }
 
-function evidenceLines(digest: NewsDigest): string {
+/** 0~1 비율 → 소수 첫째 자리 퍼센트 글자("31.0"). */
+function pct(r: number): string {
+  return (r * 100).toFixed(1);
+}
+
+/**
+ * AI 재료 — 근거 숫자 칸 + 선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율) +
+ * 결과 기사만 대회 전체 참여 횟수. 두 비율은 Crown Score 와 같은 줄에만 싣는다.
+ */
+export function evidenceLines(digest: NewsDigest): string {
   const stats = digest.stats
     .map((s) => `  - ${s.label}: ${s.value}`)
     .join("\n");
   const leaders =
     digest.leaders.length > 0
-      ? "\n선두(순위·비율):\n" +
+      ? "\n선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):\n" +
         digest.leaders
           .map(
             (l) =>
-              `  - ${l.rank}위 ${l.name}${englishNameNote(l.name, l.nameEn)} ${l.rate.toFixed(1)}%` +
+              `  - ${l.rank}위 ${l.name}${englishNameNote(l.name, l.nameEn)}` +
+              ` Crown Score ${l.crownScore} · 1등 비율 ${pct(l.winRate)}% · 선택 비율 ${pct(l.shareRate)}%` +
               (l.isChampion ? " (Champion)" : "") +
               (l.tournamentTitle ? ` [${l.tournamentTitle}]` : ""),
           )
           .join("\n")
       : "";
-  return `근거 데이터 (기준시각 ${digest.asOf}):\n${stats}${leaders}`;
+  const runs =
+    digest.runsTotal !== undefined ? `\n대회 전체 참여 횟수: ${digest.runsTotal}` : "";
+  return `근거 데이터 (기준시각 ${digest.asOf}):\n${stats}${leaders}${runs}`;
 }
 
 function assemble(taskLine: string, digest: NewsDigest): string {
@@ -142,7 +165,7 @@ export function buildResultPrompt(args: {
       : "";
   return assemble(
     `[결과 기사] Tournament "${args.title}"가 끝났고 Champion은 "${args.championName}"${en}이다. ` +
-      `팬들이 함께 고른 결과를 전한다. 상위 순위를 비율(%)로 stats 블록에 담되 절대 득표수는 쓰지 않는다.`,
+      `팬들이 함께 고른 결과를 전한다. 상위 순위를 Crown Score 순위로 전한다.`,
     args.digest,
   );
 }
@@ -150,7 +173,7 @@ export function buildResultPrompt(args: {
 export function buildWeeklyPrompt(args: { digest: NewsDigest }): string {
   return assemble(
     `[주간 랭킹 동향] 이번 주 진행 중인 Tournament들의 흐름을 정리한다. ` +
-      `주목받는 Contestant를 비율(%)로 소개하고, 이번 주의 발견을 정서적 클로저로 닫는다.`,
+      `주목받는 Contestant를 Crown Score 순위로 소개하고, 이번 주의 발견을 정서적 클로저로 닫는다.`,
     args.digest,
   );
 }

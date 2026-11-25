@@ -6,6 +6,7 @@
  *   - newsDraftExists: origin+tournamentId 멱등 판정 (at-least-once 전달 대비)
  */
 import { validateBlocks, type ArticleBlock } from "../_news/articleDoc";
+import { CHART_RATE_TERMS } from "./displayTerms";
 
 export class NewsDraftParseError extends Error {
   constructor(message: string) {
@@ -22,6 +23,45 @@ export interface ParsedNewsDraft {
 
 function toStr(v: unknown): string {
   return typeof v === "string" ? v : "";
+}
+
+/**
+ * 서버 그물 — 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2).
+ * AI 가 만든 stats 블록 항목(l·n)마다:
+ *   - 금지 낱말(선택 수 · 득표 · 횟수 · 순위점수율 · 옛 rate 칸 이름 …)이 있으면 버린다.
+ *   - `%` 가 있는데 라벨이 1등 비율 · 선택 비율의 3언어 낱말이 아니면 버린다.
+ * 빈 블록이 되면 블록째 버린다. 본문 문장(paragraph 등)은 고치지 않는다 — 지시문 +
+ * 대표 검수 몫.
+ */
+const STAT_DENY =
+  /vote|득표|선택 수|횟수|placement|순위점수율|오른 순위|reach|alcance|TOP RATE|RUNNER-UP|MOMENTUM/i;
+const RATE_LABEL = new RegExp(
+  [CHART_RATE_TERMS.win, CHART_RATE_TERMS.pick]
+    .flatMap((t) => [t.ko, t.en, t.es])
+    .join("|"),
+  "i",
+);
+
+function statItemAllowed(it: { n?: unknown; l?: unknown }): boolean {
+  const l = toStr(it.l);
+  const n = toStr(it.n);
+  const both = `${l} ${n}`;
+  if (STAT_DENY.test(both)) return false;
+  if (both.includes("%") && !RATE_LABEL.test(l)) return false;
+  return true;
+}
+
+function netStatsBlocks(blocks: ArticleBlock[]): ArticleBlock[] {
+  const out: ArticleBlock[] = [];
+  for (const b of blocks) {
+    if (b && b.type === "stats" && Array.isArray(b.items)) {
+      const items = b.items.filter(statItemAllowed);
+      if (items.length > 0) out.push({ ...b, items });
+      continue;
+    }
+    out.push(b);
+  }
+  return out;
 }
 
 /**
@@ -45,7 +85,7 @@ export function parseNewsDraftReply(text: string): ParsedNewsDraft {
     : Array.isArray(obj.body)
       ? obj.body
       : [];
-  const body = rawBlocks as ArticleBlock[];
+  const body = netStatsBlocks(rawBlocks as ArticleBlock[]);
   const check = validateBlocks(body);
   if (!check.ok) {
     throw new NewsDraftParseError(`draft reply blocks invalid: ${check.error}`);

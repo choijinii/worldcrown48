@@ -1,29 +1,55 @@
 /**
- * newsDigestCore — pure aggregation of the EXISTING ranking_cache into 기사 근거
- * 수치 (ND-1 §3 #2, AC 3·4). No new aggregation logic is invented: the C-3 cron
- * already tallied votes into `ranking_cache` (rankingAggregator · computeRankings),
- * and this module only summarizes that output into evidence stats + leaders.
+ * newsDigestCore — pure summary of the EXISTING ranking_cache into 기사 근거
+ * 수치 (ND-1 §3 #2, AC 3·4). No new aggregation logic is invented: the cron already
+ * wrote the chart into `ranking_cache`, and this module only picks the allowed
+ * numbers out of it.
  *
- * CLAUDE.md 원칙 #8 / LANGUAGE.md — VOTE COUNT NEVER LEAVES THIS MODULE. The cache
- * carries an internal `voteCount` for the cron's rate math; a digest exposes ONLY
- * rate (%), rank, name, and counts-of-things (Contestants·Tournaments)·dates. The
- * raw tally is dropped on the way in.
- *
- * TODO(ND-CROWN-SCORE): 랭킹 개편(대개편) 시 데이터 소스 스왑 — the weekly digest
- * currently ranks by the누적 ranking_cache rate; Crown Score(우승비율×50%+점유율×50%)
- * replaces the source here without touching the article/prompt layers.
+ * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 · 잠금 시험 newsNumberLock.test.ts):
+ *   - 숫자 칸 라벨 = ALLOWED_STAT_LABELS 뿐(CONTESTANTS · DEADLINE · KST · LANGUAGES ·
+ *     ACTIVE TOURNAMENTS · CROWN SCORE). 결과 기사의 CROWN SCORE = 차트 1위의 점수(정수).
+ *   - 선두 행 = 순위 · 이름 · Crown Score · 1등 비율(winRate) · 선택 비율(shareRate)
+ *     (LEADER_KEYS). 두 비율은 AI 재료에서 Crown Score 와 같은 줄에만 실린다.
+ *   - 대회 전체 참여 횟수(runsTotal)는 결과 기사 AI 재료 줄에만 — 숫자 칸이 아니다.
+ *   - 쓸 수 없는 것: 선택 수(voteCount) · 대회 전체 선택 수(totalVotes) · 옛 rate ·
+ *     1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위 점수 합계 · 순위점수율
+ *     (placementRate). 캐시에 있어도 rankingRowFromCache 가 읽지 않는다.
  */
 
-/** One ranking row as stored in ranking_cache (voteCount is dropped on read). */
+/** 기사 숫자 칸에 쓸 수 있는 라벨 — 그 밖의 새 칸 이름은 만들지 않는다. */
+export const ALLOWED_STAT_LABELS = [
+  "CONTESTANTS",
+  "DEADLINE · KST",
+  "LANGUAGES",
+  "ACTIVE TOURNAMENTS",
+  "CROWN SCORE",
+] as const;
+
+/** 선두 행이 가질 수 있는 키 — 잠금 시험이 이 밖의 키를 막는다. */
+export const LEADER_KEYS = [
+  "rank",
+  "contestantId",
+  "name",
+  "nameEn",
+  "crownScore",
+  "winRate",
+  "shareRate",
+  "isChampion",
+  "tournamentTitle",
+] as const;
+
+/** One chart row as the news layer reads it (허용된 7개 칸만). */
 export interface RankingRowLike {
   rank: number;
   contestantId: string;
   name: string;
   /** NAME-I18N-1 (원장 D-61) — 차트 캐시의 nameI18n.en. 옛 캐시엔 없다(빈칸). */
   nameEn?: string;
-  rate: number;
-  /** INTERNAL — present in the cache, NEVER surfaced by a digest. */
-  voteCount?: number;
+  /** Crown Score 0~1000 정수. */
+  crownScore: number;
+  /** 1등 비율 0~1. */
+  winRate: number;
+  /** 선택 비율 0~1. */
+  shareRate: number;
 }
 
 export interface EvidenceStat {
@@ -48,7 +74,9 @@ export interface DigestLeader {
   name: string;
   /** 공식 영어 이름 — 초안·번역 프롬프트가 한글 이름과 함께 쓴다(NAME-I18N-1). */
   nameEn?: string;
-  rate: number;
+  crownScore: number;
+  winRate: number;
+  shareRate: number;
   isChampion?: boolean;
   /** weekly digest cross-tournament label. */
   tournamentTitle?: string;
@@ -59,21 +87,39 @@ export interface NewsDigest {
   stats: EvidenceStat[];
   leaders: DigestLeader[];
   tournamentId?: string;
+  /** 결과 기사만 — 대회 전체 참여 횟수(캐시 runsTotal). AI 재료 줄에만 실린다. */
+  runsTotal?: number;
+}
+
+function num(v: unknown): number {
+  const n = Number(v ?? 0);
+  return Number.isFinite(n) ? n : 0;
 }
 
 /**
- * ranking_cache 의 한 행 → 기사 근거 행(순수). voteCount 는 여기서 버린다(원칙 #8).
+ * ranking_cache 의 한 행 → 기사 근거 행(순수). 허용된 7개 칸만 읽는다 — 캐시에
+ * voteCount · rate · placementRate · 횟수 칸이 있어도 여기서 버린다(허용 목록).
  * 결과 기사 트리거 · 관리자 콜러블 · 주간 크론이 같은 읽기를 쓴다.
  */
 export function rankingRowFromCache(r: Record<string, unknown>): RankingRowLike {
   const en = (r.nameI18n as { en?: unknown } | undefined)?.en;
   return {
-    rank: Number(r.rank ?? 0),
+    rank: num(r.rank),
     contestantId: String(r.contestantId ?? ""),
     name: String(r.name ?? ""),
     nameEn: typeof en === "string" ? en.trim() : "",
-    rate: Number(r.rate ?? 0),
+    crownScore: Math.round(num(r.crownScore)),
+    winRate: num(r.winRate),
+    shareRate: num(r.shareRate),
   };
+}
+
+/** 캐시 문서의 대회 전체 참여 횟수 — 0 이상 정수일 때만, 아니면 undefined. */
+export function runsTotalFromCache(
+  data: Record<string, unknown> | undefined,
+): number | undefined {
+  const v = data?.runsTotal;
+  return typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : undefined;
 }
 
 /** 한글 이름과 영어 이름이 따로 있는 선두만 — 번역 프롬프트의 이름 표(NAME-I18N-1). */
@@ -93,10 +139,6 @@ const kstMonthDay = new Intl.DateTimeFormat("en-CA", {
 export function formatKstMonthDay(ms: number): string {
   // en-CA month/day yields "MM-DD".
   return kstMonthDay.format(new Date(ms));
-}
-
-function rateStr(rate: number): string {
-  return `${rate.toFixed(1)}%`;
 }
 
 function langsLabel(langs: string[]): string {
@@ -139,30 +181,45 @@ function toLeaders(
       contestantId: r.contestantId,
       name: r.name,
       ...(r.nameEn ? { nameEn: r.nameEn } : {}),
-      rate: r.rate,
+      crownScore: r.crownScore,
+      winRate: r.winRate,
+      shareRate: r.shareRate,
       isChampion: championId ? r.contestantId === championId : false,
     }));
 }
 
-/** 결과 기사 근거 — Champion + 상위 rate. Vote Count 금지: rate/rank/name만. */
+/**
+ * 결과 기사 근거 — 차트 rank 순 상위 3 + 숫자 칸 [CONTESTANTS, CROWN SCORE].
+ * CROWN SCORE = 차트 rank 1 행의 점수(행이 없으면 칸 없음).
+ */
 export function buildResultDigest(args: {
   meta: DigestTournamentMeta;
   rankings: RankingRowLike[];
   championId?: string;
   asOf: string;
+  /** 캐시 runsTotal — 트리거·콜러블이 넘긴다. */
+  runsTotal?: number;
 }): NewsDigest {
   const leaders = toLeaders(args.rankings, args.championId);
-  const champion = leaders.find((l) => l.isChampion) ?? leaders[0];
   const stats: EvidenceStat[] = [
     { label: "CONTESTANTS", value: String(args.meta.totalContestants) },
   ];
-  if (champion) {
-    stats.push({ label: "TOP RATE", value: rateStr(champion.rate) });
+  const top = leaders.find((l) => l.rank === 1);
+  if (top) {
+    stats.push({ label: "CROWN SCORE", value: String(top.crownScore) });
   }
-  if (leaders[1]) {
-    stats.push({ label: "RUNNER-UP RATE", value: rateStr(leaders[1].rate) });
-  }
-  return { asOf: args.asOf, tournamentId: args.meta.id, leaders, stats };
+  return {
+    asOf: args.asOf,
+    tournamentId: args.meta.id,
+    leaders,
+    stats,
+    ...(args.runsTotal !== undefined ? { runsTotal: args.runsTotal } : {}),
+  };
+}
+
+/** 글자 코드 순 — 실행 환경의 언어 설정에 따라 순서가 바뀌지 않게. */
+function cmpStr(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 export interface WeeklyCacheLike {
@@ -172,8 +229,9 @@ export interface WeeklyCacheLike {
 }
 
 /**
- * 주간 랭킹 동향 — ranks active Tournaments by their leader's rate (누적 기반, 현행
- * ranking_cache). Empty field (참가 직후 크론) yields 0 active + no leaders, no throw.
+ * 주간 랭킹 동향 — 대회마다 차트 rank 1 행 → Crown Score 큰 순 · 같으면 대회 제목 순 ·
+ * 상위 3 (대표 결정 2026-11-25). 숫자 칸 = [ACTIVE TOURNAMENTS]. Empty field yields
+ * 0 active + no leaders, no throw.
  */
 export function buildWeeklyDigest(args: {
   caches: WeeklyCacheLike[];
@@ -181,27 +239,30 @@ export function buildWeeklyDigest(args: {
 }): NewsDigest {
   const leaders: DigestLeader[] = args.caches
     .map((c): DigestLeader | null => {
-      const top = [...c.rankings].sort((a, b) => a.rank - b.rank)[0];
+      const top = c.rankings.find((r) => r.rank === 1);
       return top
         ? {
             rank: top.rank,
             contestantId: top.contestantId,
             name: top.name,
             ...(top.nameEn ? { nameEn: top.nameEn } : {}),
-            rate: top.rate,
+            crownScore: top.crownScore,
+            winRate: top.winRate,
+            shareRate: top.shareRate,
             tournamentTitle: c.title,
           }
         : null;
     })
     .filter((l): l is DigestLeader => l !== null)
-    .sort((a, b) => b.rate - a.rate)
+    .sort(
+      (a, b) =>
+        b.crownScore - a.crownScore ||
+        cmpStr(a.tournamentTitle ?? "", b.tournamentTitle ?? ""),
+    )
     .slice(0, TOP_N);
 
   const stats: EvidenceStat[] = [
     { label: "ACTIVE TOURNAMENTS", value: String(args.caches.length) },
   ];
-  if (leaders[0]) {
-    stats.push({ label: "TOP MOMENTUM", value: rateStr(leaders[0].rate) });
-  }
   return { asOf: args.asOf, leaders, stats };
 }
