@@ -47,9 +47,8 @@ import {
 } from "./incrementalTally";
 import { defaultToTimestamp, writeCacheFromAccum, type ToTimestamp } from "./rankingCacheWrite";
 
-export const ACCUM = "ranking_accum",
-  REQUESTS = "ranking_recount_requests",
-  JOBS = "ranking_recount_jobs";
+import { ACCUM, JOBS, REQUESTS } from "./rankingAccumPaths";
+export { ACCUM, JOBS, REQUESTS };
 
 export interface AccumDoc {
   tournamentId: string;

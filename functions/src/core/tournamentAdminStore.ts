@@ -12,7 +12,7 @@
  *      다시 누르면 이어서 지운다(표시가 남아 그사이 선택도 막힌다).
  */
 import type { Firestore } from "firebase-admin/firestore";
-import { ACCUM, JOBS, REQUESTS } from "./rankingAccumStore";
+import { ACCUM, JOBS, REQUESTS } from "./rankingAccumPaths";
 import { entryImagePrefixesToDelete, tournamentImageDir } from "./entryImagePaths";
 import {
   TOURNAMENT_ADMIN_ERROR_CODES as CODES,
