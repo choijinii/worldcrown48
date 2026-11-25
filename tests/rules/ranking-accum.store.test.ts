@@ -9,15 +9,22 @@
  *   · 경계에 걸친 판은 다음 구간에서 판 따로 읽기 한 번(46건)으로 세어진다
  *   · 끝이 cursor 뒤가 아니면 아무것도 읽거나 쓰지 않는다
  *
+ *   · 처음부터 다시 세기(userId 순 페이지) = 한 번에 센 값 · 예산에 닿으면 이어 세기 · 요청 문서 정리
+ *
  * Emulator-backed: run via `npm run test:rules` (wraps firebase emulators:exec).
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { deleteApp, initializeApp, type App } from "firebase-admin/app";
-import { Timestamp, getFirestore, type Firestore } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, getFirestore, type Firestore } from "firebase-admin/firestore";
 import {
   ACCUM,
+  JOBS,
+  REQUESTS,
   applyIncrement,
   readAccum,
+  addRecountRequestToBatch,
+  requestRecount,
+  runRecount,
   type AccumDoc,
   type ReadCounts,
 } from "../../functions/src/core/rankingAccumStore";
@@ -162,6 +169,8 @@ async function seedVotes(tid: string, votes: AccumVote[], createdAt?: (v: AccumV
   }
 }
 
+/** 루트 firebase-admin 의 서버 시각 표지 — functions 쪽 FieldValue 는 이 db 가 직렬화하지 못한다. */
+const serverTime = () => FieldValue.serverTimestamp();
 const zeroReads = (): ReadCounts => ({ created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0 });
 const baseDoc = (tid: string, cursorMs = 0): AccumDoc => ({ tournamentId: tid, cursorMs, accum: emptyAccum(), updatedAtMs: 0 });
 const sumCounts = (r: Record<string, number>) => Object.values(r).reduce((s, n) => s + n, 0);
@@ -268,3 +277,166 @@ describe("rankingAccumStore · applyIncrement (에뮬레이터)", () => {
     expect(await readAccum(db, tid)).toBeNull();
   });
 });
+
+/** 메모리에서 [0, endMs) 를 한 번에 센 값 — 다시 세기의 기대값. */
+function fullAccum(all: AccumVote[], endMs: number) {
+  const groups = new Map<string, AccumVote[]>();
+  for (const v of all) {
+    const k = runKeyOf(v);
+    groups.set(k, [...(groups.get(k) ?? []), v]);
+  }
+  return addAccum({ ...emptyAccum(), voteCounts: voteCountDelta(all, 0, endMs) }, runDelta(groups, 0, endMs));
+}
+
+const corpusEnd = (all: AccumVote[]) => all.reduce((mx, v) => Math.max(mx, countableAtMs(v)), 0) + 1;
+const tick = () => new Promise((r) => setTimeout(r, 20));
+
+describe("rankingAccumStore · runRecount (에뮬레이터)", () => {
+  it("recount-paging-carry: 7건씩 userId 순 페이지로 다시 센 값 = 한 번에 센 값", async () => {
+    const tid = "recountT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedVotes("otherT", makeRun({ userId: "u1", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    const E = corpusEnd(all);
+
+    const reads = zeroReads();
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: E, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), pageSize: 7 },
+      reads,
+    );
+    expect(res.done).toBe(true);
+    if (!res.done) return;
+    const full = fullAccum(all, E);
+    expect(full.runsTotal).toBe(27);
+    expect(res.accum.cursorMs).toBe(E);
+    expect(accumEquals(res.accum.accum, full)).toBe(true);
+    const stored = await readAccum(db, tid);
+    expect(stored!.cursorMs).toBe(E);
+    expect(accumEquals(stored!.accum, full)).toBe(true);
+    // 페이지 끝에서 버린 사람은 다음 페이지가 다시 읽으므로 읽은 수 >= 기록 수
+    expect(reads.recount).toBeGreaterThanOrEqual(all.length);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("recount-resume: 첫 페이지 뒤 예산 초과 → job 문서 → 두 번째 호출로 끝 · 값 같음 · job 없어짐", async () => {
+    const tid = "resumeT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    const E = corpusEnd(all);
+
+    const reads = zeroReads();
+    const first = await runRecount(
+      db,
+      tid,
+      { asOfMs: E, final: true, deadlineAtMs: 0, nowMs: () => Date.now(), pageSize: 100 },
+      reads,
+    );
+    expect(first.done).toBe(false);
+    const job = await db.collection(JOBS).doc(tid).get();
+    expect(job.exists).toBe(true);
+    expect(job.data()!.asOfMs).toBe(E);
+    expect(job.data()!.final).toBe(true);
+    expect(typeof job.data()!.lastUserId).toBe("string");
+    expect((await db.collection(ACCUM).doc(tid).get()).exists).toBe(false);
+
+    const second = await runRecount(
+      db,
+      tid,
+      { asOfMs: E, final: true, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), pageSize: 100 },
+      reads,
+    );
+    expect(second.done).toBe(true);
+    if (!second.done) return;
+    expect(accumEquals(second.accum.accum, fullAccum(all, E))).toBe(true);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("request-during-recount: 다시 세기 중간에 들어온 요청은 끝난 뒤에도 남는다", async () => {
+    const tid = "reqDuringT";
+    await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "b", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    const opts = { asOfMs: 10 * HOUR, final: false, nowMs: () => Date.now(), pageSize: 46 };
+    const first = await runRecount(db, tid, { ...opts, deadlineAtMs: 0 }, zeroReads());
+    expect(first.done).toBe(false);
+    await tick();
+    await requestRecount(db, tid, "user-delete", serverTime);
+    const second = await runRecount(db, tid, { ...opts, deadlineAtMs: Number.POSITIVE_INFINITY }, zeroReads());
+    expect(second.done).toBe(true);
+    const req = await db.collection(REQUESTS).doc(tid).get();
+    expect(req.exists).toBe(true);
+    expect(req.data()!.reason).toBe("user-delete");
+    expect(req.data()!.tournamentId).toBe(tid);
+  });
+
+  it("request-before-recount-cleared: 다시 세기 전에 들어온 요청은 끝날 때 지워진다", async () => {
+    const tid = "reqBeforeT";
+    await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await requestRecount(db, tid, "admin", serverTime);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(true);
+    await tick();
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: 10 * HOUR, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now() },
+      zeroReads(),
+    );
+    expect(res.done).toBe(true);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("relink-after-asOf: asOf 뒤에 옮겨진 기록은 다시 세기에서 빠지고 이어지는 증분에서 한 번 세어진다", async () => {
+    const tid = "relinkAsOfT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    const E = corpusEnd(all);
+    // relinked2: createdAt < T3 · relinkedAt = T3 + 5 >= asOf
+    expect(all.some((v) => v.createdAtMs < T3 && v.relinkedAtMs != null && v.relinkedAtMs >= T3)).toBe(true);
+
+    const res = await runRecount(
+      db,
+      tid,
+      { asOfMs: T3, final: false, deadlineAtMs: Number.POSITIVE_INFINITY, nowMs: () => Date.now(), pageSize: 7 },
+      zeroReads(),
+    );
+    expect(res.done).toBe(true);
+    if (!res.done) return;
+    expect(accumEquals(res.accum.accum, fullAccum(all, T3))).toBe(true);
+    expect(accumEquals(res.accum.accum, fullAccum(all, E))).toBe(false);
+
+    const next = await applyIncrement(db, tid, res.accum, E, zeroReads());
+    expect(accumEquals(next.accum, fullAccum(all, E))).toBe(true);
+  });
+
+  it("request-in-batch: addRecountRequestToBatch 는 같은 batch 의 지우기와 함께 쓰인다", async () => {
+    const tid = "batchReqT";
+    await db.collection("votes").doc("x").set({ tournamentId: tid });
+    const batch = db.batch();
+    batch.delete(db.collection("votes").doc("x"));
+    addRecountRequestToBatch(db, batch, tid, "relink-conflict", serverTime);
+    expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(false);
+    await batch.commit();
+    const req = await db.collection(REQUESTS).doc(tid).get();
+    expect(req.data()!.reason).toBe("relink-conflict");
+    expect(typeof req.data()!.requestedAt.toMillis()).toBe("number");
+    expect((await db.collection("votes").doc("x").get()).exists).toBe(false);
+  });
+
+  it("concurrent-resume: 같은 job 을 두 실행이 함께 이어 세면 하나만 끝내고 하나는 아무것도 쓰지 않는다", async () => {
+    const tid = "concurrentT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    const E = corpusEnd(all);
+    const base = { asOfMs: E, final: false, nowMs: () => Date.now(), pageSize: 50 };
+    expect((await runRecount(db, tid, { ...base, deadlineAtMs: 0 }, zeroReads())).done).toBe(false);
+
+    const go = { ...base, deadlineAtMs: Number.POSITIVE_INFINITY };
+    const [a, b] = await Promise.all([runRecount(db, tid, go, zeroReads()), runRecount(db, tid, go, zeroReads())]);
+    expect([a.done, b.done].filter(Boolean)).toHaveLength(1);
+    const stored = await readAccum(db, tid);
+    expect(accumEquals(stored!.accum, fullAccum(all, E))).toBe(true);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+  });
+});
+
