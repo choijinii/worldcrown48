@@ -504,6 +504,13 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
+    // ── config/betaAllowlist (BETA-PASS-1 · 1차 베타 명단) ──────────
+    // 칸 emails: string[] — 테스터 구글 메일. 명단 확인은 betaPass 콜러블(admin SDK)만 한다.
+    // 메일 목록이라 관리자도 브라우저로는 읽지도 쓰지도 못한다 — 넣는 것은 Firebase 콘솔에서 사람이.
+    match /config/betaAllowlist {
+      allow read, write: if false;
+    }
+
     // ── news_views (PITCH-2 PR B · 기사별 조회 칸 · 대표 결정 2026-11-18) ──────
     // 문서 id = 기사 slug · 칸 = total · d<YYYYMMDD>(KST 오늘·어제만 남김). 홈 HOT 열이 읽는다 —
     // 숫자뿐이라 누구나 읽는다. 쓰기는 recordArticleView 콜러블 · onArticleDeleted 트리거(admin SDK)만 —

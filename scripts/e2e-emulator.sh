@@ -7,6 +7,7 @@
 #
 #   bash scripts/e2e-emulator.sh            # 전부
 #   bash scripts/e2e-emulator.sh image1-editor   # 이름에 이 글자가 든 spec 만
+#   PW_CONFIG=playwright.beta.config.ts bash scripts/e2e-emulator.sh   # BETA-PASS-1 — 커튼 켜진 서버 판
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -28,6 +29,7 @@ ANTHROPIC_API_KEY=e2e-dummy
 YOUTUBE_API_KEY=e2e-dummy
 IP_HASH_SALT=e2e-dummy
 BRAVE_SEARCH_API_KEY=e2e-dummy
+BETA_PASS_SECRET=e2e-beta-pass-secret
 SECRETS
 # 대회가 열리면 도는 기존 트리거(뉴스 초안 AI)가 바깥 AI 주소를 부르지 않게 닫힌 로컬 주소로 돌린다
 # (Anthropic SDK 는 ANTHROPIC_BASE_URL 을 읽는다). 지시서 §11.3 — 바깥 사이트를 부르지 않는다.
@@ -52,4 +54,4 @@ if [ "${SKIP_BUILD:-0}" != "1" ]; then
 fi
 
 npx firebase emulators:exec --project demo-wc48 --only auth,firestore,storage,functions \
-  "npx playwright test -c playwright.emulator.config.ts ${1:-}"
+  "npx playwright test -c ${PW_CONFIG:-playwright.emulator.config.ts} ${1:-}"

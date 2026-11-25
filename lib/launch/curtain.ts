@@ -15,6 +15,7 @@ import { LAUNCH_AT_MS } from "@/lib/launch/launchAt";
 export const PREVIEW_COOKIE = "wc48_preview";
 export const PREVIEW_COOKIE_MAX_AGE_S = 60 * 60 * 24 * 30; // 30일
 export const CURTAIN_TARGET = "/launch";
+export const BETA_PATH = "/beta";
 
 export interface CurtainEnv {
   LAUNCH_CURTAIN?: string;
@@ -36,9 +37,12 @@ function underPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
-/** 커튼이 막지 않는 길 — 사전등록 · 정책(늘 열려 있어야 한다) · 관리자 · 내부 · 정적 파일. */
+/**
+ * 커튼이 막지 않는 길 — 사전등록 · 정책(늘 열려 있어야 한다) · 관리자 · 내부 · 정적 파일 ·
+ * 베타 초대 페이지 `/beta`(BETA-PASS-1 — 명단 로그인으로 통과증을 받는 문).
+ */
 export function isCurtainExempt(pathname: string): boolean {
-  if (["/launch", "/policies", "/admin", "/api", "/_next"].some((p) => underPrefix(pathname, p))) {
+  if (["/launch", "/policies", "/admin", "/api", "/_next", BETA_PATH].some((p) => underPrefix(pathname, p))) {
     return true;
   }
   if (pathname.startsWith("/favicon")) return true;
@@ -58,17 +62,31 @@ export function hasPreviewCookie(value: string | undefined): boolean {
   return value === "1";
 }
 
+/**
+ * `betaPassValid` = 쿠키 `wc48_beta` 의 서명 · 만료를 middleware 가 이미 확인한 결과
+ * (lib/launch/betaPass.ts verifyBetaPass — 확인이 비동기라 여기서는 결과만 받는다).
+ */
 export function shouldCurtain(input: {
   pathname: string;
   previewCookie: string | undefined;
+  betaPassValid?: boolean;
   env: CurtainEnv;
   nowMs: number;
 }): boolean {
   return (
     isCurtainOn(input.env, input.nowMs) &&
     !hasPreviewCookie(input.previewCookie) &&
+    input.betaPassValid !== true &&
     !isCurtainExempt(input.pathname)
   );
+}
+
+/**
+ * 런칭 시각이 지나면 `/beta` 는 `/` 로 307(지시서 §2-9). 커튼 스위치와 상관없이 시각만 본다 —
+ * 베타 페이지는 런칭 전 임시 페이지다.
+ */
+export function betaRedirectAfterLaunch(pathname: string, env: CurtainEnv, nowMs: number): boolean {
+  return underPrefix(pathname, BETA_PATH) && nowMs >= curtainLaunchAtMs(env);
 }
 
 /**

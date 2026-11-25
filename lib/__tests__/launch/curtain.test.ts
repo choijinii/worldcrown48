@@ -12,6 +12,7 @@ import {
   previewCookieAction,
   previewCookieString,
   shouldCurtain,
+  betaRedirectAfterLaunch,
 } from "@/lib/launch/curtain";
 import { LAUNCH_AT_MS } from "@/lib/launch/launchAt";
 
@@ -60,8 +61,10 @@ describe("isCurtainExempt — 허용 목록", () => {
     "/favicon.ico",
     "/fonts/Pretendard.woff2",
     "/brand/logo.svg",
+    "/beta",
+    "/beta/",
   ];
-  const blocked = ["/", "/arena/abc", "/arena", "/records", "/news/1", "/account", "/launchpad", "/administrator", "/policiesx"];
+  const blocked = ["/", "/arena/abc", "/arena", "/records", "/news/1", "/account", "/launchpad", "/administrator", "/policiesx", "/betax"];
   for (const p of exempt) it(`열림: ${p}`, () => expect(isCurtainExempt(p)).toBe(true));
   for (const p of blocked) it(`막힘: ${p}`, () => expect(isCurtainExempt(p)).toBe(false));
 });
@@ -136,5 +139,44 @@ describe("previewCookieString — 브라우저에 쓰는 글자", () => {
   });
   it("지우기: Max-Age=0", () => {
     expect(previewCookieString("clear", true)).toBe("wc48_preview=; Path=/; Max-Age=0; SameSite=Lax; Secure");
+  });
+});
+
+describe("BETA-PASS-1 — 쿠키 조합 × 커튼 켜짐/꺼짐", () => {
+  const on = { LAUNCH_CURTAIN: "on", LAUNCH_AT: "" };
+  const off = { LAUNCH_CURTAIN: "off" };
+  const cases: Array<[string, string | undefined, boolean, boolean, boolean]> = [
+    // 이름, preview 쿠키, beta 유효, 켜짐에서 막힘, 꺼짐에서 막힘
+    ["쿠키 없음", undefined, false, true, false],
+    ["preview=1", "1", false, false, false],
+    ["beta 유효", undefined, true, false, false],
+    ["beta 위조(검증 실패)", undefined, false, true, false],
+  ];
+  for (const [name, preview, beta, blockedOn, blockedOff] of cases) {
+    it(`${name} — 켜짐 ${blockedOn ? "막힘" : "통과"} · 꺼짐 ${blockedOff ? "막힘" : "통과"}`, () => {
+      expect(shouldCurtain({ pathname: "/", previewCookie: preview, betaPassValid: beta, env: on, nowMs: BEFORE })).toBe(blockedOn);
+      expect(shouldCurtain({ pathname: "/", previewCookie: preview, betaPassValid: beta, env: off, nowMs: BEFORE })).toBe(blockedOff);
+    });
+  }
+  it("/beta 는 쿠키 없이도 열린다", () => {
+    expect(shouldCurtain({ pathname: "/beta", previewCookie: undefined, env: on, nowMs: BEFORE })).toBe(false);
+  });
+});
+
+describe("betaRedirectAfterLaunch — 런칭 뒤 /beta → /", () => {
+  it("런칭 시각이 지나면 /beta 는 이동", () => {
+    expect(betaRedirectAfterLaunch("/beta", {}, AFTER)).toBe(true);
+    expect(betaRedirectAfterLaunch("/beta/", { LAUNCH_CURTAIN: "on" }, AFTER)).toBe(true);
+  });
+  it("런칭 전에는 커튼이 꺼져 있어도 /beta 가 열린다", () => {
+    expect(betaRedirectAfterLaunch("/beta", {}, BEFORE)).toBe(false);
+    expect(betaRedirectAfterLaunch("/beta", { LAUNCH_CURTAIN: "on" }, BEFORE)).toBe(false);
+  });
+  it("LAUNCH_AT 이 런칭 시각을 미루면 그 값을 따른다", () => {
+    expect(betaRedirectAfterLaunch("/beta", { LAUNCH_AT: "2026-12-09T15:00:00Z" }, AFTER)).toBe(false);
+  });
+  it("다른 길은 상관없다", () => {
+    expect(betaRedirectAfterLaunch("/", {}, AFTER)).toBe(false);
+    expect(betaRedirectAfterLaunch("/betax", {}, AFTER)).toBe(false);
   });
 });

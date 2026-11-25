@@ -64,6 +64,8 @@ export type SignInTriggerPoint =
   | "header"
   /** NAV-1 — Locker Room(/account) 비로그인 안내 화면의 로그인 버튼. */
   | "account"
+  /** BETA-PASS-1 — 1차 베타 초대 페이지(/beta)의 [구글로 로그인하고 시작하기]. */
+  | "beta"
   | "other";
 export const PENDING_TRIGGER_POINT_KEY = "wc48_pending_trigger_point";
 
