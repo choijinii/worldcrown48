@@ -41,3 +41,12 @@ export function eventForRun<T>(
 ): T | null {
   return currentKey !== null && stored.key === currentKey ? stored.event : null;
 }
+
+/**
+ * RUN-FIX-2 (2026-11-25) — 완주 뒤 판 숫자를 서버에서 다시 읽었는지 기억하는 열쇠. 판 번호를 함께 넣는다.
+ * Champion 이름만으로 기억하면, 같은 Champion이 두 판 연속 나왔을 때 2판째 완주 뒤 다시 읽지 않아
+ * [다시 참여]가 "(1/5)"로 꺼진 채 남았다(3판째 불가 · 새로고침해야 풀림).
+ */
+export function completedRunKey(runIndex: number | undefined, championId: string): string {
+  return `${runIndex ?? 0}:${championId}`;
+}
