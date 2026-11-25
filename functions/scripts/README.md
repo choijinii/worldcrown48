@@ -82,3 +82,17 @@ The shared Arena id `dev-preview` matches `SAMPLE_TOURNAMENT_ID` in
   기본 dry-run(건수·순서만 · 메일은 가림), `--apply` 로 실행. 계획 = `assign-founding-rank.lib.mjs`(단위 시험).
 - `clear-waitlist-test.mjs` — 시험 메일(`@wc48.test`) 등록(`waitlist_test` + `waitlist_meta/test`)을 모음째
   지운다. 기본 dry-run, `--apply` 로 삭제. 진짜 `waitlist` 는 건드리지 않는다.
+
+## compare-ranking-accum.mjs (T5 차트 증분 집계 · 읽기 전용)
+
+배포 전에 실서비스에 대고 돌려, 누적(`ranking_accum/{tid}`)이 대회 기록 전량을 처음부터 다시 센 값과
+같은지 확인한다(누적의 `cursorMs` 까지 · 크론의 그림자 비교와 같은 계산). **아무것도 쓰지 않는다.**
+먼저 `cd functions && npm run build`(빌드 결과 `lib/core` 를 가져온다). 인증 = ADC(`gcloud auth
+application-default login`) 또는 `FIREBASE_ADMIN_SDK_KEY`.
+
+```
+node functions/scripts/compare-ranking-accum.mjs --project <프로젝트 id> [--tournament <tid>] [--json]
+```
+
+`--tournament` 없으면 집계 창 안 대회 전부(크론과 같은 쿼리). 대회마다 일치 여부 · 다른 엔트리(두 값) ·
+`runIndex`/`isGuest` 없는 기록 수 · 읽은 문서 수를 낸다. 누적 문서가 없으면 그렇게 적고 전량 요약만 낸다.
