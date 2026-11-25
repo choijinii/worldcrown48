@@ -67,6 +67,7 @@ describe("buildResultDigest — 결과 기사 근거 (Crown Score 기반)", () =
       rankings: rows,
       championId: "c1",
       asOf: "2026-08-31 12:00 KST",
+      runsTotal: 50, // 차트 기준(10) 이상 — 아래는 newsNumberLock.test.ts
     });
     expect(d.leaders[0]).toMatchObject({ rank: 1, name: "Blue Flame", crownScore: 812, winRate: 0.333 });
     expect(d.stats.find((s) => s.label === "CROWN SCORE")?.value).toBe("812");
@@ -101,10 +102,11 @@ describe("buildResultDigest — 결과 기사 근거 (Crown Score 기반)", () =
 
 describe("buildWeeklyDigest — 주간 랭킹 동향 (대회마다 차트 1위 · Crown Score 큰 순)", () => {
   const caches = [
-    { tournamentId: "t1", title: "A48", rankings: rows },
+    { tournamentId: "t1", title: "A48", rankings: rows, runsTotal: 50 },
     {
       tournamentId: "t2",
       title: "B48",
+      runsTotal: 50,
       rankings: [{ rank: 1, contestantId: "x", name: "X", crownScore: 950, winRate: 0.55, shareRate: 0.7 }],
     },
   ];
@@ -160,11 +162,11 @@ describe("이름 3언어 — 기사 근거", () => {
     const named: RankingRowLike[] = [
       { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", crownScore: 700, winRate: 0.4, shareRate: 0.5 },
     ];
-    expect(buildResultDigest({ meta, rankings: named, championId: "c1", asOf: "x" }).leaders[0].nameEn).toBe(
+    expect(buildResultDigest({ meta, rankings: named, championId: "c1", asOf: "x", runsTotal: 50 }).leaders[0].nameEn).toBe(
       "NewJeans",
     );
     expect(
-      buildWeeklyDigest({ caches: [{ tournamentId: "t", title: "T", rankings: named }], asOf: "x" }).leaders[0]
+      buildWeeklyDigest({ caches: [{ tournamentId: "t", title: "T", rankings: named, runsTotal: 50 }], asOf: "x" }).leaders[0]
         .nameEn,
     ).toBe("NewJeans");
   });

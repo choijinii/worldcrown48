@@ -12,7 +12,7 @@
  *     closer{text}
  */
 import type { NewsDigest } from "./newsDigestCore";
-import { UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
+import { CHART_RATE_TERMS, UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
 
 /** 전투 은유 금지어 — §5.5 #5. Match 는 싸움이 아니라 애정을 고르는 순간. */
 export const FORBIDDEN_WAR_WORDS = [
@@ -51,6 +51,20 @@ export const NUMBER_RULE_LINES = [
 ] as const;
 
 /**
+ * 두 비율의 3언어 낱말 — en·es 원문 초안도 차트 설명창(chart.score.help)과 같은 말을 쓰게
+ * 지시문에 한 번 싣는다(검토 M-3).
+ */
+export const CHART_TERM_RULE_LINE =
+  `   ${CHART_RATE_TERMS.win.ko} · ${CHART_RATE_TERMS.pick.ko}은 영어로 ${CHART_RATE_TERMS.win.en} · ${CHART_RATE_TERMS.pick.en}, ` +
+  `스페인어로 ${CHART_RATE_TERMS.win.es} · ${CHART_RATE_TERMS.pick.es} 로 쓴다(차트 설명창과 같은 말).`;
+
+/**
+ * 차트가 아직 점수를 감추는 동안(runsTotal 10 미만 · 모름) AI 재료에 싣는 한 줄.
+ */
+export const CHART_WAITING_LINE =
+  "차트는 아직 참여가 적어 점수를 공개하지 않는다 — Crown Score와 비율을 쓰지 않는다.";
+
+/**
  * §5.5 지침 7항 — 4종 프롬프트 전부에 박제되는 단일 진실. 마커 문구(사용설명 금지 /
  * 훅 필수 / 비주얼 병행 / 정서적 클로저 / 축제의 언어 / 허용 목록 / 킥 비트 / 표시 용어)는
  * AC 9 존재검증의 계약 표면이므로 변경 시 newsPrompts.test.ts 동시 갱신.
@@ -84,6 +98,7 @@ export const NEWS_STYLE_GUIDE = [
   '   단, 참여자를 부르는 지칭만은 표시 용어를 쓴다 — "팬"(ko) / "fan(s)"(en·es).',
   '   지칭에 한해 "Voter"라고 쓰지 않는다 — 위 고유명사 목록과 혼동하지 말 것.',
   ...NUMBER_RULE_LINES,
+  CHART_TERM_RULE_LINE,
   "7. 킥 비트 1개 필수 — 클로저 직전에 예상을 비트는 반전, 앞 문장을 되받는 복기(콜백), 또는",
   "   데이터가 말해주는 의외의 강조 중 하나를 넣는다. 평탄하게 클로저로 직행하지 않는다.",
 ].join("\n");
@@ -112,12 +127,16 @@ export function evidenceLines(digest: NewsDigest): string {
     .join("\n");
   const leaders =
     digest.leaders.length > 0
-      ? "\n선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):\n" +
+      ? (digest.scoresWaiting
+          ? "\n선두(차트 순위):\n"
+          : "\n선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):\n") +
         digest.leaders
           .map(
             (l) =>
               `  - ${l.rank}위 ${l.name}${englishNameNote(l.name, l.nameEn)}` +
-              ` Crown Score ${l.crownScore} · 1등 비율 ${pct(l.winRate)}% · 선택 비율 ${pct(l.shareRate)}%` +
+              (l.crownScore !== undefined
+                ? ` Crown Score ${l.crownScore} · 1등 비율 ${pct(l.winRate ?? 0)}% · 선택 비율 ${pct(l.shareRate ?? 0)}%`
+                : "") +
               (l.isChampion ? " (Champion)" : "") +
               (l.tournamentTitle ? ` [${l.tournamentTitle}]` : ""),
           )
@@ -125,7 +144,8 @@ export function evidenceLines(digest: NewsDigest): string {
       : "";
   const runs =
     digest.runsTotal !== undefined ? `\n대회 전체 참여 횟수: ${digest.runsTotal}` : "";
-  return `근거 데이터 (기준시각 ${digest.asOf}):\n${stats}${leaders}${runs}`;
+  const waiting = digest.scoresWaiting ? `\n${CHART_WAITING_LINE}` : "";
+  return `근거 데이터 (기준시각 ${digest.asOf}):\n${stats}${leaders}${waiting}${runs}`;
 }
 
 function assemble(taskLine: string, digest: NewsDigest): string {

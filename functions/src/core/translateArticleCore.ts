@@ -119,13 +119,13 @@ function nameGlossaryLines(names: TranslateArticleInput["names"], target: Lang):
 }
 
 /**
- * 차트 낱말 표 — en·es 로 옮길 때만(기사 숫자 허용 목록 · 2026-11-25). 낱말은 차트
- * 설명창(chart.score.help)과 같다. 다른 언어의 낱말 → 대상 언어 낱말. 끝에 빈 줄 하나.
+ * 차트 낱말 목록 — en·es 로 옮길 때만(기사 숫자 허용 목록 · 2026-11-25). 낱말은 차트
+ * 설명창(chart.score.help)과 같다. 다른 두 언어의 낱말 → 대상 언어 낱말. 끝에 빈 줄 하나.
  */
 function chartTermLines(target: Lang): string[] {
   if (target === "ko") return [];
   const row = (t: { ko: string; en: string; es: string }) =>
-    target === "en" ? `  - ${t.ko} → ${t.en}` : `  - ${t.ko} · ${t.en} → ${t.es}`;
+    target === "en" ? `  - ${t.ko} · ${t.es} → ${t.en}` : `  - ${t.ko} · ${t.en} → ${t.es}`;
   return [
     "차트 낱말 — 번역문에서는 오른쪽 낱말을 그대로 쓴다:",
     row(CHART_RATE_TERMS.win),

@@ -3,7 +3,7 @@
  *
  * 기준 = 계획서 docs/superpowers/plans/2026-11-25-t5-incremental-ranking.md
  * "기사 숫자 허용 목록" 절. 근거(digest) · AI 재료(evidence 줄) · AI 지시 · 서버 그물 ·
- * 번역 용어 표가 그 목록을 벗어나면 이 시험이 실패한다.
+ * 번역 용어 목록이 그 목록을 벗어나면 이 시험이 실패한다.
  *
  * 쓸 수 없는 것: 엔트리별 선택 수(voteCount) · 대회 전체 선택 수(totalVotes) · 옛 rate ·
  * 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위 점수 합계 · 순위점수율(placementRate).
@@ -32,6 +32,8 @@ import {
 import { parseNewsDraftReply } from "../core/newsDraftAssembly";
 import { buildArticleTranslatePrompt } from "../core/translateArticleCore";
 import { CHART_RATE_TERMS } from "../core/displayTerms";
+import { MIN_RUNS_FOR_CHART } from "../core/newsDigestCore";
+import { CHART_TERM_RULE_LINE, CHART_WAITING_LINE } from "../core/newsPrompts";
 
 // 공개 캐시 행 — 서버 전용·옛 칸을 눈에 띄는 값으로 심는다(9 · 61.2 · 0.77 · 1204 · 333 · 4417).
 const cacheRows: Record<string, unknown>[] = [
@@ -97,20 +99,23 @@ const resultDigest = buildResultDigest({
 });
 const weeklyDigest = buildWeeklyDigest({
   caches: [
-    { tournamentId: "t1", title: "여름 컴백 48", rankings },
+    { tournamentId: "t1", title: "여름 컴백 48", rankings, runsTotal: 2026 },
     {
       tournamentId: "t2",
       title: "B 대회",
+      runsTotal: 40,
       rankings: [rankingRowFromCache({ rank: 1, contestantId: "x", name: "엑스", crownScore: 900, winRate: 0.4, shareRate: 0.7, rate: 88.8 })],
     },
     {
       tournamentId: "t3",
       title: "A 대회",
+      runsTotal: 40,
       rankings: [rankingRowFromCache({ rank: 1, contestantId: "y", name: "와이", crownScore: 900, winRate: 0.2, shareRate: 0.6 })],
     },
     {
       tournamentId: "t4",
       title: "C 대회",
+      runsTotal: 40,
       rankings: [rankingRowFromCache({ rank: 1, contestantId: "z", name: "제트", crownScore: 10, winRate: 0, shareRate: 0.2 })],
     },
   ],
@@ -151,7 +156,7 @@ describe("기사 숫자 허용 목록 — 근거(digest)", () => {
 
   it("결과 기사: CROWN SCORE 는 rank 1 행의 점수(행 순서와 무관) · 정수", () => {
     const shuffled = [...rankings].reverse();
-    const d = buildResultDigest({ meta, rankings: shuffled, championId: "c1", asOf: "x" });
+    const d = buildResultDigest({ meta, rankings: shuffled, championId: "c1", asOf: "x", runsTotal: 10 });
     expect(d.stats.find((s) => s.label === "CROWN SCORE")?.value).toBe("812");
     expect(d.leaders.map((l) => l.rank)).toEqual([1, 2, 3]);
   });
@@ -299,10 +304,18 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
         { n: "31.0%", l: "WINS" },
         { n: "64.2%", l: "Elecciones" },
         { n: "64.2%", l: "선택 비율" },
+        { n: "812", l: "CROWN SCORE" },
       ]),
     );
     const stats = r.body.find((b) => b.type === "stats") as { items: { n: string; l: string }[] };
-    expect(stats.items.map((it) => it.l)).toEqual(["Picks", "Victorias", "WINS", "Elecciones", "선택 비율"]);
+    expect(stats.items.map((it) => it.l)).toEqual([
+      "Picks",
+      "Victorias",
+      "WINS",
+      "Elecciones",
+      "선택 비율",
+      "CROWN SCORE",
+    ]);
   });
 
   it("그물: 다 빠져 빈 stats 블록이 되면 블록째 버린다 · 본문 문장은 고치지 않는다", () => {
@@ -314,7 +327,7 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
   });
 });
 
-describe("기사 숫자 허용 목록 — 번역 용어 표", () => {
+describe("기사 숫자 허용 목록 — 번역 용어 목록", () => {
   const input = {
     title: "제목",
     subhead: "부제",
@@ -322,10 +335,10 @@ describe("기사 숫자 허용 목록 — 번역 용어 표", () => {
     sourceLang: "ko" as const,
   };
 
-  it("번역 용어 표: Wins/Picks · Victorias/Elecciones", () => {
+  it("번역 용어 목록: Wins/Picks · Victorias/Elecciones", () => {
     const en = buildArticleTranslatePrompt(input, "en");
-    expect(en).toContain("  - 1등 비율 → Wins");
-    expect(en).toContain("  - 선택 비율 → Picks");
+    expect(en).toContain("  - 1등 비율 · Victorias → Wins");
+    expect(en).toContain("  - 선택 비율 · Elecciones → Picks");
     expect(en).toContain("  - Crown Score → Crown Score");
     const es = buildArticleTranslatePrompt(input, "es");
     expect(es).toContain("  - 1등 비율 · Wins → Victorias");
@@ -335,7 +348,7 @@ describe("기사 숫자 허용 목록 — 번역 용어 표", () => {
     expect(buildArticleTranslatePrompt({ ...input, sourceLang: "en" }, "ko")).not.toContain("→ Wins");
   });
 
-  it("번역 용어 표의 낱말은 차트 설명창(chart.score.help)과 같다", () => {
+  it("번역 용어 목록의 낱말은 차트 설명창(chart.score.help)과 같다", () => {
     const src = readFileSync(join(process.cwd(), "..", "lib", "i18n", "messages.ts"), "utf8");
     const start = src.indexOf('"chart.score.help"');
     expect(start).toBeGreaterThan(-1);
@@ -348,6 +361,120 @@ describe("기사 숫자 허용 목록 — 번역 용어 표", () => {
       expect(lang("ko")).toContain(`· ${t.ko} `);
       expect(lang("en")).toContain(`· ${t.en} `);
       expect(lang("es")).toContain(`· ${t.es} `);
+    }
+  });
+});
+
+// ── Fix round 1 (검토 I-1 · M-1 · M-2 · M-3) ─────────────────────────────────────
+
+describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수를 쓰지 않는다", () => {
+  it("MIN_RUNS_FOR_CHART 는 lib/ranking/rankState.ts 와 같은 값", () => {
+    const src = readFileSync(join(process.cwd(), "..", "lib", "ranking", "rankState.ts"), "utf8");
+    const m = src.match(/export const MIN_RUNS_FOR_CHART = (\d+);/);
+    expect(m).not.toBeNull();
+    expect(MIN_RUNS_FOR_CHART).toBe(Number(m![1]));
+  });
+
+  for (const runsTotal of [undefined, 0, 9]) {
+    it(`결과 기사 runsTotal ${runsTotal}: CROWN SCORE 칸 없음 · 선두는 순위·이름만 · 기다림 줄`, () => {
+      const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal });
+      expect(d.stats).toEqual([{ label: "CONTESTANTS", value: "48" }]);
+      for (const l of d.leaders) {
+        expect(l).not.toHaveProperty("crownScore");
+        expect(l).not.toHaveProperty("winRate");
+        expect(l).not.toHaveProperty("shareRate");
+      }
+      const ev = evidenceLines(d);
+      expect(ev).toContain("  - 1위 블루 플레임 (공식 영어 이름: Blue Flame) (Champion)");
+      expect(ev).not.toMatch(/Crown Score \d|1등 비율 \d|선택 비율 \d|812/);
+      expect(ev).toContain(CHART_WAITING_LINE);
+      expect(CHART_WAITING_LINE).toBe(
+        "차트는 아직 참여가 적어 점수를 공개하지 않는다 — Crown Score와 비율을 쓰지 않는다.",
+      );
+    });
+  }
+
+  it("결과 기사 runsTotal 10: 점수가 실리고 기다림 줄 없음", () => {
+    const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal: 10 });
+    expect(d.stats.map((s) => s.label)).toEqual(["CONTESTANTS", "CROWN SCORE"]);
+    expect(evidenceLines(d)).not.toContain(CHART_WAITING_LINE);
+    expect(evidenceLines(d)).toContain("Crown Score 812 · 1등 비율 31.0%");
+  });
+
+  it("주간 기사: runsTotal 10 미만(또는 없음) 대회는 선두에서 빠지고 ACTIVE TOURNAMENTS 에는 센다", () => {
+    const d = buildWeeklyDigest({
+      caches: [
+        { tournamentId: "a", title: "적은 대회", rankings, runsTotal: 9 },
+        { tournamentId: "b", title: "모르는 대회", rankings },
+        { tournamentId: "c", title: "충분한 대회", rankings, runsTotal: 10 },
+      ],
+      asOf: "x",
+    });
+    expect(d.stats).toEqual([{ label: "ACTIVE TOURNAMENTS", value: "3" }]);
+    expect(d.leaders.map((l) => l.tournamentTitle)).toEqual(["충분한 대회"]);
+  });
+});
+
+describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN SCORE 칸과 함께만", () => {
+  const statsOf = (items: { n: string; l: string }[]) => {
+    const r = parseNewsDraftReply(
+      JSON.stringify({ title: "t", subhead: "s", blocks: [{ type: "lead", text: "x" }, { type: "stats", items }] }),
+    );
+    const b = r.body.find((x) => x.type === "stats") as { items: { n: string; l: string }[] } | undefined;
+    return b ? b.items.map((it) => it.l) : [];
+  };
+
+  it("Votos · Voto · Votes · 득표 · 선택 수 라벨은 버린다", () => {
+    expect(
+      statsOf([
+        { n: "1.204", l: "Votos" },
+        { n: "1", l: "Voto" },
+        { n: "1,204", l: "Votes" },
+        { n: "1,204", l: "득표" },
+        { n: "1,204", l: "선택 수" },
+        { n: "812", l: "CROWN SCORE" },
+      ]),
+    ).toEqual(["CROWN SCORE"]);
+  });
+
+  it("비율 낱말 라벨인데 값에 % 가 없으면 버린다 · 9회 · 9 times · veces 는 버린다", () => {
+    expect(
+      statsOf([
+        { n: "2,718", l: "Picks" },
+        { n: "9회", l: "1등 비율" },
+        { n: "9", l: "Victorias" },
+        { n: "3회", l: "결승 진출" },
+        { n: "9 times", l: "Champion" },
+        { n: "9 veces", l: "Campeón" },
+        { n: "31.0%", l: "1등 비율" },
+        { n: "812", l: "CROWN SCORE" },
+      ]),
+    ).toEqual(["1등 비율", "CROWN SCORE"]);
+  });
+
+  it("같은 stats 블록에 CROWN SCORE(또는 Crown Score 라벨) 칸이 없으면 비율 칸을 버린다", () => {
+    expect(
+      statsOf([
+        { n: "31.0%", l: "1등 비율" },
+        { n: "48", l: "CONTESTANTS" },
+      ]),
+    ).toEqual(["CONTESTANTS"]);
+    expect(
+      statsOf([
+        { n: "64.2%", l: "Picks" },
+        { n: "812", l: "Crown Score · 1위" },
+      ]),
+    ).toEqual(["Picks", "Crown Score · 1위"]);
+  });
+});
+
+describe("en·es 원문 초안에도 차트 낱말 3언어", () => {
+  it("AI 지시에 3언어 낱말 줄이 한 번 있다", () => {
+    expect(CHART_TERM_RULE_LINE).toBe(
+      "   1등 비율 · 선택 비율은 영어로 Wins · Picks, 스페인어로 Victorias · Elecciones 로 쓴다(차트 설명창과 같은 말).",
+    );
+    for (const p of allPrompts) {
+      expect(p.split(CHART_TERM_RULE_LINE)).toHaveLength(2);
     }
   });
 });

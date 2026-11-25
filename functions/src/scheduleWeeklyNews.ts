@@ -15,6 +15,7 @@ import {
   buildWeeklyDigest,
   nameGlossaryOf,
   rankingRowFromCache,
+  runsTotalFromCache,
   type RankingRowLike,
 } from "./core/newsDigestCore";
 import { buildWeeklyPrompt } from "./core/newsPrompts";
@@ -63,6 +64,8 @@ export const scheduleWeeklyNews = onSchedule(
         tournamentId: d.id,
         title: String(d.data().tournamentId ?? d.id),
         rankings: rankingsOf(d.data()),
+        // 차트 기준(10) 미만 대회는 선두에서 빠진다(ACTIVE TOURNAMENTS 에는 센다).
+        runsTotal: runsTotalFromCache(d.data()),
       }));
       const asOf = kstStamp(Date.now());
       const digest = buildWeeklyDigest({ caches, asOf });

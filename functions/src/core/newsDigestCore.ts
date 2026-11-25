@@ -15,6 +15,19 @@
  *     (placementRate). 캐시에 있어도 rankingRowFromCache 가 읽지 않는다.
  */
 
+/**
+ * 차트가 점수를 보이는 기준 — 대회 전체 완주 판수 10 (CLAUDE.md 대진 흐름 #8).
+ * `lib/ranking/rankState.ts` 의 MIN_RUNS_FOR_CHART 와 같은 값이어야 한다 — functions 는
+ * lib 를 import 하지 않으므로 newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다.
+ * 차트가 기다림 안내를 띄우는 동안 기사도 Crown Score · 두 비율을 쓰지 않는다.
+ */
+export const MIN_RUNS_FOR_CHART = 10;
+
+/** runsTotal 이 기준에 닿았을 때만 점수를 싣는다(없으면 모름 → 싣지 않음). */
+export function chartScoresShown(runsTotal: number | undefined): boolean {
+  return runsTotal !== undefined && runsTotal >= MIN_RUNS_FOR_CHART;
+}
+
 /** 기사 숫자 칸에 쓸 수 있는 라벨 — 그 밖의 새 칸 이름은 만들지 않는다. */
 export const ALLOWED_STAT_LABELS = [
   "CONTESTANTS",
@@ -74,9 +87,10 @@ export interface DigestLeader {
   name: string;
   /** 공식 영어 이름 — 초안·번역 프롬프트가 한글 이름과 함께 쓴다(NAME-I18N-1). */
   nameEn?: string;
-  crownScore: number;
-  winRate: number;
-  shareRate: number;
+  /** 차트가 점수를 보일 때만(chartScoresShown) — 아니면 칸 자체가 없다. */
+  crownScore?: number;
+  winRate?: number;
+  shareRate?: number;
   isChampion?: boolean;
   /** weekly digest cross-tournament label. */
   tournamentTitle?: string;
@@ -89,6 +103,8 @@ export interface NewsDigest {
   tournamentId?: string;
   /** 결과 기사만 — 대회 전체 참여 횟수(캐시 runsTotal). AI 재료 줄에만 실린다. */
   runsTotal?: number;
+  /** 결과 기사 — 차트가 아직 점수를 감추는 중(runsTotal 10 미만 · 모름). */
+  scoresWaiting?: boolean;
 }
 
 function num(v: unknown): number {
@@ -171,7 +187,8 @@ const TOP_N = 3;
 
 function toLeaders(
   rankings: RankingRowLike[],
-  championId?: string,
+  championId: string | undefined,
+  withScores: boolean,
 ): DigestLeader[] {
   return [...rankings]
     .sort((a, b) => a.rank - b.rank)
@@ -181,16 +198,17 @@ function toLeaders(
       contestantId: r.contestantId,
       name: r.name,
       ...(r.nameEn ? { nameEn: r.nameEn } : {}),
-      crownScore: r.crownScore,
-      winRate: r.winRate,
-      shareRate: r.shareRate,
+      ...(withScores
+        ? { crownScore: r.crownScore, winRate: r.winRate, shareRate: r.shareRate }
+        : {}),
       isChampion: championId ? r.contestantId === championId : false,
     }));
 }
 
 /**
  * 결과 기사 근거 — 차트 rank 순 상위 3 + 숫자 칸 [CONTESTANTS, CROWN SCORE].
- * CROWN SCORE = 차트 rank 1 행의 점수(행이 없으면 칸 없음).
+ * CROWN SCORE = 차트 rank 1 행의 점수(행이 없으면 칸 없음). runsTotal 이 10 미만이거나
+ * 없으면 차트처럼 점수를 감춘다 — CROWN SCORE 칸 없음 · 선두는 순위 · 이름만.
  */
 export function buildResultDigest(args: {
   meta: DigestTournamentMeta;
@@ -200,12 +218,13 @@ export function buildResultDigest(args: {
   /** 캐시 runsTotal — 트리거·콜러블이 넘긴다. */
   runsTotal?: number;
 }): NewsDigest {
-  const leaders = toLeaders(args.rankings, args.championId);
+  const shown = chartScoresShown(args.runsTotal);
+  const leaders = toLeaders(args.rankings, args.championId, shown);
   const stats: EvidenceStat[] = [
     { label: "CONTESTANTS", value: String(args.meta.totalContestants) },
   ];
   const top = leaders.find((l) => l.rank === 1);
-  if (top) {
+  if (shown && top && top.crownScore !== undefined) {
     stats.push({ label: "CROWN SCORE", value: String(top.crownScore) });
   }
   return {
@@ -214,6 +233,7 @@ export function buildResultDigest(args: {
     leaders,
     stats,
     ...(args.runsTotal !== undefined ? { runsTotal: args.runsTotal } : {}),
+    ...(!shown && leaders.length > 0 ? { scoresWaiting: true } : {}),
   };
 }
 
@@ -226,11 +246,14 @@ export interface WeeklyCacheLike {
   tournamentId: string;
   title: string;
   rankings: RankingRowLike[];
+  /** 캐시 runsTotal — 10 미만이거나 없으면 그 대회는 선두에서 빠진다. */
+  runsTotal?: number;
 }
 
 /**
  * 주간 랭킹 동향 — 대회마다 차트 rank 1 행 → Crown Score 큰 순 · 같으면 대회 제목 순 ·
- * 상위 3 (대표 결정 2026-11-25). 숫자 칸 = [ACTIVE TOURNAMENTS]. Empty field yields
+ * 상위 3 (대표 결정 2026-11-25). runsTotal 10 미만 대회는 선두에서 빠지되 ACTIVE
+ * TOURNAMENTS 에는 센다. 숫자 칸 = [ACTIVE TOURNAMENTS]. Empty field yields
  * 0 active + no leaders, no throw.
  */
 export function buildWeeklyDigest(args: {
@@ -238,6 +261,7 @@ export function buildWeeklyDigest(args: {
   asOf: string;
 }): NewsDigest {
   const leaders: DigestLeader[] = args.caches
+    .filter((c) => chartScoresShown(c.runsTotal))
     .map((c): DigestLeader | null => {
       const top = c.rankings.find((r) => r.rank === 1);
       return top
@@ -256,7 +280,7 @@ export function buildWeeklyDigest(args: {
     .filter((l): l is DigestLeader => l !== null)
     .sort(
       (a, b) =>
-        b.crownScore - a.crownScore ||
+        (b.crownScore ?? 0) - (a.crownScore ?? 0) ||
         cmpStr(a.tournamentTitle ?? "", b.tournamentTitle ?? ""),
     )
     .slice(0, TOP_N);

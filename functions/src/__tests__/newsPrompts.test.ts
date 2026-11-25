@@ -72,7 +72,7 @@ describe("표시 용어(Display Term) 층 — 독자 지칭은 팬/Fan (2026-08-
     "표시 용어", // 층 자체의 이름
     '"팬"', // ko 지칭
     "fan", // en·es 지칭
-    "참여 팬 수", // Voter Count 의 기사 표기(허용 목록 · 2026-11-25)
+    "참여 팬 수", // Voter Count 의 기사 낱말(허용 목록 · 2026-11-25)
   ];
 
   for (const [name, prompt] of Object.entries(prompts)) {
