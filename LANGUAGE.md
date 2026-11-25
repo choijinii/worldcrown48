@@ -706,6 +706,16 @@ LIVE · VOTE RATE · VS
 
 화면 표기는 승인된 문구 키 `lab.brief.*` · `lab.entryUnit.other` 를 따른다(2026-11-19 00:09 대표 승인).
 
+**LAB-FIX-6 추가 (2026-11-22 대표 확정 · 원장 D-101 · 추가만 — 위 정의는 바꾸지 않는다)**
+
+| 낱말 | 정의 |
+|---|---|
+| **엔트리 조건** | 위 **고르는 조건** 칸의 화면 이름(2026-11-22부터). 뜻 · 저장 필드(`rules`)는 고르는 조건과 같다. AI가 명단을 채운 뒤 조건에 맞는지 한 번 더 확인한다(조건 다시 검사) |
+| **덧붙이는 정보 목록** | 덧붙이는 정보를 자유 글 대신 고르는 7개 — 소속 (팀) · 가수 · 배우 · 작품 제목 · 회사 · 채널 · 비워 두기. 저장 값은 키(`team` · `artist` · `actor` · `work` · `maker` · `channel` · `blank`) · AI는 항목마다 정해진 뜻 문장을 받는다. 기본값 개인 = 소속 (팀) · 팀 · 그 외 = 비워 두기 |
+| **웹 검색 확인** | 조건 다시 검사 때 칸마다 Brave 웹 검색 결과를 AI에게 함께 주는 것(원장 D-100). 지금 운영자 편집기만 · 켜고 끄는 곳 = `ENTRY_WEB_SEARCH` |
+
+화면 표기는 `lab.brief.rulesLabel` · `lab.brief.optional` · `lab.brief.rulesHint` · `lab.brief.extra.*` · `lab.description.required` 를 따른다(2026-11-22 대표 승인).
+
 ---
 
 *© 2026 WorldCrown48 | 작성: 48티오 | LANGUAGE.md v2.2 (2026-09-24) | CONFIDENTIAL*
