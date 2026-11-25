@@ -208,7 +208,7 @@ function toLeaders(
 /**
  * 결과 기사 근거 — 차트 rank 순 상위 3 + 숫자 칸 [CONTESTANTS, CROWN SCORE].
  * CROWN SCORE = 차트 rank 1 행의 점수(행이 없으면 칸 없음). runsTotal 이 10 미만이거나
- * 없으면 차트처럼 점수를 감춘다 — CROWN SCORE 칸 없음 · 선두는 순위 · 이름만.
+ * 없으면 차트처럼 점수를 감춘다 — CROWN SCORE 칸 없음 · 선두는 이름만(순위 없음 · AI 재료에서).
  */
 export function buildResultDigest(args: {
   meta: DigestTournamentMeta;

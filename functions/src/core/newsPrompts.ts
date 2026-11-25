@@ -11,7 +11,7 @@
  *     stats{items:[{n,l}]} · matchups{pairs:[{left:{group,title},right:{...}}],note}
  *     closer{text}
  */
-import type { NewsDigest } from "./newsDigestCore";
+import { chartScoresShown, type NewsDigest } from "./newsDigestCore";
 import { CHART_RATE_TERMS, UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
 
 /** 전투 은유 금지어 — §5.5 #5. Match 는 싸움이 아니라 애정을 고르는 순간. */
@@ -60,9 +60,11 @@ export const CHART_TERM_RULE_LINE =
 
 /**
  * 차트가 아직 점수를 감추는 동안(runsTotal 10 미만 · 모름) AI 재료에 싣는 한 줄.
+ * 차트 화면은 그동안 목록 자체를 감추므로(`lib/ranking/rankState.ts` → waiting) 순위도 쓰지 않는다
+ * (최종 검토 I-2).
  */
 export const CHART_WAITING_LINE =
-  "차트는 아직 참여가 적어 점수를 공개하지 않는다 — Crown Score와 비율을 쓰지 않는다.";
+  "차트는 아직 참여가 적어 순위와 점수를 공개하지 않는다 — 순위 · Crown Score · 비율을 쓰지 않는다.";
 
 /**
  * §5.5 지침 7항 — 4종 프롬프트 전부에 박제되는 단일 진실. 마커 문구(사용설명 금지 /
@@ -128,12 +130,14 @@ export function evidenceLines(digest: NewsDigest): string {
   const leaders =
     digest.leaders.length > 0
       ? (digest.scoresWaiting
-          ? "\n선두(차트 순위):\n"
+          ? "\n선두(이름만 — 순위는 아직 공개 전):\n"
           : "\n선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):\n") +
         digest.leaders
           .map(
             (l) =>
-              `  - ${l.rank}위 ${l.name}${englishNameNote(l.name, l.nameEn)}` +
+              // 점수를 감추는 동안은 "N위" 도 싣지 않는다 — 차트가 목록을 감추고, runsTotal 0 이면
+              // 점수가 전부 0 이라 모두 "1위" 가 된다(최종 검토 I-2).
+              `  - ${digest.scoresWaiting ? "" : `${l.rank}위 `}${l.name}${englishNameNote(l.name, l.nameEn)}` +
               (l.crownScore !== undefined
                 ? ` Crown Score ${l.crownScore} · 1등 비율 ${pct(l.winRate ?? 0)}% · 선택 비율 ${pct(l.shareRate ?? 0)}%`
                 : "") +
@@ -183,9 +187,14 @@ export function buildResultPrompt(args: {
     args.championNameEn && args.championNameEn !== args.championName
       ? `(공식 영어 이름 "${args.championNameEn}")`
       : "";
+  // 결과 기사는 대회의 첫 Champion 확정 직후 만들어져 대개 10판 미만이다 — 그때는 차트처럼
+  // 순위 · 점수를 말하지 않는다(최종 검토 I-2). 선두가 없어도 runsTotal 로 판정한다.
+  const waiting = args.digest.scoresWaiting === true || !chartScoresShown(args.digest.runsTotal);
+  const tail = waiting
+    ? "팬들이 함께 고른 결과를 전한다. 차트는 아직 참여가 적어 순위와 점수를 쓰지 않는다."
+    : "팬들이 함께 고른 결과를 전한다. 상위 순위를 Crown Score 순위로 전한다.";
   return assemble(
-    `[결과 기사] Tournament "${args.title}"가 끝났고 Champion은 "${args.championName}"${en}이다. ` +
-      `팬들이 함께 고른 결과를 전한다. 상위 순위를 Crown Score 순위로 전한다.`,
+    `[결과 기사] Tournament "${args.title}"가 끝났고 Champion은 "${args.championName}"${en}이다. ` + tail,
     args.digest,
   );
 }

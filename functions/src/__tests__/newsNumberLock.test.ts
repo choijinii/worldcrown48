@@ -376,7 +376,7 @@ describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수
   });
 
   for (const runsTotal of [undefined, 0, 9]) {
-    it(`결과 기사 runsTotal ${runsTotal}: CROWN SCORE 칸 없음 · 선두는 순위·이름만 · 기다림 줄`, () => {
+    it(`결과 기사 runsTotal ${runsTotal}: CROWN SCORE 칸 없음 · 선두는 이름만 · 기다림 줄`, () => {
       const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal });
       expect(d.stats).toEqual([{ label: "CONTESTANTS", value: "48" }]);
       for (const l of d.leaders) {
@@ -385,14 +385,50 @@ describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수
         expect(l).not.toHaveProperty("shareRate");
       }
       const ev = evidenceLines(d);
-      expect(ev).toContain("  - 1위 블루 플레임 (공식 영어 이름: Blue Flame) (Champion)");
+      // 최종 검토 I-2: 차트가 순위를 감추는 동안 선두 줄은 이름(+Champion)만 — "N위" 없음.
+      expect(ev).toContain("  - 블루 플레임 (공식 영어 이름: Blue Flame) (Champion)");
+      expect(ev).not.toMatch(/^ {2}- \d+위/m);
       expect(ev).not.toMatch(/Crown Score \d|1등 비율 \d|선택 비율 \d|812/);
       expect(ev).toContain(CHART_WAITING_LINE);
       expect(CHART_WAITING_LINE).toBe(
-        "차트는 아직 참여가 적어 점수를 공개하지 않는다 — Crown Score와 비율을 쓰지 않는다.",
+        "차트는 아직 참여가 적어 순위와 점수를 공개하지 않는다 — 순위 · Crown Score · 비율을 쓰지 않는다.",
       );
     });
+
+    it(`결과 기사 프롬프트 runsTotal ${runsTotal}: 지시 · 재료에 순위 · Crown Score 순위 · % 없음`, () => {
+      const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal });
+      const prompt = buildResultPrompt({
+        title: "여름 컴백 48",
+        championName: "블루 플레임",
+        championNameEn: "Blue Flame",
+        digest: d,
+      });
+      expect(prompt).toContain(
+          '[결과 기사] Tournament "여름 컴백 48"가 끝났고 Champion은 "블루 플레임"(공식 영어 이름 "Blue Flame")이다. ' +
+          "팬들이 함께 고른 결과를 전한다. 차트는 아직 참여가 적어 순위와 점수를 쓰지 않는다.",
+      );
+      // 공통 지침(허용 목록 설명 — "1위를 지킨 기간" 등)은 모든 기사에 같은 글이라 빼고 본다.
+      const body = prompt.replace(NEWS_STYLE_GUIDE, "");
+      expect(body).not.toMatch(/\d+위/);
+      expect(body).not.toContain("Crown Score 순위");
+      expect(body).not.toContain("%");
+    });
   }
+
+  it("결과 기사 runsTotal 0 · 점수 전부 0(전부 1위): 재료에 '1위' 줄이 없다", () => {
+    const zero = rankings.map((r) => ({ ...r, rank: 1, crownScore: 0 }));
+    const d = buildResultDigest({ meta, rankings: zero, championId: "c1", asOf: "x", runsTotal: 0 });
+    const ev = evidenceLines(d);
+    expect(ev).not.toMatch(/\d+위/);
+    expect(d.leaders.length).toBeGreaterThan(1);
+  });
+
+  it("결과 기사 runsTotal 10: 지시 줄은 Crown Score 순위 그대로 · 선두 줄에 순위", () => {
+    const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal: 10 });
+    const prompt = buildResultPrompt({ title: "여름 컴백 48", championName: "블루 플레임", digest: d });
+    expect(prompt).toContain("팬들이 함께 고른 결과를 전한다. 상위 순위를 Crown Score 순위로 전한다.");
+    expect(prompt).toMatch(/^ {2}- 1위 블루 플레임/m);
+  });
 
   it("결과 기사 runsTotal 10: 점수가 실리고 기다림 줄 없음", () => {
     const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal: 10 });
