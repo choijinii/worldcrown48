@@ -27,10 +27,12 @@ for (const file of [
   "crownScore.ts",
   "tallyRuns.ts",
   "crownRankings.ts",
+  // T5 PR 2 — 공개 캐시에 쓰기 전에 선택 수 · 비율을 뺀다.
+  "publicEntry.ts",
 ]) {
   copyFileSync(join(libRanking, file), join(dest, file));
 }
 
 console.log(
-  "[copy-ranking] mirrored lib/ranking/{rankingTypes,computeRankings,anomalyRules,crownScore,tallyRuns,crownRankings} → functions/src/_ranking",
+  "[copy-ranking] mirrored lib/ranking/{rankingTypes,computeRankings,anomalyRules,crownScore,tallyRuns,crownRankings,publicEntry} → functions/src/_ranking",
 );

@@ -361,8 +361,9 @@ service cloud.firestore {
     //
     // 남는 조건은 **부모 Tournament 문서의 존재**뿐이다 — 없는 대회의 캐시는 읽히지 않는다.
     // 쓰기는 여전히 전면 차단: 유일한 작성자는 scheduleRankingCache(admin SDK, 규칙 우회).
-    // `voteCount` 와 세 비율이 문서 안에 함께 실리지만(내부 전용) 규칙은 필드를 가릴 수
-    // 없다 — 화면에 안 나오게 막는 일은 클라이언트 + E2E가 한다 (trap #7).
+    // 규칙은 필드를 가릴 수 없다 — 그래서 T5 PR 2 부터 선택 수(voteCount) · 비율(rate) · 합계
+    // (totalVotes)를 문서에서 아예 뺐다(세 비율 · Crown Score 는 남는다). 화면에 안 나오게 막는
+    // 일은 여전히 클라이언트 + E2E 몫이다 (trap #7).
     // ARENA-2 PR 3 (원장 D-86): 숨긴 대회(status 'hidden')의 차트도 닫는다. get() 은 없는 문서에서
     // 실패하므로 "부모가 있어야 읽힌다"도 그대로다.
     function tournamentChartOpen(database, tournamentId) {
@@ -385,12 +386,12 @@ service cloud.firestore {
       allow read: if tournamentChartOpen(database, tournamentId);
       allow write: if false;
 
-      // history generations (T-3 24h baseline) — 같은 상시 공개 + 쓰기 차단.
-      // 보관 세대 수는 `scheduleRankingCache.HISTORY_KEEP` 가 정한다 (RUN-1 PR 3에서
-      // 24 → 2. 발표가 하루 두 번이 되면서 "24시간 전" 이 2세대 전이 됐다).
+      // 옛 history 세대(T-3 24시간 기준선) — T5 PR 2 부터 닫는다. 선택 수(voteCount)가 실린
+      // 옛 문서라 누구도 읽지 못하게 막고, 지우지는 않는다(일괄 삭제 금지). 새 기준선은 서버 전용
+      // `ranking_accum/{tid}/history/{seq}` 에만 쓰이고, 이 자리에는 더 쓰지 않는다
+      // (배포 뒤 첫 발표가 기준선으로 한 번 읽을 뿐 — Admin SDK 라 규칙과 무관).
       match /history/{generationSequence} {
-        allow read: if tournamentChartOpen(database, tournamentId);
-        allow write: if false;
+        allow read, write: if false;
       }
     }
 

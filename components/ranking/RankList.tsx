@@ -14,14 +14,14 @@ import {
 } from "@/lib/ranking/rateFormatter";
 import type { Lang } from "@/lib/cookieConsent";
 import { localizedName } from "@/lib/contestantName";
-import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
+import type { PublicRankingEntry } from "@/lib/ranking/publicEntry";
 
 export function RankList({
   entries,
   flagFirst,
   lang,
 }: {
-  entries: CrownRankingEntry[];
+  entries: PublicRankingEntry[];
   flagFirst: boolean;
   /** 엔트리 이름의 화면 언어 — 캐시 행의 nameI18n, 비면 en → 한글 (NAME-I18N-1 · D-61). */
   lang: Lang;

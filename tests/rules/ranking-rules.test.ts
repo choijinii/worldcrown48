@@ -3,8 +3,8 @@
  *
  * Runs against the emulator (CI: firebase emulators:exec; locally needs Java 21
  * — [[feedback-firebase-tools-java21]]). Posture (handoff §14):
- *   - ranking_cache + history: public read (the only Vote Rate % surface);
- *     client writes blocked (cron admin SDK only).
+ *   - ranking_cache: public read; client writes blocked (cron admin SDK only).
+ *   - ranking_cache/{tid}/history: T5 PR 2 부터 읽기 · 쓰기 모두 막힘(선택 수가 실린 옛 문서).
  *   - admin_alerts: read/write require the `admin` custom claim; a Voter must
  *     never see the anomaly model nor forge an alert.
  */
@@ -78,13 +78,20 @@ describe("ranking_cache — public read after Deadline, no client write", () => 
     await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
   });
 
-  it("lets anyone read a history snapshot once closed", async () => {
+  // T5 PR 2 — 옛 공개 history 문서에는 선택 수가 실려 있다. 지우지 않고 읽기만 막는다(뒤집힘: 예전 ALLOWS).
+  it("DENIES reading a history snapshot — 비로그인 · 로그인 · 관리자 클레임 모두 (T5 PR 2)", async () => {
     await seedTournament(-1 * DAY_MS);
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1/history/0"), cache());
     });
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertSucceeds(getDoc(doc(db, "ranking_cache/t1/history/0")));
+    for (const ctx of [
+      testEnv.unauthenticatedContext(),
+      testEnv.authenticatedContext(VOTER),
+      testEnv.authenticatedContext(ADMIN, { admin: true }),
+    ]) {
+      await assertFails(getDoc(doc(ctx.firestore(), "ranking_cache/t1/history/0")));
+      await assertFails(setDoc(doc(ctx.firestore(), "ranking_cache/t1/history/0"), cache()));
+    }
   });
 
   it("DENIES a Voter writing the cache (cron admin SDK only)", async () => {
@@ -120,13 +127,13 @@ describe("ranking_cache — 상시 공개 (D-30 · W-7 폐기)", () => {
     await assertSucceeds(getDoc(doc(db, "ranking_cache/t1")));
   });
 
-  it("ALLOWS a history read BEFORE the Deadline (뒤집힘: 예전 DENIES)", async () => {
+  it("DENIES a history read BEFORE the Deadline too (T5 PR 2 · 공개 history 닫힘)", async () => {
     await seedTournament(30 * DAY_MS);
     await testEnv.withSecurityRulesDisabled(async (c) => {
       await setDoc(doc(c.firestore(), "ranking_cache/t1/history/0"), cache());
     });
     const db = testEnv.unauthenticatedContext().firestore();
-    await assertSucceeds(getDoc(doc(db, "ranking_cache/t1/history/0")));
+    await assertFails(getDoc(doc(db, "ranking_cache/t1/history/0")));
   });
 
   it("DENIES read when the parent Tournament doc is missing", async () => {
