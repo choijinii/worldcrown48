@@ -52,3 +52,5 @@ firestore-debug.*.log
 /test-results-emulator
 /playwright-report-curtain
 /test-results-curtain
+/playwright-report-beta
+/test-results-beta

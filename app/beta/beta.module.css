@@ -9,6 +9,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* 한국어 낱말이 줄 끝에서 쪼개지지 않게("모십니/다" ✕) */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .page a:hover {

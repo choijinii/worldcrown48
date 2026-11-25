@@ -1,0 +1,92 @@
+name: BETA-PASS-1 베타 명단 통과 E2E (emulator)
+
+# 1차 베타(BETA-PASS-1) — 명단에 있는 구글 계정으로 로그인한 브라우저만 런칭 전 커튼을 지난다.
+# 명단 확인 함수(betaPass) · 로그인이 필요해서 에뮬레이터(auth · firestore · functions) 위에서 돈다.
+# 같은 빌드를 커튼 켜짐 · 런칭 시각 지남으로 둘 띄운다(playwright.beta.config.ts). 프로젝트 id 는 demo-wc48 —
+# 실서비스에 닿지 않는다. 비밀 BETA_PASS_SECRET 은 시험용 가짜 값.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'middleware.ts'
+      - 'app/beta/**'
+      - 'app/layout.tsx'
+      - 'components/beta/**'
+      - 'components/layout/**'
+      - 'components/auth/**'
+      - 'lib/beta/**'
+      - 'lib/launch/**'
+      - 'lib/authStore.ts'
+      - 'lib/firebase.ts'
+      - 'functions/src/**'
+      - 'firestore.rules'
+      - 'e2e/beta-pass-1.spec.ts'
+      - 'e2e/emulator/helpers.ts'
+      - 'playwright.beta.config.ts'
+      - 'scripts/e2e-emulator.sh'
+      - 'package.json'
+      - '.github/workflows/beta-pass-1-e2e.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 에뮬레이터는 JRE 가 필요하다 — firebase-tools 는 Java 21+.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      # canvas 는 미리 만든 파일 내려받기가 막히면 설치가 깨진다(#157) — 부품을 먼저 깔고 원본에서 빌드.
+      - name: Install canvas build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config \
+            libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev libpixman-1-dev
+
+      - name: Install functions dependencies
+        run: npm ci
+        working-directory: functions
+        env:
+          npm_config_build_from_source: 'true'
+
+      - name: Unit · integration (통과증 · 커튼 · middleware · 화면 상태)
+        run: npx vitest run lib/__tests__/launch/ lib/__tests__/beta/
+
+      - name: Functions unit (betaPassCore)
+        run: npx vitest run src/__tests__/betaPassCore.test.ts
+        working-directory: functions
+
+      - name: Firestore Rules tests (emulator)
+        run: npm run test:rules
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Beta E2E (커튼 켜짐 · 시각 지남)
+        env:
+          CI: '1'
+          PW_CONFIG: playwright.beta.config.ts
+        run: bash scripts/e2e-emulator.sh
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-pass-1-playwright-report
+          path: |
+            playwright-report-beta
+            test-results-beta
+          retention-days: 14
