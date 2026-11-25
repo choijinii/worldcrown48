@@ -407,7 +407,8 @@ describe("aiFillCore — 팀 경로 끝까지 (ENTRY-UNIT-1)", () => {
     expect(result.map((c) => c.name)).toEqual(GROUP_ROWS.slice(0, 48).map((g) => g.name));
     // 버린 항목도, 중복 의심·이름 불일치 깃발도 없어야 로그가 비어 있다.
     expect(logInfo).not.toHaveBeenCalled();
-    expect(result.find((c) => c.name === "(여자)아이들")?.affiliation).toBe("CUBE Entertainment");
+    // LAB-FIX-6 3-4 — 팀 대회의 덧붙이는 정보 기본값 = 비워 두기. 잠긴 지시문이 소속사를 채워도 서버가 비운다.
+    expect(result.find((c) => c.name === "(여자)아이들")?.affiliation).toBe("");
   });
 
   it("같은 그룹이 두 번 오르면 하나로 접는다 (중복 판정은 팀에도 그대로)", async () => {

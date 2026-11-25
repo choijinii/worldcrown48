@@ -11,10 +11,10 @@ describe("buildSuggestBriefPrompt", () => {
 
 describe("parseSuggestedBrief", () => {
   it("JSON 을 읽고 한도로 자른다 · 모르는 단위는 individual", () => {
-    const r = parseSuggestedBrief('머리말 {"entryUnit":"song","entry":"' + "가".repeat(50) + '","extra":"가수","rules":"' + "다".repeat(400) + '"}');
+    const r = parseSuggestedBrief('머리말 {"entryUnit":"song","entry":"' + "가".repeat(50) + '","extra":"artist","rules":"' + "다".repeat(400) + '"}');
     expect(r.entryUnit).toBe("individual");
     expect(r.entry).toHaveLength(40);
-    expect(r.extra).toBe("가수");
+    expect(r.extra).toBe("artist"); // LAB-FIX-6 — 목록 키만(목록 밖은 labFix6ExtraInfo.test.ts)
     expect(r.rules).toHaveLength(300);
   });
   it("읽을 수 없으면 던진다", () => {

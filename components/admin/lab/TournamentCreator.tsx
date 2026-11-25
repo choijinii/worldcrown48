@@ -38,7 +38,8 @@ import {
   buildContestantDocs,
   type ContestantDraft,
 } from "@/lib/lab/tournamentDoc";
-import { isStep1Ready } from "@/lib/lab/step1Ready";
+import { isStep1NextReady, isStep1Ready } from "@/lib/lab/step1Ready";
+import { effectiveExtra, extraForUnit, extraLabelKey, isExtraOption } from "@/lib/lab/extraInfo";
 import { KEYWORDS_MAX, mergeKeywords } from "@/lib/lab/keywordsValidation";
 import { presetDeadlineMs, DEFAULT_DEADLINE_DAYS } from "@/lib/lab/deadlineValidation";
 import { translateMeta } from "@/lib/lab/translateMeta";
@@ -200,6 +201,8 @@ type AiSuggestion = {
  * 1회 남짓이라는 Firestore 쓰기 권장 속도 안에도 든다.
  */
 const DRAFT_SAVE_DELAY_MS = 1500;
+/** LAB-FIX-6 3-5 — STEP 1 내용 폭. STEP 2(엔트리 칸, 가로 전체)를 출발점으로 1440 폭에서 한 줄 칸이 읽기 좋은 값. */
+const STEP1_MAX_WIDTH = 880;
 
 function emptyDraft(): ContestantDraft {
   return {
@@ -584,6 +587,21 @@ export function TournamentCreator(): JSX.Element {
     validCategoryIds,
     nowMs,
   });
+  // LAB-FIX-6 3-2 — [다음 →]은 설명까지 있어야. 발행 문(step1Ready)은 설명을 보지 않는다(설명이 빈 옛 초안 보호).
+  const step1NextReady = isStep1NextReady({ title, category, keywords, deadlineMs, validCategoryIds, nowMs, description });
+
+  /** LAB-FIX-6 3-4 — 단위를 바꾸면 덧붙이는 정보의 기본값도 따라간다(기본값은 빈 글로 저장). */
+  function changeEntryUnit(next: EntryUnit) {
+    setEntryUnit(next);
+    setAiBrief((b) => ({ ...b, extra: extraForUnit(b.extra, next) }));
+  }
+
+  /** STEP 2 엔트리 칸 둘째 줄의 자리 글자 — 고른 목록 항목의 이름(비워 두기면 "소속" 그대로) · 옛 자유 글은 그 글. */
+  const extraSlotLabel = (() => {
+    const v = effectiveExtra(aiBrief.extra, entryUnit);
+    if (!isExtraOption(v)) return v;
+    return v === "blank" ? "" : t(extraLabelKey(v));
+  })();
 
   async function generateKeywords() {
     if (keywordBusy || !category) return;
@@ -641,7 +659,8 @@ export function TournamentCreator(): JSX.Element {
       >(getFunctionsInstance(), "aiSuggestBrief");
       const res = await callable({ title: title.trim(), category, description: description.trim() });
       setEntryUnit(res.data.entryUnit);
-      setAiBrief(readAiBrief(res.data));
+      const suggested = readAiBrief(res.data);
+      setAiBrief({ ...suggested, extra: extraForUnit(suggested.extra, res.data.entryUnit) });
       void track("admin_lab_ai_brief_success", { category, entry_unit: res.data.entryUnit });
     } catch (err) {
       const code = (err as { code?: string }).code ?? "unknown";
@@ -653,7 +672,7 @@ export function TournamentCreator(): JSX.Element {
   }
 
   function goToStep2() {
-    if (!step1Ready) return;
+    if (!step1NextReady) return;
     void track("admin_lab_step1_submit", {
       category,
       title_length: title.trim().length,
@@ -1549,7 +1568,8 @@ export function TournamentCreator(): JSX.Element {
   return (
     <main
       style={{
-        maxWidth: step === 2 ? "none" : 560,
+        // LAB-FIX-6 3-5 — 첫 단계 폭 560 → 880(1440 폭에서 STEP 2 쪽으로 넓힘 · 대표 캡처 눈검사).
+        maxWidth: step === 2 ? "none" : STEP1_MAX_WIDTH,
         margin: "0 auto",
         padding: "56px 32px",
         fontFamily: lab.font,
@@ -1624,7 +1644,7 @@ export function TournamentCreator(): JSX.Element {
           {/* LAB-FIX-4 — AI 에게 주는 것은 한 묶음(엔트리 단위 · 세 줄 · 키워드). 팬에게 보이는 칸은 묶음 밖. */}
           <AiBriefPanel
             entryUnit={entryUnit}
-            onEntryUnitChange={setEntryUnit}
+            onEntryUnitChange={changeEntryUnit}
             brief={aiBrief}
             onBriefChange={setAiBrief}
             onSuggest={() => void suggestBrief()}
@@ -1642,19 +1662,19 @@ export function TournamentCreator(): JSX.Element {
           <button
             type="button"
             onClick={goToStep2}
-            disabled={!step1Ready}
+            disabled={!step1NextReady}
             data-testid="lab-next-button"
             style={{
               width: "100%",
               padding: "14px 18px",
               borderRadius: "var(--radius-border)",
               border: "none",
-              background: step1Ready ? lab.gold : lab.surfaceElev,
-              color: step1Ready ? "var(--color-bg-default)" : lab.textMuted,
+              background: step1NextReady ? lab.gold : lab.surfaceElev,
+              color: step1NextReady ? "var(--color-bg-default)" : lab.textMuted,
               fontWeight: 800,
               fontSize: 15,
               fontFamily: lab.font,
-              cursor: step1Ready ? "pointer" : "not-allowed",
+              cursor: step1NextReady ? "pointer" : "not-allowed",
             }}
           >
             {t("lab.next")}
@@ -1682,6 +1702,7 @@ export function TournamentCreator(): JSX.Element {
             <button
               type="button"
               onClick={() => setStep(1)}
+              data-testid="lab-back-to-step1"
               style={{
                 padding: "8px 14px",
                 borderRadius: "var(--radius-border)",
@@ -1847,7 +1868,7 @@ export function TournamentCreator(): JSX.Element {
             contestants={contestants}
             onChange={updateContestant}
             onClear={clearSlotAt}
-            extraLabel={aiBrief.extra}
+            extraLabel={extraSlotLabel}
             onTune={setTuningIndex}
             sourcing={sourcingStates}
             reviewFlags={reviewFlags}

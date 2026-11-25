@@ -22,7 +22,7 @@ import { consumeAiDailyQuota } from "./aiQuota";
 import { checkEntryRulesCore, CheckRulesError, type RulesFlag } from "./core/checkEntryRulesCore";
 import { SONNET_MODEL, SONNET_THINKING } from "./core/models";
 import { braveDecision } from "./core/imageSearchCore";
-import { WEB_SEARCH, parseBraveWeb, type WebSearchOutcome } from "./core/entryWebSearch";
+import { WEB_SEARCH, entryWebSearchEnabled, parseBraveWeb, pickWebSearch, type WebSearchOutcome } from "./core/entryWebSearch";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const BRAVE_SEARCH_API_KEY = defineSecret("BRAVE_SEARCH_API_KEY");
@@ -139,7 +139,8 @@ export const checkEntryRules = onCall(
         },
         {
           createMessage,
-          webSearch: braveKey ? braveWebSearch(braveKey) : undefined,
+          // LAB-FIX-6 3-1 — 켜고 끄는 곳은 환경 값 ENTRY_WEB_SEARCH 하나(지금 = 켬 · "off" 면 검색 없이 조건 검사만).
+          webSearch: pickWebSearch(entryWebSearchEnabled(process.env), braveKey, braveWebSearch),
           logInfo: (m) => logger.info(m),
           logError: (msg, e) => logger.error(msg, e),
         },

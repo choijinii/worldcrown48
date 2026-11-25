@@ -56,11 +56,18 @@ describe("aiBrief — 한도 · 정규화", () => {
 
 describe("초안 왕복 — 새 필드와 그 외 단위", () => {
   it("묶음 · other 가 저장 → 불러오기 뒤 그대로", () => {
-    const s = state({ entryUnit: "other", aiBrief: { entry: "노래 제목", extra: "가수", rules: "타이틀곡만" } });
+    const s = state({ entryUnit: "other", aiBrief: { entry: "노래 제목", extra: "artist", rules: "타이틀곡만" } });
     const fields = toDraftFields(s);
     expect(fields.entryUnit).toBe("other");
-    expect(fields.aiBrief).toEqual({ entry: "노래 제목", extra: "가수", rules: "타이틀곡만" });
+    expect(fields.aiBrief).toEqual({ entry: "노래 제목", extra: "artist", rules: "타이틀곡만" });
     expect(fromDraftDoc({ ...fields, hostUid: "u", updatedAt: null })).toEqual(s);
+  });
+  // LAB-FIX-6 3-4 — 옛 초안(자유 글): 목록 이름과 같으면 키로, 다르면 글 그대로 왕복한다.
+  it("옛 초안 자유 글 — 같으면 키 · 다르면 그대로", () => {
+    const same = fromDraftDoc({ ...toDraftFields(state({ entryUnit: "other", aiBrief: { entry: "노래", extra: "가수", rules: "" } })), hostUid: "u", updatedAt: null });
+    expect(same?.aiBrief.extra).toBe("artist");
+    const other = state({ entryUnit: "other", aiBrief: { entry: "배역", extra: "배우와 드라마 제목", rules: "" } });
+    expect(fromDraftDoc({ ...toDraftFields(other), hostUid: "u", updatedAt: null })).toEqual(other);
   });
   it("묶음이 비면 칸을 싣지 않는다(규칙 배포 전에도 옛 모양으로 저장)", () => {
     expect("aiBrief" in toDraftFields(state())).toBe(false);

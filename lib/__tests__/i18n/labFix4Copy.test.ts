@@ -12,8 +12,8 @@ const TABLE: [string, MessageKey, string, string, string][] = [
   ["4", "lab.brief.entryLabel", "엔트리는 어떤 것인가?", "What kind of thing is an entry?", "¿Qué tipo de cosa es una entrada?"],
   ["5", "lab.brief.entryPlaceholder", "예: 춤춘 댄스 크루 · 노래 제목 · 드라마 배역", "e.g. the dance crew performing · song title · drama character", "p. ej.: el crew que baila · título de la canción · personaje del drama"],
   ["6", "lab.brief.extraLabel", "덧붙이는 정보", "Extra info", "Dato adicional"],
-  ["7", "lab.brief.extraPlaceholder", "예: 가수 · 드라마 제목 (비워도 됩니다)", "e.g. artist · drama title (optional)", "p. ej.: artista · título del drama (opcional)"],
-  ["8", "lab.brief.rulesLabel", "고르는 조건", "Selection rules", "Criterios de selección"],
+  // 7번(덧붙이는 정보 예시 글)은 LAB-FIX-6 에서 목록으로 바뀌어 지웠고, 8번(고르는 조건)은 "엔트리 조건"으로 바뀌었다 —
+  // 지금 문구는 labFix6Copy.test.ts 가 잠근다(대표 승인 2026-11-22).
   ["9", "lab.brief.rulesPlaceholder", "예: 2026년에 영상을 올린 팀만 · 어린이 팀 제외", "e.g. only teams that posted videos in 2026 · no kids' teams", "p. ej.: solo equipos que publicaron videos en 2026 · sin equipos infantiles"],
   ["10", "lab.brief.suggest", "AI에게 제안 받기", "Get AI suggestions", "Pedir sugerencias a la IA"],
   ["11", "lab.slot.clearHint", "이 칸 비우기 (영상 · 이미지 포함)", "Clear this slot (including video · image)", "Vaciar esta casilla (incluye video · imagen)"],

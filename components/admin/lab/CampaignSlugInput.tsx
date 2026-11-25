@@ -12,6 +12,7 @@
 import { CAMPAIGN_SLUG_MAX, normalizeCampaignSlug } from "@/lib/lab/campaignSlugValidation";
 import { useT } from "@/lib/i18n/useT";
 import { lab } from "./theme";
+import { FieldTag } from "./FieldTag";
 
 interface CampaignSlugInputProps {
   value: string;
@@ -32,10 +33,8 @@ export function CampaignSlugInput({ value, onChange }: CampaignSlugInputProps): 
           marginBottom: 8,
         }}
       >
-        {t("lab.campaignSlug.label")}{" "}
-        <span style={{ color: lab.textMuted, fontWeight: 400 }}>
-          · {t("lab.campaignSlug.optional")}
-        </span>
+        {/* LAB-FIX-6 3-3 — 같은 화면의 "선택"은 모두 크림슨(엔트리 조건과 같은 부품). */}
+        {t("lab.campaignSlug.label")} <FieldTag kind="optional">{t("lab.campaignSlug.optional")}</FieldTag>
       </span>
       <input
         type="text"

@@ -24,7 +24,7 @@ import {
   type ContestantNotice,
   type DiscardedContestant,
 } from "./parseContestants";
-import { NAME_SCRIPT_RULE, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
+import { NAME_SCRIPT_RULE, applyExtraBlank, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 
 /** A category id (UPPER_SNAKE). Validated as data at Tournament creation. */
 export type Category = string;
@@ -451,5 +451,6 @@ export async function aiFillCore(
           .join(" | "),
     );
   }
-  return contestants;
+  // LAB-FIX-6 3-4 — "비워 두기"면 둘째 줄을 서버에서 비운다(잠긴 팀 지시문은 소속사를 채운다 — 지시문은 그대로).
+  return applyExtraBlank(contestants, aiBrief, entryUnit);
 }

@@ -35,7 +35,7 @@
  * 나온 결과라서(aiFillCore 의 개인/팀 분리와 같은 원칙). 시험이 개인 지시문의 sha256 을 잠근다.
  */
 import { parseEntryUnit, type EntryUnit } from "./aiFillCore";
-import { NAME_SCRIPT_RULE, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
+import { NAME_SCRIPT_RULE, applyExtraBlank, briefRuleLines, parseAiBrief, usesBriefPrompt, type AiBrief } from "./aiBrief";
 
 /** 추출 대상 1건 — 검수기가 이미 받아 둔 값만 넘긴다(추가 API 0콜). */
 export interface ExtractItem {
@@ -441,7 +441,7 @@ export async function extractContestantsCore(
 
   const parsed = parseExtractions(text, items);
   // LAB-FIX-4b 서버 그물 — 묶음 지시문 · 사람/팀 단위에서만(노래 · 작품 대회와 옛 지시문은 그대로).
-  const out =
+  const netted =
     usesBriefPrompt(brief, entryUnit) && entryUnit !== "other"
       ? parsed.map((x, i) => {
           const y = {
@@ -452,6 +452,8 @@ export async function extractContestantsCore(
           return y.confident ? { ...y, name: preferChannelFullName(y.name, items[i].channelTitle) } : y;
         })
       : parsed;
+  // LAB-FIX-6 3-4 — "비워 두기"면 둘째 줄을 서버에서 비운다(옛 지시문 · 새 지시문 모두).
+  const out = applyExtraBlank(netted, brief, entryUnit);
   const named = out.filter((x) => x.confident).length;
   deps.logInfo?.(
     `extractContestants(${entryUnit}): ${items.length}건 중 이름 확정 ${named}건 · 수동 필요 ${items.length - named}건`,

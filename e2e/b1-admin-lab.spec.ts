@@ -175,6 +175,9 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await page.getByLabel("키워드 추가").fill("e2e-keyword");
     await page.getByLabel("키워드 추가").press("Enter");
     await expect(page.getByTestId("keyword-chip")).toHaveText(/e2e-keyword/);
+    // LAB-FIX-6 3-2 — 설명은 필수: 비어 있으면 아직 꺼져 있다.
+    await expect(next).toBeDisabled();
+    await page.getByTestId("lab-description").fill("E2E 시험 대회");
     // ⑤ Deadline defaults to the +7d preset, so the gate now opens.
     await expect(next).toBeEnabled();
     await next.click();

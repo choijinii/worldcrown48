@@ -63,6 +63,8 @@ test.describe("THUMB-1 — 대표 매치 고르기", () => {
     await page.getByLabel("카테고리").selectOption("FOOTBALL");
     await page.getByLabel("키워드 추가").fill("thumb-e2e");
     await page.getByLabel("키워드 추가").press("Enter");
+    // LAB-FIX-6 3-2 — 설명은 필수(비면 [다음 →] 꺼짐).
+    await page.getByTestId("lab-description").fill("대표 매치 시험");
     await page.getByTestId("lab-next-button").click();
 
     // D-90 — 검수기는 영상 대회에서만: [동영상 생성](채우기 스텁 → 견적 창 [취소])으로 시작한다.
