@@ -7,12 +7,14 @@ import {
   AI_BRIEF_LIMITS,
   EMPTY_AI_BRIEF,
   aiBriefForSave,
+  applySuggestedBrief,
   isAiBriefEmpty,
   readAiBrief,
 } from "@/lib/lab/aiBrief";
 import { fromDraftDoc, isDraftBlank, toDraftFields, type DraftEditorState } from "@/lib/lab/tournamentDraft";
 import { buildTournamentDoc } from "@/lib/lab/tournamentDoc";
 import { ENTRY_UNITS } from "@/lib/types/tournament";
+import { defaultExtraFor, extraForUnit } from "@/lib/lab/extraInfo";
 import { EMPTY_PICK } from "@/lib/thumbnail/pick";
 
 const brief = { entry: "영상에서 춤춘 댄스 크루", extra: "", rules: "원곡 가수는 엔트리가 아니다." };
@@ -116,5 +118,26 @@ describe("링크 제목 읽기 요청의 덧붙임 — 묶음 지시문을 쓸 �
       tournamentTitle: "t",
     });
     expect(extractRequestExtras({ aiBrief: { ...EMPTY_AI_BRIEF }, tournamentTitle: "올해의 노래" }, "other")).toEqual({ tournamentTitle: "올해의 노래" });
+  });
+});
+
+// LAB-FIX-7 — [AI에게 제안 받기] 결과를 편집기 묶음에 넣을 때 "엔트리 조건"(rules)은 건드리지 않는다(대표 2026-11-25).
+describe("LAB-FIX-7 applySuggestedBrief — 제안을 넣어도 엔트리 조건은 그대로", () => {
+  const reply = { entryUnit: "other", entry: "노래 제목", extra: "artist", rules: "2026년에 발매한 곡만" };
+  it("비어 있던 엔트리 조건은 비어 있다(옛 서버가 rules 를 보내도)", () => {
+    const next = applySuggestedBrief({ ...EMPTY_AI_BRIEF }, reply, "other");
+    expect(next).toEqual({ entry: "노래 제목", extra: "artist", rules: "" });
+  });
+  it("미리 적은 엔트리 조건은 한 글자도 바뀌지 않는다", () => {
+    const prev = { entry: "옛 대상", extra: "", rules: "  어린이 팀 제외.\n2026년만 " };
+    const next = applySuggestedBrief(prev, reply, "other");
+    expect(next.rules).toBe(prev.rules);
+    expect(next.entry).toBe("노래 제목");
+  });
+  it("덧붙이는 정보는 단위의 기본값이면 빈 글로 저장(지금과 같음)", () => {
+    for (const unit of ENTRY_UNITS) {
+      const def = defaultExtraFor(unit);
+      expect(applySuggestedBrief({ ...EMPTY_AI_BRIEF }, { extra: def }, unit).extra).toBe(extraForUnit(def, unit));
+    }
   });
 });

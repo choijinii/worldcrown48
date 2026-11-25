@@ -6,7 +6,7 @@
  *   ② 칸 ✕ → 이름과 영상이 함께 사라짐 · 새로고침 뒤에도 빔
  *   ③ [모두 비우기] → 확인 창 [취소]는 그대로 · [비우기]는 전부 빔 · 새로고침 뒤에도 빔(묶음 · 종류는 그대로)
  *   ④ "덧붙이는 정보"에 "가수" → 칸의 자리 표시 글자가 "가수"
- *   ⑤ [AI에게 제안 받기]가 세 줄과 엔트리 단위를 채움
+ *   ⑤ [AI에게 제안 받기]가 엔트리 · 덧붙이는 정보와 엔트리 단위를 채움(엔트리 조건은 채우지 않는다 — LAB-FIX-7)
  * 유튜브 검사 · 제목 읽기 · 제안 콜러블은 가짜 응답(바깥 사이트 · AI 를 부르지 않는다). 영상 제목 · 채널은 §7 정답 자료
  * (functions/src/__tests__/fixtures/lab-fix4-crews.json — oEmbed 로 받은 실제 문자열)를 쓴다.
  */
@@ -215,11 +215,11 @@ test("④ 덧붙이는 정보 = 칸의 자리 표시 글자 · ⑤ [AI에게 제
   await page.getByLabel("Tournament 제목").fill(TITLE);
   await page.getByLabel("카테고리").selectOption("KPOP");
 
-  // ⑤ 제안 → 세 줄과 단위가 채워진다(확정은 운영자 — 고칠 수 있다)
+  // ⑤ 제안 → 두 줄과 단위가 채워진다(확정은 운영자 — 고칠 수 있다). 엔트리 조건은 비어 있다(LAB-FIX-7 · 가짜 응답에 rules 가 있어도)
   await page.getByTestId("lab-brief-suggest").click();
   await expect(page.getByTestId("lab-brief-entry")).toHaveValue("노래 제목");
   await expect(page.getByTestId("lab-brief-extra")).toHaveValue("artist"); // LAB-FIX-6 — 목록 값(화면 글자 "가수")
-  await expect(page.getByTestId("lab-brief-rules")).toHaveValue("2026년에 발매한 곡만");
+  await expect(page.getByTestId("lab-brief-rules")).toHaveValue("");
   await expect(page.getByTestId("lab-entry-unit-other")).toHaveAttribute("aria-checked", "true");
   expect(suggestCalls).toBe(1);
   await page.screenshot({ path: test.info().outputPath("5-suggested.png"), fullPage: true });
@@ -237,7 +237,7 @@ test("④ 덧붙이는 정보 = 칸의 자리 표시 글자 · ⑤ [AI에게 제
   await expect(page.getByTestId("contestant-grid")).toBeVisible();
   await expect(page.getByTestId("contestant-node-0").locator('input[placeholder="가수"]')).toHaveCount(1);
   // 묶음 · 그 외 단위가 초안에 저장된다
-  await expect.poll(async () => (await draftDoc())?.aiBrief, { timeout: 20_000 }).toEqual({ entry: "노래 제목", extra: "artist", rules: "2026년에 발매한 곡만" });
+  await expect.poll(async () => (await draftDoc())?.aiBrief, { timeout: 20_000 }).toEqual({ entry: "노래 제목", extra: "artist", rules: "" });
   expect((await draftDoc())?.entryUnit).toBe("other");
   await page.screenshot({ path: test.info().outputPath("4-extra-placeholder.png") });
 
