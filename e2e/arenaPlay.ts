@@ -79,6 +79,10 @@ export async function playRun(
  */
 export async function playAgain(page: Page, nextRun: number): Promise<void> {
   const btn = page.getByRole("button", { name: /다시 참여/ });
+  // 완주 직후 화면은 서버에서 판 숫자를 다시 읽는다(page.tsx loadTournament). 그 전의 버튼은 진입 때 숫자(n-2)라,
+  // 그때 누르면 2판째로 넘어갔다가 늦게 온 읽기 결과가 1판째 완주 화면으로 되돌린다(2026-11-25 미리보기 CI 실측).
+  // 사람이 보는 숫자 "(n-1/한도)"가 뜬 뒤에 누른다.
+  await expect(btn).toContainText(`(${nextRun - 1}/`, { timeout: 30_000 });
   await expect(btn).toBeEnabled({ timeout: 30_000 });
   await page.evaluate(() => {
     const w = window as unknown as { __crownAfterClick?: boolean[] };
@@ -95,7 +99,7 @@ export async function playAgain(page: Page, nextRun: number): Promise<void> {
       { capture: true, once: true },
     );
   });
-  console.log(`[arenaPlay] [다시 참여] → ${nextRun}판째`);
+  console.log(`[arenaPlay] [다시 참여] → ${nextRun}판째 · 버튼 ${(await btn.innerText()).trim()}`);
   await btn.click();
   await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 30_000 });
   const frames = await page.evaluate(() => (window as unknown as { __crownAfterClick?: boolean[] }).__crownAfterClick);
