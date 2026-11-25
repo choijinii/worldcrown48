@@ -1,0 +1,39 @@
+{
+  "seededVotes": 690,
+  "first": {
+    "tournamentId": "t5T1",
+    "mode": "recount",
+    "reads": {
+      "created": 0,
+      "relinked": 0,
+      "runFetch": 0,
+      "recount": 296,
+      "shadow": 0,
+      "count": 0
+    },
+    "ms": 117,
+    "rssMb": 231,
+    "shadow": "skipped",
+    "cacheWritten": true,
+    "endMs": 1795558620000,
+    "readsFixed": 49
+  },
+  "second": {
+    "tournamentId": "t5T1",
+    "mode": "increment",
+    "reads": {
+      "created": 394,
+      "relinked": 0,
+      "runFetch": 46,
+      "recount": 0,
+      "shadow": 690,
+      "count": 1
+    },
+    "ms": 114,
+    "rssMb": 269,
+    "shadow": "match",
+    "cacheWritten": true,
+    "endMs": 1795601820000,
+    "readsFixed": 49
+  }
+}
