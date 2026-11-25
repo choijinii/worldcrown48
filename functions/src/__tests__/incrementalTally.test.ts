@@ -213,19 +213,22 @@ describe("incrementalTally", () => {
     expect(Object.values(once).reduce((s, n) => s + n, 0)).toBe(46);
   });
 
-  it("split-relink: 판의 앞 조각만 옮겨진 구간에서는 그 판을 세지 않는다", () => {
-    // 게스트로 20건 → 시각 100_000 에 앞 조각만 로그인으로 옮김 → 나머지는 200_000 부터 로그인으로
-    const front = makeRun({ userId: "x", runIndex: 1, startMs: 0, stepMs: 10, relinkAt: 100_000, seed: 3 }).slice(0, 20);
-    const backAll = makeRun({ userId: "x", runIndex: 1, startMs: 0, stepMs: 10, seed: 3 }).slice(20);
-    const back = backAll.map((v, i) => ({ ...v, createdAtMs: 200_000 + i * 10 }));
-    const all = [...front, ...back];
-    let acc = step(all, emptyAccum(), 0, 150_000);
+  // 옛 "split-relink"(판의 앞 조각만 옮겨진 구간)는 실제로 생기지 않는 상태였다 — 전환은 판 하나를
+  // 통째로 한 batch(= relinkedAt 하나)에 옮긴다(linkSessionVote `relinkGuestVotes` 의 불변식 ·
+  // 에뮬레이터 `relink-split-pages` · `relink-publish-between-batches`). 여기는 그 실제 모양:
+  // 게스트로 돈 판 전부가 뒤 구간의 한 시각에 옮겨진다.
+  it("whole-relink: 판 전부가 뒤 구간에서 한 번에 옮겨지면 그 구간에서 한 번 센다", () => {
+    const run = makeRun({ userId: "x", runIndex: 1, startMs: 0, stepMs: 10, relinkAt: 200_000, seed: 3 });
+    expect(run.every((v) => v.relinkedAtMs === 200_000 && v.isGuest === false)).toBe(true);
+    let acc = step(run, emptyAccum(), 0, 150_000);
+    // 옮기기 전에는 게스트 판이라 판도 선택 수도 세지 않는다(셀 수 있게 된 시각 = 200_000)
     expect(acc.runsTotal).toBe(0);
-    // 앞 조각 선택 수는 옮긴 구간에서 셈
-    expect(Object.values(acc.voteCounts).reduce((s, n) => s + n, 0)).toBe(20);
-    acc = step(all, acc, 150_000, 300_000);
+    expect(Object.values(acc.voteCounts).reduce((s, n) => s + n, 0)).toBe(0);
+    acc = step(run, acc, 150_000, 300_000);
     expect(acc.runsTotal).toBe(1);
     expect(Object.values(acc.voteCounts).reduce((s, n) => s + n, 0)).toBe(46);
+    acc = step(run, acc, 300_000, 400_000);
+    expect(acc.runsTotal).toBe(1);
   });
 
   it("guest run excluded but isGuest-missing legacy run counted", () => {

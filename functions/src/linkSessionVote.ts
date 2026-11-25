@@ -33,9 +33,9 @@
  * one device. We'll thread sessionId through when C-1 lands.
  */
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import { FieldValue, type Firestore, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "./admin";
-import { requestRecount, type ServerTime } from "./core/rankingAccumStore";
+import { addRecountRequestToBatch, type ServerTime } from "./core/rankingAccumStore";
 import { ALLOWED_ORIGINS } from "./cors";
 import {
   distinctTournamentIds,
@@ -52,7 +52,14 @@ import { kstDate } from "./core/voteRecord";
 import { runDocId, tournamentRunsDocId } from "./_run/runDocId";
 import { effectiveRunsToday } from "./_run/decideRun";
 
+/** 게스트 기록 읽기 한 페이지. */
 const BATCH_LIMIT = 500;
+/**
+ * 전환 batch 한 번의 쓰기 상한. Firestore 상한 500 에서 충돌 대회의 다시 세기 요청 몫을 남긴다 —
+ * 요청은 그 대회의 옛 기록 지우기와 **같은 batch** 에 싣는다(아래 `relinkGuestVotes`).
+ * 판 하나는 46건이라 판 단위로 담아도 이 상한 하나로 충분하다.
+ */
+export const RELINK_WRITE_LIMIT = 450;
 const TIMEOUT_SECONDS = 30;
 
 interface LinkSessionVoteRequest {
@@ -238,84 +245,181 @@ async function mergeTournamentRuns(
 }
 
 /**
+ * 게스트 계정의 기록 전부(`__name__` 순 페이지로 읽어 모은다). PASS 1 이 대회 목록을 정하려고
+ * 읽고, PASS 2 가 같은 문서를 그대로 옮긴다 — 두 번 읽지 않는다. 게스트는 판이 몇 개뿐이라
+ * (하루 3판 · 판당 46건) 메모리에 다 올려도 된다.
+ */
+export async function readAnonVotes(db: Firestore, anonUid: string): Promise<QueryDocumentSnapshot[]> {
+  const out: QueryDocumentSnapshot[] = [];
+  let cursor: QueryDocumentSnapshot | undefined;
+  for (;;) {
+    let q = db.collection("votes").where("userId", "==", anonUid).orderBy("__name__").limit(BATCH_LIMIT);
+    if (cursor) q = q.startAfter(cursor);
+    const snap = await q.get();
+    if (snap.empty) break;
+    out.push(...snap.docs);
+    cursor = snap.docs[snap.docs.length - 1];
+    if (snap.size < BATCH_LIMIT) break;
+  }
+  return out;
+}
+
+interface VoteFields {
+  tournamentId?: string;
+  runIndex?: unknown;
+  isGuest?: unknown;
+}
+
+/** 판 하나(대회 · 회차)의 기록 — 전환 batch 에 나뉘지 않고 통째로 들어가는 단위. */
+interface RunGroup {
+  docs: QueryDocumentSnapshot[];
+  /** 충돌로 지우는 기록 중 이미 센(게스트 아닌) 기록이 있는 대회 — 이 batch 에 요청을 싣는다. */
+  legacyConflictTid: string | null;
+}
+
+/**
+ * 판(대회 · `runIndex ?? 1`)마다 묶는다. 차트는 userId + 회차로 판을 세는데, 게스트 계정의
+ * 기록이라 userId 는 하나다 — 대회 · 회차만으로 판이 정해진다.
+ */
+function groupByRun(docs: QueryDocumentSnapshot[], conflictTids: Set<string>): RunGroup[] {
+  const groups = new Map<string, RunGroup>();
+  for (const d of docs) {
+    const data = d.data() as VoteFields;
+    const tid = data.tournamentId ?? "";
+    const run = typeof data.runIndex === "number" ? data.runIndex : 1;
+    const key = JSON.stringify([tid, run]);
+    let g = groups.get(key);
+    if (!g) {
+      g = { docs: [], legacyConflictTid: null };
+      groups.set(key, g);
+    }
+    g.docs.push(d);
+    // 칸 없는 옛 기록 · isGuest:false 는 이미 세어졌다 → 지우면 다시 세야 빠진다
+    if (data.tournamentId && conflictTids.has(data.tournamentId) && data.isGuest !== true) {
+      g.legacyConflictTid = data.tournamentId;
+    }
+  }
+  return Array.from(groups.values());
+}
+
+/**
+ * 판들을 batch 로 담는다 — 판은 나누지 않고, batch 의 쓰기(기록 + 그 batch 의 요청)가 `limit` 을
+ * 넘기 전에 끊는다. 판 하나가 혼자 상한을 넘으면(판당 46건이라 실제로는 없다) 아무것도 쓰기 전에 던진다.
+ */
+function packRuns(groups: RunGroup[], limit: number): { groups: RunGroup[]; requestTids: string[] }[] {
+  const plan: { groups: RunGroup[]; requestTids: string[] }[] = [];
+  let cur = { groups: [] as RunGroup[], requestTids: new Set<string>(), writes: 0 };
+  const cost = (g: RunGroup, reqs: Set<string>) =>
+    g.docs.length + (g.legacyConflictTid && !reqs.has(g.legacyConflictTid) ? 1 : 0);
+  const flush = () => {
+    if (cur.groups.length > 0) plan.push({ groups: cur.groups, requestTids: Array.from(cur.requestTids) });
+    cur = { groups: [], requestTids: new Set<string>(), writes: 0 };
+  };
+  for (const g of groups) {
+    const alone = cost(g, new Set());
+    if (alone > limit) {
+      throw new Error(
+        `relinkGuestVotes: 판 하나의 쓰기 ${alone}건이 batch 쓰기 상한 ${limit}건을 넘는다 — 판을 나누면 차트가 판을 두 번 센다`,
+      );
+    }
+    if (cur.writes + cost(g, cur.requestTids) > limit) flush();
+    cur.writes += cost(g, cur.requestTids);
+    if (g.legacyConflictTid) cur.requestTids.add(g.legacyConflictTid);
+    cur.groups.push(g);
+  }
+  flush();
+  return plan;
+}
+
+/**
  * PASS 2 몸통 — 충돌 아닌 대회의 기록은 로그인 계정으로 옮기고, 충돌 대회의 기록은 지운다.
- * 에뮬레이터 시험이 이 몸통을 직접 부르려고 함수 밖으로 꺼냈다(동작은 꺼내기 전과 같다).
+ * 에뮬레이터 시험이 이 몸통을 직접 부르려고 함수 밖으로 꺼냈다.
  *
- * T5 증분 집계가 기대하는 두 가지(설계보고 §2 (가′)):
+ * T5 증분 집계가 기대하는 것(설계보고 §2 (가′)):
  *
+ *   · **판 하나는 batch 하나에 통째로** 들어간다(그래서 relinkedAt 도 판마다 하나). 예전처럼
+ *     `__name__` 순 500건 조각으로 옮기면 자동 id 가 흩어 놓은 판의 46건이 여러 조각에 걸친다. 조각
+ *     사이에 발표가 돌면 이미 옮겨진 앞 조각(isGuest:false · 라운드 5 포함)만으로 판을 세고, 뒤
+ *     조각이 옮겨진 구간에서 그 판을 한 번 더 센다. 판 단위 batch 면 반쯤 옮겨진 판을 볼 수 없다.
  *   · `relinkedAt` 은 **지금 `isGuest === true` 인 기록에만** 찍는다. 게스트 기록은 그동안 세지
  *     않았으므로 옮긴 시각이 처음으로 셀 수 있게 된 시각이다. 이미 센 기록(칸 없는 옛 기록 ·
  *     `isGuest: false`)에 찍으면 그 판의 max(countableAt) 이 뒤 구간으로 옮겨가 판이 한 번 더 세어진다.
  *   · 충돌로 지우는 기록 중 `isGuest !== true`(옛 기록)는 이미 차트에 들어가 있다 — 증분은 지운 것을
- *     뺄 수 없으므로, 그 대회마다 루프가 끝난 뒤 다시 세기를 요청한다. 게스트 기록뿐이면 센 적이
+ *     뺄 수 없으므로 다시 세기를 요청한다. 요청은 **그 지우기와 같은 batch** 에 싣는다(쓰기 상한에
+ *     함께 센다) — 따로 쓰면 그 사이 시간 초과 · 실패로 요청만 영영 빠진다. 게스트 기록뿐이면 센 적이
  *     없으니 요청하지 않는다.
  *
- * 시각 표지는 조각(batch)마다 하나를 만들어 그 조각의 기록에 같이 쓴다. `opts.serverTime` 은
+ * 시각 표지는 batch 마다 하나를 만들어 그 batch 의 기록 · 요청에 같이 쓴다. `opts.serverTime` 은
  * 시험이 루트 firebase-admin 의 값을 넘기려고 연다(functions 쪽 FieldValue 는 그 db 가 못 쓴다).
+ * `opts.docs` 는 PASS 1 이 이미 읽은 기록(없으면 여기서 읽는다) · `opts.writeLimit` · `opts.afterCommit`
+ * 은 시험이 batch 경계를 작게 만들고 batch 사이에 발표를 끼우려고 연다.
  */
 export async function relinkGuestVotes(
   db: Firestore,
   anonUid: string,
   googleUid: string,
   conflictTids: Set<string>,
-  opts: { pageSize?: number; serverTime?: ServerTime } = {},
+  opts: {
+    docs?: QueryDocumentSnapshot[];
+    writeLimit?: number;
+    serverTime?: ServerTime;
+    afterCommit?: (info: { index: number; voteIds: string[]; writes: number }) => Promise<void> | void;
+  } = {},
 ): Promise<{ linked: number; legacyDeletedTids: string[] }> {
-  const pageSize = opts.pageSize ?? BATCH_LIMIT;
   const serverTime = opts.serverTime ?? (() => FieldValue.serverTimestamp());
+  const docs = opts.docs ?? (await readAnonVotes(db, anonUid));
+  // 계획을 다 세운 뒤에 쓴다 — 상한을 넘는 판이 있으면 아무것도 쓰기 전에 멈춘다.
+  const plan = packRuns(groupByRun(docs, conflictTids), opts.writeLimit ?? RELINK_WRITE_LIMIT);
   let linked = 0;
   const legacyDeleted = new Set<string>();
-  let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
-  for (;;) {
-    let q = db
-      .collection("votes")
-      .where("userId", "==", anonUid)
-      .orderBy("__name__")
-      .limit(pageSize);
-    if (cursor) q = q.startAfter(cursor);
-    const snap = await q.get();
-    if (snap.empty) break;
+  for (let index = 0; index < plan.length; index++) {
+    const { groups, requestTids } = plan[index];
     const batch = db.batch();
-    const relinkedAt = serverTime();
-    let reparentedInPage = 0;
-    snap.docs.forEach((d) => {
-      const data = d.data() as { tournamentId?: string; runIndex?: unknown; isGuest?: unknown };
-      const tid = data.tournamentId;
-      if (tid && conflictTids.has(tid)) {
-        batch.delete(d.ref); // conflict → discard the guest vote
-        // 칸 없는 옛 기록 · isGuest:false 는 이미 세어졌다 → 다시 세야 빠진다
-        if (data.isGuest !== true) legacyDeleted.add(tid);
-      } else {
-        // 회차 도입 전의 게스트 표에는 runIndex 필드가 없다. 필드가 없으면 회차
-        // 필터(`where runIndex == 1`)에 안 걸려 로그인 직후 그 판의 진행이
-        // 통째로 사라진다. 이미 이 문서를 쓰고 있으므로 여기서 채운다 —
-        // 일괄 변환 스크립트가 아니라(§5 DON'T 3) 이관 중의 한 필드다.
-        const hasRunIndex = typeof data.runIndex === "number";
-        batch.update(d.ref, {
-          userId: googleUid,
-          // v2.1 (§16 5): 로그인 계정으로 옮겨온 선택은 더 이상 게스트의 것이 아니다.
-          // "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수다 — 이 줄이
-          // 없으면 이관된 선택이 PR 3의 필터에 계속 걸려 랭킹에서 빠진다.
-          isGuest: false,
-          // 회차 필드가 없는 문서는 회차 도입 전의 1회차다(§3.0 B안). "게스트는 1판"이
-          // 아니라 "옛 문서가 곧 1회차 문서"라는 사실이다.
-          ...(hasRunIndex ? {} : { runIndex: 1 }),
-          // T5: 게스트였던 기록만 — 이 시각에 처음 셀 수 있게 된다(위 주석).
-          ...(data.isGuest === true ? { relinkedAt } : {}),
-        });
-        reparentedInPage += 1;
+    const stamp = serverTime();
+    const voteIds: string[] = [];
+    let reparented = 0;
+    for (const g of groups) {
+      for (const d of g.docs) {
+        voteIds.push(d.id);
+        const data = d.data() as VoteFields;
+        const tid = data.tournamentId;
+        if (tid && conflictTids.has(tid)) {
+          batch.delete(d.ref); // conflict → discard the guest vote
+        } else {
+          // 회차 도입 전의 게스트 표에는 runIndex 필드가 없다. 필드가 없으면 회차
+          // 필터(`where runIndex == 1`)에 안 걸려 로그인 직후 그 판의 진행이
+          // 통째로 사라진다. 이미 이 문서를 쓰고 있으므로 여기서 채운다 —
+          // 일괄 변환 스크립트가 아니라(§5 DON'T 3) 이관 중의 한 필드다.
+          const hasRunIndex = typeof data.runIndex === "number";
+          batch.update(d.ref, {
+            userId: googleUid,
+            // v2.1 (§16 5): 로그인 계정으로 옮겨온 선택은 더 이상 게스트의 것이 아니다.
+            // "로그인하면 내 선택이 랭킹에 반영된다"가 실제로 성립하려면 필수다 — 이 줄이
+            // 없으면 이관된 선택이 PR 3의 필터에 계속 걸려 랭킹에서 빠진다.
+            isGuest: false,
+            // 회차 필드가 없는 문서는 회차 도입 전의 1회차다(§3.0 B안). "게스트는 1판"이
+            // 아니라 "옛 문서가 곧 1회차 문서"라는 사실이다.
+            ...(hasRunIndex ? {} : { runIndex: 1 }),
+            // T5: 게스트였던 기록만 — 이 시각에 처음 셀 수 있게 된다(위 주석).
+            ...(data.isGuest === true ? { relinkedAt: stamp } : {}),
+          });
+          reparented += 1;
+        }
       }
-    });
+    }
+    // 지우기와 같은 batch — 둘 다 되거나 둘 다 안 된다. 같은 대회가 다음 batch 에도 나오면 그 batch 가
+    // 요청을 다시 쓴다(merge · 더 늦은 시각) — 그 사이 시작한 다시 세기가 요청을 지우지 않게.
+    for (const tid of requestTids) {
+      addRecountRequestToBatch(db, batch, tid, "relink-conflict", () => stamp);
+      legacyDeleted.add(tid);
+    }
     await batch.commit();
-    linked += reparentedInPage;
-    cursor = snap.docs[snap.docs.length - 1];
-    if (snap.size < pageSize) break;
+    linked += reparented;
+    if (opts.afterCommit) {
+      await opts.afterCommit({ index, voteIds, writes: voteIds.length + requestTids.length });
+    }
   }
-  const legacyDeletedTids = Array.from(legacyDeleted);
-  // 지우기가 다 끝난 뒤 요청한다 — 요청 뒤에 지운 기록이 다시 세기에 섞이지 않게.
-  for (const tid of legacyDeletedTids) {
-    await requestRecount(db, tid, "relink-conflict", serverTime);
-  }
-  return { linked, legacyDeletedTids };
+  return { linked, legacyDeletedTids: Array.from(legacyDeleted) };
 }
 
 export const linkSessionVote = onCall<LinkSessionVoteRequest>(
@@ -360,25 +464,12 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
     // Google uid already finished) must be settled BEFORE we touch a single vote,
     // otherwise a re-parented vote on a conflicting Tournament would let one
     // account vote twice and skew that Match's Vote Rate (§8 Edge #1 flaw).
+    // T5: 읽은 문서를 PASS 2 가 그대로 판 단위 batch 로 옮긴다(두 번 읽지 않는다).
+    const anonDocs = await readAnonVotes(adminDb, anonUid);
     const tournamentIds = new Set<string>();
-    {
-      let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
-      for (;;) {
-        let q = adminDb
-          .collection("votes")
-          .where("userId", "==", anonUid)
-          .orderBy("__name__")
-          .limit(BATCH_LIMIT);
-        if (cursor) q = q.startAfter(cursor);
-        const snap = await q.get();
-        if (snap.empty) break;
-        snap.docs.forEach((d) => {
-          const tid = (d.data() as { tournamentId?: string }).tournamentId;
-          if (tid) tournamentIds.add(tid);
-        });
-        cursor = snap.docs[snap.docs.length - 1];
-        if (snap.size < BATCH_LIMIT) break;
-      }
+    for (const d of anonDocs) {
+      const tid = (d.data() as { tournamentId?: string }).tournamentId;
+      if (tid) tournamentIds.add(tid);
     }
 
     const tids = distinctTournamentIds(
@@ -394,7 +485,7 @@ export const linkSessionVote = onCall<LinkSessionVoteRequest>(
 
     // PASS 2 (writes): re-parent non-conflict votes, DELETE conflict votes.
     // `linked` counts only re-parented rows — deleted conflict votes are excluded.
-    const { linked } = await relinkGuestVotes(adminDb, anonUid, googleUid, conflictTids);
+    const { linked } = await relinkGuestVotes(adminDb, anonUid, googleUid, conflictTids, { docs: anonDocs });
 
     // §8 Edge #1 — carry the per-Voter bracket seed (ADR-0007) from the anon
     // uid to the new uid. The bracket depends only on the seed VALUE, so copying

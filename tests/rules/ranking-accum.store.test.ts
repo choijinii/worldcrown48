@@ -25,6 +25,7 @@ import {
   runRecountHelper,
   readAccum,
   addRecountRequestToBatch,
+  clearFinalMarker,
   requestRecount,
   runRecount,
   type AccumDoc,
@@ -890,6 +891,64 @@ describe("rankingAccumStore · 실행 예산 · 최종 차트 표지 (에뮬레�
     expect(stored!.finalCachePendingMs).toBeUndefined();
     expect((await cacheOf(tid))!.rankings).toEqual(await legacyRankings(tid));
   });
+
+  it("job-vanished-at-last-publish: 마지막 발표가 job 을 읽은 뒤 도우미가 끝내 지웠으면, 낡은 asOf 로 새로 세지 않고 구간 끝까지 마지막 확정을 한다", async () => {
+    const tid = "vanishLastT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const N1 = corpusEnd(all) + LAG + HOUR;
+    const N2 = N1 + 12 * HOUR;
+    const deadline = N2 - HOUR;
+    await publishTournament(db, tid, deadline, N1, { toTimestamp });
+    // 요청 때문에 돌던 다시 세기(asOf = T2 · final 아님)가 예산에 닿아 멈춰 있다
+    expect((await runRecount(db, tid, { asOfMs: T2, final: false, deadlineAtMs: 0, nowMs: () => Date.now(), pageSize: 46 }, zeroReads())).done).toBe(false);
+
+    let helperRan = 0;
+    const log = await publishTournament(db, tid, deadline, N2, {
+      toTimestamp,
+      // 발표가 job 을 읽은 직후 — 같은 :00 에 돈 도우미가 job 을 끝내 지운다(final 아님)
+      afterJobRead: async () => {
+        const r = await runRecountHelper(db, { toTimestamp });
+        helperRan += r.jobsDone;
+      },
+    });
+    expect(helperRan).toBe(1);
+    expect(log.mode).toBe("final-recount");
+    expect(log.cacheWritten).toBe(true);
+    // 낡은 asOf 로 한 번 + 마지막 확정 한 번 = 두 번이 아니라, 마지막 확정 한 번만 읽는다
+    expect(log.reads.recount).toBe(all.length);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+    const stored = await readAccum(db, tid);
+    expect(stored!.cursorMs).toBe(N2 - LAG);
+    expect(accumEquals(stored!.accum, fullAccum(all, N2 - LAG))).toBe(true);
+    expect(stored!.finalCachePendingMs).toBeUndefined();
+    expect((await cacheOf(tid))!.rankings).toEqual(await legacyRankings(tid));
+  });
+
+  it("job-vanished-not-last: 마지막 발표가 아니면 사라진 job 을 새로 세지 않고 다시 읽은 누적에 증분만 한다", async () => {
+    const tid = "vanishMidT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const N1 = T1 + LAG;
+    await publishTournament(db, tid, FAR_DEADLINE, N1, { toTimestamp });
+    expect((await runRecount(db, tid, { asOfMs: T2, final: false, deadlineAtMs: 0, nowMs: () => Date.now(), pageSize: 46 }, zeroReads())).done).toBe(false);
+
+    const N2 = corpusEnd(all) + LAG + HOUR;
+    const log = await publishTournament(db, tid, FAR_DEADLINE, N2, {
+      toTimestamp,
+      afterJobRead: async () => {
+        await runRecountHelper(db, { toTimestamp });
+      },
+    });
+    expect(log.mode).toBe("increment");
+    expect(log.reads.recount).toBe(0);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+    const stored = await readAccum(db, tid);
+    expect(stored!.cursorMs).toBe(N2 - LAG);
+    expect(accumEquals(stored!.accum, fullAccum(all, N2 - LAG))).toBe(true);
+  });
 });
 
 describe("rankingAccumStore · 누적 쓰기 경쟁 (에뮬레이터)", () => {
@@ -930,6 +989,28 @@ describe("rankingAccumStore · 누적 쓰기 경쟁 (에뮬레이터)", () => {
     expect(accumEquals(stored!.accum, fullAccum(rest, E))).toBe(true);
     // 요청은 되살아나지 않는다
     expect((await db.collection(REQUESTS).doc(tid).get()).exists).toBe(false);
+  });
+
+  it("final-marker-not-resurrected: 표지를 지운 뒤 그 전에 읽은 누적으로 증분하면, 표지를 되살리지 않고 새 누적 위에 다시 더한다", async () => {
+    const tid = "markerRaceT";
+    await seedVotes(tid, makeRun({ userId: "a", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    const E = 10 * HOUR;
+    // 마지막 확정이 끝나 표지가 붙은 누적(cursor 0) — 증분 하나가 이 문서를 읽었다
+    const withMarker: AccumDoc = { ...baseDoc(tid), updatedAtMs: 1, finalCachePendingMs: 1, finalEndMs: 0 };
+    await db.collection(ACCUM).doc(tid).set(withMarker);
+    // 그 사이 캐시를 쓴 쪽이 표지를 지운다 — updatedAtMs 가 바뀌어야 읽은 쪽이 "그 사이 누가 썼다"를 안다
+    expect(await clearFinalMarker(db, tid, 1, 999)).toBe(true);
+    const cleared = await readAccum(db, tid);
+    expect(cleared!.finalCachePendingMs).toBeUndefined();
+    expect(cleared!.updatedAtMs).toBe(999);
+
+    const next = await applyIncrement(db, tid, withMarker, E, zeroReads(), { nowMs: 2_000 });
+    expect(next.finalCachePendingMs).toBeUndefined();
+    const stored = await readAccum(db, tid);
+    expect(stored!.finalCachePendingMs).toBeUndefined();
+    expect(stored!.finalEndMs).toBeUndefined();
+    expect(stored!.cursorMs).toBe(E);
+    expect(stored!.accum.runsTotal).toBe(1);
   });
 
   it("recount-returns-final: 다 센 다시 세기는 job 의 final 을 돌려준다(도우미가 최종 차트를 쓸지 정한다)", async () => {
@@ -1025,38 +1106,112 @@ describe("전환 · 계정 삭제 (에뮬레이터)", () => {
     expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(2 * RUN_VOTES);
   });
 
-  it("relink-split-pages: 10건씩 옮기다 사이에 발표가 끼어도 판은 마지막 조각 구간에서 1번", async () => {
+  it("relink-split-pages: 쓰기 상한을 작게 줘도 판은 조각 사이에 나뉘지 않는다 — 판마다 relinkedAt 하나", async () => {
     const tid = "relinkSplitT";
     await seedContestants(tid);
-    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN }));
+    // 두 판의 기록 id 를 번갈아 놓는다 — __name__ 순 조각이면 두 판이 조각마다 섞여 나뉜다
+    const a = makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN });
+    const b = makeRun({ userId: "anonA", runIndex: 2, guest: true, startMs: 2 * HOUR, stepMs: MIN });
+    const inter = (vs: AccumVote[], off: number) =>
+      vs.map((v, i) => ({ ...v, id: `s${String(2 * i + off).padStart(4, "0")}` }));
+    await seedVotes(tid, inter(a, 0).concat(inter(b, 1)));
     await publishTournament(db, tid, FAR_DEADLINE, 5 * HOUR + LAG, { toTimestamp });
     expect((await accumOf(tid)).runsTotal).toBe(0);
 
-    // 조각(페이지)마다 시각 표지 하나 — 조각 p 는 6h + p 시간. 46건 / 10 = 5 조각(6h … 10h).
-    // 8h30m 의 발표는 조각 0~2(30건)가 옮겨진 뒤, 조각 3~4 가 옮겨지기 전에 돈 발표와 같다
-    // (옮기기 전 조각은 게스트라 어차피 세지 않는다).
-    let page = 0;
+    const batches: string[][] = [];
     const res = await relinkGuestVotes(db, "anonA", "googleB", new Set(), {
-      pageSize: 10,
-      serverTime: () => Timestamp.fromMillis(6 * HOUR + page++ * HOUR),
+      writeLimit: 50, // 판 하나(46) + 요청 몫 — 두 판(92)은 한 batch 에 못 든다
+      serverTime: () => Timestamp.fromMillis(6 * HOUR + batches.length * HOUR),
+      afterCommit: ({ voteIds }) => {
+        batches.push(voteIds);
+      },
     });
-    expect(res.linked).toBe(RUN_VOTES);
-    expect(page).toBe(5);
-    const stamps = new Set((await votesOf("googleB")).map((v) => v.relinkedAt.toMillis()));
-    expect(stamps.size).toBe(5);
-
-    const mid = await publishTournament(db, tid, FAR_DEADLINE, 8 * HOUR + 30 * MIN + LAG, { toTimestamp });
-    expect(mid.shadow).toBe("match");
-    expect((await accumOf(tid)).runsTotal).toBe(0); // 판의 마지막 조각이 아직 뒤 구간
-    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(30);
+    expect(res.linked).toBe(2 * RUN_VOTES);
+    expect(batches).toHaveLength(2);
+    const runOfId = new Map<string, number>();
+    for (const v of inter(a, 0)) runOfId.set(`${tid}_${v.id}`, 1);
+    for (const v of inter(b, 1)) runOfId.set(`${tid}_${v.id}`, 2);
+    // batch 마다 판 하나 · 판 하나는 batch 하나
+    const seen = new Set<number>();
+    for (const ids of batches) {
+      const runs = new Set(ids.map((id) => runOfId.get(id)));
+      expect(runs.size).toBe(1);
+      const r = Array.from(runs)[0]!;
+      expect(seen.has(r)).toBe(false);
+      seen.add(r);
+      expect(ids).toHaveLength(RUN_VOTES);
+    }
+    // relinkedAt 은 판 단위로 정확히 묶인다
+    const moved = await votesOf("googleB");
+    const stampsByRun = new Map<number, Set<number>>();
+    for (const v of moved) {
+      const s = stampsByRun.get(v.runIndex) ?? new Set<number>();
+      s.add(v.relinkedAt.toMillis());
+      stampsByRun.set(v.runIndex, s);
+    }
+    expect(Array.from(stampsByRun.values()).map((s) => s.size)).toEqual([1, 1]);
 
     const after = await publishTournament(db, tid, FAR_DEADLINE, 12 * HOUR + LAG, { toTimestamp });
     expect(after.shadow).toBe("match");
-    expect((await accumOf(tid)).runsTotal).toBe(1);
-    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(RUN_VOTES);
+    expect((await accumOf(tid)).runsTotal).toBe(2);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(2 * RUN_VOTES);
+  });
 
-    await publishTournament(db, tid, FAR_DEADLINE, 24 * HOUR + LAG, { toTimestamp });
+  it("relink-publish-between-batches: 판 A 만 옮겨진 진짜 중간 상태에서 발표가 돌아도 판마다 한 번 · 옛 전량 방식과 같다", async () => {
+    const tid = "relinkMidT";
+    await seedContestants(tid);
+    await seedVotes(tid, makeRun({ userId: "u1", runIndex: 1, startMs: 1_000, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: HOUR, stepMs: MIN }));
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 2, guest: true, startMs: 2 * HOUR, stepMs: MIN }));
+    await publishTournament(db, tid, FAR_DEADLINE, 5 * HOUR + LAG, { toTimestamp });
     expect((await accumOf(tid)).runsTotal).toBe(1);
+
+    let committed = 0;
+    const mid: { runsTotal: number; anonLeft: number; anonGuest: boolean; movedAll: boolean }[] = [];
+    const res = await relinkGuestVotes(db, "anonA", "googleB", new Set(), {
+      writeLimit: RUN_VOTES, // batch 하나에 판 하나
+      serverTime: () => Timestamp.fromMillis(6 * HOUR + committed * 3 * HOUR), // 6h · 9h
+      afterCommit: async () => {
+        committed++;
+        if (committed !== 1) return;
+        // 첫 batch 와 둘째 batch 사이의 발표 — 판 하나는 통째로 옮겨졌고 다른 판은 아직 게스트
+        const left = await votesOf("anonA");
+        const moved = await votesOf("googleB");
+        const log = await publishTournament(db, tid, FAR_DEADLINE, 8 * HOUR + LAG, { toTimestamp });
+        expect(log.shadow).toBe("match");
+        mid.push({
+          runsTotal: (await accumOf(tid)).runsTotal,
+          anonLeft: left.length,
+          anonGuest: left.every((v) => v.isGuest === true),
+          movedAll: moved.length === RUN_VOTES && moved.every((v) => v.relinkedAt.toMillis() === 6 * HOUR),
+        });
+      },
+    });
+    expect(res.linked).toBe(2 * RUN_VOTES);
+    expect(committed).toBe(2);
+    expect(mid).toEqual([{ runsTotal: 2, anonLeft: RUN_VOTES, anonGuest: true, movedAll: true }]);
+
+    const log2 = await publishTournament(db, tid, FAR_DEADLINE, 12 * HOUR + LAG, { toTimestamp });
+    expect(log2.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(3);
+    const log3 = await publishTournament(db, tid, FAR_DEADLINE, 24 * HOUR + LAG, { toTimestamp });
+    expect(log3.shadow).toBe("match");
+    expect((await accumOf(tid)).runsTotal).toBe(3);
+    expect(sumCounts((await accumOf(tid)).voteCounts)).toBe(3 * RUN_VOTES);
+    // 옛 전량 방식과 같다
+    const cache = await cacheOf(tid);
+    expect(cache!.runsTotal).toBe(3);
+    expect(cache!.rankings).toEqual(await legacyRankings(tid));
+  });
+
+  it("relink-run-over-limit: 판 하나가 쓰기 상한보다 크면 아무것도 쓰지 않고 멈춘다", async () => {
+    const tid = "relinkOverT";
+    await seedVotes(tid, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN, take: 5 }));
+    await expect(
+      relinkGuestVotes(db, "anonA", "googleB", new Set(), { writeLimit: 4, serverTime: fixedTime(6 * HOUR) }),
+    ).rejects.toThrow(/쓰기 상한/);
+    expect(await votesOf("anonA")).toHaveLength(5);
+    expect(await votesOf("googleB")).toHaveLength(0);
   });
 
   it("user-delete-requests-recount: 지우는 batch 에 대회마다 요청 → 다음 발표 mode recount · 지운 판 빠짐", async () => {
@@ -1091,7 +1246,7 @@ describe("전환 · 계정 삭제 (에뮬레이터)", () => {
     expect(await mismatchAlerts(tid)).toHaveLength(0);
   });
 
-  it("relink-conflict-legacy-request: 충돌로 지운 기록 중 옛 기록이 있던 대회만 다시 세기 요청", async () => {
+  it("relink-conflict-legacy-request: 옛 기록을 지운 batch 에 그 대회 요청이 함께 쓰인다 · 게스트 기록뿐이면 요청 없음", async () => {
     const legacyT = "conflictLegacyT"; // 충돌 · 옛 기록(isGuest 칸 없음) 섞임 → 요청
     const guestT = "conflictGuestT"; // 충돌 · 게스트 기록뿐 → 센 적 없으니 요청 없음
     const okT = "noConflictT"; // 충돌 아님 → 옮김
@@ -1100,9 +1255,24 @@ describe("전환 · 계정 삭제 (에뮬레이터)", () => {
     await seedVotes(guestT, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN, take: 4 }));
     await seedVotes(okT, makeRun({ userId: "anonA", runIndex: 1, guest: true, startMs: 1_000, stepMs: MIN, take: 5 }));
 
+    // batch 마다: 그 batch 가 지운 옛 기록 수 · 그 batch 의 요청 수 몫 · 커밋 직후 요청 문서가 있었는가
+    const legacyIds = new Set(
+      (await db.collection("votes").where("tournamentId", "==", legacyT).get()).docs
+        .filter((d) => d.data().isGuest === undefined)
+        .map((d) => d.id),
+    );
+    expect(legacyIds.size).toBe(3);
+    const seen: { legacyDeleted: number; writes: number; requestExists: boolean }[] = [];
     const res = await relinkGuestVotes(db, "anonA", "googleB", new Set([legacyT, guestT]), {
-      pageSize: 4,
+      writeLimit: 6,
       serverTime: fixedTime(6 * HOUR),
+      afterCommit: async ({ voteIds, writes }) => {
+        seen.push({
+          legacyDeleted: voteIds.filter((id) => legacyIds.has(id)).length,
+          writes,
+          requestExists: (await db.collection(REQUESTS).doc(legacyT).get()).exists,
+        });
+      },
     });
     expect(res.linked).toBe(5);
     expect(res.legacyDeletedTids).toEqual([legacyT]);
@@ -1110,6 +1280,13 @@ describe("전환 · 계정 삭제 (에뮬레이터)", () => {
     const moved = await votesOf("googleB");
     expect(moved).toHaveLength(5);
     expect(moved.every((v) => v.tournamentId === okT)).toBe(true);
+
+    // 옛 기록을 지운 batch 가 커밋된 바로 그때 요청이 이미 있다(같은 batch) · 쓰기 수는 상한 안
+    const withLegacy = seen.filter((b) => b.legacyDeleted > 0);
+    expect(withLegacy.length).toBeGreaterThan(0);
+    expect(withLegacy.reduce((s, b) => s + b.legacyDeleted, 0)).toBe(3);
+    expect(withLegacy.every((b) => b.requestExists)).toBe(true);
+    expect(seen.every((b) => b.writes <= 6)).toBe(true);
 
     const req = await db.collection(REQUESTS).doc(legacyT).get();
     expect(req.exists).toBe(true);
