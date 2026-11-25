@@ -31,7 +31,7 @@ import { logger } from "firebase-functions";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import { rankingWindowStartMs } from "./core/rankingWindow";
-import { publishTournament } from "./core/rankingAccumStore";
+import { RECOUNT_BUDGET_MS, publishTournament } from "./core/rankingAccumStore";
 
 const MINUTE_MS = 60_000;
 
@@ -61,11 +61,17 @@ export const scheduleRankingCache = onSchedule(
       .where("tournamentDeadline", ">", windowStart)
       .get();
 
+    // 다시 세기 예산은 **이 실행 전체에 하나**다. 대회마다 400초를 따로 주면 큰 다시 세기 둘이 540초
+    // 시간 초과를 넘겨 함수가 죽고, 뒤 대회들은 아예 발표되지 않는다(try/catch 는 시간 초과를 못 잡는다).
+    // 런칭 대회들은 마감이 같아 마지막 확정이 같은 발표에 몰린다. 예산이 지난 뒤의 대회는 다시 세기를
+    // 한 페이지만 하고 job 을 도우미에게 넘기며, 캐시는 증분 누적으로 쓴다.
+    const runDeadlineMs = Date.now() + RECOUNT_BUDGET_MS;
+
     for (const tournamentDoc of inWindow.docs) {
       const tournamentId = tournamentDoc.id;
       try {
         const deadline = tournamentDoc.data().tournamentDeadline as Timestamp;
-        await publishTournament(adminDb, tournamentId, deadline.toMillis(), nowMs);
+        await publishTournament(adminDb, tournamentId, deadline.toMillis(), nowMs, { deadlineAtMs: runDeadlineMs });
       } catch (err) {
         // 이 대회의 캐시는 옛 것으로 남는다 — 누적이 앞서 갔으면 다음 발표가 그 누적으로 쓴다.
         logger.error("rankingPublish failed", { tournamentId, err: String(err) });

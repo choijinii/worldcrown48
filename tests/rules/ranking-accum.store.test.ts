@@ -22,6 +22,7 @@ import {
   REQUESTS,
   applyIncrement,
   publishTournament,
+  runRecountHelper,
   readAccum,
   addRecountRequestToBatch,
   requestRecount,
@@ -176,7 +177,7 @@ async function seedVotes(tid: string, votes: AccumVote[], createdAt?: (v: AccumV
 
 /** 루트 firebase-admin 의 서버 시각 표지 — functions 쪽 FieldValue 는 이 db 가 직렬화하지 못한다. */
 const serverTime = () => FieldValue.serverTimestamp();
-const zeroReads = (): ReadCounts => ({ created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0 });
+const zeroReads = (): ReadCounts => ({ created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0, count: 0 });
 const baseDoc = (tid: string, cursorMs = 0): AccumDoc => ({ tournamentId: tid, cursorMs, accum: emptyAccum(), updatedAtMs: 0 });
 const sumCounts = (r: Record<string, number>) => Object.values(r).reduce((s, n) => s + n, 0);
 
@@ -693,6 +694,8 @@ describe("rankingAccumStore · publishTournament (에뮬레이터)", () => {
     expect(log.mode).toBe("increment");
     expect(log.shadow).toBe("mismatch");
     expect(log.reads.shadow).toBe(all.length);
+    expect(all.length).toBeGreaterThan(1000);
+    expect(log.reads.count).toBe(Math.ceil(all.length / 1000)); // count() — 1,000건마다 1읽기
     const alerts = await mismatchAlerts(tid);
     expect(alerts).toHaveLength(1);
     expect(alerts[0].resolved).toBe(false);
@@ -727,6 +730,9 @@ describe("rankingAccumStore · publishTournament (에뮬레이터)", () => {
     expect(accumEquals(stored!.accum, fullAccum(all, N2 - LAG))).toBe(true);
     expect((await cacheOf(tid))!.rankings).toEqual(await legacyRankings(tid));
     expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+    // 발표가 그 자리에서 최종 차트를 썼다 → 표지를 지웠다
+    expect(stored!.finalCachePendingMs).toBeUndefined();
+    expect(stored!.finalEndMs).toBeUndefined();
   });
 
   it("final-recount-match-no-alert: 누적이 맞으면 마지막 확정도 경보 없음", async () => {
@@ -787,6 +793,100 @@ describe("rankingAccumStore · publishTournament (에뮬레이터)", () => {
     expect(await cacheOf(tid)).toBeNull();
     expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(true);
     expect(await readAccum(db, tid)).toBeNull();
+  });
+});
+
+describe("rankingAccumStore · 실행 예산 · 최종 차트 표지 (에뮬레이터)", () => {
+  it("shared-run-budget: 다시 세기가 필요한 두 대회가 실행 예산 하나를 나눠 쓰면, 둘 다 캐시를 쓰고 job 을 도우미에게 남긴다", async () => {
+    const tids = ["budgetA", "budgetB"];
+    const N1 = 40 * HOUR;
+    const N2 = N1 + 12 * HOUR;
+    for (const tid of tids) {
+      await seedVotes(tid, buildCorpus());
+      await publishTournament(db, tid, FAR_DEADLINE, N1, { toTimestamp });
+      await requestRecount(db, tid, "user-delete", serverTime);
+    }
+    // 크론 한 실행의 예산 — 이미 다 썼다(앞 대회들이 먹은 상태)
+    const runDeadlineMs = Date.now() - 1;
+    for (const tid of tids) {
+      const log = await publishTournament(db, tid, FAR_DEADLINE, N2, {
+        toTimestamp,
+        deadlineAtMs: runDeadlineMs,
+        recountPageSize: 46,
+      });
+      expect(log.mode).toBe("recount-pending");
+      expect(log.cacheWritten).toBe(true);
+      // 예산이 지난 대회는 다시 세기 한 페이지만 · 그림자 비교 건너뜀
+      expect(log.reads.recount).toBeLessThanOrEqual(2 * 46);
+      expect(log.shadow).toBe("skipped");
+      expect((await cacheOf(tid))!.generationSequence).toBe(1);
+      expect((await readAccum(db, tid))!.cursorMs).toBe(N2 - LAG);
+    }
+    const jobs = await db.collection(JOBS).get();
+    expect(jobs.size).toBeGreaterThanOrEqual(1);
+  });
+
+  it("helper-final-cache-retry: 도우미의 최종 차트 쓰기가 한 번 실패해도 표지가 남아 다음 실행이 쓰고 지운다", async () => {
+    const tid = "helperRetryT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const E = corpusEnd(all);
+    expect((await runRecount(db, tid, { asOfMs: E, final: true, deadlineAtMs: 0, nowMs: () => Date.now(), pageSize: 100 }, zeroReads())).done).toBe(false);
+
+    let calls = 0;
+    const boomOnce = async (): Promise<{ readsFixed: number }> => {
+      calls++;
+      throw new Error("boom");
+    };
+    await runRecountHelper(db, { toTimestamp, writeCache: boomOnce });
+    expect(calls).toBe(1);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false); // job 은 끝나 지워졌다
+    const marked = await readAccum(db, tid);
+    expect(typeof marked!.finalCachePendingMs).toBe("number");
+    expect(await cacheOf(tid)).toBeNull();
+
+    const res = await runRecountHelper(db, { toTimestamp });
+    expect(res.finalCaches).toBe(1);
+    expect((await cacheOf(tid))!.rankings).toEqual(await legacyRankings(tid));
+    const cleared = await readAccum(db, tid);
+    expect(cleared!.finalCachePendingMs).toBeUndefined();
+    expect(accumEquals(cleared!.accum, fullAccum(all, E))).toBe(true);
+
+    // 표지가 없으면 다음 실행은 아무것도 쓰지 않는다
+    expect((await runRecountHelper(db, { toTimestamp })).finalCaches).toBe(0);
+  });
+
+  it("last-publish-marks-job-final: 마지막 발표가 만난 job 은 final + finalEndMs 가 되고, 끝낸 도우미가 [asOf, finalEndMs) 를 더한 뒤 최종 차트를 쓴다", async () => {
+    const tid = "markFinalT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const N1 = corpusEnd(all) + LAG + HOUR;
+    const N2 = N1 + 12 * HOUR;
+    const deadline = N2 - HOUR;
+    await publishTournament(db, tid, deadline, N1, { toTimestamp });
+    // 요청 때문에 돌던 다시 세기(asOf = T2 · final 아님)가 예산에 닿아 멈춰 있다
+    expect((await runRecount(db, tid, { asOfMs: T2, final: false, deadlineAtMs: 0, nowMs: () => Date.now(), pageSize: 46 }, zeroReads())).done).toBe(false);
+
+    // 창 안 마지막 발표 — 예산이 이미 지나 한 페이지만 잇는다
+    const log = await publishTournament(db, tid, deadline, N2, { toTimestamp, deadlineAtMs: 0, recountPageSize: 46 });
+    expect(log.mode).toBe("recount-pending");
+    expect(log.cacheWritten).toBe(true);
+    const job = (await db.collection(JOBS).doc(tid).get()).data()!;
+    expect(job.final).toBe(true);
+    expect(job.finalEndMs).toBe(N2 - LAG);
+    expect(job.asOfMs).toBe(T2); // asOf 는 그대로
+
+    const res = await runRecountHelper(db, { toTimestamp, pageSize: 46 });
+    expect(res.finalCaches).toBe(1);
+    expect((await db.collection(JOBS).doc(tid).get()).exists).toBe(false);
+    const stored = await readAccum(db, tid);
+    expect(stored!.cursorMs).toBe(N2 - LAG);
+    expect(accumEquals(stored!.accum, fullAccum(all, N2 - LAG))).toBe(true);
+    expect(accumEquals(fullAccum(all, T2), fullAccum(all, N2 - LAG))).toBe(false); // 증분이 실제로 필요했다
+    expect(stored!.finalCachePendingMs).toBeUndefined();
+    expect((await cacheOf(tid))!.rankings).toEqual(await legacyRankings(tid));
   });
 });
 

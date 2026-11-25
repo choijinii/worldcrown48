@@ -57,6 +57,18 @@ export interface AccumDoc {
   cursorMs: number;
   accum: RankingAccum;
   updatedAtMs: number;
+  /**
+   * 마지막 확정(final 다시 세기)이 끝났는데 아직 그 값으로 차트 캐시를 쓰지 않았다 — 끝낸 시각.
+   * 다시 세기의 끝내기 트랜잭션이 job 을 지우면서 함께 쓴다. 캐시를 쓴 쪽이 이 값이 그대로일 때만
+   * 지운다(`clearFinalMarker`). 도우미는 매 실행 이 표지부터 찾아 캐시를 쓴다 — 캐시 쓰기가 한 번
+   * 실패해도 job 은 이미 지워졌으므로, 이 표지가 없으면 최종 차트를 다시 쓸 길이 없다.
+   */
+  finalCachePendingMs?: number;
+  /**
+   * 최종 차트가 셀 구간 끝. 다시 세기 asOf 가 이보다 앞이면(창 안 마지막 발표 때 이미 돌던 job 을
+   * final 로 바꾼 경우) 캐시를 쓰기 전에 누적을 여기까지 증분한다.
+   */
+  finalEndMs?: number;
 }
 
 export interface ReadCounts {
@@ -65,6 +77,8 @@ export interface ReadCounts {
   runFetch: number;
   recount: number;
   shadow: number;
+  /** `count()` 집계 — 색인 항목 1,000개까지 1읽기로 청구(최소 1). */
+  count: number;
 }
 
 /**
@@ -263,11 +277,39 @@ async function computeIncrement(
   // ⑥ 누적 + cursor 를 문서 하나로 — 쓰기는 부르는 쪽(applyIncrement)이 조건부로 한 번
   const delta: RankingAccum = { ...runDelta(runs, startMs, endMs), voteCounts: voteCountDelta(win, startMs, endMs) };
   return {
+    ...finalMarkerOf(base), // 최종 차트 표지는 증분이 지우지 않는다 — 캐시를 쓴 쪽만 지운다
     tournamentId: tid,
     cursorMs: endMs,
     accum: addAccum(base.accum, delta),
     updatedAtMs: nowMs,
   };
+}
+
+function finalMarkerOf(d: AccumDoc): Pick<AccumDoc, "finalCachePendingMs" | "finalEndMs"> {
+  const out: Pick<AccumDoc, "finalCachePendingMs" | "finalEndMs"> = {};
+  if (typeof d.finalCachePendingMs === "number") out.finalCachePendingMs = d.finalCachePendingMs;
+  if (typeof d.finalEndMs === "number") out.finalEndMs = d.finalEndMs;
+  return out;
+}
+
+/**
+ * 최종 차트 표지 지우기 — 저장된 표지가 `marker` 그대로일 때만(그 사이 새 마지막 확정이 끝나 표지가
+ * 바뀌었으면 그 캐시는 아직 안 쓰였다). FieldValue.delete 대신 칸을 뺀 문서를 통째로 쓴다(누적 · 커서는
+ * 트랜잭션 안에서 읽은 그대로).
+ */
+export async function clearFinalMarker(db: Firestore, tid: string, marker: number): Promise<boolean> {
+  const ref = db.collection(ACCUM).doc(tid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    const d = snap.data() as AccumDoc;
+    if (d.finalCachePendingMs !== marker) return false;
+    const rest: AccumDoc = { ...d };
+    delete rest.finalCachePendingMs;
+    delete rest.finalEndMs;
+    tx.set(ref, rest);
+    return true;
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -297,8 +339,14 @@ export interface RecountJob {
   /** 여기까지(포함) 사람의 기록은 `partial` 에 다 들어 있다. 처음이면 null. */
   lastUserId: string | null;
   partial: RankingAccum;
-  /** 대회의 마지막 확정 집계인가 — 끝나면 최종 차트를 써야 한다(Task 4 · 도우미 크론). */
+  /**
+   * 대회의 마지막 확정 집계인가 — 끝나면 최종 차트를 써야 한다. 창 안 마지막 발표가 이미 돌던 job 을
+   * 만나면 이 칸과 `finalEndMs` 를 켠다(`markJobFinal`). 이어 세는 실행은 이 두 칸을 덮어쓰지 않고,
+   * 끝낼 때 저장된 문서의 값을 읽는다 — 다른 실행의 임대 중에 켜도 잃지 않는다.
+   */
   final: boolean;
+  /** 최종 차트가 셀 구간 끝(asOf 보다 뒤일 수 있다). 없으면 asOf. */
+  finalEndMs?: number;
   /**
    * 다시 세기를 처음 시작한 시각. 이어 세기에서도 바뀌지 않는다 — 요청 문서를 지울지 판단하는
    * 기준이라, 이어 센 시각으로 바꾸면 중간에 들어온 요청까지 지워 버린다.
@@ -464,8 +512,14 @@ export async function runRecount(
     if (finished) break;
     if (opts.nowMs() >= opts.deadlineAtMs) {
       // 진행 저장 + 임대 비우기 — 다음 실행(도우미 · 발표)이 바로 이어 받는다.
+      // 이미 있던 job 은 진행 칸만 고친다 — final · finalEndMs 는 그 사이 마지막 발표가 켰을 수 있다.
       await db.runTransaction(async (tx) => {
-        if (stillOurs(await tx.get(jobRef))) tx.set(jobRef, { ...job, leaseUntilMs: 0, leaseHolder: null });
+        if (!stillOurs(await tx.get(jobRef))) return;
+        if (loaded) {
+          tx.update(jobRef, { lastUserId: job.lastUserId, partial: job.partial, leaseUntilMs: 0, leaseHolder: null });
+        } else {
+          tx.set(jobRef, { ...job, leaseUntilMs: 0, leaseHolder: null });
+        }
       });
       return { done: false };
     }
@@ -473,17 +527,32 @@ export async function runRecount(
 
   // 끝: 누적 · job 삭제(임대도 함께 사라진다) · 요청 정리를 트랜잭션 하나로. 요청은 다시 세기 시작
   // 전에 들어온 것만 지운다 — 시작 뒤에 들어온 요청은 이미 읽은 페이지에 반영되지 않았을 수 있다.
-  const accum: AccumDoc = {
+  // final 이면 최종 차트 표지(finalCachePendingMs)도 같은 쓰기에 싣는다 — job 이 사라진 뒤 캐시 쓰기가
+  // 실패해도 도우미가 표지로 다시 찾는다.
+  const finishedAtMs = opts.nowMs();
+  let accum: AccumDoc = {
     tournamentId: tid,
     cursorMs: job.asOfMs,
     accum: job.partial,
-    updatedAtMs: opts.nowMs(),
+    updatedAtMs: finishedAtMs,
   };
+  let final = job.final;
   const reqRef = db.collection(REQUESTS).doc(tid);
   const won = await db.runTransaction(async (tx) => {
     const cur = await tx.get(jobRef);
     const req = await tx.get(reqRef);
     if (!stillOurs(cur)) return false; // 다른 실행이 넘겨받았다 — 아무것도 쓰지 않는다
+    // final 은 저장된 job 의 값 — 이어 세는 동안 마지막 발표가 켰을 수 있다(새 job 이면 문서가 없다).
+    const stored = cur.exists ? (cur.data() as RecountJob) : null;
+    final = stored ? stored.final === true : job.final;
+    const endMs = stored && typeof stored.finalEndMs === "number" ? stored.finalEndMs : job.asOfMs;
+    accum = {
+      tournamentId: tid,
+      cursorMs: job.asOfMs,
+      accum: job.partial,
+      updatedAtMs: finishedAtMs,
+      ...(final ? { finalCachePendingMs: finishedAtMs, finalEndMs: Math.max(endMs, job.asOfMs) } : {}),
+    };
     tx.set(db.collection(ACCUM).doc(tid), accum);
     tx.delete(jobRef);
     if (req.exists) {
@@ -494,8 +563,119 @@ export async function runRecount(
     }
     return true;
   });
-  // final 은 job 의 값 — 이어 세기에서는 넘겨받은 opts.final 이 아니라 시작할 때 정한 값이 이긴다.
-  return won ? { done: true, accum, final: job.final } : { done: false };
+  // final 은 저장된 job 의 값 — 이어 세기에서는 넘겨받은 opts.final 이 아니라 job 문서가 이긴다.
+  return won ? { done: true, accum, final } : { done: false };
+}
+
+/**
+ * 창 안 마지막 발표가 이미 돌던(final 아닌) job 을 만났다 — 그 job 이 끝나면 최종 차트를 쓰게 켠다.
+ * asOf 는 그대로 둔다(이어 세는 중간에 바꾸면 페이지마다 다른 구간을 센다). 대신 `finalEndMs` 에 이번
+ * 구간 끝을 적어, 끝낸 쪽이 캐시를 쓰기 전에 [asOf, finalEndMs) 를 증분한다. 임대와 무관하게 켠다 —
+ * 이어 세는 실행은 이 두 칸을 덮어쓰지 않는다(`runRecount` 의 저장 · 끝내기).
+ */
+export async function markJobFinal(db: Firestore, tid: string, finalEndMs: number): Promise<boolean> {
+  const ref = db.collection(JOBS).doc(tid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    const j = snap.data() as RecountJob;
+    if (j.final === true && (j.finalEndMs ?? j.asOfMs) >= finalEndMs) return false;
+    tx.update(ref, { final: true, finalEndMs: Math.max(finalEndMs, j.finalEndMs ?? 0) });
+    return true;
+  });
+}
+
+/**
+ * 최종 차트 쓰기(표지가 있는 누적 하나). ① 누적이 `finalEndMs` 앞이면 거기까지 증분(조건부 쓰기 —
+ * 표지는 유지된다) ② 캐시 쓰기 ③ 표지가 그대로면 지운다. ②에서 던지면 표지가 남아 다음 도우미가 다시 한다.
+ */
+export async function writeFinalCache(
+  db: Firestore,
+  tid: string,
+  doc: AccumDoc,
+  nowMs: number,
+  reads: ReadCounts,
+  opts: { writeCache?: typeof writeCacheFromAccum; toTimestamp?: ToTimestamp } = {},
+): Promise<AccumDoc> {
+  const marker = doc.finalCachePendingMs;
+  let cur = doc;
+  if (typeof doc.finalEndMs === "number" && doc.cursorMs < doc.finalEndMs) {
+    cur = await applyIncrement(db, tid, doc, doc.finalEndMs, reads, { nowMs });
+  }
+  await (opts.writeCache ?? writeCacheFromAccum)(db, tid, cur.accum, nowMs, { toTimestamp: opts.toTimestamp });
+  if (typeof marker === "number") await clearFinalMarker(db, tid, marker);
+  return cur;
+}
+
+/**
+ * 다시 세기 도우미 한 실행(`continueRankingRecount` 크론 몸통 · 5분마다).
+ *   1. 최종 차트 표지가 남은 누적부터 — 캐시를 쓰고 표지를 지운다(지난 실행의 캐시 쓰기 실패 재시도).
+ *   2. job 들을 이어 센다(resumeOnly). final job 이 끝나면 그 자리에서 최종 차트를 쓴다.
+ * 예산은 실행 전체에 하나. 대회 하나의 실패는 기록만 하고 다음 대회로 — 표지 · job 이 남아 다음 실행이 다시 한다.
+ */
+export async function runRecountHelper(
+  db: Firestore,
+  opts: {
+    clock?: () => number;
+    budgetMs?: number;
+    pageSize?: number;
+    writeCache?: typeof writeCacheFromAccum;
+    toTimestamp?: ToTimestamp;
+  } = {},
+): Promise<{ finalCaches: number; jobsDone: number }> {
+  const clock = opts.clock ?? Date.now;
+  const deadlineAtMs = clock() + (opts.budgetMs ?? HELPER_BUDGET_MS);
+  const cacheOpts = { writeCache: opts.writeCache, toTimestamp: opts.toTimestamp };
+  let finalCaches = 0;
+  let jobsDone = 0;
+
+  // 1.
+  const pending = await db.collection(ACCUM).where("finalCachePendingMs", ">", 0).get();
+  for (const d of pending.docs) {
+    const tid = d.id;
+    try {
+      await writeFinalCache(db, tid, d.data() as AccumDoc, clock(), zeroReadCounts(), cacheOpts);
+      finalCaches++;
+      logger.info("continueRankingRecount final cache", { tournamentId: tid, retry: true });
+    } catch (err) {
+      logger.error("continueRankingRecount final cache failed", { tournamentId: tid, err: String(err) });
+    }
+  }
+
+  // 2.
+  const jobs = await db.collection(JOBS).get();
+  for (const doc of jobs.docs) {
+    if (clock() >= deadlineAtMs) break; // 남은 job 은 다음 5분 실행이 잇는다
+    const job = doc.data() as RecountJob;
+    const tid = job.tournamentId;
+    const reads = zeroReadCounts();
+    try {
+      // asOf · final 은 job 문서의 값을 runRecount 가 쓴다(이어 세기). resumeOnly — 목록을 읽은 뒤 다른
+      // 실행이 job 을 끝냈으면 새로 세기 시작하지 않는다. 다른 실행이 임대 중이면 읽지 않고 {done:false}.
+      const res = await runRecount(
+        db,
+        tid,
+        { asOfMs: job.asOfMs, final: job.final, deadlineAtMs, nowMs: clock, pageSize: opts.pageSize, resumeOnly: true },
+        reads,
+      );
+      logger.info("continueRankingRecount", { tournamentId: tid, done: res.done, recountReads: reads.recount });
+      if (res.done) jobsDone++;
+      // 마지막 확정 — 다음 발표는 오지 않는다(창 밖). 여기서 최종 차트를 쓴다. 실패하면 표지가 남는다.
+      if (res.done && res.final) {
+        await writeFinalCache(db, tid, res.accum, clock(), reads, cacheOpts);
+        finalCaches++;
+        logger.info("continueRankingRecount final cache", { tournamentId: tid, retry: false });
+      }
+    } catch (err) {
+      // 한 대회가 실패해도 나머지 job 은 잇는다 — job 문서 · 표지가 남아 다음 실행이 다시 시도한다.
+      logger.error("continueRankingRecount failed", { tournamentId: tid, err: String(err) });
+    }
+  }
+  return { finalCaches, jobsDone };
+}
+
+export function zeroReadCounts(): ReadCounts {
+  return { created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0, count: 0 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -539,6 +719,16 @@ export interface PublishOptions {
   writeCache?: typeof writeCacheFromAccum;
   /** 다시 세기 페이지 크기 — 시험이 예산 초과를 작은 기록으로 흉내 낸다. */
   recountPageSize?: number;
+  /**
+   * 다시 세기 예산이 끝나는 시각 — **크론 실행 전체에 하나**(크론이 넘긴다). 대회마다 400초를 따로
+   * 주면 큰 다시 세기 둘이 540초 시간 초과를 넘겨 함수가 죽고, 뒤 대회들은 발표되지 않는다(try/catch
+   * 는 시간 초과를 못 잡는다). 없으면 이 대회 시작 + `RECOUNT_BUDGET_MS`.
+   *
+   * 예산이 이미 지난 대회는 다시 세기를 **한 페이지만** 하고(job 을 남겨 도우미가 잇게 — 새 다시
+   * 세기는 job 이 있어야 도우미가 이어 받는다) 그림자 비교도 건너뛴다. 누적이 있으면 증분 누적으로
+   * 캐시는 그대로 쓴다.
+   */
+  deadlineAtMs?: number;
 }
 
 /** 누적 → 맞지 않은 곳 요약(관리자 경보 한 줄). 숫자는 관리자 전용이다. */
@@ -598,8 +788,8 @@ export async function publishTournament(
   const toTimestamp = opts.toTimestamp ?? defaultToTimestamp;
   const writeCache = opts.writeCache ?? writeCacheFromAccum;
   const startedMs = clock();
-  const deadlineAtMs = startedMs + RECOUNT_BUDGET_MS;
-  const reads: ReadCounts = { created: 0, relinked: 0, runFetch: 0, recount: 0, shadow: 0 };
+  const deadlineAtMs = opts.deadlineAtMs ?? startedMs + RECOUNT_BUDGET_MS;
+  const reads = zeroReadCounts();
 
   // 1.
   const endMs = windowEndMs(nowMs);
@@ -622,6 +812,9 @@ export async function publishTournament(
   if (jobSnap.exists) {
     // 이어 세기 — asOf · final 은 job 의 값을 runRecount 가 쓴다(넘기는 값은 새로 시작할 때만 쓰인다).
     const job = jobSnap.data() as RecountJob;
+    // 창 안 마지막 발표인데 job 이 final 이 아니다 — 그대로 두면 이 대회는 마지막 확정 없이 창을 벗어난다.
+    // asOf 는 못 바꾸므로 final + finalEndMs(= 이번 구간 끝)를 켠다. 끝낸 쪽이 [asOf, finalEndMs) 를 증분한다.
+    if (isLast && job.final !== true) await markJobFinal(db, tid, endMs);
     const res = await recount(job.asOfMs, job.final);
     if (res.done) {
       doc = res.accum;
@@ -675,8 +868,11 @@ export async function publishTournament(
   // 4. 그림자 비교 — 누적의 cursor 까지를 전량으로 센 값과 견준다.
   let shadow: PublishLog["shadow"] = "skipped";
   let accum = doc.accum;
-  if (SHADOW_ENABLED && !countedFullToEnd) {
+  // 크론 실행 예산이 이미 지났으면 건너뛴다 — 5만 건 전량 읽기가 뒤 대회들의 시간을 먹는다.
+  if (SHADOW_ENABLED && !countedFullToEnd && clock() < deadlineAtMs) {
     const n = (await db.collection("votes").where("tournamentId", "==", tid).count().get()).data().count;
+    // count() 는 색인 항목 1,000개까지 1읽기로 청구된다(0건이어도 1).
+    reads.count += Math.max(1, Math.ceil(n / 1000));
     if (n < SHADOW_MAX_VOTES) {
       const want = await shadowTally(db, tid, doc.cursorMs, reads);
       if (accumEquals(doc.accum, want)) {
@@ -705,5 +901,10 @@ export async function publishTournament(
 
   // 6.
   const { readsFixed } = await writeCache(db, tid, accum, nowMs, { toTimestamp });
+  // 마지막 확정 표지 — 이번 캐시가 그 확정 구간까지 담았으면 지운다(표지가 그대로일 때만). 안 지우면
+  // 도우미가 같은 최종 차트를 한 번 더 쓴다(세대 하나 더) — 틀리지는 않는다.
+  if (typeof doc.finalCachePendingMs === "number" && doc.cursorMs >= (doc.finalEndMs ?? 0)) {
+    await clearFinalMarker(db, tid, doc.finalCachePendingMs);
+  }
   return finish(shadow, true, readsFixed);
 }

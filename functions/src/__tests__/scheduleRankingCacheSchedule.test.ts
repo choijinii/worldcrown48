@@ -61,4 +61,9 @@ describe("scheduleRankingCache 스케줄 (AC 14)", () => {
     // 옛 전량 읽기(votes 를 대회마다 통째로)는 크론에 남지 않는다
     expect(SOURCE).not.toContain('collection("votes")');
   });
+
+  it("T5: 다시 세기 예산은 실행 전체에 하나 — 루프 밖에서 한 번 정해 대회마다 넘긴다", () => {
+    expect(SOURCE).toMatch(/const runDeadlineMs = Date\.now\(\) \+ RECOUNT_BUDGET_MS;\s[\s\S]*for \(const tournamentDoc/);
+    expect(SOURCE).toContain("deadlineAtMs: runDeadlineMs");
+  });
 });
