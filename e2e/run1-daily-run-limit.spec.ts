@@ -201,6 +201,26 @@ test.describe("RUN-1 일일 판 한도 — 5판 소진 후 [다시 참여] 차�
  */
 const TID_RUNFIX = "run1-runfix-e2e-tournament";
 
+/** 실패 진단 — 서버가 어느 판 문서에 진행을 썼는지 · 선택이 몇 번째 판으로 세어졌는지 기록에 남긴다. */
+async function logRunState(uid: string, tid: string): Promise<void> {
+  const d = db();
+  const rp1 = (await d.doc(`roundProgress/${uid}_${tid}`).get()).data();
+  const rp2 = (await d.doc(`roundProgress/${uid}_${tid}_r2`).get()).data();
+  const runs = (await d.doc(`tournament_runs/${uid}_${tid}`).get()).data();
+  const votes = await d.collection("votes").where("userId", "==", uid).where("tournamentId", "==", tid).get();
+  const byRun: Record<string, number> = {};
+  votes.forEach((v) => {
+    const k = `run${v.get("runIndex") ?? "?"}·r${v.get("round")}`;
+    byRun[k] = (byRun[k] ?? 0) + 1;
+  });
+  const pick = (o?: admin.firestore.DocumentData) =>
+    o ? { fromRound: o.fromRound, toRound: o.toRound, complete: o.complete, runIndex: o.runIndex } : null;
+  console.log(
+    `[runfix-diag] roundProgress r1=${JSON.stringify(pick(rp1))} r2=${JSON.stringify(pick(rp2))} ` +
+      `tournament_runs=${JSON.stringify(runs ? { runIndex: runs.runIndex, runsToday: runs.runsToday } : null)} votes=${JSON.stringify(byRun)}`,
+  );
+}
+
 test.describe("RUN-FIX-1 — 로그인 팬 2판째 라운드 전환 안내", () => {
   // 한 번에 2분 가까이 걸린다 — 실패를 되풀이하면 워크플로 25분을 넘겨 오류 기록 없이 끊긴다(2026-11-25 CI 실측).
   test.describe.configure({ retries: 0 });
@@ -242,11 +262,16 @@ test.describe("RUN-FIX-1 — 로그인 팬 2판째 라운드 전환 안내", () 
     const run1 = await playRun(page, 1);
     expect(run1).toContain("THE FINAL");
     await playAgain(page, 2);
-    const run2 = await playRun(page, 2, {
-      stopAfterFirstTransition: true,
-      shot: (name) => `playwright-report/runfix-login-${name}`,
-    });
+    let run2: string[];
+    try {
+      run2 = await playRun(page, 2, {
+        stopAfterFirstTransition: true,
+        shot: (name) => `playwright-report/runfix-login-${name}`,
+      });
+    } finally {
+      await logRunState(uid!, TID_RUNFIX);
+    }
+    // playRun 이 안내를 본 뒤 닫아 두므로 여기서는 본 이름만 확인한다.
     expect(run2[0]).toBe("ROUND OF 24");
-    await expect(page.getByTestId("round-transition")).toBeVisible();
   });
 });

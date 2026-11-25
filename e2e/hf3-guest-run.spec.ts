@@ -554,8 +554,8 @@ test.describe("HF-3 Guest Run", () => {
         stopAfterFirstTransition: true,
         shot: (name) => `playwright-report/runfix-guest-${name}`,
       });
+      // playRun 이 안내를 본 뒤 닫아 두므로 여기서는 본 이름만 확인한다.
       expect(run2[0]).toBe("ROUND OF 24");
-      await expect(page.getByTestId("round-transition")).toBeVisible();
     } finally {
       if (!anonUid) anonUid = await anonUidFrom(page).catch(() => "");
       await context.close();
