@@ -20,7 +20,7 @@
 - 새 서버 전용 자리(규칙 read·write 모두 false): `ranking_accum/{tid}`(+ `/history/{seq}` PR 2) · `ranking_recount_requests/{tid}` · `ranking_recount_jobs/{tid}` · `ranking_archive/{tid}/gens/{seq}`(PR 2).
 - 차트 사진(`ranking_archive`)은 **영구 · 지우는 코드를 어디에도 만들지 않는다**(대회 삭제 때도 남긴다 · 대표 2026-11-25 "명예의 전당 재료").
 - 공개 `ranking_cache`(PR 2 뒤): `voteCount` · `totalVotes` · `rate` **없음**. Crown Score와 세 비율 · 이름 · 아바타 재료 · `runsTotal` 은 그대로.
-- 기사: `rate`(퍼센트) 금지 · 숫자 칸 라벨 허용 목록 = `CONTESTANTS` · `DEADLINE · KST` · `LANGUAGES` · `ACTIVE TOURNAMENTS`(허용 = 엔트리 수 · 날짜 · 순위 · 이름 · **대회 수** — 대표 결정 2026-11-25) · Crown Score를 기사 숫자 칸에 **새로 넣지 않는다**.
+- 기사 = **"기사 숫자 허용 목록"(대표 확정 2026-11-25 · 아래 절)** 이 기준. 앞선 "퍼센트·비율을 쓰지 마라 / Crown Score를 기사 칸에 넣지 마"는 정본(`marketing/00_strategy/CROWN_SCORE_v1.0.md` §1 기사 예문)보다 좁아 **이 목록으로 바뀜**. 숫자 칸 라벨 허용 = `CONTESTANTS` · `DEADLINE · KST` · `LANGUAGES` · `ACTIVE TOURNAMENTS` · `CROWN SCORE`(결과 기사 · 1위의 점수). 그 밖의 새 칸 이름은 만들지 않는다 — 필요하면 멈추고 3언어 표로 묻는다.
 - 일괄 삭제 · 소급 고침 · 익명 계정 정리 금지. 옛 공개 `history` 문서는 지우지 않고 규칙으로 읽기만 막는다.
 - `git push origin main` 금지. 브랜치 → PR → 대표 병합. PR 2는 PR 1 브랜치 위에 쌓고(base = PR 1 브랜치), PR 1 병합 뒤 base를 `main` 으로 바꾼다.
 - PR 설명에 적을 것: 원장 D-52(런칭일) 고침은 A줄 문서 PR 몫이라 손대지 않음.
@@ -39,8 +39,29 @@
 
 ## 대표 결정 (2026-11-25 · 계획 승인 때)
 
-- 주간 기사 `ACTIVE TOURNAMENTS`(진행 중인 대회 수) 칸은 **남긴다.** 잠금 시험 허용 목록 = 엔트리 수 · 날짜 · 순위 · 이름 · 대회 수.
-- 주간 기사에서 여러 대회의 1위를 늘어놓는 순서 = 각 대회 차트 1위의 Crown Score 큰 순 · 같으면 대회 제목 순(코티오 판단 · 숫자는 싣지 않음).
+- 주간 기사 `ACTIVE TOURNAMENTS`(진행 중인 대회 수) 칸은 **남긴다.**
+- 주간 기사에서 여러 대회의 1위를 늘어놓는 순서 = 각 대회 차트 1위의 Crown Score 큰 순 · 같으면 대회 제목 순(코티오 판단).
+
+## 기사 숫자 허용 목록 (대표 확정 2026-11-25 · PR 2의 기준)
+
+**쓸 수 있는 것 — 잠금 시험의 허용 목록**
+- 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수("ACTIVE TOURNAMENTS" 칸은 남긴다)
+- 순위 · Crown Score 점수
+- 순위 변동 · Crown Score 변동 · 1위를 지킨 기간(차트 사진에서 나오는 값) — **허용 목록에만 올린다. 재료를 뽑는 장치는 이번에 만들지 않는다(뉴스 작업 몫).**
+- 1등 비율(`winRate`) · 선택 비율(`shareRate` = 대결에 나왔을 때 선택받은 비율) — **반드시 Crown Score 순위와 함께** 쓴다. 낱말은 차트 설명창(`chart.score.help`)의 3언어 표현 그대로: ko "1등 비율"·"선택 비율" / en "Wins"·"Picks" / es "Victorias"·"Elecciones".
+- 참여 팬 수(허용 목록에만) · 대회 전체 참여 횟수(`runsTotal` — 화면 낱말은 "판"이 아니라 "참여"). 참여 횟수는 대표가 검수에서 뺄지 정한다.
+
+**쓸 수 없는 것 — 끼면 시험 실패**
+- 엔트리별 선택 수(`voteCount`) · 대회 전체 선택 수(`totalVotes`)
+- 옛 rate(선택 수 ÷ 전체 선택 수) — "TOP RATE" · "RUNNER-UP RATE" · "TOP MOMENTUM" 칸 삭제
+- 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 받은 순위 점수 합계 같은 날 횟수(`wins` · `finals` · `appearances` · `picks` · `placementPoints`)
+- 순위점수율(`placementRate`) — 기사에서만 뺀다. 차트 설명창에는 그대로.
+
+**만들 것**
+- 결과 기사 숫자 칸: "TOP RATE" 자리에 `CROWN SCORE`(차트 1위의 점수 · 정수). 글자는 차트 머리의 "Crown Score"와 같은 3언어 공통 영어.
+- AI 재료: 옛 rate 대신 순위 · Crown Score · 1등 비율 · 선택 비율 · 대회 전체 참여 횟수.
+- AI 지시: "허용 목록의 숫자만 쓴다 · 1등 비율과 선택 비율은 Crown Score 순위와 함께만 · Crown Score는 '얻었다'가 아니라 '기록했다'".
+- 공개 `ranking_cache` 에서 `voteCount` · `totalVotes` · `rate` 빼기는 그대로(Task 9).
 
 ---
 
@@ -322,42 +343,59 @@ it("isLastPublishInWindow: 마감 2시간 전 발표 false · 마감 1시간 뒤
 - [ ] **Step 2~4:** FAIL → 구현 → PASS
 - [ ] **Step 5: 커밋** — `"T5 PR 2 · 차트 사진 영구 보관(지우는 장치 없음 · 대표 2026-11-25)"`
 
-### Task 11: 기사에서 rate 삭제 · AI 지시문 · 서버 그물 · 잠금 시험
+### Task 11: 기사 숫자 허용 목록 — 옛 rate 삭제 · CROWN SCORE 칸 · AI 재료·지시 · 서버 그물 · 잠금 시험
+
+기준 = 위 절 **"기사 숫자 허용 목록 (대표 확정 2026-11-25)"**. 앞선 "퍼센트·비율 금지"는 바뀌었다 — 1등 비율·선택 비율의 `%` 는 허용, 옛 rate 의 `%` 는 금지.
 
 **Files:**
-- Modify: `functions/src/core/newsDigestCore.ts` · `functions/src/core/newsPrompts.ts:90-105,145,153` · `functions/src/core/newsDraftAssembly.ts`(`parseNewsDraftReply`)
-- Test: `functions/src/__tests__/newsDigestCore.test.ts` · `newsPrompts.test.ts` · 새 `newsNumberLock.test.ts` · 기존 `generateNewsDraft.core.test.ts`·`newsTriggers.core.test.ts` 고치기
+- Modify: `functions/src/core/newsDigestCore.ts` · `functions/src/core/newsPrompts.ts`(75행 규칙 6 문장 · `evidenceLines` · 145·153행 지시) · `functions/src/core/translateArticleCore.ts`(용어 표) · `functions/src/core/newsDraftAssembly.ts`(`parseNewsDraftReply`) · 캐시에서 근거를 만드는 곳(`onChampionForNews.ts` · `generateNewsDraft.ts` · `scheduleWeeklyNews.ts` — `runsTotal` 넘기기)
+- Test: `functions/src/__tests__/newsDigestCore.test.ts` · `newsPrompts.test.ts` · 새 `newsNumberLock.test.ts` · 기존 `generateNewsDraft.core.test.ts`·`newsTriggers.core.test.ts` · 번역 시험
 
 **Interfaces:**
-- `RankingRowLike`: `rate` 삭제 · `crownScore?: number` 추가(주간 순서에만 · 밖으로 안 나감). `rankingRowFromCache` 는 `rank`·`contestantId`·`name`·`nameEn`·`crownScore` 만.
-- `DigestLeader`: `rate` 삭제. 키 허용 = `rank`·`contestantId`·`name`·`nameEn`·`isChampion`·`tournamentTitle`.
-- `buildResultDigest`: `stats` = `[CONTESTANTS]` 만. `leaders` = 캐시 `rank` 순(= 차트 Crown Score 순) 상위 3.
+- `RankingRowLike` = `rank`·`contestantId`·`name`·`nameEn`·`crownScore`·`winRate`·`shareRate`(0~1 그대로). `rate`·`voteCount` 삭제. `rankingRowFromCache` 는 이 7개만 읽는다(캐시에 `voteCount`·`rate`·`placementRate`·횟수가 있어도 버림).
+- `DigestLeader` 키 허용 = `rank`·`contestantId`·`name`·`nameEn`·`crownScore`·`winRate`·`shareRate`·`isChampion`·`tournamentTitle`(`export const LEADER_KEYS`).
+- `NewsDigest` 에 `runsTotal?: number`(결과 기사 · 대회 전체 참여 횟수). `buildResultDigest` 인자에 `runsTotal?: number` — 트리거 · 콜러블이 캐시 `runsTotal` 을 넘긴다. 주간 기사는 넣지 않는다.
+- `buildResultDigest`: `stats` = `[CONTESTANTS, CROWN SCORE]` — `CROWN SCORE` 값 = 차트 `rank` 1 행의 `crownScore` 정수 문자열(행 없으면 칸 없음). `leaders` = 캐시 `rank` 순 상위 3. `TOP RATE`·`RUNNER-UP RATE` 삭제.
 - `buildWeeklyDigest`: 대회마다 `rank` 1 행 → `crownScore` 큰 순 · 같으면 `tournamentTitle` 순 · 상위 3. `stats` = `[ACTIVE TOURNAMENTS]`. `TOP MOMENTUM` 삭제.
-- `export const ALLOWED_STAT_LABELS = ["CONTESTANTS", "DEADLINE · KST", "LANGUAGES", "ACTIVE TOURNAMENTS"] as const;`(newsDigestCore.ts)
-- `newsPrompts.ts`: 근거 줄 `"선두(순위):"` + `"  - {rank}위 {name}{영어 이름 주석}"`(+ Champion · 대회 제목) — 퍼센트 없음. 145·153행 지시에서 "비율(%)" 문장을 "순위와 이름으로"로 바꾼다. `OUTPUT_SPEC` 규칙 줄에 덧붙임(글자 그대로): `"퍼센트·비율·선택 수를 쓰지 마라. stats 블록의 수치는 근거 데이터에 있는 수치(엔트리 수·날짜·대회 수)만 쓴다."`
-- 서버 그물 `parseNewsDraftReply`: `stats` 블록 항목 중 `n` 또는 `l` 에 `%` · `/rate|비율|득표|선택 수|votes?/i` 가 있으면 그 항목을 버리고, 빈 블록이 되면 블록을 버린다.
+- `export const ALLOWED_STAT_LABELS = ["CONTESTANTS", "DEADLINE · KST", "LANGUAGES", "ACTIVE TOURNAMENTS", "CROWN SCORE"] as const;`(newsDigestCore.ts)
+- 머리 주석의 `TODO(ND-CROWN-SCORE)` · "rate (%)" 설명을 허용 목록으로 고친다.
+
+**AI 재료 (`evidenceLines`)** — 옛 `선두(순위·비율):` 줄을 바꾼다:
+```
+선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):
+  - 1위 {name}{영어 이름 주석} Crown Score {crownScore} · 1등 비율 {winRate×100 소수 첫째}% · 선택 비율 {shareRate×100 소수 첫째}%{ (Champion)}{ [대회 제목]}
+대회 전체 참여 횟수: {runsTotal}        ← runsTotal 이 있을 때만
+```
+
+**AI 지시 (`newsPrompts.ts`)**
+- 규칙 6의 `"절대 득표수(Vote Count)는 … 비율·순위·참여 팬 수(Fan Count)만 쓴다."` 줄을 아래 상수(`export const NUMBER_RULE_LINES`)로 바꾼다. 글자 그대로:
+  - `"   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 1등 비율 · 선택 비율 · 참여 팬 수 · 대회 전체 참여 횟수."`
+  - `"   1등 비율과 선택 비율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다."`
+  - `"   선택 수 · 득표수 · 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위점수율은 쓰지 않는다. 참여 횟수는 '판'이 아니라 '참여'로 쓴다."`
+- 결과 기사 지시(145행): `"상위 순위를 비율(%)로 stats 블록에 담되 절대 득표수는 쓰지 않는다."` → `"상위 순위를 Crown Score 순위로 전한다."` · 주간(153행): `"주목받는 Contestant를 비율(%)로 소개하고"` → `"주목받는 Contestant를 Crown Score 순위로 소개하고"`.
+- 번역(`translateArticleCore.ts`): en·es 대상일 때 용어 표 줄 추가 — `1등 비율 → Wins / Victorias` · `선택 비율 → Picks / Elecciones` · `Crown Score` 그대로(`chart.score.help` 와 같은 말). 문구 상수는 `lib/i18n/messages.ts` 의 `chart.score.help` 와 따로 적지 않고, 시험이 두 곳의 낱말이 같은지 대조한다(functions 는 lib 를 import 못 하면 시험에서 문자열 포함 대조).
+
+**서버 그물 (`parseNewsDraftReply`)** — AI 가 만든 `stats` 블록 항목(`l`·`n`)마다:
+- 버림: `/vote|득표|선택 수|횟수|placement|순위점수율|오른 순위|reach|alcance|TOP RATE|RUNNER-UP|MOMENTUM/i` 가 있거나, `%` 가 있는데 라벨이 1등 비율·선택 비율의 3언어 낱말(`1등 비율|선택 비율|Wins|Picks|Victorias|Elecciones`)이 아닌 것.
+- 빈 블록이 되면 블록을 버린다. 본문 문장(`p` 블록)은 그물로 고치지 않는다 — 지시문 + 대표 검수 몫.
 
 - [ ] **Step 1: 실패하는 잠금 시험** (`newsNumberLock.test.ts`):
 ```ts
-it("모든 근거의 숫자 칸 라벨은 허용 목록뿐", () => {
-  for (const d of [openDigest, resultDigest, weeklyDigest]) for (const s of d.stats) expect(ALLOWED_STAT_LABELS).toContain(s.label);
-});
-it("근거 · AI 재료 어디에도 % 와 rate 가 없다", () => {
-  for (const p of [buildOpenPrompt(…), buildResultPrompt(…), buildWeeklyPrompt(…), buildColumnPrompt(…)]) {
-    expect(p.user ?? p).not.toMatch(/%/); expect(JSON.stringify(p)).not.toMatch(/\brate\b/i);
-  }
-  for (const l of [...resultDigest.leaders, ...weeklyDigest.leaders]) expect(Object.keys(l).every((k) => LEADER_KEYS.includes(k))).toBe(true);
-});
-it("rate 칸이 캐시에 남아 있어도 근거로 새지 않는다", …); // rankingRowFromCache({…, rate: 61.2, voteCount: 9})
-it("결과 기사 선두 순서 = 차트 rank 순", …);
-it("AI 지시문에 금지 문장이 들어 있다", () => expect(OUTPUT_SPEC_TEXT).toContain("퍼센트·비율·선택 수를 쓰지 마라"));
-it("그물: AI 가 stats 에 61.2% 를 넣으면 그 항목이 빠진다", …);
+it("근거의 숫자 칸 라벨은 허용 목록뿐", () => { for (const d of [openDigest, resultDigest, weeklyDigest]) for (const s of d.stats) expect(ALLOWED_STAT_LABELS).toContain(s.label); });
+it("결과 기사: CROWN SCORE 칸 = 차트 1위 crownScore · TOP RATE/RUNNER-UP RATE 없음", …);
+it("주간 기사: TOP MOMENTUM 없음 · ACTIVE TOURNAMENTS 남음 · 선두 = crownScore 큰 순", …);
+it("선두 행 키는 LEADER_KEYS 뿐", …);
+it("캐시에 voteCount·rate·placementRate·wins·appearances·picks·totalVotes 가 있어도 근거·AI 재료로 새지 않는다", …); // 값 9, 61.2, 0.77 등 눈에 띄는 숫자로 심고 프롬프트 문자열에 없음 단언
+it("AI 재료: 1등 비율·선택 비율은 Crown Score 와 같은 줄에만", …); // 줄마다 /1등 비율|선택 비율/ 이면 /Crown Score \d+/ 도
+it("AI 재료에 '대회 전체 참여 횟수' 줄 · '판' 낱말 없음", …);
+it("AI 지시에 NUMBER_RULE_LINES 가 글자 그대로", …);
+it("그물: 61.2% 라벨 TOP RATE · '선택 수 1,204' · '순위점수율 77%' 항목은 빠지고 '1등 비율 31.0%' 는 남는다", …);
+it("번역 용어 표: Wins/Picks · Victorias/Elecciones", …);
 ```
-(프롬프트 함수가 돌려주는 모양은 `newsPrompts.ts` 실제 반환형에 맞춰 단언을 고른다.)
 - [ ] **Step 2: 실패 확인** — `cd functions && npx vitest run src/__tests__/newsNumberLock.test.ts` → FAIL
-- [ ] **Step 3: 구현** + 머리 주석의 `TODO(ND-CROWN-SCORE)`·"rate (%)" 설명을 지금 규칙으로 고침
+- [ ] **Step 3: 구현**
 - [ ] **Step 4: 통과 확인** — `cd functions && npm test` → PASS · `npm run build`
-- [ ] **Step 5: 커밋** — `"T5 PR 2 · 기사에서 선택 비율 삭제(TOP RATE · RUNNER-UP RATE · TOP MOMENTUM) · AI 지시문 · 서버 그물 · 잠금 시험"`
+- [ ] **Step 5: 커밋** — `"T5 PR 2 · 기사 숫자 허용 목록(대표 2026-11-25) — 옛 비율 칸 삭제 · CROWN SCORE 칸 · AI 재료·지시 · 서버 그물 · 잠금 시험"`
 
 ### Task 12: 시드 · 시험 정리 · 기존 기사 읽기 전용 조사 · PR 2 E2E
 
@@ -372,7 +410,7 @@ it("그물: AI 가 stats 에 61.2% 를 넣으면 그 항목이 빠진다", …);
 - [ ] **Step 2:** 시드 · 시험 정리 → `npm run test:rules` · `npm test` PASS
 - [ ] **Step 3:** E2E → `bash scripts/e2e-emulator.sh t5-incremental` PASS · CI 에서 도는 `c3-e2e` 는 PR 에서 확인
 - [ ] **Step 4: 실서비스 읽기 전용 조사 실행** — `node functions/scripts/survey-rate-articles.mjs --project <실서비스 id>` (ADC · 읽기만) → 표 저장 `outputs/t5-evidence/rate-articles.md`
-- [ ] **Step 5: 전체 점검 + PR** — Task 8 Step 2 명령 전부 + `gh pr create --base feat/t5-incremental-ranking`. 설명에 적을 것: 대표 결정 ④(rate 미사용 재확인 2026-11-25) · 조사 표 · 배포 순서(규칙 → 함수 `scheduleRankingCache,continueRankingRecount,generateNewsDraft,onChampionForNews,scheduleWeeklyNews`) · 배포 뒤 첫 발표 한 번은 경보 기준선을 옛 공개 문서에서 읽는다는 것.
+- [ ] **Step 5: 전체 점검 + PR** — Task 8 Step 2 명령 전부 + `gh pr create --base feat/t5-incremental-ranking`. 설명에 적을 것: 기사 숫자 허용 목록(대표 확정 2026-11-25) · 옛 rate 미사용(Vote Rate 폐기 2026-09-23 재확인) · 조사 표 · 배포 순서(규칙 → 함수 `scheduleRankingCache,continueRankingRecount,generateNewsDraft,onChampionForNews,scheduleWeeklyNews` + 번역을 부르는 함수가 더 있으면 함께) · 배포 뒤 첫 발표 한 번은 경보 기준선을 옛 공개 문서에서 읽는다는 것.
 
 ---
 
@@ -386,7 +424,7 @@ it("그물: AI 가 stats 에 61.2% 를 넣으면 그 항목이 빠진다", …);
 원장 항목(네 줄 · 무엇 · 정의 · 왜 · 아니라고 한 것), 번호는 그때 원장 끝 다음:
 - **D-103 차트 증분 집계 (가′)** — 셀 수 있게 된 시각(relinkedAt 또는 createdAt · 판은 46건 중 가장 늦은 것) · 구간 `[커서, 발표 − 2분)` · 누적과 커서는 문서 하나 · 안전판 세 겹(그림자 비교 5만 건 미만 · 마지막 확정 · 다시 세기 요청) · 아니라고 한 것: 이미 더한 판 목록 · 판 끝날 때 더하기(onVote 변경) · 판 요약 문서.
 - **D-104 차트 사진 영구 보관** — `ranking_archive` · 담는 것/안 담는 것 · 명예의 전당 재료 · 아니라고 한 것: 마감 뒤 1년 · 90일 · 대회 삭제 때 함께 지우기 · 지우는 장치.
-- **D-105 선택 비율은 쓰지 않는다(공개 차트 · 기사)** — Vote Rate 폐기(2026-09-23) 재확인 2026-11-25 · 정의: rate = 엔트리 선택 수 ÷ 대회 선택 수 % · 왜: 차트와 다른 순서 · 잘못 읽히는 숫자가 기사로 나갈 위험 · 아니라고 한 것: TOP RATE 칸 유지 · Crown Score를 기사 숫자 칸에 넣기(대표 승인 전) · 옛 기사 고치기.
+- **D-105 기사 숫자 허용 목록** — 무엇: 기사에 쓸 수 있는 숫자를 목록으로 정한다(위 절 그대로 · 대표 확정 2026-11-25) · 정의: 1등 비율 = `winRate` · 선택 비율 = `shareRate`(대결에 나왔을 때 선택받은 비율) · 옛 rate = 엔트리 선택 수 ÷ 대회 선택 수 · 대회 전체 참여 횟수 = `runsTotal` · 왜: 정본(CROWN_SCORE v1.0 §1 기사 예문)이 Crown Score·랭킹을 기사에 쓰게 하고, 옛 rate는 차트와 다른 순서라 잘못 읽힌다(Vote Rate 폐기 2026-09-23 재확인) · 아니라고 한 것: **"선택 수를 기사에 쓰기(대표 2026-11-25 검토 뒤 기각 — 선택 수 순서는 Crown Score 순서와 달라 '많이 받아서 1위'로 잘못 읽힘)"** · TOP RATE·RUNNER-UP RATE·TOP MOMENTUM 칸 유지 · 순위점수율을 기사에 쓰기 · "퍼센트·비율 모두 금지 / Crown Score를 기사 칸에 넣지 않기"(같은 날 앞선 지시 — 정본보다 좁아 바뀜) · 옛 기사 고치기.
 - **D-106 선택 수는 공개 문서에 싣지 않는다** — `voteCount`·`totalVotes` 는 서버 전용(경보 기준선) · 공개 history 읽기 막음 · 아니라고 한 것: 옛 문서 일괄 삭제.
 - 번호 메모 한 줄(D-52 런칭일은 A줄 문서 PR 몫 · 손대지 않음).
 
