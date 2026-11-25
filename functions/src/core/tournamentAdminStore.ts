@@ -12,6 +12,7 @@
  *      다시 누르면 이어서 지운다(표시가 남아 그사이 선택도 막힌다).
  */
 import type { Firestore } from "firebase-admin/firestore";
+import { ACCUM, JOBS, REQUESTS } from "./rankingAccumStore";
 import { entryImagePrefixesToDelete, tournamentImageDir } from "./entryImagePaths";
 import {
   TOURNAMENT_ADMIN_ERROR_CODES as CODES,
@@ -105,6 +106,11 @@ export async function removeTournament(
   await writer.close();
 
   await db.recursiveDelete(db.collection("ranking_cache").doc(tournamentId));
+  // T5 — 증분 집계의 서버 전용 자리(누적 + 하위 기록 · 다시 세기 요청 · 도우미 진행). 차트 사진(ranking_archive)은
+  // 영구라 여기서 지우지 않는다(대표 2026-11-25).
+  await db.recursiveDelete(db.collection(ACCUM).doc(tournamentId));
+  await db.collection(REQUESTS).doc(tournamentId).delete();
+  await db.collection(JOBS).doc(tournamentId).delete();
   await deps.storage.deletePrefix(`crown-cards/${tournamentId}/`);
   // IMAGE-1 PR 2 (대표 결정 2026-11-09) — 엔트리 그림 폴더 + 그 대회를 만든 초안의 임시 폴더(남아 있으면).
   const draftDir = deps.storage.draftDirOf ? await deps.storage.draftDirOf(tournamentImageDir(tournamentId)) : null;
