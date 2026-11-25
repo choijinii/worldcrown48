@@ -112,3 +112,24 @@ describe("isKakaoTalkUA", () => {
     expect(isKakaoTalkUA(null)).toBe(false);
   });
 });
+
+describe("함수 쪽(functions/src/core/betaPassCore)과 맞대기", () => {
+  it("함수가 만든 통과증을 middleware 검증기가 받아들인다", async () => {
+    const { issueBetaPass } = await import("../../../functions/src/core/betaPassCore");
+    const r = issueBetaPass({
+      auth: { uid: "AbC123xyz", token: { email: "t@example.com", email_verified: true, firebase: { sign_in_provider: "google.com" } } },
+      allowlist: ["t@example.com"],
+      secret: SECRET,
+      nowMs: NOW,
+      launchAtMs: NOW + 30 * DAY,
+    });
+    expect(await verifyBetaPass(r.token, SECRET, NOW)).toBe(true);
+    expect(await verifyBetaPass(r.token, "wrong", NOW)).toBe(false);
+  });
+
+  it("기본 런칭 시각이 lib/launch/launchAt.ts 와 같다", async () => {
+    const { DEFAULT_LAUNCH_AT_MS } = await import("../../../functions/src/core/betaPassCore");
+    const { LAUNCH_AT_MS } = await import("@/lib/launch/launchAt");
+    expect(DEFAULT_LAUNCH_AT_MS).toBe(LAUNCH_AT_MS);
+  });
+});

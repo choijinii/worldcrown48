@@ -212,3 +212,5 @@ export { takeDownEntry } from "./takeDownEntry";
 export { onEntryTakedown } from "./onEntryTakedown";
 // IMAGE-1 PR 2 — ② 이미지 검색 AI(Brave). 비밀 BRAVE_SEARCH_API_KEY.
 export { autoSourceImages } from "./autoSourceImages";
+// BETA-PASS-1 — 1차 베타 명단 로그인 통과증. 비밀 BETA_PASS_SECRET(Vercel env 와 같은 값).
+export { betaPass } from "./betaPass";
