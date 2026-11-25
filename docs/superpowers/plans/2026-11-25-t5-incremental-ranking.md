@@ -20,7 +20,7 @@
 - 새 서버 전용 자리(규칙 read·write 모두 false): `ranking_accum/{tid}`(+ `/history/{seq}` PR 2) · `ranking_recount_requests/{tid}` · `ranking_recount_jobs/{tid}` · `ranking_archive/{tid}/gens/{seq}`(PR 2).
 - 차트 사진(`ranking_archive`)은 **영구 · 지우는 코드를 어디에도 만들지 않는다**(대회 삭제 때도 남긴다 · 대표 2026-11-25 "명예의 전당 재료").
 - 공개 `ranking_cache`(PR 2 뒤): `voteCount` · `totalVotes` · `rate` **없음**. Crown Score와 세 비율 · 이름 · 아바타 재료 · `runsTotal` 은 그대로.
-- 기사: `rate`(퍼센트) 금지 · 숫자 칸 라벨 허용 목록 = `CONTESTANTS` · `DEADLINE · KST` · `LANGUAGES` · `ACTIVE TOURNAMENTS`(대표 확인 대기 — 아래 "대표 확인") · Crown Score를 기사 숫자 칸에 **새로 넣지 않는다**.
+- 기사: `rate`(퍼센트) 금지 · 숫자 칸 라벨 허용 목록 = `CONTESTANTS` · `DEADLINE · KST` · `LANGUAGES` · `ACTIVE TOURNAMENTS`(허용 = 엔트리 수 · 날짜 · 순위 · 이름 · **대회 수** — 대표 결정 2026-11-25) · Crown Score를 기사 숫자 칸에 **새로 넣지 않는다**.
 - 일괄 삭제 · 소급 고침 · 익명 계정 정리 금지. 옛 공개 `history` 문서는 지우지 않고 규칙으로 읽기만 막는다.
 - `git push origin main` 금지. 브랜치 → PR → 대표 병합. PR 2는 PR 1 브랜치 위에 쌓고(base = PR 1 브랜치), PR 1 병합 뒤 base를 `main` 으로 바꾼다.
 - PR 설명에 적을 것: 원장 D-52(런칭일) 고침은 A줄 문서 PR 몫이라 손대지 않음.
@@ -37,10 +37,10 @@
 4. **기록 0건 · 처음 발표되는 대회** — 누적 문서가 없으면 처음부터 다시 세기(0건)로 시작하고, 차트 캐시는 지금과 같은 빈 목록 · `runsTotal 0` 으로 쓰인다. → Task 4 통합 `empty-tournament`.
 5. **같은 발표가 두 번 돌거나 중간에 죽음** — 누적 + 커서는 문서 하나 쓰기. 두 번째 실행은 빈 구간이라 값이 같다. 캐시 쓰기 직전 실패해도 다음 실행이 누적에서 다시 만든다. → Task 4 통합 `rerun-idempotent` · `crash-before-cache`.
 
-## 대표 확인 (계획 승인 때 함께)
+## 대표 결정 (2026-11-25 · 계획 승인 때)
 
-- 주간 기사의 숫자 칸 `ACTIVE TOURNAMENTS`(진행 중 대회 수)를 남길지. 대표님 허용 목록(엔트리 수 · 날짜 · 순위 · 이름)에 이름이 없다. 이 계획은 **남기는 쪽**으로 적었다. 빼라고 하시면 Task 11의 허용 목록에서 한 줄만 지우면 된다.
-- 주간 기사에서 여러 대회의 1위를 늘어놓는 순서는 계획에서 이렇게 정했다(코티오 판단). 각 대회 차트 1위의 Crown Score가 큰 순서이고, 같으면 대회 제목 순서다. 숫자는 기사에 싣지 않고 순서에만 쓴다.
+- 주간 기사 `ACTIVE TOURNAMENTS`(진행 중인 대회 수) 칸은 **남긴다.** 잠금 시험 허용 목록 = 엔트리 수 · 날짜 · 순위 · 이름 · 대회 수.
+- 주간 기사에서 여러 대회의 1위를 늘어놓는 순서 = 각 대회 차트 1위의 Crown Score 큰 순 · 같으면 대회 제목 순(코티오 판단 · 숫자는 싣지 않음).
 
 ---
 
