@@ -21,6 +21,7 @@
 import { expect, test } from "@playwright/test";
 import * as admin from "firebase-admin";
 import { e2eMark } from "./e2eMark";
+import { playAgain, playRun } from "./arenaPlay";
 
 const TID = "run1-daily-limit-e2e-tournament";
 /** 일일 판 한도 (lib/run/decideRun.ts DAILY_RUN_LIMIT 과 같은 값). */
@@ -55,11 +56,11 @@ function db(): admin.firestore.Firestore {
   return admin.firestore();
 }
 
-async function seed(uid: string): Promise<void> {
+/** 대회 + 엔트리 48개만 둔다(판 상태 없음). */
+function seedTournamentDocs(batch: admin.firestore.WriteBatch, tid: string, title: string): void {
   const d = db();
-  const batch = d.batch();
-  batch.set(d.doc(`tournaments/${TID}`), {
-    title: "Daily Run Limit Strikers",
+  batch.set(d.doc(`tournaments/${tid}`), {
+    title,
     category: "FOOTBALL",
     status: "active",
     ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
@@ -71,8 +72,8 @@ async function seed(uid: string): Promise<void> {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
   for (let i = 1; i <= 48; i++) {
-    batch.set(d.doc(`contestants/${TID}_c${i}`), {
-      tournamentId: TID,
+    batch.set(d.doc(`contestants/${tid}_c${i}`), {
+      tournamentId: tid,
       hostUid: "seed-operator",
       order: i,
       name: `P${i}`,
@@ -81,6 +82,12 @@ async function seed(uid: string): Promise<void> {
       imageSearchKeyword: `p${i}`,
     });
   }
+}
+
+async function seed(uid: string): Promise<void> {
+  const d = db();
+  const batch = d.batch();
+  seedTournamentDocs(batch, TID, "Daily Run Limit Strikers");
   // 이 Tournament에서 오늘 5판을 이미 썼다 → 한도 소진.
   batch.set(d.doc(`tournament_runs/${uid}_${TID}`), {
     runIndex: DAILY_RUN_LIMIT,
@@ -101,23 +108,23 @@ async function seed(uid: string): Promise<void> {
   await batch.commit();
 }
 
-async function cleanup(uid: string): Promise<void> {
+async function cleanup(uid: string, tid: string = TID): Promise<void> {
   const d = db();
   // 판 상태 전체를 앞뒤로 지운다 (테스트 격리 — ADR-0004).
   for (const coll of ["votes", "contestants", "roundProgress"]) {
-    const snap = await d.collection(coll).where("tournamentId", "==", TID).get();
+    const snap = await d.collection(coll).where("tournamentId", "==", tid).get();
     const batch = d.batch();
     snap.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
   }
-  await d.doc(`tournament_runs/${uid}_${TID}`).delete().catch(() => {});
+  await d.doc(`tournament_runs/${uid}_${tid}`).delete().catch(() => {});
   for (let r = 1; r <= DAILY_RUN_LIMIT; r++) {
     const suffix = r === 1 ? "" : `_r${r}`;
-    await d.doc(`roundProgress/${uid}_${TID}${suffix}`).delete().catch(() => {});
-    await d.doc(`bracket_seeds/${uid}_${TID}${suffix}`).delete().catch(() => {});
-    await d.doc(`crown_cards/${uid}_${TID}${suffix}`).delete().catch(() => {});
+    await d.doc(`roundProgress/${uid}_${tid}${suffix}`).delete().catch(() => {});
+    await d.doc(`bracket_seeds/${uid}_${tid}${suffix}`).delete().catch(() => {});
+    await d.doc(`crown_cards/${uid}_${tid}${suffix}`).delete().catch(() => {});
   }
-  await d.doc(`tournaments/${TID}`).delete();
+  await d.doc(`tournaments/${tid}`).delete();
 }
 
 test.describe("RUN-1 일일 판 한도 — 5판 소진 후 [다시 참여] 차단", () => {
@@ -184,5 +191,60 @@ test.describe("RUN-1 일일 판 한도 — 5판 소진 후 [다시 참여] 차�
     await expect(
       page.getByText(/오늘 참가할 수 있는 Tournament를 모두 사용했어요/),
     ).toHaveCount(0);
+  });
+});
+
+/**
+ * RUN-FIX-1 (2026-11-25) — 2판째부터 라운드 전환 안내가 안 뜨던 결함.
+ * 1판을 **새로고침 없이** 끝까지 고르고(안내 4번을 다 닫음) [다시 참여] → 2판째 48강 마지막 매치를 고르면
+ * ROUND OF 24 안내가 떠야 한다. 예전에는 1판째에 닫은 안내 번호(5)가 남아 2판째 안내를 전부 막았다.
+ */
+const TID_RUNFIX = "run1-runfix-e2e-tournament";
+
+test.describe("RUN-FIX-1 — 로그인 팬 2판째 라운드 전환 안내", () => {
+  const uid = process.env.TEST_UID;
+  test.skip(!process.env.PREVIEW_URL || !uid, "PREVIEW_URL / TEST_UID not set");
+
+  test.beforeAll(async () => {
+    await cleanup(uid!, TID_RUNFIX).catch(() => {});
+    const batch = db().batch();
+    seedTournamentDocs(batch, TID_RUNFIX, "Run Fix Strikers");
+    await batch.commit();
+  });
+  test.afterAll(async () => cleanup(uid!, TID_RUNFIX));
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("wc48:arena:intro:v1", "1");
+      } catch {
+        /* 저장소가 막힌 환경 */
+      }
+    });
+    consoleErrors = [];
+    page.on("console", (m) => {
+      if (m.type() !== "error") return;
+      const t = m.text();
+      if (t.includes("Could not reach Cloud Firestore backend")) return;
+      consoleErrors.push(t);
+    });
+  });
+  test.afterEach(async () => {
+    expect(consoleErrors, "Console errors must be 0").toHaveLength(0);
+  });
+
+  test("1판 완주 → [다시 참여] → 2판째 48강 마지막 매치 뒤 ROUND OF 24 안내가 뜬다", async ({ page }) => {
+    test.setTimeout(360_000);
+    await page.goto(`/arena/${TID_RUNFIX}?lang=ko`);
+    await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 30_000 });
+    const run1 = await playRun(page, 1);
+    expect(run1).toContain("THE FINAL");
+    await playAgain(page, 2);
+    const run2 = await playRun(page, 2, {
+      stopAfterFirstTransition: true,
+      shot: (name) => `playwright-report/runfix-login-${name}`,
+    });
+    expect(run2[0]).toBe("ROUND OF 24");
+    await expect(page.getByTestId("round-transition")).toBeVisible();
   });
 });

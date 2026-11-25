@@ -35,6 +35,7 @@ import { expect, test, type Browser, type BrowserContext, type Page } from "@pla
 import * as admin from "firebase-admin";
 import { round1OrderedIds } from "@/lib/arena/matches";
 import { e2eMark } from "./e2eMark";
+import { playAgain, playRun } from "./arenaPlay";
 
 const TID_A = "hf3-guest-e2e-a";
 const TID_B = "hf3-guest-e2e-b";
@@ -529,6 +530,39 @@ test.describe("HF-3 Guest Run", () => {
         await ensureAdmin().firestore().doc(`guest_runs/${anonUid}`).delete().catch(() => {});
         await deleteVoterState(anonUid, TID_A);
         await deleteVoterState(anonUid, TID_B);
+        await deleteUserQuietly(anonUid);
+      }
+    }
+  });
+  test("RUN-FIX-1: 게스트 1판 완주 → [다시 참여] → 2판째 48강 마지막 매치 뒤 ROUND OF 24 안내가 뜬다", async ({ browser }) => {
+    // 새로고침 없이 판을 넘겨야 결함이 드러난다(1판째에 닫은 안내 번호가 남아 2판째 안내를 막았다 · 2026-11-25).
+    test.setTimeout(360_000);
+    const context = await anonContext(browser);
+    const page = await anonPage(context);
+    let anonUid = "";
+    try {
+      await page.goto(`/arena/${TID_A}?lang=ko`);
+      anonUid = await anonUidFrom(page);
+      await expect(page.getByTestId("vote-left")).toBeVisible({ timeout: 30_000 });
+      const run1 = await playRun(page, 1);
+      expect(run1).toContain("THE FINAL");
+      await playAgain(page, 2);
+      const run2 = await playRun(page, 2, {
+        stopAfterFirstTransition: true,
+        shot: (name) => `playwright-report/runfix-guest-${name}`,
+      });
+      expect(run2[0]).toBe("ROUND OF 24");
+      await expect(page.getByTestId("round-transition")).toBeVisible();
+    } finally {
+      if (!anonUid) anonUid = await anonUidFrom(page).catch(() => "");
+      await context.close();
+      if (anonUid) {
+        await deleteVoterState(anonUid, TID_A);
+        for (let r = 2; r <= 3; r++) {
+          for (const coll of ["roundProgress", "bracket_seeds", "crown_cards"]) {
+            await db().doc(`${coll}/${anonUid}_${TID_A}_r${r}`).delete().catch(() => {});
+          }
+        }
         await deleteUserQuietly(anonUid);
       }
     }

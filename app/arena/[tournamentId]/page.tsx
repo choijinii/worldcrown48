@@ -53,6 +53,12 @@ import { useRoundTransition } from "@/lib/arena/useRoundTransition";
 import { SplitStage } from "@/components/arena/SplitStage";
 import { FinalStage } from "@/components/arena/FinalStage";
 import { RoundTransition } from "@/components/arena/RoundTransition";
+import {
+  NO_DISMISSED_ROUND,
+  dismissRound,
+  shouldShowRoundTransition,
+  type DismissedRound,
+} from "@/lib/arena/roundTransitionGate";
 import { CrownCardModal } from "@/components/crown/CrownCardModal";
 import { RunCompleteActions } from "@/components/arena/RunCompleteActions";
 import { toCrownData } from "@/lib/crown/championLoader";
@@ -195,7 +201,9 @@ export default function ArenaPage(): JSX.Element {
   const [voteError, setVoteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState<LoginReason | null>(null);
-  const [dismissedTo, setDismissedTo] = useState(0);
+  // RUN-FIX-1 — "이미 본 라운드 안내"는 판 단위. [다시 참여]는 언마운트하지 않으므로 숫자 하나로 들면
+  // 1판째에 5(THE FINAL)까지 올라간 값이 2판째의 안내를 전부 막는다(대표 실측 2026-11-25).
+  const [dismissedRound, setDismissedRound] = useState<DismissedRound>(NO_DISMISSED_ROUND);
 
   useEffect(() => {
     if (uid) void loadTournament(tournamentId, uid, isGuest);
@@ -416,17 +424,13 @@ export default function ArenaPage(): JSX.Element {
     );
 
   // Round transition (from roundProgress onSnapshot) — show before the next match.
-  if (
-    progress?.toRound &&
-    !progress.complete &&
-    progress.toRound > dismissedTo
-  ) {
+  if (progress && shouldShowRoundTransition(progress, dismissedRound, runIndex)) {
     return (
       <div className={styles.arena} data-arena-surface="transition">
         <RoundTransition
           fromRound={progress.fromRound as RoundIndex}
           toRound={progress.toRound as RoundIndex}
-          onDone={() => setDismissedTo(progress.toRound as number)}
+          onDone={() => setDismissedRound(dismissRound(runIndex, progress.toRound as number))}
         />
       </div>
     );
