@@ -469,6 +469,20 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── press_usage (PRESS-1 TIO 외신 초안 한 달 비용 · 문서 id = YYYY-MM KST) ──
+    // 크론 · [다시 쓰기] 콜러블만 admin SDK 로 더한다(룰 우회). 관리자는 뉴스데스크의 한도 알림 ·
+    // 이번 달 금액을 보려고 읽기만 한다. 브라우저 쓰기는 관리자도 막는다 — 금액을 0 으로 돌리면 한도가 무의미.
+    match /press_usage/{month} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
+    }
+
+    // ── press_runs (PRESS-1 그날 표지 · {YYYY-MM-DD}_{분야}) ──────────
+    // 크론이 두 번 돌아도 분야마다 1건이게 하는 표지. 서버만 쓴다 — 전면 거부.
+    match /press_runs/{runId} {
+      allow read, write: if false;
+    }
+
     // ── ai_usage (AI-1 편집기 AI 일일 상한 카운터) ──────────────────
     // KST 하루치 AI 호출 카운터(문서 id = YYYY-MM-DD). 어드민 콜러블만 admin SDK로
     // 쓴다(룰 우회). 클라이언트가 읽거나 리셋하면 상한이 무의미해지므로 전면 거부.
