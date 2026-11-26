@@ -31,8 +31,92 @@ export const ARTICLE_ORIGINS = [
   "cron_weekly",
   "manual_ai",
   "manual_blank",
+  /** PRESS-1 — TIO 가 매일 06:40 KST 에 쓰는 외신 종합 초안(웹 검색 · 초안만). */
+  "cron_press",
 ] as const;
 export type ArticleOrigin = (typeof ARTICLE_ORIGINS)[number];
+
+// ── PRESS-1 3-1 — 외신 종합 기사 칸 (옛 기사에는 없다) ───────────────────────
+export const ARTICLE_CATEGORIES = ["kpop", "creator"] as const;
+export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number];
+
+/**
+ * 기본 그림 키워드 목록 — TIO 지시문 · 서버 검사 · Storage 폴더(`news-default/{분야}/{키워드}/`)가
+ * 모두 이 한 곳을 읽는다(지시서 3-4 · 킥 v0.2 결정 2). 키워드를 더할 때 = 여기 한 줄 + 폴더 하나.
+ */
+export const PRESS_PHOTO_KEYWORDS: Readonly<Record<ArticleCategory, readonly string[]>> = {
+  kpop: ["default", "comeback", "chart", "reverse-run", "debut", "stage", "broadcast", "award", "concert", "fandom", "challenge"],
+  creator: ["default", "record", "collab", "youtube", "sns", "cover", "revenue", "business", "event", "challenge"],
+};
+
+/** 초안 1건의 다시 쓰기 상한(킥 v0.2 결정 3 · 4). */
+export const PRESS_REWRITE_MAX = 2;
+
+/** TIO 가 읽은 출처 한 줄. 주소는 그 호출의 검색 결과에 실제로 있던 것만(서버가 거른다). */
+export interface ArticleSource {
+  outlet: string;
+  title: string;
+  url: string;
+  /** 읽은 날짜(KST · YYYY-MM-DD). */
+  readAt: string;
+}
+
+/** 기사 대표 그림 — 우리 Storage 복사본 + 표기. isDefault = 기본 그림(키워드 폴더 · 로고)인지. */
+export interface ArticlePhoto {
+  url: string;
+  author: string;
+  licenseName: string;
+  licenseUrl: string;
+  sourcePageUrl: string;
+  isDefault: boolean;
+}
+
+/** 외신 종합 초안을 만들 때만 넘기는 칸. photo 는 초안 뒤(뉴스데스크 · 발행)에 붙는다. */
+export interface PressFields {
+  category: ArticleCategory;
+  sources: ArticleSource[];
+  photoKeyword: unknown;
+  rewriteCount?: number;
+  rewriteOf?: string;
+  rewriteNote?: string;
+}
+
+const HTTP_URL_RE = /^https?:\/\/[^\s]+$/i;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isHttpUrl(v: unknown): v is string {
+  return typeof v === "string" && HTTP_URL_RE.test(v.trim());
+}
+
+/** 목록 밖 · 다른 분야의 키워드 · 빈 값 → "default". */
+export function normalizePhotoKeyword(category: ArticleCategory, value: unknown): string {
+  const v = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return PRESS_PHOTO_KEYWORDS[category]?.includes(v) ? v : "default";
+}
+
+export function isValidArticleSource(s: unknown): s is ArticleSource {
+  if (!s || typeof s !== "object") return false;
+  const o = s as Record<string, unknown>;
+  return nonEmptyStr(o.outlet) && nonEmptyStr(o.title) && isHttpUrl(o.url) && typeof o.readAt === "string" && DAY_RE.test(o.readAt);
+}
+
+/** 그림 칸 모양 검사 — 작가는 CC0 · 퍼블릭 도메인이면 빈 글자일 수 있다. */
+export function isValidArticlePhoto(p: unknown): p is ArticlePhoto {
+  if (!p || typeof p !== "object") return false;
+  const o = p as Record<string, unknown>;
+  return (
+    isHttpUrl(o.url) &&
+    typeof o.author === "string" &&
+    nonEmptyStr(o.licenseName) &&
+    (o.licenseUrl === "" || isHttpUrl(o.licenseUrl)) &&
+    (o.sourcePageUrl === "" || isHttpUrl(o.sourcePageUrl)) &&
+    typeof o.isDefault === "boolean"
+  );
+}
+
+function nonEmptyStr(v: unknown): v is string {
+  return typeof v === "string" && v.trim().length > 0;
+}
 
 export interface LocalizedText {
   ko: string;
@@ -135,6 +219,49 @@ export interface ArticleDoc {
   origin: ArticleOrigin;
   createdAt: unknown; // serverTimestamp() at write time (Firestore-owned)
   publishedAt: unknown | null; // stamped only at publish (admin) — null while draft
+  // ── PRESS-1 — 외신 종합 기사에만 있다(옛 기사는 칸 자체가 없음) ──
+  category?: ArticleCategory;
+  sources?: ArticleSource[];
+  photo?: ArticlePhoto;
+  photoKeyword?: string;
+  /** 0~2 — 이 초안이 몇 번째 다시 쓰기인지. */
+  rewriteCount?: number;
+  /** 다시 쓴 원래 초안의 slug. */
+  rewriteOf?: string;
+  /** 대표가 적은 고칠 점. */
+  rewriteNote?: string;
+}
+
+/**
+ * 외신 종합 칸 검사 + 정리 → 문서에 펼칠 칸. cron_press 는 칸이 꼭 있어야 하고,
+ * 다른 출처에는 칸이 오면 안 된다(옛 기사 모양 그대로).
+ */
+function pressFieldsFor(origin: ArticleOrigin, press: PressFields | undefined): Partial<ArticleDoc> {
+  if (origin !== "cron_press") {
+    if (press !== undefined) throw new Error(`press fields are only for cron_press (got ${origin})`);
+    return {};
+  }
+  if (!press) throw new Error("cron_press needs press fields");
+  if (!ARTICLE_CATEGORIES.includes(press.category)) throw new Error(`invalid category: ${String(press.category)}`);
+  if (!Array.isArray(press.sources) || !press.sources.every(isValidArticleSource)) {
+    throw new Error("invalid sources");
+  }
+  const rewriteCount = press.rewriteCount ?? 0;
+  if (!Number.isInteger(rewriteCount) || rewriteCount < 0 || rewriteCount > PRESS_REWRITE_MAX) {
+    throw new Error(`rewriteCount must be 0..${PRESS_REWRITE_MAX}`);
+  }
+  const out: Partial<ArticleDoc> = {
+    category: press.category,
+    sources: press.sources.map((x) => ({ outlet: x.outlet.trim(), title: x.title.trim(), url: x.url.trim(), readAt: x.readAt })),
+    photoKeyword: normalizePhotoKeyword(press.category, press.photoKeyword),
+    rewriteCount,
+  };
+  if (press.rewriteOf !== undefined) {
+    if (!isValidSlug(press.rewriteOf)) throw new Error(`invalid rewriteOf: ${press.rewriteOf}`);
+    out.rewriteOf = press.rewriteOf;
+  }
+  if (press.rewriteNote !== undefined) out.rewriteNote = String(press.rewriteNote).trim();
+  return out;
 }
 
 // ── slug: {YYYYMMDD}-{6 base36} ────────────────────────────────────────────
@@ -323,6 +450,8 @@ export function buildArticleDraft(
     evidence: input.evidence,
     origin: input.origin,
     publishedAt: null,
+    // 외신 종합(cron_press)은 칸이 필요해 이 만들기로는 못 만든다 → buildLocalizedArticleDraft 만.
+    ...pressFieldsFor(input.origin, undefined),
   };
   if (input.tournamentId) doc.tournamentId = input.tournamentId;
   return doc;
@@ -340,6 +469,8 @@ export interface LocalizedArticleDraftInput {
   body: LocalizedBlocks;
   evidence: Evidence;
   tournamentId?: string;
+  /** PRESS-1 — origin 'cron_press' 일 때만(그때는 필수). */
+  press?: PressFields;
 }
 
 /**
@@ -378,6 +509,7 @@ export function buildLocalizedArticleDraft(
     evidence: input.evidence,
     origin: input.origin,
     publishedAt: null,
+    ...pressFieldsFor(input.origin, input.press),
   };
   if (input.tournamentId) doc.tournamentId = input.tournamentId;
   return doc;

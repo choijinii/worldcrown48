@@ -243,7 +243,7 @@ describe("canTransition — publish is a separate explicit act (AC 1 · AC 5)", 
 });
 
 describe("constants + helpers", () => {
-  it("exposes the 4 templates and 5 origins", () => {
+  it("exposes the 4 templates and 6 origins (PRESS-1 cron_press 추가)", () => {
     expect(ARTICLE_TEMPLATES).toEqual(["open", "result", "weekly", "column"]);
     expect(ARTICLE_ORIGINS).toEqual([
       "event_open",
@@ -251,6 +251,7 @@ describe("constants + helpers", () => {
       "cron_weekly",
       "manual_ai",
       "manual_blank",
+      "cron_press",
     ]);
   });
   it("emptyLocalizedText / emptyLocalizedBlocks are fully-populated blanks", () => {
