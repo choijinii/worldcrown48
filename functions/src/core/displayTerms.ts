@@ -49,3 +49,15 @@ export const TRANSLATION_GLOSSARY = [
   '  "fan"은 외래어처럼 보여도 확정된 표시 용어다. 더 자연스러운 현지어로 바꾸지 말 것.',
   '- 원문에 "Voter"가 남아 있어도 번역문에는 쓰지 않는다 — 지칭은 항상 fan(s).',
 ].join("\n");
+
+/**
+ * 차트 비율 낱말 3언어 (기사 숫자 허용 목록 · 대표 확정 2026-11-25). 차트 설명창
+ * `lib/i18n/messages.ts` "chart.score.help" 의 낱말과 같아야 한다 — functions 는 lib 를
+ * import 하지 않으므로 newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다.
+ */
+export const CHART_RATE_TERMS = {
+  /** 1등 비율 = winRate */
+  win: { ko: "1등 비율", en: "Wins", es: "Victorias" },
+  /** 선택 비율 = shareRate */
+  pick: { ko: "선택 비율", en: "Picks", es: "Elecciones" },
+} as const;

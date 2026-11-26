@@ -29,6 +29,14 @@ const ALL = [TID_LOADED, TID_EMPTY, TID_MANY, TID_OPEN, TID_FEW];
 // D-30: 마감 여부는 이제 공개를 가르지 않는다. 마감 지난 대회와 남은 대회를 섞어 두고
 // **둘 다 보이는지** 확인한다. 마감 전 대회(TID_OPEN)가 이 PR의 핵심 증거다.
 const CLOSED = new Set([TID_LOADED, TID_EMPTY, TID_MANY]);
+/**
+ * 카나리 — 배포 직후 남아 있는 옛 캐시 모양(T5 PR 2 원칙 #8 회귀 그물).
+ * 새 크론은 공개 캐시에 선택 수를 쓰지 않지만, 배포 뒤 첫 발표 전까지 실서비스 `ranking_cache` 에는
+ * 옛 문서(행 `voteCount`·`rate` · 문서 `totalVotes`)가 남아 있다. TID_LOADED 는 **일부러** 그 옛 모양으로
+ * 심고, 화면이 그 숫자를 절대 그리지 않는지 본다. 이 값을 지우면 이 그물이 빈 단언이 된다.
+ */
+const LEGACY_VOTE_COUNT = 7777;
+const LEGACY_TOTAL_VOTES = 31108;
 /** 차트가 열리는 최소 완주 판수 (lib/ranking/rankState MIN_RUNS_FOR_CHART). */
 const MIN_RUNS = 10;
 /** 발표 시각 알약 앞부분 — 캐시를 방금 심었으므로 오늘(자정 직후면 어제). */
@@ -37,9 +45,6 @@ const UPDATED = {
   en: /^Updated: (today|yesterday) \d{2}:\d{2} KST$/,
   es: /^Actualizado: (hoy|ayer) \d{2}:\d{2} KST$/,
 } as const;
-
-// A distinctive voteCount that must NEVER reach the DOM (Vote Count 금지, trap #7).
-const SECRET_VOTE_COUNT = 7777;
 
 let consoleErrors: string[] = [];
 
@@ -71,14 +76,18 @@ function entry(
     contestantId,
     name,
     videoId: null,
-    voteCount: SECRET_VOTE_COUNT, // internal only — must not render
-    rate: 25, // 이상 징후(T-1·T-2) 판정용으로만 남는 값 — 화면에 안 나온다
+    // 공개 캐시에는 선택 수(voteCount) · 옛 rate · totalVotes 가 없다(T5 PR 2).
     crownScore,
     // 세 비율은 캐시에만 실린다 (화면에 나열하지 않는다 · 대표 2026-09-24).
     placementRate: 0.5,
     winRate: 0.3,
     shareRate: 0.8,
   };
+}
+
+/** 배포 직후 남아 있는 옛 캐시 모양의 한 줄 — 카나리 전용(위 LEGACY_* 설명). */
+function legacyEntry(rank: number, contestantId: string, name: string, crownScore: number) {
+  return { ...entry(rank, contestantId, name, crownScore), voteCount: LEGACY_VOTE_COUNT, rate: 25 };
 }
 
 async function seed(): Promise<void> {
@@ -116,10 +125,16 @@ async function seed(): Promise<void> {
     entry(4, "c4", "K. Mbappe", 88),
   ];
   // ranking_cache carries PURE Voter data only — no anomaly fields (W-2).
+  // 카나리: 배포 직후 남아 있는 옛 캐시 모양(선택 수 · 옛 rate · totalVotes 있음) — 화면은 그리면 안 된다.
   batch.set(d.doc(`ranking_cache/${TID_LOADED}`), {
     tournamentId: TID_LOADED,
-    rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
+    rankings: [
+      legacyEntry(1, "c1", "L. Messi", 549),
+      legacyEntry(2, "c2", "C. Ronaldo", 401),
+      legacyEntry(3, "c3", "Neymar Jr", 233),
+      legacyEntry(4, "c4", "K. Mbappe", 88),
+    ],
+    totalVotes: LEGACY_TOTAL_VOTES,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -132,7 +147,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_MANY}`), {
     tournamentId: TID_MANY,
     rankings: manyRankings,
-    totalVotes: SECRET_VOTE_COUNT * 14,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -143,7 +157,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_OPEN}`), {
     tournamentId: TID_OPEN,
     rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
     runsTotal: 120,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -153,7 +166,6 @@ async function seed(): Promise<void> {
   batch.set(d.doc(`ranking_cache/${TID_FEW}`), {
     tournamentId: TID_FEW,
     rankings: loadedRankings,
-    totalVotes: SECRET_VOTE_COUNT * 4,
     runsTotal: MIN_RUNS - 1,
     generationSequence: 1,
     generatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -212,8 +224,10 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await expect(page.locator("text=/Total Votes/i")).toHaveCount(0);
     await expect(page.locator("text=/Vote Rate/i")).toHaveCount(0);
     const body = (await page.locator("body").innerText()).toLowerCase();
-    expect(body).not.toContain(String(SECRET_VOTE_COUNT)); // 7777 never leaks
     expect(body).not.toContain("votecount");
+    // 카나리(배포 직후 남아 있는 옛 캐시 모양) — 문서에 실린 선택 수 · 합계가 화면에 새지 않는다(원칙 #8).
+    expect(body).not.toContain(String(LEGACY_VOTE_COUNT));
+    expect(body).not.toContain(String(LEGACY_TOTAL_VOTES));
 
     // ── W-2 anomaly-removal regression guard ────────────────────────
     // ranking_cache no longer carries anomaly signal — the Voter surface

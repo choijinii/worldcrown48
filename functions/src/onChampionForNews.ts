@@ -21,6 +21,7 @@ import {
   buildResultDigest,
   nameGlossaryOf,
   rankingRowFromCache,
+  runsTotalFromCache,
   type RankingRowLike,
 } from "./core/newsDigestCore";
 import { buildResultPrompt } from "./core/newsPrompts";
@@ -82,7 +83,9 @@ export const onChampionForNews = onDocumentUpdated(
         totalContestants: Number(t.totalContestants ?? 48),
       };
       const championId = rankings[0]?.contestantId;
-      const digest = buildResultDigest({ meta, rankings, championId, asOf });
+      // 대회 전체 참여 횟수 — AI 재료 줄에만(기사 숫자 허용 목록 · 2026-11-25).
+      const runsTotal = runsTotalFromCache(cacheSnap.data());
+      const digest = buildResultDigest({ meta, rankings, championId, asOf, runsTotal });
       const prompt = buildResultPrompt({
         title: meta.title,
         championName: digest.leaders[0]?.name ?? "",

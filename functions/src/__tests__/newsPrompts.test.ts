@@ -28,7 +28,7 @@ const prompts: Record<string, string> = {
   result: buildResultPrompt({
     title: "여름 48",
     championName: "Blue Flame",
-    digest: { ...digestStub, leaders: [{ rank: 1, name: "Blue Flame", rate: 33.3, isChampion: true }] },
+    digest: { ...digestStub, leaders: [{ rank: 1, contestantId: "c1", name: "Blue Flame", crownScore: 812, winRate: 0.333, shareRate: 0.5, isChampion: true }] },
   }),
   weekly: buildWeeklyPrompt({ digest: { ...digestStub, leaders: [] } }),
   column: buildColumnPrompt({ topic: "여름 플레이리스트의 심리학", digest: digestStub }),
@@ -42,7 +42,7 @@ describe("§5.5 지침 7항 — 4종 프롬프트 전부에 박제 (AC 9)", () =
     "비주얼 병행", // 3
     "정서적 클로저", // 4
     "축제의 언어", // 5
-    "Vote Count", // 6 (절대 득표수 금지)
+    "허용 목록의 숫자만", // 6 (기사 숫자 허용 목록 · 2026-11-25 — 옛 "Vote Count" 줄을 바꿈)
     "킥 비트", // 7 (클로저 직전 반전·콜백·의외의 강조)
   ];
 
@@ -72,7 +72,7 @@ describe("표시 용어(Display Term) 층 — 독자 지칭은 팬/Fan (2026-08-
     "표시 용어", // 층 자체의 이름
     '"팬"', // ko 지칭
     "fan", // en·es 지칭
-    "참여 팬 수(Fan Count)", // Voter Count 의 기사 표기
+    "참여 팬 수", // Voter Count 의 기사 낱말(허용 목록 · 2026-11-25)
   ];
 
   for (const [name, prompt] of Object.entries(prompts)) {
@@ -154,7 +154,7 @@ describe("템플릿별 근거 주입", () => {
 // NAME-I18N-1 (원장 D-61) — 초안 프롬프트에 한글 이름과 공식 영어 이름을 둘 다 넘긴다.
 // 기사 구조·지침은 그대로 — 근거 데이터 줄에 영어 이름이 덧붙을 뿐이다.
 describe("이름 3언어 — 근거 줄", () => {
-  const leader = { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40, isChampion: true };
+  const leader = { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", crownScore: 900, winRate: 0.4, shareRate: 0.6, isChampion: true };
 
   it("선두 줄에 한글 이름과 공식 영어 이름이 함께 실린다", () => {
     const p = buildResultPrompt({
@@ -163,7 +163,7 @@ describe("이름 3언어 — 근거 줄", () => {
       championNameEn: "NewJeans",
       digest: { ...digestStub, leaders: [leader] },
     });
-    expect(p).toContain("1위 뉴진스 (공식 영어 이름: NewJeans) 40.0%");
+    expect(p).toContain("1위 뉴진스 (공식 영어 이름: NewJeans) Crown Score 900 · 1등 비율 40.0% · 선택 비율 60.0%");
     expect(p).toContain('Champion은 "뉴진스"(공식 영어 이름 "NewJeans")이다');
   });
 
@@ -171,9 +171,9 @@ describe("이름 3언어 — 근거 줄", () => {
     const p = buildResultPrompt({
       title: "여름 48",
       championName: "Blue Flame",
-      digest: { ...digestStub, leaders: [{ rank: 1, name: "Blue Flame", rate: 33.3, isChampion: true }] },
+      digest: { ...digestStub, leaders: [{ rank: 1, contestantId: "c1", name: "Blue Flame", crownScore: 812, winRate: 0.333, shareRate: 0.5, isChampion: true }] },
     });
-    expect(p).toContain("1위 Blue Flame 33.3%");
+    expect(p).toContain("1위 Blue Flame Crown Score 812 · 1등 비율 33.3% · 선택 비율 50.0%");
     expect(p).toContain('Champion은 "Blue Flame"이다');
     expect(p).toBe(prompts.result);
   });

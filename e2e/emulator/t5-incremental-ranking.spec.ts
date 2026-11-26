@@ -10,6 +10,8 @@
  *   · 캐시의 엔트리 순서 = 옛 전량 방식(tallyVotes + tallyRuns + buildTallies + buildRankingUpdate) 순서
  *   · 게스트 판(2개)은 판 집계에서 빠지고, 경계(첫 구간 끝)에 걸친 판은 두 번째 발표에서 한 번만 세어진다
  *   · 화면: Crown Score 줄 · 선택 수 숫자 없음(c3-ranking 단언 방식) · 콘솔 오류 0 · 1440 · 390 캡처
+ *   · PR 2: 공개 캐시에 `totalVotes` 없음 · 행에 `voteCount`·`rate` 없음(행 = 옛 행의 공개 모양) ·
+ *     차트 사진 `ranking_archive/{tid}/gens` 문서 2개(발표마다 하나) · 캡처 `t5-chart-pr2-{폭}.png`
  *
  * 발표 함수는 functions 코드를 그대로 부른다. 루트와 functions 는 firebase-admin 이 서로 다른
  * 꾸러미라 시각 값(Timestamp)을 섞으면 직렬화가 거절된다 → 루트 쪽 `toTimestamp` 를 넘긴다.
@@ -23,6 +25,7 @@ import { RUN_VOTES } from "../../functions/src/core/incrementalTally";
 import { buildTallies, contestantMetaOf, tallyVotes } from "../../functions/src/core/rankingAggregator";
 import { buildRankingUpdate } from "../../functions/src/core/scheduleRankingCacheCore";
 import { tallyRuns, type RunVote } from "../../lib/ranking/tallyRuns";
+import { toPublicEntry } from "../../lib/ranking/publicEntry";
 import {
   collectConsoleErrors,
   db,
@@ -158,6 +161,49 @@ async function legacyRankings() {
   };
 }
 
+interface ShownRow {
+  rank: number;
+  name: string;
+  crownScore: number;
+}
+
+/**
+ * 차트 줄마다 화면에 보이는 숫자는 순위 · Crown Score · 이름 속 숫자(아바타 글자 포함)뿐이어야 한다.
+ * 그 밖의 숫자가 하나라도 있으면 실패 — 선택 수(voteCount)가 어떤 모양으로 새어도 잡힌다.
+ * 덧붙여 옛 선택 수 값(`voteCounts`, 줄 순서대로)이 그 줄에 없고, 합계(`totalVotes`)가 화면 어디에도 없는지 본다.
+ * 빈 단언이 되지 않게: 허용 숫자와 겹치지 않는 선택 수가 적어도 하나는 실제로 검사돼야 한다.
+ */
+async function expectNoCountNumbers(
+  page: import("@playwright/test").Page,
+  shown: ShownRow[],
+  voteCounts: number[],
+  totalVotes: number,
+): Promise<void> {
+  const rows = page.getByTestId("rank-row");
+  const n = await rows.count();
+  expect(n).toBeGreaterThan(0);
+  let checked = 0;
+  for (let i = 0; i < n; i++) {
+    // 글자 마디(text node)마다 따로 숫자를 뽑는다 — innerText 는 이웃 칸을 붙여 "24"+"188"을 "24188"로 읽을 수 있다.
+    const pieces = await rows.nth(i).evaluate((el) => {
+      const out: string[] = [];
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) out.push(node.textContent ?? "");
+      return out;
+    });
+    const tokens = pieces.flatMap((p) => p.match(/\d+/g) ?? []).map(Number);
+    const allowed = new Set<number>([shown[i].rank, shown[i].crownScore, ...(shown[i].name.match(/\d+/g) ?? []).map(Number)]);
+    expect(tokens.filter((t) => !allowed.has(t)), `줄 ${i + 1} 에 허용 밖 숫자`).toEqual([]);
+    if (!allowed.has(voteCounts[i])) {
+      expect(tokens).not.toContain(voteCounts[i]);
+      checked += 1;
+    }
+  }
+  expect(checked, "검사된 선택 수가 0이면 빈 단언").toBeGreaterThan(0);
+  const body = await page.locator("body").innerText();
+  expect(body).not.toMatch(new RegExp(`(^|\\D)${totalVotes}(\\D|$)`));
+}
+
 test.beforeEach(async () => {
   await resetEmulators();
   await seedCategories();
@@ -213,7 +259,7 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
 
   const log2: PublishLog = await publishTournament(db() as never, TID, deadlineMs, T2, { toTimestamp });
   writeFileSync(
-    join(EVIDENCE, "publish-log.json"),
+    join(EVIDENCE, "publish-log-pr2.json"),
     JSON.stringify({ seededVotes: all.length, first: log1, second: log2 }, null, 2) + "\n",
   );
   expect(log2.mode).toBe("increment");
@@ -233,13 +279,33 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
   const ids = (cache.rankings as { contestantId: string }[]).map((r) => r.contestantId);
   expect(ids.length).toBeGreaterThan(0);
   expect(ids).toEqual(legacy.update.rankings.map((r) => r.contestantId));
-  expect(cache.rankings).toEqual(legacy.update.rankings);
+  // 공개 캐시 = 옛 행의 공개 모양(선택 수 · 비율만 빠지고 나머지 키 · 값은 같다 · T5 PR 2).
+  expect(cache.rankings).toEqual(legacy.update.rankings.map(toPublicEntry));
   expect(cache.generationSequence).toBe(1);
+  expect(Object.keys(cache)).not.toContain("totalVotes");
+  for (const row of cache.rankings as Record<string, unknown>[]) {
+    expect(Object.keys(row)).not.toContain("voteCount");
+    expect(Object.keys(row)).not.toContain("rate");
+  }
+  // 옛 전량 방식의 합계는 서버 안에서만 있다 — 화면 단언에 쓴다(0이면 단언이 약해진다).
+  expect(legacy.update.totalVotes).toBeGreaterThan(0);
+
+  // ── 차트 사진: 발표마다 한 장 · 영구 ────────────────────────────────────
+  const gens = await db().collection("ranking_archive").doc(TID).collection("gens").get();
+  expect(gens.size).toBe(2);
+  for (const g of gens.docs) {
+    const rows = g.get("rows") as Record<string, unknown>[];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      for (const k of ["voteCount", "rate", "videoId", "imageUrl"]) expect(Object.keys(row)).not.toContain(k);
+    }
+  }
 
   // ── 차트 화면 ───────────────────────────────────────────────────────────
   await stubYouTubeImages(page);
   const errors = collectConsoleErrors(page);
-  const totalVotes = String(cache.totalVotes);
+  const shown: ShownRow[] = (cache.rankings as ShownRow[]).map((r) => ({ rank: r.rank, name: r.name, crownScore: r.crownScore }));
+  const legacyVoteCounts = legacy.update.rankings.map((r) => r.voteCount);
   for (const width of [1440, 390] as const) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto(`/arena/${TID}/ranking?lang=ko`);
@@ -256,12 +322,29 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
     await expect(page.locator("text=/^\\d+표$/")).toHaveCount(0);
     await expect(page.locator("text=/Total Votes/i")).toHaveCount(0);
     await expect(page.locator("text=/Vote Rate/i")).toHaveCount(0);
+    await expectNoCountNumbers(page, shown, legacyVoteCounts, legacy.update.totalVotes);
     const body = (await page.locator("body").innerText()).toLowerCase();
-    expect(body).not.toMatch(new RegExp(`(^|\\D)${totalVotes}(\\D|$)`));
     expect(body).not.toContain("votecount");
     await expect(page.getByTestId("anomaly-badge")).toHaveCount(0);
     await expectNoForbiddenWords(page);
-    await page.screenshot({ path: join(EVIDENCE, `t5-chart-${width}.png`) });
+    await page.screenshot({ path: join(EVIDENCE, `t5-chart-pr2-${width}.png`) });
   }
+
+  // ── 카나리: 배포 직후 남아 있는 옛 캐시 모양 ───────────────────────────────
+  // 배포 뒤 첫 발표 전까지 실서비스 캐시에는 옛 문서(행 voteCount · rate · 문서 totalVotes)가 남는다.
+  // 그 값을 화면이 읽을 수 있는 자리에 실제로 넣어 두고, 그래도 숫자가 새지 않는지 본다(원칙 #8).
+  await db().collection("ranking_cache").doc(TID).update({
+    rankings: legacy.update.rankings,
+    totalVotes: legacy.update.totalVotes,
+  });
+  const planted = (await db().collection("ranking_cache").doc(TID).get()).data()!;
+  expect(planted.totalVotes).toBe(legacy.update.totalVotes);
+  expect((planted.rankings as { voteCount: number }[]).map((r) => r.voteCount)).toEqual(legacyVoteCounts);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/arena/${TID}/ranking?lang=ko`);
+  await expect(page.getByTestId("ranking-view")).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
+  await expect(page.getByTestId("rank-row")).toHaveCount(ids.length);
+  await expectNoCountNumbers(page, shown, legacyVoteCounts, legacy.update.totalVotes);
+  await expect(page.getByTestId("rank-rate")).toHaveCount(0);
   await expectNoConsoleErrors(errors);
 });

@@ -19,7 +19,7 @@
  * Never render this on the Match VS surface (Vote Rate is ranking-only).
  */
 import type { Lang } from "@/lib/cookieConsent";
-import type { CrownRankingEntry } from "@/lib/ranking/rankingTypes";
+import type { PublicRankingEntry } from "@/lib/ranking/publicEntry";
 import type { RankState } from "@/lib/ranking/rankState";
 import { RankingHeader } from "./RankingHeader";
 import { RankList } from "./RankList";
@@ -42,7 +42,7 @@ export interface RankingViewProps {
   state: RankState;
   title: string;
   deadlineText: string | null;
-  entries: CrownRankingEntry[];
+  entries: PublicRankingEntry[];
   labels: RankingViewLabels;
   /**
    * RUN-1 PR 3 (AC 15) — "다음 발표" 한 줄. `labels` 와 달리 이 문구는 3언어 카탈로그

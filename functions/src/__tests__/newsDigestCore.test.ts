@@ -2,9 +2,9 @@
  * ND-1 §3 #2 — newsDigestCore: ranking_cache → 기사 근거 수치. AC 3·4.
  *
  * The digest REUSES the existing ranking_cache (no new aggregation is invented).
- * CLAUDE.md 원칙 #8: absolutely NO Vote Count leaks into a digest — only rate %,
- * rank, Voter/Contestant counts, and dates. Every test that could surface a raw
- * tally asserts the internal voteCount never appears in any stat value.
+ * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2): 순위 · Crown Score · 1등 비율 ·
+ * 선택 비율 · 엔트리 수 · 날짜만. 선택 수와 옛 rate 는 근거에 없다 — 전체 잠금은
+ * newsNumberLock.test.ts.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -18,9 +18,9 @@ import {
 } from "../core/newsDigestCore";
 
 const rows: RankingRowLike[] = [
-  { rank: 1, contestantId: "c1", name: "Blue Flame", rate: 33.3, voteCount: 999 },
-  { rank: 2, contestantId: "c2", name: "Neon Tide", rate: 21.1, voteCount: 640 },
-  { rank: 3, contestantId: "c3", name: "Last Splash", rate: 12.5, voteCount: 375 },
+  { rank: 1, contestantId: "c1", name: "Blue Flame", crownScore: 812, winRate: 0.333, shareRate: 0.6 },
+  { rank: 2, contestantId: "c2", name: "Neon Tide", crownScore: 640, winRate: 0.211, shareRate: 0.5 },
+  { rank: 3, contestantId: "c3", name: "Last Splash", crownScore: 500, winRate: 0.125, shareRate: 0.4 },
 ];
 
 const meta = {
@@ -60,20 +60,19 @@ describe("buildOpenDigest — 오픈 기사 근거 (아직 투표 없음)", () =
   });
 });
 
-describe("buildResultDigest — 결과 기사 근거 (rate 기반, Vote Count 금지)", () => {
-  it("surfaces the Champion + top rates as % — never a raw tally", () => {
+describe("buildResultDigest — 결과 기사 근거 (Crown Score 기반)", () => {
+  it("surfaces the Champion + 차트 1위 CROWN SCORE 칸", () => {
     const d = buildResultDigest({
       meta,
       rankings: rows,
       championId: "c1",
       asOf: "2026-08-31 12:00 KST",
+      runsTotal: 50, // 차트 기준(10) 이상 — 아래는 newsNumberLock.test.ts
     });
-    expect(d.leaders[0]).toMatchObject({ rank: 1, name: "Blue Flame", rate: 33.3 });
-    const values = d.stats.map((s) => s.value).join(" | ");
-    // The internal voteCount (999/640/375) must NEVER appear.
-    expect(values).not.toMatch(/999|640|375/);
-    // Rate is rendered as a percent.
-    expect(values).toMatch(/33\.3%/);
+    expect(d.leaders[0]).toMatchObject({ rank: 1, name: "Blue Flame", crownScore: 812, winRate: 0.333 });
+    expect(d.stats.find((s) => s.label === "CROWN SCORE")?.value).toBe("812");
+    // 숫자 칸에 퍼센트는 없다(옛 TOP RATE · RUNNER-UP RATE 삭제).
+    expect(d.stats.map((s) => s.value).join(" | ")).not.toContain("%");
   });
 
   it("marks the Champion among the leaders", () => {
@@ -92,29 +91,31 @@ describe("buildResultDigest — 결과 기사 근거 (rate 기반, Vote Count �
       rank: i + 1,
       contestantId: `c${i}`,
       name: `N${i}`,
-      rate: 50 - i,
-      voteCount: 100 - i,
+      crownScore: 900 - i,
+      winRate: 0.1,
+      shareRate: 0.2,
     }));
     const d = buildResultDigest({ meta, rankings: many, championId: "c0", asOf: "x" });
     expect(d.leaders).toHaveLength(3);
   });
 });
 
-describe("buildWeeklyDigest — 주간 랭킹 동향 (현행 ranking_cache 누적 기반)", () => {
+describe("buildWeeklyDigest — 주간 랭킹 동향 (대회마다 차트 1위 · Crown Score 큰 순)", () => {
   const caches = [
-    { tournamentId: "t1", title: "A48", rankings: rows },
+    { tournamentId: "t1", title: "A48", rankings: rows, runsTotal: 50 },
     {
       tournamentId: "t2",
       title: "B48",
-      rankings: [{ rank: 1, contestantId: "x", name: "X", rate: 55.0, voteCount: 5 }],
+      runsTotal: 50,
+      rankings: [{ rank: 1, contestantId: "x", name: "X", crownScore: 950, winRate: 0.55, shareRate: 0.7 }],
     },
   ];
 
-  it("ranks tournaments by their leader's rate and counts the active field", () => {
+  it("ranks tournaments by their leader's Crown Score and counts the active field", () => {
     const d = buildWeeklyDigest({ caches, asOf: "2026-07-24 12:00 KST" });
     expect(d.stats.find((s) => s.label === "ACTIVE TOURNAMENTS")?.value).toBe("2");
-    // B48 (55.0%) leads A48 (33.3%).
-    expect(d.leaders[0]).toMatchObject({ name: "X", rate: 55.0 });
+    // B48 (950) leads A48 (812).
+    expect(d.leaders[0]).toMatchObject({ name: "X", crownScore: 950 });
     expect(d.leaders[0].tournamentTitle).toBe("B48");
   });
 
@@ -124,10 +125,9 @@ describe("buildWeeklyDigest — 주간 랭킹 동향 (현행 ranking_cache 누�
     expect(d.leaders).toEqual([]);
   });
 
-  it("never leaks a raw vote tally into any stat", () => {
+  it("숫자 칸은 ACTIVE TOURNAMENTS 하나 — 옛 TOP MOMENTUM 없음", () => {
     const d = buildWeeklyDigest({ caches, asOf: "now" });
-    const blob = JSON.stringify(d.stats);
-    expect(blob).not.toMatch(/"5"|999|640|375/);
+    expect(d.stats.map((s) => s.label)).toEqual(["ACTIVE TOURNAMENTS"]);
   });
 });
 
@@ -140,22 +140,33 @@ describe("이름 3언어 — 기사 근거", () => {
         contestantId: "c1",
         name: "뉴진스",
         nameI18n: { ko: "뉴진스", en: "NewJeans", es: "NewJeans" },
+        crownScore: 700,
+        winRate: 0.4,
+        shareRate: 0.5,
         rate: 40,
         voteCount: 9,
       }),
-    ).toEqual({ rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 });
-    expect(rankingRowFromCache({ rank: 2, contestantId: "c2", name: "옛", rate: 1 }).nameEn).toBe("");
+    ).toEqual({
+      rank: 1,
+      contestantId: "c1",
+      name: "뉴진스",
+      nameEn: "NewJeans",
+      crownScore: 700,
+      winRate: 0.4,
+      shareRate: 0.5,
+    });
+    expect(rankingRowFromCache({ rank: 2, contestantId: "c2", name: "옛" }).nameEn).toBe("");
   });
 
   it("결과·주간 근거의 선두가 nameEn 을 갖는다", () => {
     const named: RankingRowLike[] = [
-      { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 },
+      { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", crownScore: 700, winRate: 0.4, shareRate: 0.5 },
     ];
-    expect(buildResultDigest({ meta, rankings: named, championId: "c1", asOf: "x" }).leaders[0].nameEn).toBe(
+    expect(buildResultDigest({ meta, rankings: named, championId: "c1", asOf: "x", runsTotal: 50 }).leaders[0].nameEn).toBe(
       "NewJeans",
     );
     expect(
-      buildWeeklyDigest({ caches: [{ tournamentId: "t", title: "T", rankings: named }], asOf: "x" }).leaders[0]
+      buildWeeklyDigest({ caches: [{ tournamentId: "t", title: "T", rankings: named, runsTotal: 50 }], asOf: "x" }).leaders[0]
         .nameEn,
     ).toBe("NewJeans");
   });
@@ -166,9 +177,9 @@ describe("이름 3언어 — 기사 근거", () => {
         asOf: "x",
         stats: [],
         leaders: [
-          { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", rate: 40 },
-          { rank: 2, contestantId: "c2", name: "IVE", nameEn: "IVE", rate: 30 },
-          { rank: 3, contestantId: "c3", name: "옛 엔트리", rate: 20 },
+          { rank: 1, contestantId: "c1", name: "뉴진스", nameEn: "NewJeans", crownScore: 700, winRate: 0.4, shareRate: 0.5 },
+          { rank: 2, contestantId: "c2", name: "IVE", nameEn: "IVE", crownScore: 600, winRate: 0.3, shareRate: 0.4 },
+          { rank: 3, contestantId: "c3", name: "옛 엔트리", crownScore: 500, winRate: 0.2, shareRate: 0.3 },
         ],
       }),
     ).toEqual([{ ko: "뉴진스", en: "NewJeans" }]);

@@ -77,8 +77,8 @@ export interface CrownRankingEntry extends RankingEntry {
 
 /**
  * Timestamp-free core shape consumed by the pure rank/anomaly functions.
- * `RankingCache` extends it with the persisted timestamps; the pure logic only
- * touches `rankings` / `generationSequence`, so it operates on this narrow type.
+ * T5 PR 2 부터 이 모양(선택 수 · 비율 · 합계 포함)은 **서버 전용 경보 기준선**
+ * `ranking_accum/{tid}/history/{seq}` 에만 저장된다. 공개 `RankingCache` 는 이것을 넓히지 않는다.
  */
 export interface RankingSnapshot {
   tournamentId: string;
@@ -100,16 +100,29 @@ export interface TimestampLike {
 }
 
 /**
+ * 공개 차트 한 줄 — `PublicRankingEntry`(publicEntry.ts)와 같은 모양. 이 파일은 다른 모듈을
+ * import 하지 않아야 해서(copy-ranking) 여기서 다시 적는다: 선택 수 · 비율 두 칸을 뺀 것.
+ */
+type PublicChartRow = Omit<CrownRankingEntry, "voteCount" | "rate">;
+
+/**
  * Persisted `ranking_cache/{tournamentId}` document (UI subscribes via onSnapshot).
  *
  * PURE VOTER DATA ONLY (ADR-0006 amendment, 2026-06-26 / W-2): rankings + meta.
  * It carries NO anomaly signal — a legitimate ≥60% popular #1 must never read as
  * an "이상 징후" on the Voter surface. Anomaly tags/details live ONLY in the
  * admin-only `admin_alerts` collection ({@link AdminAlert}).
+ *
+ * T5 PR 2 — 선택 수(`voteCount`) · 비율(`rate`) · 합계(`totalVotes`)를 **싣지 않는다.** 이 문서는
+ * 누구나 읽으므로(D-30) 화면에 안 그려도 개발 도구로 보였다. 이상 징후 판정이 쓰는 기준선
+ * ({@link RankingSnapshot}, 선택 수 포함)은 서버 전용 `ranking_accum/{tid}/history/{seq}` 에 있다.
+ * 그래서 이 타입은 더는 `RankingSnapshot` 을 넓히지 않는다. PR 2 이전에 쓰인 문서에는 세 칸이
+ * 남아 있을 수 있다(다음 발표가 덮어쓴다) — 화면은 원래 읽지 않는다.
  */
-export interface RankingCache extends RankingSnapshot {
+export interface RankingCache {
+  tournamentId: string;
   /** 차트 목록 — Crown Score 순 (정본 §0). */
-  rankings: CrownRankingEntry[];
+  rankings: PublicChartRow[];
   /**
    * 대회 전체 완주 판수(게스트 판 제외) — 10판 기준이 읽는 값 (정본 §5).
    *
@@ -118,6 +131,8 @@ export interface RankingCache extends RankingSnapshot {
    * 기다림 안내를 보여 준다(다음 발표가 채운다).
    */
   runsTotal: number;
+  /** 0-based, +1 per publish. 서버 전용 기준선의 문서 번호와 같다. */
+  generationSequence: number;
   generatedAt: TimestampLike;
   /** Previous generation time. First run is null. */
   previousGeneratedAt: TimestampLike | null;

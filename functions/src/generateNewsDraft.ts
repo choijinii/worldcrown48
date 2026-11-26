@@ -30,6 +30,7 @@ import {
   buildWeeklyDigest,
   nameGlossaryOf,
   rankingRowFromCache,
+  runsTotalFromCache,
   type NewsDigest,
   type RankingRowLike,
 } from "./core/newsDigestCore";
@@ -136,7 +137,9 @@ export const generateNewsDraft = onCall(
         const cacheSnap = await adminDb.collection("ranking_cache").doc(tournamentId).get();
         const rankings = rankingsOf(cacheSnap.data());
         const championId = rankings[0]?.contestantId;
-        digest = buildResultDigest({ meta, rankings, championId, asOf });
+        // 대회 전체 참여 횟수 — AI 재료 줄에만(기사 숫자 허용 목록 · 2026-11-25).
+        const runsTotal = runsTotalFromCache(cacheSnap.data());
+        digest = buildResultDigest({ meta, rankings, championId, asOf, runsTotal });
         prompt = buildResultPrompt({
           title: meta.title,
           championName: digest.leaders[0]?.name ?? "",
@@ -150,6 +153,8 @@ export const generateNewsDraft = onCall(
         tournamentId: d.id,
         title: String(d.data().tournamentId ?? d.id),
         rankings: rankingsOf(d.data()),
+        // 차트 기준(10) 미만 대회는 선두에서 빠진다(ACTIVE TOURNAMENTS 에는 센다).
+        runsTotal: runsTotalFromCache(d.data()),
       }));
       digest = buildWeeklyDigest({ caches, asOf });
       prompt = buildWeeklyPrompt({ digest });

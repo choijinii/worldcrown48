@@ -134,7 +134,6 @@ async function seed(): Promise<void> {
     batch.set(db.doc(`ranking_cache/${id}`), {
       tournamentId: id,
       runsTotal: 12,
-      totalVotes: 0,
       rankings: [{ contestantId: "x", name: ko, nameI18n: { ko, en, es: en }, crownScore: 900 }],
     });
     seeded.caches.push(id);
@@ -161,7 +160,6 @@ async function seed(): Promise<void> {
       batch.set(db.doc(`ranking_cache/${ref.id}`), {
         tournamentId: ref.id,
         runsTotal: runs,
-        totalVotes: 0,
         rankings: [{ contestantId: "x", name: `소수${RUN}`, crownScore: 0 }],
       });
       seeded.caches.push(ref.id);

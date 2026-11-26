@@ -116,3 +116,14 @@ node functions/scripts/request-ranking-recount.mjs --project <프로젝트 id> -
 
 `--all-in-window` 는 크론과 같은 쿼리(마감이 집계 창 시작보다 뒤인 대회)다. 다시 세기는 대회 기록을
 처음부터 다 읽으므로 비용은 compare 스크립트와 같은 크기다.
+
+## survey-rate-articles.mjs (T5 PR 2 · 옛 rate 기사 조사 · 읽기 전용)
+
+기사 숫자 허용 목록(2026-11-25 확정)으로 빠진 옛 rate 칸이 이미 만든 기사에 얼마나 남았는지 본다.
+`news` 컬렉션을 **읽기만** 하고 고치거나 지우지 않는다(보고만 · 시험이 소스 글자로 쓰기 0 확인).
+걸리는 조건: ① `evidence.stats` 라벨이 `RATE`·`MOMENTUM` 이거나 값에 `%` ② 본문 `stats` 블록 항목(언어마다)에 `%`.
+판정은 `survey-rate-articles.lib.mjs`(단위 시험). 인증은 compare 스크립트와 같다.
+
+```
+node functions/scripts/survey-rate-articles.mjs --project <프로젝트 id> --out outputs/t5-evidence/rate-articles.md
+```

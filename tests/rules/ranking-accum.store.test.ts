@@ -45,7 +45,10 @@ import {
 } from "../../functions/src/core/incrementalTally";
 import { buildTallies, contestantMetaOf, tallyVotes } from "../../functions/src/core/rankingAggregator";
 import { buildRankingUpdate } from "../../functions/src/core/scheduleRankingCacheCore";
+import { writeCacheFromAccum } from "../../functions/src/core/rankingCacheWrite";
 import { tallyRuns, type RunVote } from "../../lib/ranking/tallyRuns";
+import { toPublicEntry } from "../../lib/ranking/publicEntry";
+import { toRateOrdered } from "../../functions/src/core/scheduleRankingCacheCore";
 import { relinkGuestVotes } from "../../functions/src/linkSessionVote";
 import { deleteUserVotes } from "../../functions/src/onUserDelete";
 
@@ -560,8 +563,16 @@ async function seedContestants(tid: string) {
   await batch.commit();
 }
 
-/** 옛 전량 방식(tallyVotes + tallyRuns + buildTallies + buildRankingUpdate)이 만드는 rankings. */
+/**
+ * 옛 전량 방식(tallyVotes + tallyRuns + buildTallies + buildRankingUpdate)이 만드는 rankings 를
+ * 공개 캐시 모양(T5 PR 2 · `voteCount`·`rate` 뺌)으로.
+ */
 async function legacyRankings(tid: string) {
+  return (await legacyUpdate(tid)).rankings.map(toPublicEntry);
+}
+
+/** 옛 전량 방식 결과 그대로(선택 수 · 비율 포함 — 경보 기준선 시험이 쓴다). */
+async function legacyUpdate(tid: string) {
   const [votes, contestants] = await Promise.all([
     db.collection("votes").where("tournamentId", "==", tid).get(),
     db.collection("contestants").where("tournamentId", "==", tid).get(),
@@ -578,7 +589,7 @@ async function legacyRankings(tid: string) {
     prevCache: null,
     history24: null,
     existingUnresolvedTags: [],
-  }).rankings;
+  });
 }
 
 async function cacheOf(tid: string) {
@@ -1297,3 +1308,204 @@ describe("전환 · 계정 삭제 (에뮬레이터)", () => {
   });
 });
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task 9 (PR 2) — 공개 캐시에서 선택 수 · 비율 · 합계 빼기 · 경보 기준선은 서버 전용
+
+/** 서버 전용 경보 기준선 문서 id 들(숫자 순). */
+async function privateHistorySeqs(tid: string): Promise<number[]> {
+  const snap = await db.collection(ACCUM).doc(tid).collection("history").get();
+  return snap.docs.map((d) => Number(d.id)).sort((a, b) => a - b);
+}
+
+async function alertsOfType(tid: string, type: string) {
+  const snap = await db
+    .collection("admin_alerts")
+    .where("tournamentId", "==", tid)
+    .where("type", "==", type)
+    .get();
+  return snap.docs.map((d) => d.data());
+}
+
+describe("공개 캐시 · 서버 전용 경보 기준선 (T5 PR 2 · 에뮬레이터)", () => {
+  it("public-cache-has-no-counts: 캐시 행에 voteCount · rate 없음 · 문서에 totalVotes 없음 · 나머지는 옛 값 그대로", async () => {
+    const tid = "publicT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    const cache = await cacheOf(tid);
+    expect(cache!.rankings.length).toBeGreaterThan(0);
+    for (const row of cache!.rankings as Record<string, unknown>[]) {
+      expect(Object.keys(row)).not.toContain("voteCount");
+      expect(Object.keys(row)).not.toContain("rate");
+      expect(typeof row.crownScore).toBe("number");
+      expect(typeof row.shareRate).toBe("number");
+    }
+    expect(Object.keys(cache!)).not.toContain("totalVotes");
+    expect(cache!.runsTotal).toBe(27);
+    expect(cache!.rankings).toEqual(await legacyRankings(tid));
+    // 공개 history 에는 더 쓰지 않는다.
+    expect((await db.collection("ranking_cache").doc(tid).collection("history").get()).size).toBe(0);
+    // 이번 세대의 기준선(선택 수 · 비율 포함)은 서버 전용 자리에.
+    const base = (await db.collection(ACCUM).doc(tid).collection("history").doc("0").get()).data()!;
+    const legacy = await legacyUpdate(tid);
+    expect(base.rankings).toEqual(legacy.rankings);
+    expect(base.totalVotes).toBe(legacy.totalVotes);
+    expect(base.generationSequence).toBe(0);
+  });
+
+  it("baseline-private-history: 세 번 발표 → 서버 전용 history 0·1·2 · 네 번째에 0 지움 · T-3 은 seq−2 를 쓴다", async () => {
+    const tid = "baselineT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const N = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, N, { toTimestamp });
+    await publishTournament(db, tid, FAR_DEADLINE, N + 12 * HOUR, { toTimestamp });
+    expect(await privateHistorySeqs(tid)).toEqual([0, 1]);
+    // 기록이 그대로라 선택 수가 늘지 않는다 → 지금까지 T-3 없음.
+    expect(await alertsOfType(tid, "T-3")).toHaveLength(0);
+
+    // seq 0 (= 세 번째 발표의 seq−2) 만 선택 수를 1로 낮춘다 → T-3 이 이걸 읽으면 #1 이 +200% 이상.
+    const h0 = db.collection(ACCUM).doc(tid).collection("history").doc("0");
+    const d0 = (await h0.get()).data()!;
+    await h0.set({ ...d0, rankings: (d0.rankings as Record<string, unknown>[]).map((r) => ({ ...r, voteCount: 1 })) });
+
+    await publishTournament(db, tid, FAR_DEADLINE, N + 24 * HOUR, { toTimestamp });
+    expect(await privateHistorySeqs(tid)).toEqual([0, 1, 2]);
+    expect(await alertsOfType(tid, "T-3")).toHaveLength(1);
+    expect((await cacheOf(tid))!.generationSequence).toBe(2);
+
+    await publishTournament(db, tid, FAR_DEADLINE, N + 36 * HOUR, { toTimestamp });
+    expect(await privateHistorySeqs(tid)).toEqual([1, 2, 3]);
+    // 네 번째의 seq−2 는 고치지 않은 1 → 새 T-3 없음.
+    expect(await alertsOfType(tid, "T-3")).toHaveLength(1);
+    expect((await db.collection("ranking_cache").doc(tid).collection("history").get()).size).toBe(0);
+  });
+
+  it("baseline-fallback-once: 옛 모양 공개 캐시만 있으면 그 값으로 T-4 를 판정하고, 기준선을 서버 전용 자리에 옮긴다", async () => {
+    const tid = "fallbackT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const legacy = await legacyUpdate(tid);
+    // 지금 선택 수 순 1·2위 → 옛 캐시에선 맨 아래(순위 3 이상)였다고 심는다.
+    const nowTop2 = toRateOrdered({
+      tournamentId: tid,
+      rankings: legacy.rankings,
+      totalVotes: legacy.totalVotes,
+      generationSequence: 0,
+    })!.rankings.slice(0, 2).map((r) => r.contestantId);
+    const oldRows = legacy.rankings.map((r) => ({
+      ...r,
+      voteCount: nowTop2.includes(r.contestantId) ? 1 : r.voteCount + 1000,
+    }));
+    const prevGeneratedAt = Timestamp.fromMillis(HOUR);
+    await db.collection("ranking_cache").doc(tid).set({
+      tournamentId: tid,
+      rankings: oldRows,
+      totalVotes: 999_999,
+      runsTotal: 3,
+      generationSequence: 5,
+      generatedAt: prevGeneratedAt,
+      previousGeneratedAt: null,
+    });
+
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    expect(await alertsOfType(tid, "T-4")).toHaveLength(1);
+    const cache = await cacheOf(tid);
+    expect(cache!.generationSequence).toBe(6);
+    expect(cache!.previousGeneratedAt.toMillis()).toBe(HOUR);
+    expect(Object.keys(cache!)).not.toContain("totalVotes");
+    // 옛 기준선(seq 5)은 서버 전용 자리에 한 번 옮겨져, 다음 발표는 공개 캐시를 다시 보지 않는다.
+    expect(await privateHistorySeqs(tid)).toEqual([5, 6]);
+    const moved = (await db.collection(ACCUM).doc(tid).collection("history").doc("5").get()).data()!;
+    expect(moved.rankings.map((r: { voteCount: number }) => r.voteCount)).toEqual(oldRows.map((r) => r.voteCount));
+    expect(moved.totalVotes).toBe(999_999);
+  });
+
+  it("baseline-fallback-needs-counts: 옛 캐시 행에 voteCount 가 없으면 기준선으로 쓰지 않는다(T-4 없음 · 옮기지 않음)", async () => {
+    const tid = "fallbackNoCountT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const legacy = await legacyUpdate(tid);
+    // 순위만 뒤집은 공개 모양 행 — 선택 수가 없으니 기준선이 될 수 없다.
+    const n = legacy.rankings.length;
+    await db.collection("ranking_cache").doc(tid).set({
+      tournamentId: tid,
+      rankings: legacy.rankings.map((r, i) => ({ ...toPublicEntry(r), rank: n - i })),
+      runsTotal: 3,
+      generationSequence: 5,
+      generatedAt: Timestamp.fromMillis(HOUR),
+      previousGeneratedAt: null,
+    });
+    await publishTournament(db, tid, FAR_DEADLINE, corpusEnd(all) + LAG + HOUR, { toTimestamp });
+    expect(await alertsOfType(tid, "T-4")).toHaveLength(0);
+    expect(await privateHistorySeqs(tid)).toEqual([6]);
+  });
+});
+
+describe("차트 사진 영구 보관 (T5 PR 2 · 에뮬레이터)", () => {
+  it("two-publishes-two-archives: 발표 2번 → gens 문서 2개 · 행에 영상 · 그림 · 선택 수 · 비율 없음", async () => {
+    const tid = "archiveT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs + 12 * HOUR, { toTimestamp });
+    const gens = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gens.docs.map((d) => d.id).sort()).toEqual(["0", "1"]);
+    const cache = await cacheOf(tid);
+    const g1 = gens.docs.find((d) => d.id === "1")!.data();
+    expect(g1.tournamentId).toBe(tid);
+    expect(g1.seq).toBe(1);
+    expect(g1.runsTotal).toBe(cache!.runsTotal);
+    expect(g1.generatedAtMs).toBe(nowMs + 12 * HOUR);
+    expect(g1.rows.length).toBe(cache!.rankings.length);
+    for (const row of g1.rows as Record<string, unknown>[]) {
+      for (const k of ["videoId", "imageUrl", "voteCount", "rate"]) expect(Object.keys(row)).not.toContain(k);
+      expect(typeof row.crownScore).toBe("number");
+    }
+  });
+
+  it("archive-fail-before-cache: 사진 쓰기가 한 번 실패하면 공개 캐시 세대는 오르지 않고, 다음 실행이 같은 번호로 사진과 캐시를 쓴다", async () => {
+    const tid = "archiveFailT";
+    const all = buildCorpus();
+    await seedVotes(tid, all);
+    await seedContestants(tid);
+    const nowMs = corpusEnd(all) + LAG + HOUR;
+    await publishTournament(db, tid, FAR_DEADLINE, nowMs, { toTimestamp });
+    expect((await cacheOf(tid))!.generationSequence).toBe(0);
+    const accum = (await readAccum(db, tid))!.accum;
+
+    const boom = async () => {
+      throw new Error("archive write failed (시험)");
+    };
+    await expect(
+      writeCacheFromAccum(db, tid, accum, nowMs + 12 * HOUR, { toTimestamp, writeArchive: boom }),
+    ).rejects.toThrow(/archive write failed/);
+    // 캐시는 그대로 seq 0 — 사진이 캐시보다 먼저라서 실패가 세대를 올리지 않는다.
+    const after = await cacheOf(tid);
+    expect(after!.generationSequence).toBe(0);
+    const gensAfterFail = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gensAfterFail.docs.map((d) => d.id).sort()).toEqual(["0"]);
+
+    await writeCacheFromAccum(db, tid, accum, nowMs + 13 * HOUR, { toTimestamp });
+    const cache = await cacheOf(tid);
+    expect(cache!.generationSequence).toBe(1);
+    const gens = await db.collection("ranking_archive").doc(tid).collection("gens").get();
+    expect(gens.docs.map((d) => d.id).sort()).toEqual(["0", "1"]);
+    const g1 = gens.docs.find((d) => d.id === "1")!.data();
+    expect(g1.seq).toBe(1);
+    expect(g1.generatedAtMs).toBe(nowMs + 13 * HOUR);
+    expect(g1.runsTotal).toBe(cache!.runsTotal);
+    expect(g1.rows.map((r: { contestantId: string }) => r.contestantId)).toEqual(
+      cache!.rankings.map((r: { contestantId: string }) => r.contestantId),
+    );
+  });
+});

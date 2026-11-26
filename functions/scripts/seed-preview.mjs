@@ -208,11 +208,13 @@ const SEEDERS = {
       await ensureDoc(db.doc(`ranking_cache/${DEV_TID}`), {
         tournamentId: DEV_TID,
         rankings: [
-          { rank: 1, contestantId: "c1", name: "L. Messi", imageUrl: null, rate: 60 },
-          { rank: 2, contestantId: "c2", name: "C. Ronaldo", imageUrl: null, rate: 25 },
-          { rank: 3, contestantId: "c3", name: "Neymar Jr", imageUrl: null, rate: 10 },
-          { rank: 4, contestantId: "c4", name: "K. Mbappe", imageUrl: null, rate: 5 },
+          { rank: 1, contestantId: "c1", name: "L. Messi", imageUrl: null, crownScore: 549, placementRate: 0.5, winRate: 0.3, shareRate: 0.8 },
+          { rank: 2, contestantId: "c2", name: "C. Ronaldo", imageUrl: null, crownScore: 401, placementRate: 0.4, winRate: 0.2, shareRate: 0.6 },
+          { rank: 3, contestantId: "c3", name: "Neymar Jr", imageUrl: null, crownScore: 233, placementRate: 0.3, winRate: 0.1, shareRate: 0.4 },
+          { rank: 4, contestantId: "c4", name: "K. Mbappe", imageUrl: null, crownScore: 88, placementRate: 0.1, winRate: 0.05, shareRate: 0.2 },
         ],
+        // 공개 캐시 모양(T5 PR 2) — 선택 수 · 옛 rate · totalVotes 없음. 10판 기준을 넘긴 판 수.
+        runsTotal: 120,
         generationSequence: 1,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
         previousGeneratedAt: null,
