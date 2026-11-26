@@ -10,6 +10,7 @@ import {
   E2E_STALE_AFTER_MS,
   classifyTournament,
   isRunScopedDocOf,
+  labE2ETitle,
   isStaleE2ETournament,
   planLeftovers,
 } from "@/lib/ops/e2eLeftovers";
@@ -131,5 +132,28 @@ describe("planLeftovers — 정리 스크립트의 표", () => {
   it("제목은 title → titleI18n.ko 순으로 표에 싣는다", () => {
     const plan = planLeftovers([{ id: "c3-e2e-few", data: { titleI18n: { ko: "적은 판" } } }]);
     expect(plan.toDelete[0].title).toBe("적은 판");
+  });
+});
+
+// Lab 시험 이름에 실행 번호 붙이기 (대표 승인 2026-11-26) — 실패한 시도가 남긴 같은 이름 대회가
+// 다음 시험을 깨뜨리고(목록에서 두 줄이 잡힘) 또 대회를 남기던 고리를 끊는다.
+describe("labE2ETitle — 실행 번호 · 재시도 번호가 붙은 Lab 시험 대회 이름", () => {
+  it("CI 실행 번호 · 실행 회차 · 재시도 번호를 붙인다", () => {
+    expect(labE2ETitle({ runId: "45757649568", attempt: "2", retry: 1 })).toBe("E2E Tournament #45757649568.2.1");
+  });
+  it("실행 번호가 없으면(내 컴퓨터) 시각 숫자로 대신한다 · 50자 상한 안", () => {
+    const t = labE2ETitle({ retry: 0, nowMs: 1764130000000 });
+    expect(t).toBe("E2E Tournament #1764130000000.1.0");
+    expect(t.length).toBeLessThanOrEqual(50);
+  });
+  it("재시도마다 이름이 다르다", () => {
+    const a = labE2ETitle({ runId: "9", retry: 0 });
+    const b = labE2ETitle({ runId: "9", retry: 1 });
+    expect(a).not.toBe(b);
+  });
+  it("남은 시험 대회 판정이 새 이름도 시험으로 본다(옛 고정 이름도 그대로)", () => {
+    expect(classifyTournament("autoId1", { hostUid: "owner-uid", title: "E2E Tournament #45757649568.1.0" }).verdict).toBe("test");
+    expect(classifyTournament("autoId2", { hostUid: "owner-uid", title: "E2E Tournament" }).verdict).toBe("test");
+    expect(classifyTournament("autoId3", { hostUid: "owner-uid", title: "E2E Tournament fan night" }).verdict).not.toBe("test");
   });
 });
