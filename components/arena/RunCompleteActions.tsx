@@ -86,7 +86,8 @@ export function RunCompleteActions({
       style={{
         maxWidth: 420,
         margin: "0 auto",
-        padding: "var(--space-5) var(--space-4) var(--space-6)",
+        // 크라운 카드 창 바로 아래(같은 무대 안)에 붙는다 — 위 여백은 무대의 간격이 맡는다(지시서 RUN-FIX-2 완주화면).
+        padding: 0,
         display: "flex",
         flexDirection: "column",
         gap: "var(--space-3)",
@@ -160,10 +161,11 @@ export function RunCompleteActions({
   );
 }
 
+/** 안내 줄(남은 판 · 오늘 한도 · 마감) — 대표 지적(2026-11-25): 중요한 안내라 밝고 크게. 12px · muted → 15px · 본문 글자색. */
 const subStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: 12,
+  fontSize: 15,
   lineHeight: 1.5,
-  color: "var(--color-text-muted)",
+  color: "var(--color-text)",
   textAlign: "center",
 };

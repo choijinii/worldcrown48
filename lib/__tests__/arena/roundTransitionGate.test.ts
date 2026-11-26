@@ -9,6 +9,7 @@ import {
   NO_DISMISSED_ROUND,
   completedRunKey,
   dismissRound,
+  isRunRefreshSettled,
   eventForRun,
   shouldShowRoundTransition,
 } from "@/lib/arena/roundTransitionGate";
@@ -59,5 +60,18 @@ describe("completedRunKey — 완주 뒤 판 숫자 다시 읽기는 판마다 �
     expect(completedRunKey(1, "c1")).not.toBe(completedRunKey(2, "c1"));
     expect(completedRunKey(2, "c1")).toBe(completedRunKey(2, "c1"));
     expect(completedRunKey(2, "c1")).not.toBe(completedRunKey(2, "c2"));
+  });
+});
+
+describe("isRunRefreshSettled — 완주 뒤 판 숫자를 다시 읽는 동안에만 [다시 참여]를 꺼 둔다", () => {
+  it("이번 판 완주의 다시 읽기가 끝나야 켜진다", () => {
+    const k = completedRunKey(1, "c1");
+    expect(isRunRefreshSettled(k, null)).toBe(false); // 읽기 전 — 옛 숫자 "(0/5)" 버튼이 눌리면 무시됐다
+    expect(isRunRefreshSettled(k, k)).toBe(true);
+    // 지난 판의 다시 읽기는 이번 판을 대신하지 않는다
+    expect(isRunRefreshSettled(completedRunKey(2, "c1"), k)).toBe(false);
+  });
+  it("완주가 아니면(열쇠 없음) 막지 않는다", () => {
+    expect(isRunRefreshSettled(null, null)).toBe(true);
   });
 });

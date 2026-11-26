@@ -24,6 +24,15 @@ import * as admin from "firebase-admin";
 import { countE2EDrafts, deleteE2EDrafts, openFreshLabEditor } from "./labDrafts";
 import { attachVideosToFirstSlots, fillAsVideoTournament, stubVideoInspector } from "./labVideos";
 import { e2eMark } from "./e2eMark";
+import { LAB_E2E_TITLE_PREFIX, labE2ETitle } from "../lib/ops/e2eLeftovers";
+
+/**
+ * 대회 이름 = "E2E Tournament #실행번호.회차.재시도" (대표 승인 2026-11-26). 고정 이름일 때는 실패한 시도가 남긴
+ * 대회가 다음 시도의 목록에서 같은 이름 두 줄로 잡혀 시험을 깨뜨렸고, 깨진 시도가 또 대회를 남겼다(11-26 실서비스 12개).
+ * 재시도마다 테스트 안에서 새로 정한다. 옛 고정 이름 초안도 정리 대상에 함께 넣는다.
+ */
+let TITLE = "E2E Tournament";
+const OLD_TITLE = "E2E Tournament";
 
 let consoleErrors: string[] = [];
 const createdTournamentIds: string[] = [];
@@ -81,7 +90,7 @@ async function stubAiFill(page: Page) {
       contentType: "application/json",
       body: JSON.stringify({
         result: {
-          titleI18n: { ko: "E2E Tournament", en: "E2E Tournament", es: "E2E Tournament" },
+          titleI18n: { ko: TITLE, en: TITLE, es: TITLE },
           descriptionI18n: { ko: "", en: "", es: "" },
         },
       }),
@@ -121,10 +130,17 @@ test.afterEach(async () => {
 
 test.afterAll(async () => {
   // EDITOR-FIX-1 — 발행이 중간에 실패하면 자동 저장된 초안이 남는다.
-  await deleteE2EDrafts(["E2E Tournament"]);
+  await deleteE2EDrafts([OLD_TITLE, TITLE]);
   const a = ensureAdmin();
   if (!a) return;
   const db = a.firestore();
+  // 이 시도가 발행한 대회 — 목록 줄을 못 찾고 실패했어도 이름으로 찾아 지운다(시험 계정 것만).
+  if (TITLE.startsWith(LAB_E2E_TITLE_PREFIX) && process.env.TEST_UID) {
+    const mine = await db.collection("tournaments").where("title", "==", TITLE).get();
+    for (const d of mine.docs) {
+      if (d.get("hostUid") === process.env.TEST_UID && !createdTournamentIds.includes(d.id)) createdTournamentIds.push(d.id);
+    }
+  }
   for (const id of createdTournamentIds) {
     const cs = await db
       .collection("contestants")
@@ -157,11 +173,16 @@ test.describe("B-1 The Lab — operator critical path", () => {
 
   test("STEP 1 (제목·카테고리·키워드·Deadline) → STEP 2 fill → publish → Arena 링크 → delete", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    TITLE = labE2ETitle({
+      runId: process.env.GITHUB_RUN_ID,
+      attempt: process.env.GITHUB_RUN_ATTEMPT,
+      retry: testInfo.retry,
+    });
     await stubAiFill(page);
     await stubVideoInspector(page, 2);
     // 앞선 실패 실행이 남긴 같은 제목 초안이 "발행 후 0건" 단언을 흐리지 않게 먼저 지운다.
-    await deleteE2EDrafts(["E2E Tournament"]);
+    await deleteE2EDrafts([OLD_TITLE, TITLE]);
     await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
 
     // STEP 1 — the 다음 button is the gate. It stays disabled until ①②④⑤ are met,
@@ -169,7 +190,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     const next = page.getByTestId("lab-next-button");
     await expect(next).toBeDisabled();
 
-    await page.getByLabel("Tournament 제목").fill("E2E Tournament");
+    await page.getByLabel("Tournament 제목").fill(TITLE);
     await page.getByLabel("카테고리").selectOption("FOOTBALL");
     // Keyword typed by hand (no aiSuggestKeywords call) → satisfies ④.
     await page.getByLabel("키워드 추가").fill("e2e-keyword");
@@ -200,7 +221,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(page.getByTestId("draft-save-status")).toHaveAttribute("data-status", "saved", {
       timeout: 15_000,
     });
-    expect(await countE2EDrafts("E2E Tournament")).toBeGreaterThan(0);
+    expect(await countE2EDrafts(TITLE)).toBeGreaterThan(0);
     await publish.click();
     // IMAGE-1(D-77 보충) — [토너먼트 생성]은 마지막 확인창을 연다. 체크 3칸을 다 해야 [발행하기]가 켜진다.
     await expect(page.getByTestId("publish-confirm")).toBeVisible();
@@ -208,26 +229,37 @@ test.describe("B-1 The Lab — operator critical path", () => {
     for (const n of [1, 2, 3]) await page.getByTestId(`confirm-check-${n}`).check();
     await page.getByTestId("confirm-publish").click();
 
+    // OPS-FIX-1 · 원장 D-66 — 화면으로 발행한 대회는 처음부터 시험 표시를 달 수 없다. 발행 **직후**(목록 확인보다
+    // 먼저) 이름으로 찾아 붙인다 — 뒤 단계가 실패해도 실서비스 목록(isPublicTournament)에서 빠지고 전역 마무리가
+    // 나이를 보고 치운다(대표 승인 2026-11-26 · 예전엔 목록 줄 확인 뒤에 붙여 실패한 시도가 표시 없이 남았다).
+    const markApp = ensureAdmin();
+    let newId: string | undefined;
+    if (markApp && process.env.TEST_UID) {
+      const fs = markApp.firestore();
+      await expect
+        .poll(async () => {
+          const q = await fs.collection("tournaments").where("title", "==", TITLE).get();
+          newId = q.docs.find((d) => d.get("hostUid") === process.env.TEST_UID)?.id;
+          return newId ?? "";
+        }, { timeout: 30_000 })
+        .not.toBe("");
+      await fs.collection("tournaments").doc(newId!).update(e2eMark());
+      createdTournamentIds.push(newId!);
+    }
+
     // The new Tournament shows in the list.
     const row = page
       .locator('[data-testid^="tournament-row-"]')
-      .filter({ hasText: "E2E Tournament" });
+      .filter({ hasText: TITLE });
     await expect(row).toBeVisible();
 
     // EDITOR-FIX-1 — 발행이 성공하면 같은 배치에서 초안이 지워진다.
-    await expect.poll(() => countE2EDrafts("E2E Tournament")).toBe(0);
+    await expect.poll(() => countE2EDrafts(TITLE)).toBe(0);
 
-    // Record the id for cleanup.
-    const testId = await row.getAttribute("data-testid");
-    const newId = testId?.replace("tournament-row-", "");
-    if (newId) createdTournamentIds.push(newId);
-
-    // OPS-FIX-1 · 원장 D-66 — 화면으로 발행한 대회는 처음부터 시험 표시를 달 수 없다. 발행 직후
-    // 붙여 실서비스 목록(isPublicTournament)에서 빼고, 전역 마무리가 나이를 알 수 있게 한다.
-    const markApp = ensureAdmin();
-    if (markApp && newId) {
-      await markApp.firestore().collection("tournaments").doc(newId).update(e2eMark());
-    }
+    // 목록 줄이 방금 발행한 그 대회다.
+    const rowId = (await row.getAttribute("data-testid"))?.replace("tournament-row-", "");
+    if (newId) expect(rowId).toBe(newId);
+    else newId = rowId;
 
     // THUMB-1 — 게시된 대회에 대표 매치가 contestant id 로 실린다(1번·2번 · 기본 위치 50).
     const adminApp = ensureAdmin();
@@ -291,7 +323,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     }
 
     // delete → 안내 → confirm → row gone.
-    await row.getByRole("button", { name: "E2E Tournament 삭제" }).click();
+    await row.getByRole("button", { name: `${TITLE} 삭제` }).click();
     await expect(row).toContainText("이 Tournament와 딸린 기록을 모두 지워요. 되돌릴 수 없어요.");
     await row.getByRole("button", { name: "삭제 확인" }).click();
     await expect(row).toHaveCount(0);

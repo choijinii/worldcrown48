@@ -120,8 +120,8 @@ test("② [다시 참여]를 완주 직후 바로 누름 — 2판째 무대로 �
 });
 
 // 고치기 전 코드에서 실패로 확인(2026-11-25): 판 숫자를 다시 읽기 전의 버튼 "(0/5)"가 눌리고, 누른 것이 무시된 채
-// 완주 화면에 남는다. 고칠지 대표 결정 대기 — 결정 전까지 건너뛴다(fixme).
-test.fixme("② 느린 망(지연 600ms) — [다시 참여]를 완주 직후 바로 눌러도 2판째 무대로 가서 머문다", async ({ page }) => {
+// 완주 화면에 남았다. 고침(대표 지시 2026-11-26): 다시 읽는 동안에만 버튼을 꺼 둔다(isRunRefreshSettled).
+test("② 느린 망(지연 600ms) — [다시 참여]를 완주 직후 바로 눌러도 2판째 무대로 가서 머문다", async ({ page }) => {
   test.setTimeout(600_000);
   const { id } = await seedImageTournament("runfix2T3");
   await fastPlayAgainCase(page, "e2e-runfix2-slow", id, 600);
