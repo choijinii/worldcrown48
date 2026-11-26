@@ -580,13 +580,14 @@ test("⑯ 구역 제목 News Room · Charts(머리글 · 작은 표시는 대문
   await page.screenshot({ path: "test-results-emulator/pitch2-footer-1440.png", clip: { x: 0, y: Math.max(0, c.y - 260), width: 1440, height: 320 } });
 });
 
-// ── TIOZ-BAND-ON (대표 2026-11-24) — 런칭 뒤 = "TIOZ.AI" 글자만 · 링크 없음 · 히어로 바로 아래 · Trending 위 / 런칭 전 = 없음 ──
-const BAND_SHOTS = "test-results-emulator/tioz-band";
+// ── TIOZ-BAND-ON (대표 2026-11-24) — 런칭 뒤 = 띠 · 링크 없음 · 히어로 바로 아래 · Trending 위 / 런칭 전 = 없음 ──
+// v1.1(대표 2026-11-26): 띠 안 = 그림 띠(검정 + 에메랄드 · 로고 · 슬로건) · 폰(480px 이하) = 폰 그림 · 못 불러오면 글자 띠.
+const BAND_SHOTS = "outputs/pitch-2-evidence/tioz-band";
 
 async function expectBandBetweenHeroAndTrending(page: Page): Promise<void> {
   const band = page.getByTestId("pitch-tioz-band");
   await expect(band).toBeVisible({ timeout: 30_000 });
-  await expect(band).toHaveText("TIOZ.AI");
+  await expect(band.getByRole("img", { name: "TIOZ.AI — Truth In Opinion Zeitgeist" })).toBeVisible();
   await expect(band.locator("a")).toHaveCount(0);
   await expect(page.getByText("OPEN", { exact: false })).toHaveCount(0);
   // DOM 순서: 히어로 줄(오른쪽 칸 포함) 바로 다음 · Trending 바로 앞
@@ -601,27 +602,34 @@ async function expectBandBetweenHeroAndTrending(page: Page): Promise<void> {
   expect(tr.y).toBeGreaterThanOrEqual(b.y + b.height - 1);
   // 누를 곳이 아니다 — 손 모양 커서 아님
   expect(await band.evaluate((el) => getComputedStyle(el).cursor)).not.toBe("pointer");
-  expect(await band.locator(".tioz-word").evaluate((el) => getComputedStyle(el).cursor)).not.toBe("pointer");
+  expect(await band.locator("img").evaluate((el) => getComputedStyle(el).cursor)).not.toBe("pointer");
 }
 
 for (const w of [1440, 768, 390] as const) {
-  test(`TIOZ-BAND-ON ${w} — 런칭 뒤 띠 보임 · 글자만 · 눌러도 주소 그대로`, async ({ page }) => {
+  test(`TIOZ-BAND-ON ${w} — 런칭 뒤 그림 띠가 실제로 그려짐 · 높이 그대로 · 눌러도 주소 그대로`, async ({ page }) => {
     const errors = collectConsoleErrors(page);
     await page.setViewportSize({ width: w, height: 900 });
     await page.clock.setFixedTime(LAUNCH_AT_MS + 3_600_000);
     await page.goto("/?lang=ko");
     await expectBandBetweenHeroAndTrending(page);
     const band = page.getByTestId("pitch-tioz-band");
-    const word = band.locator(".tioz-word");
+    const img = page.getByTestId("pitch-tioz-band-img");
+    await expect(band).toHaveAttribute("data-band", "image");
+    // 그림이 실제로 그려졌다 · 폭에 맞는 그림(480px 이하 = 폰 그림)
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), { timeout: 15_000 }).toBe(true);
+    const src = await img.evaluate((el: HTMLImageElement) => el.currentSrc);
+    expect(src).toContain(w === 390 ? "tioz-band-mobile@2x" : "tioz-band-desktop@2x");
+    const natural = await img.evaluate((el: HTMLImageElement) => [el.naturalWidth, el.naturalHeight]);
+    expect(natural).toEqual(w === 390 ? [700, 112] : [2640, 144]);
+    // 띠 크기는 v1.0 그대로(1440 · 768 = 72 / 390 = 56) · 그림이 띠를 꽉 채운다
     const bandBox = (await band.boundingBox())!;
-    const style = await word.evaluate((el) => {
-      const c = getComputedStyle(el);
-      return { size: c.fontSize, weight: c.fontWeight };
-    });
-    // 시안 v2 값 그대로: 1440 · 768 = 높이 72 · 글자 32 / 390 = 56 · 22 · 굵기 900
+    const imgBox = (await img.boundingBox())!;
     expect(Math.round(bandBox.height)).toBe(w === 390 ? 56 : 72);
-    expect(style.size).toBe(w === 390 ? "22px" : "32px");
-    expect(style.weight).toBe("900");
+    expect(Math.abs(imgBox.height - (bandBox.height - 2))).toBeLessThanOrEqual(1);
+    expect(Math.abs(imgBox.width - (bandBox.width - 2))).toBeLessThanOrEqual(1);
+    // 로고 · 슬로건(그림 가운데 — PC 그림 1400px · 폰 그림 700px 폭을 화면 크기로 줄인 만큼)이 잘리지 않을 폭
+    const contentWidth = w === 390 ? (700 * (bandBox.height - 2)) / 112 : (1400 * (bandBox.height - 2)) / 144;
+    expect(imgBox.width, `띠 폭 ${imgBox.width} < 로고·슬로건 폭 ${contentWidth}`).toBeGreaterThanOrEqual(contentWidth - 1);
     // 아래쪽 동의 바(고정)에 가리지 않게 띠를 화면 위쪽으로 올려 찍는다
     await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, bandBox.y - 220));
     await page.screenshot({ path: `${BAND_SHOTS}/tioz-band-${w}.png` });
@@ -633,6 +641,16 @@ for (const w of [1440, 768, 390] as const) {
     await expectNoConsoleErrors(errors);
   });
 }
+
+test("TIOZ-BAND-ON 1440 — 그림을 못 불러오면 v1.0 글자 띠(TIOZ.AI)가 그 자리에 남는다", async ({ page }) => {
+  await page.route("**/pitch/tioz/**", (r) => r.abort());
+  await page.clock.setFixedTime(LAUNCH_AT_MS + 3_600_000);
+  await page.goto("/?lang=ko");
+  const band = page.getByTestId("pitch-tioz-band");
+  await expect(band).toHaveAttribute("data-band", "text", { timeout: 30_000 });
+  await expect(band).toHaveText("TIOZ.AI");
+  expect(Math.round((await band.boundingBox())!.height)).toBe(72);
+});
 
 test("TIOZ-BAND-ON 1440 — 런칭 전(커튼) 시각이면 띠 없음", async ({ page }) => {
   await page.clock.setFixedTime(LAUNCH_AT_MS - 3_600_000);

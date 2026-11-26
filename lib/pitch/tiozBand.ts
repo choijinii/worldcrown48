@@ -5,3 +5,16 @@
  * 런칭 전(커튼 · prelaunch)에는 켜져 있어도 그리지 않는다(시안 P-6) → 런칭 시각부터 보인다.
  */
 export const TIOZ_BAND_ENABLED = true;
+
+/**
+ * v1.1 그림 띠(대표 2026-11-26) — 검정 + 에메랄드 그라데이션 바탕 · TIOZ.AI 로고 · 슬로건 "Truth In Opinion Zeitgeist".
+ * 그림은 코티오가 만든 원본 그대로(public/pitch/tioz/ · 다시 그리거나 줄이지 않음) · 같은 크기 webp 를 먼저 준다.
+ * 폰(480px 이하) = 화면 350×56 의 2배 · 그 밖 = 1320×72 의 2배.
+ */
+export const TIOZ_BAND_IMAGE = {
+  mobileMax: "(max-width: 480px)",
+  mobile: { webp: "/pitch/tioz/tioz-band-mobile@2x.webp", png: "/pitch/tioz/tioz-band-mobile@2x.png" },
+  desktop: { webp: "/pitch/tioz/tioz-band-desktop@2x.webp", png: "/pitch/tioz/tioz-band-desktop@2x.png" },
+  /** 고유 이름이라 3언어 공통(새 화면 문구 아님). */
+  alt: "TIOZ.AI — Truth In Opinion Zeitgeist",
+} as const;

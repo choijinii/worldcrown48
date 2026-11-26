@@ -410,18 +410,24 @@
 .pitch .no-articles-compact .no-articles-title { font-size: 13px; font-weight: 400; color: var(--color-text-sub-light); }
 .pitch .no-articles-body { font-size: 13px; color: var(--color-text-sub-light); }
 
-/* ── 3) TIOZ.AI 띠(글자만 · 링크 없음 — TIOZ-BAND-ON) ── */
+/* ── 3) TIOZ.AI 띠(링크 없음 — TIOZ-BAND-ON) · v1.1 그림 띠(대표 2026-11-26) ──
+   크기 · 자리 · 모서리는 v1.0 그대로(높이 72 · 폰 56). 바탕 · 테두리는 그림과 어울리게 검정.
+   그림은 띠를 꽉 채우고 가운데 기준 — 띠가 좁아지면 양옆 바탕만 잘린다(로고 · 슬로건은 그림 가운데). */
 .pitch .tioz-band {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 72px;
   margin-top: var(--space-6);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-black);
   border-radius: var(--radius-border);
-  background: var(--color-bg-light);
+  background: var(--color-black);
+  overflow: hidden;
 }
-.pitch .tioz-word { font-size: 32px; font-weight: 900; letter-spacing: 0.22em; }
+.pitch .tioz-band picture { display: block; width: 100%; height: 100%; }
+.pitch .tioz-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+/* 그림을 못 불러왔을 때 남는 v1.0 글자 — 검정 바탕 위라 밝은 글자 */
+.pitch .tioz-word { font-size: 32px; font-weight: 900; letter-spacing: 0.22em; color: var(--color-text); }
 
 /* ── 구역 머리 + 탭 ── */
 .pitch .sec { margin-top: var(--sec-gap); }

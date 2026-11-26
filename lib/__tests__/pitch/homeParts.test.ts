@@ -56,10 +56,15 @@ describe("WORLD PRESS 열 — 빈 목록", () => {
 });
 
 describe("TIOZ.AI 띠", () => {
-  it("런칭 뒤 = \"TIOZ.AI\" 글자만 · 링크(a) 없음 · OPEN 글자 없음", () => {
+  it("런칭 뒤 = 그림 띠(v1.1 · 대표 2026-11-26) — picture 에 폰 · PC 두 주소 · 대체 글 · 링크(a) 없음 · OPEN 글자 없음", () => {
     const html = renderToStaticMarkup(createElement(TiozBand, { prelaunch: false }));
     expect(html).toContain('data-testid="pitch-tioz-band"');
-    expect(html).toContain(">TIOZ.AI<");
+    expect(html).toContain("<picture");
+    expect(html).toMatch(/<source[^>]*media="\(max-width: 480px\)"[^>]*srcSet="\/pitch\/tioz\/tioz-band-mobile@2x\.webp"/);
+    expect(html).toContain('src="/pitch/tioz/tioz-band-desktop@2x.png"');
+    expect(html).toContain("/pitch/tioz/tioz-band-mobile@2x.png");
+    expect(html).toContain("/pitch/tioz/tioz-band-desktop@2x.webp");
+    expect(html).toContain('alt="TIOZ.AI — Truth In Opinion Zeitgeist"');
     expect(html).not.toMatch(/<a[\s>]/);
     expect(html).not.toContain("href");
     expect(html).not.toContain("OPEN");
@@ -83,7 +88,7 @@ describe("TIOZ.AI 띠", () => {
 
   it("커서는 손 모양이 아니다(누를 곳이 아님)", () => {
     const css = readFileSync(path.join(process.cwd(), "components/pitch/pitch.css"), "utf8");
-    const rules = css.match(/\.tioz-(band|word)[^{]*\{[^}]*\}/g) ?? [];
+    const rules = css.match(/\.tioz-(band|word|img)[^{]*\{[^}]*\}/g) ?? [];
     expect(rules.length).toBeGreaterThan(0);
     for (const r of rules) expect(r).not.toContain("pointer");
   });
