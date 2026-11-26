@@ -161,3 +161,25 @@ describe("admin_alerts — admin-claim only", () => {
     await assertSucceeds(getDoc(doc(db, "admin_alerts/a1")));
   });
 });
+
+/** T5 PR 1 — 누적 · 다시 세기 요청 · 도우미 자리는 서버 전용(Admin SDK 크론만). 관리자 클레임도 못 읽고 못 쓴다. */
+describe("T5 서버 전용 자리", () => {
+  const PATHS = ["ranking_accum/t1", "ranking_accum/t1/history/0", "ranking_recount_requests/t1", "ranking_recount_jobs/t1"];
+  const layers: Array<[string, () => ReturnType<RulesTestEnvironment["unauthenticatedContext"]>]> = [
+    ["비로그인", () => testEnv.unauthenticatedContext()],
+    ["로그인", () => testEnv.authenticatedContext(VOTER)],
+    ["관리자 클레임", () => testEnv.authenticatedContext(ADMIN, { admin: true })],
+  ];
+  for (const [label, ctx] of layers) {
+    for (const p of PATHS) {
+      it(`${label} — ${p} 읽기 · 쓰기 모두 막힌다`, async () => {
+        await testEnv.withSecurityRulesDisabled(async (c) => {
+          await setDoc(doc(c.firestore(), p), { x: 1 });
+        });
+        const db = ctx().firestore();
+        await assertFails(getDoc(doc(db, p)));
+        await assertFails(setDoc(doc(db, p), { x: 2 }));
+      });
+    }
+  }
+});

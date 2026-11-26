@@ -82,3 +82,37 @@ The shared Arena id `dev-preview` matches `SAMPLE_TOURNAMENT_ID` in
   기본 dry-run(건수·순서만 · 메일은 가림), `--apply` 로 실행. 계획 = `assign-founding-rank.lib.mjs`(단위 시험).
 - `clear-waitlist-test.mjs` — 시험 메일(`@wc48.test`) 등록(`waitlist_test` + `waitlist_meta/test`)을 모음째
   지운다. 기본 dry-run, `--apply` 로 삭제. 진짜 `waitlist` 는 건드리지 않는다.
+
+## compare-ranking-accum.mjs (T5 차트 증분 집계 · 읽기 전용)
+
+배포 전에 실서비스에 대고 돌려, 누적(`ranking_accum/{tid}`)이 대회 기록 전량을 처음부터 다시 센 값과
+같은지 확인한다(누적의 `cursorMs` 까지 · 크론의 그림자 비교와 같은 계산). **아무것도 쓰지 않는다.**
+먼저 `cd functions && npm run build`(빌드 결과 `lib/core` 를 가져온다). 인증 = ADC(`gcloud auth
+application-default login`) 또는 `FIREBASE_ADMIN_SDK_KEY`.
+
+```
+node functions/scripts/compare-ranking-accum.mjs --project <프로젝트 id> [--tournament <tid>] [--json]
+```
+
+`--tournament` 없으면 집계 창 안 대회 전부(크론과 같은 쿼리). 대회마다 일치 여부 · 다른 엔트리(두 값) ·
+`runIndex`/`isGuest` 없는 기록 수 · 읽은 문서 수를 낸다. 누적 문서가 없으면 그렇게 적고 전량 요약만 낸다.
+
+⚠ 비용: 대상 대회마다 그 대회 기록(votes)을 **전부** 읽는다 — 큰 대회는 `--tournament` 로 하나씩 돌린다.
+
+## request-ranking-recount.mjs (T5 차트 증분 집계 · 다시 세기 요청)
+
+되돌리기(롤백) 뒤 다시 배포할 때 쓴다. 롤백 동안 옛 함수가 돌면 기록은 바뀌었는데 누적(`ranking_accum`)은
+그대로일 수 있다 — 증분은 지난 누적을 믿으므로, 다시 배포한 뒤 이 스크립트로 다시 세기를 요청한다.
+쓰는 것은 `ranking_recount_requests/{tid}` 문서(`{tournamentId, reason:"admin", requestedAt: 서버 시각}`)
+**하나뿐**이고, 실제 다시 세기는 다음 발표(09:00 · 21:00 KST)가 하며 예산에 닿으면 5분 도우미가 잇는다.
+기본은 dry-run(쓸 문서만 출력) · `--apply` 가 있어야 쓴다. 먼저 `cd functions && npm run build`. 인증은
+compare 스크립트와 같다(ADC 또는 `FIREBASE_ADMIN_SDK_KEY`).
+
+```
+node functions/scripts/request-ranking-recount.mjs --project <프로젝트 id> --tournament <tid>
+node functions/scripts/request-ranking-recount.mjs --project <프로젝트 id> --all-in-window
+node functions/scripts/request-ranking-recount.mjs --project <프로젝트 id> --all-in-window --apply
+```
+
+`--all-in-window` 는 크론과 같은 쿼리(마감이 집계 창 시작보다 뒤인 대회)다. 다시 세기는 대회 기록을
+처음부터 다 읽으므로 비용은 compare 스크립트와 같은 크기다.

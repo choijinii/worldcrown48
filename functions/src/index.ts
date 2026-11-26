@@ -173,6 +173,8 @@ export { onChampionConfirmed } from "./onChampionConfirmed";
 
 // C-3 The Arena — ranking cache + anomaly detection (1h cron, asia-northeast3).
 export { scheduleRankingCache } from "./scheduleRankingCache";
+// T5 차트 증분 집계 — 예산에 닿아 멈춘 처음부터 다시 세기를 5분마다 이어 센다.
+export { continueRankingRecount } from "./continueRankingRecount";
 
 // G-1 Admin Dashboard — operator-only KPI snapshot + abuse-alert feed.
 // Both re-verify ADMIN_UID server-side (defense-in-depth — handoff §9 trap #5).

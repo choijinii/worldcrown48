@@ -11,6 +11,9 @@ rules_version = '2';
 //   /cookieConsents/{uid}  — owner-only read/write; uid is the doc id
 //   /votes/{voteId}        — owner-only read; write blocked (callable only)
 //   /ranking_cache/{id}    — 차트. 공개 읽기(비로그인 포함 · D-30); write blocked
+//   /ranking_accum/{tid}   — (T5) 증분 집계 누적 · read/write blocked (Admin SDK 크론만)
+//   /ranking_recount_requests/{tid} — (T5) 처음부터 다시 세기 요청 · read/write blocked
+//   /ranking_recount_jobs/{tid}     — (T5) 다시 세기 진행 기록 · read/write blocked
 //   /admin_alerts/{id}     — admin-claim read/write only (anomaly flags)
 //   /auditLog/{logId}      — read/write blocked (admin SDK only)
 //   /userPrefs/{uid}       — owner-only read/write, schema-validated
@@ -365,6 +368,19 @@ service cloud.firestore {
     function tournamentChartOpen(database, tournamentId) {
       return get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('status', '') != 'hidden';
     }
+    // ── T5 증분 집계 서버 전용 자리 ─────────────────────────────────
+    // 누적 · 다시 세기 요청 · 도우미 진행은 Admin SDK 크론만 읽고 쓴다. 관리자 클레임도 브라우저로는 못 연다
+    // (누적은 하위 기록 포함 — 재귀 와일드카드).
+    match /ranking_accum/{tournamentId=**} {
+      allow read, write: if false;
+    }
+    match /ranking_recount_requests/{tournamentId} {
+      allow read, write: if false;
+    }
+    match /ranking_recount_jobs/{tournamentId} {
+      allow read, write: if false;
+    }
+
     match /ranking_cache/{tournamentId} {
       allow read: if tournamentChartOpen(database, tournamentId);
       allow write: if false;

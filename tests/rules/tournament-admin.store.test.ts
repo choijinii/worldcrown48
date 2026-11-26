@@ -131,6 +131,32 @@ describe("삭제 — 참여 0명 (①)", () => {
     expect(deletedPrefixes).toEqual([`crown-cards/${T}/`, `entry-images/tournaments/${T}/`, DRAFT_DIR]);
   });
 
+  it("T5 — 누적 · 다시 세기 요청 · 도우미 자리도 지운다(다른 대회 것은 남김)", async () => {
+    await seedTournament(T);
+    await seedTournament(OTHER);
+    for (const tid of [T, OTHER]) {
+      await db.doc(`ranking_accum/${tid}`).set({ runsTotal: 1 });
+      await db.doc(`ranking_accum/${tid}/history/0`).set({ runsTotal: 1 });
+      await db.doc(`ranking_recount_requests/${tid}`).set({ at: 1 });
+      await db.doc(`ranking_recount_jobs/${tid}`).set({ at: 1 });
+    }
+    await removeTournament(db, T, { storage, values, nowMs: now() });
+    for (const p of [
+      `ranking_accum/${T}`,
+      `ranking_accum/${T}/history/0`,
+      `ranking_recount_requests/${T}`,
+      `ranking_recount_jobs/${T}`,
+    ])
+      expect((await db.doc(p).get()).exists, p).toBe(false);
+    for (const p of [
+      `ranking_accum/${OTHER}`,
+      `ranking_accum/${OTHER}/history/0`,
+      `ranking_recount_requests/${OTHER}`,
+      `ranking_recount_jobs/${OTHER}`,
+    ])
+      expect((await db.doc(p).get()).exists, p).toBe(true);
+  });
+
   it("내린 기사(archived)는 남긴다 — 지우는 것은 초안뿐", async () => {
     await seedTournament(T);
     await db.doc("news/old").set({ tournamentId: T, status: "archived" });
