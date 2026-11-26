@@ -1,0 +1,35 @@
+name: Ops — cleanup leftover "E2E Tournament" (1회용)
+
+# 실서비스 1회 정리(대표 승인 2026-11-26). 이 브랜치(ops/cleanup-e2e-tournaments)에 올릴 때만 돈다 — main 에는 넣지 않는다.
+# MODE=list 로 목록을 먼저 보이고, 대표 확인 뒤 MODE=delete + DELETE_IDS 로 그 id 만 지운다.
+on:
+  push:
+    branches: [ops/cleanup-e2e-tournaments]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm --prefix functions ci
+      - name: Build functions (Lab 삭제 코드 그대로 쓰기)
+        run: npm --prefix functions run build
+      - name: Run
+        env:
+          FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
+          TEST_UID: ${{ secrets.B1_TEST_ADMIN_UID }}
+          MODE: list
+          TARGET_DATE: '2026-11-26'
+          DELETE_IDS: ''
+        run: node scripts/ops/cleanup-e2e-tournaments.mjs
