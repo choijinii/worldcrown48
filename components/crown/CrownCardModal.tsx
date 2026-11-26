@@ -14,7 +14,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { CrownData, FormatKey } from "@/lib/crown/formats";
 import { track, trackWithConsent } from "@/lib/analytics";
 import { useT } from "@/lib/i18n/useT";
@@ -46,9 +46,15 @@ interface CrownCardModalProps {
    * 모르는 자리(회차를 못 정한 딥링크 등)에서는 넘기지 않는다. 지어내지 않는다.
    */
   matchSessionId?: string;
+  /**
+   * 카드 바로 아래, 같은 무대 안에 그릴 것 — 아레나 완주 화면의 [다시 참여] 영역(지시서 RUN-FIX-2 완주화면 2026-11-25).
+   * 넘기면 무대가 화면 한 장에 고정되지 않고 위에서부터 쌓여, 카드와 버튼이 스크롤 없이 첫 화면에 함께 보인다.
+   * 챔피언 착지 페이지처럼 넘기지 않는 곳은 예전 모양 그대로다.
+   */
+  footer?: ReactNode;
 }
 
-export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, tournamentId, category, matchSessionId }: CrownCardModalProps): JSX.Element {
+export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, tournamentId, category, matchSessionId, footer }: CrownCardModalProps): JSX.Element {
   const [view, setView] = useState<"ready" | "menu">("ready");
   const [menuFmt, setMenuFmt] = useState<FormatKey>("story");
   // Bumped on each open so the menu remounts and re-applies the preselected
@@ -112,8 +118,8 @@ export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, to
   const onShareX = (): void => openMenu("link");
 
   return (
-    <div className={styles.sfCrown} data-crown={crownState} data-testid="crown-modal">
-      <div className={styles.crownStage}>
+    <div className={styles.sfCrown} data-crown={crownState} data-testid="crown-modal" data-footer={footer ? "" : undefined}>
+      <div className={styles.crownStage} data-testid="crown-stage">
         <div className={styles.crownHalo} aria-hidden="true" />
         <div className={styles.crownModal} role="dialog" aria-modal="true" aria-label="Crown Card">
           <div className={styles.crownModalHead}>
@@ -153,6 +159,11 @@ export function CrownCardModal({ data, canShare, canSave, onSignIn, deadline, to
 
           <LoginPromptBanner onSignIn={onSignIn} />
         </div>
+        {footer ? (
+          <div className={styles.crownFooter} data-testid="crown-footer">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -57,6 +57,7 @@ import {
   NO_DISMISSED_ROUND,
   completedRunKey,
   dismissRound,
+  isRunRefreshSettled,
   shouldShowRoundTransition,
   type DismissedRound,
 } from "@/lib/arena/roundTransitionGate";
@@ -247,12 +248,17 @@ export default function ArenaPage(): JSX.Element {
   // 판 + championId 로 가드해 판마다 한 번만 다시 읽는다. RUN-FIX-2 — championId 만으로 가드하면 같은 Champion이
   // 두 판 연속 나왔을 때 2판째 완주 뒤 다시 읽지 않아 [다시 참여]가 "(1/5)"로 꺼진 채 남았다.
   const runRefreshedForRef = useRef<string | null>(null);
+  // 다시 읽기가 **끝난** 완주 열쇠 — 끝나기 전에는 [다시 참여]를 꺼 둔다(느린 망에서 옛 숫자 버튼이 눌려 무시되던 것).
+  const [runRefreshSettledKey, setRunRefreshSettledKey] = useState<string | null>(null);
+  const completeKey =
+    progress?.complete && progress.championId ? completedRunKey(runIndex, progress.championId) : null;
+  const playAgainReady = isRunRefreshSettled(completeKey, runRefreshSettledKey);
   useEffect(() => {
     if (!uid || !progress?.complete || !progress.championId) return;
     const key = completedRunKey(runIndex, progress.championId);
     if (runRefreshedForRef.current === key) return;
     runRefreshedForRef.current = key;
-    void loadTournament(tournamentId, uid, isGuest);
+    void loadTournament(tournamentId, uid, isGuest).finally(() => setRunRefreshSettledKey(key));
   }, [
     uid,
     tournamentId,
@@ -500,21 +506,32 @@ export default function ArenaPage(): JSX.Element {
       const data = toCrownData(champ, tournament, lang);
       return (
         <div className={styles.arena} data-arena-surface="champion">
-          <CrownCardModal data={data} canShare={canShare} canSave={canSave} onSignIn={() => setModal("share")} tournamentId={tournamentId} category={tournament.category} matchSessionId={msid ?? undefined} />
-          {run && uid ? (
-            <RunCompleteActions
-              run={run}
-              uid={uid}
-              tournamentId={tournamentId}
-              isGuest={isGuest}
-              nameOf={(id) => {
-                const c = byId(id);
-                return c ? localizedName(c, lang) : undefined;
-              }}
-              onPlayAgain={() => useVoteStore.getState().startNextRun()}
-              onSignIn={() => setModal("guest_limit")}
-            />
-          ) : null}
+          <CrownCardModal
+            data={data}
+            canShare={canShare}
+            canSave={canSave}
+            onSignIn={() => setModal("share")}
+            tournamentId={tournamentId}
+            category={tournament.category}
+            matchSessionId={msid ?? undefined}
+            // 지시서 RUN-FIX-2 완주화면 — [다시 참여]를 카드 바로 아래(같은 무대 안)에: 스크롤 없이 첫 화면에 보이게.
+            footer={
+              run && uid ? (
+                <RunCompleteActions
+                  run={{ ...run, canPlayAgain: run.canPlayAgain && playAgainReady }}
+                  uid={uid}
+                  tournamentId={tournamentId}
+                  isGuest={isGuest}
+                  nameOf={(id) => {
+                    const c = byId(id);
+                    return c ? localizedName(c, lang) : undefined;
+                  }}
+                  onPlayAgain={() => useVoteStore.getState().startNextRun()}
+                  onSignIn={() => setModal("guest_limit")}
+                />
+              ) : null
+            }
+          />
           {loginModal}
         </div>
       );
