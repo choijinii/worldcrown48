@@ -34,6 +34,7 @@ import {
   writeNewsDraft,
 } from "./newsShared";
 import { kstDate } from "./core/voteRecord";
+import { newsDraftAiOff } from "./core/newsAiSwitch";
 
 function rankingsOf(data: FirebaseFirestore.DocumentData | undefined): RankingRowLike[] {
   const rows = (data?.rankings ?? []) as Array<Record<string, unknown>>;
@@ -48,6 +49,8 @@ export const onChampionForNews = onDocumentUpdated(
     const after = event.data?.after.data() as RoundProgressData | undefined;
     if (!shouldGenerateCrownCard(before, after) || !after) return;
     const tournamentId = String(after.tournamentId);
+    // 시험 서버에서만 끄는 스위치(core/newsAiSwitch) — 실서비스는 늘 만든다.
+    if (newsDraftAiOff(process.env)) return;
 
     try {
       const existing = await existingDraftKeys(tournamentId);

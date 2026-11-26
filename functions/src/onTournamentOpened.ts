@@ -23,6 +23,7 @@ import {
   writeNewsDraft,
 } from "./newsShared";
 import { kstDate } from "./core/voteRecord";
+import { newsDraftAiOff } from "./core/newsAiSwitch";
 
 export const onTournamentOpened = onDocumentCreated(
   { document: "tournaments/{tournamentId}", secrets: ["ANTHROPIC_API_KEY"] },
@@ -31,6 +32,8 @@ export const onTournamentOpened = onDocumentCreated(
     const data = event.data?.data();
     // Only real Lab publishes (status 'active'). Drafts/ended never fire.
     if (!data || data.status !== "active") return;
+    // 시험 서버에서만 끄는 스위치(core/newsAiSwitch) — 실서비스는 늘 만든다.
+    if (newsDraftAiOff(process.env)) return;
 
     try {
       // Idempotency — one open draft per Tournament (origin+tournamentId).
