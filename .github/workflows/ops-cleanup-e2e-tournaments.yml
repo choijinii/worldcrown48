@@ -29,7 +29,7 @@ jobs:
         env:
           FIREBASE_ADMIN_SDK_KEY: ${{ secrets.FIREBASE_ADMIN_SDK_KEY }}
           TEST_UID: ${{ secrets.B1_TEST_ADMIN_UID }}
-          MODE: list
+          MODE: delete
           TARGET_DATE: '2026-11-26'
-          DELETE_IDS: ''
+          DELETE_IDS: 'aYrhmx8vooIwDWTrJa9v jmGeo7FBadVlAbuZPwU0 59qiG7YmmGtBpZ3xpnJZ HD7oXPD9X62buels9gwL SYRnV6HgxkcQdkgrEqfv gG3tig4HdeEPFymg8tRo syiGMbRFvO3ccvxACe7Y 6utmpfLz1lNjksjheM0a fj5Ir1MNheKhTHM6VZs1'
         run: node scripts/ops/cleanup-e2e-tournaments.mjs
