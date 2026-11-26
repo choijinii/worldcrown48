@@ -17,12 +17,12 @@ import {
 import { LAUNCH_AT_MS } from "@/lib/launch/launchAt";
 
 const BEFORE = Date.parse("2026-11-20T00:00:00Z");
-const AFTER = Date.parse("2026-11-25T15:00:00Z"); // = 11/26 00:00 KST 정각
+const AFTER = Date.parse("2026-12-09T15:00:00Z"); // = 12/10 00:00 KST 정각
 
 describe("isCurtainOn — 스위치 · 시각", () => {
-  it("기본 런칭 시각은 launchAt.ts 와 같다(11/26 00:00 KST)", () => {
+  it("기본 런칭 시각은 launchAt.ts 와 같다(12/10 00:00 KST)", () => {
     expect(curtainLaunchAtMs({})).toBe(LAUNCH_AT_MS);
-    expect(LAUNCH_AT_MS).toBe(Date.parse("2026-11-25T15:00:00Z"));
+    expect(LAUNCH_AT_MS).toBe(Date.parse("2026-12-09T15:00:00Z"));
   });
   it("on + 런칭 전 → 커튼", () => {
     expect(isCurtainOn({ LAUNCH_CURTAIN: "on" }, BEFORE)).toBe(true);
@@ -38,7 +38,7 @@ describe("isCurtainOn — 스위치 · 시각", () => {
   it("LAUNCH_AT 이 있으면 그 시각을 따른다(과거면 걷힘)", () => {
     const env = { LAUNCH_CURTAIN: "on", LAUNCH_AT: "2026-11-01T00:00:00Z" };
     expect(isCurtainOn(env, BEFORE)).toBe(false);
-    expect(isCurtainOn({ LAUNCH_CURTAIN: "on", LAUNCH_AT: "2026-12-03T15:00:00Z" }, AFTER)).toBe(true);
+    expect(isCurtainOn({ LAUNCH_CURTAIN: "on", LAUNCH_AT: "2026-12-17T15:00:00Z" }, AFTER)).toBe(true);
   });
   it("LAUNCH_AT 이 시각이 아닌 글자면 기본값", () => {
     expect(curtainLaunchAtMs({ LAUNCH_AT: "내일" })).toBe(LAUNCH_AT_MS);
@@ -173,7 +173,7 @@ describe("betaRedirectAfterLaunch — 런칭 뒤 /beta → /", () => {
     expect(betaRedirectAfterLaunch("/beta", { LAUNCH_CURTAIN: "on" }, BEFORE)).toBe(false);
   });
   it("LAUNCH_AT 이 런칭 시각을 미루면 그 값을 따른다", () => {
-    expect(betaRedirectAfterLaunch("/beta", { LAUNCH_AT: "2026-12-09T15:00:00Z" }, AFTER)).toBe(false);
+    expect(betaRedirectAfterLaunch("/beta", { LAUNCH_AT: "2026-12-17T15:00:00Z" }, AFTER)).toBe(false);
   });
   it("다른 길은 상관없다", () => {
     expect(betaRedirectAfterLaunch("/", {}, AFTER)).toBe(false);
