@@ -34,6 +34,26 @@
   padding: var(--space-12);
   background: radial-gradient(ellipse 60% 60% at 50% 45%, color-mix(in srgb, var(--color-gold) 12%, transparent), transparent 70%);
 }
+/*
+ * 지시서 RUN-FIX-2 완주화면(2026-11-25) — 카드 아래 자리(footer)가 있을 때(아레나 완주 화면).
+ * 무대를 화면 한 장에 붙박지(absolute · 가운데) 않고 위에서부터 쌓는다 → 카드 바로 아래 [다시 참여]와 안내가
+ * 스크롤 없이 첫 화면에 함께 보인다(1440×900 · 1280×720 · 390×844). 넘기지 않는 곳(챔피언 착지)은 위 규칙 그대로.
+ */
+.sfCrown[data-footer] .crownStage {
+  position: relative;
+  inset: auto;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-4) var(--space-12);
+}
+.crownFooter {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+}
 .crownHalo {
   position: absolute;
   top: 50%;
@@ -190,6 +210,9 @@
 .sfCrown[data-crown="menu"] .crownModalHead,
 .sfCrown[data-crown="menu"] .crownCard { display: none; }
 .sfCrown[data-crown="menu"] .crownStage { align-items: flex-start; overflow-y: auto; }
+/* footer 가 있으면 무대가 이미 위에서부터 쌓이고 페이지가 스크롤된다 — 가로 가운데를 지키고 안쪽 스크롤을 두지 않는다
+   (메뉴가 길어도 [다시 참여]는 메뉴 아래로 밀려 겹치지 않는다). */
+.sfCrown[data-footer][data-crown="menu"] .crownStage { align-items: center; overflow-y: visible; }
 .shareMenu .smh { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: var(--space-3); }
 .shareOpt {
   display: flex;

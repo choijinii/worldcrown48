@@ -50,3 +50,12 @@ export function eventForRun<T>(
 export function completedRunKey(runIndex: number | undefined, championId: string): string {
   return `${runIndex ?? 0}:${championId}`;
 }
+
+/**
+ * 완주 뒤 판 숫자 다시 읽기가 끝났는가 (지시서 RUN-FIX-2 완주화면 · 대표 지시 2026-11-26).
+ * 끝나기 전의 [다시 참여]는 들어올 때의 옛 숫자("(0/5)")로 그려져 있고, 느린 망에서 그때 누르면 누른 것이
+ * 무시된 채 완주 화면에 남았다. 다시 읽는 동안에만 버튼을 꺼 둔다. 완주가 아니면(`completeKey` 없음) 막지 않는다.
+ */
+export function isRunRefreshSettled(completeKey: string | null, refreshedKey: string | null): boolean {
+  return completeKey === null || completeKey === refreshedKey;
+}
