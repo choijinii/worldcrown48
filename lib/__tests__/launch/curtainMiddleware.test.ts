@@ -8,7 +8,7 @@ import { config, middleware } from "@/middleware";
 import { signBetaPass } from "@/lib/launch/betaPass";
 
 const BEFORE = new Date("2026-11-20T00:00:00Z");
-const AFTER = new Date("2026-11-26T01:00:00Z");
+const AFTER = new Date("2026-12-10T01:00:00Z");
 const SECRET = "mw-test-secret";
 const DAY = 86_400_000;
 

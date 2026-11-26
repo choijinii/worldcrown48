@@ -21,7 +21,7 @@ export class BetaPassError extends Error {
 
 export const BETA_PASS_TTL_MS = 14 * 86_400_000;
 /** lib/launch/launchAt.ts LAUNCH_AT_MS 와 같은 값(root 시험이 둘을 맞대어 본다). */
-export const DEFAULT_LAUNCH_AT_MS = Date.parse("2026-11-26T00:00:00+09:00");
+export const DEFAULT_LAUNCH_AT_MS = Date.parse("2026-12-10T00:00:00+09:00");
 
 export interface BetaAuth {
   uid: string;
