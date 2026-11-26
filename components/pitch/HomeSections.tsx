@@ -4,6 +4,7 @@
  * 홈(PITCH-2) 구역 — Trending · Create 띠 · NEWS ROOM · CHARTS · TIOZ.AI 띠 (지시서 1절 4 · 6 · 7 · 9행 · 7절).
  * 구역 이름은 승인된 영어 그대로(3언어 공통 · 6절). 탭은 아레나 홈 CategoryTabs 재사용(검색 칸 없음).
  */
+import { useEffect, useRef, useState } from "react";
 import type { Tournament } from "@/lib/types/tournament";
 import type { CategoryDoc } from "@/lib/taxonomy/category";
 import type { ChartPickRow, HomeArticle } from "@/lib/pitch/home";
@@ -13,7 +14,7 @@ import { localizedName } from "@/lib/contestantName";
 import { chartHref } from "@/lib/records/chartList";
 import { pageWindow } from "@/lib/arenaHome/arenaHome";
 import { WORLD_PRESS_MEDIA_NAME } from "@/lib/pitch/worldPress";
-import { TIOZ_BAND_ENABLED } from "@/lib/pitch/tiozBand";
+import { TIOZ_BAND_ENABLED, TIOZ_BAND_IMAGE } from "@/lib/pitch/tiozBand";
 import { CategoryTabs } from "@/components/arenaHome/CategoryTabs";
 import Link from "next/link";
 import { TournamentCard } from "./TournamentCard";
@@ -246,12 +247,44 @@ export function ChartsSection(props: {
   );
 }
 
-/** TIOZ.AI 띠 — 자리만 · 꺼져 있으면 DOM 에 없다 · 런칭 전에는 그리지 않는다(지시서 7절 · 시안 P-6). */
+/**
+ * TIOZ.AI 띠 — 링크 없음(TIOZ-BAND-ON) · 런칭 전에는 그리지 않는다(시안 P-6) · 끄면 DOM 에 없다.
+ * v1.1(대표 2026-11-26): 띠 안을 그림 띠로(폰 480px 이하 = 폰 그림). 띠 크기 · 자리 · 모서리는 v1.0 그대로.
+ * 그림을 못 불러오면 v1.0 의 "TIOZ.AI" 글자 띠가 그 자리에 남는다.
+ */
 export function TiozBand({ prelaunch }: { prelaunch: boolean }): JSX.Element | null {
   if (!TIOZ_BAND_ENABLED || prelaunch) return null;
+  return <TiozBandImage />;
+}
+
+function TiozBandImage(): JSX.Element {
+  const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // 화면이 이어붙기(hydrate) 전에 그림이 이미 실패했으면 onError 를 놓친다 — 붙은 뒤 한 번 더 본다.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth === 0) setFailed(true);
+  }, []);
   return (
-    <div className="tioz-band" data-testid="pitch-tioz-band">
-      <span className="tioz-word">TIOZ.AI</span>
+    <div className="tioz-band" data-testid="pitch-tioz-band" data-band={failed ? "text" : "image"}>
+      {failed ? (
+        <span className="tioz-word">TIOZ.AI</span>
+      ) : (
+        <picture>
+          <source media={TIOZ_BAND_IMAGE.mobileMax} type="image/webp" srcSet={TIOZ_BAND_IMAGE.mobile.webp} />
+          <source media={TIOZ_BAND_IMAGE.mobileMax} type="image/png" srcSet={TIOZ_BAND_IMAGE.mobile.png} />
+          <source type="image/webp" srcSet={TIOZ_BAND_IMAGE.desktop.webp} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- 원본 그대로 · picture 로 폰/PC 를 고른다 */}
+          <img
+            ref={imgRef}
+            className="tioz-img"
+            src={TIOZ_BAND_IMAGE.desktop.png}
+            alt={TIOZ_BAND_IMAGE.alt}
+            onError={() => setFailed(true)}
+            data-testid="pitch-tioz-band-img"
+          />
+        </picture>
+      )}
     </div>
   );
 }
