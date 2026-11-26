@@ -593,13 +593,17 @@ async function expectBandBetweenHeroAndTrending(page: Page): Promise<void> {
   // DOM 순서: 히어로 줄(오른쪽 칸 포함) 바로 다음 · Trending 바로 앞
   expect(await band.evaluate((el) => el.previousElementSibling?.className)).toBe("hero-row");
   expect(await band.evaluate((el) => el.nextElementSibling?.id)).toBe("trending");
-  // 화면 위치: 히어로 · 오른쪽 칸 둘 다의 아래 · Trending 의 위
-  const b = (await band.boundingBox())!;
-  const hero = (await page.getByTestId("pitch-hero").boundingBox())!;
-  const side = (await page.getByTestId("pitch-hero-side").boundingBox())!;
-  const tr = (await page.getByTestId("pitch-trending").boundingBox())!;
-  expect(b.y).toBeGreaterThanOrEqual(Math.max(hero.y + hero.height, side.y + side.height) - 1);
-  expect(tr.y).toBeGreaterThanOrEqual(b.y + b.height - 1);
+  // 화면 위치: 히어로 · 오른쪽 칸 둘 다의 아래 · Trending 의 위.
+  // 배치가 자리 잡을 때까지 기다린다 — 시험은 브라우저 시계만 런칭 뒤로 돌려, 서버 화면(런칭 전)을 브라우저가 다시
+  // 그리는 동안 잠깐 어긋난 배치를 잴 수 있다(2026-11-26 CI 실측 768: 띠 y 876 < 오른쪽 칸 바닥 1006).
+  const gap = async () => {
+    const b = (await band.boundingBox())!;
+    const hero = (await page.getByTestId("pitch-hero").boundingBox())!;
+    const side = (await page.getByTestId("pitch-hero-side").boundingBox())!;
+    const tr = (await page.getByTestId("pitch-trending").boundingBox())!;
+    return Math.min(b.y - Math.max(hero.y + hero.height, side.y + side.height), tr.y - (b.y + b.height));
+  };
+  await expect.poll(gap, { timeout: 10_000, message: "띠가 히어로 · 오른쪽 칸 아래, Trending 위에 있어야 한다" }).toBeGreaterThanOrEqual(-1);
   // 누를 곳이 아니다 — 손 모양 커서 아님
   expect(await band.evaluate((el) => getComputedStyle(el).cursor)).not.toBe("pointer");
   expect(await band.locator("img").evaluate((el) => getComputedStyle(el).cursor)).not.toBe("pointer");
