@@ -638,7 +638,9 @@ for (const w of [1440, 768, 390] as const) {
     await page.waitForTimeout(500);
     expect(page.url()).toBe(before);
     expect(page.context().pages()).toHaveLength(1);
-    await expectNoConsoleErrors(errors);
+    // 시계는 브라우저만 "런칭 뒤"로 돌린다 — 서버는 실제 시각(런칭 12/10 전)으로 그려서, 화면을 이어붙일 때 React 가
+    // "서버와 다르다"(#418 · #423)를 남긴다. 실서비스에서는 서버와 브라우저가 같은 시각이라 생기지 않는다 → 그 둘만 뺀다.
+    await expectNoConsoleErrors(errors.filter((e) => !/Minified React error #(418|423)/.test(e)));
   });
 }
 
