@@ -2,7 +2,7 @@
  * PRESS-1 PR 1 · 3-2 — TIO 지시문(킥 v0.1 4절 전문 · 기사 뼈대 · 금지 낱말 · 최근 24시간 · 키워드 목록 · 3언어 JSON).
  */
 import { describe, expect, it } from "vitest";
-import { PRESS_WRITING_RULES, buildPressPrompt } from "../core/pressPrompt";
+import { PRESS_KEYWORD_MEANING, PRESS_WRITING_RULES, buildPressPrompt } from "../core/pressPrompt";
 import { PRESS_PHOTO_KEYWORDS } from "../_news/articleDoc";
 import { FORBIDDEN_WAR_WORDS } from "../core/newsPrompts";
 
@@ -40,9 +40,33 @@ describe("buildPressPrompt", () => {
   });
 
   it("그 분야의 키워드 목록만 적고 하나만 고르라고 한다", () => {
-    expect(p).toContain(PRESS_PHOTO_KEYWORDS.kpop.join(", "));
+    for (const k of PRESS_PHOTO_KEYWORDS.kpop) expect(p).toContain(`${k}(`);
     expect(p).not.toContain("revenue");
-    expect(buildPressPrompt({ category: "creator", todayKst: "2026-11-27" })).toContain(PRESS_PHOTO_KEYWORDS.creator.join(", "));
+    expect(p).toMatch(/하나만/);
+    const c = buildPressPrompt({ category: "creator", todayKst: "2026-11-27" });
+    for (const k of PRESS_PHOTO_KEYWORDS.creator) expect(c).toContain(`${k}(`);
+    expect(c).not.toContain("reverse-run");
+  });
+
+  it("사생활 주제는 고르지 않는다 — 대표 문장(2026-11-26) 글자 그대로", () => {
+    const rule =
+      "열애 · 결혼 · 이혼 · 건강 · 가족 같은 사생활 소식은 기사의 주제로 고르지 않는다. 음악 · 활동 · 기록 · 사업 소식을 주제로 고른다. 다만 그런 기사 안에서, 본인이 공개 발표한 사실을 배경 설명으로 한두 문장 언급하는 것은 된다.";
+    expect(p).toContain(rule);
+    expect(buildPressPrompt({ category: "creator", todayKst: "2026-11-27" })).toContain(rule);
+  });
+
+  it("키워드마다 뜻(킥 v0.2 키워드 폴더 표)을 붙이고 · 기사 중심 소식과 맞을 때만 고르게 한다", () => {
+    for (const cat of ["kpop", "creator"] as const) {
+      const q = buildPressPrompt({ category: cat, todayKst: "2026-11-27" });
+      for (const k of PRESS_PHOTO_KEYWORDS[cat]) {
+        expect(PRESS_KEYWORD_MEANING[k], `${k} 뜻 없음`).toBeTruthy();
+        expect(q).toContain(`${k}(${PRESS_KEYWORD_MEANING[k]})`);
+      }
+    }
+    expect(PRESS_KEYWORD_MEANING["reverse-run"]).toBe("역주행");
+    expect(PRESS_KEYWORD_MEANING.record).toBe("조회수·기록");
+    expect(p).toMatch(/중심 소식/);
+    expect(p).toMatch(/default/);
   });
 
   it("3언어(ko · en · es) JSON 과 출처(검색 결과 주소만)를 요구한다", () => {
