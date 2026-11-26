@@ -636,7 +636,7 @@ for (const w of [1440, 768, 390] as const) {
     expect(imgBox.width, `띠 폭 ${imgBox.width} < 로고·슬로건 폭 ${contentWidth}`).toBeGreaterThanOrEqual(contentWidth - 1);
     // 아래쪽 동의 바(고정)에 가리지 않게 띠를 화면 위쪽으로 올려 찍는다
     await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, bandBox.y - 220));
-    await page.screenshot({ path: `${BAND_SHOTS}/tioz-band-${w}.png` });
+    await page.screenshot({ path: `${BAND_SHOTS}/image-tioz-band-${w}.png` });
     const before = page.url();
     await band.click();
     await page.waitForTimeout(500);
@@ -664,7 +664,7 @@ test("TIOZ-BAND-ON 1440 — 런칭 전(커튼) 시각이면 띠 없음", async (
   await expect(page.getByTestId("pitch-trending")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("pitch-tioz-band")).toHaveCount(0);
   await expect(page.getByText("TIOZ.AI", { exact: true })).toHaveCount(0);
-  await page.screenshot({ path: `${BAND_SHOTS}/tioz-band-prelaunch-1440.png`, clip: { x: 0, y: 0, width: 1440, height: 1100 }, fullPage: true });
+  await page.screenshot({ path: `${BAND_SHOTS}/image-tioz-band-prelaunch-1440.png`, clip: { x: 0, y: 0, width: 1440, height: 1100 }, fullPage: true });
 });
 
 test("TIOZ-BAND-ON 390 — 런칭 전(커튼) 시각이면 띠 없음", async ({ page }) => {
