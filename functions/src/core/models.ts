@@ -32,3 +32,18 @@ export const SONNET_MODEL = "claude-sonnet-5";
  * 타입은 SDK의 ThinkingConfigDisabled와 구조적으로 호환된다(코어는 SDK 무의존 유지).
  */
 export const SONNET_THINKING = { type: "disabled" } as const;
+
+/**
+ * PRESS-1 (2026-11-26) — TIO 외신 종합 초안 전용 모델. HAIKU_MODEL(4.5 — 기존 뉴스 초안 · 키워드 · 번역)은 그대로 둔다.
+ * 실측 출처: Models API GET /v1/models/claude-haiku-5-5 (2026-11-26) · docs/about-claude/models/overview.
+ *   capabilities.server_tools.web_search.supported = true
+ *   thinking: adaptive = 지원 · enabled = 거부 · disabled = 지원
+ * 요금 · 검색 단가는 core/pressBudget.ts PRESS_PRICING 한 곳.
+ */
+export const PRESS_MODEL = "claude-haiku-5-5";
+
+/**
+ * TIO 호출의 thinking — **명시적 비활성**(AI-1 교훈: 생략하면 adaptive 가 켜질 수 있다).
+ * 검색 결과를 3언어 JSON 기사로 옮기는 일이라 사고 예산이 품질을 올리지 않고, 사고 토큰은 쓰기 요금으로 붙는다.
+ */
+export const PRESS_THINKING = { type: "disabled" } as const;

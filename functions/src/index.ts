@@ -186,6 +186,7 @@ export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수�
 export { onTournamentOpened } from "./onTournamentOpened"; // Tournament 오픈 → 오픈 draft
 export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 결과 draft
 export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft
+export { schedulePressDrafts } from "./schedulePressDrafts"; // PRESS-1 매일 06:40 KST → TIO 외신 종합 draft(K-POP · CREATOR)
 // PITCH-2 PR B — 기사 조회 기록(급등 재료 · D-78 후보). 로그인 없이 부른다(D-41) · 같은 연결 · 같은 기사 1시간 1번.
 export { recordArticleView } from "./recordArticleView";
 export { onArticleDeleted } from "./onArticleDeleted"; // 기사 지우면 news_views/{slug} 도 지움
