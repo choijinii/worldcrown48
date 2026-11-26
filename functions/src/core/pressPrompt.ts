@@ -20,6 +20,36 @@ export const PRESS_WRITING_RULES = [
   "- 월크48 낱말 규칙 · 기사 뼈대(1절 11 · 12) 그대로.",
 ].join("\n");
 
+/**
+ * 고르는 주제 — 대표 문장(2026-11-26, 글자 그대로). 4절 "사생활은 쓰지 않는다"를 TIO 가
+ * "공개 발표된 이혼은 써도 된다"로 읽어 이혼 기사를 낸 뒤 더함.
+ */
+export const PRESS_TOPIC_RULE =
+  "열애 · 결혼 · 이혼 · 건강 · 가족 같은 사생활 소식은 기사의 주제로 고르지 않는다. 음악 · 활동 · 기록 · 사업 소식을 주제로 고른다. 다만 그런 기사 안에서, 본인이 공개 발표한 사실을 배경 설명으로 한두 문장 언급하는 것은 된다.";
+
+/** 사진 키워드의 뜻 — 킥 v0.2 키워드 폴더 표 그대로. 키워드를 더하면 여기에도 한 줄(pressPrompt.test 가 막는다). */
+export const PRESS_KEYWORD_MEANING: Readonly<Record<string, string>> = {
+  default: "맞는 키워드가 없을 때",
+  comeback: "컴백·신곡",
+  chart: "차트",
+  "reverse-run": "역주행",
+  debut: "데뷔",
+  stage: "무대",
+  broadcast: "방송 출연",
+  award: "시상식",
+  concert: "콘서트·투어",
+  fandom: "팬덤",
+  challenge: "챌린지",
+  record: "조회수·기록",
+  collab: "협업",
+  youtube: "유튜브",
+  sns: "SNS",
+  cover: "커버",
+  revenue: "수익",
+  business: "비즈니스",
+  event: "행사",
+};
+
 /** LANGUAGE.md 금지 낱말(킥 v0.1 1절 12) — 기사 본문 어디에도 쓰지 않는다. */
 const FORBIDDEN_WORDS = ["표", "투표", "참가자", "후보자", "48명", "FIFA"] as const;
 
@@ -67,13 +97,17 @@ export function buildPressPrompt(args: {
     "쓰기 규칙(반드시 지킨다):",
     PRESS_WRITING_RULES,
     "",
+    `주제 고르기: ${PRESS_TOPIC_RULE}`,
+    "",
     "기사 뼈대 = 앞 훅(lead) · 가운데 사실(paragraph) · 끝 한 줄(closer).",
     "",
     `금지 낱말 — 어느 언어로도 쓰지 않는다: ${FORBIDDEN_WORDS.join(" · ")} · 그리고 전투 은유(${FORBIDDEN_WAR_WORDS.join(" · ")}).`,
     '팬의 선택을 셀 때는 "선택"이라고 쓴다.',
     "",
-    `사진 키워드: 아래 목록에서 기사에 가장 맞는 것 하나만 골라 "photoKeyword" 에 넣는다. 맞는 것이 없으면 default.`,
-    `  ${keywords.join(", ")}`,
+    `사진 키워드: 아래 목록에서 하나만 골라 "photoKeyword" 에 넣는다. 괄호 안이 그 키워드의 뜻이다.`,
+    `  ${keywords.map((k) => `${k}(${PRESS_KEYWORD_MEANING[k] ?? k})`).join(", ")}`,
+    "  기사의 중심 소식(제목과 첫 문장이 말하는 일)과 뜻이 맞는 키워드를 고른다. 본문에 숫자나 낱말이 한 번 나온다고 그 키워드를 고르지 않는다.",
+    "  중심 소식과 뜻이 맞는 키워드가 없으면 default 를 고른다.",
   ];
   if (args.rewrite) {
     const r = args.rewrite;
