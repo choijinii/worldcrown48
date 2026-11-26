@@ -246,7 +246,7 @@ export function ChartsSection(props: {
   );
 }
 
-/** TIOZ.AI 띠 — 자리만 · 꺼져 있으면 DOM 에 없다 · 런칭 전에는 그리지 않는다(지시서 7절 · 시안 P-6). */
+/** TIOZ.AI 띠 — 글자만 · 링크 없음(TIOZ-BAND-ON) · 런칭 전에는 그리지 않는다(시안 P-6) · 끄면 DOM 에 없다. */
 export function TiozBand({ prelaunch }: { prelaunch: boolean }): JSX.Element | null {
   if (!TIOZ_BAND_ENABLED || prelaunch) return null;
   return (

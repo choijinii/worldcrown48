@@ -2,7 +2,8 @@
  * PITCH-2 PR A · 추가 지시 ① 4절 — 부품 단위 시험.
  *   · TIOZ 카드: 견본 1건(이 파일 안에만) → 금색 "TIOZ" + 같은 탭 `/news/{slug}`
  *   · WORLD PRESS 열이 빈 목록이면 "기사 없음" 모양(6절 3 · 4번)
- *   · TIOZ.AI 띠는 꺼져 있으면 DOM 에 없다
+ *   · TIOZ.AI 띠(TIOZ-BAND-ON · 대표 2026-11-24): 런칭 뒤 = "TIOZ.AI" 글자만(링크 · OPEN 없음) · 런칭 전 = 없음 ·
+ *     홈 조립에서 히어로 다음 · Trending 앞
  *   · 공용 바닥 띠 = 5항목(개인정보처리방침 맨 앞 · 커뮤니티 가이드) + © 줄 (0′절 7)
  */
 import { readFileSync } from "node:fs";
@@ -55,8 +56,36 @@ describe("WORLD PRESS 열 — 빈 목록", () => {
 });
 
 describe("TIOZ.AI 띠", () => {
-  it("꺼져 있으면 아무것도 그리지 않는다", () => {
-    expect(renderToStaticMarkup(createElement(TiozBand, { prelaunch: false }))).toBe("");
+  it("런칭 뒤 = \"TIOZ.AI\" 글자만 · 링크(a) 없음 · OPEN 글자 없음", () => {
+    const html = renderToStaticMarkup(createElement(TiozBand, { prelaunch: false }));
+    expect(html).toContain('data-testid="pitch-tioz-band"');
+    expect(html).toContain(">TIOZ.AI<");
+    expect(html).not.toMatch(/<a[\s>]/);
+    expect(html).not.toContain("href");
+    expect(html).not.toContain("OPEN");
+  });
+
+  it("런칭 전(커튼) = 아무것도 그리지 않는다", () => {
+    expect(renderToStaticMarkup(createElement(TiozBand, { prelaunch: true }))).toBe("");
+  });
+
+  it("홈 조립: 히어로(오른쪽 칸 포함) 바로 다음 · Trending 앞", () => {
+    const src = readFileSync(path.join(process.cwd(), "components/pitch/PitchPage.tsx"), "utf8");
+    const hero = src.indexOf("<HeroSide ");
+    const heroRowEnd = src.indexOf("</div>", hero);
+    const band = src.indexOf("<TiozBand prelaunch={prelaunch} />");
+    const trending = src.indexOf("<TrendingSection");
+    expect(hero).toBeGreaterThan(0);
+    expect(band).toBeGreaterThan(heroRowEnd);
+    expect(src.slice(heroRowEnd + "</div>".length, band).trim()).toBe("");
+    expect(src.slice(band + "<TiozBand prelaunch={prelaunch} />".length, trending).trim()).toBe("");
+  });
+
+  it("커서는 손 모양이 아니다(누를 곳이 아님)", () => {
+    const css = readFileSync(path.join(process.cwd(), "components/pitch/pitch.css"), "utf8");
+    const rules = css.match(/\.tioz-(band|word)[^{]*\{[^}]*\}/g) ?? [];
+    expect(rules.length).toBeGreaterThan(0);
+    for (const r of rules) expect(r).not.toContain("pointer");
   });
 });
 

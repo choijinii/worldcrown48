@@ -1,6 +1,6 @@
 /**
  * PITCH-2 PR A · 추가 지시 ① — WORLD PRESS 열은 loadWorldPress 하나로만 읽고, 지금은 언제나 빈 목록.
- * TIOZ.AI 띠는 상수로 꺼 둔다(지시서 7절).
+ * TIOZ.AI 띠는 상수로 켠다(TIOZ-BAND-ON · 대표 2026-11-24 — 글자만 · 링크는 소개 페이지 뒤).
  */
 import { describe, expect, it } from "vitest";
 import { loadWorldPress, WORLD_PRESS_MEDIA_NAME } from "@/lib/pitch/worldPress";
@@ -16,7 +16,7 @@ describe("loadWorldPress", () => {
 });
 
 describe("TIOZ.AI 띠", () => {
-  it("기본 꺼짐(상수 · 환경변수 아님)", () => {
-    expect(TIOZ_BAND_ENABLED).toBe(false);
+  it("켜짐(상수 · 환경변수 아님 · 대표 2026-11-24)", () => {
+    expect(TIOZ_BAND_ENABLED).toBe(true);
   });
 });

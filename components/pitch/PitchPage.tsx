@@ -3,7 +3,7 @@
 /**
  * The Pitch(홈) — PITCH-2 PR A · 배치 11단(지시서 v1.1a 1절 · 시안 v2 `docs/design/claude-design/PITCH-2_2026-11-05/`).
  *
- *   제목 줄 → 히어로(5장) + 오른쪽 칸(차트 1줄 · 뉴스 3줄) → TIOZ.AI 띠(꺼짐) → Trending → 배너 ① `pitch-between` →
+ *   제목 줄 → 히어로(5장) + 오른쪽 칸(차트 1줄 · 뉴스 3줄) → TIOZ.AI 띠(런칭 뒤 · 글자만) → Trending → 배너 ① `pitch-between` →
  *   Create 띠 → NEWS ROOM → 배너 ② `pitch-news-below` → CHARTS → 배너 ③ `pitch-charts-below` → (공용 바닥 띠 · root layout)
  *
  * 테마 = 화이트(D-40 · `data-theme="light"`). 대회 목록은 실시간 구독(pitchStore — 내리기 1분 안 반영 · D-93),

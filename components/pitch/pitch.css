@@ -410,7 +410,7 @@
 .pitch .no-articles-compact .no-articles-title { font-size: 13px; font-weight: 400; color: var(--color-text-sub-light); }
 .pitch .no-articles-body { font-size: 13px; color: var(--color-text-sub-light); }
 
-/* ── 3) TIOZ.AI 띠(기본 꺼짐) ── */
+/* ── 3) TIOZ.AI 띠(글자만 · 링크 없음 — TIOZ-BAND-ON) ── */
 .pitch .tioz-band {
   display: flex;
   align-items: center;
