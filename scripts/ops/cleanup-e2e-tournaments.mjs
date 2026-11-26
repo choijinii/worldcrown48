@@ -44,7 +44,7 @@ if (sa.project_id !== PROJECT) {
   console.error(`열쇠의 프로젝트가 ${sa.project_id} — ${PROJECT} 가 아니라 멈춘다`);
   process.exit(1);
 }
-if (!TEST_UID || !/^\d{4}-\d{2}-\d{2}$/.test(TARGET_DATE) || !["list", "delete"].includes(MODE)) {
+if (!TEST_UID || !(TARGET_DATE === "any" || /^\d{4}-\d{2}-\d{2}$/.test(TARGET_DATE)) || !["list", "delete"].includes(MODE)) {
   console.error("TEST_UID · TARGET_DATE(YYYY-MM-DD) · MODE(list|delete) 중 빠진 것이 있다 — 멈춘다");
   process.exit(1);
 }
@@ -73,7 +73,8 @@ async function describe(doc) {
     db.collection("contestants").where("tournamentId", "==", doc.id).count().get(),
   ]);
   const isTest = d.hostUid === TEST_UID;
-  const sameDay = created !== null && kst(created).slice(0, 10) === TARGET_DATE;
+  const sameDay = TARGET_DATE === "any" || (created !== null && kst(created).slice(0, 10) === TARGET_DATE);
+  const testTitle = d.title === TITLE || /^E2E Tournament #[\d.]+$/.test(String(d.title ?? ""));
   return {
     id: doc.id,
     title: d.title,
@@ -82,11 +83,13 @@ async function describe(doc) {
     status: `${d.status ?? "?"}${d.hiddenAt ? " · 숨김" : ""}${d.e2e === true ? " · 시험 표시 있음" : " · 시험 표시 없음"}`,
     votes: votes.data().count,
     contestants: contestants.data().count,
-    target: d.title === TITLE && isTest && sameDay,
+    // 대표 조건(2026-11-26 두 번째): 시험 계정이 만든 것 + 팬 참여 기록 0.
+    target: testTitle && isTest && sameDay && votes.data().count === 0,
   };
 }
 
-const snap = await db.collection("tournaments").where("title", "==", TITLE).get();
+// 옛 고정 이름 + 실행 번호가 붙은 새 이름("E2E Tournament #…")을 함께 읽는다.
+const snap = await db.collection("tournaments").where("title", ">=", TITLE).where("title", "<", TITLE + "\uf8ff").get();
 const rows = await Promise.all(snap.docs.map(describe));
 rows.sort((a, b) => a.created.localeCompare(b.created));
 
@@ -98,7 +101,7 @@ rows.forEach((r, i) =>
   say(`| ${i + 1} | ${r.id} | ${r.title} | ${r.created} | ${r.host} | ${r.status} | ${r.contestants} | ${r.votes} | ${r.target ? "지울 대상" : "제외"} |`),
 );
 say("");
-say(`같은 제목 ${rows.length}개 · 지울 대상 ${rows.filter((r) => r.target).length}개`);
+say(`"${TITLE}"로 시작하는 이름 ${rows.length}개 · 지울 대상 ${rows.filter((r) => r.target).length}개`);
 
 if (MODE === "list") finish(0);
 
@@ -122,7 +125,7 @@ say("|---|---|");
 for (const id of DELETE_IDS) {
   const r = byId.get(id);
   if (!r || !r.target) {
-    say(`| ${id} | ❌ 대상 조건(제목·시험 계정·날짜)에 안 맞아 건드리지 않음 |`);
+    say(`| ${id} | ❌ 대상 조건(시험 이름·시험 계정·참여 기록 0)에 안 맞아 건드리지 않음 |`);
     failed++;
     continue;
   }
