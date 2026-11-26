@@ -38,6 +38,19 @@ export const KNOWN_TEST_ID_PREFIXES: readonly string[] = ["c3-e2e-"];
  */
 export const KNOWN_TEST_TITLES: readonly string[] = ["THUMB-1 E2E Pitch", "E2E Tournament"];
 
+/** Lab 시험(b1-admin-lab) 대회 이름의 머리 — 뒤에 `#실행번호.회차.재시도` 가 붙는다(labE2ETitle). */
+export const LAB_E2E_TITLE_PREFIX = "E2E Tournament #";
+
+/**
+ * Lab 시험 대회 이름 (대표 승인 2026-11-26). 고정 이름 하나를 쓰던 때는 실패한 시도가 남긴 대회가 다음 시험의
+ * 목록에서 같은 이름 두 줄로 잡혀 시험을 깨뜨리고, 깨진 시도가 또 대회를 남겼다. 실행 번호(GITHUB_RUN_ID) ·
+ * 실행 회차(GITHUB_RUN_ATTEMPT) · 재시도 번호를 붙여 시도마다 이름이 다르게 한다. 내 컴퓨터는 시각 숫자로 대신.
+ */
+export function labE2ETitle(o: { runId?: string; attempt?: string; retry: number; nowMs?: number }): string {
+  const run = o.runId || String(o.nowMs ?? Date.now());
+  return `${LAB_E2E_TITLE_PREFIX}${run}.${o.attempt || "1"}.${o.retry}`;
+}
+
 export type LeftoverVerdict = "test" | "suspect" | "real";
 
 export interface TournamentLike {
@@ -70,7 +83,9 @@ export function classifyTournament(
     reasons.push("시험 id");
   }
   const titles = titlesOf(d);
-  if (titles.some((t) => KNOWN_TEST_TITLES.includes(t.trim()))) reasons.push("시험 제목");
+  if (titles.some((t) => KNOWN_TEST_TITLES.includes(t.trim()) || /^E2E Tournament #[\d.]+$/.test(t.trim()))) {
+    reasons.push("시험 제목");
+  }
   if (reasons.length > 0) return { verdict: "test", reasons };
 
   if ([id, ...titles].some((s) => /e2e|test/i.test(s))) {
