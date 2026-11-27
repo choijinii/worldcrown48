@@ -25,7 +25,9 @@ import {
   RELATED_BY_FIELD,
   RELATED_BY_RUN_ID,
   RELATED_BY_TOURNAMENT_ID,
+  RELATED_NEWS_COLLECTION,
   isRunScopedDocOf,
+  pickTestDraftIds,
   planLeftovers,
 } from "../../lib/ops/e2eLeftovers.ts";
 
@@ -56,6 +58,11 @@ async function relatedRefs(db, tid, runScopedIds) {
   for (const coll of RELATED_BY_TOURNAMENT_ID) {
     const ref = db.collection(coll).doc(tid);
     if ((await ref.get()).exists) refs.set(ref.path, ref);
+  }
+  // NEWS-0a — 그 대회의 뉴스 **초안**도 함께(발행 · 보관 기사는 남긴다).
+  const news = await db.collection(RELATED_NEWS_COLLECTION).where("tournamentId", "==", tid).get();
+  for (const id of pickTestDraftIds(news.docs.map((d) => ({ id: d.id, status: d.get("status") })))) {
+    refs.set(`${RELATED_NEWS_COLLECTION}/${id}`, db.collection(RELATED_NEWS_COLLECTION).doc(id));
   }
   return [...refs.values()];
 }

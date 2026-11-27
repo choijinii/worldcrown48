@@ -84,7 +84,7 @@ async function seedTournament(): Promise<void> {
   const batch = d.batch();
   batch.set(d.doc(`tournaments/${TID}`), {
     title: "E2E Strikers",
-    category: "FOOTBALL",
+    category: "KPOP",
     status: "active",
     ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     hostUid: "seed-operator",

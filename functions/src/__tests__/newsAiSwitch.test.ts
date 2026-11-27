@@ -26,12 +26,15 @@ describe("newsDraftAiOff — 에뮬레이터에서만 듣는 스위치", () => {
 describe("대회가 열릴 때 · Champion 이 정해질 때 도는 뉴스 초안 트리거가 스위치를 AI 부르기 전에 본다", () => {
   const { readFileSync } = require("node:fs") as typeof import("node:fs");
   const { join } = require("node:path") as typeof import("node:path");
-  for (const file of ["onTournamentOpened.ts", "onChampionForNews.ts"]) {
+  // NEWS-0a — 기존 초안 읽기 · AI 부르기는 몸통(core/newsDraftRunners)으로 옮겼다. 스위치는 몸통을 부르기 전에 본다.
+  for (const [file, runner] of [["onTournamentOpened.ts", "runOpenDraft("], ["onChampionForNews.ts", "runResultDraft("]] as const) {
     it(file, () => {
       const src = readFileSync(join(__dirname, "..", file), "utf8");
       const at = src.indexOf("newsDraftAiOff(process.env)");
       expect(at, "스위치를 부른다").toBeGreaterThan(-1);
-      expect(at, "기존 초안 읽기 · AI 부르기보다 먼저").toBeLessThan(src.indexOf("existingDraftKeys(tournamentId)"));
+      const call = src.indexOf(runner);
+      expect(call, "몸통을 부른다").toBeGreaterThan(-1);
+      expect(at, "기존 초안 읽기 · AI 부르기(몸통)보다 먼저").toBeLessThan(call);
     });
   }
 });

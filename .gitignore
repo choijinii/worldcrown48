@@ -54,3 +54,7 @@ firestore-debug.*.log
 /test-results-curtain
 /playwright-report-beta
 /test-results-beta
+
+# NEWS-0a — 지운 기사 안전 사본(실서비스 문서 그대로 · 53MB) · 1단계 JSON 은 git 에 넣지 않는다
+outputs/news-0a/backup-*.json
+outputs/news-0a/step1-*.json

@@ -157,3 +157,55 @@ describe("labE2ETitle — 실행 번호 · 재시도 번호가 붙은 Lab 시험
     expect(classifyTournament("autoId3", { hostUid: "owner-uid", title: "E2E Tournament fan night" }).verdict).not.toBe("test");
   });
 });
+
+// ── NEWS-0a — 시험 대회 판정 하나(공개 목록 · 뉴스 초안 신호가 같이 쓴다) · 시험 정리 때 초안도 ─────────────
+import { hasTestMark, isSeedHosted, isTestTournament, pickTestDraftIds } from "@/lib/ops/e2eLeftovers";
+import { isPublicTournament } from "@/lib/seo/sitemapEntries";
+
+describe("NEWS-0a isTestTournament — 시험 표식 · seed- 주인 · Lab 시험 이름 머리", () => {
+  it("시험 표식(e2e: true) = 시험", () => {
+    expect(isTestTournament({ e2e: true, title: "올해의 노래" })).toBe(true);
+  });
+  it("seed- 주인 = 시험", () => {
+    expect(isTestTournament({ hostUid: "seed-operator" })).toBe(true);
+    expect(isSeedHosted({ hostUid: "seed-chart-preview" })).toBe(true);
+  });
+  it("표식이 아직 없어도 이름이 'E2E Tournament #' 로 시작하면 시험(b1 은 발행 뒤에 표식을 단다)", () => {
+    expect(isTestTournament({ title: "E2E Tournament #45843040152.1.0", hostUid: "abc" })).toBe(true);
+    expect(hasTestMark({ title: "E2E Tournament #1.1.0" })).toBe(true);
+  });
+  it("표식 없는 진짜 대회 = 시험 아님(이름 중간에 E2E 가 있어도 · e2e 가 문자열이어도)", () => {
+    expect(isTestTournament({ title: "K-pop의 전설이 될 최고의 무대!", hostUid: "89dvYo" })).toBe(false);
+    expect(isTestTournament({ title: "나의 E2E Tournament #1" })).toBe(false);
+    expect(isTestTournament({ e2e: "true" })).toBe(false);
+    expect(isTestTournament({})).toBe(false);
+  });
+});
+
+describe("NEWS-0a isPublicTournament — 같은 판정을 쓴다", () => {
+  const base = { id: "t1", status: "active", hostUid: "u1" };
+  it("실서비스에서 Lab 시험 이름 머리 대회는 공개 목록에서 빠진다(표식이 붙기 전에도)", () => {
+    expect(isPublicTournament({ ...base, title: "E2E Tournament #9.1.0" }, "production")).toBe(false);
+  });
+  it("미리보기에서는 지금처럼 보인다(시험이 미리보기 목록을 확인한다)", () => {
+    expect(isPublicTournament({ ...base, title: "E2E Tournament #9.1.0" }, "preview")).toBe(true);
+    expect(isPublicTournament({ ...base, e2e: true }, "preview")).toBe(true);
+  });
+  it("진짜 대회 · seed- 주인은 지금과 같다", () => {
+    expect(isPublicTournament({ ...base, title: "올해의 노래" }, "production")).toBe(true);
+    expect(isPublicTournament({ ...base, hostUid: "seed-op" }, "preview")).toBe(false);
+  });
+});
+
+describe("NEWS-0a pickTestDraftIds — 시험 대회의 기사 중 초안만", () => {
+  it("초안만 고르고 발행 · 보관 기사는 뺀다", () => {
+    expect(
+      pickTestDraftIds([
+        { id: "d1", status: "draft" },
+        { id: "p1", status: "published" },
+        { id: "a1", status: "archived" },
+        { id: "x", status: undefined },
+      ]),
+    ).toEqual(["d1"]);
+  });
+});

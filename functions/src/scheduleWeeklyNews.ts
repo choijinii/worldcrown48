@@ -7,27 +7,15 @@
  * 0-active digest — still a draft, never a throw. Idempotency uses the KST week's
  * date in the doc — a re-fire on the same day is deduped by an existing weekly
  * draft dated today.
+ *
+ * NEWS-0a — 시험 대회(isTestTournament)와 문서가 없는 대회의 순위 기록은 세지 않는다(몸통 runWeeklyDraft).
  */
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { adminDb } from "./admin";
-import {
-  buildWeeklyDigest,
-  nameGlossaryOf,
-  rankingRowFromCache,
-  runsTotalFromCache,
-  type RankingRowLike,
-} from "./core/newsDigestCore";
-import { buildWeeklyPrompt } from "./core/newsPrompts";
-import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
+import { runWeeklyDraft } from "./core/newsDraftRunners";
 import { makeNewsCreateMessage, newNewsSlug, kstStamp, writeNewsDraft } from "./newsShared";
 import { kstDate } from "./core/voteRecord";
-
-function rankingsOf(data: FirebaseFirestore.DocumentData | undefined): RankingRowLike[] {
-  const rows = (data?.rankings ?? []) as Array<Record<string, unknown>>;
-  // 행 읽기는 한 곳(rankingRowFromCache) — 공식 영어 이름(nameI18n.en)까지 읽는다.
-  return rows.map(rankingRowFromCache);
-}
 
 export const scheduleWeeklyNews = onSchedule(
   {
@@ -38,53 +26,42 @@ export const scheduleWeeklyNews = onSchedule(
     timeoutSeconds: 300,
   },
   async () => {
-    const date = kstDate();
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      logger.error("scheduleWeeklyNews: ANTHROPIC_API_KEY unset — skipping");
+      return;
+    }
     try {
-      // Idempotency — skip if a weekly draft already exists for today (KST).
-      const dupe = await adminDb
-        .collection("news")
-        .where("origin", "==", "cron_weekly")
-        .where("slug", ">=", date.replace(/-/g, ""))
-        .where("slug", "<", date.replace(/-/g, "") + "z")
-        .limit(1)
-        .get();
-      if (!dupe.empty) {
-        logger.info("scheduleWeeklyNews: weekly draft already exists today — skip");
-        return;
-      }
-
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        logger.error("scheduleWeeklyNews: ANTHROPIC_API_KEY unset — skipping");
-        return;
-      }
-
-      const cachesSnap = await adminDb.collection("ranking_cache").get();
-      const caches = cachesSnap.docs.map((d) => ({
-        tournamentId: d.id,
-        title: String(d.data().tournamentId ?? d.id),
-        rankings: rankingsOf(d.data()),
-        // 차트 기준(10) 미만 대회는 선두에서 빠진다(ACTIVE TOURNAMENTS 에는 센다).
-        runsTotal: runsTotalFromCache(d.data()),
-      }));
-      const asOf = kstStamp(Date.now());
-      const digest = buildWeeklyDigest({ caches, asOf });
-      const prompt = buildWeeklyPrompt({ digest });
-
-      const draft = await assembleLocalizedDraft(
-        {
-          slug: newNewsSlug(date),
-          template: "weekly",
-          origin: "cron_weekly",
-          sourceLang: "ko",
-          prompt,
-          evidence: { asOf: digest.asOf, stats: digest.stats },
-          names: nameGlossaryOf(digest),
+      const r = await runWeeklyDraft({
+        // Idempotency — skip if a weekly draft already exists for today (KST).
+        weeklyDraftExistsToday: async (date) => {
+          const dupe = await adminDb
+            .collection("news")
+            .where("origin", "==", "cron_weekly")
+            .where("slug", ">=", date.replace(/-/g, ""))
+            .where("slug", "<", date.replace(/-/g, "") + "z")
+            .limit(1)
+            .get();
+          return !dupe.empty;
         },
-        { createMessage: makeNewsCreateMessage(apiKey), logError: (m, e) => logger.error(m, e) },
-      );
-      await writeNewsDraft(draft);
-      logger.info(`scheduleWeeklyNews: weekly draft ${draft.slug}`);
+        loadRankingCaches: async () => (await adminDb.collection("ranking_cache").get()).docs.map((d) => ({ id: d.id, data: d.data() })),
+        loadTournaments: async (ids) => {
+          const map = new Map<string, Record<string, unknown> | undefined>();
+          if (ids.length === 0) return map;
+          const snaps = await adminDb.getAll(...ids.map((id) => adminDb.collection("tournaments").doc(id)));
+          for (const s of snaps) map.set(s.id, s.exists ? s.data() : undefined);
+          return map;
+        },
+        createMessage: makeNewsCreateMessage(apiKey),
+        writeNewsDraft,
+        newSlug: newNewsSlug,
+        kstDay: kstDate,
+        stamp: kstStamp,
+        nowMs: Date.now,
+        logError: (m, e) => logger.error(m, e),
+        logInfo: (m) => logger.info(m),
+      });
+      if (r.outcome === "exists") logger.info("scheduleWeeklyNews: weekly draft already exists today — skip");
     } catch (err) {
       logger.error("scheduleWeeklyNews: failed", err);
     }

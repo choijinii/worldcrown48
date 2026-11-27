@@ -17,16 +17,7 @@ import {
   shouldGenerateCrownCard,
   type RoundProgressData,
 } from "./core/onChampionConfirmedCore";
-import {
-  buildResultDigest,
-  nameGlossaryOf,
-  rankingRowFromCache,
-  runsTotalFromCache,
-  type RankingRowLike,
-} from "./core/newsDigestCore";
-import { buildResultPrompt } from "./core/newsPrompts";
-import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
-import { newsDraftExists } from "./core/newsDraftAssembly";
+import { runResultDraft } from "./core/newsDraftRunners";
 import {
   makeNewsCreateMessage,
   newNewsSlug,
@@ -37,12 +28,6 @@ import {
 import { kstDate } from "./core/voteRecord";
 import { newsDraftAiOff } from "./core/newsAiSwitch";
 
-function rankingsOf(data: FirebaseFirestore.DocumentData | undefined): RankingRowLike[] {
-  const rows = (data?.rankings ?? []) as Array<Record<string, unknown>>;
-  // 행 읽기는 한 곳(rankingRowFromCache) — 공식 영어 이름(nameI18n.en)까지 읽는다.
-  return rows.map(rankingRowFromCache);
-}
-
 export const onChampionForNews = onDocumentUpdated(
   { document: "roundProgress/{progressId}", secrets: ["ANTHROPIC_API_KEY"] },
   async (event) => {
@@ -52,62 +37,28 @@ export const onChampionForNews = onDocumentUpdated(
     const tournamentId = String(after.tournamentId);
     // 시험 서버에서만 끄는 스위치(core/newsAiSwitch) — 실서비스는 늘 만든다.
     if (newsDraftAiOff(process.env)) return;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      logger.error("onChampionForNews: ANTHROPIC_API_KEY unset — skipping");
+      return;
+    }
 
     try {
-      const existing = await existingDraftKeys(tournamentId);
-      if (newsDraftExists(existing, "event_champion", tournamentId)) return;
-
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        logger.error("onChampionForNews: ANTHROPIC_API_KEY unset — skipping");
-        return;
-      }
-
-      const [tSnap, cacheSnap] = await Promise.all([
-        adminDb.collection("tournaments").doc(tournamentId).get(),
-        adminDb.collection("ranking_cache").doc(tournamentId).get(),
-      ]);
-      const t = tSnap.data();
-      const rankings = rankingsOf(cacheSnap.data());
-      // evidence 0건 (아직 집계 없음) → 결과 기사 무의미, 조용히 skip.
-      if (!t || rankings.length === 0) {
-        logger.info(`onChampionForNews: no evidence yet for ${tournamentId} — skip`);
-        return;
-      }
-
-      const asOf = kstStamp(Date.now());
-      const meta = {
-        id: tournamentId,
-        title: String(t.title ?? ""),
-        category: String(t.category ?? ""),
-        totalContestants: Number(t.totalContestants ?? 48),
-      };
-      const championId = rankings[0]?.contestantId;
-      // 대회 전체 참여 횟수 — AI 재료 줄에만(기사 숫자 허용 목록 · 2026-11-25).
-      const runsTotal = runsTotalFromCache(cacheSnap.data());
-      const digest = buildResultDigest({ meta, rankings, championId, asOf, runsTotal });
-      const prompt = buildResultPrompt({
-        title: meta.title,
-        championName: digest.leaders[0]?.name ?? "",
-        championNameEn: digest.leaders[0]?.nameEn,
-        digest,
+      // 시험 대회(NEWS-0a · isTestTournament) 는 몸통이 AI 를 부르기 전에 거른다.
+      const outcome = await runResultDraft(tournamentId, {
+        existingDraftKeys,
+        loadTournament: async (tid) => (await adminDb.collection("tournaments").doc(tid).get()).data(),
+        loadRankingCache: async (tid) => (await adminDb.collection("ranking_cache").doc(tid).get()).data(),
+        createMessage: makeNewsCreateMessage(apiKey),
+        writeNewsDraft,
+        newSlug: newNewsSlug,
+        kstDay: kstDate,
+        stamp: kstStamp,
+        nowMs: Date.now,
+        logError: (m, e) => logger.error(m, e),
+        logInfo: (m) => logger.info(m),
       });
-
-      const draft = await assembleLocalizedDraft(
-        {
-          slug: newNewsSlug(kstDate()),
-          template: "result",
-          origin: "event_champion",
-          sourceLang: "ko",
-          prompt,
-          evidence: { asOf: digest.asOf, stats: digest.stats, tournamentId },
-          tournamentId,
-          names: nameGlossaryOf(digest),
-        },
-        { createMessage: makeNewsCreateMessage(apiKey), logError: (m, e) => logger.error(m, e) },
-      );
-      await writeNewsDraft(draft);
-      logger.info(`onChampionForNews: result draft ${draft.slug} for ${tournamentId}`);
+      if (outcome === "test-tournament") logger.info(`onChampionForNews: test tournament ${tournamentId} — no draft`);
     } catch (err) {
       logger.error(`onChampionForNews: failed for ${tournamentId}`, err);
     }

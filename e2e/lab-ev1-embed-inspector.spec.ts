@@ -136,7 +136,7 @@ test.afterAll(async () => {
 async function goToStep2(page: Page) {
   await openFreshLabEditor(page); // §7 ?lang=ko · 초안 목록이 뜨면 [새로 시작]
   await page.getByLabel("Tournament 제목").fill("LAB-EV-1 E2E");
-  await page.getByLabel("카테고리").selectOption("FOOTBALL");
+  await page.getByLabel("카테고리").selectOption("KPOP");
   await page.getByLabel("키워드 추가").fill("embed-e2e");
   await page.getByLabel("키워드 추가").press("Enter");
   // LAB-FIX-6 3-2 — 설명은 필수(비면 [다음 →] 꺼짐).

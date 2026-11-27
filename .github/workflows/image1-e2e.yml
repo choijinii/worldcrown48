@@ -23,6 +23,7 @@ on:
       - 'e2e/fixtures/entry-images/**'
       - 'playwright.emulator.config.ts'
       - 'scripts/e2e-emulator.sh'
+      - 'e2e/global-teardown.ts'
       - '.github/workflows/image1-e2e.yml'
 
 jobs:
@@ -85,6 +86,15 @@ jobs:
           CI: '1'
           SKIP_BUILD: '1'
         run: bash scripts/e2e-emulator.sh e2e/emulator/lab-fix5.spec.ts
+
+      # NEWS-0a 지시서 §11 E2E — 시험 대회(Lab 발행 · 시드)는 뉴스 초안을 만들지 않는다 · 시험 정리 뒤 초안 0.
+      # 뉴스 초안 AI 를 이 단계에서만 켠다(가짜 AI 127.0.0.1:9313 · 진짜 AI 를 부르지 않는다). 다른 단계는 꺼진 그대로.
+      - name: Emulator E2E — NEWS-0a (e2e/emulator/news0a-test-drafts.spec.ts)
+        env:
+          CI: '1'
+          SKIP_BUILD: '1'
+          NEWS_DRAFT_AI: 'on'
+        run: bash scripts/e2e-emulator.sh e2e/emulator/news0a-test-drafts.spec.ts
 
       # 그 다음 에뮬레이터 spec 전부(빌드는 위에서 끝났다).
       - name: Emulator E2E (all specs)
