@@ -10,6 +10,8 @@ import { adminDb } from "./admin";
 import { HAIKU_MODEL } from "./core/models";
 import { buildSlug, type ArticleDoc } from "./_news/articleDoc";
 import type { ExistingDraftKey } from "./core/newsDraftAssembly";
+import { NEWS_POLICY_DOC, policyLinesFromDoc } from "./core/newsPolicyCore";
+import type { NewsPolicyLine } from "./core/tioKnowledge";
 
 const NEWS_MAX_TOKENS = 2048;
 
@@ -77,4 +79,10 @@ export async function writeNewsDraft(
     .collection("news")
     .doc(draft.slug)
     .set({ ...draft, createdAt: FieldValue.serverTimestamp() });
+}
+
+/** NEWS-1 4층 — config/newsPolicy 의 줄(모양이 틀린 줄은 버린다). 문서가 없으면 빈 목록. */
+export async function loadNewsPolicyLines(): Promise<NewsPolicyLine[]> {
+  const snap = await adminDb.doc(NEWS_POLICY_DOC).get();
+  return snap.exists ? policyLinesFromDoc(snap.data()) : [];
 }

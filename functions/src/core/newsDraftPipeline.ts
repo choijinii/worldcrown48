@@ -21,6 +21,7 @@ import {
 } from "../_news/articleDoc";
 import { parseNewsDraftReply } from "./newsDraftAssembly";
 import { translateArticleCore } from "./translateArticleCore";
+import { checkDraftText } from "./newsCheck";
 
 export interface AssembleDeps {
   createMessage: (prompt: string) => Promise<string>;
@@ -61,7 +62,7 @@ export async function assembleLocalizedDraft(
   );
 
   // 3. Build the 3-language DRAFT. status is hard-coded to 'draft' inside.
-  return buildLocalizedArticleDraft({
+  const draft = buildLocalizedArticleDraft({
     slug: args.slug,
     template: args.template,
     origin: args.origin,
@@ -72,4 +73,6 @@ export async function assembleLocalizedDraft(
     evidence: args.evidence,
     tournamentId: args.tournamentId,
   });
+  // 4. NEWS-1 5층 생성 뒤 검사 — 번역까지 끝난 3언어를 본다. 경고만 남기고 상태(draft)는 그대로.
+  return { ...draft, checkWarnings: checkDraftText(draft) };
 }

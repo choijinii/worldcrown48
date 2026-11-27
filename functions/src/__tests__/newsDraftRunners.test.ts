@@ -26,6 +26,7 @@ function base(): NewsRunnerBase & { written: { slug: string; tournamentId?: stri
     nowMs: () => 0,
     logError: () => {},
     logInfo: () => {},
+    loadPolicyLines: async () => [],
   };
 }
 
@@ -129,5 +130,112 @@ describe("runWeeklyDraft — 주간 초안", () => {
     const b = base();
     const r = await runWeeklyDraft({ ...b, weeklyDraftExistsToday: async () => true, loadRankingCaches: async () => caches, loadTournaments: async () => tournaments });
     expect(r.outcome).toBe("exists");
+  });
+});
+
+// ── NEWS-1 · 다섯 층 + 생성 뒤 검사(통합 · 주입식 · AI 가짜) ─────────────────────────────
+import { TIO_FACT_SHEET, TIO_KIND_SKILLS, TIO_STYLE_SKILL } from "../core/tioKnowledge";
+
+const POLICY = [
+  { text: "[방침] 모든 기사에 쓰는 줄", reason: "공통", addedAt: "2026-11-27" },
+  { text: "[방침] 주간에만", reason: "주간", addedAt: "2026-11-27", kinds: ["weekly" as const] },
+  { text: "[방침] 개막에만", reason: "개막", addedAt: "2026-11-27", kinds: ["open" as const] },
+];
+
+/** 틀린 가짜 응답 — 「16경기」 · 「애정 전쟁」 · 「투표」. 번역 단계는 en · es 에도 틀린 낱말을 넣는다. */
+function wrongAi(prompt: string): string {
+  if (/번역/.test(prompt) && /\((en|es)\)/.test(prompt)) {
+    const l = prompt.includes("(en)") ? "en" : "es";
+    return JSON.stringify({ title: l === "en" ? "A love war" : "Una guerra", subhead: "", body: [{ type: "lead", text: "fans" }] });
+  }
+  return JSON.stringify({
+    title: "48개 팀의 애정 전쟁 시작",
+    subhead: "팬들의 투표가 몰린다",
+    blocks: [{ type: "lead", text: "첫 라운드는 48개 팀이 16경기로 나뉘어 맞붙는다." }],
+  });
+}
+
+function withPolicy(ai = fakeAi) {
+  const b = base();
+  const prompts: string[] = [];
+  b.createMessage = vi.fn(async (p: string) => {
+    prompts.push(p);
+    return ai(p);
+  });
+  b.loadPolicyLines = async () => POLICY;
+  return { b, prompts };
+}
+
+function expectLayers(prompt: string, kind: "open" | "result" | "weekly") {
+  expect(prompt.startsWith(TIO_FACT_SHEET)).toBe(true);
+  expect(prompt).toContain(TIO_STYLE_SKILL);
+  expect(prompt).toContain(TIO_KIND_SKILLS[kind]);
+  expect(prompt).toContain("[방침] 모든 기사에 쓰는 줄");
+  for (const other of ["open", "result", "weekly"] as const) {
+    if (other !== kind) expect(prompt).not.toContain(TIO_KIND_SKILLS[other]);
+  }
+}
+
+describe("NEWS-1 — 신호 셋의 지시문에 1~4층", () => {
+  it("개막 — 사실표 · 문체 · 개막 장 · 개막 방침 줄(주간 줄은 없음)", async () => {
+    const { b, prompts } = withPolicy();
+    await runOpenDraft("t1", real, { ...b, existingDraftKeys: async () => [] });
+    expectLayers(prompts[0], "open");
+    expect(prompts[0]).toContain("[방침] 개막에만");
+    expect(prompts[0]).not.toContain("[방침] 주간에만");
+  });
+
+  it("결과 — 결과 장 · 공통 방침 줄만", async () => {
+    const { b, prompts } = withPolicy();
+    await runResultDraft("t1", { ...b, existingDraftKeys: async () => [], loadTournament: async () => real, loadRankingCache: async () => cache });
+    expectLayers(prompts[0], "result");
+    expect(prompts[0]).not.toContain("[방침] 개막에만");
+  });
+
+  it("주간 — 주간 장 · 주간 방침 줄", async () => {
+    const { b, prompts } = withPolicy();
+    await runWeeklyDraft({
+      ...b,
+      weeklyDraftExistsToday: async () => false,
+      loadRankingCaches: async () => [{ id: "t1", data: cache }],
+      loadTournaments: async () => new Map([["t1", real]]),
+    });
+    expectLayers(prompts[0], "weekly");
+    expect(prompts[0]).toContain("[방침] 주간에만");
+  });
+
+  it("편집 방침 읽기가 실패해도 초안은 나온다(방침 칸 없이)", async () => {
+    const { b, prompts } = withPolicy();
+    b.loadPolicyLines = async () => {
+      throw new Error("firestore down");
+    };
+    expect(await runOpenDraft("t1", real, { ...b, existingDraftKeys: async () => [] })).toBe("written");
+    expect(prompts[0]).not.toContain("TIOZ 편집 방침");
+  });
+});
+
+describe("NEWS-1 — 생성 뒤 검사(checkWarnings · 발행을 막지 않음)", () => {
+  it("틀린 응답 → 초안은 저장 · status draft · 「16경기」 「전쟁」 「투표」 셋 다 경고", async () => {
+    const { b } = withPolicy(wrongAi);
+    await runOpenDraft("t1", real, { ...b, existingDraftKeys: async () => [] });
+    expect(b.written).toHaveLength(1);
+    const d = b.written[0] as unknown as { status: string; checkWarnings: { rule: string; lang: string; field: string; match: string }[] };
+    expect(d.status).toBe("draft");
+    const pairs = d.checkWarnings.map((w) => `${w.rule}:${w.lang}:${w.field}:${w.match}`);
+    expect(pairs).toEqual(
+      expect.arrayContaining([
+        "forbidden_word:ko:title:전쟁",
+        "forbidden_word:ko:subhead:투표",
+        "forbidden_word:en:title:war",
+        "forbidden_word:es:title:guerra",
+      ]),
+    );
+    expect(d.checkWarnings.some((w) => w.rule === "wrong_number" && w.lang === "ko" && w.match.includes("16"))).toBe(true);
+  });
+
+  it("맞는 응답 → checkWarnings 빈 칸", async () => {
+    const { b } = withPolicy();
+    await runOpenDraft("t1", real, { ...b, existingDraftKeys: async () => [] });
+    expect((b.written[0] as unknown as { checkWarnings: unknown[] }).checkWarnings).toEqual([]);
   });
 });

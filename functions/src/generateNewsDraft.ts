@@ -41,7 +41,8 @@ import {
   buildColumnPrompt,
 } from "./core/newsPrompts";
 import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
-import { makeNewsCreateMessage, newNewsSlug, kstStamp } from "./newsShared";
+import { makeNewsCreateMessage, newNewsSlug, kstStamp, loadNewsPolicyLines } from "./newsShared";
+import type { NewsPolicyLine } from "./core/tioKnowledge";
 import type { ArticleTemplate, Lang, Evidence } from "./_news/articleDoc";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
@@ -105,6 +106,13 @@ export const generateNewsDraft = onCall(
     }
     const createMessage = makeNewsCreateMessage(apiKey);
     const asOf = kstStamp(Date.now());
+    // NEWS-1 4층 — 편집 방침 줄. 읽기가 실패해도 초안은 만든다(방침 칸 없이).
+    let policyLines: NewsPolicyLine[] = [];
+    try {
+      policyLines = await loadNewsPolicyLines();
+    } catch (e) {
+      logger.error("generateNewsDraft: news policy read failed", e);
+    }
 
     // ── evidence + prompt per template ──
     let digest: NewsDigest;
@@ -132,7 +140,7 @@ export const generateNewsDraft = onCall(
       };
       if (template === "open") {
         digest = buildOpenDigest(meta, asOf);
-        prompt = buildOpenPrompt({ title: meta.title, category: meta.category, digest });
+        prompt = buildOpenPrompt({ title: meta.title, category: meta.category, digest, policyLines });
       } else {
         const cacheSnap = await adminDb.collection("ranking_cache").doc(tournamentId).get();
         const rankings = rankingsOf(cacheSnap.data());
@@ -145,6 +153,7 @@ export const generateNewsDraft = onCall(
           championName: digest.leaders[0]?.name ?? "",
           championNameEn: digest.leaders[0]?.nameEn,
           digest,
+          policyLines,
         });
       }
     } else if (template === "weekly") {
@@ -157,7 +166,7 @@ export const generateNewsDraft = onCall(
         runsTotal: runsTotalFromCache(d.data()),
       }));
       digest = buildWeeklyDigest({ caches, asOf });
-      prompt = buildWeeklyPrompt({ digest });
+      prompt = buildWeeklyPrompt({ digest, policyLines });
     } else {
       // column
       const topic = String(data.topic ?? "").trim();
@@ -165,7 +174,7 @@ export const generateNewsDraft = onCall(
         throw new HttpsError("invalid-argument", "칼럼은 주제(topic)가 필요합니다.");
       }
       digest = { asOf, stats: [], leaders: [], tournamentId };
-      prompt = buildColumnPrompt({ topic, digest });
+      prompt = buildColumnPrompt({ topic, digest, policyLines });
     }
 
     const evidence: Evidence = {

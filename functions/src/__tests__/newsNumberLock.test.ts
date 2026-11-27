@@ -34,6 +34,7 @@ import { buildArticleTranslatePrompt } from "../core/translateArticleCore";
 import { CHART_RATE_TERMS } from "../core/displayTerms";
 import { MIN_RUNS_FOR_CHART } from "../core/newsDigestCore";
 import { CHART_TERM_RULE_LINE, CHART_WAITING_LINE } from "../core/newsPrompts";
+import { TIO_FACT_SHEET, TIO_KIND_SKILLS } from "../core/tioKnowledge";
 
 // 공개 캐시 행 — 서버 전용·옛 칸을 눈에 띄는 값으로 심는다(9 · 61.2 · 0.77 · 1204 · 333 · 4417).
 const cacheRows: Record<string, unknown>[] = [
@@ -208,20 +209,20 @@ describe("기사 숫자 허용 목록 — AI 재료(evidence 줄)", () => {
     expect(evidenceLines(resultDigest)).not.toMatch(/(^|[^\d.])9([^\d.]|$)/);
   });
 
-  it("AI 재료: 1등 비율·선택 비율은 Crown Score 와 같은 줄에만", () => {
+  it("AI 재료: 1등 비율·점유율은 Crown Score 와 같은 줄에만", () => {
     for (const d of [resultDigest, weeklyDigest]) {
       const lines = evidenceLines(d).split("\n");
       for (const line of lines) {
-        if (/^\s+- \d+위 /.test(line) && /1등 비율|선택 비율/.test(line)) {
+        if (/^\s+- \d+위 /.test(line) && /1등 비율|점유율/.test(line)) {
           expect(line).toMatch(/Crown Score \d+/);
         }
       }
     }
     expect(evidenceLines(resultDigest)).toContain(
-      "  - 1위 블루 플레임 (공식 영어 이름: Blue Flame) Crown Score 812 · 1등 비율 31.0% · 선택 비율 64.2% (Champion)",
+      "  - 1위 블루 플레임 (공식 영어 이름: Blue Flame) Crown Score 812 · 1등 비율 31.0% · 점유율 64.2% (Champion)",
     );
-    expect(evidenceLines(weeklyDigest)).toContain("  - 1위 와이 Crown Score 900 · 1등 비율 20.0% · 선택 비율 60.0% [A 대회]");
-    expect(evidenceLines(resultDigest)).toContain("선두(차트 순위 · Crown Score · 1등 비율 · 선택 비율):");
+    expect(evidenceLines(weeklyDigest)).toContain("  - 1위 와이 Crown Score 900 · 1등 비율 20.0% · 점유율 60.0% [A 대회]");
+    expect(evidenceLines(resultDigest)).toContain("선두(차트 순위 · Crown Score · 1등 비율 · 점유율):");
   });
 
   it("AI 재료에 '대회 전체 참여 횟수' 줄 · '판' 낱말 없음", () => {
@@ -241,8 +242,8 @@ describe("기사 숫자 허용 목록 — AI 재료(evidence 줄)", () => {
 describe("기사 숫자 허용 목록 — AI 지시", () => {
   it("NUMBER_RULE_LINES 글자 그대로", () => {
     expect(NUMBER_RULE_LINES).toEqual([
-      "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 1등 비율 · 선택 비율 · 참여 팬 수 · 대회 전체 참여 횟수.",
-      "   1등 비율과 선택 비율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
+      "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 1등 비율 · 점유율 · 참여 팬 수 · 대회 전체 참여 횟수.",
+      "   1등 비율과 점유율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
       "   선택 수 · 득표수 · 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위점수율은 쓰지 않는다. 참여 횟수는 '판'이 아니라 '참여'로 쓴다.",
     ]);
   });
@@ -308,12 +309,13 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
       ]),
     );
     const stats = r.body.find((b) => b.type === "stats") as { items: { n: string; l: string }[] };
+    // NEWS-1 결정 I — 점유율이 비율 낱말이 됐다(옛 이름 "선택 비율"은 이제 버린다).
     expect(stats.items.map((it) => it.l)).toEqual([
+      "점유율",
       "Picks",
       "Victorias",
       "WINS",
       "Elecciones",
-      "선택 비율",
       "CROWN SCORE",
     ]);
   });
@@ -338,11 +340,11 @@ describe("기사 숫자 허용 목록 — 번역 용어 목록", () => {
   it("번역 용어 목록: Wins/Picks · Victorias/Elecciones", () => {
     const en = buildArticleTranslatePrompt(input, "en");
     expect(en).toContain("  - 1등 비율 · Victorias → Wins");
-    expect(en).toContain("  - 선택 비율 · Elecciones → Picks");
+    expect(en).toContain("  - 점유율 · Elecciones → Picks");
     expect(en).toContain("  - Crown Score → Crown Score");
     const es = buildArticleTranslatePrompt(input, "es");
     expect(es).toContain("  - 1등 비율 · Wins → Victorias");
-    expect(es).toContain("  - 선택 비율 · Picks → Elecciones");
+    expect(es).toContain("  - 점유율 · Picks → Elecciones");
     expect(es).toContain("  - Crown Score → Crown Score");
     // ko 로 옮길 때는 싣지 않는다(한글이 정본).
     expect(buildArticleTranslatePrompt({ ...input, sourceLang: "en" }, "ko")).not.toContain("→ Wins");
@@ -388,7 +390,7 @@ describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수
       // 최종 검토 I-2: 차트가 순위를 감추는 동안 선두 줄은 이름(+Champion)만 — "N위" 없음.
       expect(ev).toContain("  - 블루 플레임 (공식 영어 이름: Blue Flame) (Champion)");
       expect(ev).not.toMatch(/^ {2}- \d+위/m);
-      expect(ev).not.toMatch(/Crown Score \d|1등 비율 \d|선택 비율 \d|812/);
+      expect(ev).not.toMatch(/Crown Score \d|1등 비율 \d|점유율 \d|812/);
       expect(ev).toContain(CHART_WAITING_LINE);
       expect(CHART_WAITING_LINE).toBe(
         "차트는 아직 참여가 적어 순위와 점수를 공개하지 않는다 — 순위 · Crown Score · 비율을 쓰지 않는다.",
@@ -403,12 +405,13 @@ describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수
         championNameEn: "Blue Flame",
         digest: d,
       });
+      expect(prompt).toContain(TIO_KIND_SKILLS.result);
       expect(prompt).toContain(
           '[결과 기사] Tournament "여름 컴백 48"가 끝났고 Champion은 "블루 플레임"(공식 영어 이름 "Blue Flame")이다. ' +
-          "팬들이 함께 고른 결과를 전한다. 차트는 아직 참여가 적어 순위와 점수를 쓰지 않는다.",
+          "차트는 아직 참여가 적어 순위와 점수를 쓰지 않는다.",
       );
-      // 공통 지침(허용 목록 설명 — "1위를 지킨 기간" 등)은 모든 기사에 같은 글이라 빼고 본다.
-      const body = prompt.replace(NEWS_STYLE_GUIDE, "");
+      // 공통 층(사실표 · 문체 — 허용 목록 설명 "1위를 지킨 기간" 등)은 모든 기사에 같은 글이라 빼고 본다.
+      const body = prompt.replace(TIO_FACT_SHEET, "").replace(NEWS_STYLE_GUIDE, "");
       expect(body).not.toMatch(/\d+위/);
       expect(body).not.toContain("Crown Score 순위");
       expect(body).not.toContain("%");
@@ -426,7 +429,8 @@ describe("10판 기준 — 차트가 점수를 감추는 동안 기사도 점수
   it("결과 기사 runsTotal 10: 지시 줄은 Crown Score 순위 그대로 · 선두 줄에 순위", () => {
     const d = buildResultDigest({ meta, rankings, championId: "c1", asOf: "x", runsTotal: 10 });
     const prompt = buildResultPrompt({ title: "여름 컴백 48", championName: "블루 플레임", digest: d });
-    expect(prompt).toContain("팬들이 함께 고른 결과를 전한다. 상위 순위를 Crown Score 순위로 전한다.");
+    expect(prompt).toContain(TIO_KIND_SKILLS.result);
+    expect(prompt).toContain("이다. 상위 순위를 Crown Score 순위로 전한다.");
     expect(prompt).toMatch(/^ {2}- 1위 블루 플레임/m);
   });
 
@@ -507,7 +511,7 @@ describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN 
 describe("en·es 원문 초안에도 차트 낱말 3언어", () => {
   it("AI 지시에 3언어 낱말 줄이 한 번 있다", () => {
     expect(CHART_TERM_RULE_LINE).toBe(
-      "   1등 비율 · 선택 비율은 영어로 Wins · Picks, 스페인어로 Victorias · Elecciones 로 쓴다(차트 설명창과 같은 말).",
+      "   1등 비율 · 점유율은 영어로 Wins · Picks, 스페인어로 Victorias · Elecciones 로 쓴다(차트 설명창과 같은 말).",
     );
     for (const p of allPrompts) {
       expect(p.split(CHART_TERM_RULE_LINE)).toHaveLength(2);

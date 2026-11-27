@@ -18,6 +18,7 @@ import {
   kstStamp,
   existingDraftKeys,
   writeNewsDraft,
+  loadNewsPolicyLines,
 } from "./newsShared";
 import { kstDate } from "./core/voteRecord";
 import { newsDraftAiOff } from "./core/newsAiSwitch";
@@ -49,6 +50,7 @@ export const onTournamentOpened = onDocumentCreated(
         nowMs: Date.now,
         logError: (m, e) => logger.error(m, e),
         logInfo: (m) => logger.info(m),
+        loadPolicyLines: loadNewsPolicyLines,
       });
       if (outcome === "test-tournament") logger.info(`onTournamentOpened: test tournament ${tournamentId} — no draft`);
     } catch (err) {

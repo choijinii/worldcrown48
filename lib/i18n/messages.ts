@@ -326,7 +326,7 @@ export const MESSAGES = {
       "Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.",
       "· 오른 순위 40% — 참여마다 결승에 얼마나 가까이 올랐는지",
       "· 1등 비율 30% — 결승에서 선택받아 1등이 된 비율",
-      "· 선택 비율 30% — Match마다 선택받은 비율",
+      "· 점유율 30% — Match마다 선택받은 비율",
     ].join("\n"),
     en: [
       "Crown Score is rated out of 1,000 — shaped entirely by fans' picks.",
