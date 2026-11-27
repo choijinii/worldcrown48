@@ -79,10 +79,10 @@ describe("검사 3 허용 목록 밖 퍼센트", () => {
   it("비율 낱말이 없는 문장의 퍼센트는 잡힌다", () => {
     expect(findStrayPercents("팬의 71.8%가 이 곡을 골랐다.")).toEqual(["71.8%"]);
   });
-  it("1등 비율 · 점유율 · Wins · Picks 와 같은 문장이면 통과", () => {
+  it("1등 비율 · 점유율 · Wins · Share 와 같은 문장이면 통과", () => {
     expect(findStrayPercents("Crown Score 812, 점유율 64.2%를 기록했다.")).toEqual([]);
     expect(findStrayPercents("1등 비율 31.0%로 앞섰다.")).toEqual([]);
-    expect(findStrayPercents("Wins 31.0% and Picks 64.2%.")).toEqual([]);
+    expect(findStrayPercents("Wins 31.0% and Share 64.2%.")).toEqual([]);
   });
 });
 

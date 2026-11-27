@@ -259,6 +259,8 @@ export interface WeeklyCacheLike {
 export function buildWeeklyDigest(args: {
   caches: WeeklyCacheLike[];
   asOf: string;
+  /** 진행 중인 대회 수(공개된 진행 중 대회만 — NEWS-2). 없으면 옛 방식(대회 수 그대로). */
+  activeCount?: number;
 }): NewsDigest {
   const leaders: DigestLeader[] = args.caches
     .filter((c) => chartScoresShown(c.runsTotal))
@@ -286,7 +288,7 @@ export function buildWeeklyDigest(args: {
     .slice(0, TOP_N);
 
   const stats: EvidenceStat[] = [
-    { label: "ACTIVE TOURNAMENTS", value: String(args.caches.length) },
+    { label: "ACTIVE TOURNAMENTS", value: String(args.activeCount ?? args.caches.length) },
   ];
   return { asOf: args.asOf, leaders, stats };
 }

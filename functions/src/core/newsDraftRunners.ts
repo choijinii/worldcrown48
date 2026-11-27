@@ -152,7 +152,32 @@ export async function runResultDraft(
   return "written";
 }
 
-/** 주간 초안 — 진짜 대회의 순위 기록만 센다(시험 대회 · 문서가 없는 대회는 뺀다). */
+/**
+ * 주간 초안에 넣을 대회 — 자동(scheduleWeeklyNews) · 손(generateNewsDraft) 두 길이 이 함수 하나를 쓴다
+ * (NEWS-2 · 대표 2026-11-27). 시험 대회 · 문서가 없는 대회 · 숨김 대회(status hidden)는 뺀다.
+ * activeCount("진행 중인 대회 수") = 공개된 진행 중 대회만(status active · 시험 아님 — 공개 목록 isPublicTournament 와 같은 기준).
+ * 이름은 대회 문서의 제목(옛 코드는 순위 기록의 대회 id 를 이름으로 썼다).
+ */
+export function selectWeeklyCaches(
+  all: { id: string; data: Doc }[],
+  docs: Map<string, Doc | undefined>,
+): { caches: { tournamentId: string; title: string; rankings: RankingRowLike[]; runsTotal?: number }[]; activeCount: number } {
+  const keep = all.filter((c) => {
+    const t = docs.get(c.id);
+    return t !== undefined && !isTestTournament(t) && t.status !== "hidden";
+  });
+  const caches = keep.map((c) => ({
+    tournamentId: c.id,
+    title: String(docs.get(c.id)?.title ?? c.data.tournamentId ?? c.id),
+    rankings: rankingsOf(c.data),
+    // 차트 기준(10) 미만 대회는 선두에서 빠진다.
+    runsTotal: runsTotalFromCache(c.data),
+  }));
+  const activeCount = keep.filter((c) => docs.get(c.id)?.status === "active").length;
+  return { caches, activeCount };
+}
+
+/** 주간 초안 — selectWeeklyCaches 가 고른 대회만 센다. */
 export async function runWeeklyDraft(
   deps: NewsRunnerBase & {
     weeklyDraftExistsToday: (kstDay: string) => Promise<boolean>;
@@ -165,18 +190,8 @@ export async function runWeeklyDraft(
 
   const all = await deps.loadRankingCaches();
   const docs = await deps.loadTournaments(all.map((c) => c.id));
-  const real = all.filter((c) => {
-    const t = docs.get(c.id);
-    return t !== undefined && !isTestTournament(t);
-  });
-  const caches = real.map((c) => ({
-    tournamentId: c.id,
-    title: String(c.data.tournamentId ?? c.id),
-    rankings: rankingsOf(c.data),
-    // 차트 기준(10) 미만 대회는 선두에서 빠진다(ACTIVE TOURNAMENTS 에는 센다).
-    runsTotal: runsTotalFromCache(c.data),
-  }));
-  const digest = buildWeeklyDigest({ caches, asOf: deps.stamp(deps.nowMs()) });
+  const { caches, activeCount } = selectWeeklyCaches(all, docs);
+  const digest = buildWeeklyDigest({ caches, activeCount, asOf: deps.stamp(deps.nowMs()) });
   const prompt = buildWeeklyPrompt({ digest, policyLines: await policyOf(deps) });
   const draft = await assembleLocalizedDraft(
     {

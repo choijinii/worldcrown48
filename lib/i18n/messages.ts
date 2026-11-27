@@ -332,13 +332,13 @@ export const MESSAGES = {
       "Crown Score is rated out of 1,000 — shaped entirely by fans' picks.",
       "· Reach 40% — how close to the final they get each time",
       "· Wins 30% — how often they're picked No. 1 in the final",
-      "· Picks 30% — how often they're chosen in each Match",
+      "· Share 30% — how often they're chosen in each Match",
     ].join("\n"),
     es: [
       "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.",
       "· Alcance 40 % — qué tan cerca de la final llega en cada participación",
       "· Victorias 30 % — cuántas veces lo eligen n.º 1 en la final",
-      "· Elecciones 30 % — cuántas veces lo eligen en cada Match",
+      "· Cuota 30 % — cuántas veces lo eligen en cada Match",
     ].join("\n"),
   },
 

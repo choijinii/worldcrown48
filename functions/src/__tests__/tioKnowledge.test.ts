@@ -146,9 +146,9 @@ describe("조립 순서 1 → 2 → 3 → 4 → 할 일 → 데이터 → 출력
 });
 
 describe("점유율 이름(결정 I)", () => {
-  it("한국어 = 점유율 · en · es 는 대표 확인 전 그대로(Picks · Elecciones)", async () => {
+  it("점유율 = 점유율 / Share / Cuota(D-106 · NEWS-2 대표 승인)", async () => {
     const { CHART_RATE_TERMS } = await import("../core/displayTerms");
-    expect(CHART_RATE_TERMS.pick).toEqual({ ko: "점유율", en: "Picks", es: "Elecciones" });
+    expect(CHART_RATE_TERMS.pick).toEqual({ ko: "점유율", en: "Share", es: "Cuota" });
   });
   it("지시문에 '선택 비율' 0건 — 사실표 24번(폐기 설명)만 예외", () => {
     for (const kind of ["open", "result", "weekly", "column"] as const) {

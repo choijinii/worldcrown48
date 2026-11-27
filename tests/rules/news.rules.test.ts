@@ -29,7 +29,21 @@ const publishedDoc = {
   origin: "manual_ai",
   title: { ko: "발행 기사", en: "", es: "" },
 };
-const draftDoc = { ...publishedDoc, slug: "20260722-drf001", status: "draft" };
+// NEWS-2 결정 J — 발행하려면 서버가 검사한 기록(checkedText · checkBlocked false)이 있어야 한다.
+const draftDoc = {
+  ...publishedDoc,
+  slug: "20260722-drf001",
+  status: "draft",
+  checkWarnings: [],
+  checkBlocked: false,
+  subhead: { ko: "", en: "", es: "" },
+  body: { ko: [{ type: "lead", text: "본문" }], en: [], es: [] },
+  checkedText: {
+    title: publishedDoc.title,
+    subhead: { ko: "", en: "", es: "" },
+    body: { ko: [{ type: "lead", text: "본문" }], en: [], es: [] },
+  },
+};
 const archivedDoc = { ...publishedDoc, slug: "20260722-arc001", status: "archived" };
 
 beforeAll(async () => {

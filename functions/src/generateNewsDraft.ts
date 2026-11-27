@@ -41,6 +41,7 @@ import {
   buildColumnPrompt,
 } from "./core/newsPrompts";
 import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
+import { selectWeeklyCaches } from "./core/newsDraftRunners";
 import { makeNewsCreateMessage, newNewsSlug, kstStamp, loadNewsPolicyLines } from "./newsShared";
 import type { NewsPolicyLine } from "./core/tioKnowledge";
 import type { ArticleTemplate, Lang, Evidence } from "./_news/articleDoc";
@@ -157,15 +158,13 @@ export const generateNewsDraft = onCall(
         });
       }
     } else if (template === "weekly") {
+      // 자동 주간 초안과 같은 기준(selectWeeklyCaches — 시험 · 없는 · 숨김 대회 빼기 · 진행 중 = 공개된 진행 중만).
       const cachesSnap = await adminDb.collection("ranking_cache").get();
-      const caches = cachesSnap.docs.map((d) => ({
-        tournamentId: d.id,
-        title: String(d.data().tournamentId ?? d.id),
-        rankings: rankingsOf(d.data()),
-        // 차트 기준(10) 미만 대회는 선두에서 빠진다(ACTIVE TOURNAMENTS 에는 센다).
-        runsTotal: runsTotalFromCache(d.data()),
-      }));
-      digest = buildWeeklyDigest({ caches, asOf });
+      const all = cachesSnap.docs.map((d) => ({ id: d.id, data: d.data() }));
+      const tSnaps = all.length > 0 ? await adminDb.getAll(...all.map((c) => adminDb.collection("tournaments").doc(c.id))) : [];
+      const docs = new Map(tSnaps.map((t) => [t.id, t.exists ? t.data() : undefined]));
+      const { caches, activeCount } = selectWeeklyCaches(all, docs);
+      digest = buildWeeklyDigest({ caches, activeCount, asOf });
       prompt = buildWeeklyPrompt({ digest, policyLines });
     } else {
       // column

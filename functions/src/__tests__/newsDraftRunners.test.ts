@@ -121,7 +121,8 @@ describe("runWeeklyDraft — 주간 초안", () => {
       loadTournaments: async () => tournaments,
     });
     expect(r).toEqual({ outcome: "written", tournaments: 1 });
-    expect(prompts[0]).toContain("real1");
+    // NEWS-2 — 이름은 순위 기록의 대회 id 가 아니라 대회 문서 제목
+    expect(prompts[0]).toContain(`[${real.title}]`);
     expect(b.written[0]).toMatchObject({ template: "weekly" });
     expect(prompts[0]).not.toContain("test1");
     expect(prompts[0]).not.toContain("lab1");
@@ -221,6 +222,9 @@ describe("NEWS-1 — 생성 뒤 검사(checkWarnings · 발행을 막지 않음)
     expect(b.written).toHaveLength(1);
     const d = b.written[0] as unknown as { status: string; checkWarnings: { rule: string; lang: string; field: string; match: string }[] };
     expect(d.status).toBe("draft");
+    // NEWS-2 결정 J — 처음부터 잠김 · 검사한 글 사본
+    expect((d as unknown as { checkBlocked: boolean }).checkBlocked).toBe(true);
+    expect((d as unknown as { checkedText: { title: { ko: string } } }).checkedText.title.ko).toBe("48개 팀의 애정 전쟁 시작");
     const pairs = d.checkWarnings.map((w) => `${w.rule}:${w.lang}:${w.field}:${w.match}`);
     expect(pairs).toEqual(
       expect.arrayContaining([
@@ -237,5 +241,49 @@ describe("NEWS-1 — 생성 뒤 검사(checkWarnings · 발행을 막지 않음)
     const { b } = withPolicy();
     await runOpenDraft("t1", real, { ...b, existingDraftKeys: async () => [] });
     expect((b.written[0] as unknown as { checkWarnings: unknown[] }).checkWarnings).toEqual([]);
+    expect((b.written[0] as unknown as { checkBlocked: boolean }).checkBlocked).toBe(false);
+  });
+});
+
+// ── NEWS-2 · 결정(주간 대회 세기) — 숨김 · 시험 · 없는 대회 빼기 · 진행 중인 대회 수 = 공개된 진행 중 대회만 ──
+import { selectWeeklyCaches } from "../core/newsDraftRunners";
+
+const rows = (name: string) => ({ rankings: [{ rank: 1, contestantId: "c", name, crownScore: 500, winRate: 0.2, shareRate: 0.3 }], runsTotal: 20 });
+const weeklyAll = [
+  { id: "live", data: rows("진행 중 1위") },
+  { id: "ended", data: rows("마감 1위") },
+  { id: "hidden", data: rows("숨김 1위") },
+  { id: "seed", data: rows("시드 1위") },
+  { id: "e2e", data: rows("시험 1위") },
+  { id: "gone", data: rows("없는 대회 1위") },
+];
+const weeklyDocs = new Map<string, Record<string, unknown> | undefined>([
+  ["live", { ...real, status: "active", title: "진행 중 대회" }],
+  ["ended", { ...real, status: "ended", title: "마감 대회" }],
+  ["hidden", { ...real, status: "hidden", title: "숨김 대회" }],
+  ["seed", { ...real, status: "active", hostUid: "seed-operator", title: "Admin Preview" }],
+  ["e2e", { ...real, status: "active", e2e: true, title: "시험" }],
+  ["gone", undefined],
+]);
+
+describe("selectWeeklyCaches — 자동 · 손 두 길이 같은 기준", () => {
+  it("숨김 · 시험 · 없는 대회는 뺀다 · 진행 중인 대회 수는 공개된 진행 중 대회만 · 이름은 대회 제목", () => {
+    const r = selectWeeklyCaches(weeklyAll, weeklyDocs);
+    expect(r.caches.map((c) => c.tournamentId)).toEqual(["live", "ended"]);
+    expect(r.caches.map((c) => c.title)).toEqual(["진행 중 대회", "마감 대회"]);
+    expect(r.activeCount).toBe(1);
+  });
+
+  it("주간 신호 — 근거 칸 ACTIVE TOURNAMENTS = 1 · 지시문에 숨김 · 시험 대회 선두 없음", async () => {
+    const { b, prompts } = withPolicy();
+    await runWeeklyDraft({
+      ...b,
+      weeklyDraftExistsToday: async () => false,
+      loadRankingCaches: async () => weeklyAll,
+      loadTournaments: async () => weeklyDocs,
+    });
+    expect(prompts[0]).toContain("ACTIVE TOURNAMENTS: 1");
+    for (const no of ["숨김 1위", "시드 1위", "시험 1위", "없는 대회 1위"]) expect(prompts[0]).not.toContain(no);
+    expect(prompts[0]).toContain("진행 중 1위");
   });
 });

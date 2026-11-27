@@ -300,10 +300,11 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
         { n: "55%", l: "RUNNER-UP" },
         { n: "12%", l: "TOP MOMENTUM" },
         { n: "33%", l: "점유율" },
-        { n: "64.2%", l: "Picks" },
+        { n: "64.2%", l: "Share" },
         { n: "31.0%", l: "Victorias" },
         { n: "31.0%", l: "WINS" },
-        { n: "64.2%", l: "Elecciones" },
+        { n: "64.2%", l: "Cuota" },
+        { n: "64.2%", l: "Picks" },
         { n: "64.2%", l: "선택 비율" },
         { n: "812", l: "CROWN SCORE" },
       ]),
@@ -312,10 +313,10 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
     // NEWS-1 결정 I — 점유율이 비율 낱말이 됐다(옛 이름 "선택 비율"은 이제 버린다).
     expect(stats.items.map((it) => it.l)).toEqual([
       "점유율",
-      "Picks",
+      "Share",
       "Victorias",
       "WINS",
-      "Elecciones",
+      "Cuota",
       "CROWN SCORE",
     ]);
   });
@@ -337,14 +338,14 @@ describe("기사 숫자 허용 목록 — 번역 용어 목록", () => {
     sourceLang: "ko" as const,
   };
 
-  it("번역 용어 목록: Wins/Picks · Victorias/Elecciones", () => {
+  it("번역 용어 목록: Wins/Share · Victorias/Cuota(NEWS-2 · 대표 승인)", () => {
     const en = buildArticleTranslatePrompt(input, "en");
     expect(en).toContain("  - 1등 비율 · Victorias → Wins");
-    expect(en).toContain("  - 점유율 · Elecciones → Picks");
+    expect(en).toContain("  - 점유율 · Cuota → Share");
     expect(en).toContain("  - Crown Score → Crown Score");
     const es = buildArticleTranslatePrompt(input, "es");
     expect(es).toContain("  - 1등 비율 · Wins → Victorias");
-    expect(es).toContain("  - 점유율 · Picks → Elecciones");
+    expect(es).toContain("  - 점유율 · Share → Cuota");
     expect(es).toContain("  - Crown Score → Crown Score");
     // ko 로 옮길 때는 싣지 않는다(한글이 정본).
     expect(buildArticleTranslatePrompt({ ...input, sourceLang: "en" }, "ko")).not.toContain("→ Wins");
@@ -480,7 +481,7 @@ describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN 
   it("비율 낱말 라벨인데 값에 % 가 없으면 버린다 · 9회 · 9 times · veces 는 버린다", () => {
     expect(
       statsOf([
-        { n: "2,718", l: "Picks" },
+        { n: "2,718", l: "Share" },
         { n: "9회", l: "1등 비율" },
         { n: "9", l: "Victorias" },
         { n: "3회", l: "결승 진출" },
@@ -501,17 +502,17 @@ describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN 
     ).toEqual(["CONTESTANTS"]);
     expect(
       statsOf([
-        { n: "64.2%", l: "Picks" },
+        { n: "64.2%", l: "Share" },
         { n: "812", l: "Crown Score · 1위" },
       ]),
-    ).toEqual(["Picks", "Crown Score · 1위"]);
+    ).toEqual(["Share", "Crown Score · 1위"]);
   });
 });
 
 describe("en·es 원문 초안에도 차트 낱말 3언어", () => {
   it("AI 지시에 3언어 낱말 줄이 한 번 있다", () => {
     expect(CHART_TERM_RULE_LINE).toBe(
-      "   1등 비율 · 점유율은 영어로 Wins · Picks, 스페인어로 Victorias · Elecciones 로 쓴다(차트 설명창과 같은 말).",
+      "   1등 비율 · 점유율은 영어로 Wins · Share, 스페인어로 Victorias · Cuota 로 쓴다(차트 설명창과 같은 말).",
     );
     for (const p of allPrompts) {
       expect(p.split(CHART_TERM_RULE_LINE)).toHaveLength(2);

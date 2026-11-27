@@ -178,14 +178,14 @@ Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.
 · 점유율 30% — Match마다 선택받은 비율
 ```
 
-> NEWS-1 결정 I(원장 D-106 · 2026-11-27): 셋째 줄 이름 "선택 비율" → **점유율**. 점유율 = Match마다 선택받은 비율(코드 `shareRate`). "선택 비율"(대회 전체 선택 가운데 그 엔트리의 비율 · 옛 `rate`)은 2026-09-23 폐기 그대로. 영어 · 스페인어 낱말은 대표 확인 뒤 바꾼다.
+> NEWS-1 결정 I(원장 D-106 · 2026-11-27): 셋째 줄 이름 "선택 비율" → **점유율**. 점유율 = Match마다 선택받은 비율(코드 `shareRate`). "선택 비율"(대회 전체 선택 가운데 그 엔트리의 비율 · 옛 `rate`)은 2026-09-23 폐기 그대로. 영어 Share · 스페인어 Cuota(NEWS-2 · 원장 D-108 · 대표 승인 2026-11-27).
 
 **EN**
 ```
 Crown Score is rated out of 1,000 — shaped entirely by fans' picks.
 · Reach 40% — how close to the final they get each time
 · Wins 30% — how often they're picked No. 1 in the final
-· Picks 30% — how often they're chosen in each Match
+· Share 30% — how often they're chosen in each Match
 ```
 
 **ES**
@@ -193,7 +193,7 @@ Crown Score is rated out of 1,000 — shaped entirely by fans' picks.
 Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.
 · Alcance 40 % — qué tan cerca de la final llega en cada participación
 · Victorias 30 % — cuántas veces lo eligen n.º 1 en la final
-· Elecciones 30 % — cuántas veces lo eligen en cada Match
+· Cuota 30 % — cuántas veces lo eligen en cada Match
 ```
 
 **결정 기록**
