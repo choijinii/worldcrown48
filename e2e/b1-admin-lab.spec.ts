@@ -191,7 +191,7 @@ test.describe("B-1 The Lab — operator critical path", () => {
     await expect(next).toBeDisabled();
 
     await page.getByLabel("Tournament 제목").fill(TITLE);
-    await page.getByLabel("카테고리").selectOption("FOOTBALL");
+    await page.getByLabel("카테고리").selectOption("KPOP");
     // Keyword typed by hand (no aiSuggestKeywords call) → satisfies ④.
     await page.getByLabel("키워드 추가").fill("e2e-keyword");
     await page.getByLabel("키워드 추가").press("Enter");

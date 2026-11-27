@@ -13,8 +13,10 @@ import {
   RELATED_BY_FIELD,
   RELATED_BY_RUN_ID,
   RELATED_BY_TOURNAMENT_ID,
+  RELATED_NEWS_COLLECTION,
   isRunScopedDocOf,
   isStaleE2ETournament,
+  pickTestDraftIds,
 } from "@/lib/ops/e2eLeftovers";
 
 function loadServiceAccount(): admin.ServiceAccount | null {
@@ -24,40 +26,51 @@ function loadServiceAccount(): admin.ServiceAccount | null {
   return JSON.parse(decoded) as admin.ServiceAccount;
 }
 
+/**
+ * 오래된 시험 대회와 딸린 문서(NEWS-0a — 그 대회의 뉴스 초안 포함)를 지운다. 지운 대회 id 목록을 돌려준다.
+ * 전역 마무리와 에뮬레이터 시험(news0a-test-drafts)이 같은 함수를 쓴다.
+ */
+export async function sweepStaleE2E(db: admin.firestore.Firestore, now: number): Promise<string[]> {
+  const snap = await db.collection("tournaments").where("e2e", "==", true).get();
+  const stale = snap.docs.filter((d) => isStaleE2ETournament(d.data(), now));
+  if (stale.length === 0) return [];
+
+  const runIds: Record<string, string[]> = {};
+  for (const coll of RELATED_BY_RUN_ID) {
+    runIds[coll] = (await db.collection(coll).listDocuments()).map((r) => r.id);
+  }
+  for (const t of stale) {
+    const refs = new Map<string, admin.firestore.DocumentReference>();
+    for (const coll of RELATED_BY_FIELD) {
+      const s = await db.collection(coll).where("tournamentId", "==", t.id).get();
+      for (const d of s.docs) refs.set(d.ref.path, d.ref);
+    }
+    for (const [coll, ids] of Object.entries(runIds)) {
+      for (const id of ids) if (isRunScopedDocOf(id, t.id)) refs.set(`${coll}/${id}`, db.collection(coll).doc(id));
+    }
+    for (const coll of RELATED_BY_TOURNAMENT_ID) refs.set(`${coll}/${t.id}`, db.collection(coll).doc(t.id));
+    // NEWS-0a — 그 대회의 뉴스 초안도 함께(발행 · 보관 기사는 남긴다).
+    const news = await db.collection(RELATED_NEWS_COLLECTION).where("tournamentId", "==", t.id).get();
+    for (const id of pickTestDraftIds(news.docs.map((d) => ({ id: d.id, status: d.get("status") })))) {
+      refs.set(`${RELATED_NEWS_COLLECTION}/${id}`, db.collection(RELATED_NEWS_COLLECTION).doc(id));
+    }
+    const all = [...Array.from(refs.values()), t.ref];
+    for (let i = 0; i < all.length; i += 400) {
+      const batch = db.batch();
+      for (const r of all.slice(i, i + 400)) batch.delete(r);
+      await batch.commit();
+    }
+    console.log(`[global-teardown] 오래된 시험 대회 ${t.id} 와 딸린 문서 ${all.length - 1}개를 지웠다`);
+  }
+  return stale.map((t) => t.id);
+}
+
 export default async function globalTeardown(): Promise<void> {
   try {
     const sa = loadServiceAccount();
     if (!sa) return;
     if (admin.apps.length === 0) admin.initializeApp({ credential: admin.credential.cert(sa) });
-    const db = admin.firestore();
-
-    const snap = await db.collection("tournaments").where("e2e", "==", true).get();
-    const now = Date.now();
-    const stale = snap.docs.filter((d) => isStaleE2ETournament(d.data(), now));
-    if (stale.length === 0) return;
-
-    const runIds: Record<string, string[]> = {};
-    for (const coll of RELATED_BY_RUN_ID) {
-      runIds[coll] = (await db.collection(coll).listDocuments()).map((r) => r.id);
-    }
-    for (const t of stale) {
-      const refs = new Map<string, admin.firestore.DocumentReference>();
-      for (const coll of RELATED_BY_FIELD) {
-        const s = await db.collection(coll).where("tournamentId", "==", t.id).get();
-        for (const d of s.docs) refs.set(d.ref.path, d.ref);
-      }
-      for (const [coll, ids] of Object.entries(runIds)) {
-        for (const id of ids) if (isRunScopedDocOf(id, t.id)) refs.set(`${coll}/${id}`, db.collection(coll).doc(id));
-      }
-      for (const coll of RELATED_BY_TOURNAMENT_ID) refs.set(`${coll}/${t.id}`, db.collection(coll).doc(t.id));
-      const all = [...Array.from(refs.values()), t.ref];
-      for (let i = 0; i < all.length; i += 400) {
-        const batch = db.batch();
-        for (const r of all.slice(i, i + 400)) batch.delete(r);
-        await batch.commit();
-      }
-      console.log(`[global-teardown] 오래된 시험 대회 ${t.id} 와 딸린 문서 ${all.length - 1}개를 지웠다`);
-    }
+    await sweepStaleE2E(admin.firestore(), Date.now());
   } catch (err) {
     console.warn("[global-teardown] 시험 대회 쓸기 실패 — 시험 결과와 무관", err);
   }

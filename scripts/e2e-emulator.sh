@@ -42,13 +42,15 @@ SECRETS
 # 대표 승인 2026-11-26 — 뉴스 초안 AI(대회가 열릴 때 · Champion 이 정해질 때 도는 트리거)는 에뮬레이터에서 끈다.
 #   닫힌 AI 주소를 부르다 한 번에 약 1.2초씩 헛돌아, 대회를 많이 만드는 시험 뒤에는 라운드를 넘기는 함수가 차례를 못 받았다.
 #   함수는 에뮬레이터 안에서만 이 스위치를 듣는다(functions/src/core/newsAiSwitch.ts).
+#   NEWS-0a — `NEWS_DRAFT_AI=on bash scripts/e2e-emulator.sh e2e/emulator/news0a-test-drafts.spec.ts` 로 켜면 뉴스 초안
+#   시험(가짜 AI 9313)만 돈다. 기본은 그대로 끔.
 # IMAGE-1 PR 3 — 영상 대회 크라운 카드의 유튜브 썸네일도 시험이 띄우는 가짜 서버(9312) · 에뮬레이터에서만 YT_THUMB_BASE.
 cat > functions/.env.local <<ENVS
 ANTHROPIC_BASE_URL=http://127.0.0.1:9313
 BRAVE_API_BASE=http://127.0.0.1:9311
 YT_THUMB_BASE=http://127.0.0.1:9312
 ENTRY_WEB_SEARCH=${ENTRY_WEB_SEARCH:-}
-NEWS_DRAFT_AI=off
+NEWS_DRAFT_AI=${NEWS_DRAFT_AI:-off}
 ENVS
 trap 'rm -f functions/.secret.local functions/.env.local' EXIT
 

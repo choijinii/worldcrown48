@@ -41,6 +41,7 @@
 import type { MetadataRoute } from "next";
 import type { DeployEnv } from "@/lib/deployEnv";
 import { POLICY_TYPES } from "@/lib/policyTypes";
+import { hasTestMark, isSeedHosted } from "@/lib/ops/e2eLeftovers";
 
 export const SITE_URL = "https://www.worldcrown48.com";
 
@@ -58,6 +59,8 @@ export interface SitemapTournament {
   hostUid?: unknown;
   /** 시험 표시 — E2E 가 심은 대회만 `true` (OPS-FIX-1 · D-66). */
   e2e?: unknown;
+  /** 대회 이름 — Lab 시험 이름 머리 "E2E Tournament #" 를 거른다(NEWS-0a · 표식이 늦게 붙는 시험). */
+  title?: unknown;
   /** 마지막 변경 시각(ms). 없으면 lastModified 를 비운다. */
   updatedAtMs?: number | null;
 }
@@ -71,9 +74,6 @@ export interface SitemapArticle {
   title?: Partial<Record<SitemapLang, unknown>> | null;
 }
 
-/** 시험·시드 데이터의 hostUid 접두어 (seed-operator, seed-chart-preview …). */
-const SEED_HOST_PREFIX = "seed-";
-
 /** 어떤 경우에도 사이트맵에 나가면 안 되는 경로 — 마지막 안전망. */
 const PRIVATE_PATH_PREFIXES = ["/admin", "/account"] as const;
 
@@ -85,10 +85,9 @@ const PRIVATE_PATH_PREFIXES = ["/admin", "/account"] as const;
 export function isPublicTournament(t: SitemapTournament, deployEnv: DeployEnv): boolean {
   if (!t.id || typeof t.id !== "string") return false;
   if (t.status !== "active") return false;
-  if (deployEnv === "production" && t.e2e === true) return false;
-  if (typeof t.hostUid === "string" && t.hostUid.startsWith(SEED_HOST_PREFIX)) {
-    return false;
-  }
+  // 시험 판정은 lib/ops/e2eLeftovers 하나(NEWS-0a) — 뉴스 초안 신호도 같은 함수를 쓴다.
+  if (deployEnv === "production" && hasTestMark(t)) return false;
+  if (isSeedHosted(t)) return false;
   return true;
 }
 

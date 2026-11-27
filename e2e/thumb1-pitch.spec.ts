@@ -62,7 +62,7 @@ async function seed(): Promise<{ id: string; c: string[] }> {
   batch.set(tRef, {
     title: TITLE,
     titleI18n: { ko: TITLE, en: TITLE, es: TITLE },
-    category: "FOOTBALL",
+    category: "KPOP",
     status: "active",
     ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     featured: false,

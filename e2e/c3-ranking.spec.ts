@@ -105,7 +105,7 @@ async function seed(): Promise<void> {
   for (const tid of ALL) {
     batch.set(d.doc(`tournaments/${tid}`), {
       title: "Strikers of the Century",
-      category: "FOOTBALL",
+      category: "KPOP",
       status: "active",
       ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
       hostUid: "seed-operator",

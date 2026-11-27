@@ -1,0 +1,21 @@
+{
+  "step1": "step1-2026-11-26T23-34-01-985Z.json",
+  "backupPath": "/Users/jinii/Projects/worldcrown48-news0a/outputs/news-0a/backup-2026-11-27T00-20-03-637Z.json",
+  "before": {
+    "draft": 1772,
+    "published": 3,
+    "archived": 2
+  },
+  "after": {
+    "draft": 30,
+    "published": 3,
+    "archived": 2
+  },
+  "candidates": 1742,
+  "deleted": 1742,
+  "skipped": 0,
+  "failed": 0,
+  "backedUp": 1742,
+  "skippedReasons": {},
+  "failedIds": []
+}

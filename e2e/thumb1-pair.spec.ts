@@ -60,7 +60,7 @@ test.describe("THUMB-1 — 대표 매치 고르기", () => {
     await openFreshLabEditor(page); // ?lang=ko 고정
 
     await page.getByLabel("Tournament 제목").fill(TITLE);
-    await page.getByLabel("카테고리").selectOption("FOOTBALL");
+    await page.getByLabel("카테고리").selectOption("KPOP");
     await page.getByLabel("키워드 추가").fill("thumb-e2e");
     await page.getByLabel("키워드 추가").press("Enter");
     // LAB-FIX-6 3-2 — 설명은 필수(비면 [다음 →] 꺼짐).

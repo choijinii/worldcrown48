@@ -24,4 +24,7 @@ for (const file of ["articleDoc.ts", "articleViews.ts"]) {
   copyFileSync(join(libNews, file), join(dest, file));
 }
 
-console.log("[copy-news] mirrored lib/news/{articleDoc,articleViews} → functions/src/_news");
+// NEWS-0a — 시험 대회 판정 하나(isTestTournament). 공개 목록과 뉴스 초안 신호가 같은 파일을 쓴다(import 없는 순수 TS).
+copyFileSync(join(root, "lib", "ops", "e2eLeftovers.ts"), join(dest, "e2eLeftovers.ts"));
+
+console.log("[copy-news] mirrored lib/news/{articleDoc,articleViews} + lib/ops/e2eLeftovers → functions/src/_news");

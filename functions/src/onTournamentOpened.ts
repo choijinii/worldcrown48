@@ -11,10 +11,7 @@
  */
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions";
-import { buildOpenDigest } from "./core/newsDigestCore";
-import { buildOpenPrompt } from "./core/newsPrompts";
-import { assembleLocalizedDraft } from "./core/newsDraftPipeline";
-import { newsDraftExists } from "./core/newsDraftAssembly";
+import { runOpenDraft } from "./core/newsDraftRunners";
 import {
   makeNewsCreateMessage,
   newNewsSlug,
@@ -34,45 +31,26 @@ export const onTournamentOpened = onDocumentCreated(
     if (!data || data.status !== "active") return;
     // 시험 서버에서만 끄는 스위치(core/newsAiSwitch) — 실서비스는 늘 만든다.
     if (newsDraftAiOff(process.env)) return;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      logger.error("onTournamentOpened: ANTHROPIC_API_KEY unset — skipping");
+      return;
+    }
 
     try {
-      // Idempotency — one open draft per Tournament (origin+tournamentId).
-      const existing = await existingDraftKeys(tournamentId);
-      if (newsDraftExists(existing, "event_open", tournamentId)) return;
-
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        logger.error("onTournamentOpened: ANTHROPIC_API_KEY unset — skipping");
-        return;
-      }
-      const asOf = kstStamp(Date.now());
-      const meta = {
-        id: tournamentId,
-        title: String(data.title ?? ""),
-        category: String(data.category ?? ""),
-        totalContestants: Number(data.totalContestants ?? 48),
-        deadlineMs:
-          typeof data.tournamentDeadline === "number"
-            ? data.tournamentDeadline
-            : (data.tournamentDeadline?.toMillis?.() ?? null),
-      };
-      const digest = buildOpenDigest(meta, asOf);
-      const prompt = buildOpenPrompt({ title: meta.title, category: meta.category, digest });
-
-      const draft = await assembleLocalizedDraft(
-        {
-          slug: newNewsSlug(kstDate()),
-          template: "open",
-          origin: "event_open",
-          sourceLang: "ko",
-          prompt,
-          evidence: { asOf: digest.asOf, stats: digest.stats, tournamentId },
-          tournamentId,
-        },
-        { createMessage: makeNewsCreateMessage(apiKey), logError: (m, e) => logger.error(m, e) },
-      );
-      await writeNewsDraft(draft);
-      logger.info(`onTournamentOpened: open draft ${draft.slug} for ${tournamentId}`);
+      // 시험 대회(NEWS-0a · isTestTournament) 는 몸통이 AI 를 부르기 전에 거른다. 멱등도 몸통에서.
+      const outcome = await runOpenDraft(tournamentId, data, {
+        existingDraftKeys,
+        createMessage: makeNewsCreateMessage(apiKey),
+        writeNewsDraft,
+        newSlug: newNewsSlug,
+        kstDay: kstDate,
+        stamp: kstStamp,
+        nowMs: Date.now,
+        logError: (m, e) => logger.error(m, e),
+        logInfo: (m) => logger.info(m),
+      });
+      if (outcome === "test-tournament") logger.info(`onTournamentOpened: test tournament ${tournamentId} — no draft`);
     } catch (err) {
       // Never throw — a permanent failure must not retry-storm the trigger.
       logger.error(`onTournamentOpened: failed for ${tournamentId}`, err);

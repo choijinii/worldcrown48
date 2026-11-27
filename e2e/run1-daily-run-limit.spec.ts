@@ -61,7 +61,7 @@ function seedTournamentDocs(batch: admin.firestore.WriteBatch, tid: string, titl
   const d = db();
   batch.set(d.doc(`tournaments/${tid}`), {
     title,
-    category: "FOOTBALL",
+    category: "KPOP",
     status: "active",
     ...e2eMark(), // OPS-FIX-1 · D-66 — 실서비스 목록에서 빠지는 시험 표시
     hostUid: "seed-operator",

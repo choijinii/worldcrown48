@@ -51,6 +51,36 @@ export function labE2ETitle(o: { runId?: string; attempt?: string; retry: number
   return `${LAB_E2E_TITLE_PREFIX}${run}.${o.attempt || "1"}.${o.retry}`;
 }
 
+/**
+ * NEWS-0a — 시험 대회 판정 하나(대표 2026-11-27). 공개 목록(`isPublicTournament` · 원장 D-66)과 뉴스 초안 신호
+ * (개막 · 결과 · 주간 — 함수 빌드가 이 파일을 복사해 쓴다)가 같은 기준을 지난다. 두 벌로 만들지 않는다.
+ *
+ * 시험 표식 = `e2e: true` 또는 Lab 시험 이름 머리 "E2E Tournament #". b1-admin-lab 은 화면으로 발행한 **뒤에**
+ * 표식을 달아서, 대회가 생기는 순간(개막 신호)에는 표식이 없다 — 이름 머리로 그 순간에도 거른다.
+ */
+export function hasTestMark(d: { e2e?: unknown; title?: unknown }): boolean {
+  if (d.e2e === true) return true;
+  return typeof d.title === "string" && d.title.startsWith(LAB_E2E_TITLE_PREFIX);
+}
+
+/** 시험 · 시드가 심은 대회의 주인(seed-operator · seed-chart-preview …). */
+export function isSeedHosted(d: { hostUid?: unknown }): boolean {
+  return typeof d.hostUid === "string" && d.hostUid.startsWith(SEED_HOST_PREFIX);
+}
+
+/** 시험 대회인가 — 시험 표식이거나 seed- 주인. 뉴스 초안 신호는 이것이 참이면 초안을 만들지 않는다. */
+export function isTestTournament(d: { e2e?: unknown; title?: unknown; hostUid?: unknown }): boolean {
+  return hasTestMark(d) || isSeedHosted(d);
+}
+
+/** NEWS-0a — 대회에 딸린 기사 컬렉션(`tournamentId` 칸). 이 중 초안만 지운다(pickTestDraftIds). */
+export const RELATED_NEWS_COLLECTION = "news";
+
+/** NEWS-0a — 시험 대회를 지울 때 함께 지울 기사: 그 대회의 **초안**만. 발행 · 보관 기사는 건드리지 않는다. */
+export function pickTestDraftIds(articles: readonly { id: string; status?: unknown }[]): string[] {
+  return articles.filter((a) => a.status === "draft").map((a) => a.id);
+}
+
 export type LeftoverVerdict = "test" | "suspect" | "real";
 
 export interface TournamentLike {
