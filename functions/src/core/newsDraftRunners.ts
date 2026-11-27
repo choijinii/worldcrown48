@@ -21,6 +21,7 @@ import {
 import { buildOpenPrompt, buildResultPrompt, buildWeeklyPrompt } from "./newsPrompts";
 import { assembleLocalizedDraft } from "./newsDraftPipeline";
 import { newsDraftExists, type ExistingDraftKey } from "./newsDraftAssembly";
+import type { NewsPolicyLine } from "./tioKnowledge";
 
 type Doc = Record<string, unknown>;
 
@@ -35,6 +36,17 @@ export interface NewsRunnerBase {
   nowMs: () => number;
   logError: (message: string, err?: unknown) => void;
   logInfo: (message: string) => void;
+  /** NEWS-1 4층 — config/newsPolicy 의 줄. 읽기가 실패하면 빈 목록으로 초안을 계속 만든다. */
+  loadPolicyLines: () => Promise<NewsPolicyLine[]>;
+}
+
+async function policyOf(deps: NewsRunnerBase): Promise<NewsPolicyLine[]> {
+  try {
+    return await deps.loadPolicyLines();
+  } catch (e) {
+    deps.logError("news policy read failed — drafting without policy lines", e);
+    return [];
+  }
 }
 
 function rankingsOf(data: Doc | undefined): RankingRowLike[] {
@@ -66,7 +78,7 @@ export async function runOpenDraft(
     deadlineMs: toMs(data.tournamentDeadline),
   };
   const digest = buildOpenDigest(meta, deps.stamp(deps.nowMs()));
-  const prompt = buildOpenPrompt({ title: meta.title, category: meta.category, digest });
+  const prompt = buildOpenPrompt({ title: meta.title, category: meta.category, digest, policyLines: await policyOf(deps) });
   const draft = await assembleLocalizedDraft(
     {
       slug: deps.newSlug(deps.kstDay()),
@@ -120,6 +132,7 @@ export async function runResultDraft(
     championName: digest.leaders[0]?.name ?? "",
     championNameEn: digest.leaders[0]?.nameEn,
     digest,
+    policyLines: await policyOf(deps),
   });
   const draft = await assembleLocalizedDraft(
     {
@@ -164,7 +177,7 @@ export async function runWeeklyDraft(
     runsTotal: runsTotalFromCache(c.data),
   }));
   const digest = buildWeeklyDigest({ caches, asOf: deps.stamp(deps.nowMs()) });
-  const prompt = buildWeeklyPrompt({ digest });
+  const prompt = buildWeeklyPrompt({ digest, policyLines: await policyOf(deps) });
   const draft = await assembleLocalizedDraft(
     {
       slug: deps.newSlug(day),

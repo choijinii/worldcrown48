@@ -14,7 +14,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { adminDb } from "./admin";
 import { runWeeklyDraft } from "./core/newsDraftRunners";
-import { makeNewsCreateMessage, newNewsSlug, kstStamp, writeNewsDraft } from "./newsShared";
+import { makeNewsCreateMessage, newNewsSlug, kstStamp, writeNewsDraft, loadNewsPolicyLines } from "./newsShared";
 import { kstDate } from "./core/voteRecord";
 
 export const scheduleWeeklyNews = onSchedule(
@@ -60,6 +60,7 @@ export const scheduleWeeklyNews = onSchedule(
         nowMs: Date.now,
         logError: (m, e) => logger.error(m, e),
         logInfo: (m) => logger.info(m),
+        loadPolicyLines: loadNewsPolicyLines,
       });
       if (r.outcome === "exists") logger.info("scheduleWeeklyNews: weekly draft already exists today — skip");
     } catch (err) {

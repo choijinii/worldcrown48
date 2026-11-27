@@ -7,7 +7,7 @@
  * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 · 잠금 시험 newsNumberLock.test.ts):
  *   - 숫자 칸 라벨 = ALLOWED_STAT_LABELS 뿐(CONTESTANTS · DEADLINE · KST · LANGUAGES ·
  *     ACTIVE TOURNAMENTS · CROWN SCORE). 결과 기사의 CROWN SCORE = 차트 1위의 점수(정수).
- *   - 선두 행 = 순위 · 이름 · Crown Score · 1등 비율(winRate) · 선택 비율(shareRate)
+ *   - 선두 행 = 순위 · 이름 · Crown Score · 1등 비율(winRate) · 점유율(shareRate)
  *     (LEADER_KEYS). 두 비율은 AI 재료에서 Crown Score 와 같은 줄에만 실린다.
  *   - 대회 전체 참여 횟수(runsTotal)는 결과 기사 AI 재료 줄에만 — 숫자 칸이 아니다.
  *   - 쓸 수 없는 것: 선택 수(voteCount) · 대회 전체 선택 수(totalVotes) · 옛 rate ·
@@ -61,7 +61,7 @@ export interface RankingRowLike {
   crownScore: number;
   /** 1등 비율 0~1. */
   winRate: number;
-  /** 선택 비율 0~1. */
+  /** 점유율 0~1 — Match마다 선택받은 비율(NEWS-1 결정 I). */
   shareRate: number;
 }
 

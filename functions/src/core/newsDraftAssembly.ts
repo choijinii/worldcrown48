@@ -30,7 +30,7 @@ function toStr(v: unknown): string {
  * AI 가 만든 stats 블록 항목(l·n)마다:
  *   - 금지 낱말(선택 수 3언어 · 득표 · 횟수 · 순위점수율 · 옛 rate 칸 이름 …)이 있으면 버린다.
  *   - 횟수 값(9회 · 9 times · 9 veces)이면 버린다.
- *   - `%` 가 있는데 라벨이 1등 비율 · 선택 비율의 3언어 낱말이 아니면 버린다.
+ *   - `%` 가 있는데 라벨이 1등 비율 · 점유율의 3언어 낱말이 아니면 버린다.
  *   - 비율 낱말 라벨인데 값에 `%` 가 없으면(횟수일 수 있음) 버린다.
  *   - 비율 칸은 같은 블록에 Crown Score 칸이 남아 있을 때만 남는다("Crown Score 순위와 함께만").
  * 빈 블록이 되면 블록째 버린다. 본문 문장(paragraph 등)은 고치지 않는다 — 지시문 +
@@ -47,15 +47,20 @@ const RATE_LABEL = new RegExp(
 );
 const CROWN_SCORE_LABEL = /crown score/i;
 
+/** 비율 낱말(1등 비율 · 점유율 3언어)이 들어 있나 — 숫자 칸 그물과 생성 뒤 검사(newsCheck 검사 3)가 함께 쓴다. */
+export function isRateLabel(s: string): boolean {
+  return RATE_LABEL.test(s);
+}
+
 function statItemAllowed(it: { n?: unknown; l?: unknown }): boolean {
   const l = toStr(it.l);
   const n = toStr(it.n);
   const both = `${l} ${n}`;
   if (STAT_DENY.test(both)) return false;
   if (COUNT_VALUE.test(both)) return false;
-  const isRateLabel = RATE_LABEL.test(l);
-  if (both.includes("%") && !isRateLabel) return false;
-  if (isRateLabel && !n.includes("%")) return false;
+  const rateLabel = isRateLabel(l);
+  if (both.includes("%") && !rateLabel) return false;
+  if (rateLabel && !n.includes("%")) return false;
   return true;
 }
 

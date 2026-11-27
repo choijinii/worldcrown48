@@ -230,6 +230,19 @@ export interface ArticleDoc {
   rewriteOf?: string;
   /** 대표가 적은 고칠 점. */
   rewriteNote?: string;
+  /**
+   * NEWS-1 5층 생성 뒤 검사 경고(functions/src/core/newsCheck.ts) — 발행을 막지 않는다.
+   * 옛 기사 · 손 초안에는 칸이 없다. 비어 있으면 걸린 것 없음.
+   */
+  checkWarnings?: ArticleCheckWarning[];
+}
+
+/** 생성 뒤 검사 경고 한 칸 — rule 금지 낱말 · 틀린 숫자 · 목록 밖 퍼센트 / field "title" · "subhead" · "body.N". */
+export interface ArticleCheckWarning {
+  rule: "forbidden_word" | "wrong_number" | "percent";
+  lang: Lang;
+  field: string;
+  match: string;
 }
 
 /**

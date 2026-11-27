@@ -14,6 +14,7 @@
 
 # WorldCrown48 — CLAUDE.md v2.13 (핵심 압축판)
 # 에이전트 진입점 — 가장 먼저 읽는 파일
+# v2.16 (2026-11-27): 원장 D-104(TIO 기본 지식 다섯 층) · D-105(층마다 상한) · D-106(점유율 — 옛 "선택 비율" 이름 바뀜) 전파 — 기술 스택 AI 줄에 뉴스 지시문 자리(NEWS-1)
 # v2.15 (2026-11-23): 원장 D-100(웹 검색 확인은 운영자 편집기만 · ENTRY_WEB_SEARCH) · D-101(설명 필수 · 엔트리 조건 · 덧붙이는 정보 목록 · 첫 단계 폭 · D-94 일부 바뀜) · D-102([AI에게 제안 받기] 남김) 전파 — 본문 변경 없음(LAB-FIX-6) · LANGUAGE.md §19 추가
 # v2.14 (2026-11-19): 원장 D-94(AI에게 알려 줄 내용 묶음 · 엔트리 단위 그 외) · D-95(✕ = 칸 통째로 비우기 · D-88 일부 바뀜) · D-96(모두 비우기) · D-97(생성 전 붙여넣기 · D-90 일부 바뀜) · D-98(링크 제목 읽기 Sonnet) 전파 — 본문 변경 없음(LAB-FIX-4) · LANGUAGE.md §19
 # v2.13 (2026-11-16): 원장 D-91(그림 검색어) · D-92(그림 확인 창) · D-93(내리기는 대회 종류를 따른다) · D-83 바뀜 두 줄 전파 — 대진 흐름 #14 보강(IMAGE-1 PR 3)
@@ -120,6 +121,8 @@ ROUND OF 48 (24 Match) → ROUND OF 24 (12 Match) → ROUND OF 12 (6 Match)
 AI:         Claude API (@anthropic-ai/sdk) — 단일 소스: functions/src/core/models.ts
             · SONNET = claude-sonnet-5   (48명 채우기 · thinking 비활성 명시)
             · HAIKU  = claude-haiku-4-5  (키워드 · 번역 · 뉴스 초안)
+            · 뉴스 AI TIO 지시문 = functions/src/core/tioKnowledge.ts 다섯 층(사실표 · 문체 · 종류별 스킬 · 편집 방침
+              config/newsPolicy · 생성 뒤 검사 newsCheck.ts → 초안 checkWarnings, 경고만) — 원장 D-104 · D-105
 호스팅:     Vercel (프론트) + Firebase (백엔드) + Cloudflare
 도메인:     worldcrown48.com
 SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/sitemapEntries.ts
@@ -260,6 +263,7 @@ SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/si
 
 | 버전 | 날짜 | 주요 변경 |
 |------|------|-----------|
+| **v2.16** | **2026-11-27** | **★ D-104 · D-105 · D-106 전파 (NEWS-1).** 뉴스 AI TIO 기본 지식 다섯 층(1 사실표 35줄 · 2 문체 · 3 종류별 스킬 · 4 TIOZ 편집 방침 `config/newsPolicy` · 5 생성 뒤 검사 `checkWarnings` 경고만 — D-104) · 층마다 상한(6,000 · 3,000 · 3,000자 · 30줄 · 200자 — D-105) · 점유율 = Match마다 선택받은 비율(옛 "선택 비율" 이름 바뀜 · en · es 는 대표 확인 뒤 — D-106) · 기술 스택 AI 줄 |
 | **v2.15** | **2026-11-23** | **★ D-100 · D-101 · D-102 전파 (LAB-FIX-6 · 본문 변경 없음).** 웹 검색 확인은 지금 운영자 편집기만(켜고 끄는 곳 ENTRY_WEB_SEARCH — D-100) · 설명 필수 · "고르는 조건" → "엔트리 조건" · 덧붙이는 정보 = 목록 7개 · 첫 단계 폭 880(D-101 · D-94 일부 바뀜) · [AI에게 제안 받기] 남김(D-102) · LANGUAGE.md §19 추가 |
 | v2.14 | 2026-11-19 | **★ D-94~D-98 전파 (LAB-FIX-4 · 본문 변경 없음).** 편집기 STEP 1 "AI에게 알려 줄 내용" 묶음(엔트리 단위 개인 · 팀 · 그 외 + 세 줄 — D-94) · 칸 ✕ = 통째로 비우기(D-95 · D-88 일부 바뀜) · [모두 비우기](D-96) · 생성 전 [링크 직접 붙여넣기](D-97 · D-90 일부 바뀜) · 링크 제목 읽기 Sonnet(D-98) · LANGUAGE.md §19 |
 | v2.13 | 2026-11-16 | **★ D-91 · D-92 · D-93 · D-83 바뀜 전파 (IMAGE-1 PR 3).** 대진 흐름 #14 — 내리기 스위치는 대회 종류를 따른다(이미지 대회 = 그림 · 영상 대회 = 무대 영상과 썸네일 전부 · 사유 필수 · 되돌리기 없음 · D-93) · 편집기 그림 확인 창(D-92) · 그림 검색어 = 이름 + 소속 + 대회 키워드 앞 1개(D-91) · 무대 "ⓘ 내리기 요청" 글자는 만들지 않음 · report@ 2027-02-26 점검 뒤 정리(D-83 바뀜) |
@@ -277,4 +281,4 @@ SEO:        app/sitemap.ts + app/robots.ts — 넣고 빼는 규칙 = lib/seo/si
 
 ---
 
-*© 2026 WorldCrown48 | CLAUDE.md v2.15 (2026-11-23) | CONFIDENTIAL*
+*© 2026 WorldCrown48 | CLAUDE.md v2.16 (2026-11-27) | CONFIDENTIAL*

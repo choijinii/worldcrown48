@@ -58,6 +58,6 @@ export const TRANSLATION_GLOSSARY = [
 export const CHART_RATE_TERMS = {
   /** 1등 비율 = winRate */
   win: { ko: "1등 비율", en: "Wins", es: "Victorias" },
-  /** 선택 비율 = shareRate */
-  pick: { ko: "선택 비율", en: "Picks", es: "Elecciones" },
+  /** 점유율 = shareRate · Match마다 선택받은 비율(NEWS-1 결정 I · 옛 "선택 비율" 이름 바뀜). en · es 는 대표 확인 전 그대로. */
+  pick: { ko: "점유율", en: "Picks", es: "Elecciones" },
 } as const;

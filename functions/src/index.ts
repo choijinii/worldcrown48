@@ -185,6 +185,7 @@ export { manageTournament } from "./manageTournament";
 
 // ND-1 News Desk — 승인제 뉴스 팩토리. 모든 경로는 draft 생성까지만 (자동 발행 0건).
 export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수동/AI 초안)
+export { getNewsPolicy, saveNewsPolicy } from "./newsPolicy"; // NEWS-1 4층 TIOZ 편집 방침(관리자만 · config/newsPolicy)
 export { onTournamentOpened } from "./onTournamentOpened"; // Tournament 오픈 → 오픈 draft
 export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 결과 draft
 export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft
