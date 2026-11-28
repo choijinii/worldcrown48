@@ -39,13 +39,14 @@ function hits(re: RegExp, files: string[]): string[] {
 const VOTE = /투표|\bvot(e|es|ed|ing|er|ers)\b|\bvot(ación|aciones|ar|o|os|a|an|e|en)\b/i;
 
 /** ko 문서에 남아도 되는 "표" 낱말의 앞머리 — 투표·득표·"표" 단독은 여기에 없다. */
-const ALLOWED_PYO = ["대표", "상표", "재표시", "표기", "표시", "표장", "표적", "표준", "표현"];
+// "발표" = 차트 발표 시각(Crown Score 산정 기준 · RATE-1 2026-11-28).
+const ALLOWED_PYO = ["대표", "발표", "상표", "재표시", "표기", "표시", "표장", "표적", "표준", "표현"];
 
 describe("투표 계열 낱말 금지 (원장 D-03)", () => {
   const files = walk(CONTENT);
 
-  it("정책 문서 12개를 모두 읽는다", () => {
-    expect(files.length).toBe(12);
+  it("정책 문서 15개를 모두 읽는다(5종 × 3언어 · RATE-1 Crown Score 산정 기준 더함)", () => {
+    expect(files.length).toBe(15);
   });
 
   it("content/**.md 에 투표 · vote · Voter · votación 계열이 0개", () => {

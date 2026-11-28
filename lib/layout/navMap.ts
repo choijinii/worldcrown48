@@ -39,7 +39,8 @@ export type NavSubKey =
   | "privacy"
   | "terms"
   | "community"
-  | "cookies";
+  | "cookies"
+  | "crownScore";
 
 export interface NavSub {
   key: NavSubKey;
@@ -116,6 +117,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
       { key: "terms", labelKey: "nav.sub.terms", href: "/policies/terms" },
       { key: "community", labelKey: "nav.sub.community", href: "/policies/community" },
       { key: "cookies", labelKey: "nav.sub.cookies", href: "/policies/cookies" },
+      { key: "crownScore", labelKey: "nav.sub.crownScore", href: "/policies/crown-score" },
     ],
   },
 ];

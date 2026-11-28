@@ -36,12 +36,20 @@ const UPDATED_1106 = {
   es: "Última actualización: 6 de noviembre de 2026",
 } as const;
 
+const UPDATED_1128 = {
+  ko: "최종 업데이트: 2026년 11월 28일",
+  en: "Last updated: November 28, 2026",
+  es: "Última actualización: 28 de noviembre de 2026",
+} as const;
+
 /** 문서마다 판 번호 · 최종 업데이트. */
-const DOC: Record<string, { version: string; date: string; updated: typeof UPDATED_1106 }> = {
+const DOC: Record<string, { version: string; date: string; updated: Record<"ko" | "en" | "es", string> }> = {
   privacy: { version: "1.4", date: "2026-11-06", updated: UPDATED_1106 },
   cookies: { version: "1.4", date: "2026-11-06", updated: UPDATED_1106 },
   terms: { version: "1.3", date: "2026-11-06", updated: UPDATED_1106 },
   community: { version: "1.3", date: "2026-11-06", updated: UPDATED_1106 },
+  // RATE-1(2026-11-28) — Crown Score 산정 기준 첫 판.
+  "crown-score": { version: "1.0", date: "2026-11-28", updated: UPDATED_1128 },
 };
 
 const LANGS = ["ko", "en", "es"] as const;

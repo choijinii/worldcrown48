@@ -119,7 +119,7 @@ describe("서랍 (정본 4 · 5 · 8 · §3)", () => {
     ]);
   });
 
-  it("하위 목록 — The Arena 3 · Record Room 2 · Newsroom 6 · Policy Hub 4", () => {
+  it("하위 목록 — The Arena 3 · Record Room 2 · Newsroom 6 · Policy Hub 5", () => {
     const byKey = Object.fromEntries(drawerItems({ labPublic: false }).map((n) => [n.key, keys(n.children ?? [])]));
     expect(byKey.arena).toEqual(["arenaHome", "kpop", "creator"]);
     expect(byKey.records).toEqual(["charts", "hallOfFame"]);
@@ -131,7 +131,7 @@ describe("서랍 (정본 4 · 5 · 8 · §3)", () => {
       "tournaments",
       "worldPress",
     ]);
-    expect(byKey.policy).toEqual(["privacy", "terms", "community", "cookies"]);
+    expect(byKey.policy).toEqual(["privacy", "terms", "community", "cookies", "crownScore"]);
     expect(byKey.pitch).toEqual([]);
     expect(byKey.locker).toEqual([]);
   });
@@ -193,6 +193,7 @@ describe("흐린 항목 (§0-B 2 · R3)", () => {
       terms: "/policies/terms",
       community: "/policies/community",
       cookies: "/policies/cookies",
+      crownScore: "/policies/crown-score",
     });
   });
 });

@@ -83,6 +83,7 @@ describe("정책 목록 — es", () => {
       "Términos del servicio",
       "Comunidad",
       "Política de cookies",
+      "Cómo se calcula Crown Score",
     ]);
   });
 
@@ -102,10 +103,10 @@ describe("정책 목록 — es", () => {
 
   it("모바일 문서 전환: 스페인어 짧은 이름 (ko 는 지금 그대로)", () => {
     expect(text(render("es", PolicyDocSwitch, { activeType: "cookies" }))).toBe(
-      "Privacidad Términos del servicio Comunidad Política de cookies",
+      "Privacidad Términos del servicio Comunidad Política de cookies Cómo se calcula Crown Score",
     );
     expect(text(render("ko", PolicyDocSwitch, { activeType: "cookies" }))).toBe(
-      "개인정보처리방침 이용약관 커뮤니티 가이드 쿠키 정책",
+      "개인정보처리방침 이용약관 커뮤니티 가이드 쿠키 정책 Crown Score 산정 기준",
     );
   });
 });
