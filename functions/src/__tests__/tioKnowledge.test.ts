@@ -146,13 +146,19 @@ describe("조립 순서 1 → 2 → 3 → 4 → 할 일 → 데이터 → 출력
 });
 
 describe("세 비율 이름(D-108)", () => {
-  it("세 비율 정본 이름(대표 2026-11-28) — 선택율 · 우승율 · 순위점수율 · en · es 는 지금 글자 그대로", async () => {
+  it("세 비율 정본 이름(대표 2026-11-28 · D-108 · 결정 L) — 3언어", async () => {
     const { CHART_RATE_TERMS } = await import("../core/displayTerms");
     expect(CHART_RATE_TERMS).toEqual({
-      place: { ko: "순위점수율", en: "Reach", es: "Alcance" },
-      win: { ko: "우승율", en: "Wins", es: "Victorias" },
-      pick: { ko: "선택율", en: "Picks", es: "Elecciones" },
+      place: { ko: "순위점수율", en: "Placement score rate", es: "Tasa de puntuación por posición" },
+      win: { ko: "우승율", en: "Champion rate", es: "Tasa de campeón" },
+      pick: { ko: "선택율", en: "Pick rate", es: "Tasa de elección" },
     });
+  });
+  it("결정 L 비정본 이름(Reach · Wins · Picks · Share / Alcance · Victorias · Elecciones · Cuota)은 AI 지시문에 0건", () => {
+    for (const kind of ["open", "result", "weekly", "column"] as const) {
+      const p = buildTioPrompt({ kind, task: "t", policyLines: [], data: "d" });
+      expect(p).not.toMatch(/\b(Reach|Wins|Picks|Share|Alcance|Victorias|Elecciones|Cuota)\b/);
+    }
   });
   it("비정본 이름(선택 비율 · 점유율 · 승률 · 1등 비율)은 '쓰지 않는다' 줄에만 — 사실표 24번 · 문체 금지 줄", () => {
     for (const kind of ["open", "result", "weekly", "column"] as const) {

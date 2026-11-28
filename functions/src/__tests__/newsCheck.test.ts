@@ -107,10 +107,48 @@ describe("검사 3 순위와 연결된 비정본 이름(대표 2026-11-28 · 옛
     ["ko", "순위점수율이 순위를 끌어올렸다."],
     ["en", "revenue rose more than 25% year on year"],
     ["es", "el 85 % de los usuarios eran fans del extranjero"],
+    // RATE-1 결정 L — 영어 · 스페인어 정본 이름(여러 낱말)은 통과 · 보통 낱말 picks · elecciones 도 통과
+    ["en", "A Pick rate of 64.2% and a Champion rate of 31.0% kept them No. 1."],
+    ["en", "Their Placement score rate of 77% pushed the Crown Score to 812."],
+    ["en", "Crown Score is rated out of 1,000 — shaped entirely by fans' picks."],
+    ["en", "Fans' picks decided the ranking."],
+    ["es", "Una Tasa de elección del 64,2 % y una Tasa de campeón del 31,0 % lo mantuvieron n.º 1."],
+    ["es", "La Tasa de puntuación por posición del 77 % impulsó la clasificación."],
+    ["es", "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans."],
   ] as const)("순위와 관계없는 퍼센트 · 정본 이름은 통과 — %s 「%s」", (lang, s) => {
     expect(findRateNames(lang, s)).toEqual([]);
     expect(findRateClaims(lang, s)).toEqual([]);
   });
+
+  // RATE-1 결정 L(대표 2026-11-28) — 옛 화면 낱말 · 11/27 안은 정본이 아니다. 비율 자리(퍼센트 옆)에서만 잡는다.
+  it.each([
+    ["en", "Reach 40%", "Reach"],
+    ["en", "Wins of 31.0%", "Wins"],
+    ["en", "64.2% Picks", "Picks"],
+    ["en", "a Share of 64.2%", "Share"],
+    ["en", "a win rate of 31%", "win rate"],
+    ["en", "a share rate of 64%", "share rate"],
+    ["es", "Alcance 40 %", "Alcance"],
+    ["es", "Victorias del 31,0 %", "Victorias"],
+    ["es", "64,2 % de Elecciones", "Elecciones"],
+    ["es", "una Cuota del 64,2 %", "Cuota"],
+    ["es", "una tasa de victorias del 31 %", "tasa de victorias"],
+  ] as const)("(가) 결정 L 비정본 %s 「%s」 → rate_name %s", (lang, s, hit) => {
+    expect(findRateNames(lang, s)).toContain(hit);
+  });
+});
+
+it("숫자 칸 라벨이 비정본 이름 그대로면 rate_name(en · es)", () => {
+  const w = checkDraftText({
+    title: { ko: "", en: "", es: "" },
+    subhead: { ko: "", en: "", es: "" },
+    body: {
+      ko: [],
+      en: [{ type: "stats", items: [{ n: "64.2%", l: "PICKS" }, { n: "64.2%", l: "Pick rate" }] }],
+      es: [{ type: "stats", items: [{ n: "64,2 %", l: "Cuota" }, { n: "64,2 %", l: "Tasa de elección" }] }],
+    },
+  } as never);
+  expect(w.filter((x) => x.rule === "rate_name").map((x) => `${x.lang}:${x.match}`)).toEqual(["en:PICKS", "es:Cuota"]);
 });
 
 describe("checkDraftText — 제목 · 부제 · 본문 3언어", () => {
