@@ -316,31 +316,53 @@ export const MESSAGES = {
     en: "Still warming up — the chart opens as more fans join in.",
     es: "Aún hay poca participación. ¡Vuelve muy pronto!",
   },
-  // Crown Score 옆 "?" 설명창 — 계산식을 쉬운 말로 알려 주는 **공통 문구 하나**
-  // (모든 Contestant에게 같은 문구 · 대표 2026-09-24). 문구가 오기 전에는 자리만 두고
-  // 숨긴다 — `ChartScoreHelp` 가 이 값이 대기 표식이면 아예 그리지 않는다.
-  // 요약 한 줄 + 항목 세 줄. `resolveHelpText` 가 줄 단위로 쪼개 넘긴다.
-  // 비중(40/30/30)은 정본 §4 그대로다 — 문구만 쉬운 말로 옮긴 것이고 산식이 아니다.
+  // Crown Score 옆 "?" 설명창 — 팬이 산식을 따라 계산할 수 있게 다 보인다(대표 2026-11-28 결정 M · 글 = RATE-1
+  // 지시서 §3 글자 그대로 · 대표가 두 줄을 직접 고침). 산식 · 순위 점수표 · 세 비율의 뜻 · 예시 계산 1줄 · 세는 판 ·
+  // 발표 시각 · 1000점의 뜻. 세 비율 이름 = 원장 D-108 · 결정 L(en Pick rate … · es Tasa de elección …).
+  // `resolveHelpText` 가 줄 단위로 쪼개 넘긴다 — 앞에 공백이 있는 줄(점수표)은 화면이 들여 쓴다.
+  // 같은 글이 정책 문서 "Crown Score 산정 기준"(content/*/crown-score.md)에 실린다. 글자 대조 시험 =
+  // lib/__tests__/ranking/chartScoreHelp.test.ts.
   "chart.score.help": {
     ko: [
       "Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.",
-      "· 순위점수율 40% — 참여마다 결승에 얼마나 가까이 올랐는지",
-      "· 우승율 30% — 결승에서 선택받아 1등이 된 비율",
-      "· 선택율 30% — Match마다 선택받은 비율",
+      "계산: (순위점수율 × 0.4 + 우승율 × 0.3 + 선택율 × 0.3) × 1000",
+      "· 순위점수율 — 판마다 얼마나 높이 올랐는지",
+      "   한 판에서 1등 10점 · 2등 엔트리 2개에게 5점씩 · 3등 엔트리 3개에게 2점씩 → 판마다 받은 점수의 평균 ÷ 10 × 100(%)",
+      "· 우승율 — 결승에서 선택받아 1등이 된 판의 비율",
+      "· 선택율 — Match에 나왔을 때 선택받은 비율",
+      "예: 순위점수율 50% · 우승율 30% · 선택율 80%이면 (0.5×0.4 + 0.3×0.3 + 0.8×0.3) × 1000 = 530점",
+      "· 로그인한 팬이 끝까지 마친 판만 셉니다(게스트의 판은 세지 않아요).",
+      "· 마친 판이 10판을 넘으면 다음 발표 때 점수가 열립니다, 매일 09:00 · 21:00(KST)",
+      "· 1000점은 모든 판에서 1등, 모든 Match에서 선택받아야 나오는 점수예요.",
     ].join("\n"),
     en: [
       "Crown Score is rated out of 1,000 — shaped entirely by fans' picks.",
-      "· Reach 40% — how close to the final they get each time",
-      "· Wins 30% — how often they're picked No. 1 in the final",
-      "· Picks 30% — how often they're chosen in each Match",
+      "Formula: (Placement score rate × 0.4 + Champion rate × 0.3 + Pick rate × 0.3) × 1,000",
+      "· Placement score rate — how high they climb in each run",
+      "   In each run: No. 1 = 10 points · No. 2 (2 Contestants) = 5 each · No. 3 (3 Contestants) = 2 each → average points per run ÷ 10 × 100 (%)",
+      "· Champion rate — share of runs where they're picked No. 1 in the final",
+      "· Pick rate — how often they're chosen when they appear in a Match",
+      "Example: Placement 50% · Champion 30% · Pick 80% → (0.5×0.4 + 0.3×0.3 + 0.8×0.3) × 1,000 = 530",
+      "· Only completed runs by signed-in fans count (guest runs don't).",
+      "· The score opens at the next update after 10 completed runs, daily at 09:00 · 21:00 (KST)",
+      "· 1,000 means No. 1 in every run and picked in every Match.",
     ].join("\n"),
     es: [
       "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.",
-      "· Alcance 40 % — qué tan cerca de la final llega en cada participación",
-      "· Victorias 30 % — cuántas veces lo eligen n.º 1 en la final",
-      "· Elecciones 30 % — cuántas veces lo eligen en cada Match",
+      "Fórmula: (Tasa de puntuación por posición × 0,4 + Tasa de campeón × 0,3 + Tasa de elección × 0,3) × 1000",
+      "· Tasa de puntuación por posición — qué tan alto llega en cada participación",
+      "   En cada participación: n.º 1 = 10 puntos · n.º 2 (2 Contestants) = 5 cada uno · n.º 3 (3 Contestants) = 2 cada uno → promedio de puntos por participación ÷ 10 × 100 (%)",
+      "· Tasa de campeón — porcentaje de participaciones en que lo eligen n.º 1 en la final",
+      "· Tasa de elección — cuántas veces lo eligen cuando aparece en un Match",
+      "Ejemplo: posición 50 % · campeón 30 % · elección 80 % → (0,5×0,4 + 0,3×0,3 + 0,8×0,3) × 1000 = 530",
+      "· Solo cuentan las participaciones completas de fans con sesión iniciada (las de invitados no).",
+      "· La puntuación se abre en la siguiente actualización tras 10 participaciones completas, cada día a las 09:00 · 21:00 (KST)",
+      "· 1000 significa n.º 1 en todas las participaciones y elegido en todos los Match.",
     ].join("\n"),
   },
+
+  // 좁은 화면 설명창(시트)의 닫기 단추 — 이미 승인된 낱말 "닫기 / Close / Cerrar"(lab.names.close 와 같은 글)를 그대로 쓴다.
+  "chart.score.help.close": { ko: "닫기", en: "Close", es: "Cerrar" },
 
   // 메뉴바 CTA "참가하기"(nav.cta.enter · D-23)는 NAV-1 에서 버튼과 함께 없앴다(§0-B 1).
 
@@ -369,6 +391,8 @@ export const MESSAGES = {
   "nav.sub.terms": { ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   "nav.sub.community": { ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
   "nav.sub.cookies": { ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+  // Crown Score 산정 기준 — 페이지 이름 대표 승인 2026-11-28(RATE-1 §4) · 정책 화면 왼쪽 목록(POLICY_NAV)과 같은 글.
+  "nav.sub.crownScore": { ko: "Crown Score 산정 기준", en: "How Crown Score works", es: "Cómo se calcula Crown Score" },
   // ── NAV-1 /records Charts 대회 목록 (§9 게이트 8 · 대표 승인 2026-10-10 · 글자 그대로) ──
   "records.eyebrow": { ko: "RECORD ROOM", en: "RECORD ROOM", es: "RECORD ROOM" },
   "records.title": { ko: "Charts", en: "Charts", es: "Charts" },

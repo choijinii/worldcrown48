@@ -24,6 +24,8 @@ on:
       - 'components/ranking/**'
       - 'lib/ranking/**'
       - 'lib/__tests__/ranking/**'
+      # RATE-1 (2026-11-28) — 차트 설명창 글(chart.score.help)
+      - 'lib/i18n/messages.ts'
       - 'lib/firebase.ts'
       - 'functions/src/scheduleRankingCache.ts'
       - 'functions/src/onVote.ts'

@@ -6,7 +6,7 @@
  *   ② 틀린 가짜 응답(「전쟁」) → 초안 잠김(checkBlocked) → 뉴스데스크 [발행] 눌러도 초안 그대로
  *   ③ clearNewsCheckWarnings → 풀림 · 기록(news_check_clears) → [발행] → 발행됨
  *   ④ 발행된 기사를 고쳐 새 경고(「투표」) → 다시 검사돼 잠김 표시 · 상태는 발행 그대로(내리지 않음)
- *   ⑤ 차트 설명창 셋째 줄 en · es 는 지금 글자 그대로(Picks · Elecciones — 대표 승인 전 · D-108 · Share · Cuota 안은 쓰지 않음)
+ *   ⑤ 차트 설명창 선택율 줄 en · es = 결정 L(Pick rate · Tasa de elección — RATE-1 2026-11-28 · Share · Cuota 안은 쓰지 않음)
  */
 import { createServer, type Server } from "node:http";
 import * as admin from "firebase-admin";
@@ -166,19 +166,19 @@ test("① 주간 대회 세기 · ② 잠긴 초안 발행 막힘 · ③ [경고
   expect(errors.filter((e) => !/permission|PERMISSION_DENIED|Missing or insufficient/i.test(e))).toEqual([]);
 });
 
-test("⑤ 차트 설명창 셋째 줄 — en · es 는 지금 글자 그대로(Picks · Elecciones)", async ({ page }) => {
+test("⑤ 차트 설명창 선택율 줄 — en · es = 결정 L(Pick rate · Tasa de elección)", async ({ page }) => {
   const { id, contestantIds } = await seedImageTournament();
   const r = (i: number, score: number) => ({ rank: i + 1, contestantId: contestantIds[i], name: `엔트리${i + 1}`, videoId: null, crownScore: score, placementRate: 0.5, winRate: 0.5, shareRate: 0.5 });
   await db().collection("ranking_cache").doc(id).set({ tournamentId: id, rankings: [r(0, 800), r(1, 600)], generationSequence: 0, runsTotal: 20, generatedAt: admin.firestore.Timestamp.now(), previousGeneratedAt: null });
   for (const [lang, line] of [
-    ["en", "· Picks 30% — how often they're chosen in each Match"],
-    ["es", "· Elecciones 30 % — cuántas veces lo eligen en cada Match"],
+    ["en", "· Pick rate — how often they're chosen when they appear in a Match"],
+    ["es", "· Tasa de elección — cuántas veces lo eligen cuando aparece en un Match"],
   ] as const) {
     await page.goto(`/arena/${id}/ranking?lang=${lang}`);
     await dismissConsent(page);
     await page.getByTestId("chart-score-help").click();
     const panel = page.getByTestId("chart-score-help-panel");
-    await expect(panel.locator("p").nth(3)).toHaveText(line);
+    await expect(panel.locator("p").nth(5)).toHaveText(line);
     await panel.screenshot({ path: `test-results-emulator/news2-chart-help-${lang}.png` });
   }
 });

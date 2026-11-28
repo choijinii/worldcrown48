@@ -71,7 +71,7 @@ export function showNextUpdateLine(
  * 설명창은 **계산식을 쉬운 말로 알려 주는 공통 문구 하나**다(대표 2026-09-24).
  * Contestant마다 다른 수치를 보여 주는 자리가 아니다. 마케팅 승인본(2026-09-24)이
  * **요약 한 줄 + 항목 세 줄** 형태라 줄 단위로 쪼개 넘긴다 — 화면이 문자열을 다시
- * 파싱하지 않게 한다.
+ * 파싱하지 않게 한다. 앞에 공백이 있는 줄은 그대로 넘긴다(들여 쓸 줄 · RATE-1 2026-11-28).
  *
  * 문안이 오기 전에는 자리만 두고 그리지 않는다(대기 표식이 화면에 새어 나가지 않게
  * 막는 곳이 여기다). 2026-09-24에 3언어 문안이 도착해 지금은 켜져 있다.
@@ -83,9 +83,10 @@ export function resolveHelpText(raw: string | null | undefined): string[] | null
   // `MARKETING_PENDING` 을 import 하면 lib/ranking 이 i18n 에 묶인다(이 폴더는
   // functions 로 복사되는 순수 모듈들과 이웃이다). 표식의 모양으로 판정한다.
   if (text.startsWith("⟪") && text.endsWith("⟫")) return null;
+  // 끝 공백만 지운다 — 앞 공백은 "들여 쓴 줄" 표지라 남긴다(RATE-1 §3 순위 점수표 줄 · 화면이 들여 쓴다).
   const lines = text
     .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim().length > 0);
   return lines.length > 0 ? lines : null;
 }

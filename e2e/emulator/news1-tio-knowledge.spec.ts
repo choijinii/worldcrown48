@@ -163,9 +163,10 @@ test("③ 차트 설명창 한국어 세 줄 = 순위점수율 · 우승율 · �
   await dismissConsent(page);
   await page.getByTestId("chart-score-help").click();
   const panel = page.getByTestId("chart-score-help-panel");
-  await expect(panel.locator("p").nth(1)).toHaveText("· 순위점수율 40% — 참여마다 결승에 얼마나 가까이 올랐는지");
-  await expect(panel.locator("p").nth(2)).toHaveText("· 우승율 30% — 결승에서 선택받아 1등이 된 비율");
-  await expect(panel.locator("p").nth(3)).toHaveText("· 선택율 30% — Match마다 선택받은 비율");
+  // RATE-1(대표 2026-11-28) — 설명창 글이 산식 · 점수표 · 예시까지 늘었다(세 비율 줄은 2 · 4 · 5번째).
+  await expect(panel.locator("p").nth(2)).toHaveText("· 순위점수율 — 판마다 얼마나 높이 올랐는지");
+  await expect(panel.locator("p").nth(4)).toHaveText("· 우승율 — 결승에서 선택받아 1등이 된 판의 비율");
+  await expect(panel.locator("p").nth(5)).toHaveText("· 선택율 — Match에 나왔을 때 선택받은 비율");
   for (const old of ["선택 비율", "점유율", "1등 비율", "오른 순위"]) await expect(panel).not.toContainText(old);
   await panel.screenshot({ path: "test-results-emulator/news1-chart-help-ko.png" });
   await expectNoConsoleErrors(errors);
