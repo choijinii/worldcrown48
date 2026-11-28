@@ -113,9 +113,9 @@ describe("SEO-1 sitemap — 공개 페이지만", () => {
     expect(u.join("\n")).not.toContain("pulled-story");
   });
 
-  it("고정 공개 페이지(홈·뉴스·정책 4종)는 데이터가 없어도 싣는다", () => {
+  it("고정 공개 페이지(홈·뉴스·정책 5종 — Crown Score 산정 기준 포함)는 데이터가 없어도 싣는다", () => {
     const u = buildSitemapEntries({ tournaments: [], articles: [], deployEnv: "production" }).map((e) => e.url);
-    for (const path of ["/", "/news", "/policies/cookies", "/policies/community", "/policies/terms", "/policies/privacy"]) {
+    for (const path of ["/", "/news", "/policies/cookies", "/policies/community", "/policies/terms", "/policies/privacy", "/policies/crown-score"]) {
       expect(u).toContain(`${SITE_URL}${path}`);
     }
   });

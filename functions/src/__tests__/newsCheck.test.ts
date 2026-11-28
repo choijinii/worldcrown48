@@ -107,10 +107,48 @@ describe("검사 3 순위와 연결된 비정본 이름(대표 2026-11-28 · 옛
     ["ko", "순위점수율이 순위를 끌어올렸다."],
     ["en", "revenue rose more than 25% year on year"],
     ["es", "el 85 % de los usuarios eran fans del extranjero"],
+    // RATE-1 결정 L — 영어 · 스페인어 정본 이름(여러 낱말)은 통과 · 보통 낱말 picks · elecciones 도 통과
+    ["en", "A Pick rate of 64.2% and a Champion rate of 31.0% kept them No. 1."],
+    ["en", "Their Placement score rate of 77% pushed the Crown Score to 812."],
+    ["en", "Crown Score is rated out of 1,000 — shaped entirely by fans' picks."],
+    ["en", "Fans' picks decided the ranking."],
+    ["es", "Una Tasa de elección del 64,2 % y una Tasa de campeón del 31,0 % lo mantuvieron n.º 1."],
+    ["es", "La Tasa de puntuación por posición del 77 % impulsó la clasificación."],
+    ["es", "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans."],
   ] as const)("순위와 관계없는 퍼센트 · 정본 이름은 통과 — %s 「%s」", (lang, s) => {
     expect(findRateNames(lang, s)).toEqual([]);
     expect(findRateClaims(lang, s)).toEqual([]);
   });
+
+  // RATE-1 결정 L(대표 2026-11-28) — 옛 화면 낱말 · 11/27 안은 정본이 아니다. 비율 자리(퍼센트 옆)에서만 잡는다.
+  it.each([
+    ["en", "Reach 40%", "Reach"],
+    ["en", "Wins of 31.0%", "Wins"],
+    ["en", "64.2% Picks", "Picks"],
+    ["en", "a Share of 64.2%", "Share"],
+    ["en", "a win rate of 31%", "win rate"],
+    ["en", "a share rate of 64%", "share rate"],
+    ["es", "Alcance 40 %", "Alcance"],
+    ["es", "Victorias del 31,0 %", "Victorias"],
+    ["es", "64,2 % de Elecciones", "Elecciones"],
+    ["es", "una Cuota del 64,2 %", "Cuota"],
+    ["es", "una tasa de victorias del 31 %", "tasa de victorias"],
+  ] as const)("(가) 결정 L 비정본 %s 「%s」 → rate_name %s", (lang, s, hit) => {
+    expect(findRateNames(lang, s)).toContain(hit);
+  });
+});
+
+it("숫자 칸 라벨이 비정본 이름 그대로면 rate_name(en · es)", () => {
+  const w = checkDraftText({
+    title: { ko: "", en: "", es: "" },
+    subhead: { ko: "", en: "", es: "" },
+    body: {
+      ko: [],
+      en: [{ type: "stats", items: [{ n: "64.2%", l: "PICKS" }, { n: "64.2%", l: "Pick rate" }] }],
+      es: [{ type: "stats", items: [{ n: "64,2 %", l: "Cuota" }, { n: "64,2 %", l: "Tasa de elección" }] }],
+    },
+  } as never);
+  expect(w.filter((x) => x.rule === "rate_name").map((x) => `${x.lang}:${x.match}`)).toEqual(["en:PICKS", "es:Cuota"]);
 });
 
 describe("checkDraftText — 제목 · 부제 · 본문 3언어", () => {
@@ -177,4 +215,21 @@ describe("checkDraftText — 퍼센트 경고 없음 · 비정본 이름 경고(
 it("비정본 철자가 순위 문장에 있어도 경고는 rate_name 하나(rate_claim 으로 겹치지 않음)", () => {
   expect(findRateClaims("ko", "선택률이 순위를 결정했다.")).toEqual([]);
   expect(findRateNames("ko", "선택률이 순위를 결정했다.")).toEqual(["선택률"]);
+});
+
+// RATE-1 PR A 7번(덧붙임 2026-11-28 21:20) — 바깥 출처에서 인용한 숫자는 출처가 있으면 쓴다(외신 킥 v0.2 결정 5 · D-108).
+it("외신 인용 숫자(조회수 · 판매량 · 바깥 차트 순위 · 퍼센트)가 든 초안 — 경고 0", () => {
+  const w = checkDraftText({
+    title: { ko: "빌보드 핫 100 3위", en: "No. 3 on the Billboard Hot 100", es: "Puesto 3 en el Billboard Hot 100" },
+    subhead: { ko: "뮤직비디오 조회수 1억 2천만 회", en: "120 million music video views", es: "120 millones de reproducciones" },
+    body: {
+      ko: [
+        { type: "paragraph", text: "빌보드에 따르면 이 곡은 핫 100에서 3위에 올랐고, 첫 주 판매량은 41만 장이었다." },
+        { type: "paragraph", text: "유튜브 집계로 뮤직비디오 조회수는 24시간 만에 1억 2천만 회를 넘었고, 시청자의 62%가 해외였다." },
+      ],
+      en: [{ type: "paragraph", text: "According to Billboard, the song hit No. 3 on the Hot 100, with first-week sales of 410,000 copies and 62% of views from overseas." }],
+      es: [{ type: "paragraph", text: "Según Billboard, la canción llegó al puesto 3 del Hot 100, con 410.000 copias vendidas y el 62 % de las vistas desde el extranjero." }],
+    },
+  } as never);
+  expect(w).toEqual([]);
 });

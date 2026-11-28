@@ -27,15 +27,19 @@
  * 자체를 그리지 않는다 — 문안이 없을 때 임시 문구를 지어 넣지 않기 위한 장치다.
  * 열고 닫기는 **클릭**이다. 호버 툴팁(`title` 속성)은 네 줄이 한 줄로 뭉치고 터치
  * 기기에서 열리지 않는다.
+ *
+ * RATE-1(대표 2026-11-28 결정 M): 설명창이 산식 · 점수표 · 예시까지 담아 길어졌다. 넓은 화면은 지금 자리에서
+ * 펼치고, 좁은 화면(≤600px)은 아래에서 올라오는 시트로 연다(바깥 누르기 · [닫기] · Esc 로 닫힘).
  */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 export function RankingHeader({
   kicker,
   title,
   note,
   helpLines,
+  helpCloseLabel,
   updatedText,
   nextUpdateText,
   deadlineLabel,
@@ -47,6 +51,8 @@ export function RankingHeader({
   note: string;
   /** Crown Score 계산식 안내 — 요약 1줄 + 항목 3줄. `null` 이면 물음표를 그리지 않는다. */
   helpLines?: string[] | null;
+  /** 좁은 화면 시트의 [닫기] 글자(3언어 카탈로그). 없으면 단추 없이 바깥 누르기 · Esc 로만 닫는다. */
+  helpCloseLabel?: string;
   /** 알약 앞부분 "지난 발표: …". `null` 이면 감춘다(아직 발표된 캐시가 없음). */
   updatedText?: string | null;
   /** 알약 뒷부분 "다음 발표: …". `null` 이면 감춘다(새벽 구간 · 마감 후). */
@@ -55,6 +61,15 @@ export function RankingHeader({
   deadlineText: string | null;
 }): JSX.Element {
   const [helpOpen, setHelpOpen] = useState(false);
+  // 시트로 열렸을 때 Esc 로 닫는다(넓은 화면에서도 같은 동작 — 해가 없다).
+  useEffect(() => {
+    if (!helpOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setHelpOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen]);
   return (
     <div className="rank-head">
       <div className="rank-kicker">{kicker}</div>
@@ -105,16 +120,44 @@ export function RankingHeader({
         ) : null}
       </div>
       {helpLines && helpLines.length > 0 && helpOpen ? (
-        <div
-          id="chart-score-help-panel"
-          className="rank-help-panel"
-          role="note"
-          data-testid="chart-score-help-panel"
-        >
-          {helpLines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </div>
+        <>
+          {/* 좁은 화면(시트)에서만 보이는 바깥 덮개 — 누르면 닫힌다. 넓은 화면에서는 CSS 가 숨긴다. */}
+          <button
+            type="button"
+            className="rank-help-backdrop"
+            aria-hidden="true"
+            tabIndex={-1}
+            onClick={() => setHelpOpen(false)}
+            data-testid="chart-score-help-backdrop"
+          />
+          <div
+            id="chart-score-help-panel"
+            className="rank-help-panel"
+            role="note"
+            data-testid="chart-score-help-panel"
+          >
+            {/* 앞에 공백이 있는 줄(순위 점수표)은 들여 쓴다 — RATE-1 §3 줄 나눔 그대로. */}
+            {helpLines.map((line) =>
+              /^\s/.test(line) ? (
+                <p key={line} className="sub">
+                  {line.trim()}
+                </p>
+              ) : (
+                <p key={line}>{line}</p>
+              ),
+            )}
+            {helpCloseLabel ? (
+              <button
+                type="button"
+                className="rank-help-close"
+                onClick={() => setHelpOpen(false)}
+                data-testid="chart-score-help-close"
+              >
+                {helpCloseLabel}
+              </button>
+            ) : null}
+          </div>
+        </>
       ) : null}
     </div>
   );

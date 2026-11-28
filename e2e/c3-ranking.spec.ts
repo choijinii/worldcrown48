@@ -243,7 +243,7 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await page.screenshot({ path: "playwright-report/c3-ranking-mobile360.png", fullPage: true });
   });
 
-  test("설명창(?) — 눌러야 열리고, 요약 1줄 + 항목 3줄이 나온다", async ({ page }) => {
+  test("설명창(?) — 눌러야 열리고, 산식 · 점수표 · 예시까지 10줄(RATE-1 · 대표 2026-11-28)", async ({ page }) => {
     await page.goto(`/arena/${TID_LOADED}/ranking?lang=ko`);
     await expect(page.getByTestId("ranking-view")).toHaveAttribute(
       "data-rank",
@@ -260,16 +260,60 @@ test.describe("@c3 차트 — Crown Score 화면", () => {
     await help.click();
     const panel = page.getByTestId("chart-score-help-panel");
     await expect(panel).toBeVisible();
-    await expect(panel.locator("p")).toHaveCount(4);
+    await expect(panel.locator("p")).toHaveCount(10);
     await expect(panel).toContainText("1000점 만점");
-    // 계산식을 쉬운 말로 — 비중 3종이 다 보인다.
-    await expect(panel).toContainText("40%");
-    await expect(panel).toContainText("30%");
+    // 팬이 따라 계산할 수 있게 — 산식 · 점수표(들여 쓴 줄) · 예시 530 · 발표 시각.
+    await expect(panel.locator("p").nth(1)).toHaveText("계산: (순위점수율 × 0.4 + 우승율 × 0.3 + 선택율 × 0.3) × 1000");
+    await expect(panel.locator("p.sub")).toHaveCount(1);
+    await expect(panel).toContainText("= 530점");
+    await expect(panel).toContainText("매일 09:00 · 21:00(KST)");
 
     // 다시 누르면 닫힌다.
     await help.click();
     await expect(page.getByTestId("chart-score-help-panel")).toHaveCount(0);
   });
+
+  // RATE-1(대표 2026-11-28 결정 M · L) — 3언어 글 · 비정본 이름 없음 · 1440 · 390 캡처(사전 점검 표 §7).
+  for (const [lang, first, pickLine] of [
+    ["ko", "Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.", "· 선택율 — Match에 나왔을 때 선택받은 비율"],
+    ["en", "Crown Score is rated out of 1,000 — shaped entirely by fans' picks.", "· Pick rate — how often they're chosen when they appear in a Match"],
+    ["es", "Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.", "· Tasa de elección — cuántas veces lo eligen cuando aparece en un Match"],
+  ] as const) {
+    test(`설명창 ${lang} — 1440 은 제자리 · 390 은 아래에서 올라오는 시트(끝까지 스크롤 · [닫기])`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`/arena/${TID_LOADED}/ranking?lang=${lang}`);
+      await expect(page.getByTestId("ranking-view")).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
+      await page.getByTestId("chart-score-help").click();
+      const panel = page.getByTestId("chart-score-help-panel");
+      await expect(panel.locator("p").first()).toHaveText(first);
+      await expect(panel.locator("p").nth(5)).toHaveText(pickLine);
+      await expect(panel).not.toContainText(/\b(Reach|Wins|Picks|Share|Alcance|Victorias|Elecciones|Cuota)\b/);
+      // 넓은 화면: 시트가 아니다 · 글이 잘리지 않는다(가로 넘침 0).
+      expect(await panel.evaluate((el) => getComputedStyle(el).position)).not.toBe("fixed");
+      expect(await panel.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await expect(page.getByTestId("chart-score-help-close")).toBeHidden();
+      await panel.screenshot({ path: `test-results/rate1-chart-help-${lang}-1440.png` });
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      const box = await panel.boundingBox();
+      expect(await panel.evaluate((el) => getComputedStyle(el).position)).toBe("fixed");
+      expect(box!.x).toBe(0);
+      expect(Math.round(box!.y + box!.height)).toBe(844); // 화면 아래 끝에 붙는다
+      expect(await panel.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      // 끝까지 스크롤하면 마지막 줄과 [닫기]가 보인다.
+      await panel.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+      await expect(panel.locator("p").last()).toBeInViewport();
+      const close = page.getByTestId("chart-score-help-close");
+      await expect(close).toBeInViewport();
+      await page.screenshot({ path: `test-results/rate1-chart-help-${lang}-390.png` });
+      await close.click();
+      await expect(panel).toHaveCount(0);
+      // 바깥 덮개를 눌러도 닫힌다.
+      await page.getByTestId("chart-score-help").click();
+      await page.getByTestId("chart-score-help-backdrop").click({ position: { x: 195, y: 110 } });
+      await expect(page.getByTestId("chart-score-help-panel")).toHaveCount(0);
+    });
+  }
 
   test("차트 이름 3언어 — ko 차트 · en CHART · es LISTAS (+ 마감 한 줄 3언어)", async ({ page }) => {
     for (const [lang, kicker, deadlineLabel] of [

@@ -11,8 +11,9 @@
  *     (LEADER_KEYS). 두 비율은 AI 재료에서 Crown Score 와 같은 줄에만 실린다.
  *   - 대회 전체 참여 횟수(runsTotal)는 결과 기사 AI 재료 줄에만 — 숫자 칸이 아니다.
  *   - 쓸 수 없는 것: 선택 수(voteCount) · 대회 전체 선택 수(totalVotes) · 옛 rate ·
- *     1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위 점수 합계 · 순위점수율
- *     (placementRate). 캐시에 있어도 rankingRowFromCache 가 읽지 않는다.
+ *     1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위 점수 합계. 캐시에 있어도
+ *     rankingRowFromCache 가 읽지 않는다. (순위점수율은 D-108 · 2026-11-28 부터 쓸 수 있다 —
+ *     11/25 "기사에서 뺀다"가 바뀜.)
  */
 
 /**

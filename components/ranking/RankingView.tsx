@@ -33,6 +33,8 @@ export interface RankingViewLabels {
   note: string;
   /** Crown Score 설명창(?) 줄 배열. `null` 이면 물음표를 그리지 않는다. */
   helpLines?: string[] | null;
+  /** 좁은 화면 설명창(아래에서 올라오는 시트)의 [닫기] 글자. 없으면 닫기 단추를 그리지 않는다. */
+  helpCloseLabel?: string;
   deadlineLabel: string;
   /** 판수가 10에 닿기 전 · 캐시가 없을 때의 한 문장 (정본 §5 · 대표 승인 A8). */
   waitingTitle: string;
@@ -75,9 +77,19 @@ const STYLE = `
 .rank-help[aria-expanded=true] { background: var(--color-gold-subtle); }
 .rank-pill { display: inline-block; max-width: 100%; text-align: left; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; letter-spacing: 0.06em; padding: 4px var(--space-3); border: 1px solid var(--color-border-gold); background: var(--color-gold-subtle); border-radius: var(--radius-chip); color: var(--color-gold); }
 .rank-pill .rp-part { display: inline-block; }
-.rank-help-panel { margin-top: var(--space-3); max-width: 520px; padding: var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-bg-soft); }
+/* RATE-1(대표 2026-11-28 결정 M): 설명창은 산식 · 점수표 · 예시까지 다 보인다 — 글이 길다. 넓은 화면에서는 지금 자리에
+   그대로 펼치고(잘림 없음 · 긴 산식 줄은 접힌다), 좁은 화면(≤600px)에서는 아래에서 올라오는 넓은 창(시트)으로 연다. */
+.rank-help-panel { margin-top: var(--space-3); max-width: 680px; padding: var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-border); background: var(--color-bg-soft); overflow-wrap: anywhere; }
 .rank-help-panel p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--color-text-sub); letter-spacing: normal; }
 .rank-help-panel p:first-child { color: var(--color-text); margin-bottom: var(--space-2); }
+.rank-help-panel p.sub { padding-left: var(--space-4); }
+.rank-help-close, .rank-help-backdrop { display: none; }
+@media (max-width: 600px) {
+  .rank-help-backdrop { display: block; position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, 0.55); border: 0; padding: 0; cursor: pointer; }
+  .rank-help-panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 91; margin: 0; max-width: none; max-height: 78vh; max-height: 78dvh; overflow-y: auto; overscroll-behavior: contain; border-radius: var(--radius-border) var(--radius-border) 0 0; border-bottom: 0; padding: var(--space-6) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom)); }
+  .rank-help-panel p { font-size: 13px; }
+  .rank-help-close { display: block; margin: var(--space-4) 0 0 auto; padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border-gold); border-radius: var(--radius-chip); background: transparent; color: var(--color-gold); font-size: 13px; cursor: pointer; }
+}
 .rank-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .rank-row { display: grid; grid-template-columns: 36px 44px 1fr 96px; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-bg-soft); border: 1px solid var(--color-border); border-radius: var(--radius-border); }
 .rank-row.top { border: 2px solid var(--color-gold-bright); background: linear-gradient(90deg, var(--color-gold-subtle), transparent 60%); box-shadow: 0 0 24px rgba(252, 208, 6, 0.25); }
@@ -127,6 +139,7 @@ export function RankingView({
           title={title}
           note={labels.note}
           helpLines={labels.helpLines}
+          helpCloseLabel={labels.helpCloseLabel}
           updatedText={updatedText}
           nextUpdateText={nextUpdateText}
           deadlineLabel={labels.deadlineLabel}

@@ -244,7 +244,7 @@ describe("기사 숫자 허용 목록 — AI 재료(evidence 줄)", () => {
 describe("기사 숫자 허용 목록 — AI 지시", () => {
   it("NUMBER_RULE_LINES 글자 그대로", () => {
     expect(NUMBER_RULE_LINES).toEqual([
-      "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수 · 순위를 정하는 세 비율(순위점수율 · 우승율 · 선택율) · 순위와 관계없는 비율(외신 인용 등).",
+      "   우리 대회 데이터에서 나온 숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수 · 순위를 정하는 세 비율(순위점수율 · 우승율 · 선택율) · 순위와 관계없는 비율(외신 인용 등). 바깥 출처에서 인용한 숫자(외신의 조회수 · 판매량 · 바깥 차트 순위 · 퍼센트 등)는 출처가 있으면 쓴다.",
       "   세 비율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
       "   순위점수율을 쓸 때 설명이 필요하면 marketing/00_strategy/CROWN_SCORE_v1.1.md 의 정의를 따라 한 문장으로 붙인다 — 정의: 순위점수율 = (받은 순위 점수 합계 ÷ 대회 전체 판수) ÷ 10. 판마다 1등 10점 · 2등(결승에 오른 나머지 둘) 5점 · 3등(6강에서 멈춘 셋) 2점을 받으며, 매 판 1등이면 100%다.",
       "   세 비율을 정본이 아닌 이름(선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율)으로 쓰지 않는다. 세 비율이 아닌 비율을 순위나 Crown Score를 정하거나 영향을 주는 것처럼 쓰지 않는다.",
@@ -303,6 +303,8 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
         { n: "1,204", l: "VOTES" },
         { n: "40%", l: "Reach" },
         { n: "40%", l: "Alcance" },
+        { n: "77%", l: "Placement score rate" },
+        { n: "77%", l: "Tasa de puntuación por posición" },
         { n: "55%", l: "RUNNER-UP" },
         { n: "12%", l: "TOP MOMENTUM" },
         { n: "33%", l: "점유율" },
@@ -310,21 +312,27 @@ describe("기사 숫자 허용 목록 — 서버 그물(parseNewsDraftReply)", (
         { n: "64.2%", l: "Share" },
         { n: "31.0%", l: "Victorias" },
         { n: "31.0%", l: "WINS" },
+        { n: "31.0%", l: "CHAMPION RATE" },
+        { n: "31.0%", l: "Tasa de campeón" },
         { n: "64.2%", l: "Cuota" },
         { n: "64.2%", l: "Picks" },
+        { n: "64.2%", l: "Pick rate" },
+        { n: "64.2%", l: "Tasa de elección" },
         { n: "64.2%", l: "선택 비율" },
         { n: "812", l: "CROWN SCORE" },
       ]),
     );
     const stats = r.body.find((b) => b.type === "stats") as { items: { n: string; l: string }[] };
-    // D-108(2026-11-28) — 세 비율 정본 이름(3언어)만 비율 낱말. 점유율 · 선택 비율 · Share · Cuota 는 버린다.
+    // D-108 · 결정 L(2026-11-28) — 세 비율 정본 이름(3언어)만 비율 낱말. 점유율 · 선택 비율 · Reach · Wins ·
+    // Picks · Share / Alcance · Victorias · Elecciones · Cuota 는 버린다.
     expect(stats.items.map((it) => it.l)).toEqual([
-      "Reach",
-      "Alcance",
+      "Placement score rate",
+      "Tasa de puntuación por posición",
       "선택율",
-      "Victorias",
-      "WINS",
-      "Picks",
+      "CHAMPION RATE",
+      "Tasa de campeón",
+      "Pick rate",
+      "Tasa de elección",
       "CROWN SCORE",
     ]);
   });
@@ -346,19 +354,19 @@ describe("기사 숫자 허용 목록 — 번역 용어 목록", () => {
     sourceLang: "ko" as const,
   };
 
-  it("번역 용어 목록: 세 비율 — 한국어 정본 이름 · en · es 는 지금 글자 그대로(D-108)", () => {
+  it("번역 용어 목록: 세 비율 — 3언어 정본 이름(D-108 · 결정 L)", () => {
     const en = buildArticleTranslatePrompt(input, "en");
-    expect(en).toContain("  - 순위점수율 · Alcance → Reach");
-    expect(en).toContain("  - 우승율 · Victorias → Wins");
-    expect(en).toContain("  - 선택율 · Elecciones → Picks");
+    expect(en).toContain("  - 순위점수율 · Tasa de puntuación por posición → Placement score rate");
+    expect(en).toContain("  - 우승율 · Tasa de campeón → Champion rate");
+    expect(en).toContain("  - 선택율 · Tasa de elección → Pick rate");
     expect(en).toContain("  - Crown Score → Crown Score");
     const es = buildArticleTranslatePrompt(input, "es");
-    expect(es).toContain("  - 순위점수율 · Reach → Alcance");
-    expect(es).toContain("  - 우승율 · Wins → Victorias");
-    expect(es).toContain("  - 선택율 · Picks → Elecciones");
+    expect(es).toContain("  - 순위점수율 · Placement score rate → Tasa de puntuación por posición");
+    expect(es).toContain("  - 우승율 · Champion rate → Tasa de campeón");
+    expect(es).toContain("  - 선택율 · Pick rate → Tasa de elección");
     expect(es).toContain("  - Crown Score → Crown Score");
     // ko 로 옮길 때는 싣지 않는다(한글이 정본).
-    expect(buildArticleTranslatePrompt({ ...input, sourceLang: "en" }, "ko")).not.toContain("→ Wins");
+    expect(buildArticleTranslatePrompt({ ...input, sourceLang: "en" }, "ko")).not.toContain("→ Champion rate");
   });
 
   it("번역 용어 목록의 낱말은 차트 설명창(chart.score.help)과 같다", () => {
@@ -370,10 +378,11 @@ describe("기사 숫자 허용 목록 — 번역 용어 목록", () => {
       const s = block.indexOf(`${l}: [`);
       return block.slice(s, block.indexOf("].join", s));
     };
-    for (const t of [CHART_RATE_TERMS.win, CHART_RATE_TERMS.pick]) {
-      expect(lang("ko")).toContain(`· ${t.ko} `);
-      expect(lang("en")).toContain(`· ${t.en} `);
-      expect(lang("es")).toContain(`· ${t.es} `);
+    // 설명창(§3)의 항목 줄은 "· 이름 — 뜻" 모양이다 — 세 비율 모두.
+    for (const t of [CHART_RATE_TERMS.place, CHART_RATE_TERMS.win, CHART_RATE_TERMS.pick]) {
+      expect(lang("ko")).toContain(`· ${t.ko} — `);
+      expect(lang("en")).toContain(`· ${t.en} — `);
+      expect(lang("es")).toContain(`· ${t.es} — `);
     }
   });
 });
@@ -493,7 +502,7 @@ describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN 
       statsOf([
         { n: "2,718", l: "선택율" },
         { n: "9회", l: "우승율" },
-        { n: "9", l: "Victorias" },
+        { n: "9", l: "Tasa de campeón" },
         { n: "3회", l: "결승 진출" },
         { n: "9 times", l: "Champion" },
         { n: "9 veces", l: "Campeón" },
@@ -512,17 +521,17 @@ describe("서버 그물 — 선택 수 3언어 · 횟수 칸 · 비율은 CROWN 
     ).toEqual(["CONTESTANTS"]);
     expect(
       statsOf([
-        { n: "64.2%", l: "Picks" },
+        { n: "64.2%", l: "Pick rate" },
         { n: "812", l: "Crown Score · 1위" },
       ]),
-    ).toEqual(["Picks", "Crown Score · 1위"]);
+    ).toEqual(["Pick rate", "Crown Score · 1위"]);
   });
 });
 
 describe("en·es 원문 초안에도 차트 낱말 3언어", () => {
   it("AI 지시에 3언어 낱말 줄이 한 번 있다", () => {
     expect(CHART_TERM_RULE_LINE).toBe(
-      "   순위점수율 · 우승율 · 선택율은 영어로 Reach · Wins · Picks, 스페인어로 Alcance · Victorias · Elecciones 로 쓴다(차트 설명창과 같은 말).",
+      "   순위점수율 · 우승율 · 선택율은 영어로 Placement score rate · Champion rate · Pick rate, 스페인어로 Tasa de puntuación por posición · Tasa de campeón · Tasa de elección 로 쓴다(차트 설명창과 같은 말).",
     );
     for (const p of allPrompts) {
       expect(p.split(CHART_TERM_RULE_LINE)).toHaveLength(2);

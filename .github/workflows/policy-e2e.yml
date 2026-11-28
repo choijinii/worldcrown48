@@ -25,6 +25,9 @@ on:
       - 'e2e/policy-legal-cs1.spec.ts'
       # YT-FIX-1 PR A-1 — 모든 화면 바닥의 개인정보처리방침 링크(매치 무대·차트·The Lab 포함)
       - 'e2e/yt-fix1-privacy-link.spec.ts'
+      # RATE-1 (2026-11-28) — Crown Score 산정 기준 페이지 · Policy Hub 목록 · 메뉴
+      - 'e2e/rate1-crown-score-page.spec.ts'
+      - 'lib/layout/navMap.ts'
       - 'app/layout.tsx'
       - 'app/globals.css'
       - 'app/arena/**'
@@ -112,7 +115,7 @@ jobs:
           echo "Preview never became reachable at $PREVIEW_URL." >&2; exit 1
 
       - name: E2E (Playwright) — policy specs only
-        run: npm run test:e2e -- e2e/policy-yt1-links.spec.ts e2e/yt-fix1-privacy-link.spec.ts e2e/policy-legal-cs1.spec.ts
+        run: npm run test:e2e -- e2e/policy-yt1-links.spec.ts e2e/yt-fix1-privacy-link.spec.ts e2e/policy-legal-cs1.spec.ts e2e/rate1-crown-score-page.spec.ts
 
       - name: Upload Playwright HTML report
         if: always()

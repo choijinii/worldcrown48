@@ -15,7 +15,12 @@
  * 대문자로 시작할 때만 · "이상형 월드컵" 은 통과 · "경기도" 는 통과.
  */
 import type { ArticleBlock, Lang, LocalizedBlocks, LocalizedText } from "../_news/articleDoc";
-import { CHART_RATE_TERMS, NON_CANONICAL_RATE_NAMES_KO } from "./displayTerms";
+import {
+  CHART_RATE_TERMS,
+  NON_CANONICAL_RATE_NAMES_EN,
+  NON_CANONICAL_RATE_NAMES_ES,
+  NON_CANONICAL_RATE_NAMES_KO,
+} from "./displayTerms";
 import { EXTRA_WAR_WORDS, FORBIDDEN_WAR_WORDS } from "./tioKnowledge";
 
 export type CheckRule = "forbidden_word" | "wrong_number" | "rate_name" | "rate_claim";
@@ -130,19 +135,46 @@ export function findWrongNumbers(text: string): string[] {
   return out;
 }
 
-/** 검사 3(가) — 세 비율을 정본이 아닌 이름으로. 영어 · 스페인어 정본 이름은 대표 승인 전 — 지금은 득표율에 해당하는 말만 잡는다. */
+/** 퍼센트 숫자(31.0% · 64,2 % · 40 %). */
+const PCT = "\\d+(?:[.,]\\d+)?\\s?%";
+/**
+ * 영어 · 스페인어 비정본 이름(결정 L)이 **비율 자리**에 있을 때 — 퍼센트 바로 앞(12자 안) 또는 바로 뒤(6자 안).
+ * 첫 글자가 대문자일 때만(보통 낱말 "fans' picks" · "las elecciones de los fans" · "a 25% share of revenue" 는 통과).
+ */
+const atRate = (names: readonly string[]): RegExp[] => {
+  const alt = names.flatMap((n) => [n, n.toUpperCase()]).join("|");
+  const name = `(?<![${L}])(?:${alt})(?![${L}])`;
+  return [
+    new RegExp(`${name}(?=[^.!?\\n]{0,12}?${PCT})`, "u"),
+    new RegExp(`(?<=${PCT}[^.!?\\n\\d]{0,6})${name}`, "u"),
+  ];
+};
+
+/** 검사 3(가) — 세 비율을 정본이 아닌 이름으로. */
 const RATE_NAMES: Record<Lang, RegExp[]> = {
   ko: [
     ...NON_CANONICAL_RATE_NAMES_KO.map((w) => new RegExp(w.replace(" ", "\\s?").replace(/율$/, "[율률]"), "u")),
     // 정본 철자는 "…율"(대표 결정) — "선택률 · 우승률 · 순위점수률"도 정본이 아닌 이름으로 본다.
     /선택률|우승률|순위점수률/u,
   ],
-  en: [word("vot(?:e|ing) rates?")],
-  es: [word("(?:tasa|porcentaje|índice) de votos?")],
+  // 결정 L — "Win rate"는 승 · 패 개념이라 정본 아님(Champion rate).
+  en: [word("vot(?:e|ing) rates?|win rates?|share rates?"), ...atRate(NON_CANONICAL_RATE_NAMES_EN)],
+  es: [word("(?:tasa|porcentaje|índice) de votos?|tasas? de victorias?"), ...atRate(NON_CANONICAL_RATE_NAMES_ES)],
 };
 
 export function findRateNames(lang: Lang, text: string): string[] {
   return collect(text, RATE_NAMES[lang]);
+}
+
+/** 숫자 칸 라벨(stats.l)이 비정본 이름 그 자체 — 라벨은 늘 비율 자리라 퍼센트 없이도 잡는다. */
+const LABEL_NAMES: Record<Lang, Set<string>> = {
+  ko: new Set<string>(),
+  en: new Set(NON_CANONICAL_RATE_NAMES_EN.map((n) => n.toLowerCase())),
+  es: new Set(NON_CANONICAL_RATE_NAMES_ES.map((n) => n.toLowerCase())),
+};
+function findRateNameLabel(lang: Lang, label: string): string[] {
+  const t = label.trim();
+  return LABEL_NAMES[lang].has(t.toLowerCase()) ? [t] : [];
 }
 
 /** 순위 · Crown Score 를 정하거나 움직였다는 말(한 문장 안). */
@@ -157,6 +189,9 @@ const RATE_TOKEN: Record<Lang, RegExp> = {
   en: /\b[A-Za-z-]+ (?:rate|ratio)s?\b/giu,
   es: /\b(?:tasa|índice|porcentaje) de [a-záéíóúñ]+/giu,
 };
+const CANONICAL_PHRASES = Object.values(CHART_RATE_TERMS)
+  .flatMap((t) => [t.en, t.es])
+  .map((p) => new RegExp(p.replace(/ /g, "\\s+"), "giu"));
 const CANONICAL = new Set(Object.values(CHART_RATE_TERMS).flatMap((t) => [t.ko, t.en.toLowerCase(), t.es.toLowerCase()]));
 
 /** 검사 3(나) — 세 비율이 아닌 비율을 순위 · Crown Score 를 정하는 것처럼 쓴 것. */
@@ -164,7 +199,10 @@ export function findRateClaims(lang: Lang, text: string): string[] {
   const out: string[] = [];
   for (const sentence of text.split(/(?<=[.!?。])\s+/u)) {
     if (!RANK_CAUSE[lang].test(sentence)) continue;
-    for (const m of sentence.matchAll(RATE_TOKEN[lang])) {
+    // 여러 낱말 정본 이름(Placement score rate · Tasa de puntuación por posición)은 먼저 지운다 — 낱말 하나만 보는
+    // RATE_TOKEN 이 "score rate" · "tasa de puntuación" 을 정본 아닌 비율로 잘못 읽지 않게.
+    const rest = CANONICAL_PHRASES.reduce((acc, re) => acc.replace(re, " "), sentence);
+    for (const m of rest.matchAll(RATE_TOKEN[lang])) {
       const tok = m[0];
       if (CANONICAL.has(tok) || CANONICAL.has(tok.toLowerCase())) continue;
       if (findRateNames(lang, tok).length > 0) continue; // 비정본 이름은 (가) rate_name 이 잡는다 — 두 번 적지 않는다
@@ -205,6 +243,9 @@ export function checkDraftText(d: { title: LocalizedText; subhead: LocalizedText
     }
   };
   const scan = (lang: Lang, field: string, prose: string[], labels: string[] = []) => {
+    for (const l of labels) {
+      for (const match of findRateNameLabel(lang, l ?? "")) push({ rule: "rate_name", lang, field, match });
+    }
     for (const t of [...prose, ...labels]) {
       for (const match of findForbidden(lang, t ?? "")) push({ rule: "forbidden_word", lang, field, match });
       for (const match of findWrongNumbers(t ?? "")) push({ rule: "wrong_number", lang, field, match });

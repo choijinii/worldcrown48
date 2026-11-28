@@ -8,7 +8,8 @@
 
 import type { Lang } from "./cookieConsent";
 
-export const POLICY_TYPES = ["cookies", "community", "terms", "privacy"] as const;
+// "crown-score" = Crown Score 산정 기준(RATE-1 · 대표 결정 M 2026-11-28) — 법적 문서는 아니지만 같은 방식(경로 · 목록 · 사이트맵)으로 둔다.
+export const POLICY_TYPES = ["cookies", "community", "terms", "privacy", "crown-score"] as const;
 export type PolicyType = (typeof POLICY_TYPES)[number];
 
 export function isPolicyType(t: string): t is PolicyType {
@@ -56,4 +57,6 @@ export const POLICY_NAV: readonly PolicyNavEntry[] = [
   { type: "terms", ord: "02", ko: "이용약관", en: "Terms of Service", es: "Términos del servicio" },
   { type: "community", ord: "03", ko: "커뮤니티 가이드", en: "Community", es: "Comunidad" },
   { type: "cookies", ord: "04", ko: "쿠키 정책", en: "Cookie Policy", es: "Política de cookies" },
+  // 페이지 이름 대표 승인 2026-11-28(RATE-1 §4).
+  { type: "crown-score", ord: "05", ko: "Crown Score 산정 기준", en: "How Crown Score works", es: "Cómo se calcula Crown Score" },
 ] as const;

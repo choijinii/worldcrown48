@@ -67,6 +67,7 @@ export default function RankingPage(): JSX.Element {
     note: t("chart.note"),
     // 요약 1줄 + 항목 3줄로 쪼개 넘긴다 (마케팅 2026-09-24 승인본).
     helpLines: resolveHelpText(t("chart.score.help")),
+    helpCloseLabel: t("chart.score.help.close"),
     deadlineLabel: t("chart.deadline.label"),
     waitingTitle: t("chart.waiting.title"),
   };

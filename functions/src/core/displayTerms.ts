@@ -51,18 +51,26 @@ export const TRANSLATION_GLOSSARY = [
 ].join("\n");
 
 /**
- * 순위를 정하는 세 비율의 정본 이름(대표 2026-11-28 · 원장 D-108 — D-106 "점유율" 바뀜). 차트 설명창
- * `lib/i18n/messages.ts` "chart.score.help" 의 낱말과 같아야 한다 — functions 는 lib 를 import 하지 않으므로
- * newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다. 영어 · 스페인어는 대표 승인 전이라 지금 글자 그대로.
+ * 순위를 정하는 세 비율의 정본 이름(대표 2026-11-28 · 원장 D-108 — D-106 "점유율" 바뀜 · 영어 · 스페인어 = 결정 L).
+ * 차트 설명창 `lib/i18n/messages.ts` "chart.score.help" 의 낱말과 같아야 한다 — functions 는 lib 를 import 하지
+ * 않으므로 newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다.
  */
 export const CHART_RATE_TERMS = {
   /** 순위점수율 = placementRate */
-  place: { ko: "순위점수율", en: "Reach", es: "Alcance" },
+  place: { ko: "순위점수율", en: "Placement score rate", es: "Tasa de puntuación por posición" },
   /** 우승율 = winRate */
-  win: { ko: "우승율", en: "Wins", es: "Victorias" },
+  win: { ko: "우승율", en: "Champion rate", es: "Tasa de campeón" },
   /** 선택율 = shareRate · Match마다 선택받은 비율 */
-  pick: { ko: "선택율", en: "Picks", es: "Elecciones" },
+  pick: { ko: "선택율", en: "Pick rate", es: "Tasa de elección" },
 } as const;
+
+/**
+ * 세 비율을 가리키는 영어 · 스페인어 비정본 이름(결정 L · 2026-11-28) — 옛 설명창 낱말(Reach · Wins · Picks /
+ * Alcance · Victorias · Elecciones) · 11/27 안(Share · Cuota) · 승 · 패 개념(win rate). 생성 뒤 검사(rate_name)가 쓴다.
+ * 보통 낱말이기도 해서(fans' picks · las elecciones de los fans) 비율 자리 — 퍼센트 옆 · 숫자 칸 라벨 — 에서만 잡는다.
+ */
+export const NON_CANONICAL_RATE_NAMES_EN = ["Reach", "Wins", "Picks", "Share"] as const;
+export const NON_CANONICAL_RATE_NAMES_ES = ["Alcance", "Victorias", "Elecciones", "Cuota"] as const;
 
 /** 세 비율을 가리키는 정본이 아닌 이름(D-108) — 사실표 24번 · 생성 뒤 검사(rate_name)가 함께 쓴다. */
 export const NON_CANONICAL_RATE_NAMES_KO = ["선택 비율", "점유율", "승률", "득표율", "1등 비율"] as const;

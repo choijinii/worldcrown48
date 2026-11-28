@@ -70,9 +70,9 @@ const FORBIDDEN: Record<Lang, RegExp> = {
 };
 
 describe("report@ 는 정책 문서 어디에도 없다", () => {
-  it("content/**.md 12개에 report@ 0건", () => {
+  it("content/**.md 15개에 report@ 0건", () => {
     const files = walk(CONTENT);
-    expect(files.length).toBe(12);
+    expect(files.length).toBe(15);
     const hits = files.flatMap((f) =>
       readFileSync(f, "utf8")
         .split("\n")
