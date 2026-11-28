@@ -216,3 +216,20 @@ it("비정본 철자가 순위 문장에 있어도 경고는 rate_name 하나(ra
   expect(findRateClaims("ko", "선택률이 순위를 결정했다.")).toEqual([]);
   expect(findRateNames("ko", "선택률이 순위를 결정했다.")).toEqual(["선택률"]);
 });
+
+// RATE-1 PR A 7번(덧붙임 2026-11-28 21:20) — 바깥 출처에서 인용한 숫자는 출처가 있으면 쓴다(외신 킥 v0.2 결정 5 · D-108).
+it("외신 인용 숫자(조회수 · 판매량 · 바깥 차트 순위 · 퍼센트)가 든 초안 — 경고 0", () => {
+  const w = checkDraftText({
+    title: { ko: "빌보드 핫 100 3위", en: "No. 3 on the Billboard Hot 100", es: "Puesto 3 en el Billboard Hot 100" },
+    subhead: { ko: "뮤직비디오 조회수 1억 2천만 회", en: "120 million music video views", es: "120 millones de reproducciones" },
+    body: {
+      ko: [
+        { type: "paragraph", text: "빌보드에 따르면 이 곡은 핫 100에서 3위에 올랐고, 첫 주 판매량은 41만 장이었다." },
+        { type: "paragraph", text: "유튜브 집계로 뮤직비디오 조회수는 24시간 만에 1억 2천만 회를 넘었고, 시청자의 62%가 해외였다." },
+      ],
+      en: [{ type: "paragraph", text: "According to Billboard, the song hit No. 3 on the Hot 100, with first-week sales of 410,000 copies and 62% of views from overseas." }],
+      es: [{ type: "paragraph", text: "Según Billboard, la canción llegó al puesto 3 del Hot 100, con 410.000 copias vendidas y el 62 % de las vistas desde el extranjero." }],
+    },
+  } as never);
+  expect(w).toEqual([]);
+});
