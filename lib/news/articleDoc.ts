@@ -243,9 +243,9 @@ export interface ArticleDoc {
   clearedWarnings?: (ArticleCheckWarning & { by: string; at: number })[];
 }
 
-/** 생성 뒤 검사 경고 한 칸 — rule 금지 낱말 · 틀린 숫자 · 목록 밖 퍼센트 / field "title" · "subhead" · "body.N". */
+/** 생성 뒤 검사 경고 한 칸 — rule 금지 낱말 · 틀린 숫자 · 비정본 비율 이름 · 순위를 정한다는 비율 / field "title" · "subhead" · "body.N". */
 export interface ArticleCheckWarning {
-  rule: "forbidden_word" | "wrong_number" | "percent";
+  rule: "forbidden_word" | "wrong_number" | "rate_name" | "rate_claim";
   lang: Lang;
   field: string;
   match: string;

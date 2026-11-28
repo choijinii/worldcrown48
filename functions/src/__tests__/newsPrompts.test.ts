@@ -163,7 +163,7 @@ describe("이름 3언어 — 근거 줄", () => {
       championNameEn: "NewJeans",
       digest: { ...digestStub, leaders: [leader] },
     });
-    expect(p).toContain("1위 뉴진스 (공식 영어 이름: NewJeans) Crown Score 900 · 1등 비율 40.0% · 점유율 60.0%");
+    expect(p).toContain("1위 뉴진스 (공식 영어 이름: NewJeans) Crown Score 900 · 순위점수율 0.0% · 우승율 40.0% · 선택율 60.0%");
     expect(p).toContain('Champion은 "뉴진스"(공식 영어 이름 "NewJeans")이다');
   });
 
@@ -173,7 +173,7 @@ describe("이름 3언어 — 근거 줄", () => {
       championName: "Blue Flame",
       digest: { ...digestStub, leaders: [{ rank: 1, contestantId: "c1", name: "Blue Flame", crownScore: 812, winRate: 0.333, shareRate: 0.5, isChampion: true }] },
     });
-    expect(p).toContain("1위 Blue Flame Crown Score 812 · 1등 비율 33.3% · 점유율 50.0%");
+    expect(p).toContain("1위 Blue Flame Crown Score 812 · 순위점수율 0.0% · 우승율 33.3% · 선택율 50.0%");
     expect(p).toContain('Champion은 "Blue Flame"이다');
     expect(p).toBe(prompts.result);
   });

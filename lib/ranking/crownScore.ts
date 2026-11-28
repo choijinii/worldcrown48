@@ -6,8 +6,8 @@
  *
  *   순위점수율 = (받은 순위 점수 합계 ÷ 대회 전체 판수) ÷ 10
  *   우승율     = 1등 횟수 ÷ 대회 전체 판수
- *   점유율     = 대결에서 뽑힌 횟수 ÷ 대결에 나온 횟수
- *   Crown Score = (순위점수율×0.4 + 우승율×0.3 + 점유율×0.3) × 1000  → 0~1000 정수
+ *   선택율     = 대결에서 뽑힌 횟수 ÷ 대결에 나온 횟수
+ *   Crown Score = (순위점수율×0.4 + 우승율×0.3 + 선택율×0.3) × 1000  → 0~1000 정수
  *
  * IMPORT-FREE BY DESIGN — `lib/ranking/rankingTypes` 와 같은 이유로 SDK를 참조하지
  * 않는다. `functions/scripts/copy-ranking.mjs` 가 크론 빌드 트리로 복사한다.
@@ -49,7 +49,7 @@ export function winRateOf(input: CrownScoreInput): number {
   return input.wins / input.runsTotal;
 }
 
-/** 점유율 — 대결마다 얼마나 선택받는가 (0~1). 정본 §D: appearances 0이면 0. */
+/** 선택율 — 대결마다 얼마나 선택받는가 (0~1). 정본 §D: appearances 0이면 0. */
 export function shareRateOf(input: CrownScoreInput): number {
   if (input.appearances <= 0) return 0;
   return input.picks / input.appearances;

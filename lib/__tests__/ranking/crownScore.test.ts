@@ -32,7 +32,7 @@ describe("crownScoreOf", () => {
     ).toBe(0);
   });
 
-  it("appearances 0 — 한 번도 대결에 나오지 않았으면 점유율 0 (정본 §D)", () => {
+  it("appearances 0 — 한 번도 대결에 나오지 않았으면 선택율 0 (정본 §D)", () => {
     // 판은 돌았지만 이 Contestant은 추출되지 않아 한 번도 나오지 않은 경우.
     expect(
       shareRateOf({

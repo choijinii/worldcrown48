@@ -63,7 +63,7 @@ describe("computeCrownRankings", () => {
     const runs = tallyRuns(straightRun("u1"));
     const rows = computeCrownRankings([tally("c0", 5)], runs);
 
-    // 판 1회 · c0 = 1등: 순위점수율 10/1/10 = 1 · 우승율 1 · 점유율 5/5 = 1 → 1000점
+    // 판 1회 · c0 = 1등: 순위점수율 10/1/10 = 1 · 우승율 1 · 선택율 5/5 = 1 → 1000점
     expect(rows[0].crownScore).toBe(1000);
     expect(rows[0].placementRate).toBe(1);
     expect(rows[0].winRate).toBe(1);

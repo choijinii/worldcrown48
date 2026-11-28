@@ -23,7 +23,7 @@
              1등 10점 · 2등 5점(2개) · 3등 2점(3개)
                  │
                  ▼ 로그인한 팬의 판을 대회 단위로 모아 비율 3개로 바꿈
-[비율]    순위점수율 · 우승율 · 점유율   (모두 0~100%)
+[비율]    순위점수율 · 우승율 · 선택율   (모두 0~100%)  ← 정본 이름(원장 D-108 · 2026-11-28 · 옛 "점유율" → 선택율)
                  │
                  ▼ 40 : 30 : 30 으로 섞고 × 1000
 [Crown Score]  0 ~ 1000점
@@ -96,17 +96,17 @@ Crown Score는 **쌓이는 점수가 아니라 비율로 계산되는 점수**�
 |---|---|---|
 | **순위점수율** | (받은 순위 점수 합계 ÷ 대회 전체 판수) ÷ 10 | 판마다 얼마나 높이 오르는가 |
 | **우승율** | 1등 횟수 ÷ 대회 전체 판수 | 얼마나 자주 끝까지 이기는가 |
-| **점유율** | Match에서 선택된 횟수 ÷ Match에 나온 횟수 | Match마다 얼마나 선택받는가 |
+| **선택율** (~~점유율~~ — D-108) | Match에서 선택된 횟수 ÷ Match에 나온 횟수 | Match마다 얼마나 선택받는가 |
 
 - 순위점수율의 10은 판 1회 최고점(1등)이다. 매 판 1등이면 100%
-- 점유율은 대진표가 판마다 달라도 공정하도록 **"나온 Match 중 몇 번 선택됐는가"** 로 잰다. 결승(3개 중 1개 선택)도 Match 1번으로 센다
+- 선택율은 대진표가 판마다 달라도 공정하도록 **"나온 Match 중 몇 번 선택됐는가"** 로 잰다. 결승(3개 중 1개 선택)도 Match 1번으로 센다
 
 ---
 
 ## 4. Crown Score 계산
 
 ```
-Crown Score = (순위점수율 × 0.4 + 우승율 × 0.3 + 점유율 × 0.3) × 1000
+Crown Score = (순위점수율 × 0.4 + 우승율 × 0.3 + 선택율 × 0.3) × 1000
 ```
 
 - 표시: 0 ~ 1000 사이 정수 (소수점 첫째 자리에서 반올림)
@@ -128,7 +128,7 @@ Crown Score = (순위점수율 × 0.4 + 우승율 × 0.3 + 점유율 × 0.3) × 
 |---|---|---|
 | 순위점수율 | 1등 300번×10 + 2등 350번×5 + 3등 200번×2 = 5,150점 → 판당 5.15점 ÷ 10 | 51.5% |
 | 우승율 | 1등 300번 ÷ 1,000판 | 30.0% |
-| 점유율 | 선택 3,750번 ÷ Match 4,450번 | 84.3% |
+| 선택율 | 선택 3,750번 ÷ Match 4,450번 | 84.3% |
 
 (51.5% × 0.4) + (30.0% × 0.3) + (84.3% × 0.3) = 54.9% → × 1000 = **Crown Score 549점**
 
@@ -173,19 +173,19 @@ Crown Score = (순위점수율 × 0.4 + 우승율 × 0.3 + 점유율 × 0.3) × 
 **KO**
 ```
 Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.
-· 오른 순위 40% — 참여마다 결승에 얼마나 가까이 올랐는지
-· 1등 비율 30% — 결승에서 선택받아 1등이 된 비율
-· 점유율 30% — Match마다 선택받은 비율
+· 순위점수율 40% — 참여마다 결승에 얼마나 가까이 올랐는지
+· 우승율 30% — 결승에서 선택받아 1등이 된 비율
+· 선택율 30% — Match마다 선택받은 비율
 ```
 
-> NEWS-1 결정 I(원장 D-106 · 2026-11-27): 셋째 줄 이름 "선택 비율" → **점유율**. 점유율 = Match마다 선택받은 비율(코드 `shareRate`). "선택 비율"(대회 전체 선택 가운데 그 엔트리의 비율 · 옛 `rate`)은 2026-09-23 폐기 그대로. 영어 Share · 스페인어 Cuota(NEWS-2 · 원장 D-108 · 대표 승인 2026-11-27).
+> 원장 D-108(대표 2026-11-28): 세 비율의 정본 이름 = 순위점수율(placementRate) · 우승율(winRate) · 선택율(shareRate). 설명창 한국어 세 줄도 이 이름(옛 "오른 순위 · 1등 비율 · 점유율"). D-106의 "점유율"은 "선택율"로 바뀜 · 선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율은 정본이 아니다. 영어 · 스페인어 낱말은 대표 승인 뒤 바꾼다(지금 Reach · Wins · Picks / Alcance · Victorias · Elecciones 그대로).
 
 **EN**
 ```
 Crown Score is rated out of 1,000 — shaped entirely by fans' picks.
 · Reach 40% — how close to the final they get each time
 · Wins 30% — how often they're picked No. 1 in the final
-· Share 30% — how often they're chosen in each Match
+· Picks 30% — how often they're chosen in each Match
 ```
 
 **ES**
@@ -193,7 +193,7 @@ Crown Score is rated out of 1,000 — shaped entirely by fans' picks.
 Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.
 · Alcance 40 % — qué tan cerca de la final llega en cada participación
 · Victorias 30 % — cuántas veces lo eligen n.º 1 en la final
-· Cuota 30 % — cuántas veces lo eligen en cada Match
+· Elecciones 30 % — cuántas veces lo eligen en cada Match
 ```
 
 **결정 기록**

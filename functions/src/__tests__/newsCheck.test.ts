@@ -3,7 +3,7 @@
  * 검사 1 금지 낱말(3언어 · 대표 승인 목록 2026-11-27) · 검사 2 사실과 다른 숫자 · 검사 3 허용 목록 밖 퍼센트.
  */
 import { describe, expect, it } from "vitest";
-import { checkDraftText, findForbidden, findWrongNumbers, findStrayPercents } from "../core/newsCheck";
+import { checkDraftText, findForbidden, findRateClaims, findRateNames, findWrongNumbers } from "../core/newsCheck";
 import type { ArticleBlock } from "../_news/articleDoc";
 
 const words = (lang: "ko" | "en" | "es", s: string) => findForbidden(lang, s);
@@ -75,14 +75,41 @@ describe("검사 2 사실과 다른 숫자", () => {
   });
 });
 
-describe("검사 3 허용 목록 밖 퍼센트", () => {
-  it("비율 낱말이 없는 문장의 퍼센트는 잡힌다", () => {
-    expect(findStrayPercents("팬의 71.8%가 이 곡을 골랐다.")).toEqual(["71.8%"]);
+describe("검사 3 순위와 연결된 비정본 이름(대표 2026-11-28 · 옛 퍼센트 검사를 대신함)", () => {
+  it.each([
+    ["ko", "점유율 64.2%로 1위", "점유율"],
+    ["ko", "선택 비율이 가장 높았다", "선택 비율"],
+    ["ko", "승률 15%", "승률"],
+    ["ko", "1등 비율 31.0%", "1등 비율"],
+    ["ko", "점유률 71.8%", "점유률"],
+    ["ko", "선택률 64.2%로 1위", "선택률"],
+    ["ko", "우승률 31.0%", "우승률"],
+    ["ko", "순위점수률 77%", "순위점수률"],
+    ["en", "a vote rate of 60%", "vote rate"],
+    ["es", "una tasa de votos del 60 %", "tasa de votos"],
+  ] as const)("(가) %s 「%s」 → rate_name %s", (lang, s, hit) => {
+    expect(findRateNames(lang, s)).toContain(hit);
   });
-  it("1등 비율 · 점유율 · Wins · Share 와 같은 문장이면 통과", () => {
-    expect(findStrayPercents("Crown Score 812, 점유율 64.2%를 기록했다.")).toEqual([]);
-    expect(findStrayPercents("1등 비율 31.0%로 앞섰다.")).toEqual([]);
-    expect(findStrayPercents("Wins 31.0% and Share 64.2%.")).toEqual([]);
+
+  it.each([
+    ["ko", "순위를 결정한 화제율 30%", "화제율"],
+    ["ko", "조회율이 Crown Score를 끌어올렸다", "조회율"],
+    ["en", "an engagement rate that decided the ranking", "engagement rate"],
+    ["es", "la tasa de audiencia que determinó la clasificación", "tasa de audiencia"],
+  ] as const)("(나) %s 「%s」 → rate_claim %s", (lang, s, hit) => {
+    expect(findRateClaims(lang, s)).toContain(hit);
+  });
+
+  it.each([
+    ["ko", "인도 크리에이터의 멤버십 수익은 전년 동기 대비 25% 넘게 늘었다."],
+    ["ko", "집계에서 이용자의 85%는 해외 팬으로 나타났다."],
+    ["ko", "선택율 64.2% · 우승율 31.0% · 순위점수율 77.0%로 1위를 지켰다."],
+    ["ko", "순위점수율이 순위를 끌어올렸다."],
+    ["en", "revenue rose more than 25% year on year"],
+    ["es", "el 85 % de los usuarios eran fans del extranjero"],
+  ] as const)("순위와 관계없는 퍼센트 · 정본 이름은 통과 — %s 「%s」", (lang, s) => {
+    expect(findRateNames(lang, s)).toEqual([]);
+    expect(findRateClaims(lang, s)).toEqual([]);
   });
 });
 
@@ -132,4 +159,22 @@ describe("checkDraftText — 제목 · 부제 · 본문 3언어", () => {
       ["body.1", "앙숙"],
     ]);
   });
+});
+
+describe("checkDraftText — 퍼센트 경고 없음 · 비정본 이름 경고(대표 2026-11-28)", () => {
+  const one = (ko: string) => ({ title: { ko: "제목", en: "t", es: "t" }, subhead: { ko: "", en: "", es: "" }, body: { ko: [{ type: "lead" as const, text: ko }], en: [], es: [] } });
+  it("외신 인용 퍼센트는 경고 0", () => {
+    expect(checkDraftText(one("수익은 전년보다 25% 넘게 늘었고, 이용자의 85%는 해외 팬이었다."))).toEqual([]);
+  });
+  it("점유율 → rate_name · 순위를 결정한 화제율 → rate_claim", () => {
+    expect(checkDraftText(one("점유율 64.2%. 순위를 결정한 화제율 30%."))).toEqual([
+      { rule: "rate_name", lang: "ko", field: "body.0", match: "점유율" },
+      { rule: "rate_claim", lang: "ko", field: "body.0", match: "화제율" },
+    ]);
+  });
+});
+
+it("비정본 철자가 순위 문장에 있어도 경고는 rate_name 하나(rate_claim 으로 겹치지 않음)", () => {
+  expect(findRateClaims("ko", "선택률이 순위를 결정했다.")).toEqual([]);
+  expect(findRateNames("ko", "선택률이 순위를 결정했다.")).toEqual(["선택률"]);
 });

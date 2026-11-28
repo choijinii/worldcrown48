@@ -4,7 +4,7 @@
  *   ① 관리자가 편집 방침 줄을 저장(saveNewsPolicy 콜러블) → 다음 주간 초안 생성(generateNewsDraft)의 지시문에 그 줄이 들어간다
  *      · 지시문은 사실표로 시작한다 · 31줄 · 이유 없는 줄은 서버가 거절한다
  *   ② 틀린 가짜 응답(「16경기」 · 「애정 전쟁」 · 「투표」)으로 만든 초안 문서에 checkWarnings 가 있다 · 상태는 draft
- *   ③ 차트 화면 "?" 설명창의 한국어 셋째 줄 = "· 점유율 30% — Match마다 선택받은 비율"
+ *   ③ 차트 화면 "?" 설명창의 한국어 세 줄 = 세 비율 정본 이름(원장 D-108 · 2026-11-28 — 옛 "점유율")
  *
  * 가짜 AI 는 127.0.0.1:9313(scripts/e2e-emulator.sh 의 ANTHROPIC_BASE_URL). 바깥 사이트 · 진짜 AI 를 부르지 않는다.
  * generateNewsDraft 는 관리자 콜러블이라 뉴스 AI 스위치(NEWS_DRAFT_AI)와 상관없이 돈다.
@@ -138,7 +138,7 @@ test("① 편집 방침 저장 → 주간 초안 지시문에 그 줄 · ② 틀
   expect(doc.checkWarnings.some((w) => w.rule === "wrong_number" && w.match.includes("16"))).toBe(true);
 });
 
-test("③ 차트 설명창 한국어 셋째 줄 = 점유율", async ({ page }) => {
+test("③ 차트 설명창 한국어 세 줄 = 순위점수율 · 우승율 · 선택율(D-108)", async ({ page }) => {
   const errors = collectConsoleErrors(page);
   const { id, contestantIds } = await seedImageTournament();
   const row = (i: number, score: number) => ({
@@ -163,8 +163,10 @@ test("③ 차트 설명창 한국어 셋째 줄 = 점유율", async ({ page }) =
   await dismissConsent(page);
   await page.getByTestId("chart-score-help").click();
   const panel = page.getByTestId("chart-score-help-panel");
-  await expect(panel.locator("p").nth(3)).toHaveText("· 점유율 30% — Match마다 선택받은 비율");
-  await expect(panel).not.toContainText("선택 비율");
+  await expect(panel.locator("p").nth(1)).toHaveText("· 순위점수율 40% — 참여마다 결승에 얼마나 가까이 올랐는지");
+  await expect(panel.locator("p").nth(2)).toHaveText("· 우승율 30% — 결승에서 선택받아 1등이 된 비율");
+  await expect(panel.locator("p").nth(3)).toHaveText("· 선택율 30% — Match마다 선택받은 비율");
+  for (const old of ["선택 비율", "점유율", "1등 비율", "오른 순위"]) await expect(panel).not.toContainText(old);
   await panel.screenshot({ path: "test-results-emulator/news1-chart-help-ko.png" });
   await expectNoConsoleErrors(errors);
 });

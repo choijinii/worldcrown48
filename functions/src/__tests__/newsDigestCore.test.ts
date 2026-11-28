@@ -2,7 +2,7 @@
  * ND-1 §3 #2 — newsDigestCore: ranking_cache → 기사 근거 수치. AC 3·4.
  *
  * The digest REUSES the existing ranking_cache (no new aggregation is invented).
- * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2): 순위 · Crown Score · 1등 비율 ·
+ * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 → D-108 2026-11-28 세 비율 정본 이름 · 순위점수율 허용): 순위 · Crown Score · 우승율 ·
  * 선택 비율 · 엔트리 수 · 날짜만. 선택 수와 옛 rate 는 근거에 없다 — 전체 잠금은
  * newsNumberLock.test.ts.
  */
@@ -152,6 +152,7 @@ describe("이름 3언어 — 기사 근거", () => {
       name: "뉴진스",
       nameEn: "NewJeans",
       crownScore: 700,
+      placementRate: 0, // D-108 — 순위점수율을 읽는다(캐시에 없으면 0)
       winRate: 0.4,
       shareRate: 0.5,
     });

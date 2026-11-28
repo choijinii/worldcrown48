@@ -35,7 +35,7 @@ export function avatarGlyph(name: string): string {
  * Crown Score 표기 — 0~1000 **정수**, 단위 없음 (정본 §4).
  *
  * 퍼센트가 아니다. 퍼센트로 찍으면 팬이 "득표율"로 읽는데, 그 낱말은 폐기됐고 계산도
- * 다르다(점유율의 분모는 대회 전체 선택이 아니라 그 Contestant이 나온 대결이다).
+ * 다르다(선택율의 분모는 대회 전체 선택이 아니라 그 Contestant이 나온 대결이다).
  */
 export function formatCrownScore(score: number): string {
   if (!Number.isFinite(score)) return "0";

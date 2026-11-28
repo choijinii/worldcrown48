@@ -45,7 +45,7 @@ function pct(r: number): string {
 }
 
 /**
- * AI 재료 — 근거 숫자 칸 + 선두(차트 순위 · Crown Score · 1등 비율 · 점유율) +
+ * AI 재료 — 근거 숫자 칸 + 선두(차트 순위 · Crown Score · 순위점수율 · 우승율 · 선택율) +
  * 결과 기사만 대회 전체 참여 횟수. 두 비율은 Crown Score 와 같은 줄에만 싣는다.
  */
 export function evidenceLines(digest: NewsDigest): string {
@@ -56,7 +56,7 @@ export function evidenceLines(digest: NewsDigest): string {
     digest.leaders.length > 0
       ? (digest.scoresWaiting
           ? "\n선두(이름만 — 순위는 아직 공개 전):\n"
-          : `\n선두(차트 순위 · Crown Score · ${CHART_RATE_TERMS.win.ko} · ${CHART_RATE_TERMS.pick.ko}):\n`) +
+          : `\n선두(차트 순위 · Crown Score · ${CHART_RATE_TERMS.place.ko} · ${CHART_RATE_TERMS.win.ko} · ${CHART_RATE_TERMS.pick.ko}):\n`) +
         digest.leaders
           .map(
             (l) =>
@@ -64,7 +64,7 @@ export function evidenceLines(digest: NewsDigest): string {
               // 점수가 전부 0 이라 모두 "1위" 가 된다(최종 검토 I-2).
               `  - ${digest.scoresWaiting ? "" : `${l.rank}위 `}${l.name}${englishNameNote(l.name, l.nameEn)}` +
               (l.crownScore !== undefined
-                ? ` Crown Score ${l.crownScore} · ${CHART_RATE_TERMS.win.ko} ${pct(l.winRate ?? 0)}% · ${CHART_RATE_TERMS.pick.ko} ${pct(l.shareRate ?? 0)}%`
+                ? ` Crown Score ${l.crownScore} · ${CHART_RATE_TERMS.place.ko} ${pct(l.placementRate ?? 0)}% · ${CHART_RATE_TERMS.win.ko} ${pct(l.winRate ?? 0)}% · ${CHART_RATE_TERMS.pick.ko} ${pct(l.shareRate ?? 0)}%`
                 : "") +
               (l.isChampion ? " (Champion)" : "") +
               (l.tournamentTitle ? ` [${l.tournamentTitle}]` : ""),
