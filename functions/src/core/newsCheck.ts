@@ -6,16 +6,19 @@
  *
  *   검사 1 forbidden_word — 사실표 30 · 31번 낱말과 그 영어 · 스페인어 낱말
  *   검사 2 wrong_number   — 라운드와 Match 수가 맞지 않는 짝("48개 팀이 16경기") · 16강 · ROUND OF 16 · 48명
- *   검사 3 percent        — 비율 낱말(1등 비율 · 점유율 3언어 — newsDraftAssembly 의 isRateLabel)이 없는 문장의 퍼센트
+ *   검사 3 rate_name      — 순위를 정하는 세 비율을 정본이 아닌 이름(선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율 등)으로 쓴 것
+ *          rate_claim     — 세 비율이 아닌 비율을 순위나 Crown Score를 정하거나 영향을 주는 것처럼 쓴 것("순위를 결정한 화제율")
+ *   (대표 2026-11-28 · D-108: 옛 "허용 목록 밖 퍼센트는 모두 경고"는 잘못 만든 규칙이라 없앴다 — 외신 인용 "수익 25%" 같은
+ *    순위와 관계없는 퍼센트는 경고하지 않는다. 모든 기사(외신 포함)에 같은 검사.)
  *
  * 잘못 걸리지 않게: 한국어 "표"는 낱말로 따로 쓰였을 때만("대표 · 발표 · 표시" ×) · "Official / Oficial" 은
  * 대문자로 시작할 때만 · "이상형 월드컵" 은 통과 · "경기도" 는 통과.
  */
 import type { ArticleBlock, Lang, LocalizedBlocks, LocalizedText } from "../_news/articleDoc";
-import { isRateLabel } from "./newsDraftAssembly";
+import { CHART_RATE_TERMS, NON_CANONICAL_RATE_NAMES_KO } from "./displayTerms";
 import { EXTRA_WAR_WORDS, FORBIDDEN_WAR_WORDS } from "./tioKnowledge";
 
-export type CheckRule = "forbidden_word" | "wrong_number" | "percent";
+export type CheckRule = "forbidden_word" | "wrong_number" | "rate_name" | "rate_claim";
 
 /** 초안 문서 checkWarnings[] 한 칸 — A줄 newsdesk 탭이 이 모양을 읽는다. */
 export interface CheckWarning {
@@ -127,14 +130,48 @@ export function findWrongNumbers(text: string): string[] {
   return out;
 }
 
-/** 검사 3 — 비율 낱말이 없는 문장의 퍼센트. */
-export function findStrayPercents(text: string): string[] {
+/** 검사 3(가) — 세 비율을 정본이 아닌 이름으로. 영어 · 스페인어 정본 이름은 대표 승인 전 — 지금은 득표율에 해당하는 말만 잡는다. */
+const RATE_NAMES: Record<Lang, RegExp[]> = {
+  ko: [
+    ...NON_CANONICAL_RATE_NAMES_KO.map((w) => new RegExp(w.replace(" ", "\\s?").replace(/율$/, "[율률]"), "u")),
+    // 정본 철자는 "…율"(대표 결정) — "선택률 · 우승률 · 순위점수률"도 정본이 아닌 이름으로 본다.
+    /선택률|우승률|순위점수률/u,
+  ],
+  en: [word("vot(?:e|ing) rates?")],
+  es: [word("(?:tasa|porcentaje|índice) de votos?")],
+};
+
+export function findRateNames(lang: Lang, text: string): string[] {
+  return collect(text, RATE_NAMES[lang]);
+}
+
+/** 순위 · Crown Score 를 정하거나 움직였다는 말(한 문장 안). */
+const RANK_CAUSE: Record<Lang, RegExp> = {
+  ko: /(순위|Crown Score|1위|차트)[^.!?。\n]{0,24}(결정|좌우|정하|정했|정한|영향|끌어올|이끌|이끈|가르|갈랐|만들|만든)|(결정|좌우|정하|정한|영향|끌어올|이끈|가른|만든)[^.!?。\n]{0,24}(순위|Crown Score|1위)/u,
+  en: /\b(rank|ranking|rankings|Crown Score|No\. ?1|chart)\b[^.!?\n]{0,40}\b(determin|decid|driv|shap|boost|push|lift|set)\w*|\b(determin|decid|driv|shap|boost|push|lift|set)\w*\b[^.!?\n]{0,40}\b(rank|ranking|rankings|Crown Score|No\. ?1|chart)\b/iu,
+  es: /(clasificación|ranking|Crown Score|n\.º ?1|puesto)[^.!?\n]{0,40}(determin|decid|impuls|defin)\w*|(determin|decid|impuls|defin)\w*[^.!?\n]{0,40}(clasificación|ranking|Crown Score|n\.º ?1|puesto)/iu,
+};
+/** 비율 낱말(이름이 붙은 비율). */
+const RATE_TOKEN: Record<Lang, RegExp> = {
+  ko: /[가-힣]{1,6}(?:율|률|\s?비율)/gu,
+  en: /\b[A-Za-z-]+ (?:rate|ratio)s?\b/giu,
+  es: /\b(?:tasa|índice|porcentaje) de [a-záéíóúñ]+/giu,
+};
+const CANONICAL = new Set(Object.values(CHART_RATE_TERMS).flatMap((t) => [t.ko, t.en.toLowerCase(), t.es.toLowerCase()]));
+
+/** 검사 3(나) — 세 비율이 아닌 비율을 순위 · Crown Score 를 정하는 것처럼 쓴 것. */
+export function findRateClaims(lang: Lang, text: string): string[] {
   const out: string[] = [];
   for (const sentence of text.split(/(?<=[.!?。])\s+/u)) {
-    if (isRateLabel(sentence)) continue;
-    for (const m of sentence.matchAll(/\d+(?:[.,]\d+)?\s*%/gu)) out.push(m[0]);
+    if (!RANK_CAUSE[lang].test(sentence)) continue;
+    for (const m of sentence.matchAll(RATE_TOKEN[lang])) {
+      const tok = m[0];
+      if (CANONICAL.has(tok) || CANONICAL.has(tok.toLowerCase())) continue;
+      if (findRateNames(lang, tok).length > 0) continue; // 비정본 이름은 (가) rate_name 이 잡는다 — 두 번 적지 않는다
+      out.push(tok);
+    }
   }
-  return out;
+  return [...new Set(out)];
 }
 
 /** 블록에서 읽을 글(고유명사 칸 matchups group · title 과 숫자 칸 stats.n 은 데이터라 빼고, 퍼센트는 문장만). */
@@ -171,8 +208,9 @@ export function checkDraftText(d: { title: LocalizedText; subhead: LocalizedText
     for (const t of [...prose, ...labels]) {
       for (const match of findForbidden(lang, t ?? "")) push({ rule: "forbidden_word", lang, field, match });
       for (const match of findWrongNumbers(t ?? "")) push({ rule: "wrong_number", lang, field, match });
+      for (const match of findRateNames(lang, t ?? "")) push({ rule: "rate_name", lang, field, match });
+      for (const match of findRateClaims(lang, t ?? "")) push({ rule: "rate_claim", lang, field, match });
     }
-    for (const t of prose) for (const match of findStrayPercents(t ?? "")) push({ rule: "percent", lang, field, match });
   };
   for (const lang of LANGS) {
     scan(lang, "title", [d.title?.[lang] ?? ""]);

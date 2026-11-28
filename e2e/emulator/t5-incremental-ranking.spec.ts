@@ -309,12 +309,14 @@ test("T5 · 발표 두 번(처음부터 → 증분) · 캐시 순서 = 옛 전�
   for (const width of [1440, 390] as const) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     await page.goto(`/arena/${TID}/ranking?lang=ko`);
+    // 차트가 다 그려질 때까지 먼저 기다린다 — 그때는 화면이 깨어나 동의 바도 이미 떠 있다.
+    // (옛 순서: 바가 뜨기 전에 "보이나?"를 한 번만 물어 건너뛰면, 늦게 뜬 바가 남아 CI 가 느릴 때 실패했다 · NEWS-2 CI 11-27 · 11-28)
+    const view = page.getByTestId("ranking-view");
+    await expect(view).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
     // 동의 바가 차트 아래쪽을 덮지 않게 [필수만]을 누른다(바에 testid 가 없어 글자로 찾는다 · 두 번째 폭에서는 이미 없다).
     const reject = page.getByRole("button", { name: /필수만/ });
     if (await reject.isVisible().catch(() => false)) await reject.click();
     await expect(reject).toHaveCount(0);
-    const view = page.getByTestId("ranking-view");
-    await expect(view).toHaveAttribute("data-rank", "loaded", { timeout: 30_000 });
     await expect(page.getByTestId("rank-row")).toHaveCount(ids.length);
     await expect(page.getByTestId("rank-score").first()).toHaveText(String(cache.rankings[0].crownScore));
     // 선택 수 숫자는 화면 어디에도 없다 (c3-ranking 단언 방식).

@@ -186,6 +186,8 @@ export { manageTournament } from "./manageTournament";
 // ND-1 News Desk — 승인제 뉴스 팩토리. 모든 경로는 draft 생성까지만 (자동 발행 0건).
 export { generateNewsDraft } from "./generateNewsDraft"; // admin callable (수동/AI 초안)
 export { getNewsPolicy, saveNewsPolicy } from "./newsPolicy"; // NEWS-1 4층 TIOZ 편집 방침(관리자만 · config/newsPolicy)
+export { onNewsCheck } from "./onNewsCheck"; // NEWS-2 결정 J — 저장 뒤 생성 뒤 검사 다시(경고 남으면 발행 규칙이 막음)
+export { clearNewsCheckWarnings } from "./newsCheckClear"; // NEWS-2 [경고 풀기](관리자만 · news_check_clears 기록)
 export { onTournamentOpened } from "./onTournamentOpened"; // Tournament 오픈 → 오픈 draft
 export { onChampionForNews } from "./onChampionForNews"; // Champion 확정 → 결과 draft
 export { scheduleWeeklyNews } from "./scheduleWeeklyNews"; // 금 12:00 KST → 주간 draft

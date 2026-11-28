@@ -7,7 +7,7 @@
  * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 · 잠금 시험 newsNumberLock.test.ts):
  *   - 숫자 칸 라벨 = ALLOWED_STAT_LABELS 뿐(CONTESTANTS · DEADLINE · KST · LANGUAGES ·
  *     ACTIVE TOURNAMENTS · CROWN SCORE). 결과 기사의 CROWN SCORE = 차트 1위의 점수(정수).
- *   - 선두 행 = 순위 · 이름 · Crown Score · 1등 비율(winRate) · 점유율(shareRate)
+ *   - 선두 행 = 순위 · 이름 · Crown Score · 순위점수율(placementRate) · 우승율(winRate) · 선택율(shareRate) — 세 비율 정본 이름(D-108)
  *     (LEADER_KEYS). 두 비율은 AI 재료에서 Crown Score 와 같은 줄에만 실린다.
  *   - 대회 전체 참여 횟수(runsTotal)는 결과 기사 AI 재료 줄에만 — 숫자 칸이 아니다.
  *   - 쓸 수 없는 것: 선택 수(voteCount) · 대회 전체 선택 수(totalVotes) · 옛 rate ·
@@ -44,6 +44,7 @@ export const LEADER_KEYS = [
   "name",
   "nameEn",
   "crownScore",
+  "placementRate",
   "winRate",
   "shareRate",
   "isChampion",
@@ -59,9 +60,11 @@ export interface RankingRowLike {
   nameEn?: string;
   /** Crown Score 0~1000 정수. */
   crownScore: number;
-  /** 1등 비율 0~1. */
+  /** 순위점수율 0~1 — 판마다 결승에 얼마나 가까이 올랐는지(D-108 · 2026-11-28부터 기사에 쓸 수 있다). */
+  placementRate: number;
+  /** 우승율 0~1. */
   winRate: number;
-  /** 점유율 0~1 — Match마다 선택받은 비율(NEWS-1 결정 I). */
+  /** 선택율 0~1 — Match마다 선택받은 비율. */
   shareRate: number;
 }
 
@@ -89,6 +92,7 @@ export interface DigestLeader {
   nameEn?: string;
   /** 차트가 점수를 보일 때만(chartScoresShown) — 아니면 칸 자체가 없다. */
   crownScore?: number;
+  placementRate?: number;
   winRate?: number;
   shareRate?: number;
   isChampion?: boolean;
@@ -125,6 +129,7 @@ export function rankingRowFromCache(r: Record<string, unknown>): RankingRowLike 
     name: String(r.name ?? ""),
     nameEn: typeof en === "string" ? en.trim() : "",
     crownScore: Math.round(num(r.crownScore)),
+    placementRate: num(r.placementRate),
     winRate: num(r.winRate),
     shareRate: num(r.shareRate),
   };
@@ -199,7 +204,7 @@ function toLeaders(
       name: r.name,
       ...(r.nameEn ? { nameEn: r.nameEn } : {}),
       ...(withScores
-        ? { crownScore: r.crownScore, winRate: r.winRate, shareRate: r.shareRate }
+        ? { crownScore: r.crownScore, placementRate: r.placementRate, winRate: r.winRate, shareRate: r.shareRate }
         : {}),
       isChampion: championId ? r.contestantId === championId : false,
     }));
@@ -259,6 +264,8 @@ export interface WeeklyCacheLike {
 export function buildWeeklyDigest(args: {
   caches: WeeklyCacheLike[];
   asOf: string;
+  /** 진행 중인 대회 수(공개된 진행 중 대회만 — NEWS-2). 없으면 옛 방식(대회 수 그대로). */
+  activeCount?: number;
 }): NewsDigest {
   const leaders: DigestLeader[] = args.caches
     .filter((c) => chartScoresShown(c.runsTotal))
@@ -271,6 +278,7 @@ export function buildWeeklyDigest(args: {
             name: top.name,
             ...(top.nameEn ? { nameEn: top.nameEn } : {}),
             crownScore: top.crownScore,
+            placementRate: top.placementRate,
             winRate: top.winRate,
             shareRate: top.shareRate,
             tournamentTitle: c.title,
@@ -286,7 +294,7 @@ export function buildWeeklyDigest(args: {
     .slice(0, TOP_N);
 
   const stats: EvidenceStat[] = [
-    { label: "ACTIVE TOURNAMENTS", value: String(args.caches.length) },
+    { label: "ACTIVE TOURNAMENTS", value: String(args.activeCount ?? args.caches.length) },
   ];
   return { asOf: args.asOf, leaders, stats };
 }

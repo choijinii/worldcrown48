@@ -8,7 +8,7 @@
  * 층마다 상한(TIO_LAYER_LIMITS)은 시험(tioKnowledge.test.ts)이 막는다 — 길면 AI 가 뒤쪽 규칙을 덜 지킨다.
  * 외신(press) 장은 자리만 있다 — 외신 지시문(pressPrompt.ts)을 옮기는 일은 A줄 newsdesk 탭 몫.
  */
-import { CHART_RATE_TERMS, UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
+import { CHART_RATE_TERMS, NON_CANONICAL_RATE_NAMES_KO, UNTRANSLATABLE_PROPER_NOUNS } from "./displayTerms";
 
 /** 기사 종류 — 3층 장 · 4층 줄의 kinds 가 쓰는 이름. */
 export const NEWS_KINDS = ["press", "open", "result", "weekly", "column"] as const;
@@ -56,8 +56,8 @@ export const TIO_FACT_SHEET = [
   "20. 대회마다 차트(Chart)가 있다. 차트는 마감 전에도, 로그인하지 않아도 볼 수 있다.",
   "21. 차트에 나오는 숫자는 Crown Score(0~1000의 정수) 하나다. 대회 전체에서 끝까지 마친 판이 10판이 되기 전에는 점수를 보이지 않는다.",
   "22. Crown Score는 팬의 선택만으로 만든다. 빌보드 등 바깥 차트 숫자는 섞지 않는다. 바깥 차트는 기사에서 인용만 한다.",
-  '23. 기사에 쓸 수 있는 숫자: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수("참여"로 씀) · 1등 비율과 점유율(Match마다 선택받은 비율 · 둘 다 Crown Score 순위와 함께만).',
-  "24. 기사에 쓰지 않는 숫자: 선택 수(몇 번 골렸는지) · 득표수 · 선택 비율(대회 전체 선택 중 비율 · 폐기) · 1등 횟수 · 결승에 오른 횟수 · Match에 나온 횟수 · 순위점수율.",
+  '23. 기사에 쓸 수 있는 숫자: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수("참여"로 씀) · 순위를 정하는 세 비율(정본 이름: 선택율 · 순위점수율 · 우승율 — 순위점수율은 필요하면 설명을 붙인다) · 순위와 관계없는 비율(외신 인용 등).',
+  "24. 기사에 쓰지 않는 것: 선택 수(몇 번 골렸는지) · 득표수 · 1등 횟수 · 결승에 오른 횟수 · Match에 나온 횟수 · 세 비율을 정본이 아닌 이름(선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율 등)으로 쓰는 것 · 세 비율이 아닌 비율을 순위나 Crown Score를 정하거나 영향을 주는 것처럼 쓰는 것.",
   '25. Crown Score는 "얻었다"가 아니라 "기록했다"로 쓴다.',
   "",
   "마. 화면과 장소 이름",
@@ -111,19 +111,21 @@ export const TIO_FORBIDDEN_WORDS = [
 ] as const;
 
 /**
- * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 · NEWS-1 결정 I 로 "선택 비율" → "점유율").
- * 글자 그대로 잠금 시험(newsNumberLock.test.ts)이 지킨다.
+ * 기사 숫자 허용 목록 (대표 확정 2026-11-25 · T5 PR 2 → 2026-11-28 D-108: 세 비율 정본 이름 · 순위점수율 허용 ·
+ * 순위와 관계없는 비율 허용). 글자 그대로 잠금 시험(newsNumberLock.test.ts)이 지킨다.
  */
 export const NUMBER_RULE_LINES = [
-  "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 1등 비율 · 점유율 · 참여 팬 수 · 대회 전체 참여 횟수.",
-  "   1등 비율과 점유율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
-  "   선택 수 · 득표수 · 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수 · 순위점수율은 쓰지 않는다. 참여 횟수는 '판'이 아니라 '참여'로 쓴다.",
+  "   숫자는 허용 목록의 숫자만 쓴다: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수 · 순위를 정하는 세 비율(순위점수율 · 우승율 · 선택율) · 순위와 관계없는 비율(외신 인용 등).",
+  "   세 비율은 Crown Score 순위와 함께만 쓴다. Crown Score는 '얻었다'가 아니라 '기록했다'로 쓴다.",
+  "   순위점수율을 쓸 때 설명이 필요하면 marketing/00_strategy/CROWN_SCORE_v1.1.md 의 정의를 따라 한 문장으로 붙인다 — 정의: 순위점수율 = (받은 순위 점수 합계 ÷ 대회 전체 판수) ÷ 10. 판마다 1등 10점 · 2등(결승에 오른 나머지 둘) 5점 · 3등(6강에서 멈춘 셋) 2점을 받으며, 매 판 1등이면 100%다.",
+  `   세 비율을 정본이 아닌 이름(${NON_CANONICAL_RATE_NAMES_KO.join(" · ")})으로 쓰지 않는다. 세 비율이 아닌 비율을 순위나 Crown Score를 정하거나 영향을 주는 것처럼 쓰지 않는다.`,
+  "   선택 수 · 득표수 · 1등 횟수 · 결승 오른 횟수 · 대결에 나온 횟수는 쓰지 않는다. 참여 횟수는 '판'이 아니라 '참여'로 쓴다.",
 ] as const;
 
-/** 두 비율의 3언어 낱말 — en·es 원문 초안도 차트 설명창(chart.score.help)과 같은 말을 쓰게(검토 M-3). */
+/** 세 비율의 3언어 낱말 — en·es 원문 초안도 차트 설명창(chart.score.help)과 같은 말을 쓰게(검토 M-3). */
 export const CHART_TERM_RULE_LINE =
-  `   ${CHART_RATE_TERMS.win.ko} · ${CHART_RATE_TERMS.pick.ko}은 영어로 ${CHART_RATE_TERMS.win.en} · ${CHART_RATE_TERMS.pick.en}, ` +
-  `스페인어로 ${CHART_RATE_TERMS.win.es} · ${CHART_RATE_TERMS.pick.es} 로 쓴다(차트 설명창과 같은 말).`;
+  `   ${CHART_RATE_TERMS.place.ko} · ${CHART_RATE_TERMS.win.ko} · ${CHART_RATE_TERMS.pick.ko}은 영어로 ${CHART_RATE_TERMS.place.en} · ${CHART_RATE_TERMS.win.en} · ${CHART_RATE_TERMS.pick.en}, ` +
+  `스페인어로 ${CHART_RATE_TERMS.place.es} · ${CHART_RATE_TERMS.win.es} · ${CHART_RATE_TERMS.pick.es} 로 쓴다(차트 설명창과 같은 말).`;
 
 /**
  * 2층 — 문체 스킬(공통). 옛 NEWS_STYLE_GUIDE 7개 지침(§5.5 · 기사 작성 지침 4가지 2026-07-22 포함) +

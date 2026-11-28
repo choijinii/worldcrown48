@@ -71,7 +71,7 @@ export interface CrownRankingEntry extends RankingEntry {
   placementRate: number;
   /** 우승율 (0~1) — 저장 전용. */
   winRate: number;
-  /** 점유율 (0~1) — 저장 전용. 정본의 점유율은 옛 `rate` 와 **분모가 다르다.** */
+  /** 선택율 (0~1) — 저장 전용. 정본의 선택율은 옛 `rate` 와 **분모가 다르다.** */
   shareRate: number;
 }
 

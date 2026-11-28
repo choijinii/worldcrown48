@@ -235,11 +235,17 @@ export interface ArticleDoc {
    * 옛 기사 · 손 초안에는 칸이 없다. 비어 있으면 걸린 것 없음.
    */
   checkWarnings?: ArticleCheckWarning[];
+  /** NEWS-2 결정 J — 검사한 글의 사본(서버만 씀). 발행하는 글이 이것과 같아야 발행된다(firestore.rules). */
+  checkedText?: { title: LocalizedText; subhead: LocalizedText; body: LocalizedBlocks };
+  /** NEWS-2 결정 J — 풀리지 않은 경고가 있으면 true(서버만 씀) → 발행 불가. */
+  checkBlocked?: boolean;
+  /** NEWS-2 [경고 풀기]로 푼 경고(서버만 씀 · 쌓임). by = 관리자 uid · at = ms. */
+  clearedWarnings?: (ArticleCheckWarning & { by: string; at: number })[];
 }
 
-/** 생성 뒤 검사 경고 한 칸 — rule 금지 낱말 · 틀린 숫자 · 목록 밖 퍼센트 / field "title" · "subhead" · "body.N". */
+/** 생성 뒤 검사 경고 한 칸 — rule 금지 낱말 · 틀린 숫자 · 비정본 비율 이름 · 순위를 정한다는 비율 / field "title" · "subhead" · "body.N". */
 export interface ArticleCheckWarning {
-  rule: "forbidden_word" | "wrong_number" | "percent";
+  rule: "forbidden_word" | "wrong_number" | "rate_name" | "rate_claim";
   lang: Lang;
   field: string;
   match: string;

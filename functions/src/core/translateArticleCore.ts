@@ -128,6 +128,7 @@ function chartTermLines(target: Lang): string[] {
     target === "en" ? `  - ${t.ko} · ${t.es} → ${t.en}` : `  - ${t.ko} · ${t.en} → ${t.es}`;
   return [
     "차트 낱말 — 번역문에서는 오른쪽 낱말을 그대로 쓴다:",
+    row(CHART_RATE_TERMS.place),
     row(CHART_RATE_TERMS.win),
     row(CHART_RATE_TERMS.pick),
     "  - Crown Score → Crown Score",

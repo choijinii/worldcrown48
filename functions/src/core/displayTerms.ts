@@ -51,13 +51,18 @@ export const TRANSLATION_GLOSSARY = [
 ].join("\n");
 
 /**
- * 차트 비율 낱말 3언어 (기사 숫자 허용 목록 · 대표 확정 2026-11-25). 차트 설명창
- * `lib/i18n/messages.ts` "chart.score.help" 의 낱말과 같아야 한다 — functions 는 lib 를
- * import 하지 않으므로 newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다.
+ * 순위를 정하는 세 비율의 정본 이름(대표 2026-11-28 · 원장 D-108 — D-106 "점유율" 바뀜). 차트 설명창
+ * `lib/i18n/messages.ts` "chart.score.help" 의 낱말과 같아야 한다 — functions 는 lib 를 import 하지 않으므로
+ * newsNumberLock.test.ts 가 그 파일을 글자로 읽어 대조한다. 영어 · 스페인어는 대표 승인 전이라 지금 글자 그대로.
  */
 export const CHART_RATE_TERMS = {
-  /** 1등 비율 = winRate */
-  win: { ko: "1등 비율", en: "Wins", es: "Victorias" },
-  /** 점유율 = shareRate · Match마다 선택받은 비율(NEWS-1 결정 I · 옛 "선택 비율" 이름 바뀜). en · es 는 대표 확인 전 그대로. */
-  pick: { ko: "점유율", en: "Picks", es: "Elecciones" },
+  /** 순위점수율 = placementRate */
+  place: { ko: "순위점수율", en: "Reach", es: "Alcance" },
+  /** 우승율 = winRate */
+  win: { ko: "우승율", en: "Wins", es: "Victorias" },
+  /** 선택율 = shareRate · Match마다 선택받은 비율 */
+  pick: { ko: "선택율", en: "Picks", es: "Elecciones" },
 } as const;
+
+/** 세 비율을 가리키는 정본이 아닌 이름(D-108) — 사실표 24번 · 생성 뒤 검사(rate_name)가 함께 쓴다. */
+export const NON_CANONICAL_RATE_NAMES_KO = ["선택 비율", "점유율", "승률", "득표율", "1등 비율"] as const;

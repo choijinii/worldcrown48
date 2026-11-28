@@ -21,7 +21,7 @@ import {
 } from "../_news/articleDoc";
 import { parseNewsDraftReply } from "./newsDraftAssembly";
 import { translateArticleCore } from "./translateArticleCore";
-import { checkDraftText } from "./newsCheck";
+import { checkPatchFor } from "./newsCheckState";
 
 export interface AssembleDeps {
   createMessage: (prompt: string) => Promise<string>;
@@ -73,6 +73,7 @@ export async function assembleLocalizedDraft(
     evidence: args.evidence,
     tournamentId: args.tournamentId,
   });
-  // 4. NEWS-1 5층 생성 뒤 검사 — 번역까지 끝난 3언어를 본다. 경고만 남기고 상태(draft)는 그대로.
-  return { ...draft, checkWarnings: checkDraftText(draft) };
+  // 4. NEWS-1 5층 생성 뒤 검사 — 번역까지 끝난 3언어를 본다. 상태(draft)는 그대로.
+  //    NEWS-2 결정 J — 검사한 글(checkedText)과 잠금(checkBlocked)도 함께 적는다: 경고가 남으면 발행 규칙이 막는다.
+  return { ...draft, ...checkPatchFor(draft as unknown as Record<string, unknown>) };
 }

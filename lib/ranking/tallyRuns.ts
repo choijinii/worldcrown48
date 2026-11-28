@@ -18,11 +18,11 @@
  *     대결에 나온 횟수 = 완주 판수 + (1~4라운드에서 뽑힌 횟수)
  *                    = runsTotal + picks − wins
  *
- * 가 되어, 대진 씨앗(`bracket_seeds`)을 다시 돌리지 않고도 점유율이 나온다.
+ * 가 되어, 대진 씨앗(`bracket_seeds`)을 다시 돌리지 않고도 선택율이 나온다.
  * (정본 §4 계산 예시의 4,450과 정확히 일치한다 — 1000 + 3750 − 300.)
  *
  * ⚠️ **전제**: 한 대회의 Contestant 48개는 모든 판의 라운드 1에 나온다. 대회가 열린 뒤
- * Contestant을 갈아끼우면 그 전에 끝난 판에도 나온 것으로 세어져 점유율이 낮게 잡힌다.
+ * Contestant을 갈아끼우면 그 전에 끝난 판에도 나온 것으로 세어져 선택율이 낮게 잡힌다.
  * 지금 The Lab은 공개 후 Contestant 교체를 정식 흐름으로 두지 않아 실제로는 생기지 않는다.
  *
  * IMPORT-FREE BY DESIGN — `functions/scripts/copy-ranking.mjs` 가 크론으로 복사한다.
@@ -145,7 +145,7 @@ export function tallyRuns(votes: RunVote[]): RunsTally {
 
 /**
  * 대결에 나온 횟수 — 위 주석의 `runsTotal + picks − wins`.
- * 점유율의 분모이고, 직접 세어지지 않는 유일한 값이다.
+ * 선택율의 분모이고, 직접 세어지지 않는 유일한 값이다.
  */
 export function appearancesOf(accum: ContestantAccum, runsTotal: number): number {
   return runsTotal + accum.picks - accum.wins;

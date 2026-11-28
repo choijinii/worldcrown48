@@ -41,8 +41,8 @@ const FACTS = [
   "20. 대회마다 차트(Chart)가 있다. 차트는 마감 전에도, 로그인하지 않아도 볼 수 있다.",
   "21. 차트에 나오는 숫자는 Crown Score(0~1000의 정수) 하나다. 대회 전체에서 끝까지 마친 판이 10판이 되기 전에는 점수를 보이지 않는다.",
   "22. Crown Score는 팬의 선택만으로 만든다. 빌보드 등 바깥 차트 숫자는 섞지 않는다. 바깥 차트는 기사에서 인용만 한다.",
-  '23. 기사에 쓸 수 있는 숫자: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수("참여"로 씀) · 1등 비율과 점유율(Match마다 선택받은 비율 · 둘 다 Crown Score 순위와 함께만).',
-  "24. 기사에 쓰지 않는 숫자: 선택 수(몇 번 골렸는지) · 득표수 · 선택 비율(대회 전체 선택 중 비율 · 폐기) · 1등 횟수 · 결승에 오른 횟수 · Match에 나온 횟수 · 순위점수율.",
+  '23. 기사에 쓸 수 있는 숫자: 엔트리 수 · 마감 날짜 · 지원 언어 · 카테고리 · 대회 종류 · 진행 중인 대회 수 · 순위 · Crown Score · 순위 변동 · Crown Score 변동 · 1위를 지킨 기간 · 참여 팬 수 · 대회 전체 참여 횟수("참여"로 씀) · 순위를 정하는 세 비율(정본 이름: 선택율 · 순위점수율 · 우승율 — 순위점수율은 필요하면 설명을 붙인다) · 순위와 관계없는 비율(외신 인용 등).',
+  "24. 기사에 쓰지 않는 것: 선택 수(몇 번 골렸는지) · 득표수 · 1등 횟수 · 결승에 오른 횟수 · Match에 나온 횟수 · 세 비율을 정본이 아닌 이름(선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율 등)으로 쓰는 것 · 세 비율이 아닌 비율을 순위나 Crown Score를 정하거나 영향을 주는 것처럼 쓰는 것.",
   '25. Crown Score는 "얻었다"가 아니라 "기록했다"로 쓴다.',
   "26. The Pitch = 홈 · The Arena = 대회를 하는 곳 · The Lab = 운영자가 대회를 만드는 곳 · Record Room = 기록실(Charts · Hall of Fame 자리) · Newsroom = 뉴스 · Locker Room = 내 계정.",
   "27. 우승 장면을 보여 주는 별도 연출(시상식 장면)은 없다. 우승의 기쁨은 크라운 카드가 맡는다.",
@@ -145,16 +145,25 @@ describe("조립 순서 1 → 2 → 3 → 4 → 할 일 → 데이터 → 출력
   });
 });
 
-describe("점유율 이름(결정 I)", () => {
-  it("한국어 = 점유율 · en · es 는 대표 확인 전 그대로(Picks · Elecciones)", async () => {
+describe("세 비율 이름(D-108)", () => {
+  it("세 비율 정본 이름(대표 2026-11-28) — 선택율 · 우승율 · 순위점수율 · en · es 는 지금 글자 그대로", async () => {
     const { CHART_RATE_TERMS } = await import("../core/displayTerms");
-    expect(CHART_RATE_TERMS.pick).toEqual({ ko: "점유율", en: "Picks", es: "Elecciones" });
+    expect(CHART_RATE_TERMS).toEqual({
+      place: { ko: "순위점수율", en: "Reach", es: "Alcance" },
+      win: { ko: "우승율", en: "Wins", es: "Victorias" },
+      pick: { ko: "선택율", en: "Picks", es: "Elecciones" },
+    });
   });
-  it("지시문에 '선택 비율' 0건 — 사실표 24번(폐기 설명)만 예외", () => {
+  it("비정본 이름(선택 비율 · 점유율 · 승률 · 1등 비율)은 '쓰지 않는다' 줄에만 — 사실표 24번 · 문체 금지 줄", () => {
     for (const kind of ["open", "result", "weekly", "column"] as const) {
       const p = buildTioPrompt({ kind, task: "t", policyLines: [], data: "d" });
-      expect(p.replace(TIO_FACT_SHEET, "")).not.toContain("선택 비율");
+      const lines = p.split("\n").filter((l) => /선택 비율|점유율|승률|1등 비율/.test(l));
+      expect(lines.length).toBeGreaterThan(0);
+      for (const l of lines) expect(l, l).toMatch(/쓰지 않는/);
     }
-    expect(TIO_FACT_SHEET.split("\n").filter((l) => l.includes("선택 비율"))).toEqual([FACTS[23]]);
+  });
+  it("순위점수율 설명 줄 — CROWN_SCORE_v1.1.md 정의를 따라 한 문장", () => {
+    expect(TIO_STYLE_SKILL).toContain("순위점수율을 쓸 때 설명이 필요하면 marketing/00_strategy/CROWN_SCORE_v1.1.md 의 정의를 따라 한 문장으로 붙인다");
+    expect(TIO_STYLE_SKILL).toContain("(받은 순위 점수 합계 ÷ 대회 전체 판수) ÷ 10");
   });
 });

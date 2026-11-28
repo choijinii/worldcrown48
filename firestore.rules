@@ -478,10 +478,42 @@ service cloud.firestore {
     // Write requires the admin claim — the console publishes/edits/내리기 directly
     // (client), and the generateNewsDraft callable + triggers + cron write via the
     // admin SDK (bypasses rules). A Voter must NEVER create or publish an article.
+    // NEWS-2 결정 J(대표 2026-11-27) — 경고가 남은 초안은 발행하지 못한다.
+    // 서버만 쓰는 칸 넷(checkWarnings · checkedText · checkBlocked · clearedWarnings)은 관리자도 브라우저로 못 바꾼다
+    // (생성 파이프라인 · onNewsCheck 트리거 · clearNewsCheckWarnings 콜러블이 admin SDK 로 쓴다).
+    // 초안 → 발행은 checkBlocked == false 이고 발행하는 글이 서버가 검사한 글(checkedText) 그대로일 때만.
+    // 발행된 기사를 고쳐 저장하거나 내리는 것은 그대로 — 경고는 onNewsCheck 가 적기만 한다.
+    function isNewsAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function newsServerOnlyKeys() {
+      return ['checkWarnings', 'checkedText', 'checkBlocked', 'clearedWarnings'];
+    }
+    function newsPublishPassed() {
+      return resource.data.get('checkBlocked', true) == false
+          && resource.data.get('checkedText', null) != null
+          && request.resource.data.title == resource.data.checkedText.title
+          && request.resource.data.subhead == resource.data.checkedText.subhead
+          && request.resource.data.body == resource.data.checkedText.body;
+    }
     match /news/{slug} {
-      allow read: if resource.data.status == 'published'
-                  || (request.auth != null && request.auth.token.admin == true);
-      allow write: if request.auth != null && request.auth.token.admin == true;
+      allow read: if resource.data.status == 'published' || isNewsAdmin();
+      allow create: if isNewsAdmin()
+                    && request.resource.data.status != 'published'
+                    && !request.resource.data.keys().hasAny(newsServerOnlyKeys());
+      allow update: if isNewsAdmin()
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(newsServerOnlyKeys())
+                    && (request.resource.data.status != 'published'
+                        || resource.data.status == 'published'
+                        || newsPublishPassed());
+      allow delete: if isNewsAdmin();
+    }
+
+    // ── news_check_clears (NEWS-2 [경고 풀기] 기록 — 누가 · 언제 · 어떤 경고) ──
+    // clearNewsCheckWarnings 콜러블(admin SDK)만 쓴다. 관리자는 기록을 읽을 수 있다.
+    match /news_check_clears/{id} {
+      allow read: if isNewsAdmin();
+      allow write: if false;
     }
 
     // ── news_generation (ND-1 rate-limit counter) ──────────────────
