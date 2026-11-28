@@ -167,40 +167,58 @@ Crown Score = (순위점수율 × 0.4 + 우승율 × 0.3 + 선택율 × 0.3) × 
 ### 6-2. Crown Score 설명창 (점수 옆 ? 아이콘)
 
 - 차트에는 **Crown Score 점수만** 보인다. 세 비율을 점수 옆에 나열하지 않는다
-- 설명창은 **공식의 뼈대만** 알려 준다. 엔트리별 수치와 숫자 예시는 넣지 않는다 — 궁금증을 남겨 두기 위해서다
-- 모든 엔트리에 같은 설명이 뜬다
+- 설명창은 **산식 · 점수표 · 예시 1줄 · 세는 판 · 발표 시각을 모두 보인다**(대표 2026-11-28 — 팬이 이해하는 것이 먼저). 엔트리별 수치는 넣지 않는다
+- 모든 엔트리에 같은 설명이 뜬다. 같은 글이 정책 문서 "Crown Score 산정 기준"(`/policies/crown-score`)에도 실린다
+- 세 비율 이름 = 원장 D-108(한국어) · 결정 L(영어 Pick rate · Placement score rate · Champion rate / 스페인어 Tasa de elección · Tasa de puntuación por posición · Tasa de campeón). Reach · Wins · Picks · Share / Alcance · Victorias · Elecciones · Cuota 는 쓰지 않는다
+- 글 = 대표 승인 2026-11-28 17:55 · 18:01(RATE-1 지시서 §3 · 대표가 두 줄을 직접 고침). 코드 = `lib/i18n/messages.ts` `chart.score.help` · 글자 대조 시험 `lib/__tests__/ranking/chartScoreHelp.test.ts`
 
 **KO**
 ```
 Crown Score는 팬들의 선택으로 매겨지는 1000점 만점 점수예요.
-· 순위점수율 40% — 참여마다 결승에 얼마나 가까이 올랐는지
-· 우승율 30% — 결승에서 선택받아 1등이 된 비율
-· 선택율 30% — Match마다 선택받은 비율
+계산: (순위점수율 × 0.4 + 우승율 × 0.3 + 선택율 × 0.3) × 1000
+· 순위점수율 — 판마다 얼마나 높이 올랐는지
+   한 판에서 1등 10점 · 2등 엔트리 2개에게 5점씩 · 3등 엔트리 3개에게 2점씩 → 판마다 받은 점수의 평균 ÷ 10 × 100(%)
+· 우승율 — 결승에서 선택받아 1등이 된 판의 비율
+· 선택율 — Match에 나왔을 때 선택받은 비율
+예: 순위점수율 50% · 우승율 30% · 선택율 80%이면 (0.5×0.4 + 0.3×0.3 + 0.8×0.3) × 1000 = 530점
+· 로그인한 팬이 끝까지 마친 판만 셉니다(게스트의 판은 세지 않아요).
+· 마친 판이 10판을 넘으면 다음 발표 때 점수가 열립니다, 매일 09:00 · 21:00(KST)
+· 1000점은 모든 판에서 1등, 모든 Match에서 선택받아야 나오는 점수예요.
 ```
-
-> 원장 D-108(대표 2026-11-28): 세 비율의 정본 이름 = 순위점수율(placementRate) · 우승율(winRate) · 선택율(shareRate). 설명창 한국어 세 줄도 이 이름(옛 "오른 순위 · 1등 비율 · 점유율"). D-106의 "점유율"은 "선택율"로 바뀜 · 선택 비율 · 점유율 · 승률 · 득표율 · 1등 비율은 정본이 아니다. 영어 · 스페인어 낱말은 대표 승인 뒤 바꾼다(지금 Reach · Wins · Picks / Alcance · Victorias · Elecciones 그대로).
 
 **EN**
 ```
 Crown Score is rated out of 1,000 — shaped entirely by fans' picks.
-· Reach 40% — how close to the final they get each time
-· Wins 30% — how often they're picked No. 1 in the final
-· Picks 30% — how often they're chosen in each Match
+Formula: (Placement score rate × 0.4 + Champion rate × 0.3 + Pick rate × 0.3) × 1,000
+· Placement score rate — how high they climb in each run
+   In each run: No. 1 = 10 points · No. 2 (2 Contestants) = 5 each · No. 3 (3 Contestants) = 2 each → average points per run ÷ 10 × 100 (%)
+· Champion rate — share of runs where they're picked No. 1 in the final
+· Pick rate — how often they're chosen when they appear in a Match
+Example: Placement 50% · Champion 30% · Pick 80% → (0.5×0.4 + 0.3×0.3 + 0.8×0.3) × 1,000 = 530
+· Only completed runs by signed-in fans count (guest runs don't).
+· The score opens at the next update after 10 completed runs, daily at 09:00 · 21:00 (KST)
+· 1,000 means No. 1 in every run and picked in every Match.
 ```
 
 **ES**
 ```
 Crown Score va de 0 a 1000 y lo deciden las elecciones de los fans.
-· Alcance 40 % — qué tan cerca de la final llega en cada participación
-· Victorias 30 % — cuántas veces lo eligen n.º 1 en la final
-· Elecciones 30 % — cuántas veces lo eligen en cada Match
+Fórmula: (Tasa de puntuación por posición × 0,4 + Tasa de campeón × 0,3 + Tasa de elección × 0,3) × 1000
+· Tasa de puntuación por posición — qué tan alto llega en cada participación
+   En cada participación: n.º 1 = 10 puntos · n.º 2 (2 Contestants) = 5 cada uno · n.º 3 (3 Contestants) = 2 cada uno → promedio de puntos por participación ÷ 10 × 100 (%)
+· Tasa de campeón — porcentaje de participaciones en que lo eligen n.º 1 en la final
+· Tasa de elección — cuántas veces lo eligen cuando aparece en un Match
+Ejemplo: posición 50 % · campeón 30 % · elección 80 % → (0,5×0,4 + 0,3×0,3 + 0,8×0,3) × 1000 = 530
+· Solo cuentan las participaciones completas de fans con sesión iniciada (las de invitados no).
+· La puntuación se abre en la siguiente actualización tras 10 participaciones completas, cada día a las 09:00 · 21:00 (KST)
+· 1000 significa n.º 1 en todas las participaciones y elegido en todos los Match.
 ```
 
 **결정 기록**
-- ① 무엇: 차트에는 Crown Score만 보이고, 설명창은 공식의 뼈대만 숫자 예시 없이 알려 준다
-- ② 정의: 공식의 뼈대 = 세 비율의 이름과 비중(40:30:30), 1000점 만점
-- ③ 왜: 세 비율은 팬이 가장 궁금해할 대상이다. 한 번에 다 보여 주면 호기심이 바로 풀려 버린다
-- ④ 아니라고 한 것: 점수 옆에 세 비율 나열(×) · 설명창에 숫자 예시(×) · 엔트리별 수치 표시(×)
+- ① 무엇: 차트에는 Crown Score만 보이고, 설명창은 팬이 산식을 따라 계산할 수 있게 산식 · 순위 점수표 · 세 비율의 뜻 · 예시 계산 1줄 · 세는 판 · 발표 시각 · 1000점의 뜻을 모두 보인다
+- ② 정의: 글은 위 3언어 그대로. 예시 530 = 코드의 Crown Score 함수로 다시 계산한 값과 같다
+- ③ 왜: "티오와 내가 아는 게 중요한 게 아니라 팬들이 이해하는가, 무엇을 더 알고 싶어 하는가가 더 중요하다"(대표 2026-11-28). 공개해야 산식이 투명해진다
+- ④ 아니라고 한 것: 점수 옆에 세 비율 나열(×) · 엔트리별 수치 표시(×) · ~~설명창은 공식의 뼈대만 · 숫자 예시는 넣지 않는다(2026-09-24)~~ → 2026-11-28 바뀜
 - 런칭 후 구상(일정 미정): 엔트리별 세부 차트와 분석을 보는 별도 페이지
 
 ### 6-3. 화면 문안을 지을 때 지킬 것
