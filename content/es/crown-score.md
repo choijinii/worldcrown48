@@ -39,7 +39,7 @@ Ejemplo: posición 50 % · campeón 30 % · elección 80 % → (0,5×0,4 + 0,3×
 | n.º 1 | 1 | 10 |
 | n.º 2 | 2 | 5 cada uno |
 | n.º 3 | 3 | 2 cada uno |
-| Resto | 42 | 0 |
+| Los demás | 42 | 0 |
 
 Total de puntos que se reparten en cada participación = 26 (10 + 5×2 + 2×3)
 
